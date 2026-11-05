@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/net/net_memory.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/net/net_memory.h"  // corresponding header
 // std
@@ -268,7 +268,7 @@ void d_net_pipe_close(
 
 /*
 d_net_pipe_shutdown
-  The mode arrives validated: net.c checks it before dispatching.
+  The mode arrives validated: net_common.c checks it before dispatching.
 */
 static enum dj_net_error
 d_net_pipe_shutdown(

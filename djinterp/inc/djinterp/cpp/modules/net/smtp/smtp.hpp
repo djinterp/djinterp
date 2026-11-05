@@ -26,10 +26,10 @@
 * the rest) at every level and also result<T> from C++11. Handlers are
 * re_std::function, message bodies re_std::string_view, and the server's
 * threads, lock and condition are dmutex.h's. Enumerations are scoped in
-* structs (decision 3.4): smtp::error::value. Link smtp's C sources, net.c,
-* tcp.c, the SSL kernel and its OpenSSL-family engine, net's codec,
-* sink_common.c and dmutex.c, with the TLS library. The client holds the
-* kernel's TLS session, so the header needs a 64-bit integer type, and
+* structs (decision 3.4): smtp::error::value. Link smtp's C sources,
+* net_common.c, tcp.c, the SSL kernel and its OpenSSL-family engine, net's
+* codec, sink_common.c and dmutex.c, with the TLS library. The client holds
+* the kernel's TLS session, so the header needs a 64-bit integer type, and
 * compiles to nothing where the build has none, as smtp_client.h does.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/modules/net/smtp/smtp.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                fuzz_dregex.c
+/*******************************************************************************
+* djinterp [c]                                                     fuzz_dregex.c
 *
 *   Differential test of the ERE engine against the system POSIX matcher.
 *     Random patterns are generated over a three-letter alphabet and run
@@ -12,19 +12,20 @@
 * is free to differ there and a difference would not be a finding.
 *
 *
-* path:      /tests/dawk/fuzz_dregex.c
+* path:      /tests/djinterp/c/util/dregex/fuzz_dregex.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
-#include "../../inc/djinterp/c/dawk/dregex.h"  // corresponding header
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.11.04
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/util/dregex.h"  // the engine under test
 // std
-#include <regex.h>   // regcomp, regexec, regfree, REG_EXTENDED
-#include <stdint.h>  // uint64_t
+#include <regex.h>      // regcomp, regexec, regfree, REG_EXTENDED
+#include <stdio.h>      // printf, fprintf
+#include <stdlib.h>     // strtoul, EXIT_SUCCESS
+#include <string.h>     // strlen
 #include <sys/types.h>  // ssize_t, for reporting an absent group
-#include <stdio.h>   // printf, fprintf
-#include <stdlib.h>  // strtoul, EXIT_SUCCESS
-#include <string.h>  // strlen
+// re_std
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint64_t
 
 
 static uint64_t g_state = 0x2545F4914F6CDD1DULL;
@@ -39,8 +40,8 @@ Parameter(s):
 Return:
   A pseudo-random 64-bit value.
 */
-static uint64_t
-d_fuzz_next(void)
+static
+uint64_t d_fuzz_next(void)
 {
     g_state ^= (g_state << 13);
     g_state ^= (g_state >> 7);
@@ -59,8 +60,8 @@ Parameter(s):
 Return:
   A value in the range [0, _bound).
 */
-static unsigned
-d_fuzz_below(
+static
+unsigned d_fuzz_below(
     unsigned _bound
 )
 {
@@ -80,8 +81,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fuzz_atom(
+static
+void d_fuzz_atom(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -101,8 +102,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fuzz_branch(
+static
+void d_fuzz_branch(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -180,8 +181,8 @@ Parameter(s):
 Return:
   none.
 */
-static void
-d_fuzz_alternation(
+static
+void d_fuzz_alternation(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -206,8 +207,8 @@ d_fuzz_alternation(
 }
 
 
-static void
-d_fuzz_atom(
+static
+void d_fuzz_atom(
     char*   _buffer,
     size_t* _used,
     size_t  _limit,
@@ -289,8 +290,7 @@ Parameter(s):
 Return:
   Zero when every comparison agreed, and one otherwise.
 */
-int
-main(
+int main(
     int    argc,
     char** argv
 )

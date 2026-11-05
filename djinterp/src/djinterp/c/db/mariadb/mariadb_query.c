@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_query.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -33,6 +33,7 @@
 #include <string.h>  // memcpy, strcmp, strlen
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 #include "../db_internal.h"  // dj_internal_db_buffer
 #include "../../../../../inc/djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // D_INTERNAL_MARIADB
 #include "./mariadb_internal.h"  // mysql.h, the floor, the plumbing
@@ -80,9 +81,19 @@ int d_internal_mariadb_bind_attributes(
     struct dj_mariadb* _db
 )
 {
-    const size_t       count = _db->attribute_count;
-    MYSQL_BIND* const  binds = (MYSQL_BIND*)calloc(count, sizeof(MYSQL_BIND));
-    const char** const names = (const char**)malloc(count * sizeof(char*));
+    const size_t count       = _db->attribute_count;
+    size_t       names_bytes = 0;
+
+    // the names' bytes first, so that a count too large allocates nothing
+    if (d_ckd_mul(&names_bytes,
+                  count,
+                  sizeof(char*)))
+    {
+        return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+    }
+
+    MYSQL_BIND* const  binds  = (MYSQL_BIND*)calloc(count, sizeof(MYSQL_BIND));
+    const char** const names  = (const char**)malloc(names_bytes);
     int                result = 0;
 
     // room for the call's arrays

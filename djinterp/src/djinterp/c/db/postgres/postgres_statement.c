@@ -37,7 +37,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_statement.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -56,6 +56,7 @@
 #include <string.h>  // memcpy, memset, strcmp, strlen
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, dj_db_rows
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 #include "../db_internal.h"  // the rows builder, formatting, numbers
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
@@ -740,21 +741,42 @@ int d_internal_postgres_room(
     int                           _count
 )
 {
-    _statement->count = (_count > 0) ? (size_t)_count : 0u;
+    const size_t count        = (_count > 0) ? (size_t)_count : 0u;
+    size_t       value_bytes  = 0u;
+    size_t       text_bytes   = 0u;
+    size_t       int_bytes    = 0u;
 
     // nothing to bind
-    if (_statement->count == 0u)
+    if (count == 0u)
     {
+        _statement->count = 0u;
+
         return 0;
     }
 
+    // every array's bytes first, so that a count too large allocates nothing
+    // and leaves the statement with none
+    if ( (d_ckd_mul(&value_bytes,
+                    count,
+                    sizeof(struct dj_internal_postgres_value)))  ||
+         (d_ckd_mul(&text_bytes,
+                    count,
+                    sizeof(const char*)))                        ||
+         (d_ckd_mul(&int_bytes,
+                    count,
+                    sizeof(int))) )
+    {
+        _statement->count = 0u;
+
+        return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    _statement->count   = count;
     _statement->values  = (struct dj_internal_postgres_value*)malloc(
-                              _statement->count *
-                              sizeof(struct dj_internal_postgres_value));
-    _statement->texts   = (const char**)malloc(_statement->count *
-                                               sizeof(const char*));
-    _statement->lengths = (int*)malloc(_statement->count * sizeof(int));
-    _statement->formats = (int*)malloc(_statement->count * sizeof(int));
+                              value_bytes);
+    _statement->texts   = (const char**)malloc(text_bytes);
+    _statement->lengths = (int*)malloc(int_bytes);
+    _statement->formats = (int*)malloc(int_bytes);
 
     if ( (!_statement->values)  ||
          (!_statement->texts)   ||

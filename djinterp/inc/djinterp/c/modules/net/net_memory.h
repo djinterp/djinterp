@@ -14,13 +14,14 @@
 * D_NET_ERROR_WOULD_BLOCK and a full one a write, and a chunk limit forces
 * short reads and writes, so every path a non-blocking caller resumes along
 * gets exercised.
-*   C99 or later; declarations have C linkage. Link net_memory.c and net.c.
+*   C99 or later; declarations have C linkage. Link net_memory.c and
+* net_common.c.
 *
 *
 * path:      /inc/djinterp/c/modules/net/net_memory.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*

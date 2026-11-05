@@ -15,13 +15,13 @@
 *   C++98 or later. connect and accept fill an open_result in place at every
 * level, and from C++11, where it can be moved, also return one; the
 * connection and the acceptor move from C++11 and copy at no level. Link
-* tcp.c and net.c.
+* tcp.c and net_common.c.
 *
 *
 * path:      /inc/djinterp/cpp/modules/net/tcp/tcp.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*

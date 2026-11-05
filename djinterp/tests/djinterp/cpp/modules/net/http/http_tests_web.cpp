@@ -3,21 +3,27 @@
 *
 * Checks that web.hpp's HTTP names are net/http/http.hpp's while HTTP moves
 * out of web.hpp.
-*   At compile time, each old name is the same type as the new one; at run
-* time, web.hpp's helpers behave as before: to_string's names, "" for an
-* extension method, method_from_string still ignoring case, the old classes
-* and reason phrases, and the constant namespaces. C++17 and later, as
-* web.hpp is.
+*   At compile time, each old name is the type of the new one's values
+* (http.hpp scopes its enumerations in structs, decision 3.4); at run time,
+* web.hpp's helpers behave as before: to_string's names, "" for an extension
+* method, method_from_string still ignoring case, the classes under net's
+* names, web.hpp's own reason phrases, and the constant namespaces. C++17 and
+* later, as web.hpp is.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/http/http_tests_web.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/net/web.hpp"  // the aliases under test
 // std
 #include <cstdio>       // std::printf
+
+// web.hpp is empty below its floor, so the suite says it has nothing to run
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <cstring>      // std::strcmp
 #include <type_traits>  // std::is_same
 
@@ -25,15 +31,18 @@
 namespace web = ::djinterp::web;
 namespace net = ::djinterp::net;
 
-static_assert(std::is_same<web::http_method, net::http_method>::value,
-              "web::http_method must be net::http_method");
-static_assert(std::is_same<web::http_version, net::http_version>::value,
-              "web::http_version must be net::http_version");
-static_assert(std::is_same<web::http_status, net::http_status>::value,
-              "web::http_status must be net::http_status");
+static_assert(std::is_same<web::http_method,
+                           net::http_method::value>::value,
+              "web::http_method must be net::http_method::value");
+static_assert(std::is_same<web::http_version,
+                           net::http_version::value>::value,
+              "web::http_version must be net::http_version::value");
+static_assert(std::is_same<web::http_status,
+                           net::http_status::value>::value,
+              "web::http_status must be net::http_status::value");
 static_assert(std::is_same<web::status_category,
-                           net::http_status_class>::value,
-              "web::status_category must be net::http_status_class");
+                           net::http_status_class::value>::value,
+              "web::status_category must be net::http_status_class::value");
 
 /*
 same
@@ -71,7 +80,9 @@ int main()
     const bool statuses = ( (web::classify(404) ==
                              web::status_category::client_error)          &&
                             (web::classify(200) ==
-                             web::status_category::success)               &&
+                             web::status_category::successful)            &&
+                            (web::classify(99) ==
+                             web::status_category::none)                  &&
                             (same(web::reason_phrase(web::http_status::ok),
                                   "OK"))                                  &&
                             (same(web::reason_phrase(404),
@@ -99,3 +110,19 @@ int main()
 
     return (passed == 4) ? 0 : 1;
 }
+
+#else
+
+/*
+main
+  Below C++17 web.hpp declares nothing; the suite says so and passes.
+*/
+int main()
+{
+    std::printf("djinterp [net] web.hpp's HTTP aliases: C++17 and later; "
+                "0/0 checks\n");
+
+    return 0;
+}
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

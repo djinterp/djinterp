@@ -29,7 +29,7 @@
 * open_result in place at every level, and from C++11 also return one; the
 * context and the connection move from C++11 and copy at no level.
 * Enumerations are scoped in structs (decision 3.4). Link ssl.c,
-* ssl_openssl.c, net.c, tcp.c, dmutex.c, sink_common.c and the codec's
+* ssl_openssl.c, net_common.c, tcp.c, dmutex.c, sink_common.c and the codec's
 * sources, with the engine's libraries: -lssl -lcrypto for OpenSSL's.
 *
 *   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/modules/net/tls/tls.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*

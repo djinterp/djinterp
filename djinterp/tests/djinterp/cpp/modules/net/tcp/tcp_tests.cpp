@@ -6,13 +6,13 @@
 * unix-domain path of its own. A thread of dmutex.h's plays the second party
 * where one is needed, at every level. The suite runs from C++98: connect and
 * accept fill an open_result in place everywhere, and the moves and the
-* by-value forms are checked from C++11. Link tcp.c, net.c and dmutex.c.
+* by-value forms are checked from C++11. Link tcp.c, net_common.c and dmutex.c.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/tcp/tcp_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./tcp_tests.hpp"  // corresponding header
 // std

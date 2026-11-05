@@ -7,13 +7,13 @@
 * Message Batches APIs document -- a message, an error, an event stream, and
 * a batch that is in progress, then ended, then has results. It keeps the
 * last request it was sent, for the tests to read back. The suite runs from
-* C++98. Link curl.c, net.c, tcp.c and dmutex.c, and -lcurl.
+* C++98. Link curl.c, net_common.c, tcp.c and dmutex.c, and -lcurl.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/api/claude_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./claude_tests.hpp"  // corresponding header
 // std

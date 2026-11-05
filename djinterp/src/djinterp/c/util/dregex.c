@@ -19,13 +19,15 @@
 * path:      /src/djinterp/c/util/dregex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
-#include "../../../../inc/djinterp/c/dawk/dregex.h"  // corresponding header
+#include "../../../../inc/djinterp/c/util/dregex.h"  // corresponding header
 // std
 #include <ctype.h>   // isalpha, isdigit, isspace and the other class tests
 #include <stdlib.h>  // malloc, realloc, free
 #include <string.h>  // memset, memcpy, strncmp
+// djinterp
+#include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 
 
 //==============================================================================
@@ -349,12 +351,24 @@ d_internal_node_new(
     // grow the pool when it is full
     if (_parser->node_count == _parser->node_capacity)
     {
-        const size_t capacity = (_parser->node_capacity == 0)
-                              ? 16
-                              : (_parser->node_capacity * 2);
+        size_t capacity = 16;
+        size_t bytes    = 0;
 
-        struct dj_internal_node* grown =
-            realloc(_parser->nodes, capacity * sizeof(*grown));
+        // the pool doubles; abandon parsing where a size would wrap
+        if ( ( (_parser->node_capacity != 0)                       &&
+               (d_ckd_mul(&capacity,
+                          _parser->node_capacity,
+                          2u)) )                                   ||
+             (d_ckd_mul(&bytes,
+                        capacity,
+                        sizeof(struct dj_internal_node))) )
+        {
+            _parser->status = D_REGEX_ERR_MEMORY;
+
+            return -1;
+        }
+
+        struct dj_internal_node* grown = realloc(_parser->nodes, bytes);
 
         // abandon parsing when the pool cannot grow
         if (!grown)
@@ -397,11 +411,24 @@ int d_internal_class_new(
     // grow the pool when it is full
     if (_parser->class_count == _parser->class_capacity)
     {
-        const size_t capacity = (_parser->class_capacity == 0)
-                              ? 4
-                              : (_parser->class_capacity * 2);
+        size_t capacity = 4;
+        size_t bytes    = 0;
 
-        unsigned char* grown = realloc(_parser->classes, capacity * 32u);
+        // the pool doubles; abandon parsing where a size would wrap
+        if ( ( (_parser->class_capacity != 0)                      &&
+               (d_ckd_mul(&capacity,
+                          _parser->class_capacity,
+                          2u)) )                                   ||
+             (d_ckd_mul(&bytes,
+                        capacity,
+                        32u)) )
+        {
+            _parser->status = D_REGEX_ERR_MEMORY;
+
+            return -1;
+        }
+
+        unsigned char* grown = realloc(_parser->classes, bytes);
 
         // abandon parsing when the pool cannot grow
         if (!grown)
@@ -1193,12 +1220,24 @@ d_internal_emit(
     // grow the buffer when it is full
     if (_emitter->count == _emitter->capacity)
     {
-        const size_t capacity = (_emitter->capacity == 0)
-                              ? 32
-                              : (_emitter->capacity * 2);
+        size_t capacity = 32;
+        size_t bytes    = 0;
 
-        struct dj_internal_inst* grown =
-            realloc(_emitter->program, capacity * sizeof(*grown));
+        // the buffer doubles; abandon compilation where a size would wrap
+        if ( ( (_emitter->capacity != 0)                           &&
+               (d_ckd_mul(&capacity,
+                          _emitter->capacity,
+                          2u)) )                                   ||
+             (d_ckd_mul(&bytes,
+                        capacity,
+                        sizeof(struct dj_internal_inst))) )
+        {
+            _emitter->status = D_REGEX_ERR_MEMORY;
+
+            return -1;
+        }
+
+        struct dj_internal_inst* grown = realloc(_emitter->program, bytes);
 
         // abandon compilation when the buffer cannot grow
         if (!grown)
@@ -1396,7 +1435,19 @@ bool d_internal_compile_repeat(
     // can be patched to the shared exit once its address is known
     if (optional > 0)
     {
-        exits = malloc((size_t)optional * 2u * sizeof(*exits));
+        size_t bytes = 0;
+
+        // two patches a copy; abandon compilation where the size would wrap
+        if (d_ckd_mul(&bytes,
+                      (size_t)optional,
+                      2u * sizeof(*exits)))
+        {
+            _emitter->status = D_REGEX_ERR_MEMORY;
+
+            return false;
+        }
+
+        exits = malloc(bytes);
 
         // abandon compilation when the patch list cannot be held
         if (!exits)
@@ -2279,6 +2330,67 @@ d_internal_capture(
 //==============================================================================
 
 
+/**
+ * @brief Gives a compiled pattern the scratch buffers its simulation runs in:
+ *        two thread lists, the seen marks and the closure stack, sized by its
+ *        program.
+ *
+ * @param[in,out] _regex  the pattern, its scratch pointers NULL.
+ * @param[in]     _slots  the program's length, in instructions.
+ * @return true when every buffer was allocated; false when a size would not
+ *         fit in a size_t, with nothing allocated, or when memory ran out,
+ *         with what was allocated left for d_regex_free.
+ *
+ * Every size is checked before the first allocation, so a slot count too
+ * large allocates nothing at all.
+ */
+static bool
+d_internal_scratch_new(
+    struct dj_regex* _regex,
+    size_t           _slots
+)
+{
+    size_t pc_bytes    = 0;
+    size_t start_bytes = 0;
+    size_t depth       = 0;
+    size_t stack_bytes = 0;
+
+    // each size first, so that one too large allocates nothing
+    if ( (d_ckd_mul(&pc_bytes,
+                    _slots,
+                    sizeof(*_regex->list_a.pc)))      ||
+         (d_ckd_mul(&start_bytes,
+                    _slots,
+                    sizeof(*_regex->list_a.starts)))  ||
+         (d_ckd_mul(&depth,
+                    _slots,
+                    2u))                              ||
+         (d_ckd_add(&depth,
+                    depth,
+                    8u))                              ||
+         (d_ckd_mul(&stack_bytes,
+                    depth,
+                    sizeof(*_regex->stack))) )
+    {
+        return false;
+    }
+
+    _regex->list_a.pc     = malloc(pc_bytes);
+    _regex->list_a.starts = malloc(start_bytes);
+    _regex->list_b.pc     = malloc(pc_bytes);
+    _regex->list_b.starts = malloc(start_bytes);
+    _regex->seen          = calloc(_slots, sizeof(*_regex->seen));
+    _regex->stack         = malloc(stack_bytes);
+
+    return ( (_regex->list_a.pc)     &&
+             (_regex->list_a.starts) &&
+             (_regex->list_b.pc)     &&
+             (_regex->list_b.starts) &&
+             (_regex->seen)          &&
+             (_regex->stack) );
+}
+
+
 /*
 d_regex_compile
   Parses and compiles a POSIX extended regular expression.
@@ -2393,22 +2505,9 @@ d_regex_compile(
     regex->loop_count    = (size_t)emitter.loop_count;
     regex->generation    = 0;
 
-    const size_t slots = emitter.count;
-
-    regex->list_a.pc     = malloc(slots * sizeof(*regex->list_a.pc));
-    regex->list_a.starts = malloc(slots * sizeof(*regex->list_a.starts));
-    regex->list_b.pc     = malloc(slots * sizeof(*regex->list_b.pc));
-    regex->list_b.starts = malloc(slots * sizeof(*regex->list_b.starts));
-    regex->seen          = calloc(slots, sizeof(*regex->seen));
-    regex->stack         = malloc(((slots * 2u) + 8u) * sizeof(*regex->stack));
-
     // abandon compilation when any scratch buffer could not be held
-    if ( (!regex->list_a.pc)     ||
-         (!regex->list_a.starts) ||
-         (!regex->list_b.pc)     ||
-         (!regex->list_b.starts) ||
-         (!regex->seen)          ||
-         (!regex->stack) )
+    if (!d_internal_scratch_new(regex,
+                                emitter.count))
     {
         d_regex_free(regex);
 
@@ -2640,6 +2739,103 @@ size_t d_regex_group_count(
 }
 
 
+/**
+ * @brief Allocates the capturing pass's buffers for one window: the marks,
+ *        the best assignment, and the undo and choice stacks.
+ *
+ * @param[out] _state   the pass's state, zeroed; receives the buffers and the
+ *                      stacks' capacities.
+ * @param[in]  _regex   the compiled pattern, which has groups.
+ * @param[in]  _extent  the window's length, in bytes.
+ * @return true when every buffer was allocated; false when a size would not
+ *         fit in a size_t or memory ran out, with nothing left allocated.
+ *
+ * The stacks hold eight entries for every instruction and every byte of the
+ * window, and eight more; each product and sum is checked before the first
+ * allocation, so a window too large allocates nothing.
+ */
+static bool
+d_internal_capture_state_new(
+    struct dj_internal_capture_state* _state,
+    const struct dj_regex*            _regex,
+    size_t                            _extent
+)
+{
+    size_t pairs        = 0;
+    size_t loop_marks   = 0;
+    size_t marks        = 0;
+    size_t steps        = 0;
+    size_t capacity     = 0;
+    size_t mark_bytes   = 0;
+    size_t best_bytes   = 0;
+    size_t undo_bytes   = 0;
+    size_t choice_bytes = 0;
+
+    // (groups + 1) * 2 pairs, two marks a loop, (program + extent + 8) * 8
+    // entries a stack, and the bytes of each: all checked before any is used
+    if ( (d_ckd_add(&pairs,
+                    _regex->group_count,
+                    1u))                              ||
+         (d_ckd_mul(&pairs,
+                    pairs,
+                    2u))                              ||
+         (d_ckd_mul(&loop_marks,
+                    _regex->loop_count,
+                    2u))                              ||
+         (d_ckd_add(&marks,
+                    pairs,
+                    loop_marks))                      ||
+         (d_ckd_add(&steps,
+                    _regex->program_count,
+                    _extent))                         ||
+         (d_ckd_add(&steps,
+                    steps,
+                    8u))                              ||
+         (d_ckd_mul(&capacity,
+                    steps,
+                    8u))                              ||
+         (d_ckd_mul(&mark_bytes,
+                    marks,
+                    sizeof(*_state->marks)))          ||
+         (d_ckd_mul(&best_bytes,
+                    pairs,
+                    sizeof(*_state->best)))           ||
+         (d_ckd_mul(&undo_bytes,
+                    capacity,
+                    sizeof(*_state->undo)))           ||
+         (d_ckd_mul(&choice_bytes,
+                    capacity,
+                    sizeof(*_state->choice))) )
+    {
+        return false;
+    }
+
+    _state->undo_capacity   = capacity;
+    _state->choice_capacity = capacity;
+    _state->marks           = malloc(mark_bytes);
+    _state->best            = malloc(best_bytes);
+    _state->undo            = malloc(undo_bytes);
+    _state->choice          = malloc(choice_bytes);
+
+    // all or nothing: a pass with one buffer short does not start
+    if ( (!_state->marks)  ||
+         (!_state->best)   ||
+         (!_state->undo)   ||
+         (!_state->choice) )
+    {
+        free(_state->marks);
+        free(_state->best);
+        free(_state->undo);
+        free(_state->choice);
+        memset(_state, 0, sizeof(*_state));
+
+        return false;
+    }
+
+    return true;
+}
+
+
 /*
 d_regex_search_groups
   Locates a match and reports the extent of each capturing group.
@@ -2715,29 +2911,11 @@ d_regex_search_groups(
 
     memset(&state, 0, sizeof(state));
 
-    const size_t pairs = (_regex->group_count + 1u) * 2u;
-
-    const size_t marks = pairs + (_regex->loop_count * 2u);
-
-    state.undo_capacity   = (_regex->program_count + extent + 8u) * 8u;
-    state.choice_capacity = (_regex->program_count + extent + 8u) * 8u;
-    state.marks           = malloc(marks * sizeof(*state.marks));
-    state.best            = malloc(pairs * sizeof(*state.best));
-    state.undo            = malloc(state.undo_capacity * sizeof(*state.undo));
-    state.choice          = malloc(state.choice_capacity *
-                                   sizeof(*state.choice));
-
     // abandon the pass when any buffer could not be held
-    if ( (!state.marks)  ||
-         (!state.best)   ||
-         (!state.undo)   ||
-         (!state.choice) )
+    if (!d_internal_capture_state_new(&state,
+                                      _regex,
+                                      extent))
     {
-        free(state.marks);
-        free(state.best);
-        free(state.undo);
-        free(state.choice);
-
         return D_REGEX_ERR_MEMORY;
     }
 

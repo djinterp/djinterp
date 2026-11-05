@@ -15,7 +15,7 @@
 * path:      /src/djinterp/tools/dawk/dinterp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dinterp.h"  // corresponding header
 #include "../../../../inc/djinterp/tools/dawk/dhost.h"    // dj_awk_host_function
@@ -30,7 +30,7 @@
 #include <string.h>   // memcpy, memcmp, strcmp, strlen
 // djinterp
 #include "../../../../inc/djinterp/tools/dawk/dlex.h"    // d_awk_unescape
-#include "../../../../inc/djinterp/tools/dawk/dregex.h"  // d_regex_search
+#include "../../../../inc/djinterp/c/util/dregex.h"  // d_regex_search
 #include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // dj_awk_value
 
 

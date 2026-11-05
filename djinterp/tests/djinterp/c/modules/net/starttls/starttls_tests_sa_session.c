@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/modules/net/starttls/starttls_tests_sa_session.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./starttls_tests_sa.h"  // the suite
 // std
@@ -2280,7 +2280,7 @@ d_tests_starttls_read_fails(
 d_tests_sa_starttls_broken_reads
   Tests the following:
   - a read that claims more bytes than it had room for is a fatal
-    TRANSPORT, net.c having refused it as UNKNOWN
+    TRANSPORT, net_common.c having refused it as UNKNOWN
   - a read that times out is a fatal timeout, with its cause kept
 */
 bool d_tests_sa_starttls_broken_reads(

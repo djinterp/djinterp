@@ -7,13 +7,13 @@
 * with 100000 bytes, anything else 404, each connection closed after its
 * answer. The suite runs from C++98; a throwing sink's exception arrives as
 * itself from C++11 and as its nearest standard kind below. Link curl.c,
-* net.c, tcp.c and dmutex.c, and -lcurl.
+* net_common.c, tcp.c and dmutex.c, and -lcurl.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/curl/curl_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./curl_tests.hpp"  // corresponding header
 // std

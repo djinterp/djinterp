@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -64,6 +64,15 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_C_DB_POSTGRES_POSTGRES_INTERNAL_H
 #define DJINTERP_C_DB_POSTGRES_POSTGRES_INTERNAL_H 1
+
+// D_INTERNAL_POSTGRES_SOURCE
+//   macro: this header is the PostgreSQL layer's own, so a translation unit
+// that begins with it is one of the layer's sources, and env finds
+// libpq-fe.h for it as for them. One that included anything before it has
+// settled the knobs already, and the floor's check below says so.
+#ifndef D_INTERNAL_POSTGRES_SOURCE
+    #define D_INTERNAL_POSTGRES_SOURCE 1
+#endif  // D_INTERNAL_POSTGRES_SOURCE
 
 // std
 #include <stdarg.h>  // va_list

@@ -23,17 +23,24 @@
 *   Everything here is header-only; the small classifiers are constexpr, the
 * switch-driven mappers are constexpr on C++14+ (relaxed constexpr) and plain
 * inline on C++11, and the string-building utilities are ordinary inline
-* functions. Requires C++11 or later.
+* functions. C++17 and later, byte_buffer.hpp's floor; below it the header
+* compiles to nothing.
 *
 *
 * path:      /inc/djinterp/cpp/modules/net/web.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_WEB_HPP
 #define DJINTERP_NET_WEB_HPP 1
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
+
+// the floor is byte_buffer.hpp's, C++17 (net #19); below it, nothing
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -46,11 +53,6 @@
 #include "../../../env/net/env_net.h"
 #include "../../container/buffer/byte_buffer.hpp"
 #include "./http/http.hpp"  // HTTP's vocabulary, aliased below
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "web.hpp requires C++11 or later"
-#endif
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,14 +133,17 @@ using port_type = std::uint16_t;
 ///////////////////////////////////////////////////////////////////////////////
 
 // http_method, http_version, http_status, status_category
-//   type: net/http/http.hpp's enumerations under web.hpp's names, while HTTP
-// moves out of this header. Every enumerator web.hpp named is still there,
-// status_category's unknown and success and http_status's
-// payload_too_large and unprocessable_entity as aliases.
-using http_method     = ::djinterp::net::http_method;
-using http_version    = ::djinterp::net::http_version;
-using http_status     = ::djinterp::net::http_status;
-using status_category = ::djinterp::net::http_status_class;
+//   type: net/http/http.hpp's enumerations under web.hpp's names, until this
+// header retires (net #21). http.hpp scopes each in a struct (decision 3.4),
+// so the type is its value: web::http_method is net::http_method::value, and
+// web::http_method::get names net's enumerator. The enumerators are net's:
+// status_category's are none and successful, not web.hpp's old unknown and
+// success, and http_status's are content_too_large and
+// unprocessable_content, RFC 9110's names.
+using http_method     = ::djinterp::net::http_method::value;
+using http_version    = ::djinterp::net::http_version::value;
+using http_status     = ::djinterp::net::http_status::value;
+using status_category = ::djinterp::net::http_status_class::value;
 
 // url_scheme
 //   enum: the URI schemes this vocabulary recognizes. `unknown` is the zero
@@ -336,7 +341,7 @@ D_NODISCARD D_WEB_CONSTEXPR14 status_category classify(
 
     if (is_success(_code))
     {
-        return status_category::success;
+        return status_category::successful;
     }
 
     if (is_redirection(_code))
@@ -354,7 +359,7 @@ D_NODISCARD D_WEB_CONSTEXPR14 status_category classify(
         return status_category::server_error;
     }
 
-    return status_category::unknown;
+    return status_category::none;
 }
 
 // reason_phrase
@@ -1065,5 +1070,6 @@ struct response
 NS_END  // web
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #endif  // DJINTERP_NET_WEB_HPP

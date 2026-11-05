@@ -7,7 +7,7 @@
 * byte for byte, so nothing between them hides what the server sends; one
 * test serves https through tls_acceptor, the TLS suite's certificate on its
 * context, where the SSL kernel has its OpenSSL-family engine. The suite runs
-* from C++98. Link net.c, tcp.c and dmutex.c, the kernel (ssl.c,
+* from C++98. Link net_common.c, tcp.c and dmutex.c, the kernel (ssl.c,
 * ssl_openssl.c), sink_common.c and the codec, and with OpenSSL -lssl
 * -lcrypto.
 *
@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/modules/net/server_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.05
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./server_tests.hpp"  // corresponding header
 // std

@@ -14,7 +14,7 @@
 * path:      /src/djinterp/tools/dawk/dparse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // corresponding header
 // std
@@ -23,7 +23,7 @@
 #include <stdlib.h>   // malloc, realloc, free
 #include <string.h>   // memcpy, strcmp, strlen
 // djinterp
-#include "../../../../inc/djinterp/tools/dawk/dregex.h"  // d_regex_compile
+#include "../../../../inc/djinterp/c/util/dregex.h"  // d_regex_compile
 
 
 //==============================================================================

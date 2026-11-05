@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_connection.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -41,6 +41,7 @@
                      // strncmp, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_connection.h"  // the defaults
 #include "./postgres_internal.h"  // libpq-fe.h, the floor, the plumbing
@@ -596,20 +597,49 @@ int d_internal_postgres_plan_fill(
     size_t                            _count
 )
 {
-    size_t                  room   = _plan->defaults.count + _count + 2u;
+    size_t                  room   = 0u;
+    size_t                  bytes  = 0u;
     size_t                  count  = 0u;
     const PQconninfoOption* option = _plan->parsed;
+
+    // the defaults, the caller's pairs and two more: a count that wraps is
+    // refused before any is read
+    if ( (d_ckd_add(&room,
+                    _plan->defaults.count,
+                    _count))               ||
+         (d_ckd_add(&room,
+                    room,
+                    2u)) )
+    {
+        return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
 
     // room for the string's parts too
     while ( (option) &&
             (option->keyword) )
     {
-        ++room;
+        // one more each; the parsed string cannot hold SIZE_MAX of them, but
+        // the count is checked as every count is
+        if (d_ckd_add(&room,
+                      room,
+                      1u))
+        {
+            return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+        }
+
         ++option;
     }
 
-    _plan->keywords = (const char**)malloc(room * sizeof(*_plan->keywords));
-    _plan->values   = (const char**)malloc(room * sizeof(*_plan->values));
+    // keywords and values are both pointer arrays of room entries
+    if (d_ckd_mul(&bytes,
+                  room,
+                  sizeof(*_plan->keywords)))
+    {
+        return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    _plan->keywords = (const char**)malloc(bytes);
+    _plan->values   = (const char**)malloc(bytes);
     _plan->owned    = true;
 
     if ( (!_plan->keywords) ||

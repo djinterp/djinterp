@@ -6,13 +6,13 @@
 * loopback port, its loop on a thread of dmutex.h's, while blocking clients of
 * tcp.hpp's talk to it: a short exchange, a megabyte that must queue behind a
 * full socket, and a goodbye the server answers before it closes. The suite
-* runs from C++98. Link net.c, tcp.c and dmutex.c.
+* runs from C++98. Link net_common.c, tcp.c and dmutex.c.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/reactor_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./reactor_tests.hpp"  // corresponding header
 

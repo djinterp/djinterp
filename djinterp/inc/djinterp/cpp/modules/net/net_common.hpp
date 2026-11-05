@@ -26,13 +26,13 @@
 * the byte_buffer aliases, C++20 the byte_stream concept. The enumerations
 * are scoped in structs at every level (decision 3.4), so the type of an
 * io_error is io_error::value. Errors are returned, never thrown. Link
-* net.c, which defines what net.h declares.
+* net_common.c, which defines what net_common.h declares.
 *
 *
 * path:      /inc/djinterp/cpp/modules/net/net_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*

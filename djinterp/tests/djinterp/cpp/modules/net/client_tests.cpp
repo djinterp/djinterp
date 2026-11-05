@@ -6,13 +6,13 @@
 * is told, so the retry driver's attempts can be counted; the facade then
 * reaches a real loopback acceptor through tcp_connector. The suite runs
 * from C++98; the by-value forms are checked from C++11, and the connector
-* concept from C++20. Link net.c, tcp.c and dmutex.c.
+* concept from C++20. Link net_common.c, tcp.c and dmutex.c.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/client_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./client_tests.hpp"  // corresponding header
 // std

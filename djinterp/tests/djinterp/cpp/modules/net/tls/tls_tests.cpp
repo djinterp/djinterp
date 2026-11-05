@@ -12,14 +12,14 @@
 * connection that carries nothing. The suite runs from C++98: connect and
 * accept fill an open_result in place at every level, and the by-value forms
 * and the moves are checked from C++11. Link the SSL kernel (ssl.c,
-* ssl_openssl.c), tcp.c, net.c, dmutex.c, sink_common.c and the codec, and
-* -lssl -lcrypto.
+* ssl_openssl.c), tcp.c, net_common.c, dmutex.c, sink_common.c and the
+* codec, and -lssl -lcrypto.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/tls/tls_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./tls_tests.hpp"  // corresponding header
 

@@ -1,18 +1,18 @@
 /*******************************************************************************
-* djinterp [dawk]                                                  test_dregex.c
+* djinterp [c]                                                     test_dregex.c
 *
-*   Unit tests for the POSIX ERE engine in regex.h.
+*   Unit tests for the POSIX ERE engine in dregex.h.
 *     The cases that matter most are the leftmost-longest ones: a backtracking
 * engine passes almost everything here except those, so they are grouped first
 * and stated explicitly against the alternative a Perl-style engine would give.
 *
 *
-* path:      /tests/djinterp/tools/dawk/test_dregex.c
+* path:      /tests/djinterp/c/util/dregex/test_dregex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
-#include "../../../../inc/djinterp/tools/dawk/dregex.h"  // corresponding header
+#include "../../../../../inc/djinterp/c/util/dregex.h"  // the engine under test
 // std
 #include <stdio.h>   // printf
 #include <string.h>  // strlen, strcmp

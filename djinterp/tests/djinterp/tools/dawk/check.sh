@@ -36,7 +36,9 @@ W="$W ${CFLAGS:-}"
 # the interpreter; then each extension's units, in ext/<name>/, which use
 # only the interpreter's and the shared dsplice, dxml, dzip and dfs
 E=$S/ext
-CORE="$S/dinterp.c $S/dparse.c $S/dlex.c $S/dregex.c $S/dvalue.c $S/dtree.c
+# the regular expressions are the library's, c/util/dregex, which dawk uses
+RX=src/djinterp/c/util/dregex.c
+CORE="$S/dinterp.c $S/dparse.c $S/dlex.c $RX $S/dvalue.c $S/dtree.c
       $S/dfs.c $S/dsettings.c"
 STORY="$S/dzip.c $S/dxml.c $E/story/dhost_story.c $E/story/dhost_articulate.c"
 DCMAKE="$E/cmake/dcmake.c $E/cmake/dcmake_doc.c $S/dsplice.c"
@@ -59,10 +61,9 @@ GIT="$DGIT $E/git/dhost_git.c"
 mkdir -p "$OUT"
 $CC $W -o "$OUT/dawk" $S/main.c $CORE $STORY $CMAKE $NINJA $MSVS $WIKI \
     $GIT -lm
-$CC $W -o "$OUT/test_dregex" $T/test_dregex.c $S/dregex.c
+$CC $W -o "$OUT/test_dregex" tests/djinterp/c/util/dregex/test_dregex.c $RX
 $CC $W -o "$OUT/test_dvalue" $T/test_dvalue.c $S/dvalue.c -lm
-$CC $W -o "$OUT/test_dparse" $T/test_dparse.c $S/dparse.c $S/dlex.c \
-    $S/dregex.c
+$CC $W -o "$OUT/test_dparse" $T/test_dparse.c $S/dparse.c $S/dlex.c $RX
 $CC $W -o "$OUT/test_dzip" $T/test_dzip.c $S/dzip.c
 $CC $W -o "$OUT/test_dxml" $T/test_dxml.c $S/dxml.c
 $CC $W -o "$OUT/test_dhost_story" $T/ext/story/test_dhost_story.c $CORE \

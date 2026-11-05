@@ -14,15 +14,16 @@
 * engine.
 *   The suite runs from C++98: clients open in place at every level, and the
 * static connect and attach, the result alias and the moves are checked from
-* C++11. Link the SMTP kernel's C sources, smtp.cpp, net.c, tcp.c, the SSL
-* kernel and its OpenSSL-family engine, dmutex.c, sink_common.c, net's
-* codec, and tests/djinterp/c/modules/net/net_tests_pki.c; and -lssl -lcrypto.
+* C++11. Link the SMTP kernel's C sources, smtp.cpp, net_common.c, tcp.c,
+* the SSL kernel and its OpenSSL-family engine, dmutex.c, sink_common.c,
+* net's codec, and tests/djinterp/c/modules/net/net_tests_pki.c; and -lssl
+* -lcrypto.
 *
 *
 * path:      /tests/djinterp/cpp/modules/net/smtp/smtp_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./smtp_tests.hpp"  // corresponding header
 

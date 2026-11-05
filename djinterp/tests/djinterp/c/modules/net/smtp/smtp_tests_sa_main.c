@@ -3,9 +3,10 @@
 *
 * djinterp SMTP kernel tests -- runner.
 *   Runs the standalone SMTP suite and exits non-zero if any test failed.
-* Build with the four sources under src/djinterp/net/smtp, net.c, tcp.c,
-* the SSL kernel and its OpenSSL-family engine (src/djinterp/c/modules/net/ssl),
-* net's codec units, sink_common.c, the suites' shared support
+* Build with the four sources under src/djinterp/c/modules/net/smtp,
+* net_common.c, tcp.c, the SSL kernel and its OpenSSL-family engine
+* (src/djinterp/c/modules/net/ssl), net's codec units, sink_common.c, the
+* suites' shared support
 * (tests/djinterp/c/modules/net/net_tests_sa_assert.c, net_tests_sa_support.c,
 * net_tests_peer.c, net_tests_pki.c), -lssl -lcrypto, and -pthread.
 *
@@ -13,7 +14,7 @@
 * path:      /tests/djinterp/c/modules/net/smtp/smtp_tests_sa_main.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./smtp_tests_sa.h"  // the suite
 // std

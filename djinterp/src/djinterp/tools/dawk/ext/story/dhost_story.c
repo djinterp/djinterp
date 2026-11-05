@@ -14,7 +14,7 @@
 * path:      /src/djinterp/tools/dawk/ext/story/dhost_story.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/story/dhost_story.h"  // corresponding header
 // std
@@ -24,7 +24,7 @@
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"     // d_fs_full_path
 #include "../../../../../../inc/djinterp/tools/dawk/dhost.h"   // dj_awk_host_function
-#include "../../../../../../inc/djinterp/tools/dawk/dregex.h"  // d_regex_search_groups
+#include "../../../../../../inc/djinterp/c/util/dregex.h"  // capture groups
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"  // d_awk_value_text
 
 

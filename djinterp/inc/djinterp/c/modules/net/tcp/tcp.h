@@ -17,13 +17,13 @@
 * with D_CFG_TCP 0, the functions compile to stubs that report
 * D_NET_ERROR_UNSUPPORTED. The Winsock backend starts Winsock itself, once,
 * on first use.
-*   C99 or later; declarations have C linkage. Link tcp.c and net.c.
+*   C99 or later; declarations have C linkage. Link tcp.c and net_common.c.
 *
 *
 * path:      /inc/djinterp/c/modules/net/tcp/tcp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*

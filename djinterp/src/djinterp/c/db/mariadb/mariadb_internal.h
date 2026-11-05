@@ -27,7 +27,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -95,6 +95,15 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_C_DB_MARIADB_MARIADB_INTERNAL_H
 #define DJINTERP_C_DB_MARIADB_MARIADB_INTERNAL_H 1
+
+// D_INTERNAL_MARIADB_SOURCE
+//   macro: this header is the MariaDB layer's own, so a translation unit
+// that begins with it is one of the layer's sources, and env finds
+// mysql.h for it as for them. One that included anything before it has
+// settled the knobs already, and the floor's check below says so.
+#ifndef D_INTERNAL_MARIADB_SOURCE
+    #define D_INTERNAL_MARIADB_SOURCE 1
+#endif  // D_INTERNAL_MARIADB_SOURCE
 
 // std
 #include <limits.h>  // ULONG_MAX

@@ -30,14 +30,14 @@
 *   Every call blocks, and a session belongs to one thread at a time.
 * Deadlines come from the connection: a TCP connection's I/O timeout turns a
 * stalled peer into D_STARTTLS_ERROR_TIMED_OUT.
-*   Requires cfg_starttls.h. Link net.c, ssl.c, the codec's line buffer, and
-* the engine the caller's context is made with.
+*   Requires cfg_starttls.h. Link net_common.c, ssl.c, the codec's line
+* buffer, and the engine the caller's context is made with.
 *
 *
 * path:      /inc/djinterp/c/modules/net/starttls/starttls.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
