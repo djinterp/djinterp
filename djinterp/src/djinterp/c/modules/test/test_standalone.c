@@ -1,17 +1,22 @@
 /*******************************************************************************
 * djinterp [c/test]                                            test_standalone.c
 *
-* TBA
+* The standalone test framework: test objects, the standalone assertion, the
+* templated console and file output, and the unified runner the *_sa suites
+* run under (test_standalone.h).
+*   This is DTest's older C form, kept running while suites move to its C face
+* (test_suite.h); see docs/djinterp_testing.md, the migration guide.
 *
 *
 * path:      /src/djinterp/c/modules/test/test_standalone.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
-
 #include "../../../../../inc/djinterp/c/modules/test/test_standalone.h"
-#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
+
+// djinterp
+#include "../../../../../inc/djinterp/c/string_fn.h"  // d_strcpy_s, d_strncpy_s
 
 
 // D_INTERNAL_TPRINTF
@@ -848,60 +853,9 @@ void d_test_object_add_child(
  * TEST COUNTER FUNCTIONS
  *****************************************************************************/
 
-/*
-d_test_counter_reset
-  Resets all counter values to zero.
-
-Parameter(s):
-  _counter: counter to reset
-Return:
-  none.
-*/
-void d_test_counter_reset(
-    struct dj_test_counter* _counter
-)
-{
-    if (!_counter)
-    {
-        return;
-    }
-
-    _counter->assertions_total  = 0;
-    _counter->assertions_passed = 0;
-    _counter->tests_total       = 0;
-    _counter->tests_passed      = 0;
-
-    return;
-}
-
-/*
-d_test_counter_add
-  Adds source counter values to destination counter.
-
-Parameter(s):
-  _dest: destination counter to add to
-  _source:  source counter to add from
-Return:
-  none.
-*/
-void d_test_counter_add(
-    struct dj_test_counter*       _dest,
-    const struct dj_test_counter* _source
-)
-{
-    if ( (!_dest) ||
-         (!_source) )
-    {
-        return;
-    }
-
-    _dest->assertions_total  += _source->assertions_total;
-    _dest->assertions_passed += _source->assertions_passed;
-    _dest->tests_total       += _source->tests_total;
-    _dest->tests_passed      += _source->tests_passed;
-
-    return;
-}
+//   d_test_counter_reset and d_test_counter_add moved to test_counter.c with
+// their declarations, beside the type they work on (style #79, the field
+// form).
 
 /******************************************************************************
  * TEMPLATE SUBSTITUTION
@@ -1524,7 +1478,7 @@ void d_test_standalone_output_file(
         return;
     }
 
-    file = d_fopen(_filepath, "w");
+    file = d_file_open_stream(_filepath, "w");
 
     if (!file)
     {
@@ -2389,7 +2343,7 @@ int d_test_standalone_runner_execute(
     // open output file if specified
     if (_runner->options.output_file)
     {
-        g_d_test_output_file = d_fopen(
+        g_d_test_output_file = d_file_open_stream(
             _runner->options.output_file, "w");
 
         if (!g_d_test_output_file)

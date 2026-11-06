@@ -58,12 +58,16 @@
 * the floor: `_v` companions need variable templates (C++14+), is_valid's
 * inline spelling needs generic lambdas (C++14+), and section VIII needs
 * concepts (C++20).
+*   A Trait parameter is spelled `template<typename...> typename`, like the
+* probes', so a trait with a defaulted second parameter (`is_bool_trait`'s
+* `typename = void`) binds on Clang before 19 too, which does not apply
+* P0522's relaxed matching to a unary template-template parameter.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -482,7 +486,7 @@ NS_END  // internal
 // here.  (That is the only way to detect a non-SFINAE-friendly trait from
 // inside the same translation unit; a hard error cannot be caught, only
 // provoked.)
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename...                 Types>
 struct count_holds
     : std::integral_constant<
@@ -493,7 +497,7 @@ struct count_holds
 // holds_for_all
 //   trait: true iff `Trait` is satisfied by every one of `Types...`.  The
 // positive battery.
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename...                 Types>
 struct holds_for_all
     : bool_constant<
@@ -502,7 +506,7 @@ struct holds_for_all
 
 // holds_for_any
 //   trait: true iff `Trait` is satisfied by at least one of `Types...`.
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename...                 Types>
 struct holds_for_any
     : bool_constant<( count_holds<Trait, Types...>::value > 0 )>
@@ -513,7 +517,7 @@ struct holds_for_any
 // negative battery - and, paired with the D_TEST_HOSTILE_* lists in section
 // VI, the statement "this trait rejects everything it should reject and
 // survives everything it cannot classify".
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename...                 Types>
 struct holds_for_none
     : bool_constant<( count_holds<Trait, Types...>::value == 0 )>
@@ -524,28 +528,28 @@ struct holds_for_none
 
     // count_holds_v
     //   value: convenience alias for count_holds<...>::value.
-    template<template<typename> typename Trait,
+    template<template<typename...> typename Trait,
              typename...                 Types>
     constexpr std::size_t count_holds_v =
         count_holds<Trait, Types...>::value;
 
     // holds_for_all_v
     //   value: convenience alias for holds_for_all<...>::value.
-    template<template<typename> typename Trait,
+    template<template<typename...> typename Trait,
              typename...                 Types>
     constexpr bool holds_for_all_v =
         holds_for_all<Trait, Types...>::value;
 
     // holds_for_any_v
     //   value: convenience alias for holds_for_any<...>::value.
-    template<template<typename> typename Trait,
+    template<template<typename...> typename Trait,
              typename...                 Types>
     constexpr bool holds_for_any_v =
         holds_for_any<Trait, Types...>::value;
 
     // holds_for_none_v
     //   value: convenience alias for holds_for_none<...>::value.
-    template<template<typename> typename Trait,
+    template<template<typename...> typename Trait,
              typename...                 Types>
     constexpr bool holds_for_none_v =
         holds_for_none<Trait, Types...>::value;
@@ -612,7 +616,7 @@ NS_INTERNAL
     //   trait: binds `Trait` so that "is `Trait<Type>` a well-formed bool
     // trait?" becomes the one-parameter trait the quantifiers in section III
     // take.  Declared after is_bool_trait, which it names.
-    template<template<typename> typename Trait>
+    template<template<typename...> typename Trait>
     struct DWellFormedBinder
     {
         // check
@@ -629,7 +633,7 @@ NS_END  // internal
 // of `Types...`.  The shape check, run over a battery - and the natural
 // partner of the D_TEST_HOSTILE_* lists, since a trait's shape is exactly the
 // thing most likely to quietly degrade on the types its author never tried.
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename...                 Types>
 struct trait_is_well_formed
     : holds_for_all<internal::DWellFormedBinder<Trait>::template check,
@@ -670,7 +674,7 @@ struct trait_is_well_formed
 
     // trait_is_well_formed_v
     //   value: convenience alias for trait_is_well_formed<...>::value.
-    template<template<typename> typename Trait,
+    template<template<typename...> typename Trait,
              typename...                 Types>
     constexpr bool trait_is_well_formed_v =
         trait_is_well_formed<Trait, Types...>::value;
@@ -832,7 +836,7 @@ struct DCvrefReport
 //   D_CONSTEXPR DCvrefReport r =
 //       trait_across_cvref<is_test_kind_set, kind_set_type>();
 //   ok &= D_TK_CHECK(r.all(), "is_test_kind_set: cv-ref agnostic");
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename                    Type>
 D_NODISCARD D_CONSTEXPR DCvrefReport trait_across_cvref()
 {
@@ -852,7 +856,7 @@ D_NODISCARD D_CONSTEXPR DCvrefReport trait_across_cvref()
 //   trait: true iff `Trait` answers identically for all eight cv-ref forms
 // of `Type` - the report's agrees(), lifted to a trait so it can be pinned
 // with D_TEST_STATIC or folded into a larger constant expression.
-template<template<typename> typename Trait,
+template<template<typename...> typename Trait,
          typename                    Type>
 struct trait_ignores_cvref
     : bool_constant<trait_across_cvref<Trait, Type>().agrees()>
@@ -863,7 +867,7 @@ struct trait_ignores_cvref
 
     // trait_ignores_cvref_v
     //   value: convenience alias for trait_ignores_cvref<...>::value.
-    template<template<typename> typename Trait,
+    template<template<typename...> typename Trait,
              typename                    Type>
     constexpr bool trait_ignores_cvref_v =
         trait_ignores_cvref<Trait, Type>::value;

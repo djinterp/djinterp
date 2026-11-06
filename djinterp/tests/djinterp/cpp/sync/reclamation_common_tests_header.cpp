@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/sync/reclamation_common_tests_header.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp [test]         reclamation_common_tests_header.cpp
 //   Section: the header contract.  The claims about the FILE - the include
@@ -87,7 +87,7 @@ tests_header_pulls_in_sync_common
   the header brings its own dependency along.
   Tests the following:
   - sync_common.hpp's include guard is defined here, so `#include
-    "./sync_common.hpp"` really fired
+    "../../../../inc/djinterp/cpp/sync/sync_common.hpp"` really fired
   - DReclaimList is non-copyable, which is the OBSERVABLE consequence: it
     inherits the noncopyable base that sync_common.hpp provides
   A consumer that includes only reclamation_common.hpp must not have to know

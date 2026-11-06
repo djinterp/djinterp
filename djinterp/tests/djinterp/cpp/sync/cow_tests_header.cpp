@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/sync/cow_tests_header.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp [test]                              cow_tests_header.cpp
 //   Section: the header contract.  The claims about the FILE rather than about
@@ -85,8 +85,8 @@ tests_header_cannot_be_included_first
   - remove that line and the build fails with
         #error "lock_policy.hpp requires env.h to be included first"
   THE FIX IS ONE LINE.  condvar.hpp, in the same directory, opens with
-      #include "../../../../inc/djinterp/djinterp.hpp"
-      #include "../../../../inc/djinterp/core/sync/lock_policy.hpp"
+      #include "../../../../inc/djinterp/cpp/djinterp.hpp"
+      #include "../../../../inc/djinterp/cpp/sync/lock_policy.hpp"
   cow.hpp is missing the first of those.  Until it is added, every consumer of
   cow.hpp must remember to include something else first, and this test is the
   reason the suite's own header does.

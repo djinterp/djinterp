@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_open.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -28,7 +28,7 @@
 
 static
 void d_fs_tests_open_fopen(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
@@ -36,11 +36,11 @@ void d_fs_tests_open_fopen(
     bool  opened;
     bool  created;
 
-    dtest_block(_suite, "d_file_open_stream");
+    d_test_suite_block(_suite, "d_file_open_stream");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "opens an existing file for reading");
+    d_test_suite_test(_suite, "opens an existing file for reading");
     file   = d_file_open_stream(path, "rb");
     opened = (file != NULL);
 
@@ -53,7 +53,7 @@ void d_fs_tests_open_fopen(
     D_FS_CHECK(_suite, opened);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL filename -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL filename -> NULL, EINVAL");
     errno = 0;
     file  = d_file_open_stream(NULL, "rb");
     D_FS_CHECK(_suite, file == NULL);
@@ -61,19 +61,19 @@ void d_fs_tests_open_fopen(
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL mode -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL mode -> NULL, EINVAL");
     errno = 0;
     file  = d_file_open_stream(path, NULL);
     D_FS_CHECK(_suite, file == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing file for reading -> NULL");
+    d_test_suite_test(_suite, "a missing file for reading -> NULL");
     d_fs_test_path(path, sizeof(path), "no_such_fopen_file.txt");
     file = d_file_open_stream(path, "rb");
     D_FS_CHECK(_suite, file == NULL);
 
-    dtest_test(_suite, "creates a file for writing");
+    d_test_suite_test(_suite, "creates a file for writing");
     d_fs_test_path(path, sizeof(path), "fopen_created.txt");
     file    = d_file_open_stream(path, "wb");
     created = (file != NULL);
@@ -97,18 +97,18 @@ void d_fs_tests_open_fopen(
 
 static
 void d_fs_tests_open_fopen_s(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char   path[D_FS_TEST_PATH_BUF];
     FILE*  stream;
     int    rc;
 
-    dtest_block(_suite, "d_file_open_stream_s");
+    d_test_suite_block(_suite, "d_file_open_stream_s");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "success -> 0 and a valid stream");
+    d_test_suite_test(_suite, "success -> 0 and a valid stream");
     stream = NULL;
     rc     = d_file_open_stream_s(&stream, path, "rb");
     D_FS_CHECK(_suite, rc == 0);
@@ -120,13 +120,14 @@ void d_fs_tests_open_fopen_s(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL out-parameter -> EINVAL");
+    d_test_suite_test(_suite, "NULL out-parameter -> EINVAL");
     rc = d_file_open_stream_s(NULL, path, "rb");
     D_FS_CHECK(_suite, rc == EINVAL);
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL filename clears the stream and returns EINVAL");
+    d_test_suite_test(_suite,
+                      "NULL filename clears the stream and returns EINVAL");
     stream = (FILE*)0x1;
     rc     = d_file_open_stream_s(&stream, NULL, "rb");
     D_FS_CHECK(_suite, rc == EINVAL);
@@ -134,13 +135,13 @@ void d_fs_tests_open_fopen_s(
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL mode -> EINVAL");
+    d_test_suite_test(_suite, "NULL mode -> EINVAL");
     stream = NULL;
     rc     = d_file_open_stream_s(&stream, path, NULL);
     D_FS_CHECK(_suite, rc == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing file -> non-zero and a NULL stream");
+    d_test_suite_test(_suite, "a missing file -> non-zero and a NULL stream");
     d_fs_test_path(path, sizeof(path), "no_such_fopen_s_file.txt");
     stream = (FILE*)0x1;
     rc     = d_file_open_stream_s(&stream, path, "rb");
@@ -155,7 +156,7 @@ void d_fs_tests_open_fopen_s(
 
 static
 void d_fs_tests_open_freopen(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  first[D_FS_TEST_PATH_BUF];
@@ -165,13 +166,13 @@ void d_fs_tests_open_freopen(
     char  buf[64];
     bool  read_ok;
 
-    dtest_block(_suite, "d_file_reopen_stream");
+    d_test_suite_block(_suite, "d_file_reopen_stream");
 
     d_fs_test_path(first, sizeof(first), D_FS_TEST_FILE);
     d_fs_test_path(second, sizeof(second), "freopen_target.txt");
     d_fs_test_write(second, "SECOND", 6);
 
-    dtest_test(_suite, "reopens a stream onto another file");
+    d_test_suite_test(_suite, "reopens a stream onto another file");
     file     = d_file_open_stream(first, "rb");
     reopened = file ? d_file_reopen_stream(second, "rb", file) : NULL;
     read_ok  = false;
@@ -204,7 +205,7 @@ void d_fs_tests_open_freopen(
     D_FS_CHECK(_suite, read_ok);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL mode -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL mode -> NULL, EINVAL");
     file  = d_file_open_stream(first, "rb");
     errno = 0;
     D_FS_CHECK(_suite, d_file_reopen_stream(second, NULL, file) == NULL);
@@ -218,7 +219,7 @@ void d_fs_tests_open_freopen(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_reopen_stream(second, "rb", NULL) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -234,7 +235,7 @@ void d_fs_tests_open_freopen(
 
 static
 void d_fs_tests_open_freopen_s(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
@@ -242,11 +243,11 @@ void d_fs_tests_open_freopen_s(
     FILE* out;
     int   rc;
 
-    dtest_block(_suite, "d_file_reopen_stream_s");
+    d_test_suite_block(_suite, "d_file_reopen_stream_s");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "success -> 0 and a valid stream");
+    d_test_suite_test(_suite, "success -> 0 and a valid stream");
     file = d_file_open_stream(path, "rb");
     out  = NULL;
     rc   = d_file_reopen_stream_s(&out, path, "rb", file);
@@ -267,7 +268,7 @@ void d_fs_tests_open_freopen_s(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL out-parameter -> EINVAL");
+    d_test_suite_test(_suite, "NULL out-parameter -> EINVAL");
     file = d_file_open_stream(path, "rb");
     rc   = d_file_reopen_stream_s(NULL, path, "rb", file);
     D_FS_CHECK(_suite, rc == EINVAL);
@@ -280,7 +281,7 @@ void d_fs_tests_open_freopen_s(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL mode -> EINVAL");
+    d_test_suite_test(_suite, "NULL mode -> EINVAL");
     file = d_file_open_stream(path, "rb");
     out  = NULL;
     rc   = d_file_reopen_stream_s(&out, path, NULL, file);
@@ -294,7 +295,7 @@ void d_fs_tests_open_freopen_s(
     }
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> EINVAL");
     out = NULL;
     rc  = d_file_reopen_stream_s(&out, path, "rb", NULL);
     D_FS_CHECK(_suite, rc == EINVAL);
@@ -308,7 +309,7 @@ void d_fs_tests_open_freopen_s(
 
 static
 void d_fs_tests_open_fdopen(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -317,11 +318,11 @@ void d_fs_tests_open_fdopen(
     FILE* stream;
     bool  wrapped;
 
-    dtest_block(_suite, "d_file_open_stream_fd");
+    d_test_suite_block(_suite, "d_file_open_stream_fd");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "adopts an open descriptor into a stream");
+    d_test_suite_test(_suite, "adopts an open descriptor into a stream");
     fd      = d_file_open(path, O_RDONLY);
     stream  = (fd >= 0) ? d_file_open_stream_fd(fd, "rb") : NULL;
     wrapped = (stream != NULL);
@@ -338,13 +339,13 @@ void d_fs_tests_open_fdopen(
 
     D_FS_CHECK(_suite, wrapped);
 
-    dtest_test(_suite, "negative descriptor -> NULL, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> NULL, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_open_stream_fd(-1, "rb") == NULL);
     D_FS_CHECK(_suite, errno == EBADF);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL mode -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL mode -> NULL, EINVAL");
     fd = d_file_open(path, O_RDONLY);
     errno = 0;
     D_FS_CHECK(_suite, d_file_open_stream_fd(fd, NULL) == NULL);
@@ -356,9 +357,10 @@ void d_fs_tests_open_fdopen(
         d_file_close_fd(fd);
     }
 #else
-    dtest_block(_suite, "d_file_open_stream_fd");
+    d_test_suite_block(_suite, "d_file_open_stream_fd");
 
-    dtest_test(_suite, "ISO C backend has no descriptors -> NULL, ENOSYS");
+    d_test_suite_test(_suite,
+                      "ISO C backend has no descriptors -> NULL, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_open_stream_fd(0, "rb") == NULL);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -372,24 +374,24 @@ void d_fs_tests_open_fdopen(
 
 static
 void d_fs_tests_open_fclose(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
     FILE* file;
     int   rc;
 
-    dtest_block(_suite, "d_file_close_stream");
+    d_test_suite_block(_suite, "d_file_close_stream");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "closing a valid stream -> 0");
+    d_test_suite_test(_suite, "closing a valid stream -> 0");
     file = d_file_open_stream(path, "rb");
     rc   = file ? d_file_close_stream(file) : -1;
     D_FS_CHECK(_suite, rc == 0);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> EOF, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> EOF, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_close_stream(NULL) == EOF);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -402,10 +404,10 @@ void d_fs_tests_open_fclose(
  *****************************************************************************/
 
 void d_fs_tests_open(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "II. file_open");
+    d_test_suite_module(_suite, "II. file_open");
 
     d_fs_tests_open_fopen(_suite);
     d_fs_tests_open_fopen_s(_suite);

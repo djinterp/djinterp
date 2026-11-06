@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_sync.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -27,7 +27,7 @@
 
 static
 void d_fs_tests_sync_fsync(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -35,11 +35,11 @@ void d_fs_tests_sync_fsync(
     int  fd;
     bool synced;
 
-    dtest_block(_suite, "d_file_sync_fd");
+    d_test_suite_block(_suite, "d_file_sync_fd");
 
     d_fs_test_path(path, sizeof(path), "fsync.txt");
 
-    dtest_test(_suite, "flushes a written descriptor to success");
+    d_test_suite_test(_suite, "flushes a written descriptor to success");
     fd     = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     synced = false;
 
@@ -54,14 +54,14 @@ void d_fs_tests_sync_fsync(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_sync_fd(-1) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 #else
-    dtest_block(_suite, "d_file_sync_fd");
+    d_test_suite_block(_suite, "d_file_sync_fd");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_sync_fd(0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -75,7 +75,7 @@ void d_fs_tests_sync_fsync(
 
 static
 void d_fs_tests_sync_fsync_stream(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -83,11 +83,11 @@ void d_fs_tests_sync_fsync_stream(
     FILE* file;
     bool  synced;
 
-    dtest_block(_suite, "d_file_sync_stream");
+    d_test_suite_block(_suite, "d_file_sync_stream");
 
     d_fs_test_path(path, sizeof(path), "fsync_stream.txt");
 
-    dtest_test(_suite, "flushes a written stream to success");
+    d_test_suite_test(_suite, "flushes a written stream to success");
     file   = d_file_open_stream(path, "wb");
     synced = false;
 
@@ -103,15 +103,15 @@ void d_fs_tests_sync_fsync_stream(
     d_file_remove(path);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_sync_stream(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 #endif
 #else
-    dtest_block(_suite, "d_file_sync_stream");
+    d_test_suite_block(_suite, "d_file_sync_stream");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_sync_stream(stdout) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -125,18 +125,18 @@ void d_fs_tests_sync_fsync_stream(
 
 static
 void d_fs_tests_sync_fflush(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
     FILE* file;
     bool  flushed;
 
-    dtest_block(_suite, "d_file_flush_stream");
+    d_test_suite_block(_suite, "d_file_flush_stream");
 
     d_fs_test_path(path, sizeof(path), "fflush.txt");
 
-    dtest_test(_suite, "flushes a writable stream -> 0");
+    d_test_suite_test(_suite, "flushes a writable stream -> 0");
     file    = d_file_open_stream(path, "wb");
     flushed = false;
 
@@ -152,7 +152,7 @@ void d_fs_tests_sync_fflush(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream flushes all open streams -> 0");
+    d_test_suite_test(_suite, "NULL stream flushes all open streams -> 0");
     D_FS_CHECK(_suite, d_file_flush_stream(NULL) == 0);
     #endif
 }
@@ -163,10 +163,10 @@ void d_fs_tests_sync_fflush(
  *****************************************************************************/
 
 void d_fs_tests_sync(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "VI. file_sync");
+    d_test_suite_module(_suite, "VI. file_sync");
 
     d_fs_tests_sync_fsync(_suite);
     d_fs_tests_sync_fsync_stream(_suite);

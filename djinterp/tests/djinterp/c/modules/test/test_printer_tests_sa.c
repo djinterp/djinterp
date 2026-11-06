@@ -254,7 +254,7 @@ bool d_tests_sa_test_string_buffer_new(
     {
         printf("%s[FAIL] d_test_string_buffer_new unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -448,7 +448,7 @@ bool d_tests_sa_test_string_buffer_append(
     {
         printf("%s[FAIL] d_test_string_buffer_append unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -631,7 +631,7 @@ bool d_tests_sa_test_string_buffer_append_format(
     {
         printf("%s[FAIL] d_test_string_buffer_append_format unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -801,7 +801,7 @@ bool d_tests_sa_test_separator_to_string(
     {
         printf("%s[FAIL] d_test_print_separator_to_string unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -863,7 +863,7 @@ bool d_tests_sa_test_printer_all(
     // Update totals
     _test_info->assertions_total  += module_counter.assertions_total;
     _test_info->assertions_passed += module_counter.assertions_passed;
-    _test_info->tests_run         += module_counter.tests_run;
+    _test_info->tests_total       += module_counter.tests_total;
     _test_info->tests_passed      += module_counter.tests_passed;
 
     // Calculate overall result
@@ -877,13 +877,13 @@ bool d_tests_sa_test_printer_all(
     {
         printf("[PASS] module test_printer (Test Output & Reporting): %zu/%zu assertions, %zu/%zu unit tests passed\n",
             module_counter.assertions_passed, module_counter.assertions_total,
-            module_counter.tests_passed, module_counter.tests_run);
+            module_counter.tests_passed, module_counter.tests_total);
     }
     else
     {
         printf("[FAIL] module test_printer (Test Output & Reporting): %zu/%zu assertions, %zu/%zu unit tests passed\n",
             module_counter.assertions_passed, module_counter.assertions_total,
-            module_counter.tests_passed, module_counter.tests_run);
+            module_counter.tests_passed, module_counter.tests_total);
     }
 
     return overall_result;
@@ -1095,7 +1095,7 @@ bool d_tests_sa_test_write_to_file(
     {
         printf("%s[FAIL] d_test_write_to_file unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1257,7 +1257,7 @@ bool d_tests_sa_test_append_to_file(
     {
         printf("%s[FAIL] d_test_append_to_file unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1449,7 +1449,7 @@ bool d_tests_sa_test_prepend_to_file(
     {
         printf("%s[FAIL] d_test_prepend_to_file unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1587,7 +1587,7 @@ bool d_tests_sa_test_interleaved_file_operations(
     {
         printf("%s[FAIL] interleaved file operations unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1696,7 +1696,7 @@ bool d_tests_sa_test_null_parameter_handling(
     {
         printf("%s[FAIL] NULL parameter handling unit test failed\n", D_INDENT);
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }

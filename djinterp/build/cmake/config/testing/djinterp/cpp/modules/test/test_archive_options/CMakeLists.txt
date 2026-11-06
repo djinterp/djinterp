@@ -11,7 +11,7 @@
 #              test_archive_options/CMakeLists.txt
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/modules/test")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/modules/test/archive")
 
 # the glob keys on the component stem, so a sibling suite's translation units
 # in the same flat tests directory are never pulled into this executable
@@ -23,6 +23,10 @@ djinterp_add_test_executable(test_archive_options_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/test_archive_options_tests_runner.cpp"
         ${_sources}
+        # the archive and compress engines D_TEST_REPORT_ENABLE_ARCHIVE (below)
+        # reaches: internal::archive_create and internal::compress_buffer
+        "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/compress/compress.cpp"
+        "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/archive/archive.cpp"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"   # bare header-under-test
         "${_tests_dir}")                       # bare suite-header

@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_seek.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -28,7 +28,7 @@
 
 static
 void d_fs_tests_seek_fseeko(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
@@ -37,11 +37,12 @@ void d_fs_tests_seek_fseeko(
     bool  cur_ok;
     bool  end_ok;
 
-    dtest_block(_suite, "d_file_seek_stream");
+    d_test_suite_block(_suite, "d_file_seek_stream");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "SEEK_SET / SEEK_CUR / SEEK_END land where expected");
+    d_test_suite_test(_suite,
+                      "SEEK_SET / SEEK_CUR / SEEK_END land where expected");
     file   = d_file_open_stream(path, "rb");
     set_ok = false;
     cur_ok = false;
@@ -60,16 +61,17 @@ void d_fs_tests_seek_fseeko(
     D_FS_CHECK(_suite, end_ok);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_seek_stream(NULL, 0, SEEK_SET) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "an invalid whence -> -1, EINVAL");
+    d_test_suite_test(_suite, "an invalid whence -> -1, EINVAL");
     file  = d_file_open_stream(path, "rb");
     errno = 0;
-    D_FS_CHECK(_suite, (file != NULL) && (d_file_seek_stream(file, 0, 999) == -1));
+    D_FS_CHECK(_suite,
+               (file != NULL) && (d_file_seek_stream(file, 0, 999) == -1));
     D_FS_CHECK(_suite, errno == EINVAL);
 
     if (file)
@@ -85,7 +87,7 @@ void d_fs_tests_seek_fseeko(
 
 static
 void d_fs_tests_seek_ftello(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
@@ -93,11 +95,12 @@ void d_fs_tests_seek_ftello(
     bool  at_start;
     bool  after_seek;
 
-    dtest_block(_suite, "d_file_tell_stream");
+    d_test_suite_block(_suite, "d_file_tell_stream");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "reports 0 at the start and the offset after a seek");
+    d_test_suite_test(_suite,
+                      "reports 0 at the start and the offset after a seek");
     file       = d_file_open_stream(path, "rb");
     at_start   = false;
     after_seek = false;
@@ -114,7 +117,7 @@ void d_fs_tests_seek_ftello(
     D_FS_CHECK(_suite, after_seek);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_tell_stream(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -128,18 +131,18 @@ void d_fs_tests_seek_ftello(
 
 static
 void d_fs_tests_seek_rewind(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
     FILE* file;
     bool  rewound;
 
-    dtest_block(_suite, "d_file_rewind_stream");
+    d_test_suite_block(_suite, "d_file_rewind_stream");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "returns the position to the start");
+    d_test_suite_test(_suite, "returns the position to the start");
     file    = d_file_open_stream(path, "rb");
     rewound = false;
 
@@ -153,7 +156,7 @@ void d_fs_tests_seek_rewind(
     D_FS_CHECK(_suite, rewound);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_rewind_stream(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -167,7 +170,7 @@ void d_fs_tests_seek_rewind(
 
 static
 void d_fs_tests_seek_ftruncate(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -176,11 +179,11 @@ void d_fs_tests_seek_ftruncate(
     bool shrank;
     bool extended;
 
-    dtest_block(_suite, "d_file_truncate_fd");
+    d_test_suite_block(_suite, "d_file_truncate_fd");
 
     d_fs_test_path(path, sizeof(path), "ftruncate.txt");
 
-    dtest_test(_suite, "shrinking discards the tail");
+    d_test_suite_test(_suite, "shrinking discards the tail");
     d_fs_test_write(path, "Hello World! This is content.", 29);
     fd     = d_file_open(path, O_RDWR);
     shrank = false;
@@ -194,7 +197,7 @@ void d_fs_tests_seek_ftruncate(
 
     D_FS_CHECK(_suite, shrank);
 
-    dtest_test(_suite, "extending grows the file (zero-filled)");
+    d_test_suite_test(_suite, "extending grows the file (zero-filled)");
     fd       = d_file_open(path, O_RDWR);
     extended = false;
 
@@ -209,12 +212,12 @@ void d_fs_tests_seek_ftruncate(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_truncate_fd(-1, 10) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 
-    dtest_test(_suite, "negative length -> -1, EINVAL");
+    d_test_suite_test(_suite, "negative length -> -1, EINVAL");
     d_fs_test_write(path, "data", 4);
     fd    = d_file_open(path, O_RDWR);
     errno = 0;
@@ -228,9 +231,9 @@ void d_fs_tests_seek_ftruncate(
 
     d_file_remove(path);
 #else
-    dtest_block(_suite, "d_file_truncate_fd");
+    d_test_suite_block(_suite, "d_file_truncate_fd");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_truncate_fd(0, 0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -244,7 +247,7 @@ void d_fs_tests_seek_ftruncate(
 
 static
 void d_fs_tests_seek_ftruncate_stream(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -252,11 +255,11 @@ void d_fs_tests_seek_ftruncate_stream(
     FILE* file;
     bool  truncated;
 
-    dtest_block(_suite, "d_file_truncate_stream");
+    d_test_suite_block(_suite, "d_file_truncate_stream");
 
     d_fs_test_path(path, sizeof(path), "ftruncate_stream.txt");
 
-    dtest_test(_suite, "truncates the file behind the stream");
+    d_test_suite_test(_suite, "truncates the file behind the stream");
     d_fs_test_write(path, "Hello World! This is content.", 29);
     file      = d_file_open_stream(path, "r+b");
     truncated = false;
@@ -273,17 +276,18 @@ void d_fs_tests_seek_ftruncate_stream(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_truncate_stream(NULL, 10) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "negative length -> -1, EINVAL");
+    d_test_suite_test(_suite, "negative length -> -1, EINVAL");
     d_fs_test_write(path, "data", 4);
     file  = d_file_open_stream(path, "r+b");
     errno = 0;
-    D_FS_CHECK(_suite, (file != NULL) && (d_file_truncate_stream(file, -1) == -1));
+    D_FS_CHECK(_suite,
+               (file != NULL) && (d_file_truncate_stream(file, -1) == -1));
     D_FS_CHECK(_suite, errno == EINVAL);
 
     if (file)
@@ -293,9 +297,9 @@ void d_fs_tests_seek_ftruncate_stream(
 
     d_file_remove(path);
 #else
-    dtest_block(_suite, "d_file_truncate_stream");
+    d_test_suite_block(_suite, "d_file_truncate_stream");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_truncate_stream(stdin, 0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -308,10 +312,10 @@ void d_fs_tests_seek_ftruncate_stream(
  *****************************************************************************/
 
 void d_fs_tests_seek(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "V. file_seek");
+    d_test_suite_module(_suite, "V. file_seek");
 
     d_fs_tests_seek_fseeko(_suite);
     d_fs_tests_seek_ftello(_suite);

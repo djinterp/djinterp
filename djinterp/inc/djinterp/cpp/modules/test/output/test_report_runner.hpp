@@ -72,7 +72,7 @@
 * path:      /inc/djinterp/cpp/modules/test/output/test_report_runner.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.26
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -238,11 +238,10 @@ public:
     void set_file(std::FILE* _f) D_NOEXCEPT { m_file = _f;    return; }
 
     // -----------------------------------------------------------------
-    //  option conveniences (face-portable)
+    //  option conveniences
     //
-    //   Setting a knob differs by face - get<>/set<> on the C++20
-    // option_set, member assignment on the pre-C++20 struct - so these
-    // wrappers branch ONCE here and the runner stays face-agnostic.
+    //   Each sets one knob through the option set's keyed set<>, which every
+    // level has, so a runner can chain them.
     // -----------------------------------------------------------------
 
     // use_pdf
@@ -267,11 +266,7 @@ public:
         test_doc_type _v
     )
     {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
         m_opts.set<test_option::document>(_v);
-#else
-        m_opts.document = _v;
-#endif
         return;
     }
 
@@ -280,11 +275,7 @@ public:
         const std::string& _v
     )
     {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
         m_opts.set<test_option::output_file>(_v);
-#else
-        m_opts.output_path = _v;
-#endif
         return;
     }
 
@@ -298,11 +289,7 @@ public:
         DTestOutputSplit _v
     )
     {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
         m_opts.set<test_option::split>(_v);
-#else
-        m_opts.split = _v;
-#endif
         return;
     }
 
@@ -311,11 +298,7 @@ public:
         DTestShow _v
     )
     {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
         m_opts.set<test_option::show>(_v);
-#else
-        m_opts.show = _v;
-#endif
         return;
     }
 

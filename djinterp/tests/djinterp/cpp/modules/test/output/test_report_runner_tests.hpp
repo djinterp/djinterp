@@ -59,7 +59,7 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests.hpp
 * link(s):   TBA
 * author(s): DTest contributors                              created: 2026.07.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -372,42 +372,33 @@ private:
 };
 
 
-// -- face-neutral option setters -------------------------------------------
+// -- option setters --------------------------------------------------------
 //
 //   report_builder exposes conveniences for document / output_file / split /
-// show only, so the packaging knobs are written here.  Setting an option
-// differs by face (set<> on the C++20 option_set, member assignment on the
-// pre-C++20 struct), so each wrapper branches once.
+// show only, so the packaging knobs are written here, through the set's
+// keyed set<>, which every level has.
 
 // rr_set_pack
-//   function: selects the packaging mode on either option-set face.
+//   function: selects the packaging mode.
 inline
 void rr_set_pack(
     dt::test_option_set& _o,
     dt::DTestOutputPack  _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::pack>(_v);
-#else
-    _o.pack = _v;
-#endif
     return;
 }
 
 // rr_set_archive_format
-//   function: selects the archive container on either option-set face.
+//   function: selects the archive container.
 inline
 void rr_set_archive_format(
     dt::test_option_set&    _o,
     dt::test_archive_format _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::archive_format>(_v);
-#else
-    _o.archive_format = _v;
-#endif
     return;
 }
 
@@ -483,11 +474,7 @@ dt::test_option_set rr_pdf_options()
 {
     dt::test_option_set o = dt::default_test_options();
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     o.set<dt::test_option::document>(dt::test_doc_type::pdf);
-#else
-    o.document = dt::test_doc_type::pdf;
-#endif
 
     return o;
 }
@@ -645,9 +632,9 @@ dt::module_spec report_runner_spec()
             },
             dt::block_spec{
                 "options",
-                "The face-portable option conveniences: opting into a PDF, "
+                "The option conveniences: opting into a PDF, "
                 "naming its path, and selecting the split and show knobs "
-                "through either option-set face.",
+                "through the option set's keyed set<>.",
                 {
                     { "tests_report_runner_use_pdf_selects_document",
                       "use_pdf switches the document knob to pdf",

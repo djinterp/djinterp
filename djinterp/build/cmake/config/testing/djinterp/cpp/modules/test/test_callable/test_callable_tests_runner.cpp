@@ -37,7 +37,7 @@
 // std
 #include <string>
 // djinterp
-#include "../../../../../../../tests/djinterp/test/test_callable/test_callable_tests.hpp"  // resolved via the test include path
+#include "test_callable_tests.hpp"  // through the leaf's INCLUDES
 
 int main()
 {

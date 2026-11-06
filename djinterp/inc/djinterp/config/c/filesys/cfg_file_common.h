@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.11.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -74,7 +74,6 @@ TABLE OF CONTENTS
     7.  Descriptor hygiene and robustness
          1.  D_CFG_FILE_CLOEXEC_DEFAULT
          2.  D_CFG_FILE_EINTR_RETRY
-         3.  D_CFG_FILE_THREADSAFE
     8.  Environment optimization
          1.  D_CFG_FILE_USE_RESTRICT
          2.  D_CFG_FILE_FADVISE
@@ -276,13 +275,13 @@ TABLE OF CONTENTS
 
 // 1.3.3
 // D_CFG_FILE_ASSERT_PARAMS
-//   knob: trip an assertion on a failed parameter check, so that a contract
-// violation is loud in a debug build instead of an error the caller ignores.
-// A placeholder: nothing reads it yet, so a failed check returns its error
-// whatever this is. It waits on the framework's assertion subframework
-// (D_CFG_DEBUG_ASSERTS); when a module reads it, the tests that pass invalid
-// parameters on purpose must expect the assertion, or set it to 0. Off by
-// default; cfg_testing.h turns it on.
+//   knob: RESERVED, NO EFFECT (fs decision 5). It is to trip an assertion on
+// a failed parameter check, so that a contract violation is loud in a debug
+// build instead of an error the caller ignores. Nothing reads it yet, so a
+// failed check returns its error whatever this is. It waits on the
+// framework's assertion subframework (D_CFG_DEBUG_ASSERTS); when a module
+// reads it, the tests that pass invalid parameters on purpose must expect the
+// assertion, or set it to 0. Off by default; cfg_testing.h turns it on.
 #ifndef D_CFG_FILE_ASSERT_PARAMS
     #define D_CFG_FILE_ASSERT_PARAMS 0
 #endif  // D_CFG_FILE_ASSERT_PARAMS
@@ -479,21 +478,13 @@ TABLE OF CONTENTS
     #endif  // D_CFG_FILE_ALL
 #endif  // D_CFG_FILE_EINTR_RETRY
 
-// 1.7.3
-// D_CFG_FILE_THREADSAFE
-//   knob: two threads may safely drive two different handles. Nothing reads
-// it, because that is so whatever it is set to: the modules keep no state
-// between calls except the notification hook, set once at startup by
-// contract, and file_stat's statx memo, which is atomic. So 0 changes
-// nothing. It does NOT promise that one handle may be shared unsynchronized
-// between threads -- no setting here provides that.
-#ifndef D_CFG_FILE_THREADSAFE
-    #ifdef D_CFG_FILE_ALL
-        #define D_CFG_FILE_THREADSAFE D_CFG_FILE_ALL
-    #else
-        #define D_CFG_FILE_THREADSAFE 1
-    #endif  // D_CFG_FILE_ALL
-#endif  // D_CFG_FILE_THREADSAFE
+//   THREAD SAFETY, WITH NO KNOB (fs decision 10, ruled 2026.11.04: the knob
+// is removed until the thread-safe variant exists). Two threads may drive two
+// different handles whatever the build: the modules keep no state between
+// calls except the notification hook, set once at startup by contract, and
+// file_stat's statx memo, which is atomic. One handle shared unsynchronized
+// between threads is not safe, and no setting provides that. A knob comes
+// back with the variant (fs 4.4), as D_CFG_FILE_THREADSAFE.
 
 // 1.8    Environment optimization
 //------------------------------------------------------------------------------
@@ -985,9 +976,6 @@ TABLE OF CONTENTS
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_FILE_EINTR_RETRY)
     #error "D_CFG_FILE_EINTR_RETRY must be literally 0 or 1"
-#endif
-#if !D_CFG_IS_BOOL(D_CFG_FILE_THREADSAFE)
-    #error "D_CFG_FILE_THREADSAFE must be literally 0 or 1"
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_FILE_USE_RESTRICT)
     #error "D_CFG_FILE_USE_RESTRICT must be literally 0 or 1"

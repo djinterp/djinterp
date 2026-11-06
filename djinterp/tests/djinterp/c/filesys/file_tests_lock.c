@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_lock.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -28,7 +28,7 @@
 
 static
 void d_fs_tests_lock_flock(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -37,11 +37,11 @@ void d_fs_tests_lock_flock(
     bool exclusive;
     bool shared;
 
-    dtest_block(_suite, "d_file_lock_fd");
+    d_test_suite_block(_suite, "d_file_lock_fd");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "take and release an exclusive lock");
+    d_test_suite_test(_suite, "take and release an exclusive lock");
     fd        = d_file_open(path, O_RDWR);
     exclusive = false;
 
@@ -54,7 +54,7 @@ void d_fs_tests_lock_flock(
 
     D_FS_CHECK(_suite, exclusive);
 
-    dtest_test(_suite, "take and release a shared lock");
+    d_test_suite_test(_suite, "take and release a shared lock");
     fd     = d_file_open(path, O_RDONLY);
     shared = false;
 
@@ -68,7 +68,7 @@ void d_fs_tests_lock_flock(
     D_FS_CHECK(_suite, shared);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "two modes at once -> -1, EINVAL");
+    d_test_suite_test(_suite, "two modes at once -> -1, EINVAL");
     fd    = d_file_open(path, O_RDWR);
     errno = 0;
     D_FS_CHECK(_suite,
@@ -82,7 +82,7 @@ void d_fs_tests_lock_flock(
 
 #endif
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "no mode at all -> -1, EINVAL");
+    d_test_suite_test(_suite, "no mode at all -> -1, EINVAL");
     fd    = d_file_open(path, O_RDWR);
     errno = 0;
     D_FS_CHECK(_suite, (fd >= 0) && (d_file_lock_fd(fd, 0) == -1));
@@ -94,14 +94,14 @@ void d_fs_tests_lock_flock(
     }
 
 #endif
-    dtest_test(_suite, "negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_lock_fd(-1, D_LOCK_EX) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 #else
-    dtest_block(_suite, "d_file_lock_fd");
+    d_test_suite_block(_suite, "d_file_lock_fd");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_lock_fd(0, D_LOCK_EX) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -115,7 +115,7 @@ void d_fs_tests_lock_flock(
 
 static
 void d_fs_tests_lock_flock_stream(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -123,11 +123,11 @@ void d_fs_tests_lock_flock_stream(
     FILE* file;
     bool  locked;
 
-    dtest_block(_suite, "d_file_lock_stream");
+    d_test_suite_block(_suite, "d_file_lock_stream");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "take and release a lock through a stream");
+    d_test_suite_test(_suite, "take and release a lock through a stream");
     file   = d_file_open_stream(path, "rb");
     locked = false;
 
@@ -141,15 +141,15 @@ void d_fs_tests_lock_flock_stream(
     D_FS_CHECK(_suite, locked);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_lock_stream(NULL, D_LOCK_EX) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 #endif
 #else
-    dtest_block(_suite, "d_file_lock_stream");
+    d_test_suite_block(_suite, "d_file_lock_stream");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_lock_stream(stdin, D_LOCK_EX) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -162,10 +162,10 @@ void d_fs_tests_lock_flock_stream(
  *****************************************************************************/
 
 void d_fs_tests_lock(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "VII. file_lock");
+    d_test_suite_module(_suite, "VII. file_lock");
 
     d_fs_tests_lock_flock(_suite);
     d_fs_tests_lock_flock_stream(_suite);

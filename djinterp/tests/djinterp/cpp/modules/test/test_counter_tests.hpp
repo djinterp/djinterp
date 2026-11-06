@@ -11,9 +11,12 @@
 * so the suite is driven over a single deterministic instantiation,
 *     tc = test_counter<int>                                  (aliased `tc`),
 * whose integer values make every assertion exact. Event behaviour is observed
-* by binding an DEventLog to a dispatcher via bind_log() and triggering counter
-* operations; the log counts the on_increment / on_decrement / on_limit /
-* on_reset events and captures their argument values.
+* by binding a DCounterEventLog to a dispatcher via bind_counter_log() and
+* triggering counter operations; the log counts the on_increment /
+* on_decrement / on_limit / on_reset events and captures their argument
+* values. The helpers' names are the suite's own, not test_timer's DEventLog
+* and bind_log: in the one-process umbrella (test_all) the two suites link
+* together, and two inline bind_log definitions broke the ODR.
 *
 *   PORTABILITY:
 *   Requires C++17 or later (the helper DEventDispatcher stand-in and the test
@@ -23,7 +26,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_counter_tests.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.24
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_COUNTER_TESTS_
@@ -93,10 +96,10 @@ using tc = test::test_counter<int>;
 // event observation
 // -----------------------------------------------------------------
 
-// DEventLog
+// DCounterEventLog
 //   helper: tallies the events a dispatcher receives from a tc, and captures
 // the argument values carried by the last event of each kind.
-struct DEventLog
+struct DCounterEventLog
 {
     int increments = 0;
     int decrements = 0;
@@ -111,14 +114,14 @@ struct DEventLog
     tc::value_type last_reset   = 0;
 };
 
-// bind_log
-//   helper: wires an DEventLog to a dispatcher for tc's four event tags, so
-// that firing any tc event updates the log. Mirrors the documented usage,
-// e.g. `disp.bind<tc::on_increment>(...)`.
+// bind_counter_log
+//   helper: wires a DCounterEventLog to a dispatcher for tc's four event
+// tags, so that firing any tc event updates the log. Mirrors the documented
+// usage, e.g. `disp.bind<tc::on_increment>(...)`.
 inline
-void bind_log(
+void bind_counter_log(
     DEventDispatcher& _disp,
-    DEventLog&        _log
+    DCounterEventLog&        _log
 )
 {
     _disp.bind<tc::on_increment>(

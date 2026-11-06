@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_pipe.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -26,7 +26,7 @@
 #if D_FILE_PIPE_IS_AVAILABLE
 
 void d_fs_tests_pipe(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     FILE* pipe;
@@ -34,11 +34,11 @@ void d_fs_tests_pipe(
     bool  read_ok;
     bool  wrote_ok;
 
-    dtest_module(_suite, "XIV. file_pipe");
+    d_test_suite_module(_suite, "XIV. file_pipe");
 
-    dtest_block(_suite, "d_pipe_open / d_pipe_close");
+    d_test_suite_block(_suite, "d_pipe_open / d_pipe_close");
 
-    dtest_test(_suite, "reads a command's output");
+    d_test_suite_test(_suite, "reads a command's output");
     pipe    = d_pipe_open(T_PRINT("hello"), "r");
     read_ok = false;
 
@@ -57,7 +57,7 @@ void d_fs_tests_pipe(
 
     D_FS_CHECK(_suite, read_ok);
 
-    dtest_test(_suite, "streams into a command's input");
+    d_test_suite_test(_suite, "streams into a command's input");
     pipe     = d_pipe_open(T_SINK, "w");
     wrote_ok = false;
 
@@ -70,19 +70,20 @@ void d_fs_tests_pipe(
     D_FS_CHECK(_suite, wrote_ok);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL command -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL command -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_pipe_open(NULL, "r") == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a mode that is neither read nor write -> NULL, EINVAL");
+    d_test_suite_test(_suite,
+                      "a mode that is neither read nor write -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_pipe_open(T_PRINT("hi"), "q") == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "d_pipe_close(NULL) -> -1, EINVAL");
+    d_test_suite_test(_suite, "d_pipe_close(NULL) -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_pipe_close(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);

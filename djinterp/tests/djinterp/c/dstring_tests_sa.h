@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/dstring_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 /*
 TABLE OF CONTENTS
@@ -78,7 +78,7 @@ XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
 #include <string.h>
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"
-#include "../../../inc/djinterp/c/dmemory.h"
+#include "../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../inc/djinterp/c/dstring.h"
 
 

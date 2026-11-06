@@ -12,7 +12,9 @@
 * header into one TU.  (The individual runners include one header each and never
 * hit this.)
 *
-*   NOTE 2 (scope): this umbrella covers the 15 migrated suites.  It does NOT
+*   NOTE 2 (scope): this umbrella covers the 12 migrated suites (the output
+* layer's test_output_config, test_render and test_output went with their
+* headers, which the owner retired on be9080d3).  It does NOT
 * include the pre-existing *_spec() suites (options / callable / context /
 * builder / container / emit / handler / runner / event_*), because their
 * headers are not part of this drop-in.  To fold them in, add their header +
@@ -69,18 +71,6 @@
 #ifdef D_TD_CHECK
 #  undef D_TD_CHECK
 #endif
-#include "test_output_config_tests.hpp"     // under tests/.../output (INCLUDES root)
-#ifdef D_OC_CHECK
-#  undef D_OC_CHECK
-#endif
-#include "test_render_tests.hpp"
-#ifdef D_TR_CHECK
-#  undef D_TR_CHECK
-#endif
-#include "test_output_tests.hpp"
-#ifdef D_TO_CHECK
-#  undef D_TO_CHECK
-#endif
 #include "test_report_tests.hpp"
 #ifdef D_RT_CHECK
 #  undef D_RT_CHECK
@@ -109,9 +99,6 @@ int main()
         tt::traits_spec(),
         //tt::pack_spec(),
         tt::defaults_spec(),
-        tt::output_config_spec(),
-        tt::render_spec(),
-        tt::output_spec(),
         tt::report_spec(),
         // <-- add pre-existing suite specs here (spot B)
     };

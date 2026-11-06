@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/c/modules/test/test_tree.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.05
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_C_TEST_TEST_TREE_H
@@ -65,8 +65,12 @@ struct dj_test_tree_node* d_test_tree_node_new(
 );
 
 struct dj_test_tree* d_test_tree_new(void);
+// deep-copies _count node templates, remapping their links; NULL when
+// _count is 0, a link points outside the array, or memory or the size of the
+// pointer table runs out
 struct dj_test_tree* d_test_tree_new_arr(
-    struct dj_test_tree_node* _root
+    struct dj_test_tree_node* _test_tree_nodes,
+    size_t                    _count
 );
 
 

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_timer_tests_events.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp
 #include "test_timer_tests.hpp"
@@ -132,8 +132,8 @@ bool tests_test_timer_set_handler_attach_detach()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t;
 
@@ -172,10 +172,10 @@ bool tests_test_timer_set_handler_swaps()
 
     DEventDispatcher eh1;
     DEventDispatcher eh2;
-    DEventLog        log1;
-    DEventLog        log2;
-    bind_log(eh1, log1);
-    bind_log(eh2, log2);
+    DTimerEventLog   log1;
+    DTimerEventLog   log2;
+    bind_timer_log(eh1, log1);
+    bind_timer_log(eh2, log2);
 
     tt t(&eh1);
 

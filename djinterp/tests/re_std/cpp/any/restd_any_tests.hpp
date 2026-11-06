@@ -21,7 +21,7 @@
 * path:      /tests/re_std/cpp/any/restd_any_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef RESTD_ANY_TESTS_
@@ -32,14 +32,14 @@
 #include <cstdio>
 // djinterp
 // djinterp / re_std
-#include "djinterp/re_std/any/any.hpp"
-#include "djinterp/re_std/any/any_cast.hpp"
-#include "djinterp/re_std/any/any_swap.hpp"
-#include "djinterp/re_std/any/bad_any_cast.hpp"
-#include "djinterp/re_std/type_traits/type_traits.hpp"
+#include "re_std/cpp/any/any.hpp"
+#include "re_std/cpp/any/any_cast.hpp"
+#include "re_std/cpp/any/any_swap.hpp"
+#include "re_std/cpp/any/bad_any_cast.hpp"
+#include "re_std/cpp/type_traits/type_traits.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "djinterp/re_std/any/make_any.hpp"
+    #include "re_std/cpp/any/make_any.hpp"
 #endif
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER && \

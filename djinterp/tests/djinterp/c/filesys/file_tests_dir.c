@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_dir.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -35,20 +35,20 @@
 
 static
 void d_fs_tests_dir_mkdir(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
 
-    dtest_block(_suite, "d_dir_create");
+    d_test_suite_block(_suite, "d_dir_create");
 
-    dtest_test(_suite, "creates a new directory");
+    d_test_suite_test(_suite, "creates a new directory");
     d_fs_test_path(path, sizeof(path), "mkdir_new");
     d_dir_remove(path);
     D_FS_CHECK(_suite, d_dir_create(path, S_IRWXU) == 0);
     D_FS_CHECK(_suite, d_dir_exists(path));
 
-    dtest_test(_suite, "an existing directory -> -1, EEXIST");
+    d_test_suite_test(_suite, "an existing directory -> -1, EEXIST");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_create(path, S_IRWXU) == -1);
     D_FS_CHECK(_suite, errno == EEXIST);
@@ -56,7 +56,7 @@ void d_fs_tests_dir_mkdir(
     d_dir_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_create(NULL, S_IRWXU) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -70,7 +70,7 @@ void d_fs_tests_dir_mkdir(
 
 static
 void d_fs_tests_dir_mkdir_p(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char nested[D_FS_TEST_PATH_BUF];
@@ -83,18 +83,18 @@ void d_fs_tests_dir_mkdir_p(
     char tmp[D_FS_TEST_PATH_BUF];
     #endif
 
-    dtest_block(_suite, "d_dir_create_parents");
+    d_test_suite_block(_suite, "d_dir_create_parents");
 
     // build "<root>/mkdir_p_a/b/c" and remember each level for teardown
     d_path_join(middle, sizeof(middle), d_fs_test_root(), "mkdir_p_a");
     d_path_join(inner, sizeof(inner), middle, "b");
     d_path_join(nested, sizeof(nested), inner, "c");
 
-    dtest_test(_suite, "creates a directory and its missing parents");
+    d_test_suite_test(_suite, "creates a directory and its missing parents");
     D_FS_CHECK(_suite, d_dir_create_parents(nested, S_IRWXU) == 0);
     D_FS_CHECK(_suite, d_dir_exists(nested));
 
-    dtest_test(_suite, "an existing directory tree is accepted -> 0");
+    d_test_suite_test(_suite, "an existing directory tree is accepted -> 0");
     D_FS_CHECK(_suite, d_dir_create_parents(nested, S_IRWXU) == 0);
 
     // unwind deepest-first
@@ -102,13 +102,13 @@ void d_fs_tests_dir_mkdir_p(
     d_dir_remove(inner);
     d_dir_remove(middle);
 
-    dtest_test(_suite, "an empty path -> -1, ENOENT");
+    d_test_suite_test(_suite, "an empty path -> -1, ENOENT");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_create_parents("", S_IRWXU) == -1);
     D_FS_CHECK(_suite, errno == ENOENT);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     (void)tmp;
     D_FS_CHECK(_suite, d_dir_create_parents(NULL, S_IRWXU) == -1);
@@ -123,24 +123,24 @@ void d_fs_tests_dir_mkdir_p(
 
 static
 void d_fs_tests_dir_rmdir(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
 
-    dtest_block(_suite, "d_dir_remove");
+    d_test_suite_block(_suite, "d_dir_remove");
 
-    dtest_test(_suite, "removes an empty directory");
+    d_test_suite_test(_suite, "removes an empty directory");
     d_fs_test_path(path, sizeof(path), "rmdir_target");
     d_dir_create(path, S_IRWXU);
     D_FS_CHECK(_suite, d_dir_remove(path) == 0);
     D_FS_CHECK(_suite, !d_dir_exists(path));
 
-    dtest_test(_suite, "a missing directory -> -1");
+    d_test_suite_test(_suite, "a missing directory -> -1");
     D_FS_CHECK(_suite, d_dir_remove(path) == -1);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_remove(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -154,7 +154,7 @@ void d_fs_tests_dir_rmdir(
 
 static
 void d_fs_tests_dir_traversal(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     struct dj_dir_t*    dir;
@@ -164,9 +164,11 @@ void d_fs_tests_dir_traversal(
     bool               found_dotdot;
     bool               found_again;
 
-    dtest_block(_suite, "d_dir_open / d_dir_read / d_dir_rewind / d_dir_close");
+    d_test_suite_block(_suite,
+                       "d_dir_open / d_dir_read / d_dir_rewind / d_dir_close");
 
-    dtest_test(_suite, "lists entries, dot-entries included, and rewinds");
+    d_test_suite_test(_suite,
+                      "lists entries, dot-entries included, and rewinds");
     dir           = d_dir_open(d_fs_test_root());
     found_fixture = false;
     found_dot     = false;
@@ -211,7 +213,7 @@ void d_fs_tests_dir_traversal(
     D_FS_CHECK(_suite, found_dotdot);
     D_FS_CHECK(_suite, found_again);
 
-    dtest_test(_suite, "opening a missing directory -> NULL");
+    d_test_suite_test(_suite, "opening a missing directory -> NULL");
     {
         char missing[D_FS_TEST_PATH_BUF];
 
@@ -220,14 +222,14 @@ void d_fs_tests_dir_traversal(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "opening NULL -> NULL, EINVAL");
+    d_test_suite_test(_suite, "opening NULL -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_open(NULL) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "reading a NULL handle -> NULL, EINVAL");
+    d_test_suite_test(_suite, "reading a NULL handle -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_read(NULL) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -241,25 +243,25 @@ void d_fs_tests_dir_traversal(
 
 static
 void d_fs_tests_dir_getcwd(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char buf[D_FS_TEST_PATH_BUF];
 
-    dtest_block(_suite, "d_dir_get_current");
+    d_test_suite_block(_suite, "d_dir_get_current");
 
-    dtest_test(_suite, "returns the buffer holding an absolute path");
+    d_test_suite_test(_suite, "returns the buffer holding an absolute path");
     D_FS_CHECK(_suite, d_dir_get_current(buf, sizeof(buf)) == buf);
     D_FS_CHECK(_suite, d_path_is_absolute(buf) != 0);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL buffer -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL buffer -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_get_current(NULL, sizeof(buf)) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "zero size -> NULL, EINVAL");
+    d_test_suite_test(_suite, "zero size -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_get_current(buf, 0) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -272,7 +274,7 @@ void d_fs_tests_dir_getcwd(
 
 static
 void d_fs_tests_dir_chdir(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char saved[D_FS_TEST_PATH_BUF];
@@ -280,12 +282,13 @@ void d_fs_tests_dir_chdir(
     bool moved;
     bool visible;
 
-    dtest_block(_suite, "d_dir_set_current");
+    d_test_suite_block(_suite, "d_dir_set_current");
 
     // remember where we are so we can always come back
     have_saved = (d_dir_get_current(saved, sizeof(saved)) == saved);
 
-    dtest_test(_suite, "changes directory; a relative name then resolves");
+    d_test_suite_test(_suite,
+                      "changes directory; a relative name then resolves");
     moved   = (d_dir_set_current(d_fs_test_root()) == 0);
     // the fixture is now reachable by its bare name from inside the scratch dir
     visible = (d_file_access(D_FS_TEST_FILE, F_OK) == 0);
@@ -302,13 +305,13 @@ void d_fs_tests_dir_chdir(
     D_FS_CHECK(_suite, have_saved);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_set_current(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing directory -> -1");
+    d_test_suite_test(_suite, "a missing directory -> -1");
     {
         char missing[D_FS_TEST_PATH_BUF];
 
@@ -324,18 +327,19 @@ void d_fs_tests_dir_chdir(
 
 static
 void d_fs_tests_dir_realpath(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
     char  resolved[D_FILE_PATH_MAX] = {0};
     char* allocated;
 
-    dtest_block(_suite, "d_path_resolve");
+    d_test_suite_block(_suite, "d_path_resolve");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "resolves an existing path into the caller's buffer");
+    d_test_suite_test(_suite,
+                      "resolves an existing path into the caller's buffer");
     D_FS_CHECK(_suite, d_path_resolve(path,
                                       resolved,
                                       sizeof(resolved)) == resolved);
@@ -346,7 +350,8 @@ void d_fs_tests_dir_realpath(
     // same whether or not the build checks its arguments, so gating it removed
     // a case that was never about validation and, worse, left the free() below
     // holding an uninitialised pointer.
-    dtest_test(_suite, "a NULL buffer allocates the result (not an error)");
+    d_test_suite_test(_suite,
+                      "a NULL buffer allocates the result (not an error)");
     allocated = d_path_resolve(path, NULL, 0);
     D_FS_CHECK(_suite, allocated != NULL);
     D_FS_CHECK(_suite, (allocated != NULL) && (d_path_is_absolute(allocated)));
@@ -354,14 +359,15 @@ void d_fs_tests_dir_realpath(
     // the allocated form is owned by the caller
     free(allocated);
 
-    dtest_test(_suite, "a missing component -> NULL (every part must exist)");
+    d_test_suite_test(_suite,
+                      "a missing component -> NULL (every part must exist)");
     d_fs_test_path(path, sizeof(path), "no_such_realpath.txt");
     D_FS_CHECK(_suite, d_path_resolve(path,
                                       resolved,
                                       sizeof(resolved)) == NULL);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_path_resolve(NULL,
                                       resolved,
@@ -376,10 +382,10 @@ void d_fs_tests_dir_realpath(
  *****************************************************************************/
 
 void d_fs_tests_dir(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "X. file_dir");
+    d_test_suite_module(_suite, "X. file_dir");
 
     d_fs_tests_dir_mkdir(_suite);
     d_fs_tests_dir_mkdir_p(_suite);

@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_io.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -37,29 +37,29 @@
 
 static
 void d_fs_tests_io_desc_stdc(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char buf[8];
 
-    dtest_block(_suite, "descriptor I/O (ISO C backend)");
+    d_test_suite_block(_suite, "descriptor I/O (ISO C backend)");
 
-    dtest_test(_suite, "d_file_read_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_read_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_read_fd(0, buf, sizeof(buf)) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_write_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_write_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_write_fd(1, "x", 1) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_pread_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_pread_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_pread_fd(0, buf, sizeof(buf), 0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_pwrite_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_pwrite_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_pwrite_fd(1, "x", 1, 0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -73,7 +73,7 @@ void d_fs_tests_io_desc_stdc(
 
 static
 void d_fs_tests_io_read_write(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     static const char payload[] = "descriptor round-trip payload";
@@ -84,11 +84,11 @@ void d_fs_tests_io_read_write(
     bool              wrote;
     bool              read_back;
 
-    dtest_block(_suite, "d_file_read_fd / d_file_write_fd");
+    d_test_suite_block(_suite, "d_file_read_fd / d_file_write_fd");
 
     d_fs_test_path(path, sizeof(path), "io_rw.txt");
 
-    dtest_test(_suite, "written bytes read back intact");
+    d_test_suite_test(_suite, "written bytes read back intact");
     fd    = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     wrote = false;
 
@@ -129,20 +129,21 @@ void d_fs_tests_io_read_write(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "d_file_read_fd: negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite,
+                      "d_file_read_fd: negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_read_fd(-1, buf, sizeof(buf)) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "d_file_read_fd: NULL buffer -> -1, EINVAL");
+    d_test_suite_test(_suite, "d_file_read_fd: NULL buffer -> -1, EINVAL");
     fd    = d_file_open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
     errno = 0;
     D_FS_CHECK(_suite, d_file_read_fd(fd, NULL, 4) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "d_file_read_fd: zero count is a no-op -> 0");
+    d_test_suite_test(_suite, "d_file_read_fd: zero count is a no-op -> 0");
     D_FS_CHECK(_suite, (fd >= 0) && (d_file_read_fd(fd, buf, 0) == 0));
 
     if (fd >= 0)
@@ -152,20 +153,21 @@ void d_fs_tests_io_read_write(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "d_file_write_fd: negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite,
+                      "d_file_write_fd: negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_write_fd(-1, "x", 1) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "d_file_write_fd: NULL buffer -> -1, EINVAL");
+    d_test_suite_test(_suite, "d_file_write_fd: NULL buffer -> -1, EINVAL");
     fd    = d_file_open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
     errno = 0;
     D_FS_CHECK(_suite, d_file_write_fd(fd, NULL, 4) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "d_file_write_fd: zero count is a no-op -> 0");
+    d_test_suite_test(_suite, "d_file_write_fd: zero count is a no-op -> 0");
     D_FS_CHECK(_suite, (fd >= 0) && (d_file_write_fd(fd, "x", 0) == 0));
 
     if (fd >= 0)
@@ -183,7 +185,7 @@ void d_fs_tests_io_read_write(
 
 static
 void d_fs_tests_io_full(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     static const char payload[] = "0123456789";
@@ -192,11 +194,11 @@ void d_fs_tests_io_full(
     int               fd;
     ssize_t           n;
 
-    dtest_block(_suite, "d_file_read_full_fd / d_file_write_full_fd");
+    d_test_suite_block(_suite, "d_file_read_full_fd / d_file_write_full_fd");
 
     d_fs_test_path(path, sizeof(path), "io_full.txt");
 
-    dtest_test(_suite, "d_file_write_full_fd writes every byte");
+    d_test_suite_test(_suite, "d_file_write_full_fd writes every byte");
     fd = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     n  = (fd >= 0) ? d_file_write_full_fd(fd, payload, 10) : -1;
     D_FS_CHECK(_suite, n == 10);
@@ -206,7 +208,9 @@ void d_fs_tests_io_full(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "d_file_read_full_fd collects the whole request when present");
+    d_test_suite_test(_suite,
+                      "d_file_read_full_fd collects the whole request "
+                      "when present");
     fd = d_file_open(path, O_RDONLY);
     n  = (fd >= 0) ? d_file_read_full_fd(fd, buf, 10) : -1;
     D_FS_CHECK(_suite, n == 10);
@@ -216,7 +220,7 @@ void d_fs_tests_io_full(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "d_file_read_full_fd stops short at end of file");
+    d_test_suite_test(_suite, "d_file_read_full_fd stops short at end of file");
     fd = d_file_open(path, O_RDONLY);
     n  = (fd >= 0) ? d_file_read_full_fd(fd, buf, sizeof(buf)) : -1;
     D_FS_CHECK(_suite, n == 10);
@@ -228,13 +232,15 @@ void d_fs_tests_io_full(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "d_file_read_full_fd: negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite,
+                      "d_file_read_full_fd: negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_read_full_fd(-1, buf, 4) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "d_file_write_full_fd: NULL buffer -> -1, EINVAL");
+    d_test_suite_test(_suite,
+                      "d_file_write_full_fd: NULL buffer -> -1, EINVAL");
     fd    = d_file_open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
     errno = 0;
     D_FS_CHECK(_suite, d_file_write_full_fd(fd, NULL, 4) == -1);
@@ -256,7 +262,7 @@ void d_fs_tests_io_full(
 
 static
 void d_fs_tests_io_positional(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char    path[D_FS_TEST_PATH_BUF];
@@ -267,11 +273,13 @@ void d_fs_tests_io_positional(
     bool    pos_untouched;
     bool    wrote_at_offset;
 
-    dtest_block(_suite, "d_file_pread_fd / d_file_pwrite_fd");
+    d_test_suite_block(_suite, "d_file_pread_fd / d_file_pwrite_fd");
 
     d_fs_test_path(path, sizeof(path), "io_positional.txt");
 
-    dtest_test(_suite, "d_file_pread_fd reads from the offset and leaves the position");
+    d_test_suite_test(_suite,
+                      "d_file_pread_fd reads from the offset and leaves "
+                      "the position");
     d_fs_test_write(path, "0123456789", 10);
     fd            = d_file_open(path, O_RDONLY);
     at_offset     = false;
@@ -304,7 +312,9 @@ void d_fs_tests_io_positional(
     D_FS_CHECK(_suite, at_offset);
     D_FS_CHECK(_suite, pos_untouched);
 
-    dtest_test(_suite, "d_file_pwrite_fd writes at the offset and leaves the position");
+    d_test_suite_test(_suite,
+                      "d_file_pwrite_fd writes at the offset and leaves "
+                      "the position");
     d_fs_test_write(path, "AAAAAAAAAA", 10);
     fd              = d_file_open(path, O_RDWR);
     wrote_at_offset = false;
@@ -335,7 +345,7 @@ void d_fs_tests_io_positional(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "d_file_pread_fd: negative offset -> -1, EINVAL");
+    d_test_suite_test(_suite, "d_file_pread_fd: negative offset -> -1, EINVAL");
     d_fs_test_write(path, "data", 4);
     fd    = d_file_open(path, O_RDONLY);
     errno = 0;
@@ -343,7 +353,7 @@ void d_fs_tests_io_positional(
     D_FS_CHECK(_suite, n == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 
-    dtest_test(_suite, "d_file_pread_fd: zero count is a no-op -> 0");
+    d_test_suite_test(_suite, "d_file_pread_fd: zero count is a no-op -> 0");
     D_FS_CHECK(_suite, (fd >= 0) && (d_file_pread_fd(fd, buf, 0, 0) == 0));
 
     if (fd >= 0)
@@ -352,7 +362,7 @@ void d_fs_tests_io_positional(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "d_file_pread_fd: NULL buffer -> -1, EINVAL");
+    d_test_suite_test(_suite, "d_file_pread_fd: NULL buffer -> -1, EINVAL");
     fd    = d_file_open(path, O_RDONLY);
     errno = 0;
     n     = (fd >= 0) ? d_file_pread_fd(fd, NULL, 4, 0) : -1;
@@ -365,7 +375,8 @@ void d_fs_tests_io_positional(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "d_file_pwrite_fd: negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite,
+                      "d_file_pwrite_fd: negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_pwrite_fd(-1, "x", 1, 0) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
@@ -382,7 +393,7 @@ void d_fs_tests_io_positional(
 
 static
 void d_fs_tests_io_fread_all(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char   path[D_FS_TEST_PATH_BUF];
@@ -391,11 +402,12 @@ void d_fs_tests_io_fread_all(
     size_t expect;
     bool   correct;
 
-    dtest_block(_suite, "d_file_read_all");
+    d_test_suite_block(_suite, "d_file_read_all");
 
     expect = strlen(D_FS_TEST_CONTENT);
 
-    dtest_test(_suite, "reads the whole file with the right size and bytes");
+    d_test_suite_test(_suite,
+                      "reads the whole file with the right size and bytes");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     size    = 0;
     content = d_file_read_all(path, &size);
@@ -414,18 +426,19 @@ void d_fs_tests_io_fread_all(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> NULL, EINVAL");
     errno   = 0;
     content = d_file_read_all(NULL, &size);
     D_FS_CHECK(_suite, content == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing file -> NULL");
+    d_test_suite_test(_suite, "a missing file -> NULL");
     d_fs_test_path(path, sizeof(path), "no_such_fread_all.txt");
     D_FS_CHECK(_suite, d_file_read_all(path, &size) == NULL);
 
-    dtest_test(_suite, "an empty file reads back empty via the growth path");
+    d_test_suite_test(_suite,
+                      "an empty file reads back empty via the growth path");
     d_fs_test_path(path, sizeof(path), "fread_all_empty.txt");
     d_fs_test_write(path, "", 0);
     size    = 123;
@@ -448,7 +461,7 @@ void d_fs_tests_io_fread_all(
 
 static
 void d_fs_tests_io_fread_all_stream(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char   path[D_FS_TEST_PATH_BUF];
@@ -458,11 +471,11 @@ void d_fs_tests_io_fread_all_stream(
     size_t expect;
     bool   correct;
 
-    dtest_block(_suite, "d_file_read_all_stream");
+    d_test_suite_block(_suite, "d_file_read_all_stream");
 
     expect = strlen(D_FS_TEST_CONTENT);
 
-    dtest_test(_suite, "reads an open stream to its end");
+    d_test_suite_test(_suite, "reads an open stream to its end");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     file    = d_file_open_stream(path, "rb");
     content = NULL;
@@ -485,13 +498,14 @@ void d_fs_tests_io_fread_all_stream(
     }
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_read_all_stream(NULL, &size) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
 
 #if D_FILE_PIPE_IS_AVAILABLE
-    dtest_test(_suite, "an unsized pipe reads correctly via the growth path");
+    d_test_suite_test(_suite,
+                      "an unsized pipe reads correctly via the growth path");
     file    = d_pipe_open(T_PRINT("abcdef"), "r");
     content = NULL;
     size    = 0;
@@ -522,7 +536,7 @@ void d_fs_tests_io_fread_all_stream(
 
 static
 void d_fs_tests_io_fread_all_into(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char   path[D_FS_TEST_PATH_BUF];
@@ -532,11 +546,11 @@ void d_fs_tests_io_fread_all_into(
     size_t expect;
     int    rc;
 
-    dtest_block(_suite, "d_file_read_all_into");
+    d_test_suite_block(_suite, "d_file_read_all_into");
 
     expect = strlen(D_FS_TEST_CONTENT);
 
-    dtest_test(_suite, "reads into the caller's buffer");
+    d_test_suite_test(_suite, "reads into the caller's buffer");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     size = 0;
     rc   = d_file_read_all_into(path, buf, sizeof(buf), &size);
@@ -547,24 +561,24 @@ void d_fs_tests_io_fread_all_into(
                (rc == 0) && (memcmp(buf, D_FS_TEST_CONTENT, expect) == 0));
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> EINVAL");
+    d_test_suite_test(_suite, "NULL path -> EINVAL");
     D_FS_CHECK(_suite,
                d_file_read_all_into(NULL, buf, sizeof(buf), &size) == EINVAL);
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL buffer -> EINVAL");
+    d_test_suite_test(_suite, "NULL buffer -> EINVAL");
     D_FS_CHECK(_suite,
                d_file_read_all_into(path, NULL, sizeof(buf), &size) == EINVAL);
     #endif
 
-    dtest_test(_suite, "a file larger than the buffer -> ERANGE");
+    d_test_suite_test(_suite, "a file larger than the buffer -> ERANGE");
     rc = d_file_read_all_into(path, small, sizeof(small), &size);
     D_FS_CHECK(_suite, rc == ERANGE);
 
 #if D_CFG_FILE_READ_NUL_TERMINATE
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "a buffer too small to hold anything -> EINVAL");
+    d_test_suite_test(_suite, "a buffer too small to hold anything -> EINVAL");
     D_FS_CHECK(_suite, d_file_read_all_into(path, buf, 1, &size) == EINVAL);
 #endif
 #endif
@@ -577,7 +591,7 @@ void d_fs_tests_io_fread_all_into(
 
 static
 void d_fs_tests_io_fwrite_all(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char   path[D_FS_TEST_PATH_BUF];
@@ -585,11 +599,11 @@ void d_fs_tests_io_fwrite_all(
     size_t size;
     int    rc;
 
-    dtest_block(_suite, "d_file_write_all");
+    d_test_suite_block(_suite, "d_file_write_all");
 
     d_fs_test_path(path, sizeof(path), "fwrite_all.txt");
 
-    dtest_test(_suite, "writes a new file with exactly the given bytes");
+    d_test_suite_test(_suite, "writes a new file with exactly the given bytes");
     rc        = d_file_write_all(path, "first content", 13);
     read_back = (char*)d_file_read_all(path, &size);
     D_FS_CHECK(_suite, rc == 0);
@@ -603,7 +617,7 @@ void d_fs_tests_io_fwrite_all(
         free(read_back);
     }
 
-    dtest_test(_suite, "replaces the contents of an existing file");
+    d_test_suite_test(_suite, "replaces the contents of an existing file");
     rc        = d_file_write_all(path, "new", 3);
     read_back = (char*)d_file_read_all(path, &size);
     D_FS_CHECK(_suite, rc == 0);
@@ -618,7 +632,8 @@ void d_fs_tests_io_fwrite_all(
     }
 
 #if D_FILE_WRITE_IS_ATOMIC
-    dtest_test(_suite, "atomic replace leaves no sibling temporary behind");
+    d_test_suite_test(_suite,
+                      "atomic replace leaves no sibling temporary behind");
     {
         // room for the whole path AND the suffix, so the compose below
         // cannot truncate
@@ -638,7 +653,9 @@ void d_fs_tests_io_fwrite_all(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "a zero-length write with NULL data creates an empty file");
+    d_test_suite_test(_suite,
+                      "a zero-length write with NULL data creates an "
+                      "empty file");
     rc = d_file_write_all(path, NULL, 0);
     D_FS_CHECK(_suite, rc == 0);
     D_FS_CHECK(_suite, d_file_exists(path));
@@ -648,14 +665,14 @@ void d_fs_tests_io_fwrite_all(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_write_all(NULL, "x", 1) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL data with a non-zero size -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL data with a non-zero size -> -1, EINVAL");
     d_fs_test_path(path, sizeof(path), "fwrite_all_bad.txt");
     errno = 0;
     D_FS_CHECK(_suite, d_file_write_all(path, NULL, 4) == -1);
@@ -670,7 +687,7 @@ void d_fs_tests_io_fwrite_all(
 
 static
 void d_fs_tests_io_fappend_all(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char   path[D_FS_TEST_PATH_BUF];
@@ -678,11 +695,11 @@ void d_fs_tests_io_fappend_all(
     size_t size;
     int    rc;
 
-    dtest_block(_suite, "d_file_append_all");
+    d_test_suite_block(_suite, "d_file_append_all");
 
     d_fs_test_path(path, sizeof(path), "fappend_all.txt");
 
-    dtest_test(_suite, "appends to an existing file");
+    d_test_suite_test(_suite, "appends to an existing file");
     d_fs_test_write(path, "Hello", 5);
     rc        = d_file_append_all(path, " World", 6);
     read_back = (char*)d_file_read_all(path, &size);
@@ -699,7 +716,7 @@ void d_fs_tests_io_fappend_all(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "creates the file when it does not yet exist");
+    d_test_suite_test(_suite, "creates the file when it does not yet exist");
     rc = d_file_append_all(path, "fresh", 5);
     D_FS_CHECK(_suite, rc == 0);
     D_FS_CHECK(_suite, d_file_exists(path));
@@ -708,14 +725,14 @@ void d_fs_tests_io_fappend_all(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_append_all(NULL, "x", 1) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL data with a non-zero size -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL data with a non-zero size -> -1, EINVAL");
     d_fs_test_path(path, sizeof(path), "fappend_all_bad.txt");
     errno = 0;
     D_FS_CHECK(_suite, d_file_append_all(path, NULL, 4) == -1);
@@ -729,10 +746,10 @@ void d_fs_tests_io_fappend_all(
  *****************************************************************************/
 
 void d_fs_tests_io(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "IV. file_io");
+    d_test_suite_module(_suite, "IV. file_io");
 
 #if D_FILE_BACKEND_IS_STDC
     d_fs_tests_io_desc_stdc(_suite);

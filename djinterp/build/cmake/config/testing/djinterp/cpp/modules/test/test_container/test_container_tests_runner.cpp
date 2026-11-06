@@ -42,7 +42,7 @@
 // std
 #include <string>
 // djinterp
-#include "../../../../../../../tests/djinterp/test/test_container/test_container_tests.hpp"  // resolved via the test include path
+#include "test_container_tests.hpp"  // through the leaf's INCLUDES
 
 int main()
 {

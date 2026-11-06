@@ -12,7 +12,7 @@
 *
 * path:      /tests/djinterp/c/modules/test/test_handler_tests_sa.h
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.05
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_TEST_HANDLER_SA_
@@ -23,7 +23,7 @@
 #include <stdlib.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../../inc/djinterp/c/event/event.h"
 #include "../../../../../inc/djinterp/c/modules/test/default/assert.h"

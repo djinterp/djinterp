@@ -8,14 +8,14 @@
 * packaging knobs (including the compress_opts / archive_opts bundles, exercised
 * for reference stability since their contents are backend-specific), and the
 * empty route list.  Reading the defaults through the accessors covers both the
-* documented floor and every accessor body on whichever option-set face the
-* language level selects.
+* documented floor and every accessor body; the keyed get<>/set<> are checked
+* against the same members.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_options_tests_option_set.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // djinterp
@@ -63,7 +63,7 @@ bool tests_opt_defaults_presentation()
     dt::test_option_set o = dt::default_test_options();
 
     ok = D_TO_CHECK(dt::color(o)    == true)                    && ok;
-    ok = D_TO_CHECK(dt::document(o) == dt::test_doc_type::txt)  && ok;
+    ok = D_TO_CHECK(dt::document(o) == dt::test_doc_type::text)  && ok;
 
     return ok;
 }
@@ -139,6 +139,42 @@ bool tests_opt_defaults_routes()
     dt::test_option_set o = dt::default_test_options();
 
     ok = D_TO_CHECK(dt::routes(o).empty()) && ok;
+
+    return ok;
+}
+
+// tests_opt_keyed_access
+//   one shape at every level: set<key>() writes the member the key names, and
+// get<key>(), the member and the free accessor all read it back.
+bool tests_opt_keyed_access()
+{
+    bool ok = true;
+    dt::test_option_set o = dt::default_test_options();
+
+    // the members exist at every level the module compiles at
+    bool dt::test_option_set::* const member_show_timing =
+        &dt::test_option_set::show_timing;
+    (void)member_show_timing;
+
+    o.set<dt::test_option::line_width>(static_cast<std::size_t>(100));
+    ok = D_TO_CHECK(o.line_width == 100u) && ok;
+    ok = D_TO_CHECK(o.get<dt::test_option::line_width>() == 100u) && ok;
+    ok = D_TO_CHECK(dt::line_width(o) == 100u) && ok;
+
+    o.set<dt::test_option::show>(dt::DTestShow::failures_only);
+    ok = D_TO_CHECK(o.show == dt::DTestShow::failures_only) && ok;
+
+    o.set<dt::test_option::output_file>(std::string("keyed.txt"));
+    ok = D_TO_CHECK(o.output_path == "keyed.txt") && ok;
+    ok = D_TO_CHECK(dt::output_path(o) == "keyed.txt") && ok;
+
+    o.set<dt::test_option::destination>(dt::DTestSink::console);
+    ok = D_TO_CHECK(o.get<dt::test_option::destination>() ==
+                    dt::DTestSink::console) && ok;
+
+    // a member written directly reads back through its key
+    o.color = false;
+    ok = D_TO_CHECK(!o.get<dt::test_option::color>()) && ok;
 
     return ok;
 }

@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/ssize64_tests_sa.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.11.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_CORE_
@@ -20,10 +20,11 @@
 // std
 #include <errno.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"
-#include "../../../inc/djinterp/c/dmemory.h"
+#include "../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../inc/djinterp/c/modules/test/test_counter.h"
 
 
@@ -234,7 +235,7 @@ bool d_tests_sa_index_convert_fast(
     {
         printf("  [FAIL] d_index_convert_fast unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -394,7 +395,7 @@ bool d_tests_sa_index_convert_safe(
     {
         printf("  [FAIL] d_index_convert_safe unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -588,7 +589,7 @@ bool d_tests_sa_index_is_valid(
     {
         printf("  [FAIL] d_index_is_valid unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -614,7 +615,7 @@ bool d_tests_sa_index_core_all(
     // update totals
     _test_info->assertions_total  += module_counter.assertions_total;
     _test_info->assertions_passed += module_counter.assertions_passed;
-    _test_info->tests_run         += module_counter.tests_run;
+    _test_info->tests_total       += module_counter.tests_total;
     _test_info->tests_passed      += module_counter.tests_passed;
 
     bool overall_result = (fast_result && safe_result && valid_result);
@@ -623,13 +624,13 @@ bool d_tests_sa_index_core_all(
     {
         printf("[PASS] dj_index Core Functions: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
     else
     {
         printf("[FAIL] dj_index Core Functions: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
 
     return overall_result;
@@ -729,7 +730,7 @@ bool d_tests_sa_macro_array_utilities(
     {
         printf("  [FAIL] Array Utility Macros unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -921,7 +922,7 @@ bool d_tests_sa_macro_index_validation(
     {
         printf("  [FAIL] Index Validation Macros unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1121,7 +1122,7 @@ bool d_tests_sa_macro_negative_indexing(
     {
         printf("  [FAIL] Negative Indexing Macros unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1149,7 +1150,7 @@ bool d_tests_sa_macro_all(
     // update totals
     _test_info->assertions_total  += module_counter.assertions_total;
     _test_info->assertions_passed += module_counter.assertions_passed;
-    _test_info->tests_run         += module_counter.tests_run;
+    _test_info->tests_total       += module_counter.tests_total;
     _test_info->tests_passed      += module_counter.tests_passed;
 
     bool overall_result = (array_result && validation_result && indexing_result);
@@ -1158,13 +1159,13 @@ bool d_tests_sa_macro_all(
     {
         printf("[PASS] djinterp Macros: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
     else
     {
         printf("[FAIL] djinterp Macros: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
 
     return overall_result;
@@ -1288,7 +1289,7 @@ bool d_tests_sa_function_macro_consistency(
     {
         printf("  [FAIL] Function-Macro Consistency unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1436,7 +1437,7 @@ bool d_tests_sa_extreme_edge_cases(
     {
         printf("  [FAIL] Extreme Edge Cases unit test failed\n");
     }
-    _test_info->tests_run++;
+    _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
@@ -1462,7 +1463,7 @@ bool d_tests_sa_integration_all(
     // update totals
     _test_info->assertions_total  += module_counter.assertions_total;
     _test_info->assertions_passed += module_counter.assertions_passed;
-    _test_info->tests_run         += module_counter.tests_run;
+    _test_info->tests_total       += module_counter.tests_total;
     _test_info->tests_passed      += module_counter.tests_passed;
 
     bool overall_result = (consistency_result && edge_cases_result);
@@ -1471,13 +1472,13 @@ bool d_tests_sa_integration_all(
     {
         printf("[PASS] djinterp Integration: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
     else
     {
         printf("[FAIL] djinterp Integration: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
 
     return overall_result;
@@ -1511,7 +1512,7 @@ bool d_tests_sa_djinterp_core_all(
     // update totals
     _test_info->assertions_total  += module_counter.assertions_total;
     _test_info->assertions_passed += module_counter.assertions_passed;
-    _test_info->tests_run         += module_counter.tests_run;
+    _test_info->tests_total       += module_counter.tests_total;
     _test_info->tests_passed      += module_counter.tests_passed;
 
     bool overall_result = (core_result && macro_result && integration_result);
@@ -1520,13 +1521,13 @@ bool d_tests_sa_djinterp_core_all(
     {
         printf("[PASS] djinterp Core Module: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
     else
     {
         printf("[FAIL] djinterp Core Module: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
 
     return overall_result;
@@ -1554,7 +1555,7 @@ bool d_tests_sa_djinterp_core_all_extended(
     // update totals
     _test_info->assertions_total  += module_counter.assertions_total;
     _test_info->assertions_passed += module_counter.assertions_passed;
-    _test_info->tests_run         += module_counter.tests_run;
+    _test_info->tests_total       += module_counter.tests_total;
     _test_info->tests_passed      += module_counter.tests_passed;
 
     bool overall_result = (core_result && ssize64_result);
@@ -1563,13 +1564,13 @@ bool d_tests_sa_djinterp_core_all_extended(
     {
         printf("[PASS] djinterp Core Extended: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
     else
     {
         printf("[FAIL] djinterp Core Extended: %zu/%zu assertions, %zu/%zu unit tests passed\n",
                module_counter.assertions_passed, module_counter.assertions_total,
-               module_counter.tests_passed, module_counter.tests_run);
+               module_counter.tests_passed, module_counter.tests_total);
     }
 
     return overall_result;

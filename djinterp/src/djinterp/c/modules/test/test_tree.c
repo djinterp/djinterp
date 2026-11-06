@@ -7,9 +7,12 @@
 * path:      /src/djinterp/c/modules/test/test_tree.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_tree.h"
+
+// djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 /*
@@ -112,7 +115,8 @@ struct dj_test_tree* d_test_tree_new(void)
     }
 
     // initialize members
-    result->root = NULL;
+    result->root  = NULL;
+    result->count = 0;
 
     return result;
 }
@@ -137,6 +141,7 @@ struct dj_test_tree* d_test_tree_new_arr(
 {
     struct dj_test_tree* result;
     struct dj_test_tree_node** new_nodes;
+    size_t                     table_bytes;
     size_t                     i;
     size_t                     j;
     size_t                     root_index;
@@ -156,6 +161,13 @@ struct dj_test_tree* d_test_tree_new_arr(
         return NULL;
     }
 
+    // the pointer table's size, checked before anything is allocated: a count
+    // whose table does not fit in a size_t fails as an allocation would
+    if (d_ckd_mul(&table_bytes, _count, sizeof(struct dj_test_tree_node*)))
+    {
+        return NULL;
+    }
+
     // allocate the tree
     result = (struct dj_test_tree*)malloc(sizeof(struct dj_test_tree));
 
@@ -166,10 +178,11 @@ struct dj_test_tree* d_test_tree_new_arr(
     }
 
     // initialize members
-    result->root = NULL;
+    result->root  = NULL;
+    result->count = 0;
 
     // allocate pointer table for newly allocated nodes
-    new_nodes = (struct dj_test_tree_node**)malloc(_count * sizeof(struct dj_test_tree_node*));
+    new_nodes = (struct dj_test_tree_node**)malloc(table_bytes);
 
     // check if memory allocation was successful
     if (!new_nodes)
@@ -352,7 +365,8 @@ struct dj_test_tree* d_test_tree_new_arr(
         }
     }
 
-    result->root = new_nodes[root_index];
+    result->root  = new_nodes[root_index];
+    result->count = _count;
 
     free(new_nodes);
 

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests_concepts.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // std
 #include <concepts>
@@ -273,7 +273,7 @@ bool tests_declare_subsumes_shape()
     // The matrix names that cell exactly, which is the whole reason it keeps its
     // cells instead of ANDing them together.  A concept written as
     // `requires(const _Type& t)` is not volatile-transparent, and almost nobody
-    // knows it until a report says "volatile _Type"
+    // knows it until a report says "volatile Type"
     D_TT_CHECK(refines_correctly<sized>::value);
     D_TT_CHECK(refines_correctly<const sized&>::value);
     D_TT_CHECK(refines_correctly<sized&&>::value);
@@ -281,7 +281,7 @@ bool tests_declare_subsumes_shape()
     D_TT_CHECK(!refines_correctly<const volatile sized&>::value);
 
     D_TT_CHECK((!trait_ignores_cvref<refines_correctly, sized>::value));
-    D_TT_FIRST("volatile _Type", refines_correctly, sized);
+    D_TT_FIRST("volatile Type", refines_correctly, sized);
 
     return ok;
 }

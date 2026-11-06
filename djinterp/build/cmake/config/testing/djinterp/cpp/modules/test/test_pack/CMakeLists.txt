@@ -10,6 +10,10 @@ djinterp_add_test_executable(test_pack_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/test_pack_tests_runner.cpp"
         ${_sources}
+    DEFINES
+        # the recording doubles in place of the compress and archive facades
+        # (pack_facade/): the suite steers their outcomes through their hooks
+        DTEST_PACK_USE_FACADE_DOUBLE=1
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test/output"

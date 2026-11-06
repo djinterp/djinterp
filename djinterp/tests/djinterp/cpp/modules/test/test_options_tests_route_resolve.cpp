@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_options_tests_route_resolve.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // djinterp
@@ -85,7 +85,7 @@ bool tests_resolve_seed()
     ok = D_TO_CHECK(r.color        == true)                          && ok;
     ok = D_TO_CHECK(r.sinks        == dt::DTestSink::console)        && ok;
     ok = D_TO_CHECK(r.show         == dt::DTestShow::all)            && ok;
-    ok = D_TO_CHECK(r.document     == dt::test_doc_type::txt)        && ok;
+    ok = D_TO_CHECK(r.document     == dt::test_doc_type::text)        && ok;
     ok = D_TO_CHECK(r.format       == "{index}. {name} [{status}] {duration}") && ok;
     ok = D_TO_CHECK(r.line_width   == static_cast<std::size_t>(80))  && ok;
     ok = D_TO_CHECK(r.word_wrap    == true)                          && ok;

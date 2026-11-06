@@ -1,6 +1,7 @@
 // djinterp
 #include "test_traits_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"   // report_builder + report model
+// report_builder
+#include "djinterp/cpp/modules/test/output/test_report_runner.hpp"
 
 
 // D_TT_RUN

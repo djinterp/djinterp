@@ -66,7 +66,7 @@
 * path:      /tests/djinterp/cpp/memory/pool/pool_allocator_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -110,7 +110,7 @@ VII.  SPEC PROVIDER
 // djinterp
 #include "djinterp/cpp/djinterp.hpp"
 #ifndef DTEST_SPEC_MODE
-#include "../../../../../inc/djinterp/core/memory/pool/pool_allocator.hpp"
+#include "../../../../../inc/djinterp/cpp/memory/pool_allocator.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/cpp/modules/test/test_defaults.hpp"

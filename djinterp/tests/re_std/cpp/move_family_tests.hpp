@@ -32,7 +32,7 @@
 * path:      /tests/re_std/cpp/move_family_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_MOVE_FAMILY_TESTS_
@@ -45,20 +45,20 @@
 // djinterp core (macros / gates)
 #include "djinterp/cpp/djinterp.hpp"
 // the headers under test
-#include "djinterp/re_std/utility/move.hpp"
-#include "djinterp/re_std/utility/move_if_noexcept.hpp"
-#include "djinterp/re_std/algorithm/move.hpp"
-#include "djinterp/re_std/algorithm/move_backward.hpp"
-#include "djinterp/re_std/memory/uninitialized_move.hpp"
-#include "djinterp/re_std/memory/uninitialized_move_n.hpp"
-#include "djinterp/re_std/iterator/move_iterator.hpp"
-#include "djinterp/re_std/iterator/iter_move.hpp"
-#include "djinterp/re_std/type_traits/is_move_assignable.hpp"
-#include "djinterp/re_std/type_traits/is_move_constructible.hpp"
-#include "djinterp/re_std/type_traits/is_nothrow_move_assignable.hpp"
-#include "djinterp/re_std/type_traits/is_nothrow_move_constructible.hpp"
-#include "djinterp/re_std/type_traits/is_trivially_move_assignable.hpp"
-#include "djinterp/re_std/type_traits/is_trivially_move_constructible.hpp"
+#include "re_std/cpp/utility/move.hpp"
+#include "re_std/cpp/utility/move_if_noexcept.hpp"
+#include "re_std/cpp/algorithm/move.hpp"
+#include "re_std/cpp/algorithm/move_backward.hpp"
+#include "re_std/cpp/memory/uninitialized_move.hpp"
+#include "re_std/cpp/memory/uninitialized_move_n.hpp"
+#include "re_std/cpp/iterator/move_iterator.hpp"
+#include "re_std/cpp/iterator/iter_move.hpp"
+#include "re_std/cpp/type_traits/is_move_assignable.hpp"
+#include "re_std/cpp/type_traits/is_move_constructible.hpp"
+#include "re_std/cpp/type_traits/is_nothrow_move_assignable.hpp"
+#include "re_std/cpp/type_traits/is_nothrow_move_constructible.hpp"
+#include "re_std/cpp/type_traits/is_trivially_move_assignable.hpp"
+#include "re_std/cpp/type_traits/is_trivially_move_constructible.hpp"
 // test framework
 #include "djinterp/cpp/modules/test/test_defaults.hpp"
 

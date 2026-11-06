@@ -5,15 +5,15 @@
 * path:      /tests/re_std/cpp/functional/function_smoke_test.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // std
 #include <cassert>
 #include <cstdio>
 #include <string>
 // djinterp
-#include "djinterp/re_std/functional/function.hpp"
-#include "djinterp/re_std/functional/reference_wrapper.hpp"
+#include "re_std/cpp/functional/function.hpp"
+#include "re_std/cpp/functional/reference_wrapper.hpp"
 
 // free function target
 static int add1(int x) { return x + 1; }

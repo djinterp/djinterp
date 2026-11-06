@@ -6,7 +6,7 @@
 * (the pack / compressor / archive_format knobs of a test_option_set) into the
 * matching compile-time facade call.  Two faces, selected by DTEST_SPEC_MODE:
 *   - NORMAL mode (the four section TUs): includes the header under test and
-*     exposes the check helper + the face-neutral option setters; the TUs define
+*     exposes the check helper + the option setters; the TUs define
 *     the tests_* bodies against an instrumented compress / archive facade.
 *   - SPEC mode (the runner): includes the authoring surface and exposes
 *     pack_spec(), the module_spec provider the runner hands to run_module.
@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_pack_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_PACK_TESTS_
@@ -82,11 +82,11 @@ bool test_pack_check(
 
 
 // =========================================================================
-//  face-neutral option-set setters
+//  option-set setters
 // =========================================================================
-//   test_option_set has two faces: the pre-C++20 aggregate (member assignment)
-// and the C++20 option_set<> (set<key>()).  These helpers write through the
-// right one so the same test body runs on both faces.
+//   test_option_set has one shape at every level, with keyed set<key>(); these
+// helpers keep the test bodies short.  (They once chose between two faces,
+// the C++20 option_set<> and the struct below it.)
 
 inline
 void tp_set_pack(
@@ -94,11 +94,7 @@ void tp_set_pack(
     dt::DTestOutputPack  _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::pack>(_v);
-#else
-    _o.pack = _v;
-#endif
 }
 
 inline
@@ -107,11 +103,7 @@ void tp_set_compressor(
     dt::test_compressor  _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::compressor>(_v);
-#else
-    _o.compressor = _v;
-#endif
 }
 
 inline
@@ -120,11 +112,7 @@ void tp_set_compress_opts(
     const dj::compress_options& _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::compress_opts>(_v);
-#else
-    _o.compress_opts = _v;
-#endif
 }
 
 inline
@@ -133,11 +121,7 @@ void tp_set_archive_format(
     dt::test_archive_format _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::archive_format>(_v);
-#else
-    _o.archive_format = _v;
-#endif
 }
 
 inline
@@ -146,11 +130,7 @@ void tp_set_archive_opts(
     const dj::archive_options& _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::archive_opts>(_v);
-#else
-    _o.archive_opts = _v;
-#endif
 }
 
 inline
@@ -159,11 +139,7 @@ void tp_set_document(
     dt::test_doc_type    _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::document>(_v);
-#else
-    _o.document = _v;
-#endif
 }
 
 inline
@@ -172,11 +148,7 @@ void tp_set_output_path(
     const std::string&   _v
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _o.set<dt::test_option::output_file>(_v);
-#else
-    _o.output_path = _v;
-#endif
 }
 
 #endif  // !DTEST_SPEC_MODE

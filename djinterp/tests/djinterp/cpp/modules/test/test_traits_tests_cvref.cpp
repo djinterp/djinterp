@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests_cvref.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -204,14 +204,14 @@ bool tests_cvref_report_first_disagreement()
     D_CONSTEXPR DCvrefReport c6{true, true, true, true, true, true, false, true};
     D_CONSTEXPR DCvrefReport c7{true, true, true, true, true, true, true, false};
 
-    D_TT_CHECK(tt_names_match("const _Type", c1.first_disagreement()));
-    D_TT_CHECK(tt_names_match("volatile _Type", c2.first_disagreement()));
-    D_TT_CHECK(tt_names_match("const volatile _Type",
+    D_TT_CHECK(tt_names_match("const Type", c1.first_disagreement()));
+    D_TT_CHECK(tt_names_match("volatile Type", c2.first_disagreement()));
+    D_TT_CHECK(tt_names_match("const volatile Type",
                               c3.first_disagreement()));
-    D_TT_CHECK(tt_names_match("_Type&", c4.first_disagreement()));
-    D_TT_CHECK(tt_names_match("const _Type&", c5.first_disagreement()));
-    D_TT_CHECK(tt_names_match("_Type&&", c6.first_disagreement()));
-    D_TT_CHECK(tt_names_match("const _Type&&", c7.first_disagreement()));
+    D_TT_CHECK(tt_names_match("Type&", c4.first_disagreement()));
+    D_TT_CHECK(tt_names_match("const Type&", c5.first_disagreement()));
+    D_TT_CHECK(tt_names_match("Type&&", c6.first_disagreement()));
+    D_TT_CHECK(tt_names_match("const Type&&", c7.first_disagreement()));
 
     // the eighth branch: nullptr, for both polarities
     D_CONSTEXPR DCvrefReport all_true{
@@ -228,19 +228,19 @@ bool tests_cvref_report_first_disagreement()
     D_CONSTEXPR DCvrefReport many{
         true, true, false, false, false, false, false, false};
 
-    D_TT_CHECK(tt_names_match("volatile _Type", many.first_disagreement()));
+    D_TT_CHECK(tt_names_match("volatile Type", many.first_disagreement()));
 
     // ...and with bare = FALSE, the same chain runs against the opposite
     // baseline: here `const _Type` is the odd one out because it is TRUE
     D_CONSTEXPR DCvrefReport inverted{
         false, true, false, false, false, false, false, false};
 
-    D_TT_CHECK(tt_names_match("const _Type", inverted.first_disagreement()));
+    D_TT_CHECK(tt_names_match("const Type", inverted.first_disagreement()));
 
     // it is constexpr
     D_CONSTEXPR const char* ct_name = c4.first_disagreement();
 
-    D_TT_CHECK(tt_names_match("_Type&", ct_name));
+    D_TT_CHECK(tt_names_match("Type&", ct_name));
 
     return ok;
 }
@@ -280,13 +280,13 @@ bool tests_trait_across_cvref()
     D_TT_CHECK((!trait_across_cvref<cvref_blind, char>().all()));
 
     // the seven cells, one blind trait each
-    D_TT_FIRST("const _Type",           hates_const,            int);
-    D_TT_FIRST("volatile _Type",        hates_volatile,         int);
-    D_TT_FIRST("const volatile _Type",  hates_cv,               int);
-    D_TT_FIRST("_Type&",                hates_lvalue_ref,       int);
-    D_TT_FIRST("const _Type&",          hates_const_lvalue_ref, int);
-    D_TT_FIRST("_Type&&",               hates_rvalue_ref,       int);
-    D_TT_FIRST("const _Type&&",         hates_const_rvalue_ref, int);
+    D_TT_FIRST("const Type",            hates_const,            int);
+    D_TT_FIRST("volatile Type",         hates_volatile,         int);
+    D_TT_FIRST("const volatile Type",   hates_cv,               int);
+    D_TT_FIRST("Type&",                 hates_lvalue_ref,       int);
+    D_TT_FIRST("const Type&",           hates_const_lvalue_ref, int);
+    D_TT_FIRST("Type&&",                hates_rvalue_ref,       int);
+    D_TT_FIRST("const Type&&",          hates_const_rvalue_ref, int);
 
     // none of them agrees, and none is all-or-nothing
     D_TT_CHECK((!trait_across_cvref<hates_const, int>().agrees()));

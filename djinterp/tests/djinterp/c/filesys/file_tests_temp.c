@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_temp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -31,16 +31,17 @@
 
 static
 void d_fs_tests_temp_tmpfile(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     FILE* file;
     char  buf[8];
     bool  usable;
 
-    dtest_block(_suite, "d_file_temp_stream");
+    d_test_suite_block(_suite, "d_file_temp_stream");
 
-    dtest_test(_suite, "returns a stream that can be written and read back");
+    d_test_suite_test(_suite,
+                      "returns a stream that can be written and read back");
     file   = d_file_temp_stream();
     usable = false;
 
@@ -67,15 +68,15 @@ void d_fs_tests_temp_tmpfile(
 
 static
 void d_fs_tests_temp_tmpfile_s(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     FILE* stream;
     int   rc;
 
-    dtest_block(_suite, "d_file_temp_stream_s");
+    d_test_suite_block(_suite, "d_file_temp_stream_s");
 
-    dtest_test(_suite, "success -> 0 and a valid stream");
+    d_test_suite_test(_suite, "success -> 0 and a valid stream");
     stream = NULL;
     rc     = d_file_temp_stream_s(&stream);
     D_FS_CHECK(_suite, rc == 0);
@@ -87,7 +88,7 @@ void d_fs_tests_temp_tmpfile_s(
     }
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL out-parameter -> EINVAL");
+    d_test_suite_test(_suite, "NULL out-parameter -> EINVAL");
     rc = d_file_temp_stream_s(NULL);
     D_FS_CHECK(_suite, rc == EINVAL);
 #endif
@@ -100,7 +101,7 @@ void d_fs_tests_temp_tmpfile_s(
 
 static
 void d_fs_tests_temp_mkstemp(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -109,9 +110,9 @@ void d_fs_tests_temp_mkstemp(
     int  fd;
     bool made;
 
-    dtest_block(_suite, "d_file_temp_create");
+    d_test_suite_block(_suite, "d_file_temp_create");
 
-    dtest_test(_suite, "opens a unique file and rewrites the template");
+    d_test_suite_test(_suite, "opens a unique file and rewrites the template");
     snprintf(tmpl, sizeof(tmpl), "%s%cmkstempXXXXXX",
              d_fs_test_root(), D_FILE_PATH_SEP);
     fd   = d_file_temp_create(tmpl);
@@ -129,29 +130,29 @@ void d_fs_tests_temp_mkstemp(
 
     D_FS_CHECK(_suite, made);
 
-    dtest_test(_suite, "a template not ending in six X's -> -1, EINVAL");
+    d_test_suite_test(_suite, "a template not ending in six X's -> -1, EINVAL");
     snprintf(bad, sizeof(bad), "%s%cmkstemp_noplace",
              d_fs_test_root(), D_FILE_PATH_SEP);
     errno = 0;
     D_FS_CHECK(_suite, d_file_temp_create(bad) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 
-    dtest_test(_suite, "a too-short template -> -1, EINVAL");
+    d_test_suite_test(_suite, "a too-short template -> -1, EINVAL");
     strcpy(bad, "XXXXX");
     errno = 0;
     D_FS_CHECK(_suite, d_file_temp_create(bad) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL template -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL template -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_temp_create(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 #endif
 #else
-    dtest_block(_suite, "d_file_temp_create");
+    d_test_suite_block(_suite, "d_file_temp_create");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     {
         char tmpl[] = "mkstempXXXXXX";
 
@@ -169,35 +170,35 @@ void d_fs_tests_temp_mkstemp(
 
 static
 void d_fs_tests_temp_tmpnam_s(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if D_FILE_TEMP_HAS_TMPNAM
     char buf[D_FS_TEST_PATH_BUF];
     int  rc;
 
-    dtest_block(_suite, "d_file_temp_name");
+    d_test_suite_block(_suite, "d_file_temp_name");
 
-    dtest_test(_suite, "produces a non-empty candidate name -> 0");
+    d_test_suite_test(_suite, "produces a non-empty candidate name -> 0");
     memset(buf, 0, sizeof(buf));
     rc = d_file_temp_name(buf, sizeof(buf));
     D_FS_CHECK(_suite, rc == 0);
     D_FS_CHECK(_suite, strlen(buf) > 0);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "a one-byte buffer -> EINVAL");
+    d_test_suite_test(_suite, "a one-byte buffer -> EINVAL");
     D_FS_CHECK(_suite, d_file_temp_name(buf, 1) == EINVAL);
 
 #endif
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL buffer -> EINVAL");
+    d_test_suite_test(_suite, "NULL buffer -> EINVAL");
     D_FS_CHECK(_suite, d_file_temp_name(NULL, sizeof(buf)) == EINVAL);
 #endif
 #else
     // d_file_temp_name is not offered on this platform; nothing to exercise
-    dtest_block(_suite, "d_file_temp_name");
+    d_test_suite_block(_suite, "d_file_temp_name");
 
-    dtest_test(_suite, "not available on this platform (skipped)");
+    d_test_suite_test(_suite, "not available on this platform (skipped)");
     D_FS_CHECK(_suite, true);
 #endif
 }
@@ -209,27 +210,27 @@ void d_fs_tests_temp_tmpnam_s(
 
 static
 void d_fs_tests_temp_tempdir(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char buf[D_FS_TEST_PATH_BUF];
 
-    dtest_block(_suite, "d_dir_temp");
+    d_test_suite_block(_suite, "d_dir_temp");
 
-    dtest_test(_suite, "yields an existing directory");
+    d_test_suite_test(_suite, "yields an existing directory");
     memset(buf, 0, sizeof(buf));
     D_FS_CHECK(_suite, d_dir_temp(buf, sizeof(buf)) == buf);
     D_FS_CHECK(_suite, d_dir_exists(buf));
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL buffer -> NULL, EINVAL");
+    d_test_suite_test(_suite, "NULL buffer -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_temp(NULL, sizeof(buf)) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "a one-byte buffer -> NULL, EINVAL");
+    d_test_suite_test(_suite, "a one-byte buffer -> NULL, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_dir_temp(buf, 1) == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -242,10 +243,10 @@ void d_fs_tests_temp_tempdir(
  *****************************************************************************/
 
 void d_fs_tests_temp(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "XII. file_temp");
+    d_test_suite_module(_suite, "XII. file_temp");
 
     d_fs_tests_temp_tmpfile(_suite);
     d_fs_tests_temp_tmpfile_s(_suite);

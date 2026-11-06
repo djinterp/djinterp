@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/modules/test/default/test_block_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.01
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_SA_TEST_BLOCK_
@@ -20,7 +20,7 @@
 #include <stdlib.h>
 // djinterp
 #include "../../../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../../../inc/djinterp/c/modules/test/default/test.h"
 #include "../../../../../../inc/djinterp/c/modules/test/default/test_block.h"

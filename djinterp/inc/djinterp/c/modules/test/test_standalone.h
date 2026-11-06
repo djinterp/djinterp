@@ -9,7 +9,7 @@
 * path:      /inc/djinterp/c/modules/test/test_standalone.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.24
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_C_TEST_TEST_STANDALONE_H
@@ -26,7 +26,9 @@
 #include "../../filesys/dfile.h"
 #include "../../dstring.h"
 #include "../../dtime.h"
+#include "../../../config/c/modules/test/cfg_test_printer.h"  // D_TEST_SYMBOL_*
 #include "test_common.h"
+#include "test_arg.h"       // struct dj_test_arg_list
 #include "test_counter.h"   // struct dj_test_counter (embedded by value)
 
 
@@ -345,8 +347,6 @@ typedef void (*fn_print_object_file)(FILE*                       _file,
  *****************************************************************************/
 
 // I.    test object creation and destruction
-// restored 2026.10.20: defined by the standalone driver, test_standalone_min.c
-// (test_standalone.c, which also defines them, does not build at present)
 struct dj_test_object* d_test_object_new_leaf(
     const char* _name,
     const char* _message,
@@ -371,12 +371,7 @@ void d_test_object_add_child(
  *****************************************************************************/
 
 // II.   test counter operations
-void d_test_counter_reset(
-    struct dj_test_counter* _counter
-);
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_counter_add(struct dj_test_counter*       _dest,
-//                         const struct dj_test_counter* _source);
+//   d_test_counter_reset and d_test_counter_add are test_counter.h's.
 
 
 /*******************************************************************************
@@ -384,12 +379,8 @@ void d_test_counter_reset(
  *****************************************************************************/
 
 // III.  standalone assertion
-bool d_assert_standalone(
-    bool                    _condition,
-    const char*             _test_name,
-    const char*             _message,
-    struct dj_test_counter* _test_info
-);
+//   d_assert_standalone is declared in test_counter.h, beside the tally it
+// counts into: the counter-style suites include that header alone.
 
 
 /*******************************************************************************
@@ -410,14 +401,19 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // V.    default print functions
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_default_print_object(const struct dj_test_object* _obj,
-//                                  size_t                      _indent_level,
-//                                  struct dj_test_counter*      _counter);
-// void d_test_default_print_object_to_file(FILE*                       _file,
-//                                          const struct dj_test_object* _obj,
-//                                          size_t                      _indent_level,
-//                                          struct dj_test_counter*      _counter);
+//   print an object tree, indented, adding its leaves to _counter when it is
+// not NULL; the _to_file form prints to _file as well
+void d_test_default_print_object(
+    const struct dj_test_object* _obj,
+    size_t                       _indent_level,
+    struct dj_test_counter*      _counter
+);
+void d_test_default_print_object_to_file(
+    FILE*                        _file,
+    const struct dj_test_object* _obj,
+    size_t                       _indent_level,
+    struct dj_test_counter*      _counter
+);
 
 
 /*******************************************************************************
@@ -425,20 +421,25 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // VI.   output functions
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_standalone_output_console(const char*                  _delimiters[2],
-//                                       size_t                       _kv_count,
-//                                       const char*                  _key_values[][2],
-//                                       size_t                       _obj_count,
-//                                       struct dj_test_object* const* _objects,
-//                                       fn_print_object              _print_fn);
-// void d_test_standalone_output_file(const char*                  _filepath,
-//                                    const char*                  _delimiters[2],
-//                                    size_t                       _kv_count,
-//                                    const char*                  _key_values[][2],
-//                                    size_t                       _obj_count,
-//                                    struct dj_test_object* const* _objects,
-//                                    fn_print_object_file         _print_fn);
+//   print a templated header, then each object; a NULL print function is the
+// default one
+void d_test_standalone_output_console(
+    const char*                   _delimiters[2],
+    size_t                        _kv_count,
+    const char*                   _key_values[][2],
+    size_t                        _obj_count,
+    struct dj_test_object* const* _objects,
+    fn_print_object               _print_fn
+);
+void d_test_standalone_output_file(
+    const char*                   _filepath,
+    const char*                   _delimiters[2],
+    size_t                        _kv_count,
+    const char*                   _key_values[][2],
+    size_t                        _obj_count,
+    struct dj_test_object* const* _objects,
+    fn_print_object_file          _print_fn
+);
 
 
 /*******************************************************************************
@@ -446,18 +447,29 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // VII.  output formatting
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_standalone_create_framework_header(const char* _suite_name,
-//                                        const char* _description);
-// void d_test_standalone_create_module_test_header(const char* _module_name,
-//                                          const char* _description);
-// void d_test_standalone_create_module_test_results(const char*                  _module_name,
-//                                           const struct dj_test_counter* _counter);
-// void d_test_standalone_create_comprehensive_results(const struct dj_test_standalone_suite_results* _suite);
-// void d_test_standalone_create_implementation_notes(size_t                               _section_count,
-//                                            const struct dj_test_standalone_note_section* _sections);
-// void d_test_standalone_create_final_status(const char* _framework_name,
-//                                    bool        _passed);
+void d_test_standalone_create_framework_header(
+    const char* _suite_name,
+    const char* _description
+);
+void d_test_standalone_create_module_test_header(
+    const char* _module_name,
+    const char* _description
+);
+void d_test_standalone_create_module_test_results(
+    const char*                   _module_name,
+    const struct dj_test_counter* _counter
+);
+void d_test_standalone_create_comprehensive_results(
+    const struct dj_test_standalone_suite_results* _suite
+);
+void d_test_standalone_create_implementation_notes(
+    size_t                                        _section_count,
+    const struct dj_test_standalone_note_section* _sections
+);
+void d_test_standalone_create_final_status(
+    const char* _framework_name,
+    bool        _passed
+);
 
 
 /*******************************************************************************
@@ -465,12 +477,17 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // VIII. option initialization and parsing
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_standalone_options_init(struct dj_test_standalone_options* _options);
-// bool d_test_standalone_options_parse(struct dj_test_standalone_options* _options,
-//                              int                       _argc,
-//                              char*                     _argv[]);
-// void d_test_standalone_options_print_usage(const char* _program_name);
+void d_test_standalone_options_init(
+    struct dj_test_standalone_options* _options
+);
+bool d_test_standalone_options_parse(
+    struct dj_test_standalone_options* _options,
+    int                                _argc,
+    char*                              _argv[]
+);
+void d_test_standalone_options_print_usage(
+    const char* _program_name
+);
 
 
 /*******************************************************************************
@@ -478,18 +495,25 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // IX.   failure list management
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_standalone_failure_list_init(struct dj_test_standalone_failure_list* _list);
-// void d_test_standalone_failure_list_add(struct dj_test_standalone_failure_list* _list,
-//                                 const char*                    _module,
-//                                 const char*                    _name,
-//                                 const char*                    _message);
-// void d_test_standalone_failure_list_print(
-//          const struct dj_test_standalone_failure_list* _list);
-// void d_test_standalone_failure_list_print_file(
-//          FILE*                                _file,
-//          const struct dj_test_standalone_failure_list* _list);
-// void d_test_standalone_failure_list_free(struct dj_test_standalone_failure_list* _list);
+void d_test_standalone_failure_list_init(
+    struct dj_test_standalone_failure_list* _list
+);
+void d_test_standalone_failure_list_add(
+    struct dj_test_standalone_failure_list* _list,
+    const char*                             _module,
+    const char*                             _name,
+    const char*                             _message
+);
+void d_test_standalone_failure_list_print(
+    const struct dj_test_standalone_failure_list* _list
+);
+void d_test_standalone_failure_list_print_file(
+    FILE*                                         _file,
+    const struct dj_test_standalone_failure_list* _list
+);
+void d_test_standalone_failure_list_free(
+    struct dj_test_standalone_failure_list* _list
+);
 
 
 /*******************************************************************************
@@ -497,30 +521,48 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // X.    unified test runner
-// declared but never defined: commented out until implemented (2026.09.30)
-// void d_test_standalone_runner_init(struct dj_test_standalone_runner* _runner,
-//                            const char*              _suite_name,
-//                            const char*              _suite_description);
-// void d_test_standalone_runner_set_options(struct dj_test_standalone_runner*       _runner,
-//                                   const struct dj_test_standalone_options* _options);
-// void d_test_standalone_runner_add_module(struct dj_test_standalone_runner*             _runner,
-//                                  const char*                          _name,
-//                                  const char*                          _description,
-//                                  fn_test_module                       _run_fn,
-//                                  size_t                               _note_count,
-//                                  const struct dj_test_standalone_note_section* _notes);
-// void d_test_standalone_runner_add_module_counter(struct dj_test_standalone_runner*             _runner,
-//                                          const char*                          _name,
-//                                          const char*                          _description,
-//                                          fn_test_module_counter               _run_fn,
-//                                          size_t                               _note_count,
-//                                          const struct dj_test_standalone_note_section* _notes);
-// int  d_test_standalone_runner_execute(struct dj_test_standalone_runner* _runner);
-// void d_test_standalone_runner_set_wait_for_input(struct dj_test_standalone_runner* _runner,
-//                                          bool                     _wait);
-// void d_test_standalone_runner_set_show_notes(struct dj_test_standalone_runner* _runner,
-//                                      bool                     _show);
-// void d_test_standalone_runner_cleanup(struct dj_test_standalone_runner* _runner);
+//   a runner holds up to D_TEST_STANDALONE_MAX_MODULES modules, each a tree
+// function or a counter function; execute runs them all and returns 0 when
+// every one passed, 1 otherwise
+void d_test_standalone_runner_init(
+    struct dj_test_standalone_runner* _runner,
+    const char*                       _suite_name,
+    const char*                       _suite_description
+);
+void d_test_standalone_runner_set_options(
+    struct dj_test_standalone_runner*        _runner,
+    const struct dj_test_standalone_options* _options
+);
+void d_test_standalone_runner_add_module(
+    struct dj_test_standalone_runner*             _runner,
+    const char*                                   _name,
+    const char*                                   _description,
+    fn_test_module                                _run_fn,
+    size_t                                        _note_count,
+    const struct dj_test_standalone_note_section* _notes
+);
+void d_test_standalone_runner_add_module_counter(
+    struct dj_test_standalone_runner*             _runner,
+    const char*                                   _name,
+    const char*                                   _description,
+    fn_test_module_counter                        _run_fn,
+    size_t                                        _note_count,
+    const struct dj_test_standalone_note_section* _notes
+);
+int  d_test_standalone_runner_execute(
+    struct dj_test_standalone_runner* _runner
+);
+void d_test_standalone_runner_set_wait_for_input(
+    struct dj_test_standalone_runner* _runner,
+    bool                              _wait
+);
+void d_test_standalone_runner_set_show_notes(
+    struct dj_test_standalone_runner* _runner,
+    bool                              _show
+);
+void d_test_standalone_runner_cleanup(
+    struct dj_test_standalone_runner* _runner
+);
 
 
 /*******************************************************************************
@@ -528,9 +570,11 @@ char* d_test_substitute_template(
  *****************************************************************************/
 
 // XI.   utility functions
-// declared but never defined: commented out until implemented (2026.09.30)
-// void   d_test_standalone_print_timestamp(void);
-// double d_test_standalone_get_elapsed_time(clock_t _start, clock_t _end);
+void   d_test_standalone_print_timestamp(void);
+double d_test_standalone_get_elapsed_time(
+    clock_t _start,
+    clock_t _end
+);
 
 
 #endif  // DJINTERP_C_TEST_TEST_STANDALONE_H

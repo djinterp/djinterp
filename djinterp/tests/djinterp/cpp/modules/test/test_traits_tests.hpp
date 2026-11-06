@@ -44,7 +44,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -684,7 +684,7 @@ struct DRuntimeValued
 // a namespace-scope probe.
 struct DProbeHolder
 {
-    D_TEST_TYPE_PROBE(nested_value_type, typename _Type::value_type)
+    D_TEST_TYPE_PROBE(nested_value_type, typename Type::value_type)
 };
 
 
@@ -695,7 +695,7 @@ struct DProbeHolder
 
 // p_value_type
 //   probe: D_TEST_TYPE_PROBE - a nested type.
-D_TEST_TYPE_PROBE(p_value_type, typename _Type::value_type)
+D_TEST_TYPE_PROBE(p_value_type, typename Type::value_type)
 
 // DPCommon
 //   probe: D_TEST_TYPE_PROBE_2, whose body contains a TOP-LEVEL COMMA.  The
@@ -704,57 +704,57 @@ D_TEST_TYPE_PROBE(p_value_type, typename _Type::value_type)
 // is only reassembled because the declarators are variadic.  A non-variadic
 // spelling of these macros would reject this probe, which is the commonest shape
 // a binary type probe takes.
-D_TEST_TYPE_PROBE_2(DPCommon, std::common_type_t<_Type, _Other>)
+D_TEST_TYPE_PROBE_2(DPCommon, std::common_type_t<Type, Other>)
 
 // DPSize
 //   probe: D_TEST_EXPR_PROBE yielding a PRVALUE.
-D_TEST_EXPR_PROBE(DPSize, std::declval<const _Type&>().size())
+D_TEST_EXPR_PROBE(DPSize, std::declval<const Type&>().size())
 
 // p_front
 //   probe: D_TEST_EXPR_PROBE yielding an LVALUE.
-D_TEST_EXPR_PROBE(p_front, std::declval<_Type&>().front())
+D_TEST_EXPR_PROBE(p_front, std::declval<Type&>().front())
 
 // p_take
 //   probe: D_TEST_EXPR_PROBE yielding an XVALUE.
-D_TEST_EXPR_PROBE(p_take, std::declval<_Type&>().take())
+D_TEST_EXPR_PROBE(p_take, std::declval<Type&>().take())
 
 // DPAt
-//   probe: D_TEST_EXPR_PROBE_2 - the binary form, over `_Type` and `_Other`.
-D_TEST_EXPR_PROBE_2(DPAt, std::declval<const _Type&>().at(
-                              std::declval<_Other>()))
+//   probe: D_TEST_EXPR_PROBE_2 - the binary form, over `Type` and `Other`.
+D_TEST_EXPR_PROBE_2(DPAt, std::declval<const Type&>().at(
+                              std::declval<Other>()))
 
 // p_swap_noexcept
 //   probe: D_TEST_NOEXCEPT_PROBE - well-formed iff the swap is, and its ::value
 // reports whether that swap can throw.
 D_TEST_NOEXCEPT_PROBE(p_swap_noexcept,
-                      std::declval<_Type&>().swap(std::declval<_Type&>()))
+                      std::declval<Type&>().swap(std::declval<Type&>()))
 
 // p_default_expr / p_default_ce
 //   probes: the SAME expression under an EXPR probe and a CONSTEXPR probe.  The
 // pair is the only way to tell "ill-formed" from "well-formed but not constant",
 // which the constexpr declarator conflates by design.
-D_TEST_EXPR_PROBE(p_default_expr, _Type())
-D_TEST_CONSTEXPR_PROBE(p_default_ce, _Type())
+D_TEST_EXPR_PROBE(p_default_expr, Type())
+D_TEST_CONSTEXPR_PROBE(p_default_ce, Type())
 
 // p_literal_expr / p_literal_ce
 //   probes: the same pair over an int-taking constructor, for fixtures::literal
 // and for DRuntimeValued.
-D_TEST_EXPR_PROBE(p_literal_expr, _Type(7).value)
-D_TEST_CONSTEXPR_PROBE(p_literal_ce, _Type(7).value)
+D_TEST_EXPR_PROBE(p_literal_expr, Type(7).value)
+D_TEST_CONSTEXPR_PROBE(p_literal_ce, Type(7).value)
 
 // p_sizeof_ce
 //   probe: D_TEST_CONSTEXPR_PROBE over sizeof - a constant expression for every
 // complete type, INCLUDING a non-literal one, and ill-formed for void.  The
 // subject that shows the constexpr declarator is about the EXPRESSION, not about
 // the type's literalness.
-D_TEST_CONSTEXPR_PROBE(p_sizeof_ce, sizeof(_Type))
+D_TEST_CONSTEXPR_PROBE(p_sizeof_ce, sizeof(Type))
 
 // p_convertible_to_size
 //   probe: an expression that succeeds by CONVERSION rather than by member
 // lookup.  fixtures::greedy satisfies it and satisfies no member-shaped probe -
 // which is the separation that fixture exists to make.
 D_TEST_EXPR_PROBE(p_convertible_to_size,
-                  static_cast<std::size_t>(std::declval<const _Type&>()))
+                  static_cast<std::size_t>(std::declval<const Type&>()))
 
 
 // vii. concept subjects  (C++20)

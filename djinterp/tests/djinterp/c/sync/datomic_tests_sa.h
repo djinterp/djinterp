@@ -21,6 +21,7 @@
 // std
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"

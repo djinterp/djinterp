@@ -20,12 +20,9 @@
 *
 *   READING THE OPTION SET:
 *   Configuration values are read through the test_options.hpp FREE ACCESSORS
-* (pack(_o), compressor(_o), document(_o), output_path(_o), ...), never through
-* raw struct members.  This is what keeps the header correct on both faces of
-* test_option_set: the pre-C++20 aggregate (where the accessor fetches a member)
-* AND the C++20 option_set<> (a key-typed container with no named members, where
-* the accessor fetches the slot via get<key>()).  Naming a member directly
-* compiles only on the struct face and is a hard error on the option_set face.
+* (pack(_o), compressor(_o), document(_o), output_path(_o), ...), the read
+* surface the whole framework shares.  (test_option_set has one shape at every
+* level; the accessors once also hid a C++20 option_set<> face.)
 *
 *   WHAT IT PRODUCES:
 *   pack_report renders the assembled report bytes into `out` per the option
@@ -50,7 +47,7 @@
 * path:      /inc/djinterp/cpp/modules/test/test_pack.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.25
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -111,6 +108,10 @@ NS_INTERNAL
     // facade's non-throwing try_compress, passing the codec knob-set through.
     // An unhandled enumerator returns status_invalid_argument (it cannot occur
     // for a well-formed test_option_set).
+    //   Here and below the tags are qualified (codecs::, formats::) rather
+    // than brought in by a using-directive: a suite that also includes
+    // functional's views sees djinterp's zip adapter, and there an unqualified
+    // zip names that template instead of the archive format.
     D_INLINE
     status pack_compress_helper(
         test_compressor         _codec,
@@ -119,28 +120,26 @@ NS_INTERNAL
         byte_blob&              _out
     )
     {
-        using namespace codecs;
-
         switch (_codec)
         {
             case test_compressor::store:
-                return try_compress<store>(_in, _out, _opt);
+                return try_compress<codecs::store>(_in, _out, _opt);
             case test_compressor::deflate:
-                return try_compress<deflate>(_in, _out, _opt);
+                return try_compress<codecs::deflate>(_in, _out, _opt);
             case test_compressor::zlib:
-                return try_compress<zlib>(_in, _out, _opt);
+                return try_compress<codecs::zlib>(_in, _out, _opt);
             case test_compressor::gzip:
-                return try_compress<gzip>(_in, _out, _opt);
+                return try_compress<codecs::gzip>(_in, _out, _opt);
             case test_compressor::bzip2:
-                return try_compress<bzip2>(_in, _out, _opt);
+                return try_compress<codecs::bzip2>(_in, _out, _opt);
             case test_compressor::xz:
-                return try_compress<xz>(_in, _out, _opt);
+                return try_compress<codecs::xz>(_in, _out, _opt);
             case test_compressor::zstd:
-                return try_compress<zstd>(_in, _out, _opt);
+                return try_compress<codecs::zstd>(_in, _out, _opt);
             case test_compressor::lz4:
-                return try_compress<lz4>(_in, _out, _opt);
+                return try_compress<codecs::lz4>(_in, _out, _opt);
             case test_compressor::brotli:
-                return try_compress<brotli>(_in, _out, _opt);
+                return try_compress<codecs::brotli>(_in, _out, _opt);
         }
 
         return status_invalid_argument;
@@ -158,22 +157,20 @@ NS_INTERNAL
         byte_blob&             _out
     )
     {
-        using namespace formats;
-
         switch (_format)
         {
             case test_archive_format::zip:
-                return try_archive<zip>(_items, _out, _opt);
+                return try_archive<formats::zip>(_items, _out, _opt);
             case test_archive_format::tar:
-                return try_archive<tar>(_items, _out, _opt);
+                return try_archive<formats::tar>(_items, _out, _opt);
             case test_archive_format::tar_gz:
-                return try_archive<tar_gz>(_items, _out, _opt);
+                return try_archive<formats::tar_gz>(_items, _out, _opt);
             case test_archive_format::gz:
-                return try_archive<gz>(_items, _out, _opt);
+                return try_archive<formats::gz>(_items, _out, _opt);
             case test_archive_format::sevenzip:
-                return try_archive<sevenzip>(_items, _out, _opt);
+                return try_archive<formats::sevenzip>(_items, _out, _opt);
             case test_archive_format::rar:
-                return try_archive<rar>(_items, _out, _opt);
+                return try_archive<formats::rar>(_items, _out, _opt);
         }
 
         return status_invalid_argument;
@@ -272,28 +269,26 @@ D_NODISCARD D_INLINE bool report_codec_available(
     test_compressor _codec
 )
 {
-    using namespace codecs;
-
     switch (_codec)
     {
         case test_compressor::store:
-            return codec_is_available<store>();
+            return codec_is_available<codecs::store>();
         case test_compressor::deflate:
-            return codec_is_available<deflate>();
+            return codec_is_available<codecs::deflate>();
         case test_compressor::zlib:
-            return codec_is_available<zlib>();
+            return codec_is_available<codecs::zlib>();
         case test_compressor::gzip:
-            return codec_is_available<gzip>();
+            return codec_is_available<codecs::gzip>();
         case test_compressor::bzip2:
-            return codec_is_available<bzip2>();
+            return codec_is_available<codecs::bzip2>();
         case test_compressor::xz:
-            return codec_is_available<xz>();
+            return codec_is_available<codecs::xz>();
         case test_compressor::zstd:
-            return codec_is_available<zstd>();
+            return codec_is_available<codecs::zstd>();
         case test_compressor::lz4:
-            return codec_is_available<lz4>();
+            return codec_is_available<codecs::lz4>();
         case test_compressor::brotli:
-            return codec_is_available<brotli>();
+            return codec_is_available<codecs::brotli>();
     }
 
     return false;
@@ -306,22 +301,20 @@ D_NODISCARD D_INLINE bool report_format_available(
     test_archive_format _format
 )
 {
-    using namespace formats;
-
     switch (_format)
     {
         case test_archive_format::zip:
-            return format_is_writable<zip>();
+            return format_is_writable<formats::zip>();
         case test_archive_format::tar:
-            return format_is_writable<tar>();
+            return format_is_writable<formats::tar>();
         case test_archive_format::tar_gz:
-            return format_is_writable<tar_gz>();
+            return format_is_writable<formats::tar_gz>();
         case test_archive_format::gz:
-            return format_is_writable<gz>();
+            return format_is_writable<formats::gz>();
         case test_archive_format::sevenzip:
-            return format_is_writable<sevenzip>();
+            return format_is_writable<formats::sevenzip>();
         case test_archive_format::rar:
-            return format_is_writable<rar>();
+            return format_is_writable<formats::rar>();
     }
 
     return false;

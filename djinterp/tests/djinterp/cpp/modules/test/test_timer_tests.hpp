@@ -11,9 +11,11 @@
 * the suite is driven over a single deterministic instantiation,
 *     tt = DTestTimer<test_clock, std::chrono::milliseconds>   (aliased `tt`),
 * where test_clock is a manually-advanced fake clock (no real sleeping). Event
-* behaviour is observed by binding an DEventLog to a dispatcher via bind_log()
-* and triggering timer operations; the log counts the on_start / on_stop /
-* on_expire / on_reset events and captures their argument counts.
+* behaviour is observed by binding a DTimerEventLog to a dispatcher via
+* bind_timer_log() and triggering timer operations; the log counts the
+* on_start / on_stop / on_expire / on_reset events and captures their
+* argument counts. The helpers are named for the suite (see
+* test_counter_tests.hpp: the umbrella links both suites into one program).
 *
 *   PORTABILITY:
 *   Requires C++17 or later (the helper DEventDispatcher stand-in and the test
@@ -23,7 +25,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_timer_tests.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.24
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_TIMER_TESTS_
@@ -147,10 +149,10 @@ using tt = test::DTestTimer<test_clock, DMsec>;
 // event observation
 // -----------------------------------------------------------------
 
-// DEventLog
+// DTimerEventLog
 //   helper: tallies the events a dispatcher receives from a tt, and captures
 // the argument count carried by the last on_stop / on_reset.
-struct DEventLog
+struct DTimerEventLog
 {
     int starts  = 0;
     int stops   = 0;
@@ -161,14 +163,14 @@ struct DEventLog
     tt::rep_type last_reset_count = -1;
 };
 
-// bind_log
-//   helper: wires an DEventLog to a dispatcher for tt's four event tags, so
+// bind_timer_log
+//   helper: wires a DTimerEventLog to a dispatcher for tt's four event tags, so
 // that firing any tt event updates the log. Mirrors the documented usage,
 // e.g. `disp.bind<tt::on_stop>(...)`.
 inline
-void bind_log(
+void bind_timer_log(
     DEventDispatcher& _disp,
-    DEventLog&        _log
+    DTimerEventLog&        _log
 )
 {
     _disp.bind<tt::on_start>(

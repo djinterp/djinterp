@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -91,14 +91,14 @@ void d_fs_notify_counter(
 
 static
 void d_fs_tests_common_backend_name(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     const char* name;
 
-    dtest_block(_suite, "d_file_backend_name");
+    d_test_suite_block(_suite, "d_file_backend_name");
 
-    dtest_test(_suite, "names one of the known backends");
+    d_test_suite_test(_suite, "names one of the known backends");
     name = d_file_backend_name();
     D_FS_CHECK(_suite, name != NULL);
     D_FS_CHECK(_suite,
@@ -114,12 +114,12 @@ void d_fs_tests_common_backend_name(
 
 static
 void d_fs_tests_common_level_name(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_block(_suite, "d_file_notify_level_name");
+    d_test_suite_block(_suite, "d_file_notify_level_name");
 
-    dtest_test(_suite, "each severity has its documented name");
+    d_test_suite_test(_suite, "each severity has its documented name");
     D_FS_CHECK(_suite,
                d_fs_name_is(d_file_notify_level_name(D_FILE_NOTIFY_NONE),
                             "none"));
@@ -137,7 +137,7 @@ void d_fs_tests_common_level_name(
                d_fs_name_is(d_file_notify_level_name(D_FILE_NOTIFY_TRACE),
                             "trace"));
 
-    dtest_test(_suite, "a value outside the enum -> \"unknown\"");
+    d_test_suite_test(_suite, "a value outside the enum -> \"unknown\"");
     D_FS_CHECK(_suite,
                d_fs_name_is(d_file_notify_level_name(99), "unknown"));
     D_FS_CHECK(_suite,
@@ -151,7 +151,7 @@ void d_fs_tests_common_level_name(
 
 static
 void d_fs_tests_common_notify(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     fn_file_notify saved_handler;
@@ -159,7 +159,7 @@ void d_fs_tests_common_notify(
     fn_file_notify got_handler;
     void*          got_context;
 
-    dtest_block(_suite, "notification handler");
+    d_test_suite_block(_suite, "notification handler");
 
     // remember whatever handler is installed so we can restore it
     saved_context = NULL;
@@ -173,14 +173,16 @@ void d_fs_tests_common_notify(
     // the case: "accepted and inert" is a promise too, and an inert setter that
     // quietly kept the pointer would be as wrong as one that dropped it.
 #if D_FILE_NOTIFY_IS_ACTIVE
-    dtest_test(_suite, "set then get returns the same handler and context");
+    d_test_suite_test(_suite,
+                      "set then get returns the same handler and context");
     d_file_notify_set_handler(d_fs_notify_counter, &g_notify_count);
     got_context = NULL;
     got_handler = d_file_notify_get_handler(&got_context);
     D_FS_CHECK(_suite, got_handler == d_fs_notify_counter);
     D_FS_CHECK(_suite, got_context == &g_notify_count);
 #else
-    dtest_test(_suite, "compiled out, set is accepted and get stays empty");
+    d_test_suite_test(_suite,
+                      "compiled out, set is accepted and get stays empty");
     d_file_notify_set_handler(d_fs_notify_counter, &g_notify_count);
     got_context = &g_notify_count;
     got_handler = d_file_notify_get_handler(&got_context);
@@ -190,7 +192,7 @@ void d_fs_tests_common_notify(
 
 #if D_FILE_NOTIFY_IS_ACTIVE
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "a provoked error notice reaches the handler");
+    d_test_suite_test(_suite, "a provoked error notice reaches the handler");
     g_notify_count = 0;
     // a NULL argument is a validation failure, which is exactly the path that
     // raises an ERROR notice -- and ERROR is compiled in whenever notices are
@@ -220,7 +222,7 @@ void d_fs_tests_common_notify(
 
 static
 void d_fs_tests_common_default_handler(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     //   Declared inside the gate with the only cases that use it: every
@@ -230,21 +232,21 @@ void d_fs_tests_common_default_handler(
     struct dj_file_notice notice;
     #endif
 
-    dtest_block(_suite, "d_file_notify_default_handler");
+    d_test_suite_block(_suite, "d_file_notify_default_handler");
 
     // NOTE: this handler's job is to write a line to the configured stream,
     // so these cases deliberately produce output. What is asserted is the
     // contract around that write, not the text of it.
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "a NULL notice is ignored, not dereferenced");
+    d_test_suite_test(_suite, "a NULL notice is ignored, not dereferenced");
     d_file_notify_default_handler(NULL, NULL);
     // reaching here at all is the result being checked
     D_FS_CHECK(_suite, true);
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "errno is preserved across the call");
+    d_test_suite_test(_suite, "errno is preserved across the call");
     notice.level    = D_FILE_NOTIFY_ERROR;
     notice.error    = EACCES;
     notice.function = "d_fs_tests_common";
@@ -258,7 +260,7 @@ void d_fs_tests_common_default_handler(
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "absent optional fields are tolerated");
+    d_test_suite_test(_suite, "absent optional fields are tolerated");
     notice.level    = D_FILE_NOTIFY_WARN;
     notice.error    = 0;
     notice.function = NULL;
@@ -270,7 +272,8 @@ void d_fs_tests_common_default_handler(
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "an unknown level is still reported, not rejected");
+    d_test_suite_test(_suite,
+                      "an unknown level is still reported, not rejected");
     notice.level    = 12345;
     notice.error    = 0;
     notice.function = "d_fs_tests_common";
@@ -288,10 +291,10 @@ void d_fs_tests_common_default_handler(
  *****************************************************************************/
 
 void d_fs_tests_common(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "I. file_common");
+    d_test_suite_module(_suite, "I. file_common");
 
     d_fs_tests_common_backend_name(_suite);
     d_fs_tests_common_level_name(_suite);

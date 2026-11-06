@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/dstring.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dstring.h"  // corresponding header
 // std
@@ -22,8 +22,10 @@
 #include <string.h>                             // strlen, strstr, memmove, ...
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"        // framework root
+#include "../../../inc/djinterp/c/dckdint.h"         // d_ckd_mul: growth
 #include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
 #include "../../../inc/djinterp/c/string_fn.h"       // d_str* primitives
+#include "../../../inc/djinterp/c/dckdint.h"         // d_ckd_mul
 // re_std
 #include "../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX, uintptr_t
 
@@ -35,8 +37,11 @@ d_string_internal_grow
 `_required` bytes, terminator included, and returns false only for a NULL
 string or a failed allocation, in which case the string is untouched. Capacity
 doubles from its current value (or from 16 when it is 0) until the request
-fits, which keeps a run of appends amortized O(1). The old buffer is freed
-only after the new one is filled.
+fits, which keeps a run of appends amortized O(1); a capacity that cannot
+double without wrapping takes the request exactly, so a request above
+SIZE_MAX / 2 is tried as it is rather than doubled past SIZE_MAX, where the
+loop once wrapped to 0 and never ended. The old buffer is freed only after the
+new one is filled.
 */
 D_STATIC
 bool d_string_internal_grow(
@@ -65,7 +70,11 @@ bool d_string_internal_grow(
 
     while (new_capacity < _required)
     {
-        new_capacity *= 2;
+        // a capacity that cannot double takes the request exactly
+        if (d_ckd_mul(&new_capacity, new_capacity, 2))
+        {
+            new_capacity = _required;
+        }
     }
 
     // allocate new buffer
@@ -3386,18 +3395,134 @@ char* d_string_tokenize(
     return token;
 }
 
+/**
+ * @brief Frees the tokens a split has made so far, its array, and its copy.
+ *
+ * @param[in] _result  the token array; may be `NULL`.
+ * @param[in] _count   the tokens it holds.
+ * @param[in] _copy    the tokenized copy; may be `NULL`.
+ *
+ * d_string_split's one failure path, shared by its three ways to fail.
+ */
+D_STATIC_INLINE
+void
+d_internal_string_split_abandon(
+    struct dj_string** _result,
+    size_t             _count,
+    char*              _copy
+)
+{
+    size_t i;
+
+    for (i = 0; i < _count; i++)
+    {
+        d_string_free(_result[i]);
+    }
+
+    free(_result);
+    free(_copy);
+
+    return;
+}
+
+/**
+ * @brief The split of an empty string: one empty token.
+ *
+ * @param[out] _tokens  receives the one-token array.
+ * @return 1, or 0 when allocation failed and `*_tokens` stays `NULL`.
+ */
+D_STATIC_INLINE
+size_t
+d_internal_string_split_empty(
+    struct dj_string*** _tokens
+)
+{
+    struct dj_string** result;
+
+    result = (struct dj_string**)malloc(sizeof(struct dj_string*));
+
+    if (result == NULL)
+    {
+        return 0;
+    }
+
+    result[0] = d_string_new();
+
+    if (result[0] == NULL)
+    {
+        free(result);
+
+        return 0;
+    }
+
+    *_tokens = result;
+
+    return 1;
+}
+
+/**
+ * @brief Doubles a split's token array.
+ *
+ * @param[in,out] _result    the array; replaced when it grows.
+ * @param[in,out] _capacity  its capacity in tokens; doubled when it grows.
+ * @return `true` if the array grew, `false` if the doubled capacity or its
+ *         size in bytes does not fit in a `size_t`, or allocation failed;
+ *         the array is then unchanged.
+ */
+D_STATIC_INLINE
+bool
+d_internal_string_split_grow(
+    struct dj_string*** _result,
+    size_t*             _capacity
+)
+{
+    struct dj_string** grown;
+    size_t             capacity;
+    size_t             bytes;
+
+    if ( (d_ckd_mul(&capacity, *_capacity, (size_t)2)) ||
+         (d_ckd_mul(&bytes, capacity, sizeof(struct dj_string*))) )
+    {
+        return false;
+    }
+
+    grown = (struct dj_string**)realloc(*_result, bytes);
+
+    if (grown == NULL)
+    {
+        return false;
+    }
+
+    *_result   = grown;
+    *_capacity = capacity;
+
+    return true;
+}
+
 /*
 d_string_split
   Tokenizes a d_strdup() copy so `_string` is never modified, growing the
 result array by doubling. On any allocation failure every token made so far is
 freed, leaving nothing for the caller to release.
+  The empty case, the growth and the failure path are static inline helpers
+(decision 19 of the register: the split costs nothing at run time), and every
+size is taken through d_ckd_mul.
 */
-size_t d_string_split(
+size_t
+d_string_split(
     const struct dj_string* _string,
     const char*             _delim,
     struct dj_string***     _tokens
 )
 {
+    struct dj_string** result;
+    size_t             capacity;
+    size_t             bytes;
+    size_t             count;
+    char*              copy;
+    char*              saveptr;
+    char*              token;
+
     if ( (_string == NULL) ||
          (_delim == NULL)  ||
          (_tokens == NULL) )
@@ -3410,29 +3535,11 @@ size_t d_string_split(
     // handle empty string: return single empty token
     if (_string->size == 0)
     {
-        struct dj_string** result = malloc(sizeof(struct dj_string*));
-
-        if (result == NULL)
-        {
-            return 0;
-        }
-
-        result[0] = d_string_new();
-
-        if (result[0] == NULL)
-        {
-            free(result);
-
-            return 0;
-        }
-
-        *_tokens = result;
-
-        return 1;
+        return d_internal_string_split_empty(_tokens);
     }
 
     // make copy for tokenization
-    char* copy = d_strdup(_string->text);
+    copy = d_strdup(_string->text);
 
     if (copy == NULL)
     {
@@ -3440,8 +3547,16 @@ size_t d_string_split(
     }
 
     // initial allocation
-    size_t            capacity = 8;
-    struct dj_string** result   = malloc(capacity * sizeof(struct dj_string*));
+    capacity = 8;
+
+    if (d_ckd_mul(&bytes, capacity, sizeof(struct dj_string*)))
+    {
+        free(copy);
+
+        return 0;
+    }
+
+    result = (struct dj_string**)malloc(bytes);
 
     if (result == NULL)
     {
@@ -3450,38 +3565,19 @@ size_t d_string_split(
         return 0;
     }
 
-    size_t count   = 0;
-    char*  saveptr = NULL;
-    char*  token   = d_strtok_r(copy,
-                                _delim,
-                                &saveptr);
+    count   = 0;
+    saveptr = NULL;
+    token   = d_strtok_r(copy, _delim, &saveptr);
 
     while (token != NULL)
     {
         // grow array if needed
-        if (count >= capacity)
+        if ( (count >= capacity) &&
+             (!d_internal_string_split_grow(&result, &capacity)) )
         {
-            capacity *= 2;
+            d_internal_string_split_abandon(result, count, copy);
 
-            const size_t      new_bytes  = capacity * sizeof(struct dj_string*);
-            struct dj_string** new_result = realloc(result,
-                                                   new_bytes);
-
-            if (new_result == NULL)
-            {
-                // cleanup on failure
-                for (size_t i = 0; i < count; i++)
-                {
-                    d_string_free(result[i]);
-                }
-
-                free(result);
-                free(copy);
-
-                return 0;
-            }
-
-            result = new_result;
+            return 0;
         }
 
         // create dj_string for token
@@ -3489,21 +3585,13 @@ size_t d_string_split(
 
         if (result[count] == NULL)
         {
-            for (size_t i = 0; i < count; i++)
-            {
-                d_string_free(result[i]);
-            }
-
-            free(result);
-            free(copy);
+            d_internal_string_split_abandon(result, count, copy);
 
             return 0;
         }
 
         count++;
-        token = d_strtok_r(NULL,
-                           _delim,
-                           &saveptr);
+        token = d_strtok_r(NULL, _delim, &saveptr);
     }
 
     free(copy);

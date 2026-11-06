@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_construction.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp
 #include "test_report_runner_tests.hpp"
@@ -36,7 +36,7 @@ bool tests_report_runner_default_construction()
     D_RR_CHECK(rb.report().subtitle.empty());
     D_RR_CHECK(rb.report().author.empty());
 
-    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::txt);
+    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::text);
     D_RR_CHECK(dt::split(rb.options()) == dt::DTestOutputSplit::whole_run);
     D_RR_CHECK(dt::show(rb.options()) == dt::DTestShow::all);
     D_RR_CHECK(dt::pack(rb.options()) == dt::DTestOutputPack::none);
@@ -63,17 +63,10 @@ bool tests_report_runner_option_set_construction()
 {
     dt::test_option_set o = dt::default_test_options();
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     o.set<dt::test_option::document>(dt::test_doc_type::pdf);
     o.set<dt::test_option::split>(dt::DTestOutputSplit::per_module);
     o.set<dt::test_option::show>(dt::DTestShow::silent);
     o.set<dt::test_option::output_file>(std::string("seeded.pdf"));
-#else
-    o.document    = dt::test_doc_type::pdf;
-    o.split       = dt::DTestOutputSplit::per_module;
-    o.show        = dt::DTestShow::silent;
-    o.output_path = "seeded.pdf";
-#endif
 
     dt::report_builder rb(o);
 
@@ -146,7 +139,7 @@ bool tests_report_runner_options_accessors()
                dt::test_archive_format::sevenzip);
 
     // and the untouched knobs keep their defaults
-    D_RR_CHECK(dt::document(crb.options()) == dt::test_doc_type::txt);
+    D_RR_CHECK(dt::document(crb.options()) == dt::test_doc_type::text);
     D_RR_CHECK(dt::split(crb.options()) == dt::DTestOutputSplit::whole_run);
 
     return true;

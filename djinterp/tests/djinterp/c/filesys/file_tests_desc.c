@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_desc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -30,32 +30,32 @@
 
 static
 void d_fs_tests_desc_stdc(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_block(_suite, "ISO C backend");
+    d_test_suite_block(_suite, "ISO C backend");
 
-    dtest_test(_suite, "d_file_open -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_open -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_open("x", O_RDONLY) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_descriptor_stream -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_descriptor_stream -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_descriptor_stream(stdin) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_dup_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_dup_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_dup_fd(0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_dup2_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_dup2_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_dup2_fd(0, 1) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
 
-    dtest_test(_suite, "d_file_close_fd -> -1, ENOSYS");
+    d_test_suite_test(_suite, "d_file_close_fd -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_close_fd(0) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -69,15 +69,15 @@ void d_fs_tests_desc_stdc(
 
 static
 void d_fs_tests_desc_open(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
     int  fd;
 
-    dtest_block(_suite, "d_file_open");
+    d_test_suite_block(_suite, "d_file_open");
 
-    dtest_test(_suite, "opens an existing file for reading");
+    d_test_suite_test(_suite, "opens an existing file for reading");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     fd = d_file_open(path, O_RDONLY);
     D_FS_CHECK(_suite, fd >= 0);
@@ -87,7 +87,7 @@ void d_fs_tests_desc_open(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "creates a new file with O_CREAT");
+    d_test_suite_test(_suite, "creates a new file with O_CREAT");
     d_fs_test_path(path, sizeof(path), "open_created.txt");
     fd = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     D_FS_CHECK(_suite, fd >= 0);
@@ -100,7 +100,8 @@ void d_fs_tests_desc_open(
 
     d_file_remove(path);
 
-    dtest_test(_suite, "O_CREAT with mode 0 still creates (configured default)");
+    d_test_suite_test(_suite,
+                      "O_CREAT with mode 0 still creates (configured default)");
     d_fs_test_path(path, sizeof(path), "open_mode0.txt");
     fd = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, 0);
     D_FS_CHECK(_suite, fd >= 0);
@@ -113,13 +114,13 @@ void d_fs_tests_desc_open(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_open(NULL, O_RDONLY) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing file without O_CREAT -> -1");
+    d_test_suite_test(_suite, "a missing file without O_CREAT -> -1");
     d_fs_test_path(path, sizeof(path), "no_such_open_file.txt");
     D_FS_CHECK(_suite, d_file_open(path, O_RDONLY) == -1);
 }
@@ -131,16 +132,16 @@ void d_fs_tests_desc_open(
 
 static
 void d_fs_tests_desc_fileno(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char  path[D_FS_TEST_PATH_BUF];
     FILE* file;
     int   fd;
 
-    dtest_block(_suite, "d_file_descriptor_stream");
+    d_test_suite_block(_suite, "d_file_descriptor_stream");
 
-    dtest_test(_suite, "returns a valid descriptor for an open stream");
+    d_test_suite_test(_suite, "returns a valid descriptor for an open stream");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     file = d_file_open_stream(path, "rb");
     fd   = file ? d_file_descriptor_stream(file) : -1;
@@ -152,7 +153,7 @@ void d_fs_tests_desc_fileno(
     }
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_descriptor_stream(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -166,16 +167,16 @@ void d_fs_tests_desc_fileno(
 
 static
 void d_fs_tests_desc_dup(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
     int  fd;
     int  dup_fd;
 
-    dtest_block(_suite, "d_file_dup_fd");
+    d_test_suite_block(_suite, "d_file_dup_fd");
 
-    dtest_test(_suite, "returns a new, distinct descriptor");
+    d_test_suite_test(_suite, "returns a new, distinct descriptor");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     fd     = d_file_open(path, O_RDONLY);
     dup_fd = (fd >= 0) ? d_file_dup_fd(fd) : -1;
@@ -192,7 +193,7 @@ void d_fs_tests_desc_dup(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_dup_fd(-1) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
@@ -205,7 +206,7 @@ void d_fs_tests_desc_dup(
 
 static
 void d_fs_tests_desc_dup2(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
@@ -213,11 +214,11 @@ void d_fs_tests_desc_dup2(
     int  other;
     int  rc;
 
-    dtest_block(_suite, "d_file_dup2_fd");
+    d_test_suite_block(_suite, "d_file_dup2_fd");
 
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
 
-    dtest_test(_suite, "duplicates onto a chosen descriptor number");
+    d_test_suite_test(_suite, "duplicates onto a chosen descriptor number");
     fd    = d_file_open(path, O_RDONLY);
     other = d_file_open(path, O_RDONLY);
     rc    = ((fd >= 0) && (other >= 0)) ? d_file_dup2_fd(fd, other) : -2;
@@ -233,7 +234,8 @@ void d_fs_tests_desc_dup2(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "same-descriptor duplication is a no-op that succeeds");
+    d_test_suite_test(_suite,
+                      "same-descriptor duplication is a no-op that succeeds");
     fd = d_file_open(path, O_RDONLY);
     rc = (fd >= 0) ? d_file_dup2_fd(fd, fd) : -2;
     D_FS_CHECK(_suite, rc == fd);
@@ -243,12 +245,12 @@ void d_fs_tests_desc_dup2(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "negative source -> -1, EBADF");
+    d_test_suite_test(_suite, "negative source -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_dup2_fd(-1, 10) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 
-    dtest_test(_suite, "negative target -> -1, EBADF");
+    d_test_suite_test(_suite, "negative target -> -1, EBADF");
     fd    = d_file_open(path, O_RDONLY);
     errno = 0;
     rc    = (fd >= 0) ? d_file_dup2_fd(fd, -1) : -2;
@@ -268,20 +270,20 @@ void d_fs_tests_desc_dup2(
 
 static
 void d_fs_tests_desc_close(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
     int  fd;
 
-    dtest_block(_suite, "d_file_close_fd");
+    d_test_suite_block(_suite, "d_file_close_fd");
 
-    dtest_test(_suite, "closing a valid descriptor -> 0");
+    d_test_suite_test(_suite, "closing a valid descriptor -> 0");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     fd = d_file_open(path, O_RDONLY);
     D_FS_CHECK(_suite, (fd >= 0) && (d_file_close_fd(fd) == 0));
 
-    dtest_test(_suite, "negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_close_fd(-1) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
@@ -295,10 +297,10 @@ void d_fs_tests_desc_close(
  *****************************************************************************/
 
 void d_fs_tests_desc(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "III. file_desc");
+    d_test_suite_module(_suite, "III. file_desc");
 
 #if D_FILE_BACKEND_IS_STDC
     d_fs_tests_desc_stdc(_suite);

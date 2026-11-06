@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_counter_tests_events.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp
 #include "test_counter_tests.hpp"
@@ -128,8 +128,8 @@ tests_test_counter_set_handler_attach_detach
 bool tests_test_counter_set_handler_attach_detach()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(0, 0, 100);
 
@@ -166,10 +166,10 @@ bool tests_test_counter_set_handler_swaps()
 {
     DEventDispatcher eh1;
     DEventDispatcher eh2;
-    DEventLog        log1;
-    DEventLog        log2;
-    bind_log(eh1, log1);
-    bind_log(eh2, log2);
+    DCounterEventLog log1;
+    DCounterEventLog log2;
+    bind_counter_log(eh1, log1);
+    bind_counter_log(eh2, log2);
 
     tc c(0, 0, 100, &eh1);
 

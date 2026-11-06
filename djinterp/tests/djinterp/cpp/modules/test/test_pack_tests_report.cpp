@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_pack_tests_report.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // djinterp
@@ -167,7 +167,7 @@ bool tests_report_archive_failure()
     tp_set_pack(o, dt::DTestOutputPack::archive);
     tp_set_archive_format(o, dt::test_archive_format::zip);
     tp_set_output_path(o, "out/r.zip");
-    tp_set_document(o, dt::test_doc_type::txt);
+    tp_set_document(o, dt::test_doc_type::text);
 
     dj::byte_blob report = "RPT", out = "stale";
     dj::status s = dt::pack_report(o, report, out);

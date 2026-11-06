@@ -9,7 +9,7 @@
 * path:      /inc/djinterp/config/cpp/defaults/test/test_standalone_defaults.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.08
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CPP_DEFAULTS_TEST_TEST_STANDALONE_DEFAULTS_H
@@ -25,13 +25,10 @@
 #include "../../../c/modules/test/cfg_test_printer.h"
 
 
-#if defined(D_CFG_TEST_USING_DTIME)
-
-#endif
-
-
 // DTestDefaultOption
-//   enum:
+//   enum: the keys of the standalone runner's option map, as
+// d_defaults_test_generate_options would fill it. (A draft: nothing includes
+// this header yet, and the generator has no definition; lane B, 2026.11.05.)
 enum DTestDefaultOption
 {
     D_TEST_DEFAULT_OPTION_NONE                    = 0x00,
@@ -40,10 +37,6 @@ enum DTestDefaultOption
     D_TEST_DEFAULT_OPTION_COUNTERS                = 0x03,   // array
     D_TEST_DEFAULT_OPTION_TEST_PRINTER            = 0x04,
     D_TEST_DEFAULT_OPTION_MAX_FAILURES            = 0x05,
-
-
-    D_TEST_DEFAULT_OPTION_USER                    = 0xFF << 1
-
 
     // --- general keys (1 - 10) ---
     D_TEST_DEFAULT_OPTION_FAILURES                = 0x01,   // dj_test_standalone_failure_list*
@@ -96,6 +89,7 @@ enum DTestDefaultOption
     D_TEST_DEFAULT_OPTION_RESULT_ELAPSED_TIMES    = 0x73,  // double* (array, owned)
 
     // --- user keys ---
+    D_TEST_DEFAULT_OPTION_USER                    = 0xFF << 1
 };
 
 

@@ -43,7 +43,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_options_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_OPTIONS_TESTS_
@@ -135,12 +135,8 @@ void set_routes(
     std::vector<dt::test_route> _routes
 )
 {
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
     _opts.template set<dt::test_option::routes>(
         static_cast<std::vector<dt::test_route>&&>(_routes));
-#else
-    _opts.routes = static_cast<std::vector<dt::test_route>&&>(_routes);
-#endif
 }
 
 #endif  // !DTEST_SPEC_MODE
@@ -196,6 +192,7 @@ bool tests_opt_defaults_filtering();
 bool tests_opt_defaults_formats();
 bool tests_opt_defaults_packaging();
 bool tests_opt_defaults_routes();
+bool tests_opt_keyed_access();
 
 
 #ifdef DTEST_SPEC_MODE
@@ -276,6 +273,7 @@ dt::module_spec options_spec()
                     { "opt_defaults_formats",          "format_test / format_module / format_summary",  &tests_opt_defaults_formats },
                     { "opt_defaults_packaging",        "pack / compressor / archive_format / split",    &tests_opt_defaults_packaging },
                     { "opt_defaults_routes",           "routes default empty",                          &tests_opt_defaults_routes },
+                    { "opt_keyed_access",              "set<key> writes the member get<key> reads",     &tests_opt_keyed_access },
                 }
             },
         }

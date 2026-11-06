@@ -27,7 +27,12 @@ bool d_tests_sa_standalone_global_state(
     struct dj_test_counter* _counter
 )
 {
-    bool                          result;
+    bool                                    result;
+    // at function scope, not in the blocks below: the globals point at them
+    // until the end, where the saved state is restored, and every assertion
+    // in between reads g_d_test_options
+    struct dj_test_standalone_options       local_opts;
+    struct dj_test_standalone_failure_list  local_list;
     struct dj_test_standalone_options*      saved_options;
     struct dj_test_standalone_failure_list* saved_failures;
     const char*                    saved_module;
@@ -47,8 +52,6 @@ bool d_tests_sa_standalone_global_state(
 
     // test 1: g_d_test_options is accessible
     {
-        struct dj_test_standalone_options local_opts;
-
         d_test_standalone_options_init(&local_opts);
         g_d_test_options = &local_opts;
 
@@ -67,8 +70,6 @@ bool d_tests_sa_standalone_global_state(
 
     // test 2: g_d_test_failures is accessible
     {
-        struct dj_test_standalone_failure_list local_list;
-
         local_list.count    = 0;
         local_list.capacity = 0;
         local_list.entries  = NULL;

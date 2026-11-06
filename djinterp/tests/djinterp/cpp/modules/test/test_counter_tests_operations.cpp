@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_counter_tests_operations.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp
 #include "test_counter_tests.hpp"
@@ -26,8 +26,8 @@ tests_test_counter_increment_within_bounds
 bool tests_test_counter_increment_within_bounds()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(0, 0, 100, &eh);
 
@@ -59,8 +59,8 @@ tests_test_counter_increment_exact_max_no_limit
 bool tests_test_counter_increment_exact_max_no_limit()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(95, 0, 100, &eh);
 
@@ -87,8 +87,8 @@ tests_test_counter_increment_overshoot_clamps
 bool tests_test_counter_increment_overshoot_clamps()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(50, 0, 100, &eh);
 
@@ -117,8 +117,8 @@ tests_test_counter_increment_at_max_noop
 bool tests_test_counter_increment_at_max_noop()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(100, 0, 100, &eh);
 
@@ -144,8 +144,8 @@ tests_test_counter_increment_zero_noop
 bool tests_test_counter_increment_zero_noop()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(50, 0, 100, &eh);
 
@@ -171,8 +171,8 @@ tests_test_counter_decrement_within_bounds
 bool tests_test_counter_decrement_within_bounds()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(50, 0, 100, &eh);
 
@@ -204,8 +204,8 @@ tests_test_counter_decrement_undershoot_clamps
 bool tests_test_counter_decrement_undershoot_clamps()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(50, 0, 100, &eh);
 
@@ -234,8 +234,8 @@ tests_test_counter_decrement_at_min_noop
 bool tests_test_counter_decrement_at_min_noop()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(0, 0, 100, &eh);
 
@@ -261,8 +261,8 @@ tests_test_counter_decrement_zero_noop
 bool tests_test_counter_decrement_zero_noop()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(50, 0, 100, &eh);
 
@@ -288,8 +288,8 @@ tests_test_counter_reset_fires_on_reset
 bool tests_test_counter_reset_fires_on_reset()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(10, 0, 100, &eh);
 
@@ -315,8 +315,8 @@ tests_test_counter_reset_all_leaf
 bool tests_test_counter_reset_all_leaf()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(10, 0, 100, &eh);
 
@@ -345,8 +345,8 @@ tests_test_counter_reset_all_recurses
 bool tests_test_counter_reset_all_recurses()
 {
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DCounterEventLog log;
+    bind_counter_log(eh, log);
 
     tc c(0, 0, 100, &eh);
 

@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_stat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 // std
@@ -31,7 +31,7 @@
 
 static
 void d_fs_tests_stat_stat(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char            path[D_FS_TEST_PATH_BUF];
@@ -39,11 +39,12 @@ void d_fs_tests_stat_stat(
     size_t          expect;
     bool            described;
 
-    dtest_block(_suite, "d_file_stat");
+    d_test_suite_block(_suite, "d_file_stat");
 
     expect = strlen(D_FS_TEST_CONTENT);
 
-    dtest_test(_suite, "describes a regular file (size, type, timestamp)");
+    d_test_suite_test(_suite,
+                      "describes a regular file (size, type, timestamp)");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     memset(&st, 0, sizeof(st));
     described = (d_file_stat(path, &st) == 0);
@@ -53,26 +54,26 @@ void d_fs_tests_stat_stat(
     // the renamed modification-time field is populated for a just-made file
     D_FS_CHECK(_suite, st.st_modified > 0);
 
-    dtest_test(_suite, "a directory is reported as a directory");
+    d_test_suite_test(_suite, "a directory is reported as a directory");
     memset(&st, 0, sizeof(st));
     D_FS_CHECK(_suite, d_file_stat(d_fs_test_root(), &st) == 0);
     D_FS_CHECK(_suite, S_ISDIR(st.st_mode));
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_stat(NULL, &st) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL buffer -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL buffer -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_stat(path, NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing path -> -1");
+    d_test_suite_test(_suite, "a missing path -> -1");
     d_fs_test_path(path, sizeof(path), "no_such_stat.txt");
     D_FS_CHECK(_suite, d_file_stat(path, &st) == -1);
 }
@@ -84,18 +85,18 @@ void d_fs_tests_stat_stat(
 
 static
 void d_fs_tests_stat_lstat(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char            path[D_FS_TEST_PATH_BUF];
     struct dj_stat_t st;
     size_t          expect;
 
-    dtest_block(_suite, "d_file_stat_nofollow");
+    d_test_suite_block(_suite, "d_file_stat_nofollow");
 
     expect = strlen(D_FS_TEST_CONTENT);
 
-    dtest_test(_suite, "describes a regular file that is not a link");
+    d_test_suite_test(_suite, "describes a regular file that is not a link");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     memset(&st, 0, sizeof(st));
     D_FS_CHECK(_suite, d_file_stat_nofollow(path, &st) == 0);
@@ -103,13 +104,13 @@ void d_fs_tests_stat_lstat(
     D_FS_CHECK(_suite, S_ISREG(st.st_mode));
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_stat_nofollow(NULL, &st) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing path -> -1");
+    d_test_suite_test(_suite, "a missing path -> -1");
     d_fs_test_path(path, sizeof(path), "no_such_lstat.txt");
     D_FS_CHECK(_suite, d_file_stat_nofollow(path, &st) == -1);
 }
@@ -121,7 +122,7 @@ void d_fs_tests_stat_lstat(
 
 static
 void d_fs_tests_stat_fstat(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -131,11 +132,11 @@ void d_fs_tests_stat_fstat(
     size_t          expect;
     bool            described;
 
-    dtest_block(_suite, "d_file_stat_fd");
+    d_test_suite_block(_suite, "d_file_stat_fd");
 
     expect = strlen(D_FS_TEST_CONTENT);
 
-    dtest_test(_suite, "describes the file behind a descriptor");
+    d_test_suite_test(_suite, "describes the file behind a descriptor");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     fd = d_file_open(path, O_RDONLY);
     memset(&st, 0, sizeof(st));
@@ -149,13 +150,13 @@ void d_fs_tests_stat_fstat(
         d_file_close_fd(fd);
     }
 
-    dtest_test(_suite, "negative descriptor -> -1, EBADF");
+    d_test_suite_test(_suite, "negative descriptor -> -1, EBADF");
     errno = 0;
     D_FS_CHECK(_suite, d_file_stat_fd(-1, &st) == -1);
     D_FS_CHECK(_suite, errno == EBADF);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL buffer -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL buffer -> -1, EINVAL");
     fd    = d_file_open(path, O_RDONLY);
     errno = 0;
     D_FS_CHECK(_suite, (fd >= 0) && (d_file_stat_fd(fd, NULL) == -1));
@@ -167,9 +168,9 @@ void d_fs_tests_stat_fstat(
     }
 #endif
 #else
-    dtest_block(_suite, "d_file_stat_fd");
+    d_test_suite_block(_suite, "d_file_stat_fd");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     {
         struct dj_stat_t st;
@@ -186,24 +187,24 @@ void d_fs_tests_stat_fstat(
 
 static
 void d_fs_tests_stat_access(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
 
-    dtest_block(_suite, "d_file_access");
+    d_test_suite_block(_suite, "d_file_access");
 
-    dtest_test(_suite, "an existing file passes F_OK and R_OK");
+    d_test_suite_test(_suite, "an existing file passes F_OK and R_OK");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     D_FS_CHECK(_suite, d_file_access(path, F_OK) == 0);
     D_FS_CHECK(_suite, d_file_access(path, R_OK) == 0);
 
-    dtest_test(_suite, "a missing file fails F_OK");
+    d_test_suite_test(_suite, "a missing file fails F_OK");
     d_fs_test_path(path, sizeof(path), "no_such_access.txt");
     D_FS_CHECK(_suite, d_file_access(path, F_OK) == -1);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_access(NULL, F_OK) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -217,16 +218,16 @@ void d_fs_tests_stat_access(
 
 static
 void d_fs_tests_stat_chmod(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char            path[D_FS_TEST_PATH_BUF];
     struct dj_stat_t st;
     bool            applied;
 
-    dtest_block(_suite, "d_file_chmod");
+    d_test_suite_block(_suite, "d_file_chmod");
 
-    dtest_test(_suite, "changes the permission bits of a file");
+    d_test_suite_test(_suite, "changes the permission bits of a file");
     d_fs_test_path(path, sizeof(path), "chmod_target.txt");
     d_fs_test_write(path, "x", 1);
     applied = (d_file_chmod(path, 0600) == 0);
@@ -253,13 +254,13 @@ void d_fs_tests_stat_chmod(
     d_file_remove(path);
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_chmod(NULL, 0644) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
     #endif
 
-    dtest_test(_suite, "a missing path -> -1");
+    d_test_suite_test(_suite, "a missing path -> -1");
     d_fs_test_path(path, sizeof(path), "no_such_chmod.txt");
     D_FS_CHECK(_suite, d_file_chmod(path, 0644) == -1);
 }
@@ -271,24 +272,24 @@ void d_fs_tests_stat_chmod(
 
 static
 void d_fs_tests_stat_file_size(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char path[D_FS_TEST_PATH_BUF];
 
-    dtest_block(_suite, "d_file_size");
+    d_test_suite_block(_suite, "d_file_size");
 
-    dtest_test(_suite, "reports the exact byte count of the fixture");
+    d_test_suite_test(_suite, "reports the exact byte count of the fixture");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     D_FS_CHECK(_suite,
                d_file_size(path) == (int64_t)strlen(D_FS_TEST_CONTENT));
 
-    dtest_test(_suite, "a missing file -> -1");
+    d_test_suite_test(_suite, "a missing file -> -1");
     d_fs_test_path(path, sizeof(path), "no_such_size.txt");
     D_FS_CHECK(_suite, d_file_size(path) == -1);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL path -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL path -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_size(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
@@ -302,7 +303,7 @@ void d_fs_tests_stat_file_size(
 
 static
 void d_fs_tests_stat_file_size_stream(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
 #if !D_FILE_BACKEND_IS_STDC
@@ -310,9 +311,9 @@ void d_fs_tests_stat_file_size_stream(
     FILE* file;
     bool  correct;
 
-    dtest_block(_suite, "d_file_size_stream");
+    d_test_suite_block(_suite, "d_file_size_stream");
 
-    dtest_test(_suite, "reports the size of the file behind a stream");
+    d_test_suite_test(_suite, "reports the size of the file behind a stream");
     d_fs_test_path(path, sizeof(path), D_FS_TEST_FILE);
     file    = d_file_open_stream(path, "rb");
     correct = false;
@@ -327,15 +328,15 @@ void d_fs_tests_stat_file_size_stream(
     D_FS_CHECK(_suite, correct);
 
 #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "NULL stream -> -1, EINVAL");
+    d_test_suite_test(_suite, "NULL stream -> -1, EINVAL");
     errno = 0;
     D_FS_CHECK(_suite, d_file_size_stream(NULL) == -1);
     D_FS_CHECK(_suite, errno == EINVAL);
 #endif
 #else
-    dtest_block(_suite, "d_file_size_stream");
+    d_test_suite_block(_suite, "d_file_size_stream");
 
-    dtest_test(_suite, "ISO C backend -> -1, ENOSYS");
+    d_test_suite_test(_suite, "ISO C backend -> -1, ENOSYS");
     errno = 0;
     D_FS_CHECK(_suite, d_file_size_stream(stdin) == -1);
     D_FS_CHECK(_suite, errno == ENOSYS);
@@ -349,7 +350,7 @@ void d_fs_tests_stat_file_size_stream(
 
 static
 void d_fs_tests_stat_predicates(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
     char file_path[D_FS_TEST_PATH_BUF];
@@ -358,39 +359,39 @@ void d_fs_tests_stat_predicates(
     d_fs_test_path(file_path, sizeof(file_path), D_FS_TEST_FILE);
     d_fs_test_path(missing, sizeof(missing), "no_such_predicate.txt");
 
-    dtest_block(_suite, "d_file_exists");
+    d_test_suite_block(_suite, "d_file_exists");
 
-    dtest_test(_suite, "true for a present file");
+    d_test_suite_test(_suite, "true for a present file");
     D_FS_CHECK(_suite, d_file_exists(file_path));
 
-    dtest_test(_suite, "false for an absent path");
+    d_test_suite_test(_suite, "false for an absent path");
     D_FS_CHECK(_suite, !d_file_exists(missing));
 
     #if D_FILE_VALIDATE_IS_ACTIVE
-    dtest_test(_suite, "false (not a crash) for NULL");
+    d_test_suite_test(_suite, "false (not a crash) for NULL");
     D_FS_CHECK(_suite, !d_file_exists(NULL));
     #endif
 
-    dtest_block(_suite, "d_file_is_regular");
+    d_test_suite_block(_suite, "d_file_is_regular");
 
-    dtest_test(_suite, "true for a regular file");
+    d_test_suite_test(_suite, "true for a regular file");
     D_FS_CHECK(_suite, d_file_is_regular(file_path));
 
-    dtest_test(_suite, "false for a directory");
+    d_test_suite_test(_suite, "false for a directory");
     D_FS_CHECK(_suite, !d_file_is_regular(d_fs_test_root()));
 
-    dtest_test(_suite, "false for an absent path");
+    d_test_suite_test(_suite, "false for an absent path");
     D_FS_CHECK(_suite, !d_file_is_regular(missing));
 
-    dtest_block(_suite, "d_dir_exists");
+    d_test_suite_block(_suite, "d_dir_exists");
 
-    dtest_test(_suite, "true for a directory");
+    d_test_suite_test(_suite, "true for a directory");
     D_FS_CHECK(_suite, d_dir_exists(d_fs_test_root()));
 
-    dtest_test(_suite, "false for a regular file");
+    d_test_suite_test(_suite, "false for a regular file");
     D_FS_CHECK(_suite, !d_dir_exists(file_path));
 
-    dtest_test(_suite, "false for an absent path");
+    d_test_suite_test(_suite, "false for an absent path");
     D_FS_CHECK(_suite, !d_dir_exists(missing));
 }
 
@@ -400,10 +401,10 @@ void d_fs_tests_stat_predicates(
  *****************************************************************************/
 
 void d_fs_tests_stat(
-    dtest_suite* _suite
+    struct dj_test_suite* _suite
 )
 {
-    dtest_module(_suite, "VIII. file_stat");
+    d_test_suite_module(_suite, "VIII. file_stat");
 
     d_fs_tests_stat_stat(_suite);
     d_fs_tests_stat_lstat(_suite);

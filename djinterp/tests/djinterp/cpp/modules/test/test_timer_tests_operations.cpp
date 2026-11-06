@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_timer_tests_operations.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp
 #include "test_timer_tests.hpp"
@@ -27,8 +27,8 @@ bool tests_test_timer_start_fires_on_start()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -54,8 +54,8 @@ bool tests_test_timer_start_twice_one_event()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -81,8 +81,8 @@ bool tests_test_timer_start_when_expired_noop()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(DMsec(100), &eh);
 
@@ -116,8 +116,8 @@ bool tests_test_timer_stop_fires_on_stop()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -146,8 +146,8 @@ bool tests_test_timer_stop_fires_on_expire()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(DMsec(100), &eh);
 
@@ -174,8 +174,8 @@ bool tests_test_timer_stop_not_running_noop()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -199,8 +199,8 @@ bool tests_test_timer_reset_fires_on_reset()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -230,8 +230,8 @@ bool tests_test_timer_reset_all_leaf()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -264,8 +264,8 @@ bool tests_test_timer_reset_all_recurses()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 
@@ -298,8 +298,8 @@ bool tests_test_timer_multiple_cycles_accumulate()
     reset_clock();
 
     DEventDispatcher eh;
-    DEventLog        log;
-    bind_log(eh, log);
+    DTimerEventLog   log;
+    bind_timer_log(eh, log);
 
     tt t(&eh);
 

@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/dio.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.19
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dio.h"  // corresponding header
 // std
@@ -955,8 +955,13 @@ d_dio_scan_text_bounded(
         return d_dio_scan_too_small(_src, _spec, _target, _size);
     }
 
-    const size_t cap    = (_size - 1 < (size_t)INT_MAX) ? _size - 1
-                                                         : (size_t)INT_MAX;
+    // capped one below INT_MAX: a buffer of 2 GiB or more would otherwise
+    // give the library a width of INT_MAX, which is valid C, but which
+    // AddressSanitizer's scanf interceptor turns into a size of INT_MAX + 1
+    // and refuses as negative, aborting the run (found by lane B's suite)
+    const size_t cap    = (_size - 1 < (size_t)INT_MAX - 1) ? _size - 1
+                                                             : (size_t)INT_MAX
+                                                               - 1;
     const int    capped = ( (_spec->width == 0) ||
                             (_spec->width > cap) );
     const enum dj_dio_scan_step step =

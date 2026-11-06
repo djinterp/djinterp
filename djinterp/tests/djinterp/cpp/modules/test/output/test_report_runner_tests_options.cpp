@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_options.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // djinterp
 #include "test_report_runner_tests.hpp"
@@ -26,7 +26,7 @@ bool tests_report_runner_use_pdf_selects_document()
 {
     dt::report_builder rb;
 
-    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::txt);
+    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::text);
 
     rb.use_pdf();
 
@@ -154,8 +154,8 @@ bool tests_report_runner_set_document()
     D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::pdf);
 
     // and back to the console-only default
-    rb.set_document(dt::test_doc_type::txt);
-    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::txt);
+    rb.set_document(dt::test_doc_type::text);
+    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::text);
 
     return true;
 }
@@ -180,7 +180,7 @@ bool tests_report_runner_set_output_file()
 
     // setting a path does not imply a document type
     rb.set_output_file("still_txt.pdf");
-    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::txt);
+    D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::text);
     D_RR_CHECK(dt::output_path(rb.options()) == "still_txt.pdf");
 
     return true;

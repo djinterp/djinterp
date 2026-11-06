@@ -95,7 +95,7 @@
 // djinterp
 #include "djinterp/cpp/djinterp.hpp"
 #ifndef DTEST_SPEC_MODE
-#include "../../../../inc/djinterp/core/memory/pool/pool_allocator.hpp"
+#include "../../../../inc/djinterp/cpp/memory/pool_allocator.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/cpp/modules/test/test_defaults.hpp"

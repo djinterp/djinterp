@@ -1,12 +1,21 @@
 /*******************************************************************************
 * djinterp [cpp/test]                                           test_options.hpp
 *
-*   The configuration vocabulary for the DTest subframework.  Under the option
-* subframework's value-carrying face, a configuration is no longer a hand-rolled
-* aggregate: `test_option_set` IS an option_set whose every aspect is a keyed
-* field<> slot (option_set.hpp), built on the same machinery option_generator.hpp
-* exposes.  The framework reads that set through free accessors, never get<>() at
-* call sites, which is what keeps a pre-C++20 backport viable.
+*   The configuration vocabulary for the DTest subframework.  A configuration
+* is `test_option_set`: ONE type at every level from the module's floor
+* (C++11) up, a struct with a named member per aspect and keyed access to the
+* same members, `get<test_option::K>()` and `set<test_option::K>(v)`.  The
+* framework reads it through free accessors.
+*
+*   ONE SHAPE (lane B, 2026.11.05). Until this revision the set was an
+* option_set<> at C++20 and a plain struct below, so a level changed what a
+* shared type was, which the C++ guide rules out ("no level changes what a
+* shared type is"), and code that wrote an option needed an #if at each site:
+* three runner tests broke at C++20 on it.  The struct is now the type at
+* every level, and keyed access is a pair of member templates over a
+* per-key slot trait, which C++11 can express; option_set<> needs C++17.
+* Both spellings, `opts.set<test_option::show>(v)` and `opts.show = v`,
+* compile everywhere.
 *
 *     PART A - RUNTIME CORE (C++11, ungated).  The canonical layer every other
 *       test module compiles against: the value enums the knobs range over, the
@@ -15,15 +24,13 @@
 *       carry no auto NTTP, no carrier, and no option<> of their own, so they sit
 *       at the framework's C++11 floor - test_kind.hpp holds a const
 *       test_option_set* and test_session.hpp owns one.
-*     PART B - CONFIGURATION SET (the two faces).  `test_option` keys one field<>
-*       slot per aspect; `test_option_set` is the option_set over those slots
-*       (C++20), or a plain-struct fallback (pre-C++20).  A uniform layer of free
-*       accessors (line_width(opts), routes(opts), ...) is the ONLY read surface
-*       the rest of the framework uses, so the two faces are interchangeable at
-*       every call site.  default_test_options() seeds the framework defaults
-*       (option_set value-initializes slots, so the non-trivial defaults are set
-*       explicitly), and resolve() - necessarily a free function now - folds the
-*       routes for one node into a flat DTestResolved verdict.
+*     PART B - CONFIGURATION SET (one shape).  `test_option` keys one member
+*       per aspect; `test_option_set` holds them, and its get<>/set<> reach a
+*       member by key.  A uniform layer of free accessors (line_width(opts),
+*       routes(opts), ...) is the read surface the rest of the framework uses.
+*       default_test_options() returns the framework defaults, which the
+*       struct's constructor carries, and resolve() folds the routes for one
+*       node into a flat DTestResolved verdict.
 *     PART C - ROUTE AUTHORING (C++20).  The type-level vocabulary for writing
 *       the conditional override list - a test_match predicate vocabulary and
 *       route_<> - lowered by make_routes<...>() to the std::vector<test_route>
@@ -32,13 +39,11 @@
 *       DOptionGenerator concern; the flat key/value stream does not model them.
 *
 *   AUTHORING:
-*   Scalar knobs are set imperatively on a default_test_options() result -
-* opts.set<test_option::line_width>(100) - because make_option_set's flat stream
-* takes NTTPs, and several slots (output_file, the format_* templates, routes,
-* and the compress_opts / archive_opts aggregates) carry std::string / std::vector
-* / class-type runtime values that cannot be non-type template arguments.  set<>
-* is therefore the one idiom that covers EVERY knob; make_option_set remains
-* available for a quick literal-only set of the NTTP-able knobs.
+*   Knobs are set imperatively on a default_test_options() result -
+* opts.set<test_option::line_width>(100), or opts.line_width = 100 - because
+* several slots (output_file, the format_* templates, routes, and the
+* compress_opts / archive_opts aggregates) carry std::string / std::vector /
+* class-type runtime values.  set<> covers EVERY knob at every level.
 *
 *   ON OUTPUT PACKAGING (compress_options.hpp / archive_options.hpp):
 *   A configuration can ask that the report FILE be compressed or archived once
@@ -49,19 +54,16 @@
 * decision, so it sits on the set beside output_file and is deliberately absent
 * from the per-node DTestResolved.
 *   PORTABILITY:
-*   PART A is C++11 (the framework floor).  The value-carrying option_set face
-* (PART B's test_option_set) is C++20 - the requires-guarded values constructor
-* and auto-NTTP slots - so that TYPE is gated on D_ENV_LANG_IS_CPP20_OR_HIGHER,
-* with a plain-struct #else arm.  PART C carries fixed_string literals and keeps
-* the stricter D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS gate.  Because every
-* consumer reads through the free accessors, dropping in the C++11 struct touches
-* only the #else arms here - never the framework that consumes a test_option_set.
+*   PARTS A and B are C++11 (the module's floor), and the same at every level
+* above it.  PART C carries fixed_string literals and keeps the stricter
+* D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS gate: a feature that exists
+* from the level that can express it, beside a type that does not change.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -84,7 +86,7 @@ TABLE OF CONTENTS
 
       B.I.    test_option              (the slot key enum)
 
-      B.II.   test_option_set          (option_set face | plain-struct face)
+      B.II.   test_option_set          (one struct; keyed get<>/set<>)
 
       B.III.  free accessors           (the portable read seam)
 
@@ -124,8 +126,6 @@ TABLE OF CONTENTS
 #include "../../meta/fixed_string.hpp"       // fixed_string<> (authoring NTTP)
 #include "../../meta/carrier.hpp"            // val_t<>
 #include "../../option/option.hpp"           // option<>
-#include "../../option/option_set.hpp"       // option_set<>, field<>
-#include "../../option/option_generator.hpp" // make_option_set<>
 #include "../../util/document/document_format.hpp" // document_format (the single
                                               //   document-format selector)
 #include "../../util/compress/compress_options.hpp"   // compress_options
@@ -801,10 +801,11 @@ NS_END  // internal
 ///////////////////////////////////////////////////////////////////////////////
 
 // test_option
-//   enum: one value per configurable aspect - the KEY of an option_set slot,
-// `option<test_option::K, field<T>>`.  The packaging aggregates (compress_opts /
-// archive_opts) are first-class slots carrying the COMPLETE tuning surface; the
-// route list is a single slot of std::vector<test_route>.
+//   enum: one value per configurable aspect - the KEY of a test_option_set
+// member, as get<test_option::K>() and set<test_option::K>() take it.  The
+// packaging aggregates (compress_opts / archive_opts) are first-class slots
+// carrying the COMPLETE tuning surface; the route list is a single slot of
+// std::vector<test_route>.  Each comment names the member's type.
 enum class test_option
 {
     // numbering / timing
@@ -851,49 +852,28 @@ enum class test_option
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                B.II. TEST OPTION SET  (the two faces)                   ///
+///                B.II. TEST OPTION SET  (one shape)                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+struct test_option_set;
+
+NS_INTERNAL
+
+    // test_option_slot
+    //   trait: the member a test_option key names - its value_type and a
+    // reference to it - specialized once per key after test_option_set below.
+    // The primary is declared and never defined, so a key without a slot
+    // fails to compile at its first use.
+    template<test_option Key>
+    struct test_option_slot;
+
+NS_END  // internal
+
 
 // test_option_set
-//   type: the runtime configuration - one keyed field<> slot per aspect,
-// addressed through the free accessors below (never get<>() at call sites).
-// Held by pointer wherever the framework refers to it, so its std::string /
-// std::vector / aggregate slots impose no constexpr burden on consumers.
-using test_option_set = option_set<
-    option<test_option::numbering,       field<bool>>,
-    option<test_option::number_style,    field<DTestNumberStyle>>,
-    option<test_option::timing,          field<bool>>,
-    option<test_option::time_unit,       field<DTestTimeUnit>>,
-    option<test_option::line_width,      field<std::size_t>>,
-    option<test_option::word_wrap,       field<bool>>,
-    option<test_option::wrap_mode,       field<DTestWrapMode>>,
-    option<test_option::indent_width,    field<std::size_t>>,
-    option<test_option::color,           field<bool>>,
-    option<test_option::document,        field<test_doc_type>>,
-    option<test_option::destination,     field<DTestSink>>,
-    option<test_option::output_file,     field<std::string>>,
-    option<test_option::show,            field<DTestShow>>,
-    option<test_option::max_failures,    field<std::size_t>>,
-    option<test_option::stop_on_failure, field<bool>>,
-    option<test_option::format_test,     field<std::string>>,
-    option<test_option::format_module,   field<std::string>>,
-    option<test_option::format_summary,  field<std::string>>,
-    option<test_option::pack,            field<DTestOutputPack>>,
-    option<test_option::compressor,      field<test_compressor>>,
-    option<test_option::archive_format,  field<test_archive_format>>,
-    option<test_option::compress_opts,   field<compress_options>>,
-    option<test_option::archive_opts,    field<archive_options>>,
-    option<test_option::split,           field<DTestOutputSplit>>,
-    option<test_option::routes,          field<std::vector<test_route>>>>;
-
-#else  // pre-C++20: the plain-struct face the accessors fall back to.  Field
-       // names match the accessor spellings below, so the seam is transparent.
-
-// test_option_set
-//   struct: the C++11 floor face - named members, default-constructed to the
-// framework defaults.
+//   struct: the runtime configuration at every level - a named member per
+// aspect, default-constructed to the framework defaults, and keyed access to
+// the same members through get<>() and set<>().
 struct test_option_set
 {
     bool                number_tests;
@@ -955,50 +935,103 @@ struct test_option_set
           routes()
           // compress_opts / archive_opts default-construct (backend defaults)
     {}
+
+    // get
+    //   the member a key names.
+    template<test_option Key>
+    D_NODISCARD const typename internal::test_option_slot<Key>::value_type&
+    get() const
+    {
+        return internal::test_option_slot<Key>::of(*this);
+    }
+
+    // set
+    //   sets the member a key names.
+    template<test_option Key>
+    void set(
+        const typename internal::test_option_slot<Key>::value_type& _value
+    )
+    {
+        internal::test_option_slot<Key>::of(*this) = _value;
+
+        return;
+    }
 };
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+NS_INTERNAL
+
+    // D_INTERNAL_TEST_SLOT
+    //   macro: one key's slot - its value type and member.
+    #define D_INTERNAL_TEST_SLOT(_key, _member, _type)                        \
+        template<>                                                            \
+        struct test_option_slot<test_option::_key>                            \
+        {                                                                     \
+            typedef _type value_type;                                         \
+                                                                              \
+            static value_type& of(test_option_set& _o)                        \
+            {                                                                 \
+                return _o._member;                                            \
+            }                                                                 \
+                                                                              \
+            static const value_type& of(const test_option_set& _o)            \
+            {                                                                 \
+                return _o._member;                                            \
+            }                                                                 \
+        };
+
+    D_INTERNAL_TEST_SLOT(numbering,       number_tests,    bool)
+    D_INTERNAL_TEST_SLOT(number_style,    number_style,    DTestNumberStyle)
+    D_INTERNAL_TEST_SLOT(timing,          show_timing,     bool)
+    D_INTERNAL_TEST_SLOT(time_unit,       time_unit,       DTestTimeUnit)
+    D_INTERNAL_TEST_SLOT(line_width,      line_width,      std::size_t)
+    D_INTERNAL_TEST_SLOT(word_wrap,       word_wrap,       bool)
+    D_INTERNAL_TEST_SLOT(wrap_mode,       wrap_mode,       DTestWrapMode)
+    D_INTERNAL_TEST_SLOT(indent_width,    indent_width,    std::size_t)
+    D_INTERNAL_TEST_SLOT(color,           color,           bool)
+    D_INTERNAL_TEST_SLOT(document,        document,        test_doc_type)
+    D_INTERNAL_TEST_SLOT(destination,     sinks,           DTestSink)
+    D_INTERNAL_TEST_SLOT(output_file,     output_path,     std::string)
+    D_INTERNAL_TEST_SLOT(show,            show,            DTestShow)
+    D_INTERNAL_TEST_SLOT(max_failures,    max_failures,    std::size_t)
+    D_INTERNAL_TEST_SLOT(stop_on_failure, stop_on_failure, bool)
+    D_INTERNAL_TEST_SLOT(format_test,     format_test,     std::string)
+    D_INTERNAL_TEST_SLOT(format_module,   format_module,   std::string)
+    D_INTERNAL_TEST_SLOT(format_summary,  format_summary,  std::string)
+    D_INTERNAL_TEST_SLOT(pack,            pack,            DTestOutputPack)
+    D_INTERNAL_TEST_SLOT(compressor,      compressor,      test_compressor)
+    D_INTERNAL_TEST_SLOT(archive_format,  archive_format,  test_archive_format)
+    D_INTERNAL_TEST_SLOT(compress_opts,   compress_opts,   compress_options)
+    D_INTERNAL_TEST_SLOT(archive_opts,    archive_opts,    archive_options)
+    D_INTERNAL_TEST_SLOT(split,           split,           DTestOutputSplit)
+    D_INTERNAL_TEST_SLOT(routes,          routes,
+                         std::vector<test_route>)
+
+    #undef D_INTERNAL_TEST_SLOT
+
+NS_END  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                B.III. FREE ACCESSORS  (the portable read seam)          ///
 ///////////////////////////////////////////////////////////////////////////////
 //
-//   ONE read accessor per knob - the single surface the rest of the framework
-// reads through, so the two faces are interchangeable at every call site.  The
-// two arms differ only in the body (slot fetch vs member fetch); the signature
-// is spelled with an explicit `const T&`, so the C++11 arm needs no return-type
-// deduction.
+//   ONE read accessor per knob - the surface the rest of the framework reads
+// through.  The signature is spelled with an explicit `const T&`, so C++11
+// needs no return-type deduction.
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+// D_INTERNAL_TEST_RO
+//   macro: define a read accessor that fetches the member _member.  (_key is
+// the slot key the member answers to; kept in the table as its index.)
+#define D_INTERNAL_TEST_RO(_accessor, _key, _member, _type)                   \
+    D_NODISCARD D_INLINE const _type&                                         \
+    _accessor(                                                                \
+        const test_option_set& _o                                             \
+    )                                                                         \
+    {                                                                         \
+        return _o._member;                                                    \
+    }
 
-    // D_INTERNAL_TEST_RO
-    //   macro: define a read accessor that fetches the option_set slot _key.
-    #define D_INTERNAL_TEST_RO(_accessor, _key, _member, _type)               \
-        D_NODISCARD D_INLINE const _type&                                     \
-        _accessor(                                                            \
-            const test_option_set& _o                                         \
-        )                                                                     \
-        {                                                                     \
-            return _o.template get<_key>();                                   \
-        }
-
-#else
-
-    // D_INTERNAL_TEST_RO
-    //   macro: define a read accessor that fetches the struct member _member.
-    #define D_INTERNAL_TEST_RO(_accessor, _key, _member, _type)               \
-        D_NODISCARD D_INLINE const _type&                                     \
-        _accessor(                                                            \
-            const test_option_set& _o                                         \
-        )                                                                     \
-        {                                                                     \
-            return _o._member;                                                \
-        }
-
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
-
-//   the accessor table.  (accessor, slot key, C++11 member, value type.)
+//   the accessor table.  (accessor, slot key, member, value type.)
 D_INTERNAL_TEST_RO(numbering,       test_option::numbering,       number_tests,    bool)
 D_INTERNAL_TEST_RO(number_style,    test_option::number_style,    number_style,    DTestNumberStyle)
 D_INTERNAL_TEST_RO(show_timing,     test_option::timing,          show_timing,     bool)
@@ -1035,48 +1068,15 @@ D_INTERNAL_TEST_RO(routes,          test_option::routes,          routes,       
 // default_test_options
 //   function: a fully-defaulted configuration - numbered, ordinal, untimed,
 // 80-column word-wrapped plain text to the console, showing all results, no
-// failure cap, written UNPACKED.  Needed (on the option_set face) because
-// option_set value-initializes its slots, so the non-trivial floor defaults are
-// seeded explicitly rather than riding an aggregate constructor.
+// failure cap, written UNPACKED.  The struct's constructor carries them; the
+// factory is the spelling runners use.
 //
 // Return:
 //   a complete, usable test_option_set.
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
-
-D_NODISCARD D_INLINE test_option_set default_test_options()
-{
-    test_option_set o;   // every slot value-initialized
-
-    // seed only the knobs whose default is not the value-initialized one
-    o.set<test_option::numbering>(true);
-    o.set<test_option::number_style>(DTestNumberStyle::ordinal);
-    o.set<test_option::time_unit>(DTestTimeUnit::automatic);
-    o.set<test_option::line_width>(static_cast<std::size_t>(80));
-    o.set<test_option::word_wrap>(true);
-    o.set<test_option::wrap_mode>(DTestWrapMode::word);
-    o.set<test_option::indent_width>(static_cast<std::size_t>(2));
-    o.set<test_option::color>(true);
-    o.set<test_option::destination>(DTestSink::console);
-    o.set<test_option::compressor>(test_compressor::gzip);
-    o.set<test_option::archive_format>(test_archive_format::zip);
-    o.set<test_option::format_test>(
-        std::string("{index}. {name} [{status}] {duration}"));
-    o.set<test_option::format_module>(std::string("{name}"));
-    o.set<test_option::format_summary>(
-        std::string("{passed}/{total} passed, {failed} failed, "
-                    "{skipped} skipped"));
-
-    return o;
-}
-
-#else
-
 D_NODISCARD D_INLINE test_option_set default_test_options()
 {
     return test_option_set();   // the struct's constructor carries the defaults
 }
-
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1089,8 +1089,8 @@ D_NODISCARD D_INLINE test_option_set default_test_options()
 // face-agnostic), then folds every route whose predicate matches _ctx, IN
 // DECLARATION ORDER: toggles fold through their tristate; guarded values
 // overwrite (later wins); sinks union (add) or replace (replace) the inherited
-// set.  Free rather than a member because the option_set face is an alias this
-// header does not own - and the accessor seam is what makes that painless.
+// set.  Free rather than a member: it reads through the accessors, as every
+// consumer of the set does.
 //
 // Parameter(s):
 //   _opts: the configuration to resolve against.

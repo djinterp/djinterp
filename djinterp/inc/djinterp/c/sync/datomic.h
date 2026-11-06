@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/c/sync/datomic.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.06
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -259,7 +259,11 @@ D_EXTERN_C_BEGIN
 
 // D_ATOMIC_VAR_INIT
 //   macro: initialize atomic variable at declaration.
-#if D_ATOMIC_USE_STDATOMIC && !defined(__cplusplus)
+//   ATOMIC_VAR_INIT is used only below C17: C17 deprecated it (a plain
+// initializer is valid since DR 485, and Clang refuses the macro under
+// -Werror), and C23 removed it.
+#if D_ATOMIC_USE_STDATOMIC && !defined(__cplusplus) && \
+    !D_ENV_LANG_IS_C17_OR_HIGHER
     #ifdef ATOMIC_VAR_INIT
         #define D_ATOMIC_VAR_INIT(value) ATOMIC_VAR_INIT(value)
     #else

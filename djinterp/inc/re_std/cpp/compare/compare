@@ -17,10 +17,10 @@
 * operators). The header expands to nothing on C++98/03.
 *
 *
-* path:      /inc/re_std/compare/compare
+* path:      /inc/re_std/cpp/compare/compare
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -76,7 +76,7 @@ V.    FALLBACK CPOs               — Phase C5 (planned)
 #define RE_STD_COMPARE_COMPARE 1
 
 // re_std
-#include "../config.hpp"  // RE_STD_* configuration
+#include "../../config.hpp"  // RE_STD_* configuration
 
 
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER
