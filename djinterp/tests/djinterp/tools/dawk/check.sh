@@ -65,6 +65,7 @@ $CC $W -o "$OUT/test_dregex" tests/djinterp/c/util/dregex/test_dregex.c $RX
 $CC $W -o "$OUT/test_dvalue" $T/test_dvalue.c $S/dvalue.c -lm
 $CC $W -o "$OUT/test_dparse" $T/test_dparse.c $S/dparse.c $S/dlex.c $RX
 $CC $W -o "$OUT/test_dzip" $T/test_dzip.c $S/dzip.c
+$CC $W -o "$OUT/test_dedit" $T/test_dedit.c $S/dedit.c
 $CC $W -o "$OUT/test_dxml" $T/test_dxml.c $S/dxml.c
 $CC $W -o "$OUT/test_dhost_story" $T/ext/story/test_dhost_story.c $CORE \
     $STORY $CMAKE -lm
@@ -87,7 +88,7 @@ set +e
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 failed=0
-for unit in test_dregex test_dvalue test_dparse test_dzip test_dxml \
+for unit in test_dregex test_dvalue test_dparse test_dzip test_dedit test_dxml \
             test_dhost_story test_dcmake test_dcmake_doc test_dninja \
             test_dmake test_dmsvs test_dmsvs_doc test_dwiki test_dgit; do
     printf '%-18s ' "$unit"

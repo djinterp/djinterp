@@ -16,7 +16,7 @@
 * path:      /src/djinterp/tools/dawk/ext/check/dtoken_node.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/check/dtoken_node.h"  // corresponding header
 // std
@@ -2697,6 +2697,68 @@ void d_internal_contract(
 
 
 /**
+ * @brief Reports whether a function's head says that it never returns.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      the function's item index.
+ * @return true when a token before the function's name is `_Noreturn`, or a
+ *         name another spelling is written with: `noreturn` (stdnoreturn.h's
+ *         macro, `[[noreturn]]`, `__attribute__((noreturn))`,
+ *         `__declspec(noreturn)`), `__noreturn__`, or djinterp's own
+ *         `D_NORETURN`; false otherwise.
+ *
+ * Parse's items carry no such flag, and which spellings count is the
+ * checker's to say, so the head is read here (lane F, 11-05). Only the tokens
+ * before the declared name are read: every spelling stands there, and a
+ * parameter named `noreturn` says nothing about its function.
+ */
+static
+bool d_internal_fn_no_return(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    static const char* const SPELLINGS[] =
+    {
+        "_Noreturn",
+        "noreturn",
+        "__noreturn__",
+        "D_NORETURN"
+    };
+
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+    const uint32_t                    end  =
+        (item->name != D_SYNTAX_NONE)   ? item->name
+      : (item->params != D_SYNTAX_NONE) ? item->params
+                                        : item->last;
+
+    for (uint32_t at = item->first; at < end; ++at)
+    {
+        // C11's keyword, which the C lexer gives a kind of its own
+        if (_build->tokens[at].kind == D_TOKEN_KW_NORETURN)
+        {
+            return true;
+        }
+
+        // the other spellings, and the keyword where C++ lexes it as a name
+        for (size_t spelling = 0u;
+             spelling < (sizeof(SPELLINGS) / sizeof(SPELLINGS[0]));
+             ++spelling)
+        {
+            if (d_internal_directive_is(_build,
+                                        at,
+                                        SPELLINGS[spelling]))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+/**
  * @brief Sets the attributes only a function carries.
  *
  * @param[in] _build  the build.
@@ -2720,7 +2782,7 @@ void d_internal_fn_attributes(
         tree,
         _node,
         "returns",
-        ((item->flags & D_SYNTAX_ITEM_FLAG_NO_RETURN) != 0u)    ? "none"
+        (d_internal_fn_no_return(_build, _k))                   ? "none"
       : ((item->flags & D_SYNTAX_ITEM_FLAG_RETURNS_VOID) != 0u) ? "void"
                                                                 : "value");
     d_internal_number(tree,
