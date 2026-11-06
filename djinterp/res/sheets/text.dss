@@ -1,0 +1,57 @@
+########################################################################
+#  text.dss -- the style guide's Line Length and Whitespace sections.
+#
+#  Both guides carry these two sections word for word, so the sheet is
+#  scoped to no language: it judges whatever files the driver walks.
+#  It reads the text layer (dline), which dcheck builds under
+#  `source.lines`; the sheet asks for it itself.  Every fact is the
+#  extension's and every judgement is here: the extension says a line
+#  is 81 characters long, and this sheet says 80 is the target.
+#
+#  "Machine-generated files are exempt from this section" is said of
+#  Line Length only, so those rules skip `text[generated]`; the
+#  Whitespace rules, tabs included ("without exception"), do not.
+########################################################################
+
+@set source.lines true;
+
+#  ── Whitespace ────────────────────────────────────────────────────
+file > text:is([eol=crlf], [eol=mixed]) {
+    violation: "LF line endings; do not commit CRLF";
+    severity:  error;
+}
+file > text:not([final-newlines=1]) {
+    violation: "every file ends with exactly one newline";
+    severity:  error;
+}
+text > line[trailing-space] {
+    violation: "no trailing whitespace at the end of a line";
+    severity:  error;
+}
+text > line[tab] {
+    violation: "no tab characters, for indentation or alignment";
+    severity:  error;
+}
+
+#  ── Line Length ───────────────────────────────────────────────────
+file > text[bom] {
+    violation: "UTF-8 with no byte-order mark";
+    severity:  error;
+}
+text:not([generated]) > line[malformed] {
+    violation: "every source file decodes as valid UTF-8";
+    severity:  error;
+}
+text:not([generated]) > line:is([wide], [zero-width], [control]) {
+    violation: "every character occupies one display column";
+    severity:  error;
+}
+
+#  The limit is "a target rather than an absolute": indivisible text --
+#  a long path, URL or string literal -- may run past it, and deciding
+#  that needs to know which token crosses column 80.  Until a fact says
+#  so, every long line is reported, as a warning rather than an error.
+text:not([generated]) > line[length>80] {
+    violation: "a line should not exceed 80 characters";
+    severity:  warn;
+}
