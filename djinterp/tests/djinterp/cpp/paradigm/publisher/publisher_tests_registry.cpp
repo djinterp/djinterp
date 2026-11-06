@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                    publisher_tests_registry.cpp
+* djinterp [test]                                   publisher_tests_registry.cpp
+*
+*   Tests of publisher.hpp's subscriber registry (section V), driven directly
+* with hand-made tokens and liveness flags.
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_registry.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_registry.cpp
 //   The subscriber registry (section V): the shared topic -> subscribers store
@@ -17,6 +20,11 @@
 // soon as its last entry goes (whether via remove, remove_topic, or compact),
 // and every count reports LIVE entries only - so an all-dead bucket reads as
 // zero subscribers and zero topics even while its storage is still present.
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -556,3 +564,5 @@ bool tests_registry_reserve_topics()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

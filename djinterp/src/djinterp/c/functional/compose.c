@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/functional/compose.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/compose.h"  // corresponding header
 // std
@@ -72,8 +72,16 @@ bool d_functional_compose_apply(
     void*                                 _output
 )
 {
-    // nothing to apply
-    if (!_composed)
+    //   nothing to apply, nowhere to read or write, or a composition whose
+    // stages or buffer are missing (one that was not built by
+    // d_functional_compose_new, or was altered after): a call through it
+    // would jump to or write through NULL
+    if ( (!_composed)           ||
+         (!_composed->first)    ||
+         (!_composed->second)   ||
+         (!_composed->temp_buf) ||
+         (!_input)              ||
+         (!_output) )
     {
         return false;
     }
@@ -130,8 +138,10 @@ void d_functional_partial_consumer_apply(
     void*                             _element
 )
 {
-    // apply the bound consumer with its bound context
-    if (_partial)
+    //   apply the bound consumer with its bound context; one whose consumer
+    // is missing has nothing to call
+    if ( (_partial) &&
+         (_partial->consumer) )
     {
         _partial->consumer(_element, _partial->context);
     }

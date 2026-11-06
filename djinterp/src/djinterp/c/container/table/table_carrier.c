@@ -1,18 +1,19 @@
 /*******************************************************************************
 * djinterp [c]                                                   table_carrier.c
 *
-*   The out-of-line half of table_carrier.h.  Every definition here is D_INLINE while its
-* declaration in the header is not, so C11 6.7.4p7 makes each an EXTERNAL
-* definition: one symbol, linkable from both languages, and free to be inlined
-* within this translation unit.
+*   The out-of-line half of table_carrier.h. Every definition here is
+* D_INLINE while its declaration in the header is not, so C11 6.7.4p7 makes
+* each an EXTERNAL definition: one symbol, linkable from both languages,
+* and free to be inlined within this translation unit.
 *
 *
 * path:      /src/djinterp/c/container/table/table_carrier.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.02
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/table/table_carrier.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 // std
@@ -55,23 +56,13 @@ int d_table_internal_bytes_for(
         return 1;
     }
 
-    cells = _rows;
-
-    // reject rows * cols before it wraps
-    if (cells > (((size_t)-1) / _cols))
+    // reject rows * cols, then cells * cell_size, where either wraps
+    if ( (d_ckd_mul(&cells, _rows, _cols)) ||
+         (d_ckd_mul(&bytes, cells, _cell_size)) )
     {
         return 0;
     }
 
-    cells = cells * _cols;
-
-    // reject cells * cell_size before it wraps
-    if (cells > (((size_t)-1) / _cell_size))
-    {
-        return 0;
-    }
-
-    bytes = cells * _cell_size;
     *_out = bytes;
 
     return 1;
@@ -133,13 +124,10 @@ d_table_internal_ensure_bytes
         {
             target = _needed;
         }
-        else if (target > ((((size_t)-1) / 2)))
+        // a doubling that does not fit asks for exactly what is needed
+        else if (d_ckd_mul(&target, target, 2))
         {
             target = _needed;
-        }
-        else
-        {
-            target = target * 2;
         }
     }
 

@@ -1,15 +1,19 @@
 /*******************************************************************************
 * djinterp [c]                                                   buffer_common.c
 *
-* TBA
+*   The building blocks buffer_common.h declares for the buffer types:
+* initialisation, capacity, element access, insertion in RESIZE mode
+* (reallocation) and APPEND mode (linked chunks), removal, state queries,
+* search, filter, copy, ordering, validation and destruction.
 *
 *
 * path:      /src/djinterp/c/container/buffer/buffer_common.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.29
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/buffer/buffer_common.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 
 
 
@@ -102,7 +106,7 @@ void d_internal_buffer_common_chunk_list_push(
 
 
 // =============================================================================
-// I.    INITIALIZATION
+// 1.  INITIALIZATION
 // =============================================================================
 
 /*
@@ -411,7 +415,7 @@ bool d_buffer_common_init_fill(
 
 
 // =============================================================================
-// II.   CAPACITY MANAGEMENT
+// 2.  CAPACITY MANAGEMENT
 // =============================================================================
 
 /*
@@ -438,14 +442,16 @@ void* d_buffer_common_alloc(
         return NULL;
     }
 
-    // check for overflow
-    if (_capacity > SIZE_MAX / _element_size)
+    size_t bytes = 0;
+
+    // a size that wraps would allocate less than the capacity promises
+    if (d_ckd_mul(&bytes, _capacity, _element_size))
     {
         return NULL;
     }
 
     // allocate
-    mem = malloc(_capacity * _element_size);
+    mem = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (mem)
@@ -507,7 +513,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if the capacity is sufficient or reallocation succeeded, or
-  - false, if reallocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_buffer_common_ensure_capacity(
     void**  _elements,
@@ -536,14 +543,16 @@ bool d_buffer_common_ensure_capacity(
     // calculate new capacity
     new_cap = d_buffer_common_calc_growth(*(_capacity), _required_capacity);
 
-    // check for overflow
-    if (new_cap > (SIZE_MAX / _element_size))
+    size_t bytes = 0;
+
+    // a size that wraps would shrink the buffer it grows
+    if (d_ckd_mul(&bytes, new_cap, _element_size))
     {
         return false;
     }
 
     // reallocate
-    new_mem = realloc(*(_elements), new_cap * _element_size);
+    new_mem = realloc(*(_elements), bytes);
 
     // ensure that memory reallocation was successful
     if (!new_mem)
@@ -574,7 +583,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if the resize succeeded, or
-  - false, if reallocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_buffer_common_resize_to_fit(
     void**  _elements,
@@ -610,8 +620,17 @@ bool d_buffer_common_resize_to_fit(
         return true;
     }
 
+    size_t bytes = 0;
+
+    // fewer elements than the capacity fit; a size that wraps means a
+    // corrupt count
+    if (d_ckd_mul(&bytes, _count, _element_size))
+    {
+        return false;
+    }
+
     // reallocate
-    new_mem = realloc(*(_elements), (_count * _element_size));
+    new_mem = realloc(*(_elements), bytes);
 
     // ensure that memory reallocation was successful
     if (!new_mem)
@@ -627,7 +646,7 @@ bool d_buffer_common_resize_to_fit(
 
 
 // =============================================================================
-// III.  ELEMENT ACCESS
+// 3.  ELEMENT ACCESS
 // =============================================================================
 
 /*
@@ -766,7 +785,7 @@ void* d_buffer_common_peek_back(
 
 
 // =============================================================================
-// IV.   INSERTION (RESIZE MODE)
+// 4.  INSERTION (RESIZE MODE)
 // =============================================================================
 
 /*
@@ -1119,7 +1138,7 @@ bool d_buffer_common_insert_data(
 
 
 // =============================================================================
-// V.    INSERTION (APPEND MODE)
+// 5.  INSERTION (APPEND MODE)
 // =============================================================================
 
 /*
@@ -1451,7 +1470,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if consolidation succeeded, or
-  - false, if reallocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_buffer_common_consolidate(
     void**                       _elements,
@@ -1482,18 +1502,24 @@ bool d_buffer_common_consolidate(
         return true;
     }
 
-    total = *(_count) + _list->total_count;
+    // a total that wraps would shrink the buffer the chunks are copied into
+    if (d_ckd_add(&total, *(_count), _list->total_count))
+    {
+        return false;
+    }
 
     // grow if necessary
     if (total > *(_capacity))
     {
-        // check for overflow
-        if (total > SIZE_MAX / _element_size)
+        size_t bytes = 0;
+
+        // a size that wraps would shrink the buffer it grows
+        if (d_ckd_mul(&bytes, total, _element_size))
         {
             return false;
         }
 
-        new_mem = realloc(*(_elements), (total * _element_size));
+        new_mem = realloc(*(_elements), bytes);
 
         // ensure that memory reallocation was successful
         if (!new_mem)
@@ -1617,7 +1643,7 @@ void* d_buffer_common_get_element_chunked(
 
 
 // =============================================================================
-// VI.   REMOVAL
+// 6.  REMOVAL
 // =============================================================================
 
 /*
@@ -1865,7 +1891,7 @@ bool d_buffer_common_consume_back(
 
 
 // =============================================================================
-// VII.  STATE QUERIES
+// 7.  STATE QUERIES
 // =============================================================================
 
 /*
@@ -1951,7 +1977,7 @@ double d_buffer_common_utilization(
 
 
 // =============================================================================
-// VIII. SEARCH
+// 8.  SEARCH
 // =============================================================================
 
 /*
@@ -2081,7 +2107,7 @@ ssize_t d_buffer_common_find_last(
 
 
 // =============================================================================
-// IX.   FILTER
+// 9.  FILTER
 // =============================================================================
 
 /*
@@ -2098,7 +2124,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if filtering succeeded (including zero matches), or
-  - false, if allocation failed or output pointers are NULL.
+  - false, if output pointers are NULL, the bytes needed do not fit in a
+    size_t, or allocation failed.
 */
 bool d_buffer_common_filter(
     const void*                   _elements,
@@ -2156,8 +2183,17 @@ bool d_buffer_common_filter(
         return true;
     }
 
+    size_t bytes = 0;
+
+    // the matches are among the elements; a size that wraps means a corrupt
+    // count
+    if (d_ckd_mul(&bytes, matches, _element_size))
+    {
+        return false;
+    }
+
     // allocate result
-    out = malloc(matches * _element_size);
+    out = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!out)
@@ -2284,7 +2320,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if filtering succeeded (including zero matches), or
-  - false, if allocation failed or output pointers are NULL.
+  - false, if output pointers are NULL, the bytes needed do not fit in a
+    size_t, or allocation failed.
 */
 bool d_buffer_common_filter_indices(
     const void*                   _elements,
@@ -2341,8 +2378,17 @@ bool d_buffer_common_filter_indices(
         return true;
     }
 
+    size_t bytes = 0;
+
+    // an index is wider than a narrow element, so the matches' indices may
+    // not fit where the matches do
+    if (d_ckd_mul(&bytes, matches, sizeof(dj_index)))
+    {
+        return false;
+    }
+
     // allocate index array
-    indices = malloc(matches * sizeof(dj_index));
+    indices = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!indices)
@@ -2437,7 +2483,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if filtering succeeded (including zero matches), or
-  - false, if allocation failed or output pointers are NULL.
+  - false, if output pointers are NULL, the bytes needed do not fit in a
+    size_t, or allocation failed.
 */
 bool d_buffer_common_filter_chunked(
     const void*                        _primary_elements,
@@ -2529,8 +2576,17 @@ bool d_buffer_common_filter_chunked(
         return true;
     }
 
+    size_t bytes = 0;
+
+    // the matches are among the elements; a size that wraps means a corrupt
+    // count
+    if (d_ckd_mul(&bytes, matches, _element_size))
+    {
+        return false;
+    }
+
     // allocate result
-    out = malloc(matches * _element_size);
+    out = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!out)
@@ -2599,7 +2655,7 @@ bool d_buffer_common_filter_chunked(
 
 
 // =============================================================================
-// X.    COPY
+// 10. COPY
 // =============================================================================
 
 /*
@@ -2722,7 +2778,7 @@ bool d_buffer_common_copy_range_to(
 
 
 // =============================================================================
-// XI.   ORDERING
+// 11. ORDERING
 // =============================================================================
 
 /*
@@ -2836,7 +2892,7 @@ void d_buffer_common_sort(
 
 
 // =============================================================================
-// XII.  VALIDATION
+// 12. VALIDATION
 // =============================================================================
 
 /*
@@ -2897,7 +2953,7 @@ bool d_buffer_common_validate_index(
 
 
 // =============================================================================
-// XIII. DESTRUCTION
+// 13. DESTRUCTION
 // =============================================================================
 
 /*

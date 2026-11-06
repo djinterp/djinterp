@@ -1,11 +1,15 @@
 /*******************************************************************************
-* djinterp [container]                             text_buffer_tests_sa_filter.c
+* djinterp [test]                                  text_buffer_tests_sa_filter.c
+*
+*   Standalone tests of text_buffer.h's filter functions: filter,
+* filter_in_place, filter_indices, count_matching and filter_chunked, with
+* predicates of fn_predicate's shape, (const void* element, void* context).
 *
 *
 * path:      /tests/djinterp/c/container/buffer/text_buffer_tests_sa_filter.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.15
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp
 #include "./text_buffer_tests_sa.h"
@@ -43,7 +47,7 @@
  *
  *   Filter operations on a text buffer treat each character as an
  *   element.  The predicate receives a `const void*` pointing to a
- *   single char.
+ *   single char, and fn_predicate's context, which it does not use.
  *****************************************************************************/
 
 
@@ -53,10 +57,14 @@ pred_is_uppercase
 */
 D_STATIC
 bool pred_is_uppercase(
-    const void* _element
+    const void* _element,
+    void*       _context
 )
 {
     char c;
+
+    // fn_predicate's context, which these do not use
+    (void)_context;
 
     if (!_element)
     {
@@ -75,10 +83,14 @@ pred_is_vowel
 */
 D_STATIC
 bool pred_is_vowel(
-    const void* _element
+    const void* _element,
+    void*       _context
 )
 {
     char c;
+
+    // fn_predicate's context, which these do not use
+    (void)_context;
 
     if (!_element)
     {
@@ -103,10 +115,14 @@ pred_is_digit
 */
 D_STATIC
 bool pred_is_digit(
-    const void* _element
+    const void* _element,
+    void*       _context
 )
 {
     char c;
+
+    // fn_predicate's context, which these do not use
+    (void)_context;
 
     if (!_element)
     {

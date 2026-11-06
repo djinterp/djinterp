@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                               publisher_tests_customization.cpp
+* djinterp [test]                              publisher_tests_customization.cpp
+*
+*   Tests of publisher.hpp's customization points (section VI) and the
+* concrete bus (section VII).
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_customization.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_customization.cpp
 //   The customization points (section VI) and the concrete bus (section VII).
@@ -22,6 +25,11 @@
 //   The bus tests cover the handler-type parameter: the std::function default,
 // a raw function pointer, and a custom functor - plus a non-string topic, since
 // a topic need only be copy-constructible and equality-comparable.
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -438,3 +446,5 @@ bool tests_hook_do_publish_override()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

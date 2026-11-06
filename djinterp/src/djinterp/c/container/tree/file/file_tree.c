@@ -1,15 +1,19 @@
 /*******************************************************************************
 * djinterp [c]                                                       file_tree.c
 *
-* TBA
+*   The dj_file_tree functions file_tree.h declares: nodes for files,
+* directories and symlinks; path resolution by the tree's separator; building
+* a tree (add, mkdir_p, move, remove, copy); queries; and pre-order,
+* post-order and breadth-first traversal.
 *
 *
 * path:      /src/djinterp/c/container/tree/file/file_tree.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.17
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.22
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/container/tree/file/file_tree.h"
+#include "../../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 // djinterp
 #include "../../../../../../inc/djinterp/c/string_fn.h"  // d_strdup, d_strtok_r
@@ -112,15 +116,30 @@ int d_file_tree_internal_dir_grow(
         return -1;
     }
 
-    new_capacity = _node->capacity * 2;
+    size_t bytes = 0;
+
+    // a doubled capacity or a size that wraps would shrink the children
+    if (d_ckd_mul(&new_capacity, _node->capacity, 2))
+    {
+        return -1;
+    }
+
     if (new_capacity == 0)
     {
         new_capacity = D_FILE_TREE_DEFAULT_CHILD_CAPACITY;
     }
 
+    // a size that wraps would shrink the children
+    if (d_ckd_mul(&bytes,
+                  new_capacity,
+                  sizeof(struct dj_file_tree_node*)))
+    {
+        return -1;
+    }
+
     new_children = (struct dj_file_tree_node**)realloc(
                        _node->children,
-                       new_capacity * sizeof(struct dj_file_tree_node*));
+                       bytes);
 
     if (!new_children)
     {
@@ -2204,6 +2223,76 @@ void d_file_tree_traverse_postorder(
 }
 
 
+/**
+ * @brief Doubles a breadth-first traversal's queue and its depths, refusing
+ *        a capacity or a size that wraps.
+ *
+ * @param[in,out] _queue     the queue of nodes; replaced when it grows.
+ * @param[in,out] _depths    each queued node's depth; replaced when it grows.
+ * @param[in,out] _capacity  the capacity of both; doubled when they grow.
+ * @return true when both grew; false when the doubled capacity or a size
+ *         does not fit, or an allocation failed, and then both are freed.
+ *
+ * The two arrays grow together, so that a queue and its depths never
+ * disagree on their capacity; a failure frees whichever block each pointer
+ * holds, grown or not, so the caller only returns. Given two NULL arrays
+ * and a capacity of half what it wants, it makes the first ones.
+ */
+static bool
+d_internal_file_tree_grow_queue(
+    struct dj_file_tree_node*** _queue,
+    size_t**                    _depths,
+    size_t*                     _capacity
+)
+{
+    size_t capacity    = 0;
+    size_t queue_bytes = 0;
+    size_t depth_bytes = 0;
+
+    // a capacity or a size that wraps would shrink the queue
+    if ( (d_ckd_mul(&capacity, *_capacity, 2))                         ||
+         (d_ckd_mul(&queue_bytes,
+                    capacity,
+                    sizeof(struct dj_file_tree_node*)))                ||
+         (d_ckd_mul(&depth_bytes, capacity, sizeof(size_t))) )
+    {
+        free(*_queue);
+        free(*_depths);
+
+        return false;
+    }
+
+    struct dj_file_tree_node** queue =
+        (struct dj_file_tree_node**)realloc(*_queue, queue_bytes);
+
+    // a failed realloc leaves the old block, which is freed with the depths
+    if (!queue)
+    {
+        free(*_queue);
+        free(*_depths);
+
+        return false;
+    }
+
+    *_queue = queue;
+
+    size_t* depths = (size_t*)realloc(*_depths, depth_bytes);
+
+    // as above, for the depths, with the grown queue
+    if (!depths)
+    {
+        free(*_queue);
+        free(*_depths);
+
+        return false;
+    }
+
+    *_depths   = depths;
+    *_capacity = capacity;
+
+    return true;
+}
+
 /*
 d_file_tree_traverse_breadth_first
   Visits every node in the tree in breadth-first (level) order using an
@@ -2214,7 +2303,9 @@ Parameter(s):
   _visitor: the callback to invoke on each node.
   _context: opaque pointer forwarded to the visitor.
 Return:
-  none.
+  none. If the queue cannot be allocated or grown (the bytes needed do
+  not fit in a size_t, or allocation fails), the traversal stops there,
+  after the nodes already visited, and the caller is not told.
 */
 void d_file_tree_traverse_breadth_first(
     const struct dj_file_tree* _tree,
@@ -2230,8 +2321,6 @@ void d_file_tree_traverse_breadth_first(
     struct dj_file_tree_node*  current;
     size_t                    current_depth;
     size_t                    i;
-    struct dj_file_tree_node** new_queue;
-    size_t*                   new_depths;
 
     if ( (!_tree)       ||
          (!_tree->root) ||
@@ -2240,17 +2329,13 @@ void d_file_tree_traverse_breadth_first(
         return;
     }
 
-    queue_capacity = 16;
-    queue  = (struct dj_file_tree_node**)malloc(
-                 queue_capacity * sizeof(struct dj_file_tree_node*));
-    depths = (size_t*)malloc(queue_capacity * sizeof(size_t));
+    // the first 16 slots come from the same checked doubling as the rest
+    queue          = NULL;
+    depths         = NULL;
+    queue_capacity = 8;
 
-    if ( (!queue) ||
-         (!depths) )
+    if (!d_internal_file_tree_grow_queue(&queue, &depths, &queue_capacity))
     {
-        free(queue);
-        free(depths);
-
         return;
     }
 
@@ -2275,29 +2360,13 @@ void d_file_tree_traverse_breadth_first(
         {
             for (i = 0; i < current->count; i++)
             {
-                // grow queue if necessary
-                if (tail >= queue_capacity)
+                // grow queue if necessary; a failure has freed both
+                if ( (tail >= queue_capacity) &&
+                     (!d_internal_file_tree_grow_queue(&queue,
+                                                       &depths,
+                                                       &queue_capacity)) )
                 {
-                    queue_capacity *= 2;
-                    new_queue = (struct dj_file_tree_node**)realloc(
-                                    queue,
-                                    queue_capacity *
-                                        sizeof(struct dj_file_tree_node*));
-                    new_depths = (size_t*)realloc(
-                                     depths,
-                                     queue_capacity * sizeof(size_t));
-
-                    if ( (!new_queue) ||
-                         (!new_depths) )
-                    {
-                        free(new_queue ? new_queue : queue);
-                        free(new_depths ? new_depths : depths);
-
-                        return;
-                    }
-
-                    queue  = new_queue;
-                    depths = new_depths;
+                    return;
                 }
 
                 queue[tail]  = current->children[i];
@@ -2349,7 +2418,8 @@ struct dj_string* d_file_tree_node_path(
         return NULL;
     }
 
-    // collect ancestors into a stack
+    //   collect ancestors into a stack; its first size is a constant,
+    // sixteen pointers, which cannot wrap, and each later one is checked
     stack_capacity = 16;
     stack_size     = 0;
     stack = (const struct dj_file_tree_node**)malloc(
@@ -2365,16 +2435,32 @@ struct dj_string* d_file_tree_node_path(
     {
         if (stack_size >= stack_capacity)
         {
-            stack_capacity *= 2;
-            stack = (const struct dj_file_tree_node**)realloc(
-                        (void*)stack,
-                        stack_capacity *
-                            sizeof(const struct dj_file_tree_node*));
+            size_t bytes = 0;
 
-            if (!stack)
+            // a capacity or a size that wraps would shrink the stack
+            if ( (d_ckd_mul(&stack_capacity, stack_capacity, 2)) ||
+                 (d_ckd_mul(&bytes,
+                            stack_capacity,
+                            sizeof(const struct dj_file_tree_node*))) )
             {
+                free((void*)stack);
+
                 return NULL;
             }
+
+            const struct dj_file_tree_node** grown =
+                (const struct dj_file_tree_node**)realloc((void*)stack,
+                                                          bytes);
+
+            // a failed realloc leaves the old stack, which is freed here
+            if (!grown)
+            {
+                free((void*)stack);
+
+                return NULL;
+            }
+
+            stack = grown;
         }
 
         stack[stack_size] = current;

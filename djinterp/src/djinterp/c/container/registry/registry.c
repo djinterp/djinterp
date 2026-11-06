@@ -1,15 +1,19 @@
 /*******************************************************************************
 * djinterp [c]                                                        registry.c
 *
-* TBA
+*   The dj_registry functions registry.h declares: rows of a user-defined
+* struct kept in an array, with a sorted lookup array of every key and alias
+* for binary search, rebuilt as rows and aliases change; iteration, capacity
+* control, and freezing, after which the registry refuses changes.
 *
 *
 * path:      /src/djinterp/c/container/registry/registry.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/registry/registry.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 /******************************************************************************
@@ -253,16 +257,22 @@ bool d_registry_ensure_row_capacity(
 
     while (new_cap < _needed)
     {
-        new_cap *= D_REGISTRY_GROWTH_FACTOR;
-
-        // overflow guard
-        if (new_cap < registry->capacity)
+        // a capacity that wraps would shrink the rows it grows
+        if (d_ckd_mul(&new_cap, new_cap, D_REGISTRY_GROWTH_FACTOR))
         {
             return false;
         }
     }
 
-    new_rows = realloc(registry->rows, new_cap * registry->row_size);
+    size_t bytes = 0;
+
+    // a size that wraps would shrink the rows it grows
+    if (d_ckd_mul(&bytes, new_cap, registry->row_size))
+    {
+        return false;
+    }
+
+    new_rows = realloc(registry->rows, bytes);
 
     if (!new_rows)
     {
@@ -313,17 +323,22 @@ bool d_registry_ensure_lookup_capacity(
 
     while (new_cap < _needed)
     {
-        new_cap *= D_REGISTRY_GROWTH_FACTOR;
-
-        // overflow guard
-        if (new_cap < _registry->lookup_capacity)
+        // a capacity that wraps would shrink the lookup it grows
+        if (d_ckd_mul(&new_cap, new_cap, D_REGISTRY_GROWTH_FACTOR))
         {
             return false;
         }
     }
 
-    new_lookup = realloc(_registry->lookup,
-        (new_cap * sizeof(struct dj_registry_lookup_entry)) );
+    size_t bytes = 0;
+
+    // a size that wraps would shrink the lookup it grows
+    if (d_ckd_mul(&bytes, new_cap, sizeof(struct dj_registry_lookup_entry)))
+    {
+        return false;
+    }
+
+    new_lookup = realloc(_registry->lookup, bytes);
 
     if (!new_lookup)
     {
@@ -1912,8 +1927,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if shrink succeeded (or no shrinking was needed), or
-  - false, if _registry is NULL, the registry is frozen/static, or
-    realloc failed.
+  - false, if _registry is NULL, the registry is frozen/static, the bytes
+    needed do not fit in a size_t, or realloc failed.
 */
 bool d_registry_shrink_to_fit(
     struct dj_registry* _registry
@@ -1936,8 +1951,16 @@ bool d_registry_shrink_to_fit(
     // shrink row array
     if (_registry->capacity > _registry->count)
     {
-        rows_new = realloc(_registry->rows,
-                           _registry->count * _registry->row_size);
+        size_t bytes = 0;
+
+        // fewer rows than the capacity fit; a size that wraps means a
+        // corrupt count
+        if (d_ckd_mul(&bytes, _registry->count, _registry->row_size))
+        {
+            return false;
+        }
+
+        rows_new = realloc(_registry->rows, bytes);
 
         if (_registry->count != 0 && !rows_new)
         {
@@ -1951,10 +1974,20 @@ bool d_registry_shrink_to_fit(
     // shrink lookup array
     if (_registry->lookup_capacity > _registry->lookup_count)
     {
+        size_t bytes = 0;
+
+        // fewer entries than the capacity fit; a size that wraps means a
+        // corrupt count
+        if (d_ckd_mul(&bytes,
+                      _registry->lookup_count,
+                      sizeof(struct dj_registry_lookup_entry)))
+        {
+            return false;
+        }
+
         lookup_new = (struct dj_registry_lookup_entry*)realloc(
             _registry->lookup,
-            _registry->lookup_count
-                * sizeof(struct dj_registry_lookup_entry)
+            bytes
         );
 
         if (_registry->lookup_count != 0 && !lookup_new)
@@ -2030,8 +2063,8 @@ Parameter(s):
   _out_count: pointer to receive the number of keys; may be NULL.
 Return:
   A newly allocated array of key string pointers, or NULL if the registry
-  is NULL, is empty, or allocation fails. Sets *_out_count to the number
-  of keys returned.
+  is NULL or empty, the bytes needed do not fit in a size_t, or allocation
+  fails. Sets *_out_count to the number of keys returned.
 */
 const char** d_registry_get_all_keys(
     const struct dj_registry* _registry,
@@ -2052,7 +2085,15 @@ const char** d_registry_get_all_keys(
         return NULL;
     }
 
-    out = malloc(_registry->lookup_count * sizeof(const char*));
+    size_t bytes = 0;
+
+    // a size that wraps would write past a short allocation
+    if (d_ckd_mul(&bytes, _registry->lookup_count, sizeof(const char*)))
+    {
+        return NULL;
+    }
+
+    out = malloc(bytes);
 
     if (!out)
     {

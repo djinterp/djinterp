@@ -45,7 +45,7 @@
 *   - broker                   CRTP base for all broker variants
 *   - bus                      synchronous in-process broker
 *   - pubsub_has_*, is_broker  conformance traits
-*   - broker_type, handler_for C++20 concepts
+*   - broker_type, publisher_handler_for C++20 concepts
 *   - make_bus                 factory
 *
 * Usage:
@@ -69,7 +69,7 @@
 * path:      /inc/djinterp/cpp/paradigm/publisher/publisher.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.08
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_PARADIGM_PUBLISHER_PUBLISHER_HPP
@@ -1427,15 +1427,18 @@ constexpr bool is_subscription_v = is_subscription<Type>::value;
 template<typename Type>
 concept broker_type = is_broker<Type>::value;
 
-// handler_for
+// publisher_handler_for
 //   concept: constrains callables usable as a subscriber for the given
-// topic and payload types, i.e. invocable as void(topic, payload).
+// topic and payload types, i.e. invocable as void(topic, payload). Named
+// for its family, as mediator's mediator_handler_for is: event's
+// djinterp::handler_for (event/event_handler.hpp) is a different concept,
+// and a unit that included both stopped compiling at C++20.
 template<typename Handler,
          typename Topic,
          typename Payload>
-concept handler_for = requires(Handler            _h,
-                               const Topic&      _t,
-                               const Payload&    _p)
+concept publisher_handler_for = requires(Handler       _h,
+                                         const Topic&   _t,
+                                         const Payload& _p)
 {
     _h(_t, _p);
 };

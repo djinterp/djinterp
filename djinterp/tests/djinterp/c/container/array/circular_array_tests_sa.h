@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/container/array/circular_array_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.31
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CIRCULAR_ARRAY_SA_
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../../inc/djinterp/c/container/array/circular_array.h"
 #include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 

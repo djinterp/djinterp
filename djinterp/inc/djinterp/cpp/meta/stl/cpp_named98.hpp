@@ -25,25 +25,24 @@
 *     types without compiler intrinsics. Enums will report false.
 *
 * NAMING CONVENTIONS:
-*   djinterp::re_std::is_default_constructible<_T>::value
-*   djinterp::re_std::is_copy_constructible<_T>::value
-*   djinterp::re_std::is_copy_assignable<_T>::value
-*   djinterp::re_std::is_destructible<_T>::value
+*   djinterp::re_std::is_default_constructible<T>::value
+*   djinterp::re_std::is_copy_constructible<T>::value
+*   djinterp::re_std::is_copy_assignable<T>::value
+*   djinterp::re_std::is_destructible<T>::value
 *
 *
 * path:      /inc/djinterp/cpp/meta/stl/cpp_named98.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_META_STL_CPP_NAMED98_HPP
 #define DJINTERP_META_STL_CPP_NAMED98_HPP 1
 
-// require env.h to be included first
-#ifndef DJINTERP_ENV_ENV_H
-    #error "cpp_named98.hpp requires env.h to be included first"
-#endif
+// djinterp
+#include "../../djinterp.hpp"  // framework root
+
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
@@ -59,7 +58,7 @@
 
 
 NS_DJINTERP
-NS_RESTD
+D_NAMESPACE(stl)
 
 NS_INTERNAL
 
@@ -76,17 +75,17 @@ NS_INTERNAL
 
     // default_constructible_test
     //   trait: internal SFINAE test for default construction viability.
-    template<typename _T>
+    template<typename T>
     struct default_constructible_test
     {
     private:
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
-            int (*)[sizeof(new _U)]
+            int (*)[sizeof(new U)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -94,25 +93,25 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_T>(0)) == sizeof(yes_type));
+            (sizeof(test<T>(0)) == sizeof(yes_type));
     };
 
     // copy_constructible_test
     //   trait: internal SFINAE test for copy construction viability.
-    template<typename _T>
+    template<typename T>
     struct copy_constructible_test
     {
     private:
         static
-        _T& make_ref();
+        T& make_ref();
 
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
-            int (*)[sizeof(_U(make_ref()))]
+            int (*)[sizeof(U(make_ref()))]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -120,27 +119,27 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_T>(0)) == sizeof(yes_type));
+            (sizeof(test<T>(0)) == sizeof(yes_type));
     };
 
     // copy_assignable_test
     //   trait: internal SFINAE test for copy assignment viability.
-    template<typename _T>
+    template<typename T>
     struct copy_assignable_test
     {
     private:
         static
-        _T& make_lref();
+        T& make_lref();
         static
-        const _T& make_cref();
+        const T& make_cref();
 
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
             int (*)[sizeof(make_lref() = make_cref(), 1)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -148,7 +147,7 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_T>(0)) == sizeof(yes_type));
+            (sizeof(test<T>(0)) == sizeof(yes_type));
     };
 
     // destructible_test
@@ -156,17 +155,17 @@ NS_INTERNAL
     // note: in C++98 almost all complete types are destructible; this test
     // catches incomplete types and types with inaccessible destructors on
     // compilers that support sizeof-based SFINAE in this context.
-    template<typename _T>
+    template<typename T>
     struct destructible_test
     {
     private:
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
-            int (*)[sizeof(static_cast<_U*>(0)->~_U(), 1)]
+            int (*)[sizeof(static_cast<U*>(0)->~U(), 1)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -174,7 +173,7 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_T>(0)) == sizeof(yes_type));
+            (sizeof(test<T>(0)) == sizeof(yes_type));
     };
 
 NS_END  // internal
@@ -185,43 +184,43 @@ NS_END  // internal
 // =========================================================================
 
 // is_default_constructible
-//   trait: evaluates to true if _T can be default-constructed.
+//   trait: evaluates to true if T can be default-constructed.
 // note: may produce false positives for types with private constructors on
 // some C++98 compilers. See cpp_named11.hpp for a precise implementation.
-template<typename _T>
+template<typename T>
 struct is_default_constructible
 {
     static const bool value =
-        internal::default_constructible_test<_T>::value;
+        internal::default_constructible_test<T>::value;
 };
 
 // is_copy_constructible
-//   trait: evaluates to true if _T can be copy-constructed from a
+//   trait: evaluates to true if T can be copy-constructed from a
 // const lvalue reference.
-template<typename _T>
+template<typename T>
 struct is_copy_constructible
 {
     static const bool value =
-        internal::copy_constructible_test<_T>::value;
+        internal::copy_constructible_test<T>::value;
 };
 
 // is_copy_assignable
-//   trait: evaluates to true if _T can be copy-assigned from a
+//   trait: evaluates to true if T can be copy-assigned from a
 // const lvalue reference.
-template<typename _T>
+template<typename T>
 struct is_copy_assignable
 {
     static const bool value =
-        internal::copy_assignable_test<_T>::value;
+        internal::copy_assignable_test<T>::value;
 };
 
 // is_destructible
-//   trait: evaluates to true if _T has an accessible destructor.
-template<typename _T>
+//   trait: evaluates to true if T has an accessible destructor.
+template<typename T>
 struct is_destructible
 {
     static const bool value =
-        internal::destructible_test<_T>::value;
+        internal::destructible_test<T>::value;
 };
 
 
@@ -233,14 +232,14 @@ NS_INTERNAL
 
     // remove_cv_98
     //   trait: strips top-level const and volatile qualifiers (C++98).
-    template<typename _T> struct remove_cv_98                      { typedef _T type; };
-    template<typename _T> struct remove_cv_98<const _T>            { typedef _T type; };
-    template<typename _T> struct remove_cv_98<volatile _T>         { typedef _T type; };
-    template<typename _T> struct remove_cv_98<const volatile _T>   { typedef _T type; };
+    template<typename T> struct remove_cv_98                      { typedef T type; };
+    template<typename T> struct remove_cv_98<const T>            { typedef T type; };
+    template<typename T> struct remove_cv_98<volatile T>         { typedef T type; };
+    template<typename T> struct remove_cv_98<const volatile T>   { typedef T type; };
 
     // is_scalar_helper
     //   trait: primary template; defaults to non-scalar.
-    template<typename _T>
+    template<typename T>
     struct is_scalar_helper
     {
         static const bool value = false;
@@ -263,25 +262,28 @@ NS_INTERNAL
     template<> struct is_scalar_helper<double>             { static const bool value = true; };
     template<> struct is_scalar_helper<long double>        { static const bool value = true; };
 
-    // long long extension (common in C++98 compilers, standard in C++11)
-#if defined(__LONG_LONG_MAX__) || defined(LLONG_MAX)
+    //   long long, where the build has it (an extension below C++11, absent
+    // in ISO strict C++98), with its diagnostic bracketed (decision 4.6)
+#if D_ENV_HAS_LONG_LONG
+    D_LONG_LONG_DIAG_PUSH
     template<> struct is_scalar_helper<long long>          { static const bool value = true; };
     template<> struct is_scalar_helper<unsigned long long> { static const bool value = true; };
-#endif
+    D_LONG_LONG_DIAG_POP
+#endif  // D_ENV_HAS_LONG_LONG
 
-    // is_scalar_helper<_T*>
+    // is_scalar_helper<T*>
     //   trait: partial specialization for pointer types.
-    template<typename _T>
-    struct is_scalar_helper<_T*>
+    template<typename T>
+    struct is_scalar_helper<T*>
     {
         static const bool value = true;
     };
 
-    // is_scalar_helper<_T _C::*>
+    // is_scalar_helper<T C::*>
     //   trait: partial specialization for pointer-to-member types.
-    template<typename _T,
-             typename _C>
-    struct is_scalar_helper<_T _C::*>
+    template<typename T,
+             typename C>
+    struct is_scalar_helper<T C::*>
     {
         static const bool value = true;
     };
@@ -289,17 +291,17 @@ NS_INTERNAL
 NS_END  // internal
 
 // is_scalar
-//   trait: evaluates to true if _T is a scalar type (arithmetic,
+//   trait: evaluates to true if T is a scalar type (arithmetic,
 // pointer, pointer-to-member, or enumeration).
 // note: C++98 implementation cannot detect enumeration types without
 // compiler intrinsics. Enum types will report false. See cpp_named11.hpp
 // for a complete implementation.
-template<typename _T>
+template<typename T>
 struct is_scalar
 {
     static const bool value =
         internal::is_scalar_helper<
-            typename internal::remove_cv_98<_T>::type>::value;
+            typename internal::remove_cv_98<T>::type>::value;
 };
 
 
@@ -311,20 +313,20 @@ NS_INTERNAL
 
     // equality_comparable_test
     //   trait: internal SFINAE test for operator== viability.
-    template<typename _T>
+    template<typename T>
     struct equality_comparable_test
     {
     private:
         static
-        _T& make_ref();
+        T& make_ref();
 
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
             int (*)[sizeof(make_ref() == make_ref(), 1)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -332,25 +334,25 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_T>(0)) == sizeof(yes_type));
+            (sizeof(test<T>(0)) == sizeof(yes_type));
     };
 
     // less_than_comparable_test
     //   trait: internal SFINAE test for operator< viability.
-    template<typename _T>
+    template<typename T>
     struct less_than_comparable_test
     {
     private:
         static
-        _T& make_ref();
+        T& make_ref();
 
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
             int (*)[sizeof(make_ref() < make_ref(), 1)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -358,31 +360,31 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_T>(0)) == sizeof(yes_type));
+            (sizeof(test<T>(0)) == sizeof(yes_type));
     };
 
 NS_END  // internal
 
 // is_equality_comparable
-//   trait: evaluates to true if _T supports operator==.
+//   trait: evaluates to true if T supports operator==.
 // note: C++98 implementation tests syntactic validity only; does not
 // verify that the result is convertible to bool. See cpp_named11.hpp for
 // a precise implementation.
-template<typename _T>
+template<typename T>
 struct is_equality_comparable
 {
     static const bool value =
-        internal::equality_comparable_test<_T>::value;
+        internal::equality_comparable_test<T>::value;
 };
 
 // is_less_than_comparable
-//   trait: evaluates to true if _T supports operator<.
+//   trait: evaluates to true if T supports operator<.
 // note: same limitations as is_equality_comparable above.
-template<typename _T>
+template<typename T>
 struct is_less_than_comparable
 {
     static const bool value =
-        internal::less_than_comparable_test<_T>::value;
+        internal::less_than_comparable_test<T>::value;
 };
 
 
@@ -395,20 +397,20 @@ NS_INTERNAL
     // container_test
     //   trait: internal SFINAE test for basic Container member
     // viability (begin, end, size).
-    template<typename _C>
+    template<typename C>
     struct container_test
     {
     private:
         static
-        _C& make_ref();
+        C& make_ref();
 
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
             int (*)[sizeof( make_ref().begin(), make_ref().end(), make_ref().size(), 1)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -416,21 +418,21 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_C>(0)) == sizeof(yes_type));
+            (sizeof(test<C>(0)) == sizeof(yes_type));
     };
 
 NS_END  // internal
 
 // is_container
-//   trait: evaluates to true if _C has begin(), end(), and size()
+//   trait: evaluates to true if C has begin(), end(), and size()
 // members (partial Container check).
 // note: C++98 implementation cannot verify nested types (value_type,
 // iterator, etc.). See cpp_named11.hpp for a thorough implementation.
-template<typename _C>
+template<typename C>
 struct is_container
 {
     static const bool value =
-        internal::container_test<_C>::value;
+        internal::container_test<C>::value;
 };
 
 
@@ -443,20 +445,20 @@ NS_INTERNAL
     // legacy_iterator_test
     //   trait: internal SFINAE test for LegacyIterator viability:
     // dereferenceable (*it) and incrementable (++it).
-    template<typename _I>
+    template<typename I>
     struct legacy_iterator_test
     {
     private:
         static
-        _I& make_ref();
+        I& make_ref();
 
-        template<typename _U>
+        template<typename U>
         static
         yes_type test(
             int (*)[sizeof(*make_ref(), ++make_ref(), 1)]
         );
 
-        template<typename _U>
+        template<typename U>
         static
         no_type test(
             ...
@@ -464,26 +466,26 @@ NS_INTERNAL
 
     public:
         static const bool value =
-            (sizeof(test<_I>(0)) == sizeof(yes_type));
+            (sizeof(test<I>(0)) == sizeof(yes_type));
     };
 
 NS_END  // internal
 
 // is_legacy_iterator
-//   trait: evaluates to true if _I supports dereference (*it) and
+//   trait: evaluates to true if I supports dereference (*it) and
 // prefix increment (++it) (partial LegacyIterator check).
 // note: C++98 implementation cannot verify iterator_traits nested
 // types or CopyConstructible/CopyAssignable requirements. See
 // cpp_named11.hpp for a thorough implementation.
-template<typename _I>
+template<typename I>
 struct is_legacy_iterator
 {
     static const bool value =
-        internal::legacy_iterator_test<_I>::value;
+        internal::legacy_iterator_test<I>::value;
 };
 
 
-NS_END  // re_std
+NS_END  // stl
 NS_END  // djinterp
 
 #endif  // !D_ENV_LANG_IS_CPP11_OR_HIGHER

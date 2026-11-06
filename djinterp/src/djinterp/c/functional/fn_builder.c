@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/functional/fn_builder.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/fn_builder.h"  // corresponding header
 // std
@@ -22,8 +22,8 @@
 #include <stddef.h>   // size_t, NULL
 #include <stdlib.h>   // malloc, realloc, free
 #include <string.h>   // memcpy
-// re_std
-#include "../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
+// djinterp
+#include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 struct dj_fn_builder* d_fn_builder_new(void)
@@ -74,15 +74,22 @@ bool d_internal_fn_builder_room(
         return true;
     }
 
-    // doubling would overflow
-    if (_builder->capacity > (SIZE_MAX / 2u / sizeof(fn_transformer)))
+    size_t capacity        = 0u;
+    size_t transform_bytes = 0u;
+    size_t predicate_bytes = 0u;
+
+    //   a doubled capacity, or either array's size, that does not fit; each
+    // array is sized by its own element type, which C does not promise are
+    // the same size
+    if ( (d_ckd_mul(&capacity, _builder->capacity, 2u))                  ||
+         (d_ckd_mul(&transform_bytes, capacity, sizeof(fn_transformer))) ||
+         (d_ckd_mul(&predicate_bytes, capacity, sizeof(fn_predicate))) )
     {
         return false;
     }
 
-    const size_t capacity = _builder->capacity * 2u;
     fn_transformer* const transforms =
-        realloc(_builder->transforms, capacity * sizeof(fn_transformer));
+        realloc(_builder->transforms, transform_bytes);
 
     if (!transforms)
     {
@@ -92,7 +99,7 @@ bool d_internal_fn_builder_room(
     _builder->transforms = transforms;
 
     fn_predicate* const predicates =
-        realloc(_builder->predicates, capacity * sizeof(fn_predicate));
+        realloc(_builder->predicates, predicate_bytes);
 
     if (!predicates)
     {
@@ -226,12 +233,15 @@ bool d_fn_builder_execute(
     if ( (_builder->transform_count > 1u) &&
          (_count > 0u) )
     {
-        if (_element_size > (SIZE_MAX / 2u))
+        size_t scratch_bytes = 0u;
+
+        // two elements of scratch, refused where their size does not fit
+        if (d_ckd_mul(&scratch_bytes, 2u, _element_size))
         {
             return false;
         }
 
-        scratch = malloc(2u * _element_size);
+        scratch = malloc(scratch_bytes);
 
         if (!scratch)
         {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                          array_tests_sa.h
+* djinterp [test]                                               array_tests_sa.h
 *
 * Unit tests for `array.h` module.
 * For the file itself, go to `\inc\container\array\array.h`.
@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/container/array/array_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.30
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_CONTAINER_ARRAY_
@@ -23,7 +23,7 @@
 #include <stdlib.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../../inc/djinterp/c/container/array/array.h"
 #include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 

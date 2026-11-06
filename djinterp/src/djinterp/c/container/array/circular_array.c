@@ -6,10 +6,11 @@
 *
 * path:      /src/djinterp/c/container/array/circular_array.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.03
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.08
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/circular_array.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
@@ -74,8 +75,11 @@ struct dj_circular_array* d_circular_array_new(
         return NULL;
     }
 
-    // check for potential overflow in total allocation size
-    if (_capacity > SIZE_MAX / _element_size)
+    size_t bytes = 0;
+
+    //   a total allocation size that does not fit is refused; calloc
+    // checks it too, but the struct is not allocated for nothing
+    if (d_ckd_mul(&bytes, _capacity, _element_size))
     {
         return NULL;
     }
@@ -1795,7 +1799,8 @@ Parameter(s):
   _circular_array: pointer to circular array
 Return:
   - Pointer to newly allocated array
-  - NULL if empty or allocation fails
+  - NULL if empty, the bytes needed do not fit in a size_t, or allocation
+    fails
 Notes:
   Caller is responsible for freeing the returned array.
 */
@@ -1815,7 +1820,18 @@ void* d_circular_array_to_linear_array(
         return NULL;
     }
 
-    result = malloc(_circular_array->count * _circular_array->element_size);
+    size_t bytes = 0;
+
+    // the array holds this many bytes already; a size that wraps means a
+    // corrupt count
+    if (d_ckd_mul(&bytes,
+                  _circular_array->count,
+                  _circular_array->element_size))
+    {
+        return NULL;
+    }
+
+    result = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!result)
@@ -2024,7 +2040,8 @@ Parameter(s):
   _circular_array: pointer to circular array
 Return:
   - true if linearized successfully
-  - false if allocation fails or parameter invalid
+  - false if the parameter is invalid, the bytes needed do not fit in a
+    size_t, or allocation fails
 Notes:
   This may allocate temporary memory.
 */
@@ -2050,8 +2067,19 @@ bool d_circular_array_linearize(
         return D_SUCCESS;
     }
 
+    size_t bytes = 0;
+
+    // the array holds this many bytes already; a size that wraps means a
+    // corrupt count
+    if (d_ckd_mul(&bytes,
+                  _circular_array->count,
+                  _circular_array->element_size))
+    {
+        return D_FAILURE;
+    }
+
     // allocate temporary buffer
-    temp = malloc(_circular_array->count * _circular_array->element_size);
+    temp = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!temp)

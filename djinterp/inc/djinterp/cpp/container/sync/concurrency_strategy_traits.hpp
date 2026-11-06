@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                         concurrency_strategy_traits.hpp
+/*******************************************************************************
+* djinterp [cpp]                                 concurrency_strategy_traits.hpp
 *
 * Concurrency-strategy classification traits.
 *   Orthogonal companion to threadsafe_container_traits.hpp.  Where the
@@ -59,8 +59,9 @@
 *
 * path:      /inc/djinterp/cpp/container/sync/concurrency_strategy_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.26
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.26
+*                                                            revised: 2026.11.04
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -77,6 +78,13 @@ VII.    combined classification
 
 #ifndef DJINTERP_CONTAINER_SYNC_CONCURRENCY_STRATEGY_TRAITS_HPP
 #define DJINTERP_CONTAINER_SYNC_CONCURRENCY_STRATEGY_TRAITS_HPP 1
+
+//   FLOOR, FOR NOW: below C++17 this file is empty, rather than an error,
+// as its dependencies (container_traits.hpp, threadsafe_container_traits.hpp)
+// and its sibling traits/concurrency_strategy_traits.hpp are (round 2's
+// rule).
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <atomic>       // std::memory_order (atomic probe, section III)
@@ -987,6 +995,9 @@ struct DContainerConcurrencyClass
 
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
 #endif  // DJINTERP_CONTAINER_SYNC_CONCURRENCY_STRATEGY_TRAITS_HPP

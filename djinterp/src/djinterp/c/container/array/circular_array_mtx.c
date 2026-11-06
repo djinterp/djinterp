@@ -1,15 +1,19 @@
 /*******************************************************************************
 * djinterp [c]                                              circular_array_mtx.c
 *
-* TBA
+*   The thread-safe circular array circular_array_mtx.h declares: each
+* function takes the dj_circular_array_mtx's mutex (sync/dmutex.h), calls the
+* matching dj_circular_array function and releases the mutex; lock, trylock
+* and unlock let a caller hold it across several calls.
 *
 *
 * path:      /src/djinterp/c/container/array/circular_array_mtx.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.08
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/circular_array_mtx.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 // =============================================================================
@@ -169,7 +173,8 @@ Parameter(s):
                  arguments containing the element data.
 Return:
   - Pointer to new dj_circular_array_mtx on success
-  - NULL if allocation fails or parameters are invalid
+  - NULL if parameters are invalid, the bytes needed do not fit in a
+    size_t, or allocation fails
 */
 struct dj_circular_array_mtx* d_circular_array_mtx_new_from_args(
     size_t _capacity,
@@ -195,8 +200,16 @@ struct dj_circular_array_mtx* d_circular_array_mtx_new_from_args(
 
     elements_to_copy = (_arg_count < _capacity) ? _arg_count : _capacity;
 
+    size_t bytes = 0;
+
+    // a size that wraps would write past a short allocation
+    if (d_ckd_mul(&bytes, elements_to_copy, _element_size))
+    {
+        return NULL;
+    }
+
     // allocate temporary linear array for collecting variadic arguments
-    temp_arr = malloc(elements_to_copy * _element_size);
+    temp_arr = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!temp_arr)

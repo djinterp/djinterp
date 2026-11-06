@@ -1,15 +1,19 @@
 /*******************************************************************************
 * djinterp [c]                                                       ptr_array.c
 *
-* TBA
+*   The dj_ptr_array functions ptr_array.h declares, for an array of pointers:
+* constructors (arguments, copies, merges, slices), append, insert and
+* prepend, search, fill, reverse, sort, resizing, and a free that can also
+* free each element (d_ptr_array_deep_free).
 *
 *
 * path:      /src/djinterp/c/container/array/ptr_array.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.29
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/ptr_array.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 
 
 // =============================================================================
@@ -820,12 +824,18 @@ bool d_ptr_array_prepend_element(
         return D_FAILURE;
     }
 
-    // calculate new count
-    new_count = (_ptr_array->count + 1);
+    size_t bytes = 0;
+
+    // a count or a size that wraps would shrink the buffer it grows
+    if ( (d_ckd_add(&new_count, _ptr_array->count, 1)) ||
+         (d_ckd_mul(&bytes, new_count, sizeof(void*))) )
+    {
+        return D_FAILURE;
+    }
 
     // reallocate the array with space for one more element
     new_elements = (void**)realloc(_ptr_array->elements,
-                                   new_count * sizeof(void*));
+                                   bytes);
 
     if (!new_elements)
     {
@@ -887,12 +897,18 @@ bool d_ptr_array_prepend_elements(
         return D_FAILURE;
     }
 
-    // calculate new count
-    new_count = (_ptr_array->count + _count);
+    size_t bytes = 0;
+
+    // a count or a size that wraps would shrink the buffer it grows
+    if ( (d_ckd_add(&new_count, _ptr_array->count, _count)) ||
+         (d_ckd_mul(&bytes, new_count, sizeof(void*))) )
+    {
+        return D_FAILURE;
+    }
 
     // reallocate the array
     new_elements = (void**)realloc(_ptr_array->elements,
-                                   new_count * sizeof(void*));
+                                   bytes);
 
     if (!new_elements)
     {
@@ -1007,8 +1023,16 @@ bool d_ptr_array_resize_amount(
         return D_SUCCESS;
     }
 
+    size_t bytes = 0;
+
+    // a valid count may still have a size that wraps
+    if (d_ckd_mul(&bytes, new_count, sizeof(void*)))
+    {
+        return D_FAILURE;
+    }
+
     // reallocate
-    new_elements = realloc(_ptr_array->elements, new_count * sizeof(void*));
+    new_elements = realloc(_ptr_array->elements, bytes);
 
     if ( (!new_elements) &&
          (new_count > 0) )
@@ -1067,8 +1091,16 @@ bool d_ptr_array_resize_factor(
         return D_SUCCESS;
     }
 
+    size_t bytes = 0;
+
+    // a valid count may still have a size that wraps
+    if (d_ckd_mul(&bytes, new_count, sizeof(void*)))
+    {
+        return D_FAILURE;
+    }
+
     // reallocate
-    new_elements = realloc(_ptr_array->elements, new_count * sizeof(void*));
+    new_elements = realloc(_ptr_array->elements, bytes);
 
     if ( (!new_elements) &&
          (new_count > 0) )

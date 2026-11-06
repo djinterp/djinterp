@@ -69,7 +69,7 @@
 * path:      /inc/djinterp/cpp/meta/trait_detect.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_META_TRAIT_DETECT_HPP
@@ -129,6 +129,18 @@ NS_INTERNAL
 
         static const bool value = Value;
     };
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // trait_detect_pack_sink
+    //   trait: the type sink for a pack: `::type` exists iff every type in
+    // Types can be formed, the requires engine's spelling of void_t<Types...>
+    // as one type-requirement. C++11 and up, for the variadic template.
+    template<typename... Types>
+    struct trait_detect_pack_sink
+    {
+        typedef int type;
+    };
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
     // trait_detect_lval / trait_detect_rval
     //   function: an lvalue / a prvalue of any type, for unevaluated operands
@@ -281,7 +293,14 @@ NS_END  // djinterp
 // `Type`).  Does NOT emit the `_v` companion - the caller, or one of the
 // shorthands below, adds it via D_TYPE_TRAIT_VALUE_BOOL.
 // (Was D_TRAIT_IS_DETECTED_AS.)
-#define D_TYPE_TRAIT_TRUE_AS(TRAIT_NAME, DETECTION_EXPR, INHERIT_EXPR)        \
+//   The public name is selected with the engines, at the end of this file:
+// this void_t form below C++20, D_INTERNAL_TYPE_TRAIT_20_TRUE_AS from C++20
+// with concepts.
+// D_INTERNAL_TYPE_TRAIT_11_TRUE_AS
+//   macro (internal): the void_t engine's D_TYPE_TRAIT_TRUE_AS.
+#define D_INTERNAL_TYPE_TRAIT_11_TRUE_AS(TRAIT_NAME,                          \
+                                         DETECTION_EXPR,                      \
+                                         INHERIT_EXPR)                        \
     template<typename Type,                                                 \
              typename = void>                                                \
     struct TRAIT_NAME : std::false_type                                      \
@@ -299,7 +318,12 @@ NS_END  // djinterp
 // (the AND-shape of the void_t idiom).
 // (Was D_TRAIT_IS_DETECTED; documented in containers_howto as the canonical
 // SFINAE-bool-trait macro.)
-#define D_TYPE_TRAIT_TRUE(TRAIT_NAME, ...)                                    \
+//   The public name is selected with the engines, at the end of this file:
+// this void_t form below C++20, D_INTERNAL_TYPE_TRAIT_20_TRUE from C++20 with
+// concepts, both with the same `::value` for the same type (the parity test).
+// D_INTERNAL_TYPE_TRAIT_11_TRUE
+//   macro (internal): the void_t engine's D_TYPE_TRAIT_TRUE.
+#define D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME, ...)                        \
     template<typename Type,                                                 \
              typename = void>                                                \
     struct TRAIT_NAME : std::false_type                                      \
@@ -389,7 +413,7 @@ NS_END  // djinterp
     D_TYPE_TRAIT_TRUE(TRAIT_NAME, __VA_ARGS__)
 
 #define D_INTERNAL_TYPE_TRAIT_11_HAS_TYPE(TRAIT_NAME, TYPE_NAME)               \
-    D_TYPE_TRAIT_TRUE(TRAIT_NAME, typename clean_t<Type>::TYPE_NAME)
+    D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME, typename clean_t<Type>::TYPE_NAME)
 
 // D_TYPE_TRAIT_HAS_STATIC_MEMBER
 //   macro: trait true iff `decltype(Type::MEMBER_NAME)` is well-formed (the
@@ -397,14 +421,15 @@ NS_END  // djinterp
 // with the multi-expression form of D_TYPE_TRAIT_TRUE for that.
 // (Was D_TRAIT_HAS_STATIC_MEMBER.)
 #define D_INTERNAL_TYPE_TRAIT_11_HAS_STATIC_MEMBER(TRAIT_NAME, MEMBER_NAME)    \
-    D_TYPE_TRAIT_TRUE(TRAIT_NAME, decltype(Type::MEMBER_NAME))
+    D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME, decltype(Type::MEMBER_NAME))
 
 // D_TYPE_TRAIT_HAS_METHOD
 //   macro: trait true iff `Type` has `METHOD_NAME` callable with a single
 // `Type::value_type` argument.
 // (Was D_TRAIT_HAS_METHOD.)
 #define D_INTERNAL_TYPE_TRAIT_11_HAS_METHOD(TRAIT_NAME, METHOD_NAME)           \
-    D_TYPE_TRAIT_TRUE(TRAIT_NAME, D_TYPE_TRAIT_EXPR_METHOD(METHOD_NAME))
+    D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME,                                \
+        D_TYPE_TRAIT_EXPR_METHOD(METHOD_NAME))
 
 // D_TYPE_TRAIT_HAS_METHOD_ARGS
 //   macro: trait true iff `Type` has `METHOD_NAME` callable with arguments
@@ -447,13 +472,13 @@ NS_END  // djinterp
 // of itself.
 // (Was D_TRAIT_HAS_BINARY_OP.)
 #define D_INTERNAL_TYPE_TRAIT_11_HAS_BINARY_OP(TRAIT_NAME, OP)                 \
-    D_TYPE_TRAIT_TRUE(TRAIT_NAME, D_TYPE_TRAIT_EXPR_BINARY_OP(OP))
+    D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME, D_TYPE_TRAIT_EXPR_BINARY_OP(OP))
 
 // D_TYPE_TRAIT_HAS_UNARY_OP
 //   macro: trait true iff `Type` supports prefix unary `OP`.
 // (Was D_TRAIT_HAS_UNARY_OP.)
 #define D_INTERNAL_TYPE_TRAIT_11_HAS_UNARY_OP(TRAIT_NAME, OP)                  \
-    D_TYPE_TRAIT_TRUE(TRAIT_NAME, D_TYPE_TRAIT_EXPR_UNARY_OP(OP))
+    D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME, D_TYPE_TRAIT_EXPR_UNARY_OP(OP))
 
 
 // ===========================================================================
@@ -585,6 +610,55 @@ NS_END  // djinterp
         D_INTERNAL_TYPE_TRAIT_20(TRAIT_NAME,                                 \
             OP std::declval<Type&>();)
 
+    // D_INTERNAL_TYPE_TRAIT_20_TRUE
+    //   macro (internal): the requires engine's D_TYPE_TRAIT_TRUE: the same
+    // two-parameter shape, a std::bool_constant of a requires-expression
+    // whose one type-requirement is that every type in `...` can be formed
+    // (void_t's condition, as trait_detect_pack_sink spells it), plus the
+    // `_v` companion. A requirement that cannot be formed for Type makes the
+    // requires-expression false, as a failed substitution makes the void_t
+    // engine's partial specialization not match.
+    #define D_INTERNAL_TYPE_TRAIT_20_TRUE(TRAIT_NAME, ...)                    \
+        template<typename Type,                                             \
+                 typename = void>                                            \
+        struct TRAIT_NAME                                                    \
+            : std::bool_constant<requires {                                  \
+                  typename ::djinterp::internal::trait_detect_pack_sink<     \
+                      __VA_ARGS__>::type;                                    \
+              }>                                                             \
+        {};                                                                  \
+                                                                             \
+        D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
+
+    // D_INTERNAL_TYPE_TRAIT_20_TRUE_AS
+    //   macro (internal): the requires engine's D_TYPE_TRAIT_TRUE_AS: the
+    // primary template (std::false_type) and a partial specialization,
+    // constrained by the requires-expression, whose base is INHERIT_EXPR.
+    // INHERIT_EXPR may be formed only where the detection holds (it often
+    // names the detected type), so it stays a specialization's base, chosen
+    // by the constraint, rather than one arm of a std::conditional.
+    #define D_INTERNAL_TYPE_TRAIT_20_TRUE_AS(TRAIT_NAME,                      \
+                                             DETECTION_EXPR,                  \
+                                             INHERIT_EXPR)                    \
+        template<typename Type,                                             \
+                 typename = void>                                            \
+        struct TRAIT_NAME : std::false_type                                  \
+        {};                                                                  \
+                                                                             \
+        template<typename Type>                                             \
+            requires requires {                                              \
+                typename ::djinterp::internal::trait_detect_type_sink<       \
+                    DETECTION_EXPR>::type;                                   \
+            }                                                                \
+        struct TRAIT_NAME<Type, void> : INHERIT_EXPR                        \
+        {};
+
+    // D_TYPE_TRAIT_TRUE / D_TYPE_TRAIT_TRUE_AS
+    //   macro: the engine and its parameterized core, as documented above,
+    // from the requires engine at C++20.
+    #define D_TYPE_TRAIT_TRUE                  D_INTERNAL_TYPE_TRAIT_20_TRUE
+    #define D_TYPE_TRAIT_TRUE_AS               D_INTERNAL_TYPE_TRAIT_20_TRUE_AS
+
     // D_TYPE_TRAIT_HAS_TYPE / _HAS_STATIC_MEMBER / _HAS_METHOD /
     // _HAS_BINARY_OP / _HAS_UNARY_OP
     //   macro: the named shapes, as documented above, from the requires
@@ -600,6 +674,8 @@ NS_END  // djinterp
         D_INTERNAL_TYPE_TRAIT_20_HAS_UNARY_OP
 #else
     // ... and from the void_t engine at C++11 to C++17
+    #define D_TYPE_TRAIT_TRUE                  D_INTERNAL_TYPE_TRAIT_11_TRUE
+    #define D_TYPE_TRAIT_TRUE_AS               D_INTERNAL_TYPE_TRAIT_11_TRUE_AS
     #define D_TYPE_TRAIT_HAS_TYPE              D_INTERNAL_TYPE_TRAIT_11_HAS_TYPE
     #define D_TYPE_TRAIT_HAS_STATIC_MEMBER                                    \
         D_INTERNAL_TYPE_TRAIT_11_HAS_STATIC_MEMBER

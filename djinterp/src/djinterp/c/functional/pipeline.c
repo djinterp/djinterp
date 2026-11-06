@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/functional/pipeline.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/pipeline.h"  // corresponding header
 // std
@@ -25,6 +25,8 @@
 #include <string.h>   // memcpy, memmove, memset
 // re_std
 #include "../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
+// djinterp
+#include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 /*
@@ -56,13 +58,16 @@ size_t d_internal_pipeline_bytes(
     size_t _element_size
 )
 {
-    if ( (_element_size > 0u) &&
-         (_count > (SIZE_MAX / _element_size)) )
+    size_t bytes = 0u;
+
+    //   SIZE_MAX stands for a size that does not fit; no allocation of
+    // SIZE_MAX bytes can succeed, so the two need not be told apart
+    if (d_ckd_mul(&bytes, _count, _element_size))
     {
         return SIZE_MAX;
     }
 
-    return _count * _element_size;
+    return bytes;
 }
 
 /*

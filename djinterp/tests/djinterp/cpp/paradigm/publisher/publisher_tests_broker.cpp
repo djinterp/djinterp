@@ -1,11 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp]                                      publisher_tests_broker.cpp
+* djinterp [test]                                     publisher_tests_broker.cpp
+*
+*   Tests of publisher.hpp's broker CRTP base (section VI): subscribe, publish
+* and unsubscribe, and the bookkeeping it inherits from the registry,
+* exercised through the concrete bus.
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_broker.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_broker.cpp
 //   The broker CRTP base (section VI): the subscribe / publish / unsubscribe
@@ -18,6 +22,11 @@
 // bucket once empty), whereas subscription::unsubscribe() only flips the shared
 // flag - so a lazily revoked entry is skipped by publish and vanishes from the
 // live counts while its storage lingers until compact() reclaims it.
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -645,3 +654,5 @@ bool tests_broker_not_directly_constructible()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

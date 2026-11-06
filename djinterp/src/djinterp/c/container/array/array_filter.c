@@ -11,8 +11,8 @@
 *
 * path:      /src/djinterp/c/container/array/array_filter.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/array_filter.h"
 
@@ -26,6 +26,8 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/functional/filter.h"  // d_filter_*
 #include "../../../../../inc/djinterp/c/memory/dmemory.h"     // d_memcpy
+#include "../../../../../inc/djinterp/c/dckdint.h"            // d_ckd_add,
+                                                              // d_ckd_mul
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,7 +136,12 @@ struct dj_contiguous_filter_result d_cf_copy_range(
         return res;
     }
 
-    res.data = malloc(_out_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, _out_count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -254,6 +261,8 @@ Parameter(s):
   _n:            step interval (must be > 0).
 Return:
   dj_contiguous_filter_result owning a copy of every _n-th element.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_take_nth(
     const void* _elements,
@@ -287,7 +296,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_take_nth(
     // calculate output count: ceil(_count / _n)
     out_count = (_count + _n - 1) / _n;
 
-    res.data = malloc(out_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, out_count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -541,6 +555,8 @@ Parameter(s):
   _step:         step interval (must be > 0).
 Return:
   dj_contiguous_filter_result owning a copy of the selected elements.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_slice(
     const void* _elements,
@@ -592,7 +608,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_slice(
     range_len = clamped_end - _start;
     out_count = (range_len + _step - 1) / _step;
 
-    res.data = malloc(out_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, out_count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -636,6 +657,8 @@ Parameter(s):
   _context:      opaque context passed to the predicate.
 Return:
   dj_contiguous_filter_result owning a copy of all matching elements.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_where(
     const void*  _elements,
@@ -684,7 +707,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_where(
     }
 
     // pass 2: copy matching elements
-    res.data = malloc(match_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, match_count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -726,6 +754,8 @@ Parameter(s):
   _context:      opaque context passed to the predicate.
 Return:
   dj_contiguous_filter_result owning a copy of all non-matching elements.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_where_not(
     const void*  _elements,
@@ -774,7 +804,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_where_not(
     }
 
     // pass 2: copy
-    res.data = malloc(match_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, match_count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -822,6 +857,8 @@ Parameter(s):
   _index_count:  number of indices.
 Return:
   dj_contiguous_filter_result owning copies of the selected elements.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_at_indices(
     const void*   _elements,
@@ -869,7 +906,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_at_indices(
         return d_cf_result_empty(_element_size);
     }
 
-    res.data = malloc(valid_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, valid_count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -918,6 +960,8 @@ Parameter(s):
   _comparator:   three-way comparator for element equality (0 == equal).
 Return:
   dj_contiguous_filter_result owning a deduplicated copy.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_distinct(
     const void*            _elements,
@@ -950,7 +994,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_distinct(
     }
 
     // worst case: all unique -> allocate for _count elements
-    res.data = malloc(_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, _count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -1009,6 +1058,8 @@ Parameter(s):
   _element_size: size of each element in bytes.
 Return:
   dj_contiguous_filter_result owning a reversed copy.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_reverse(
     const void* _elements,
@@ -1030,7 +1081,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_reverse(
         return d_cf_result_empty(_element_size);
     }
 
-    res.data = malloc(_count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    res.data = (d_ckd_mul(&bytes, _count, _element_size))
+                   ? NULL
+                   : malloc(bytes);
 
     if (!res.data)
     {
@@ -1518,6 +1574,46 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_chain(
 }
 
 
+/**
+ * @brief Sums the chains' counts and their size in bytes, refusing a sum or
+ *        a size that wraps.
+ *
+ * @param[in]  _results       the chains' results.
+ * @param[in]  _count         the number of results.
+ * @param[in]  _element_size  the size of each element, in bytes.
+ * @param[out] _total         receives the elements in all the results.
+ * @param[out] _bytes         receives their size, in bytes.
+ * @return true when the total or its size does not fit in a size_t.
+ *
+ * Each chain's count is at most the source's, so it fits; their sum, over
+ * many chains, may not, and neither may its size.
+ */
+static bool
+d_internal_cf_union_bytes(
+    const struct dj_contiguous_filter_result* _results,
+    size_t                                    _count,
+    size_t                                    _element_size,
+    size_t*                                   _total,
+    size_t*                                   _bytes
+)
+{
+    size_t i;
+
+    *_total = 0;
+    *_bytes = 0;
+
+    // a sum that wraps cannot be allocated below
+    for (i = 0; i < _count; ++i)
+    {
+        if (d_ckd_add(_total, *_total, _results[i].count))
+        {
+            return true;
+        }
+    }
+
+    return d_ckd_mul(_bytes, *_total, _element_size);
+}
+
 /*
 d_contiguous_filter_apply_union
   Applies multiple filter chains and produces their union (elements that
@@ -1531,6 +1627,8 @@ Parameter(s):
   _comparator:   comparator for deduplication.
 Return:
   dj_contiguous_filter_result owning the union of all chain outputs.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_apply_union(
     const void*                   _elements,
@@ -1569,22 +1667,27 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_union(
                                  _element_size);
     }
 
-    total = 0;
-
     for (i = 0; i < _combo->count; ++i)
     {
         chain_results[i] = d_contiguous_filter_apply_chain(_elements,
                                                       _count,
                                                       _element_size,
                                                       _combo->filters[i]);
-        total += chain_results[i].count;
     }
 
+    size_t     bytes = 0;
+    const bool wraps = d_internal_cf_union_bytes(chain_results,
+                                                 _combo->count,
+                                                 _element_size,
+                                                 &total,
+                                                 &bytes);
+
     // merge all results into one buffer
-    merged.data = malloc(total * _element_size);
+    merged.data = (wraps) ? NULL : malloc(bytes);
 
     if ( (!merged.data) &&
-         (total > 0) )
+         ( (total > 0) ||
+           (wraps) ) )
     {
         for (i = 0; i < _combo->count; ++i)
         {
@@ -1647,6 +1750,8 @@ Parameter(s):
   _comparator:   comparator for element equality.
 Return:
   dj_contiguous_filter_result owning the intersection.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
     const void*                          _elements,
@@ -1698,7 +1803,14 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
 
     // intersect: iterate over first chain's results, keep elements
     // present in all other chains
-    result.data = malloc(chain_results[0].count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    result.data = (d_ckd_mul(&bytes,
+                             chain_results[0].count,
+                             _element_size))
+                      ? NULL
+                      : malloc(bytes);
 
     if ( (!result.data) &&
          (chain_results[0].count > 0) )
@@ -1786,6 +1898,8 @@ Parameter(s):
   _comparator:   comparator for element equality.
 Return:
   dj_contiguous_filter_result owning A minus B.
+  On failure, an INVALID error for bad arguments, or a NO_MEMORY error if
+  the bytes needed do not fit in a size_t or allocation fails.
 */
 struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
     const void*                        _elements,
@@ -1834,7 +1948,12 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
         return result_a;
     }
 
-    result.data = malloc(result_a.count * _element_size);
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated: it fails as an allocation does
+    result.data = (d_ckd_mul(&bytes, result_a.count, _element_size))
+                      ? NULL
+                      : malloc(bytes);
 
     if (!result.data)
     {

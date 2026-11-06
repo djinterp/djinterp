@@ -1,16 +1,24 @@
 /*******************************************************************************
-* djinterp [cpp]                                publisher_tests_status_token.cpp
+* djinterp [test]                               publisher_tests_status_token.cpp
+*
+*   Tests of publisher.hpp's status codes (section I) and subscription token
+* (section II).
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_status_token.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_status_token.cpp
 //   Status codes (section I) and the subscription token (section II): the
 // standard publish status constants and the opaque, copyable registration id
 // whose zero value is reserved to mean "no subscription".
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdint>
@@ -158,3 +166,5 @@ bool tests_token_id_type()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

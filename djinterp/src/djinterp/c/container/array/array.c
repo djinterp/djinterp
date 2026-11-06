@@ -1,15 +1,20 @@
 /*******************************************************************************
 * djinterp [c]                                                           array.c
 *
-* TBA
+*   The dj_array functions array.h declares: constructors from arguments,
+* buffers, copies, fills, merges and slices (each with a d_array_s_ form),
+* append, insert and prepend, search, fill, reverse, resizing and the shifts.
+* The element work is array_common.c's; this file adds the dj_array that owns
+* the elements and their count.
 *
 *
 * path:      /src/djinterp/c/container/array/array.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.30
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/array.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 // std
 
@@ -2146,8 +2151,13 @@ void* d_array_slice(
         return NULL;
     }
 
+    // a slice whose size wraps would copy past a short allocation
+    if (d_ckd_mul(&copy_size, slice_length, _element_size))
+    {
+        return NULL;
+    }
+
     // allocate memory for slice
-    copy_size = (slice_length * _element_size);
     result = malloc(copy_size);
 
     // ensure that memory allocation was successful
@@ -2216,8 +2226,13 @@ void* d_array_slice_range(
         return NULL;
     }
 
+    // a slice whose size wraps would copy past a short allocation
+    if (d_ckd_mul(&copy_size, slice_length, _element_size))
+    {
+        return NULL;
+    }
+
     // allocate memory for slice
-    copy_size = (slice_length * _element_size);
     result = malloc(copy_size);
 
     // ensure that memory allocation was successful

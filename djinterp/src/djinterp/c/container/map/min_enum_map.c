@@ -7,11 +7,12 @@
 *
 * path:      /src/djinterp/c/container/map/min_enum_map.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #include "../../../../../inc/djinterp/c/container/map/min_enum_map.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 
 
 // =============================================================================
@@ -140,12 +141,21 @@ bool d_internal_min_enum_map_grow(
         return false;
     }
 
-    new_capacity = (_map->capacity == 0)
-        ? D_MIN_ENUM_MAP_DEFAULT_CAPACITY
-        : (_map->capacity * 2);
+    new_capacity = D_MIN_ENUM_MAP_DEFAULT_CAPACITY;
 
-    new_entries = realloc(_map->entries,
-                          new_capacity * sizeof(struct dj_enum_map_entry));
+    size_t bytes = 0;
+
+    // a doubled capacity or a size that wraps would shrink the entries
+    if ( ( (_map->capacity != 0) &&
+           (d_ckd_mul(&new_capacity, _map->capacity, 2)) ) ||
+         (d_ckd_mul(&bytes,
+                    new_capacity,
+                    sizeof(struct dj_enum_map_entry))) )
+    {
+        return false;
+    }
+
+    new_entries = realloc(_map->entries, bytes);
 
     if (!new_entries)
     {
@@ -209,7 +219,7 @@ struct dj_min_enum_map* d_min_enum_map_new_arr(
     size_t                     _count
 )
 {
-    size_t entries_size;
+    size_t i;
     struct dj_min_enum_map* new_min_enum_map;
 
     // ensure that parameters are valid; if not use default creation function
@@ -219,7 +229,7 @@ struct dj_min_enum_map* d_min_enum_map_new_arr(
         return d_min_enum_map_new();
     }
 
-    new_min_enum_map = malloc(sizeof(struct dj_min_enum_map));
+    new_min_enum_map = d_min_enum_map_new();
 
     // ensure that memory allocation of `struct dj_min_enum_map` was successful
     if (!new_min_enum_map)
@@ -227,24 +237,25 @@ struct dj_min_enum_map* d_min_enum_map_new_arr(
         return NULL;
     }
 
-    // calculate size of entries array
-    entries_size = (_count * sizeof(struct dj_enum_map_entry*));
-    new_min_enum_map->entries = malloc(entries_size);
-
-    // ensure that memory allocation of entries array was successful
-    if ( (!new_min_enum_map->entries) ||
-         (d_memcpy_s(new_min_enum_map->entries,
-                     entries_size,
-                     _enum_map_entries,
-                     _count) == 0) )
+    // seed through put, which keeps the entries sorted by key, grows them
+    // with checked sizes and lets a later duplicate key replace an earlier one
+    for (i = 0; i < _count; ++i)
     {
-        free(new_min_enum_map);
+        // a NULL slot in the source contributes nothing
+        if (!_enum_map_entries[i])
+        {
+            continue;
+        }
 
-        return NULL;
+        if (!d_min_enum_map_put(new_min_enum_map,
+                                _enum_map_entries[i]->key,
+                                _enum_map_entries[i]->value))
+        {
+            d_min_enum_map_free(new_min_enum_map);
+
+            return NULL;
+        }
     }
-
-    new_min_enum_map->count    = 0;
-    new_min_enum_map->capacity = 0;
 
     return new_min_enum_map;
 }
@@ -252,7 +263,8 @@ struct dj_min_enum_map* d_min_enum_map_new_arr(
 /*
 d_min_enum_map_new_copy
   A newly allocated `dj_min_enum_map` holding a copy of the source's entries, or
-  NULL if `_source` was NULL or allocation failed.
+  NULL if `_source` was NULL, the bytes needed do not fit in a size_t, or
+  allocation failed.
 
 Parameter(s):
   _source: the map to copy; must not be NULL.
@@ -273,6 +285,21 @@ struct dj_min_enum_map* d_min_enum_map_new_copy(
         return NULL;
     }
 
+    // an empty source copies to an empty map, with nothing to allocate
+    if (_source->count == 0)
+    {
+        return d_min_enum_map_new();
+    }
+
+    // a size that wraps means a corrupt count: the source's entries could not
+    // exist
+    if (d_ckd_mul(&entries_size,
+                  sizeof(struct dj_enum_map_entry),
+                  _source->count))
+    {
+        return NULL;
+    }
+
     new_min_enum_map = malloc(sizeof(struct dj_min_enum_map));
 
     // ensure that memory allocation of `dj_min_enum_map` was successful
@@ -281,25 +308,27 @@ struct dj_min_enum_map* d_min_enum_map_new_copy(
         return NULL;
     }
 
-    // calculate size of entries array
-    entries_size = (sizeof(struct dj_enum_map_entry) * _source->count);
     new_min_enum_map->entries = malloc(entries_size);
 
     //   ensure that memory allocation for `dj_enum_map_entry` array was
-    // successful.
+    // successful; d_memcpy_s returns 0 when it copies.
     if ( (!new_min_enum_map->entries) ||
          (d_memcpy_s(new_min_enum_map->entries,
                      entries_size,
                      _source->entries,
-                     entries_size) == 0) )
+                     entries_size) != 0) )
     {
+        free(new_min_enum_map->entries);
         free(new_min_enum_map);
 
         return NULL;
     }
 
+    //   the capacity is what was allocated here, the source's count, not the
+    // source's capacity: a put into spare room the copy does not have would
+    // write past its entries
     new_min_enum_map->count    = _source->count;
-    new_min_enum_map->capacity = _source->capacity;
+    new_min_enum_map->capacity = _source->count;
 
     return new_min_enum_map;
 }
@@ -343,7 +372,8 @@ Parameter(s):
   _source:      source map (not modified)
   _overwrite:   conflict policy when keys exist in both maps
 Return:
-  true if successful, false on allocation failure or invalid state.
+  true if successful; false on invalid state, if the bytes needed do not
+  fit in a size_t, or on allocation failure.
 */
 bool d_min_enum_map_merge(
     struct dj_min_enum_map*       _destination,
@@ -382,9 +412,16 @@ bool d_min_enum_map_merge(
         return false;
     }
 
-    max_count = (_destination->count + _source->count);
+    size_t bytes = 0;
 
-    new_entries = malloc(max_count * sizeof(struct dj_enum_map_entry));
+    // a count or a size that wraps would write past a short allocation
+    if ( (d_ckd_add(&max_count, _destination->count, _source->count)) ||
+         (d_ckd_mul(&bytes, max_count, sizeof(struct dj_enum_map_entry))) )
+    {
+        return false;
+    }
+
+    new_entries = malloc(bytes);
 
     if (!new_entries)
     {

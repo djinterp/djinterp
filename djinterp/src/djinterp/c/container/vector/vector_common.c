@@ -1,12 +1,16 @@
 /*******************************************************************************
 * djinterp [c]                                                   vector_common.c
 *
-* TBA
+*   The raw-pointer building blocks vector_common.h declares for the vector
+* types, each working on an elements pointer, a count, a capacity and an
+* element size: initialisers, capacity (reserve, grow, shrink), push and pop
+* at both ends, insert, erase, append and prepend, resize, access and swap.
+* Every size computed from a count is checked with d_ckd_* (c/dckdint.h).
 *
 *
 * path:      /src/djinterp/c/container/vector/vector_common.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.14
 *                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/vector/vector_common.h"
@@ -91,7 +95,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_vector_common_init_from_array(
     void**      _destination,
@@ -125,7 +130,19 @@ bool d_vector_common_init_from_array(
     // allocate with some extra capacity for future growth
     alloc_capacity = d_array_common_calc_capacity(_source_count);
 
-    *(_destination) = malloc(alloc_capacity * _element_size);
+    size_t bytes = 0;
+
+    // a rounded capacity whose size wraps would write past a short
+    // allocation
+    if (d_ckd_mul(&bytes, alloc_capacity, _element_size))
+    {
+        *(_count)    = 0;
+        *(_capacity) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!*(_destination))
@@ -163,7 +180,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_vector_common_init_from_args(
     void**  _elements,
@@ -199,7 +217,19 @@ bool d_vector_common_init_from_args(
     // allocate with some extra capacity for future growth
     alloc_capacity = d_array_common_calc_capacity(_arg_count);
 
-    *(_elements) = malloc(alloc_capacity * _element_size);
+    size_t bytes = 0;
+
+    // a rounded capacity whose size wraps would write past a short
+    // allocation
+    if (d_ckd_mul(&bytes, alloc_capacity, _element_size))
+    {
+        *(_count)    = 0;
+        *(_capacity) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_elements) = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!*(_elements))
@@ -264,7 +294,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if copy initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_vector_common_init_copy(
     void**      _elements,
@@ -301,7 +332,19 @@ bool d_vector_common_init_copy(
                          ? _source_capacity
                          : d_array_common_calc_capacity(_source_count);
 
-    *(_elements) = malloc(alloc_capacity * _element_size);
+    size_t bytes = 0;
+
+    // a rounded capacity whose size wraps would write past a short
+    // allocation
+    if (d_ckd_mul(&bytes, alloc_capacity, _element_size))
+    {
+        *(_count)    = 0;
+        *(_capacity) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_elements) = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!*(_elements))
@@ -334,7 +377,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_vector_common_init_fill(
     void**      _elements,
@@ -375,7 +419,19 @@ bool d_vector_common_init_fill(
     alloc_capacity = d_array_common_calc_capacity(_size);
 
     // ensure that memory allocation was successful
-    *(_elements) = malloc(alloc_capacity * _element_size);
+    size_t bytes = 0;
+
+    // a rounded capacity whose size wraps would write past a short
+    // allocation
+    if (d_ckd_mul(&bytes, alloc_capacity, _element_size))
+    {
+        *(_count)    = 0;
+        *(_capacity) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_elements) = malloc(bytes);
 
     if (!*(_elements))
     {
@@ -482,7 +538,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if shrink was successful (or no change needed), or
-  - false, if reallocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_vector_common_shrink_to_fit(
     void**  _elements,
@@ -521,9 +578,18 @@ bool d_vector_common_shrink_to_fit(
         return D_SUCCESS;
     }
 
-    new_elements = realloc(*(_elements), _count * _element_size);
+    size_t bytes = 0;
 
-    // ensure that memory reallocation was susccessful
+    // fewer elements than the capacity fit; a size that wraps means a
+    // corrupt count
+    if (d_ckd_mul(&bytes, _count, _element_size))
+    {
+        return D_FAILURE;
+    }
+
+    new_elements = realloc(*(_elements), bytes);
+
+    // ensure that memory reallocation was successful
     if (!new_elements)
     {
         return D_FAILURE;
@@ -664,8 +730,10 @@ Parameter(s):
   _element_size: size in bytes of each element
 Return:
   A boolean value corresponding to either:
-  - true, if no shrink needed or shrink was successful, or
-  - false, if reallocation failed or parameters are invalid.
+  - true, if no shrink was needed, the shrink succeeded, or it could not
+    be made (the new size does not fit in a size_t, or reallocation
+    failed), in which case the vector is left as it was, or
+  - false, if parameters are invalid.
 */
 bool d_vector_common_maybe_shrink(
     void**  _elements,
@@ -719,9 +787,18 @@ bool d_vector_common_maybe_shrink(
         return D_SUCCESS;
     }
 
-    new_elements = realloc(*(_elements), new_capacity * _element_size);
+    size_t bytes = 0;
 
-    // ensure that memory reallocation was susccessful
+    // a smaller capacity fits; a size that wraps means a corrupt capacity,
+    // and the vector is left as it is
+    if (d_ckd_mul(&bytes, new_capacity, _element_size))
+    {
+        return D_SUCCESS;
+    }
+
+    new_elements = realloc(*(_elements), bytes);
+
+    // ensure that memory reallocation was successful
     if (!new_elements)
     {
         // shrinking failed, but vector is still valid

@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                publisher_tests_subscription.cpp
+* djinterp [test]                               publisher_tests_subscription.cpp
+*
+*   Tests of publisher.hpp's subscription handles (section III) and their
+* revocation model.
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_subscription.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_subscription.cpp
 //   The subscription handles (section III). The crux here is the revocation
@@ -15,6 +18,11 @@
 // handle never dangles because the flag is shared rather than a back-pointer to
 // the broker. scoped_subscription adds move-only RAII on top;
 // scoped_subscriptions does the same for a whole group.
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <string>
@@ -576,3 +584,5 @@ bool tests_scoped_subscriptions_unsubscribe_all()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

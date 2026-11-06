@@ -14,8 +14,9 @@
 *     relationships, and reverse iteration support.
 *   All detection is purely structural: no tag types are required.
 * Containers declare properties through their public interface and type
-* aliases.  The math::interval type is used to express bounded ranges
-* for size, depth, and multiplicity when available.
+* aliases.  A type with the interval protocol's shape (math::interval, or
+* closed_bounds; interval_protocol.hpp) expresses bounded ranges for size,
+* depth, and multiplicity when available.
 *   All traits operate on the `clean_t` (cv-ref stripped) form of the
 * type and produce `static constexpr bool` values.  C++17 `_v` variable
 * templates are provided for every public trait.
@@ -39,7 +40,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.09
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -113,7 +114,7 @@ TABLE OF CONTENTS
 #include "../../meta/trait_detect.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../../meta/member_types.hpp"
-#include "../../modules/math/interval/interval.hpp"
+#include "./interval_protocol.hpp"  // is_interval_protocol
 #include "../iterator/iterator_traits.hpp"
 #include "./container_storage_traits.hpp"  // is_static_storage_container
 #include "./bounded_container_traits.hpp"
@@ -439,7 +440,8 @@ NS_INTERNAL
     {};
 
     // interval validity checks: verify exposed interval types actually satisfy
-    // is_interval from interval_traits.hpp.
+    // the interval protocol (interval_protocol.hpp), by its shape, so that
+    // container need not include math.
     template<typename Type,
              typename = void>
     struct has_valid_size_interval : std::false_type
@@ -449,7 +451,7 @@ NS_INTERNAL
     struct has_valid_size_interval<Type,
         std::enable_if_t<
             has_size_interval_type_v<Type> &&
-            math::is_interval<
+            is_interval_protocol<
                 typename Type::size_interval>::value>>
         : std::true_type
     {};
@@ -463,7 +465,7 @@ NS_INTERNAL
     struct has_valid_depth_interval<Type,
         std::enable_if_t<
             has_depth_interval_type_v<Type> &&
-            math::is_interval<
+            is_interval_protocol<
                 typename Type::depth_interval>::value>>
         : std::true_type
     {};
@@ -477,7 +479,7 @@ NS_INTERNAL
     struct has_valid_multiplicity_interval<Type,
         std::enable_if_t<
             has_multiplicity_interval_type_v<Type> &&
-            math::is_interval<typename Type::multiplicity_interval>::value>
+            is_interval_protocol<typename Type::multiplicity_interval>::value>
     > : std::true_type
     {};
 
@@ -710,7 +712,7 @@ inline constexpr bool is_not_compile_time_container_v =
 // ===========================================================================
 // Boundedness is determined in order of priority:
 //   1. Interval protocol: if container exposes a size_interval
-//      type satisfying math::is_interval, the interval's
+//      type with the interval protocol's shape, the interval's
 //      lower_bound and upper_bound encode the constraints.
 //   2. Legacy accessors: min_size() / max_size() / capacity().
 //   3. Fixed-size arrays: C-arrays and std::array.
@@ -881,7 +883,7 @@ struct is_interval_bounded
 //
 // Detection priority:
 //   1. Interval protocol: multiplicity_interval type alias
-//      satisfying is_interval encodes [min, max].
+//      with the interval protocol's shape encodes [min, max].
 //   2. Legacy accessors: multiplicity_min() /
 //      multiplicity_max().
 //   3. Structural: key_type without mapped_type implies

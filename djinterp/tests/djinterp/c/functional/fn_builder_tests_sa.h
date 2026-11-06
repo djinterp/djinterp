@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/functional/fn_builder_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.10
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FN_BUILDER_STANDALONE_
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../inc/djinterp/c/functional/functional_common.h"
 #include "../../../../inc/djinterp/c/functional/fn_builder.h"

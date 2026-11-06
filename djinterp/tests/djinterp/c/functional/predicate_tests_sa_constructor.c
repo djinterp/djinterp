@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [functional]                         predicate_tests_sa_constructor.c
+* djinterp [test]                               predicate_tests_sa_constructor.c
+*
+*   Standalone tests of predicate.h's constructors: d_predicate_and_new,
+* _or_new, _xor_new and _not_new, including their refusal of NULL operands.
 *
 *
 * path:      /tests/djinterp/c/functional/predicate_tests_sa_constructor.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.09
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp
 #include "./predicate_tests_sa.h"
@@ -101,22 +104,17 @@ bool d_tests_sa_predicate_and_new(
         free(combo);
     }
 
-    // test 3: creation with NULL predicates (allowed, fails in eval)
+    //   test 3: creation with NULL predicates is refused, as
+    // d_predicate_and_new requires both operands
     combo  = d_predicate_and_new(NULL, NULL, NULL, NULL);
     result = d_assert_standalone(
-        combo != NULL,
+        combo == NULL,
         "and_new_null_predicates",
-        "d_predicate_and_new should succeed even with NULL predicates",
+        "d_predicate_and_new should refuse NULL predicates",
         _counter) && result;
 
     if (combo)
     {
-        result = d_assert_standalone(
-            combo->predicate1 == NULL && combo->predicate2 == NULL,
-            "and_new_null_predicates_stored",
-            "NULL predicates should be stored",
-            _counter) && result;
-
         free(combo);
     }
 

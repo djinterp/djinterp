@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                   array_common_tests_sa.h
+* djinterp [test]                                        array_common_tests_sa.h
 *
 *   Comprehensive unit test suite header for `array_common.h`.
 *   This module provides thorough, rigorous testing of all array_common
@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/c/container/array/array_common_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.25
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_CONTAINER_ARRAY_COMMON_
@@ -42,7 +42,7 @@
 #include <string.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../../inc/djinterp/c/container/array/array_common.h"
 #include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
 

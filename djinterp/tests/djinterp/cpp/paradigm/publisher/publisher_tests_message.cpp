@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                     publisher_tests_message.cpp
+* djinterp [test]                                    publisher_tests_message.cpp
+*
+*   Tests of publisher.hpp's message envelope (section IV): pubsub_message's
+* constructors and type aliases.
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_message.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_message.cpp
 //   The message envelope (section IV): pubsub_message pairs a topic with its
@@ -14,6 +17,11 @@
 // type aliases. The copy and move constructors are selected deliberately (const
 // lvalues bind only the copy form; std::move'd lvalues select the move form),
 // so each is genuinely exercised rather than left to overload resolution.
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <string>
@@ -122,3 +130,5 @@ bool tests_message_typedefs()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

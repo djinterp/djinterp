@@ -19,8 +19,8 @@
 *
 *   LANGUAGE FLOOR: the module uses std::void_t and [[nodiscard]]
 * unconditionally, so C++17 is the floor.  The suite targets C++17 and up; the
-* only dialect-conditional surface is the C++20 broker_type / handler_for
-* concepts, guarded by D_ENV_CPP_FEATURE_LANG_CONCEPTS.
+* only dialect-conditional surface is the C++20 broker_type /
+* publisher_handler_for concepts, guarded by D_ENV_CPP_FEATURE_LANG_CONCEPTS.
 *
 *   REVOCATION MODEL (the crux of most tests below): a subscription owns a
 * shared "alive" flag that the matching registry entry also holds.
@@ -41,11 +41,16 @@
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_PUBLISHER_TESTS_
 #define DJINTERP_TEST_PUBLISHER_TESTS_ 1
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this header is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -414,7 +419,7 @@ inline
                 { "is_subscription",   "the handle protocol (active+unsub).",  &tests_trait_is_subscription  },
                 { "is_subscription_v", "the _v alias mirrors ::value.",        &tests_trait_is_subscription_v },
                 { "broker_type",       "the C++20 broker concept (C++20+).",   &tests_concept_broker_type    },
-                { "handler_for",       "the C++20 handler concept (C++20+).",  &tests_concept_handler_for    }
+                { "publisher_handler_for", "the C++20 handler concept (C++20+).", &tests_concept_handler_for    }
             }
         },
         dt::block_spec
@@ -438,6 +443,8 @@ inline
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // DJINTERP_TEST_PUBLISHER_TESTS_

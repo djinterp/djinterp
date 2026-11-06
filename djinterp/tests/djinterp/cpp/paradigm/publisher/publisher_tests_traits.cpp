@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                      publisher_tests_traits.cpp
+* djinterp [test]                                     publisher_tests_traits.cpp
+*
+*   Tests of publisher.hpp's conformance traits (section VIII) and its C++20
+* concepts (section IX).
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/publisher/publisher_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // djinterp [test] : publisher_tests_traits.cpp
 //   The conformance traits (section VIII) and the C++20 concepts (section IX).
@@ -18,6 +21,11 @@
 // expose active() + unsubscribe(), so both satisfy it, but scoped_subscriptions
 // - which offers only unsubscribe_all() and no active() - does NOT, even though
 // it is very much part of the handle family.
+
+// FLOOR, FOR NOW: below C++11, publisher's floor, this unit is empty, as
+// publisher.hpp is (README rule 5).
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <string>
@@ -107,10 +115,14 @@ bool tests_trait_is_broker_v()
 {
     bool ok = true;
 
+    // the alias exists where publisher.hpp defines it: with variable
+    // templates, C++14 and up
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     ok = ok && (is_broker_v<string_bus> == is_broker<string_bus>::value);
     ok = ok && (is_broker_v<int> == is_broker<int>::value);
     ok = ok && ( is_broker_v<string_bus>);
     ok = ok && (!is_broker_v<int>);
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     return ok;
 }
@@ -153,12 +165,15 @@ bool tests_trait_is_subscription_v()
 {
     bool ok = true;
 
+    // as is_broker_v: C++14 and up
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     ok = ok && (is_subscription_v<subscription> ==
                 is_subscription<subscription>::value);
     ok = ok && (is_subscription_v<scoped_subscriptions> ==
                 is_subscription<scoped_subscriptions>::value);
     ok = ok && ( is_subscription_v<subscription>);
     ok = ok && (!is_subscription_v<int>);
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     return ok;
 }
@@ -171,7 +186,8 @@ tests_concept_broker_type
 */
 bool tests_concept_broker_type()
 {
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+#if ( defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                             \
+      (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )
     static_assert( broker_type<string_bus>, "bus conforms");
     static_assert(!broker_type<int>,        "int does not");
 
@@ -183,7 +199,7 @@ bool tests_concept_broker_type()
 
 /*
 tests_concept_handler_for
-  Verifies the C++20 handler_for concept.
+  Verifies the C++20 publisher_handler_for concept.
   Tests the following:
   - satisfied by a callable invocable as void(topic, payload) - both the shared
     recorder functor and a lambda
@@ -191,16 +207,20 @@ tests_concept_handler_for
 */
 bool tests_concept_handler_for()
 {
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+#if ( defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                             \
+      (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )
     auto lam = [](const std::string&, const int&) {};
 
-    static_assert( handler_for<recorder, std::string, int>,          "functor");
-    static_assert( handler_for<decltype(lam), std::string, int>,     "lambda");
-    static_assert(!handler_for<int, std::string, int>,               "int is not");
+    static_assert( publisher_handler_for<recorder, std::string, int>,
+                  "functor");
+    static_assert( publisher_handler_for<decltype(lam), std::string, int>,
+                  "lambda");
+    static_assert(!publisher_handler_for<int, std::string, int>,
+                  "int is not");
 
-    return ( handler_for<recorder, std::string, int> &&
-             handler_for<decltype(lam), std::string, int> &&
-            !handler_for<int, std::string, int> );
+    return ( publisher_handler_for<recorder, std::string, int> &&
+             publisher_handler_for<decltype(lam), std::string, int> &&
+            !publisher_handler_for<int, std::string, int> );
 #else
     return true;
 #endif
@@ -209,3 +229,5 @@ bool tests_concept_handler_for()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

@@ -1,15 +1,21 @@
 /*******************************************************************************
 * djinterp [c]                                                     text_buffer.c
 *
-* TBA
+*   The dj_text_buffer functions text_buffer.h declares: a growable char
+* buffer, always NUL-terminated, in RESIZE mode (reallocated) or APPEND mode
+* (overflow chunks, consolidated on demand), with constructors, capacity,
+* append, prepend, insert, set, replace, remove and consume, access, search,
+* comparison, conversion and destruction.
 *
 *
 * path:      /src/djinterp/c/container/buffer/text_buffer.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.11.13
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/buffer/text_buffer.h"
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_sub,
+                                                    // d_ckd_mul
 
 
 // ----------------------------------------------------------------------------
@@ -440,7 +446,12 @@ bool d_text_buffer_ensure_capacity(
 
     while (new_capacity < _required_capacity)
     {
-        new_capacity *= 2;
+        //   a doubling that wraps would loop for ever at zero; past the
+        // largest doubling, grow to exactly what is required
+        if (d_ckd_mul(&new_capacity, new_capacity, 2))
+        {
+            new_capacity = _required_capacity;
+        }
     }
 
     new_data = realloc(_buffer->data, new_capacity);
@@ -486,7 +497,12 @@ bool d_text_buffer_resize_to_fit(
         return D_SUCCESS;
     }
 
-    new_capacity = _buffer->count + 1;
+    // the count is below the capacity; a sum that wraps means a corrupt count
+    if (d_ckd_add(&new_capacity, _buffer->count, 1))
+    {
+        return D_FAILURE;
+    }
+
     if (new_capacity == _buffer->capacity)
     {
         return D_SUCCESS;
@@ -1538,10 +1554,22 @@ bool d_text_buffer_replace_string(
         return D_SUCCESS;
     }
 
-    new_size = _buffer->count +
-               (occurrences * new_len) - (occurrences * old_len);
+    size_t added   = 0;
+    size_t removed = 0;
+    size_t bytes   = 0;
 
-    temp = malloc(new_size + 1);
+    //   the removed text is part of the buffer, so it fits and is at most the
+    // count; the added text, the new size and its terminator may not fit
+    if ( (d_ckd_mul(&added, occurrences, new_len))            ||
+         (d_ckd_mul(&removed, occurrences, old_len))          ||
+         (d_ckd_sub(&new_size, _buffer->count, removed))      ||
+         (d_ckd_add(&new_size, new_size, added))              ||
+         (d_ckd_add(&bytes, new_size, 1)) )
+    {
+        return D_FAILURE;
+    }
+
+    temp = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!temp)
@@ -1953,7 +1981,16 @@ char* d_text_buffer_get_range_string(
     }
 
     range_length = end_pos - start_pos;
-    result = malloc(range_length + 1);
+
+    size_t bytes = 0;
+
+    // the range is within the count; a sum that wraps means a corrupt count
+    if (d_ckd_add(&bytes, range_length, 1))
+    {
+        return NULL;
+    }
+
+    result = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!result)
@@ -3382,7 +3419,15 @@ char* d_text_buffer_to_cstring(
         return NULL;
     }
 
-    result = malloc(_buffer->count + 1);
+    size_t bytes = 0;
+
+    // the count is below the capacity; a sum that wraps means a corrupt count
+    if (d_ckd_add(&bytes, _buffer->count, 1))
+    {
+        return NULL;
+    }
+
+    result = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!result)
@@ -3460,11 +3505,16 @@ size_t d_text_buffer_copy_to_buffer_n(
 
     copy_count = _source->count;
 
+    // the cap on characters
     if (copy_count > _max_chars)
     {
         copy_count = _max_chars;
     }
-    else if (copy_count >= _destination_size)
+
+    //   and, separately, the room in the destination, less its terminator:
+    // as an else to the cap above, a capped count larger than the
+    // destination was written past it
+    if (copy_count >= _destination_size)
     {
         copy_count = _destination_size - 1;
     }

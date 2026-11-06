@@ -16,7 +16,7 @@
 * link(s):   TBA
 * links(s):  TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CONTIGUOUS_FILTER_SA_
@@ -28,7 +28,7 @@
 #include <stdlib.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"
-#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../../../inc/djinterp/c/string_fn.h"
 #include "../../../../../inc/djinterp/c/container/array/array_filter.h"
 #include "../../../../../inc/djinterp/c/modules/test/test_counter.h"

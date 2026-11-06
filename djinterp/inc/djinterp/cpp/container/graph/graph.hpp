@@ -83,7 +83,7 @@
 * path:      /inc/djinterp/cpp/container/graph/graph.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_GRAPH_GRAPH_HPP
@@ -99,6 +99,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
+#include <limits>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -106,7 +107,7 @@
 #include "../../djinterp.hpp"
 #include "./math_common.hpp"                  // math::invalid_id,
                                               // math::kUnknownDepth
-#include "../../modules/math/interval/interval.hpp"
+#include "../traits/interval_protocol.hpp"     // closed_bounds
 #include "./graph_common.hpp"
 #include "../../sync/threadsafe.hpp"
 // re_std
@@ -360,11 +361,11 @@ NS_CONTAINER
 
         // bounds protocol (axis 4)
         using size_interval =
-            djinterp::math::interval<size_type, 0, std::numeric_limits<size_type>::max()>;
+            djinterp::closed_bounds<size_type, 0, std::numeric_limits<size_type>::max()>;
         using depth_interval =
-            djinterp::math::interval<depth_type, 0, std::numeric_limits<depth_type>::max()>;
+            djinterp::closed_bounds<depth_type, 0, std::numeric_limits<depth_type>::max()>;
         using multiplicity_interval =
-            djinterp::math::interval<size_type,
+            djinterp::closed_bounds<size_type,
                 ( (Multiplicity == edge_multiplicity::simple) ? 0 : 0 ),
                 ( (Multiplicity == edge_multiplicity::simple) ? 1 :
                   std::numeric_limits<size_type>::max() )>;

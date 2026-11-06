@@ -1,18 +1,54 @@
 /*******************************************************************************
 * djinterp [c]                                                          filter.c
 *
-* TBA
+*   The filtering framework filter.h declares: filter operations (take, skip,
+* range, slice, where, at indices, distinct, reverse), chains that apply them
+* in order, and the union, intersection and difference of their results, over
+* arrays of any element size. Predicates and their combinators come from
+* predicate.h.
 *
 *
 * path:      /src/djinterp/c/functional/filter.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.03
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.06
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/filter.h"
 
 // djinterp
+#include "../../../../inc/djinterp/c/dckdint.h"    // d_ckd_mul
 #include "../../../../inc/djinterp/c/string_fn.h"  // d_strtok_r
+
+
+/**
+ * @brief Allocates room for a run of elements, refusing a size that wraps.
+ *
+ * @param[in] _count         the number of elements.
+ * @param[in] _element_size  the size of each, in bytes.
+ * @return the allocation, or NULL when _count elements of _element_size
+ *         bytes do not fit in a size_t or the allocation fails.
+ *
+ * Every run this file allocates is a count times a size; a size that wraps
+ * would allocate less than the copy that follows writes, so it is refused
+ * here, once, and reported as the allocation failure each caller already
+ * handles.
+ */
+static void*
+d_internal_filter_alloc_n(
+    size_t _count,
+    size_t _element_size
+)
+{
+    size_t bytes = 0;
+
+    // a size that wraps cannot be allocated
+    if (d_ckd_mul(&bytes, _count, _element_size))
+    {
+        return NULL;
+    }
+
+    return malloc(bytes);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -506,7 +542,12 @@ Parameter(s):
   _indices: the array of indices to select.
   _count:   the number of indices.
 Return:
-  A dj_filter_operation configured for multi-index selection.
+  A newly allocated dj_filter_operation configured for multi-index
+  selection, or NULL if the bytes needed do not fit in a size_t or
+  allocation fails. The operation owns its copy of the indices: the
+  caller releases them with d_filter_operation_free and then frees the
+  operation itself, unless it was added to a chain, which then owns
+  them (see d_filter_chain_add).
 */
 struct dj_filter_operation* d_filter_at_indices(
     const size_t* _indices,
@@ -524,20 +565,31 @@ struct dj_filter_operation* d_filter_at_indices(
 
     memset(op, 0, sizeof(*op));
     op->type                = D_FILTER_OP_INDICES;
-    op->params.indices       = NULL;
+    op->params.indices      = NULL;
     op->params.indices_count = _count;
 
     if ( (_indices)  &&
          (_count > 0) )
     {
-        op->params.indices = malloc(_count * sizeof(size_t));
+        size_t bytes = 0;
 
-        if (op->params.indices)
+        //   a size that wraps cannot be allocated; an operation that kept
+        // its count without its indices would be read past NULL, so either
+        // failure frees it
+        op->params.indices = (d_ckd_mul(&bytes, _count, sizeof(size_t)))
+                                 ? NULL
+                                 : malloc(bytes);
+
+        if (!op->params.indices)
         {
-            memcpy(op->params.indices,
-                   _indices,
-                   _count * sizeof(size_t));
+            free(op);
+
+            return NULL;
         }
+
+        memcpy(op->params.indices,
+               _indices,
+               bytes);
     }
 
     return op;
@@ -675,8 +727,8 @@ d_filter_chain_new_with_capacity
 Parameter(s):
   _capacity: the initial number of operations to allocate for.
 Return:
-  A pointer to a newly allocated dj_filter_chain, or NULL if allocation
-fails.
+  A pointer to a newly allocated dj_filter_chain, or NULL if the bytes
+  needed do not fit in a size_t or allocation fails.
 */
 struct dj_filter_chain* d_filter_chain_new_with_capacity(
     size_t _capacity
@@ -698,8 +750,14 @@ struct dj_filter_chain* d_filter_chain_new_with_capacity(
 
     if (_capacity > 0)
     {
-        chain->operations = malloc(_capacity *
-                                   sizeof(struct dj_filter_operation));
+        size_t bytes = 0;
+
+        // a size that wraps cannot be allocated: it fails as an allocation does
+        chain->operations = (d_ckd_mul(&bytes,
+                                       _capacity,
+                                       sizeof(struct dj_filter_operation)))
+                                ? NULL
+                                : malloc(bytes);
 
         if (!chain->operations)
         {
@@ -764,7 +822,13 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if the operation was added successfully, or
-  - false, if either parameter is NULL or allocation fails.
+  - false, if either parameter is NULL, the bytes needed do not fit in a
+    size_t, or allocation fails.
+Notes:
+  The chain copies the operation as it is, and so takes over what the
+  operation owns (its name and indices): after a successful add, the
+  caller frees only the operation itself, with free, and not its
+  contents; d_filter_chain_free releases them.
 */
 bool d_filter_chain_add(
     struct dj_filter_chain*           _chain,
@@ -783,13 +847,23 @@ bool d_filter_chain_add(
     // grow capacity if needed
     if (_chain->count >= _chain->capacity)
     {
-        new_capacity = (_chain->capacity == 0)
-                       ? 4
-                       : (_chain->capacity * 2);
+        new_capacity = 4;
+
+        size_t bytes = 0;
+
+        // a doubled capacity or a size that wraps would shrink the chain
+        if ( ( (_chain->capacity != 0) &&
+               (d_ckd_mul(&new_capacity, _chain->capacity, 2)) ) ||
+             (d_ckd_mul(&bytes,
+                        new_capacity,
+                        sizeof(struct dj_filter_operation))) )
+        {
+            return false;
+        }
+
         new_ops = (struct dj_filter_operation*)realloc(
                       _chain->operations,
-                      new_capacity
-                      * sizeof(struct dj_filter_operation));
+                      bytes);
 
         if (!new_ops)
         {
@@ -1033,7 +1107,12 @@ Parameter(s):
   _index: the position to insert at.
   _op:    the operation to insert.
 Return:
-  A boolean value; true if the operation was inserted successfully.
+  A boolean value; true if the operation was inserted successfully, and
+  false if a parameter is invalid, the bytes needed do not fit in a size_t,
+  or allocation fails.
+Notes:
+  As with d_filter_chain_add, the chain takes over what the operation
+  owns: after a successful insert, the caller frees only the operation.
 */
 bool d_filter_chain_insert(
     struct dj_filter_chain*           _chain,
@@ -1054,13 +1133,23 @@ bool d_filter_chain_insert(
     // grow capacity if needed
     if (_chain->count >= _chain->capacity)
     {
-        new_capacity = (_chain->capacity == 0)
-                       ? 4
-                       : (_chain->capacity * 2);
+        new_capacity = 4;
+
+        size_t bytes = 0;
+
+        // a doubled capacity or a size that wraps would shrink the chain
+        if ( ( (_chain->capacity != 0) &&
+               (d_ckd_mul(&new_capacity, _chain->capacity, 2)) ) ||
+             (d_ckd_mul(&bytes,
+                        new_capacity,
+                        sizeof(struct dj_filter_operation))) )
+        {
+            return false;
+        }
+
         new_ops = (struct dj_filter_operation*)realloc(
                       _chain->operations,
-                      new_capacity
-                      * sizeof(struct dj_filter_operation));
+                      bytes);
 
         if (!new_ops)
         {
@@ -1286,7 +1375,7 @@ void* d_filter_apply_operation_internal(
         n = (_op->params.count < _count)
             ? _op->params.count
             : _count;
-        output = malloc(n * _element_size);
+        output = d_internal_filter_alloc_n(n, _element_size);
 
         if (output)
         {
@@ -1301,7 +1390,7 @@ void* d_filter_apply_operation_internal(
         n = (_op->params.count < _count)
             ? _op->params.count
             : _count;
-        output = malloc(n * _element_size);
+        output = d_internal_filter_alloc_n(n, _element_size);
 
         if (output)
         {
@@ -1330,7 +1419,7 @@ void* d_filter_apply_operation_internal(
         }
 
         actual_count = _count - n;
-        output       = malloc(actual_count * _element_size);
+        output       = d_internal_filter_alloc_n(actual_count, _element_size);
 
         if (output)
         {
@@ -1357,7 +1446,7 @@ void* d_filter_apply_operation_internal(
         }
 
         actual_count = _count - n;
-        output       = malloc(actual_count * _element_size);
+        output       = d_internal_filter_alloc_n(actual_count, _element_size);
 
         if (output)
         {
@@ -1383,7 +1472,7 @@ void* d_filter_apply_operation_internal(
             actual_count++;
         }
 
-        output = malloc(actual_count * _element_size);
+        output = d_internal_filter_alloc_n(actual_count, _element_size);
 
         if (!output)
         {
@@ -1431,7 +1520,7 @@ void* d_filter_apply_operation_internal(
         }
 
         n      = end - start;
-        output = malloc(n * _element_size);
+        output = d_internal_filter_alloc_n(n, _element_size);
 
         if (output)
         {
@@ -1451,7 +1540,7 @@ void* d_filter_apply_operation_internal(
             return NULL;
         }
 
-        output = malloc(_count * _element_size);
+        output = d_internal_filter_alloc_n(_count, _element_size);
 
         if (!output)
         {
@@ -1525,8 +1614,8 @@ void* d_filter_apply_operation_internal(
             return output;
         }
 
-        output = malloc(
-            _op->params.indices_count * _element_size);
+        output = d_internal_filter_alloc_n(_op->params.indices_count,
+                                           _element_size);
 
         if (!output)
         {
@@ -1555,7 +1644,7 @@ void* d_filter_apply_operation_internal(
         return output;
 
     case D_FILTER_OP_REVERSE:
-        output = malloc(_count * _element_size);
+        output = d_internal_filter_alloc_n(_count, _element_size);
 
         if (!output)
         {
@@ -1602,7 +1691,7 @@ void* d_filter_apply_operation_internal(
             actual_count++;
         }
 
-        output = malloc(actual_count * _element_size);
+        output = d_internal_filter_alloc_n(actual_count, _element_size);
 
         if (!output)
         {
@@ -1630,7 +1719,7 @@ void* d_filter_apply_operation_internal(
             return NULL;
         }
 
-        output = malloc(_count * _element_size);
+        output = d_internal_filter_alloc_n(_count, _element_size);
 
         if (!output)
         {
@@ -1678,7 +1767,7 @@ void* d_filter_apply_operation_internal(
 
     case D_FILTER_OP_NONE:
         // no-op: copy input unchanged
-        output = malloc(_count * _element_size);
+        output = d_internal_filter_alloc_n(_count, _element_size);
 
         if (output)
         {
@@ -1803,7 +1892,7 @@ struct dj_filter_result* d_filter_apply_chain(
     // empty chain returns a copy of the input
     if (_chain->count == 0)
     {
-        result->elements = malloc(_count * _element_size);
+        result->elements = d_internal_filter_alloc_n(_count, _element_size);
 
         if (!result->elements)
         {
@@ -1820,7 +1909,7 @@ struct dj_filter_result* d_filter_apply_chain(
     }
 
     // copy input for first operation
-    current_data = malloc(_count * _element_size);
+    current_data = d_internal_filter_alloc_n(_count, _element_size);
 
     if (!current_data)
     {
@@ -2112,8 +2201,9 @@ struct dj_filter_union* d_filter_union_new(
 
     if (_capacity > 0)
     {
-        u->filters = malloc(_capacity *
-                            sizeof(struct dj_filter_chain*));
+        u->filters = d_internal_filter_alloc_n(
+                         _capacity,
+                         sizeof(struct dj_filter_chain*));
 
         if (!u->filters)
         {
@@ -2156,7 +2246,9 @@ struct dj_filter_intersection* d_filter_intersection_new(
 
     if (_capacity > 0)
     {
-        inter->filters = malloc(_capacity * sizeof(struct dj_filter_chain*));
+        inter->filters = d_internal_filter_alloc_n(
+                             _capacity,
+                             sizeof(struct dj_filter_chain*));
 
         if (!inter->filters)
         {
@@ -2355,7 +2447,9 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A dj_filter_result containing the union of all filter results.
+  A dj_filter_result containing the union of all filter results; its
+  status is D_FILTER_RESULT_ERROR if any sub-filter failed. NULL only if
+  the result itself cannot be allocated.
 */
 struct dj_filter_result* d_filter_apply_union(
     const struct dj_filter_union* _union,
@@ -2411,14 +2505,18 @@ struct dj_filter_result* d_filter_apply_union(
                          _union->filters[i],
                          _input, _count, _element_size);
 
+        // a sub-filter that failed leaves the union unknown, so the
+        // failure is the result, as in d_filter_apply_intersection
         if ( (!sub_result) ||
              (sub_result->status != D_FILTER_RESULT_SUCCESS &&
               sub_result->status != D_FILTER_RESULT_EMPTY) )
         {
             d_filter_result_free(sub_result);
             free(sub_result);
+            free(included);
+            result->status = D_FILTER_RESULT_ERROR;
 
-            continue;
+            return result;
         }
 
         // match result elements back to input by byte comparison
@@ -2465,7 +2563,7 @@ struct dj_filter_result* d_filter_apply_union(
         return result;
     }
 
-    result->elements = malloc(out_count * _element_size);
+    result->elements = d_internal_filter_alloc_n(out_count, _element_size);
 
     if (!result->elements)
     {
@@ -2509,7 +2607,8 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A dj_filter_result containing the intersection of all filter results.
+  A dj_filter_result containing the intersection of all filter results;
+  its status is D_FILTER_RESULT_ERROR if any sub-filter failed.
 */
 struct dj_filter_result* d_filter_apply_intersection(
     const struct dj_filter_intersection* _inter,
@@ -2543,7 +2642,7 @@ struct dj_filter_result* d_filter_apply_intersection(
     }
 
     // start with a copy of the input
-    current_data = malloc(_count * _element_size);
+    current_data = d_internal_filter_alloc_n(_count, _element_size);
 
     if (!current_data)
     {
@@ -2613,7 +2712,9 @@ Parameter(s):
   _count:        the number of elements.
   _element_size: the size in bytes of each element.
 Return:
-  A dj_filter_result containing elements in include but not in exclude.
+  A dj_filter_result containing elements in include but not in exclude;
+  its status is D_FILTER_RESULT_ERROR if either chain failed. NULL only if
+  the result itself cannot be allocated.
 */
 struct dj_filter_result* d_filter_apply_difference(
     const struct dj_filter_difference* _diff,
@@ -2689,24 +2790,20 @@ struct dj_filter_result* d_filter_apply_difference(
          ((exclude_result->status != D_FILTER_RESULT_SUCCESS) &&
           (exclude_result->status != D_FILTER_RESULT_EMPTY)) )
     {
-        // exclude failed — return include result as-is
+        // A minus a set that could not be computed is not A: the failure
+        // is the result, as when the include chain fails
         d_filter_result_free(exclude_result);
         free(exclude_result);
-
-        // transfer include_result contents to result
-        result->elements = include_result->elements;
-        result->count    = include_result->count;
-        result->status   = include_result->status;
-        include_result->elements = NULL;
         d_filter_result_free(include_result);
         free(include_result);
+        result->status = D_FILTER_RESULT_ERROR;
 
         return result;
     }
 
     // subtract: keep include elements not in exclude
-    result->elements = malloc(
-        include_result->count * _element_size);
+    result->elements = d_internal_filter_alloc_n(include_result->count,
+                                                 _element_size);
 
     if (!result->elements)
     {
@@ -2948,7 +3045,7 @@ size_t* d_filter_get_indices(
         return NULL;
     }
 
-    indices = malloc(result->count * sizeof(size_t));
+    indices = d_internal_filter_alloc_n(result->count, sizeof(size_t));
     used    = calloc(_count, sizeof(bool));
 
     if ( (!indices) ||
@@ -3294,7 +3391,12 @@ char* d_filter_chain_to_string(
     }
 
     // allocate a generous buffer
-    buf_size = _chain->count * 64;
+    // a size that wraps cannot be allocated
+    if (d_ckd_mul(&buf_size, _chain->count, 64))
+    {
+        return NULL;
+    }
+
     buffer   = malloc(buf_size);
 
     if (!buffer)

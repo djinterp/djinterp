@@ -1,16 +1,21 @@
 /*******************************************************************************
 * djinterp [c]                                                    array_common.c
 *
-* TBA
+*   The raw-pointer building blocks that array.c, ptr_array.c and their kin
+* share: initialisers (sized, from an array or arguments, copies, ranges,
+* slices and fills), append, insert and prepend, the shifts, search, sort,
+* reverse, resizing, and freeing the elements. Each takes the elements, their
+* count and the element size, and holds no state of its own; every size
+* computed from a count is checked with d_ckd_* (c/dckdint.h).
 *
 *
 * path:      /src/djinterp/c/container/array/array_common.c
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.04
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.13
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/array_common.h"
-#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
 
 
 /*
@@ -67,7 +72,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or _source is NULL.
+  - false, if _source is NULL, the bytes needed do not fit in a size_t, or
+    memory allocation failed.
 */
 bool d_array_common_init_from_array(
     void**      _destination,
@@ -86,12 +92,23 @@ bool d_array_common_init_from_array(
         return D_SUCCESS;
     }
 
-    *(_destination) = malloc(_source_count * _element_size);
+    size_t bytes = 0;
+
+    // a count whose size wraps would copy past a short allocation
+    if (d_ckd_mul(&bytes, _source_count, _element_size))
+    {
+        *(_destination) = NULL;
+        *(_count) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
 
     if ( (!*(_destination)) ||
          (!d_memcpy(*(_destination),
                     _source,
-                    (_source_count * _element_size))) )
+                    bytes)) )
     {
         return D_FAILURE;
     }
@@ -114,7 +131,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed.
+  - false, if the bytes needed do not fit in a size_t, or memory allocation
+    failed.
 */
 bool d_array_common_init_from_args(
     void**  _destination,
@@ -134,7 +152,18 @@ bool d_array_common_init_from_args(
         return D_SUCCESS;
     }
 
-    *(_destination) = malloc(_arg_count * _element_size);
+    size_t bytes = 0;
+
+    // a count whose size wraps would write past a short allocation
+    if (d_ckd_mul(&bytes, _arg_count, _element_size))
+    {
+        *(_destination) = NULL;
+        *(_count) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
 
     // ensure that memory allocation was successful
     if (!*(_destination))
@@ -227,7 +256,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_array_common_init_copy_reverse(
     void**      _destination,
@@ -282,7 +312,18 @@ bool d_array_common_init_copy_reverse(
 
     copy_count = end_idx - start_idx + 1;
 
-    *(_destination) = malloc(copy_count * _element_size);
+    size_t bytes = 0;
+
+    // a range whose size wraps would write past a short allocation
+    if (d_ckd_mul(&bytes, copy_count, _element_size))
+    {
+        *(_destination) = NULL;
+        *(_count) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
 
     if (!*(_destination))
     {
@@ -319,7 +360,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_array_common_init_copy_range(
     void**      _destination,
@@ -375,7 +417,18 @@ bool d_array_common_init_copy_range(
 
     copy_count = end_idx - start_idx + 1;
 
-    *(_destination) = malloc(copy_count * _element_size);
+    size_t bytes = 0;
+
+    // a range whose size wraps would copy past a short allocation
+    if (d_ckd_mul(&bytes, copy_count, _element_size))
+    {
+        *(_destination) = NULL;
+        *(_count) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
     if (!*(_destination))
     {
         *(_count) = 0;
@@ -384,7 +437,7 @@ bool d_array_common_init_copy_range(
     }
 
     src_ptr = (const char*)_source + (start_idx * _element_size);
-    d_memcpy(*(_destination), src_ptr, copy_count * _element_size);
+    d_memcpy(*(_destination), src_ptr, bytes);
 
     *(_count) = copy_count;
 
@@ -514,7 +567,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
-  - false, if memory allocation failed or parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or memory allocation failed.
 */
 bool d_array_common_init_slice(
     void**       _destination,
@@ -533,6 +587,7 @@ bool d_array_common_init_slice(
          (!_count)        ||
          (!_element_size) ||
          (!_source)       ||
+         (!*(_source))    ||
          (!_source_count) )
     {
         if (_destination)
@@ -559,7 +614,18 @@ bool d_array_common_init_slice(
 
     copy_count = _source_count - start_idx;
 
-    *(_destination) = malloc(copy_count * _element_size);
+    size_t bytes = 0;
+
+    // a range whose size wraps would copy past a short allocation
+    if (d_ckd_mul(&bytes, copy_count, _element_size))
+    {
+        *(_destination) = NULL;
+        *(_count) = 0;
+
+        return D_FAILURE;
+    }
+
+    *(_destination) = malloc(bytes);
     if (!*(_destination))
     {
         *(_count) = 0;
@@ -567,8 +633,10 @@ bool d_array_common_init_slice(
         return D_FAILURE;
     }
 
-    src_ptr = (const char*)_source + (start_idx * _element_size);
-    d_memcpy(*(_destination), src_ptr, copy_count * _element_size);
+    //   _source points at the source's elements pointer, as every caller
+    // passes it (&array->elements); the elements are behind it, not at it
+    src_ptr = (const char*)*(_source) + (start_idx * _element_size);
+    d_memcpy(*(_destination), src_ptr, bytes);
 
     *(_count) = copy_count;
 
@@ -601,7 +669,7 @@ bool d_array_common_init_slice_reverse(
     return d_array_common_init_copy_reverse(_destination,
                                             _count,
                                             _element_size,
-                                            (const void*)_source,
+                                            (_source) ? *(_source) : NULL,
                                             _source_count,
                                             0,
                                             _source_count - 1);
@@ -637,7 +705,7 @@ bool d_array_common_init_slice_range(
     return d_array_common_init_copy_range(_destination,
                                           _count,
                                           _element_size,
-                                          (const void*)_source,
+                                          (_source) ? *(_source) : NULL,
                                           _source_count,
                                           _start,
                                           _end);
@@ -673,7 +741,7 @@ bool d_array_common_init_slice_range_reverse(
     return d_array_common_init_copy_range_reverse(_destination,
                                                   _count,
                                                   _element_size,
-                                                  (const void*)_source,
+                                                  (_source) ? *(_source) : NULL,
                                                   _source_count,
                                                   _start,
                                                   _end);
@@ -713,7 +781,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if element was successfully appended, or
-  - false, if parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_array_common_append_element(
     void**      _elements,
@@ -734,8 +803,18 @@ bool d_array_common_append_element(
         return D_FAILURE;
     }
 
+    size_t new_count = 0;
+    size_t bytes     = 0;
+
+    // a count or a size that wraps would shrink the buffer it grows
+    if ( (d_ckd_add(&new_count, *(_count), 1)) ||
+         (d_ckd_mul(&bytes, new_count, _element_size)) )
+    {
+        return D_FAILURE;
+    }
+
     // reallocate to hold one more element
-    new_elements = realloc(*(_elements), (*(_count) + 1) * _element_size);
+    new_elements = realloc(*(_elements), bytes);
 
     // ensure that memory allocation was successful
     if (!new_elements)
@@ -767,7 +846,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if elements were successfully appended, or
-  - false, if parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_array_common_append_elements(
     void**      _elements,
@@ -790,10 +870,20 @@ bool d_array_common_append_elements(
         return (_source_count == 0);
     }
 
-    // reallocate to hold additional elements
-    new_elements = realloc(*(_elements), (*(_count)+_source_count) * _element_size);
+    size_t new_count = 0;
+    size_t bytes     = 0;
 
-    // reallocate to hold one more element
+    // a count or a size that wraps would shrink the buffer it grows
+    if ( (d_ckd_add(&new_count, *(_count), _source_count)) ||
+         (d_ckd_mul(&bytes, new_count, _element_size)) )
+    {
+        return D_FAILURE;
+    }
+
+    // reallocate to hold additional elements
+    new_elements = realloc(*(_elements), bytes);
+
+    // ensure that memory reallocation was successful
     if (!new_elements)
     {
         return D_FAILURE;
@@ -801,6 +891,7 @@ bool d_array_common_append_elements(
 
     *(_elements) = new_elements;
 
+    // the appended run fits: it is part of the size checked above
     elem_ptr = (char*)(*_elements) + (*(_count) * _element_size);
     d_memcpy(elem_ptr, _value, (_source_count * _element_size) );
 
@@ -832,12 +923,11 @@ size_t d_array_common_calc_capacity(
 
     while (capacity < _requested_size)
     {
-        if (capacity > SIZE_MAX / 2)
+        // a doubling that does not fit saturates
+        if (d_ckd_mul(&capacity, capacity, 2))
         {
-            return SIZE_MAX;  // Prevent overflow
+            return SIZE_MAX;
         }
-
-        capacity *= 2;
     }
 
     return capacity;
@@ -1032,7 +1122,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if element was successfully inserted, or
-  - false, if parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_array_common_insert_element(
     void**      _elements,
@@ -1057,8 +1148,18 @@ bool d_array_common_insert_element(
         return D_FAILURE;
     }
 
+    size_t new_count = 0;
+    size_t bytes     = 0;
+
+    // a count or a size that wraps would shrink the buffer it grows
+    if ( (d_ckd_add(&new_count, *(_count), 1)) ||
+         (d_ckd_mul(&bytes, new_count, _element_size)) )
+    {
+        return D_FAILURE;
+    }
+
     // reallocate to hold one more element
-    new_elements = realloc(*_elements, (*_count + 1) * _element_size);
+    new_elements = realloc(*_elements, bytes);
 
     // ensure that memory reallocation was successful
     if (!new_elements)
@@ -1099,7 +1200,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if elements were successfully inserted, or
-  - false, if parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or reallocation failed.
 */
 bool d_array_common_insert_elements(
     void**      _elements,
@@ -1124,14 +1226,24 @@ bool d_array_common_insert_elements(
         return (_source_count == 0);
     }
 
+    size_t new_count = 0;
+    size_t bytes     = 0;
+
+    // a count or a size that wraps would shrink the buffer it grows
+    if ( (d_ckd_add(&new_count, *(_count), _source_count)) ||
+         (d_ckd_mul(&bytes, new_count, _element_size)) )
+    {
+        return D_FAILURE;
+    }
+
     // convert negative index to positive
-    if (!d_index_convert_safe(_index, *(_count) +_source_count, &insert_idx))
+    if (!d_index_convert_safe(_index, new_count, &insert_idx))
     {
         return D_FAILURE;
     }
 
     // reallocate to hold additional elements
-    new_elements = realloc(*_elements, (*(_count) +_source_count) * _element_size);
+    new_elements = realloc(*_elements, bytes);
 
     // ensure that memory reallocation was successful
     if (!new_elements)
@@ -1188,13 +1300,15 @@ bool d_array_common_is_valid_resize_amount(
 
     if (_amount >= 0)
     {
-        // growing: check for overflow
-        if (_count > (SIZE_MAX - (size_t)_amount))
+        size_t total = 0;
+
+        // growing: a total that does not fit is refused, and *_result kept
+        if (d_ckd_add(&total, _count, (size_t)_amount))
         {
             return D_FAILURE;
         }
 
-        *(_result) = _count + (size_t)_amount;
+        *(_result) = total;
 
         return D_SUCCESS;
     }
@@ -1511,7 +1625,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if shift was successful, or
-  - false, if parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or the temporary buffer's allocation failed.
 */
 bool d_array_common_shift_left_circular(
     void*  _elements,
@@ -1544,8 +1659,17 @@ bool d_array_common_shift_left_circular(
         return D_SUCCESS;  // no actual shift needed
     }
 
+    size_t bytes = 0;
+
+    // the run is shorter than the array, so this fails only for an array
+    // whose own size cannot exist
+    if (d_ckd_mul(&bytes, effective_shift, _element_size))
+    {
+        return D_FAILURE;
+    }
+
     // allocate temporary buffer for the elements that will wrap around
-    temp_buffer = malloc(effective_shift * _element_size);
+    temp_buffer = malloc(bytes);
 
     if (!temp_buffer)
     {
@@ -1556,7 +1680,7 @@ bool d_array_common_shift_left_circular(
 
     // save the elements that will wrap around (first 'effective_shift'
     // elements)
-    d_memcpy(temp_buffer, elem_ptr, effective_shift * _element_size);
+    d_memcpy(temp_buffer, elem_ptr, bytes);
 
     // shift remaining elements left
     memmove(elem_ptr,
@@ -1627,7 +1751,8 @@ Parameter(s):
 Return:
   A boolean value corresponding to either:
   - true, if shift was successful, or
-  - false, if parameters are invalid.
+  - false, if parameters are invalid, the bytes needed do not fit in a
+    size_t, or the temporary buffer's allocation failed.
 */
 bool d_array_common_shift_right_circular(
     void*  _elements,
@@ -1660,8 +1785,17 @@ bool d_array_common_shift_right_circular(
         return D_SUCCESS;  // no actual shift needed
     }
 
+    size_t bytes = 0;
+
+    // the run is shorter than the array, so this fails only for an array
+    // whose own size cannot exist
+    if (d_ckd_mul(&bytes, effective_shift, _element_size))
+    {
+        return D_FAILURE;
+    }
+
     // Allocate temporary buffer for the elements that will wrap around
-    temp_buffer = malloc(effective_shift * _element_size);
+    temp_buffer = malloc(bytes);
     if (!temp_buffer)
     {
         return D_FAILURE;
@@ -1672,7 +1806,7 @@ bool d_array_common_shift_right_circular(
     // Save the elements that will wrap around (last 'effective_shift' elements)
     d_memcpy(temp_buffer,
              elem_ptr + ((_count - effective_shift) * _element_size),
-             effective_shift * _element_size);
+             bytes);
 
     // Shift remaining elements right
     memmove(elem_ptr + (effective_shift * _element_size),
