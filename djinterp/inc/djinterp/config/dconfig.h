@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.11.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -121,6 +121,9 @@
 #include "djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"
 #include "djinterp/config/tools/cli/cfg_cli.h"
 #include "djinterp/config/c/modules/parsegen/cfg_parsegen.h"
+// c/modules/math: the generic value's boxes, then the wide integer's
+#include "djinterp/config/c/modules/math/cfg_value.h"       // boxed holders
+#include "djinterp/config/c/modules/math/cfg_value_wide.h"  // wide integer
 // net: the foundation, then the bindings, kernels and transports
 #include "djinterp/config/c/modules/net/cfg_net.h"            // foundation
 #include "djinterp/config/c/modules/net/curl/cfg_curl.h"      // libcurl
@@ -151,6 +154,10 @@
 // D_CFG_ENV_USING_POSTGRESQL off unless set
 #include "djinterp/config/c/db/postgres/cfg_postgres_common.h"  // PostgreSQL
 #include "djinterp/config/c/db/postgres/cfg_postgres_connection.h"  // connects
+// the MongoDB layer, likewise after env's MongoDB config, which leaves
+// D_CFG_ENV_USING_MONGODB off unless set
+#include "djinterp/config/c/db/mongodb/cfg_mongodb_common.h"  // MongoDB layer
+#include "djinterp/config/c/db/mongodb/cfg_mongodb_connection.h"  // connects
 // the layers' C++ faces, which read nothing above
 #include "djinterp/config/cpp/db/cfg_db_face.h"  // the faces' format check
 // #include "<path>/cfg_<sub>.h"  // <- add future subframeworks here

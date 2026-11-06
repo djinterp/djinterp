@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_os.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -80,6 +80,8 @@ TABLE OF CONTENTS
               6.  D_ENV_OS_FLAG_VMS
               7.  D_ENV_OS_FLAG_ZOS
               8.  D_ENV_OS_FLAG_UNKNOWN
+         11. WebAssembly flags (block 0x2)
+              1.  D_ENV_OS_FLAG_WASI
     2.  Flag ranges
          1.  D_ENV_OS_BLOCK_SIZE
          2.  Flag range bounds
@@ -105,6 +107,7 @@ TABLE OF CONTENTS
          6.  D_ENV_IS_OS_BSD
          7.  D_ENV_IS_OS_DISCONTINUED
          8.  D_ENV_IS_OS_UNSUPPORTED
+         9.  D_ENV_IS_OS_WASI
     3.  POSIX tests
          1.  D_ENV_IS_OS_POSIX_COMPLIANT
          2.  D_ENV_IS_OS_POSIX_LIKE
@@ -121,9 +124,10 @@ TABLE OF CONTENTS
               5.  Apple platforms
               6.  Linux
               7.  Solaris
-              8.  Unix variants
-              9.  Legacy and discontinued systems
-              10. Unknown
+              8.  WASI
+              9.  Unix variants
+              10. Legacy and discontinued systems
+              11. Unknown
     2.  Predefined detection
          1.  D_ENV_DETECTED_OS_* overrides
               1.  macOS
@@ -136,7 +140,8 @@ TABLE OF CONTENTS
               8.  Solaris
               9.  Unix
               10. MS-DOS
-              11. Unknown
+              11. WASI
+              12. Unknown
 4.  LEGACY PLATFORM FLAGS
     ---------------------
     1.  Platform flags
@@ -426,6 +431,18 @@ TABLE OF CONTENTS
 //   constant: OS flag for an unrecognized operating system.
 #define D_ENV_OS_FLAG_UNKNOWN           0xFF
 
+// 1.1.11
+// WebAssembly flags (block 0x2)
+// 1.1.11.1
+// D_ENV_OS_FLAG_WASI
+//   constant: OS flag for the WebAssembly System Interface: a WebAssembly
+// module whose system calls go through its host (wasmtime, wasmer, a
+// browser's shim), which the compiler names with __wasi__. Not POSIX-like
+// here: wasi-libc gives part of POSIX, and a module that needs the OS takes
+// its ISO C path there, as c/filesys does (decision 17 of the filesystem
+// register, ruled 2026.11.04: WASI is env's to name).
+#define D_ENV_OS_FLAG_WASI              0x20
+
 // 1.2    Flag ranges
 //------------------------------------------------------------------------------
 // 1.2.1
@@ -559,6 +576,12 @@ TABLE OF CONTENTS
 #define D_ENV_IS_OS_UNSUPPORTED(OS_FLAG)                                       \
     ( ((OS_FLAG) >= D_ENV_OS_UNSUPPORTED_FIRST) &&                             \
       ((OS_FLAG) <= D_ENV_OS_UNSUPPORTED_LAST) )
+
+// 2.2.9
+// D_ENV_IS_OS_WASI
+//   macro: 1 for WASI; 0 otherwise.
+#define D_ENV_IS_OS_WASI(OS_FLAG)                                              \
+    ( (OS_FLAG) == D_ENV_OS_FLAG_WASI )
 
 // 2.3    POSIX tests
 //------------------------------------------------------------------------------
@@ -706,6 +729,14 @@ TABLE OF CONTENTS
             #define D_ENV_OS_NAME  "solaris"
 
         // 3.1.1.8
+        // WASI
+        //   before the Unix variants, in case a WASI toolchain defines
+        // __unix__ as well.
+        #elif defined(__wasi__)
+            #define D_ENV_OS_ID    D_ENV_OS_FLAG_WASI
+            #define D_ENV_OS_NAME  "WASI"
+
+        // 3.1.1.9
         // Unix variants
         #elif ( (defined(__unix__)) ||                                         \
                 (defined(__unix))   ||                                         \
@@ -713,7 +744,7 @@ TABLE OF CONTENTS
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_UNIX
             #define D_ENV_OS_NAME  "Unix"
 
-        // 3.1.1.9
+        // 3.1.1.10
         // Legacy and discontinued systems
         #elif ( (defined(_AIX)) ||                                             \
                 (defined(__TOS_AIX__)) )
@@ -738,7 +769,7 @@ TABLE OF CONTENTS
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_VMS
             #define D_ENV_OS_NAME  "OpenVMS"
 
-        // 3.1.1.10
+        // 3.1.1.11
         // Unknown
         #else
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_UNKNOWN
@@ -805,6 +836,11 @@ TABLE OF CONTENTS
         #define D_ENV_OS_ID    D_ENV_OS_FLAG_MSDOS
         #define D_ENV_OS_NAME  "MS-DOS"
     // 3.2.1.11
+    // WASI
+    #elif defined(D_ENV_DETECTED_OS_WASI)
+        #define D_ENV_OS_ID    D_ENV_OS_FLAG_WASI
+        #define D_ENV_OS_NAME  "WASI"
+    // 3.2.1.12
     // Unknown
     #elif defined(D_ENV_DETECTED_OS_UNKNOWN)
         #define D_ENV_OS_ID    D_ENV_OS_FLAG_UNKNOWN
@@ -826,7 +862,10 @@ TABLE OF CONTENTS
 // 4.1.1
 // D_ENV_PLATFORM_*
 //   constant: exactly one of D_ENV_PLATFORM_ANDROID, _WINDOWS, _LINUX,
-// _MACOS, _UNIX, or _UNKNOWN is defined, to 1, from D_ENV_OS_ID.
+// _MACOS, _UNIX, _WASI, or _UNKNOWN is defined, to 1, from D_ENV_OS_ID.
+// D_ENV_PLATFORM_WASI is the one name a module needs for WASI without
+// reading the OS flags (decision 17 of the filesystem register, ruled
+// 2026.11.04).
 #if (D_ENV_OS_ID == D_ENV_OS_FLAG_ANDROID)
     #define D_ENV_PLATFORM_ANDROID 1
 #elif ( (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) ||                                  \
@@ -839,6 +878,8 @@ TABLE OF CONTENTS
 #elif ( (D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)) ||                                \
         (D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)) )
     #define D_ENV_PLATFORM_UNIX 1
+#elif (D_ENV_OS_ID == D_ENV_OS_FLAG_WASI)
+    #define D_ENV_PLATFORM_WASI 1
 #else
     #define D_ENV_PLATFORM_UNKNOWN 1
 #endif

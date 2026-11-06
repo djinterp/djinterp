@@ -28,7 +28,7 @@
 #             --verbose  print each section as it runs, not only the totals
 #   env:    CC, CXX     compilers        (default: gcc, g++)
 #           CXX_LEVELS  C++ levels       (default: c++11 c++14 c++17 c++20
-#                                         c++23)
+#                                         c++23 c++26)
 #           C_LEVELS    C levels         (default: c99 c11 c17 c23)
 #   exit:   0 when every run passed, with its expected count where one is
 #           expected; 1 when one did not; 2 when no run could be made
@@ -36,16 +36,16 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parsegen/foundation/run_foundation_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-#                                                            revised: 2026.10.04
+#                                                            revised: 2026.11.05
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "${HERE}/../../../../../../.." && pwd)"
+ROOT="$(cd "${HERE}/../../../../../../../../.." && pwd)"
 CC="${CC:-gcc}"
 CXX="${CXX:-g++}"
-CXX_LEVELS="${CXX_LEVELS:-c++11 c++14 c++17 c++20 c++23}"
+CXX_LEVELS="${CXX_LEVELS:-c++11 c++14 c++17 c++20 c++23 c++26}"
 C_LEVELS="${C_LEVELS:-c99 c11 c17 c23}"
 C_FLOOR="c99"
 
@@ -80,17 +80,17 @@ COMMON=( -O1 -Wall -Wextra -pedantic-errors -Werror=undef
 # re_std's one C source is what the fixed-width integer header declares
 C_SOURCES=( "${ROOT}"/src/djinterp/c/modules/parse/*.c
             "${ROOT}"/src/djinterp/c/modules/parsegen/*.c
-            "${ROOT}/src/djinterp/c/re_std/dstdint.c" )
+            "${ROOT}/src/re_std/c/cstdint/dstdint.c" )
 
-CXX_SUITES=( "${ROOT}/tests/djinterp/parse/parse_substrate_tests.cpp"
-             "${ROOT}/tests/djinterp/parse/parse_program_tests.cpp"
-             "${ROOT}/tests/djinterp/parsegen/parsegen_registry_tests.cpp"
-             "${ROOT}/tests/djinterp/parsegen/parsegen_grammar_tests.cpp"
-             "${ROOT}/tests/djinterp/parsegen/parsegen_analysis_tests.cpp"
+CXX_SUITES=( "${ROOT}/tests/djinterp/cpp/modules/parse/parse_substrate_tests.cpp"
+             "${ROOT}/tests/djinterp/cpp/modules/parse/parse_program_tests.cpp"
+             "${ROOT}/tests/djinterp/cpp/modules/parsegen/parsegen_registry_tests.cpp"
+             "${ROOT}/tests/djinterp/cpp/modules/parsegen/parsegen_grammar_tests.cpp"
+             "${ROOT}/tests/djinterp/cpp/modules/parsegen/parsegen_analysis_tests.cpp"
              "${HERE}/foundation_tests_runner.cpp" )
 
-C_SUITES=( "${ROOT}/tests/djinterp/parse/c/parse_c_tests.c"
-           "${ROOT}/tests/djinterp/parsegen/c/parsegen_c_tests.c"
+C_SUITES=( "${ROOT}/tests/djinterp/c/modules/parse/parse_c_tests.c"
+           "${ROOT}/tests/djinterp/c/modules/parsegen/parsegen_c_tests.c"
            "${HERE}/foundation_c_tests_runner.c" )
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/djinterp-foundation.XXXXXX")"
@@ -111,6 +111,7 @@ std_flag()
     local -a names=( "$3" )
 
     case "${level}" in
+        c++26) names+=( "c++2c" ) ;;
         c++23) names+=( "c++2b" ) ;;
         c++20) names+=( "c++2a" ) ;;
         c23)   names+=( "c2x" ) ;;
@@ -133,7 +134,7 @@ std_flag()
 #   Prints the section count expected_sections.txt gives a level, or nothing.
 expected()
 {
-    awk -v level="$1" '$1 == level { print $2 }' \
+    awk -v level="$1" '{ sub(/\r$/, "") } $1 == level { print $2 }' \
         "${HERE}/expected_sections.txt"
 }
 
@@ -306,8 +307,19 @@ if [[ "${matrix}" -eq 1 ]]; then
     echo
     echo "== configuration matrix: sections run under each knob =="
 
+    # the matrix runs at the lowest level and at the highest the compiler
+    # selects: C++26 tops the ladder, and a compiler without it (GCC 13)
+    # runs the matrix at its own highest instead
     lowest="${CXX_LEVELS%% *}"
-    highest="${CXX_LEVELS##* }"
+    highest=""
+
+    for level in ${CXX_LEVELS}; do
+        if [[ -n "$(std_flag "${CXX}" c++ "${level}")" ]]; then
+            highest="${level}"
+        fi
+    done
+
+    highest="${highest:-${lowest}}"
 
     knobs=( "-DD_CFG_PARSE_ALL=0 -DD_CFG_PARSEGEN_ALL=0"
             "-DD_CFG_PARSE_ALL=0"

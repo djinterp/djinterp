@@ -21,7 +21,8 @@
 *   App Store note: Apple's App Store forbids JIT to general apps on iOS,
 * iPadOS, tvOS, watchOS and visionOS. This header does not decide that for
 * you (decision 61 of the register): a build for those stores pre-defines
-* D_ENV_JIT_PROHIBITED as 1; see 2.1.1.
+* D_ENV_JIT_PROHIBITED as 1; see 2.1.1. It does say so at build time where
+* the build has not decided (decision 63); see 2.2.
 *   Naming: D_ENV_JIT_HAS_<FEATURE> is 1 if available, 0 otherwise;
 * D_ENV_JIT_<FEATURE> is a non-boolean detected value or identifier.
 *   Every flag is #ifndef-guarded, so a project may pre-define any D_ENV_JIT_*
@@ -35,7 +36,7 @@
 * path:      /inc/djinterp/env/jit/env_jit.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -64,6 +65,8 @@ TABLE OF CONTENTS
          1.  D_ENV_JIT_PROHIBITED
          2.  D_ENV_JIT_REQUIRES_WX
          3.  D_ENV_JIT_HAS_APPLE_WX_TOGGLE
+    2.  The store warning
+         1.  D_INTERNAL_ENV_JIT_STORE_TARGET
 3.  INSTRUCTION-CACHE COHERENCY
     ---------------------------
     1.  Cache flushing
@@ -98,8 +101,9 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_JIT_ENV_JIT_H 1
 
 // djinterp
-#include "../env.h"  // D_ENV_ARCH_*, D_ENV_OS_*, D_ENV_COMPILER_*,
-                     // D_ENV_C_HAS_MMAP
+#include "../../config/env/cfg_env.h"  // D_CFG_ENV_JIT_WARN
+#include "../env.h"                     // D_ENV_ARCH_*, D_ENV_OS_*,
+                                        // D_ENV_COMPILER_*, D_ENV_C_HAS_MMAP
 
 
 //==============================================================================
@@ -296,6 +300,42 @@ TABLE OF CONTENTS
         #define D_ENV_JIT_HAS_APPLE_WX_TOGGLE 0
     #endif
 #endif  // D_ENV_JIT_HAS_APPLE_WX_TOGGLE
+
+
+// 2.2    The store warning
+//------------------------------------------------------------------------------
+//   A unit that includes this header, built for a target whose App Store
+// refuses JIT to general apps, hears so at build time, unless the build has
+// decided: D_ENV_JIT_PROHIBITED set to 1 is a store build's decision, and
+// D_CFG_ENV_JIT_WARN set to 0 is a build's that holds the entitlement or
+// ships outside the store (decision 63 of the register, ruled 2026.11.04).
+// It is a #pragma message, which GCC, Clang and MSVC print without failing a
+// build that treats warnings as errors.
+
+// 2.2.1
+// D_INTERNAL_ENV_JIT_STORE_TARGET
+//   constant (internal): 1 when the target is one whose App Store refuses
+// JIT to general apps -- iOS, iPadOS, tvOS, watchOS and visionOS, all of
+// which env reports as D_ENV_OS_FLAG_IOS -- and not Mac Catalyst, which env
+// reports the same way but whose apps are macOS apps; 0 otherwise.
+#if ((D_ENV_OS_ID) == D_ENV_OS_FLAG_IOS)
+    #if defined(TARGET_OS_MACCATALYST)
+        #if TARGET_OS_MACCATALYST
+            #define D_INTERNAL_ENV_JIT_STORE_TARGET 0
+        #endif
+    #endif
+    #ifndef D_INTERNAL_ENV_JIT_STORE_TARGET
+        #define D_INTERNAL_ENV_JIT_STORE_TARGET 1
+    #endif
+#else
+    #define D_INTERNAL_ENV_JIT_STORE_TARGET 0
+#endif  // D_ENV_OS_ID
+
+#if ( (D_CFG_IS_ON(D_CFG_ENV_JIT_WARN)) &&                                     \
+      (D_INTERNAL_ENV_JIT_STORE_TARGET) &&                                     \
+      (!D_ENV_JIT_PROHIBITED) )
+    #pragma message("djinterp: the App Store refuses JIT; see env_jit.h 2.2")
+#endif
 
 
 //==============================================================================

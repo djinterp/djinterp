@@ -36,7 +36,7 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parsegen/foundation/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-#                                                            revised: 2026.10.06
+#                                                            revised: 2026.11.05
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -62,12 +62,12 @@ if( (NOT "C" IN_LIST _languages)    OR
             "enclosing project() must enable the two (LANGUAGES C CXX)")
 endif()
 
-# the repository root, seven levels above this leaf
+# the repository root, nine levels above this leaf
 get_filename_component(DJINTERP_FOUNDATION_ROOT
                        "${CMAKE_CURRENT_LIST_DIR}/../../../../../../../../.."
                        ABSOLUTE)
 
-set(DJINTERP_FOUNDATION_CXX_LEVELS "11;14;17;20;23" CACHE STRING
+set(DJINTERP_FOUNDATION_CXX_LEVELS "11;14;17;20;23;26" CACHE STRING
     "C++ levels the foundation's C++ suites are built and run at")
 set(DJINTERP_FOUNDATION_C_LEVELS "99;11;17;23" CACHE STRING
     "C levels the foundation's C suites are built and run at")
@@ -237,6 +237,13 @@ foreach(_level IN LISTS DJINTERP_FOUNDATION_CXX_LEVELS)
 
     add_test(NAME ${_target} COMMAND ${_target})
     djinterp_foundation_expect(${_target} "c++${_level}")
+
+    # join the framework's aggregates (djinterp_add_test_subtree), which build
+    # the test targets registered below them; standing alone, nothing reads
+    # the registry
+    set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_TARGETS ${_target})
+    set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_TARGET_DIRS
+                 "${CMAKE_CURRENT_SOURCE_DIR}")
 endforeach()
 
 
@@ -283,4 +290,11 @@ foreach(_level IN LISTS DJINTERP_FOUNDATION_C_LEVELS)
 
     add_test(NAME ${_target} COMMAND ${_target})
     djinterp_foundation_expect(${_target} "c${_level}")
+
+    # join the framework's aggregates (djinterp_add_test_subtree), which build
+    # the test targets registered below them; standing alone, nothing reads
+    # the registry
+    set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_TARGETS ${_target})
+    set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_TARGET_DIRS
+                 "${CMAKE_CURRENT_SOURCE_DIR}")
 endforeach()

@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/env/os/env_ios.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -1012,16 +1012,15 @@ TABLE OF CONTENTS
 // uses a JIT entitlement (which is not generally available).
 //   env_jit.h does not read this (decision 61 of the register): a JIT build
 // for these stores pre-defines D_ENV_JIT_PROHIBITED as 1 itself.
-//   Mac Catalyst note: a Catalyst build reads as iOS (D_ENV_APPLE_IS_IOS is 1,
-// with D_ENV_APPLE_IS_MACCATALYST), so this reads 1 there too. But a Catalyst
-// app is a macOS app: under the hardened runtime it may use MAP_JIT with the
-// com.apple.security.cs.allow-jit entitlement, which whether a given app holds
-// is a fact of its signing, not of its build. The flag is left as it is
-// (decision 63 of the register): this header states the policy, and a
-// Catalyst build that JITs knows it does.
-#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
-      (D_ENV_APPLE_IS_TVOS)    ||                                              \
-      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+//   Mac Catalyst: a Catalyst build reads as iOS (D_ENV_APPLE_IS_IOS is 1,
+// with D_ENV_APPLE_IS_MACCATALYST), but a Catalyst app is a macOS app: under
+// the hardened runtime it may use MAP_JIT with the
+// com.apple.security.cs.allow-jit entitlement. So this reads 0 there
+// (decision 63 of the register, ruled 2026.11.04).
+#if ( ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_APPLE_IS_MACCATALYST) ) ||                                     \
+      (D_ENV_APPLE_IS_TVOS)             ||                                     \
+      (D_ENV_APPLE_IS_WATCHOS)          ||                                     \
       (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_MOBILE_NO_JIT         1
 #else
@@ -1032,12 +1031,13 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_NO_DLOPEN
 //   feature: detect if dlopen of third-party dynamic libraries is
 // prohibited. App Store policy forbids loading non-system dylibs.
-//   Mac Catalyst note: as with D_ENV_MOBILE_NO_JIT, a Catalyst build reads 1
-// here, though a Catalyst app, a macOS app, may load the frameworks it ships
-// and signs; left as it is (decision 63 of the register).
-#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
-      (D_ENV_APPLE_IS_TVOS)    ||                                              \
-      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+//   Mac Catalyst: as with D_ENV_MOBILE_NO_JIT, this reads 0 for a Catalyst
+// build, a macOS app, which may load the frameworks it ships and signs
+// (decision 63 of the register, ruled 2026.11.04).
+#if ( ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_APPLE_IS_MACCATALYST) ) ||                                     \
+      (D_ENV_APPLE_IS_TVOS)             ||                                     \
+      (D_ENV_APPLE_IS_WATCHOS)          ||                                     \
       (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_MOBILE_NO_DLOPEN      1
 #else

@@ -1,0 +1,6 @@
+# djinterp: generated build files, which are not versioned
+#   The repository's own .gitignore names these from its root, one folder
+# above the tree, where they never matched; here they do.
+/build/cmake/msvs/
+/bin/
+/lib/

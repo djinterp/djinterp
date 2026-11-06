@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       t_container_overflow.c
+* djinterp [test]                                         t_container_overflow.c
 *
 *   Regression tests for the two heap overflows the upgrade audit of
 * 2026.11.01 confirmed, both a size computed as count * element size without
@@ -19,7 +19,7 @@
 * path:      /tests/unintegrated/c/container/t_container_overflow.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 // std
 #include <stdio.h>    // printf

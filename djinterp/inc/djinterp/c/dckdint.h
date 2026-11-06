@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/c/dckdint.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -49,7 +49,7 @@ TABLE OF CONTENTS
 #define DJINTERP_C_DCKDINT_H 1
 
 // djinterp
-#include "./djinterp.h"    // framework root: env, bool, size_t, D_INLINE
+#include "./djinterp.h"  // framework root
 
 
 //==============================================================================

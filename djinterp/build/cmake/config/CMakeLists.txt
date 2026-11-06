@@ -41,9 +41,42 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+# the version, from inc/djinterp/c/dversion.h, the one place that states it
+# (three levels up is the project root)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../../../inc/djinterp/c/dversion.h"
+     _djinterp_version_lines
+     REGEX "^#define D_VERSION_(MAJOR|MINOR|PATCH) +[0-9]+")
+foreach(_line IN LISTS _djinterp_version_lines)
+    if(_line MATCHES "^#define D_VERSION_(MAJOR|MINOR|PATCH) +([0-9]+)")
+        set(_djinterp_version_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}")
+    endif()
+endforeach()
+if( (NOT DEFINED _djinterp_version_MAJOR) OR
+    (NOT DEFINED _djinterp_version_MINOR) OR
+    (NOT DEFINED _djinterp_version_PATCH) )
+    message(FATAL_ERROR
+            "djinterp: inc/djinterp/c/dversion.h states no version")
+endif()
+set(_djinterp_version
+    "${_djinterp_version_MAJOR}.${_djinterp_version_MINOR}")
+set(_djinterp_version "${_djinterp_version}.${_djinterp_version_PATCH}")
+
 project(djinterp
         LANGUAGES C CXX
-        VERSION   0.1.0)
+        VERSION   ${_djinterp_version})
+message(STATUS "djinterp ${PROJECT_VERSION}")
+
+# c/filesys builds on POSIX where the target is POSIX, on Win32 where it is
+# Windows, and otherwise on ISO C alone, where a call that needs the system
+# fails with ENOSYS. Its headers choose by env when they are compiled; this
+# says the same when the build is configured (decision 4 of the filesystem
+# register, ruled 2026.11.04).
+if( (NOT WIN32) AND
+    ( (NOT UNIX) OR (CMAKE_SYSTEM_NAME STREQUAL "WASI") ) )
+    message(STATUS "djinterp: ${CMAKE_SYSTEM_NAME} is neither POSIX nor "
+                   "Windows: c/filesys builds on its ISO C backend, where a "
+                   "call that needs the system fails with ENOSYS")
+endif()
 
 
 # -----------------------------------------------------------------------------

@@ -7,12 +7,14 @@
 * bit that names each section; and D_CFG_ENV_ISO_STRICT, which limits what
 * detection reports to what the ISO standard guarantees. Each section resolves
 * its own switch, D_CFG_ENV_<SECTION>_ENABLED, in cfg_env_<section>.h, which
-* includes this file. Database-related D_CFG_ENV_USING_*, *_C_PATH, and
-* *_CPP_PATH macros live in their own per-vendor config files under ./db/.
+* includes this file. It also owns D_CFG_ENV_JIT_WARN, which has env_jit.h say
+* at build time when the target's App Store refuses JIT. Database-related
+* D_CFG_ENV_USING_*, *_C_PATH, and *_CPP_PATH macros live in their own
+* per-vendor config files under ./db/.
 *   targets:  cfg_env_lang.h, cfg_env_posix.h, cfg_env_arch.h, cfg_env_os.h,
 *             cfg_env_compiler.h and cfg_env_build.h -> D_CFG_ENV_CUSTOM,
 *             D_CFG_ENV_BIT_*; env/c/env_long_long.h and env/c/env_c_lib.h ->
-*             D_CFG_ENV_ISO_STRICT
+*             D_CFG_ENV_ISO_STRICT; env/jit/env_jit.h -> D_CFG_ENV_JIT_WARN
 *   requires: cfg_common.h
 *   Includes cfg_common.h first, like every config header, so a cfg_custom.h
 * reaches detection whichever djinterp header a translation unit includes first.
@@ -21,7 +23,7 @@
 * path:      /inc/djinterp/config/env/cfg_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.09
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -42,6 +44,10 @@ TABLE OF CONTENTS
     --------------
     1.  Language-level guarantees
          1.  D_CFG_ENV_ISO_STRICT
+3.  WARNINGS
+    --------
+    1.  Build-time warnings
+         1.  D_CFG_ENV_JIT_WARN
 */
 
 #ifndef DJINTERP_CONFIG_ENV_CFG_ENV_H
@@ -141,6 +147,32 @@ TABLE OF CONTENTS
 
 #if !D_CFG_IS_BOOL(D_CFG_ENV_ISO_STRICT)
     #error "D_CFG_ENV_ISO_STRICT must be 0 or 1"
+#endif
+
+
+//==============================================================================
+// 3.  WARNINGS
+//==============================================================================
+
+
+// 3.1    Build-time warnings
+//------------------------------------------------------------------------------
+// 3.1.1
+// D_CFG_ENV_JIT_WARN
+//   configuration: 1 (default) has env_jit.h say, when a unit that includes it
+// is built for a target whose App Store refuses JIT to general apps -- iOS,
+// iPadOS, tvOS, watchOS and visionOS, not Mac Catalyst, whose apps are macOS
+// apps -- that the build has not decided: D_ENV_JIT_PROHIBITED set to 1 is a
+// store build's decision, and quiets it too. 0 keeps it quiet, for a build
+// that holds the platform's JIT entitlement or ships outside the store
+// (decision 63 of the register, ruled 2026.11.04). Set it with
+// -DD_CFG_ENV_JIT_WARN=0.
+#ifndef D_CFG_ENV_JIT_WARN
+    #define D_CFG_ENV_JIT_WARN 1
+#endif  // D_CFG_ENV_JIT_WARN
+
+#if !D_CFG_IS_BOOL(D_CFG_ENV_JIT_WARN)
+    #error "D_CFG_ENV_JIT_WARN must be 0 or 1"
 #endif
 
 

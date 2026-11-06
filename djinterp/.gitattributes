@@ -1,0 +1,6 @@
+# djinterp: line endings
+#   Every text file is CRLF in a Windows checkout and LF in the repository,
+# as core.autocrlf makes it. Shell scripts are the one exception: bash
+# refuses a carriage return at the end of a line, so a .sh file is LF in
+# every checkout, Windows included (ruled 2026.11.05).
+*.sh text eol=lf

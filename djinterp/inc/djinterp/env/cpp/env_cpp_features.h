@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/env/cpp/env_cpp_features.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -1473,13 +1473,13 @@ TABLE OF CONTENTS
 
 // 1.4.9
 // D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
-//   feature: 1 if __cpp_IMPL_coroutine is defined, 0 otherwise.
+//   feature: 1 if __cpp_impl_coroutine is defined, 0 otherwise.
 #ifndef D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL
-    #ifdef __cpp_IMPL_coroutine
-        #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL __cpp_IMPL_coroutine
+    #ifdef __cpp_impl_coroutine
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL __cpp_impl_coroutine
     #else
         #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL 0L
-    #endif  // __cpp_IMPL_coroutine
+    #endif  // __cpp_impl_coroutine
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL
 #ifndef D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
     #if (D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL > 0)
@@ -1488,21 +1488,21 @@ TABLE OF CONTENTS
         #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE 0
     #endif
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
-#define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_NAME "__cpp_IMPL_coroutine"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_NAME "__cpp_impl_coroutine"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_DESC                             \
     "Coroutines (compiler support)"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VERS "(C++20)"
 
 // 1.4.10
 // D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
-//   feature: 1 if __cpp_IMPL_destroying_delete is defined, 0 otherwise.
+//   feature: 1 if __cpp_impl_destroying_delete is defined, 0 otherwise.
 #ifndef D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL
-    #ifdef __cpp_IMPL_destroying_delete
+    #ifdef __cpp_impl_destroying_delete
         #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL              \
-            __cpp_IMPL_destroying_delete
+            __cpp_impl_destroying_delete
     #else
         #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL 0L
-    #endif  // __cpp_IMPL_destroying_delete
+    #endif  // __cpp_impl_destroying_delete
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL
 #ifndef D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
     #if (D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL > 0)
@@ -1512,21 +1512,21 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
 #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_NAME                     \
-    "__cpp_IMPL_destroying_delete"
+    "__cpp_impl_destroying_delete"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_DESC                     \
     "Destroying operator delete (compiler support)"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VERS "(C++20)"
 
 // 1.4.11
 // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
-//   feature: 1 if __cpp_IMPL_three_way_comparison is defined, 0 otherwise.
+//   feature: 1 if __cpp_impl_three_way_comparison is defined, 0 otherwise.
 #ifndef D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL
-    #ifdef __cpp_IMPL_three_way_comparison
+    #ifdef __cpp_impl_three_way_comparison
         #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL           \
-            __cpp_IMPL_three_way_comparison
+            __cpp_impl_three_way_comparison
     #else
         #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL 0L
-    #endif  // __cpp_IMPL_three_way_comparison
+    #endif  // __cpp_impl_three_way_comparison
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL
 #ifndef D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
     #if (D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL > 0)
@@ -1536,7 +1536,7 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
 #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_NAME                  \
-    "__cpp_IMPL_three_way_comparison"
+    "__cpp_impl_three_way_comparison"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_DESC                  \
     "Three-way comparison (compiler support)"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VERS "(C++20)"
