@@ -7,14 +7,14 @@
 *
 * path:      /src/djinterp/c/option/option_set_common.c
 * link(s):   TBA
-* author(s): TBA                                             created: 2026.07.30
-*                                                            revised: 2026.09.20
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
+*                                                            revised: 2026.11.04
 *******************************************************************************/
-#include "../../../../inc/djinterp/c/option/option_set_common.h"
+#include "../../../../inc/djinterp/c/option/option_set_common.h"  // corresponding header
 
 
 // std
-#include <string.h>
+#include <string.h>  // memset, memmove
 
 
 // ===========================================================================
@@ -227,7 +227,7 @@ struct dj_option_result d_option_set_add_cell(
 )
 {
     struct dj_option_result result;
-    uint32_t               align;
+    uint32_t                align;
 
     if ((_set == NULL) || (_option == NULL))
     {
@@ -268,6 +268,69 @@ struct dj_option_result d_option_set_add_cell(
     }
 
     return result;
+}
+
+/*
+d_option_set_remove
+  A find, then removal at the index it gives.
+*/
+struct dj_option_result
+d_option_set_remove(
+    struct dj_option_set* _set,
+    uint64_t              _key
+)
+{
+    uint32_t index = 0u;
+
+    if (_set == NULL)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    }
+
+    // an absent key is the formal failure find already reports
+    if (!d_option_set_find(_set, _key, &index))
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_KEY_ABSENT);
+    }
+
+    return d_option_set_remove_at(_set, index);
+}
+
+/*
+d_option_set_remove_at
+  The later cells slide down one place, so declaration order survives; the
+slot stays in the value block as a hole, since moving values here would
+invalidate every slot pointer a caller holds for a removal that did not ask
+for it.
+*/
+struct dj_option_result
+d_option_set_remove_at(
+    struct dj_option_set* _set,
+    uint32_t              _index
+)
+{
+    if (_set == NULL)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    }
+
+    if (_index >= _set->count)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_KEY_ABSENT);
+    }
+
+    // the cells after it, one place down
+    if (_index + 1u < _set->count)
+    {
+        memmove(&_set->options[_index],
+                &_set->options[_index + 1u],
+                sizeof(struct dj_option) *
+                    (size_t)(_set->count - _index - 1u));
+    }
+
+    --_set->count;
+
+    return d_option_ok(_index);
 }
 
 
@@ -888,4 +951,114 @@ size_t d_option_set_byte_size(
     //   arithmetic, not a traversal -- goal 4's runtime sizeof for a flat set.
     return ( (sizeof(struct dj_option) * (size_t)_set->count) +
              (size_t)_set->value_used );
+}
+
+/**
+ * @brief The alignment a slot keeps when it moves: the largest power of two,
+ *        at most eight, that divides both its offset and its size.
+ *
+ * @param[in] _offset  where the slot is.
+ * @param[in] _size    its width; not 0.
+ * @return the alignment.
+ *
+ * A slot was placed at a multiple of the alignment it was added with, and a
+ * type's alignment divides its size, so this is never weaker than either;
+ * and since it divides the old offset, a slot sliding down never needs to go
+ * past where it was.
+ */
+static uint32_t
+d_internal_option_set_slot_align(
+    uint32_t _offset,
+    uint32_t _size
+)
+{
+    uint32_t align = 8u;
+
+    // the lowest set bit of each, the smallest of them winning
+    if ( (_offset != 0u) &&
+         ((_offset & (~_offset + 1u)) < align) )
+    {
+        align = _offset & (~_offset + 1u);
+    }
+
+    if ((_size & (~_size + 1u)) < align)
+    {
+        align = _size & (~_size + 1u);
+    }
+
+    return align;
+}
+
+/*
+d_option_set_compact
+  The slots are visited in the order of their offsets without sorting the
+cells: each step takes the lowest offset above the last one moved. A moved
+slot never rises -- every slot below it has already come down, and its
+alignment divides where it was -- so its new offset is at or below the old
+one, below every slot still to visit, and the next step's search cannot
+find it again. Unary cells hold no slot and are passed over.
+*/
+struct dj_option_result
+d_option_set_compact(
+    struct dj_option_set* _set
+)
+{
+    if (_set == NULL)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    }
+
+    const uint32_t before  = _set->value_used;
+    uint32_t       mark    = 0u;
+    uint32_t       last    = 0u;
+    int            started = 0;
+
+    for (;;)
+    {
+        uint32_t next = _set->count;
+
+        // the slot with the lowest offset not yet moved
+        for (uint32_t i = 0u; i < _set->count; ++i)
+        {
+            const struct dj_option* const cell = &_set->options[i];
+
+            if ( (cell->value_size != 0u)                         &&
+                 ( (started == 0) ||
+                   (cell->value_offset > last) )                  &&
+                 ( (next == _set->count) ||
+                   (cell->value_offset <
+                    _set->options[next].value_offset) ) )
+            {
+                next = i;
+            }
+        }
+
+        if (next == _set->count)
+        {
+            break;
+        }
+
+        struct dj_option* const cell  = &_set->options[next];
+        const uint32_t          align =
+            d_internal_option_set_slot_align(cell->value_offset,
+                                             cell->value_size);
+        const uint32_t          place = ((mark + align - 1u) / align) * align;
+
+        last    = cell->value_offset;
+        started = 1;
+
+        if (place != cell->value_offset)
+        {
+            memmove(_set->values + place,
+                    _set->values + cell->value_offset,
+                    (size_t)cell->value_size);
+            cell->value_offset = place;
+        }
+
+        mark = place + cell->value_size;
+    }
+
+    _set->value_used = mark;
+
+    return d_option_ok(before - mark);
 }

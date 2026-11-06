@@ -76,18 +76,18 @@
 * path:      /inc/djinterp/c/option/option_set_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_C_OPTION_OPTION_SET_COMMON_H
 #define DJINTERP_C_OPTION_OPTION_SET_COMMON_H 1
 
 // std
-#include <stddef.h>
+#include <stddef.h>  // size_t
 // djinterp
-#include "../djinterp.h"
-#include "../functional/functional_common.h"
-#include "./option_common.h"
+#include "../djinterp.h"                      // framework root
+#include "../functional/functional_common.h"  // fn_binary_predicate
+#include "./option_common.h"                  // struct dj_option, results
 // re_std
 #include "../../../re_std/c/cstdint/dstdint.h"  // uint32_t, uint64_t
 
@@ -113,11 +113,11 @@ D_EXTERN_C_BEGIN
 struct dj_option_set
 {
     struct dj_option* options;         // the schema cells
-    unsigned char*   values;          // the value block the cells address
-    uint32_t         count;           // cells in use
-    uint32_t         capacity;        // cells the schema array can hold
-    uint32_t         value_used;      // bytes of the value block in use
-    uint32_t         value_capacity;  // bytes the value block can hold
+    unsigned char*    values;          // the value block the cells address
+    uint32_t          count;           // cells in use
+    uint32_t          capacity;        // cells the schema array can hold
+    uint32_t          value_used;      // bytes of the value block in use
+    uint32_t          value_capacity;  // bytes the value block can hold
 };
 
 // D_OPTION_SET_DECLARE
@@ -128,13 +128,15 @@ struct dj_option_set
 // packs into it can meet its own alignment without the set having to over-
 // allocate. Storing the widths as members is what lets D_OPTION_SET_VIEW read
 // them back rather than being told them a second time.
-#define D_OPTION_SET_DECLARE(name,                                          \
-                             n,                                             \
-                             bytes)                                         \
-    struct name                                                             \
-    {                                                                       \
-        uint64_t        value_block[(((bytes) + 7u) / 8u) ? (((bytes) + 7u) / 8u) : 1u]; \
-        struct dj_option option_block[(n) ? (n) : 1u];                       \
+#define D_OPTION_SET_DECLARE(name,                                             \
+                             n,                                                \
+                             bytes)                                            \
+    struct name                                                                \
+    {                                                                          \
+        uint64_t         value_block[(((bytes) + 7u) / 8u)                     \
+                                         ? (((bytes) + 7u) / 8u)               \
+                                         : 1u];                                \
+        struct dj_option option_block[(n) ? (n) : 1u];                         \
     }
 
 // D_OPTION_SET_STORAGE_INIT
@@ -180,10 +182,10 @@ bool d_option_set_is_valid(
 // d_option_set_add
 //   function: append an option column and pack its slot into the value block.
 // The offset is assigned here from the running high-water mark; the caller
-// never computes one. A duplicate key is D_OPTION_STATUS_KEY_DUPLICATE (formal, the
-// multiplicity invariant); running out of either block is D_OPTION_STATUS_CAPACITY or
-// D_OPTION_STATUS_VALUE_CAPACITY (mechanical). On success the result carries the new
-// option's index.
+// never computes one. A duplicate key is D_OPTION_STATUS_KEY_DUPLICATE (formal,
+// the multiplicity invariant); running out of either block is
+// D_OPTION_STATUS_CAPACITY or D_OPTION_STATUS_VALUE_CAPACITY (mechanical). On
+// success the result carries the new option's index.
 struct dj_option_result d_option_set_add(
     struct dj_option_set* _set,
     uint64_t              _key,
@@ -211,6 +213,43 @@ struct dj_option_result d_option_set_add_cell(
     struct dj_option_set*   _set,
     const struct dj_option* _option,
     const void*             _value
+);
+
+// d_option_set_remove / d_option_set_remove_at
+//   function: the inverse of add. A set is a SET, so removal is defined on a
+// key; the cells after the removed one move down by one, so the remaining
+// cells keep their declaration order and a traversal reads as it did. The
+// removed slot's bytes stay where they were, a hole that `value_used` still
+// counts, until d_option_set_compact (section VII) gives them back: removal
+// itself never moves a value, so every other slot's pointer stays good.
+
+/**
+ * @brief Removes the option with `_key`, keeping the others in their order.
+ *
+ * @param[in,out] _set  the set.
+ * @param[in]     _key  the key.
+ * @return the index the option had; D_OPTION_STATUS_KEY_ABSENT when no
+ *         option has `_key`, D_OPTION_STATUS_INVALID_ARGUMENT for a null set.
+ * @post The cells after it are one index lower: an index or a cell pointer
+ *       into them is invalid. No value moves.
+ */
+struct dj_option_result d_option_set_remove(
+    struct dj_option_set* _set,
+    uint64_t              _key
+);
+
+/**
+ * @brief Removes the option at an index, keeping the others in their order.
+ *
+ * @param[in,out] _set    the set.
+ * @param[in]     _index  the index.
+ * @return `_index`; D_OPTION_STATUS_KEY_ABSENT for an index past the last
+ *         cell, D_OPTION_STATUS_INVALID_ARGUMENT for a null set.
+ * @post As d_option_set_remove.
+ */
+struct dj_option_result d_option_set_remove_at(
+    struct dj_option_set* _set,
+    uint32_t              _index
 );
 
 
@@ -279,10 +318,10 @@ dj_type_info16 d_option_set_key_type(
 ///////////////////////////////////////////////////////////////////////////////
 
 // d_option_set_get
-//   function: copy the value at `_key` out. D_OPTION_STATUS_KEY_ABSENT when there is
-// no such key, D_OPTION_STATUS_NO_VALUE when the key is unary, and
-// D_OPTION_STATUS_VALUE_TYPE_MISMATCH when `_out_size` disagrees with the slot --
-// three distinct formal failures, because collapsing them is what makes a
+//   function: copy the value at `_key` out. D_OPTION_STATUS_KEY_ABSENT when
+// there is no such key, D_OPTION_STATUS_NO_VALUE when the key is unary, and
+// D_OPTION_STATUS_VALUE_TYPE_MISMATCH when `_out_size` disagrees with the slot
+// -- three distinct formal failures, because collapsing them is what makes a
 // misconfigured set look like an empty one.
 struct dj_option_result d_option_set_get(
     const struct dj_option_set* _set,
@@ -447,13 +486,13 @@ struct dj_option_result d_option_set_key_intersection(
 //   function: O1 u O2 -- the plain union. PARTIAL.
 //
 //   "is a valid option set if, and only if, O1 ~ O2; otherwise a shared key
-// would carry two distinct options, violating uniqueness." So this operation
-// is UNDEFINED on conflicting sets, and returns D_OPTION_STATUS_CONFLICT -- a FORMAL
-// status, because no amount of extra buffer makes a conflicting union exist.
-// Conflating that with a mechanical failure is precisely the anti-pattern the
-// agent guide names: reporting "these sets are in conflict" and "the output
-// buffer is full" identically is a conformance bug that reads as correct
-// behaviour.
+// would carry two distinct options, violating uniqueness." So this operation is
+// UNDEFINED on conflicting sets, and returns D_OPTION_STATUS_CONFLICT -- a
+// FORMAL status, because no amount of extra buffer makes a conflicting union
+// exist. Conflating that with a mechanical failure is precisely the
+// anti-pattern the agent guide names: reporting "these sets are in conflict"
+// and "the output buffer is full" identically is a conformance bug that reads
+// as correct behaviour.
 //
 //   The relation to precedence, which the .tex states and which nothing in the
 // code previously expressed: `u` is the AGREEMENT-RESTRICTED TOTAL of `(+)`,
@@ -486,9 +525,9 @@ struct dj_option_result d_option_set_union(
 // same shape as a full traversal.
 // Note: `_context` may be NULL.
 typedef bool (*fn_option_visit)(const struct dj_option* _option,
-                                const unsigned char*   _values,
-                                uint32_t               _index,
-                                void*                  _context);
+                                const unsigned char*    _values,
+                                uint32_t                _index,
+                                void*                   _context);
 
 // d_option_set_for_each
 //   function: walk the set in declaration order. Returns the number of cells
@@ -511,8 +550,9 @@ bool d_option_set_fold(
 );
 
 // d_option_set_canon
-//   function: reorder the set into CANONICAL form -- ascending by key, the
-// value block repacked to match.
+//   function: reorder the set into CANONICAL form -- ascending by key. The
+// cells are permuted and the value block is not touched: each cell carries
+// its own offset, so no byte of value moves.
 //
 //   This is the `canon` of the parity law,
 // `canon(lower(A (x)_cpp B)) == canon(lower(A) (x)_c lower(B))`, and it exists
@@ -525,8 +565,9 @@ bool d_option_set_fold(
 // line, which is the practical reason to have it and the wrong reason to
 // believe order is semantic.
 //
-//   In place, and it needs no scratch: the schema array is permuted and the
-// value block repacked in one pass.
+//   In place, and it needs no scratch. Offsets then no longer rise with the
+// index, which nothing relies on: d_option_set_compact visits the slots in
+// the order of their offsets, whatever the cells' order.
 struct dj_option_result d_option_set_canon(
     struct dj_option_set* _set
 );
@@ -544,6 +585,27 @@ bool d_option_set_is_canon(
 // which is the whole benefit of offsets over pointers.
 size_t d_option_set_byte_size(
     const struct dj_option_set* _set
+);
+
+/**
+ * @brief Gives back the bytes removal left in the value block: every slot
+ *        slides down, in the order of its offset, to the lowest offset its
+ *        alignment allows, and `value_used` falls to the end of the last.
+ *
+ * @note In place and without scratch; the cells keep their order and only
+ *       their offsets change. A slot keeps the alignment its offset had, up
+ *       to eight bytes, and its size's: the largest power of two dividing
+ *       both. Quadratic in the count, which a set's size makes cheap.
+ *
+ * @param[in,out] _set  the set; its slots disjoint, as every set built
+ *                      through this header has them.
+ * @return the bytes given back; D_OPTION_STATUS_INVALID_ARGUMENT for a null
+ *         set.
+ * @post Every pointer into the value block, d_option_slot's included, is
+ *       invalid; every value reads as it did.
+ */
+struct dj_option_result d_option_set_compact(
+    struct dj_option_set* _set
 );
 
 

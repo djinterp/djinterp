@@ -5,8 +5,8 @@
 *   option_set (option_set.hpp) is the compile-time face of options: a typed
 * schema whose keys and value types are fixed when it is instantiated. Some
 * consumers need the dynamic face instead -- a record assembled at run time
-* from several modules that do not know each other's keys. uxoxo's element
-* attributes and element state are the first such consumer.
+* from several modules that do not know each other's keys, as a user
+* interface's element attributes and element state are.
 *   A record maps keys to a small closed set of scalar values: bool, long,
 * double and string. overlay is the cascade: the right-hand record's entries win
 * over the left's, key by key. The record is an aggregate, so it can be written
@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/cpp/option/option_record.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.22
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -25,17 +25,20 @@ TABLE OF CONTENTS
 1.  VALUES
     ------
     1.  option_value
+         1.  option_value
 2.  THE RECORD
     ----------
     1.  option_record
+         1.  option_record
     2.  overlay
+         1.  overlay
 */
 
 #ifndef DJINTERP_OPTION_OPTION_RECORD_HPP
 #define DJINTERP_OPTION_OPTION_RECORD_HPP 1
 
 // djinterp
-#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
