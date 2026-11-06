@@ -26,7 +26,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_program.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // corresponding header
 // std
@@ -2292,6 +2292,15 @@ void d_cli_internal_configure(
         _parser->formatter.context = _program;
     }
 
+    // the parser's own layout, asked for or the only one built: `@FILE` on
+    // every page where response files are read (ruling cli-taken 84)
+    if ( ((_flags & D_CLI_PROGRAM_RESPONSE_FILES) != 0u) &&
+         (_parser->formatter.vtable == NULL) )
+    {
+        d_cli_internal_parser_layout(&_parser->formatter);
+        _parser->formatter.context = _program;
+    }
+
     d_arg_command_set_failure_message(root,
                                       d_cli_internal_failure,
                                       _program,
@@ -2405,6 +2414,7 @@ void d_cli_program_release(
     D_INTERNAL_CLI_FREE(_program->name);
     D_INTERNAL_CLI_FREE(_program->version);
     D_INTERNAL_CLI_FREE(_program->build_lines);
+    D_INTERNAL_CLI_FREE(_program->plugin_path);
 
     struct dj_arg_parser* const parser = _program->parser;
 

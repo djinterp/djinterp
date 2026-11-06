@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_sweep_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./cli_sweep_tests.h"  // corresponding header
 // std
@@ -91,6 +91,12 @@
 // D_TESTS_CLI_SWEEP_PATH_MAX
 //   constant: the longest path a case builds.
 #define D_TESTS_CLI_SWEEP_PATH_MAX  1024u
+
+// d_tests_cli_sweep_modules_at / d_tests_cli_sweep_beside
+//   variables: the directory the probe modules are in; and a program's file
+// in it, `prog`, which finding looks beside.
+static char d_tests_cli_sweep_modules_at[D_TESTS_CLI_SWEEP_PATH_MAX];
+static char d_tests_cli_sweep_beside[D_TESTS_CLI_SWEEP_PATH_MAX + 8u];
 
 // D_TESTS_CLI_SWEEP_SHOWN
 //   constant: how many runs of a case that fell short are described; the
@@ -2174,6 +2180,12 @@ bool d_tests_cli_sweep_make_host(
                                  "prog",
                                  "1.2",
                                  D_CLI_PROGRAM_COMMANDS) == D_ARG_OK) &&
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0)
+             // the modules' directory, which the build reads no variable for
+             (d_cli_program_set_plugin_path(
+                  _program,
+                  d_tests_cli_sweep_modules_at) == D_ARG_OK)          &&
+#endif
              (d_cli_program_add_plugin(_program,
                                        NULL,
                                        "probe",
@@ -3082,10 +3094,8 @@ bool d_tests_cli_sweep_files(void)
 //==============================================================================
 
 // d_tests_cli_sweep_modules_at / d_tests_cli_sweep_beside
-//   variables: the directory the probe modules are in; and a program's file
-// in it, `prog`, which finding looks beside.
-static char d_tests_cli_sweep_modules_at[D_TESTS_CLI_SWEEP_PATH_MAX];
-static char d_tests_cli_sweep_beside[D_TESTS_CLI_SWEEP_PATH_MAX + 8u];
+//   variables: defined with the suite's constants, above, for the host's
+// fixture reads the first where the build reads no PROGRAM_PLUGIN_PATH.
 
 /*
 d_tests_cli_sweep_modules
@@ -3361,14 +3371,17 @@ bool d_tests_cli_sweep_plugins(void)
 //==============================================================================
 
 // d_tests_cli_sweep
-//   constant: the suite's sections, in the order they run.
+//   constant: the suite's sections, in the order they run; modules swept
+// where the kit has a loader, as the plugin suite runs them.
 const struct dj_tests_section d_tests_cli_sweep[] =
 {
     { "cli_sweep_making",  d_tests_cli_sweep_making  },
     { "cli_sweep_endings", d_tests_cli_sweep_endings },
     { "cli_sweep_work",    d_tests_cli_sweep_work    },
     { "cli_sweep_files",   d_tests_cli_sweep_files   },
+#if (D_INTERNAL_CLI_PLUGINS == 1)
     { "cli_sweep_plugins", d_tests_cli_sweep_plugins }
+#endif
 };
 
 // d_tests_cli_sweep_count

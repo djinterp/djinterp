@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/tools/cli/c/cli_program.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -181,10 +181,13 @@ enum dj_cli_severity
 // 1.3.2
 // D_CLI_PROGRAM_RESPONSE_FILES
 //   flag: the program reads response files, `@FILE` (R14), split as the
-// platform's tools split them, and its root's help says so: in the kit's
-// layout, `@FILE` among its options, before help and version; in the
-// parser's own (D_CLI_PROGRAM_PARSER_HELP), as the program says it. Off
-// unless asked for.
+// platform's tools split them, and every page of its help says so (ruling
+// cli-taken 84): in the kit's layout, `@FILE` among the program's own
+// options -- the root's Options, before help and version; a command's Global
+// options, after them; the Options of a command that takes none from above
+// -- and a module's pages too, its host having read them; in the parser's
+// own (D_CLI_PROGRAM_PARSER_HELP), last among a page's OPTIONS, laid out as
+// an option is. Off unless asked for.
 #define D_CLI_PROGRAM_RESPONSE_FILES  (1u << 1)
 
 // 1.3.3
@@ -389,6 +392,9 @@ struct dj_cli_build
 // `build_lines` the lines of its own d_cli_program_add_build kept, each
 // `KEY: VALUE` and a newline, or NULL; and `host` the host a module's
 // program was made from (d_cli_program_init_plugin), or NULL.
+// `plugin_path` holds the directories a run looks for modules in first,
+// owned, or NULL (d_cli_program_set_plugin_path); `plugin_versions` the
+// dj_cli_plugin_versions its runs follow, 0 for the build's.
 //   Public-payload layout: read any field; change one only through the calls
 // below.
 struct dj_cli_plugin_host;
@@ -421,6 +427,8 @@ struct dj_cli_program
     struct dj_cli_build              build;
     char*                           build_lines;
     const struct dj_cli_plugin_host* host;
+    char*                           plugin_path;
+    int                             plugin_versions;
 };
 
 

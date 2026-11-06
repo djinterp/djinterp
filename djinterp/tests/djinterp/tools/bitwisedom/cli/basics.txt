@@ -34,7 +34,7 @@ $ bitwisedom --help
 >   rename              rename a row; every expression that names it follows
 >   move                move a row: up, down, beside another, or into a group
 >   sort                put each group's rows in order, for the header to follow
->   set                 change settings, by the paths the window's Options show
+>   set                 change settings, by name or by a sheet file's path
 >   get                 print settings; every one, without a KEY
 >   op                  preview an operation over rows -- a shift, a rotation, a
 >                       byte swap, arithmetic; --apply applies it

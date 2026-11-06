@@ -3,6 +3,10 @@
 *
 * The commands that rearrange a sheet's rows or change the rest of it:
 * duplicate, remove, rename, move, sort, set, get and op.
+*   set and get take a setting by its registry name, the window's, or by its
+* path in a sheet file, as --keys says -- by default as the build says
+* (D_CFG_BITWISEDOM_KEYS), a name where the registry has one and a path for
+* the rest (ruling cli-taken 16).
 *   Each reads its sheet, finds every row it names before it changes
 * anything -- a name no row has stops it, nothing written -- makes the
 * change with the model's own edits, the window's, and stores the sheet as
@@ -15,7 +19,7 @@
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_rows.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -34,7 +38,11 @@
 #include <djinterp/tools/bitwisedom/json.hpp>      // json_value
 #include <djinterp/tools/bitwisedom/ops.hpp>       // preview_op, apply_op_to
 #include <djinterp/tools/bitwisedom/rename.hpp>    // rename_row
-#include <djinterp/tools/bitwisedom/settings.hpp>  // sheet_settings
+#include <djinterp/tools/bitwisedom/settings.hpp>  // sheet_settings,
+                                                   // sheet_file_value
+// djinterp
+#include <djinterp/config/tools/bitwisedom/cfg_bitwisedom.h>  // D_INTERNAL_
+                                                   // BITWISEDOM_KEYS
 
 
 namespace bitwisedom
@@ -496,12 +504,25 @@ int run_sort(
 // set, get
 //------------------------------------------------------------------------------
 
+// keys_words
+//   function: the words of --keys, in the order of D_CFG_BITWISEDOM_KEYS_*:
+// a registry name, a sheet file's path, or either.
+const std::vector<std::string>& keys_words()
+{
+    static const std::vector<std::string> words = { "names", "paths", "both" };
+
+    return words;
+}
+
 // set_request / get_request
-//   structs: what `set` and `get` were asked.
+//   structs: what `set` and `get` were asked; `keys` what a KEY is, the
+// build's choice until --keys says otherwise.
 struct set_request
 {
     std::string              sheet;
     std::vector<std::string> settings;
+    std::string              keys = keys_words()[D_INTERNAL_BITWISEDOM_KEYS -
+                                                 1];
     destination              where;
 };
 
@@ -509,34 +530,142 @@ struct get_request
 {
     std::string              sheet;
     std::vector<std::string> keys;
+    std::string              which = keys_words()[D_INTERNAL_BITWISEDOM_KEYS -
+                                                  1];
     std::string              format = "text";
 };
 
 /*
+keys_taken
+  What --keys asked for, as D_CFG_BITWISEDOM_KEYS_* bits; 0, the usage error
+said, for a word it does not take.
+*/
+int keys_taken(
+    kit::program&      _program,
+    kit::command       _command,
+    const std::string& _word,
+    int&               _status
+)
+{
+    const int index = choice_of(_word, keys_words());
+
+    if (index < 0)
+    {
+        _status = bad_word(_program, _command, "--keys", _word,
+                           keys_words());
+
+        return 0;
+    }
+
+    return index + 1;
+}
+
+/*
+add_keys
+  --keys=WHICH, on set and get.
+*/
+void add_keys(
+    kit::command _command,
+    std::string& _which
+)
+{
+    _command.add_option("--keys", _which,
+                        "what a KEY is: names, as the window's Options "
+                        "show; paths, as a sheet file holds; or both, a "
+                        "name where there is one")
+            .type_name("WHICH")
+            .default_str(_which);
+
+    return;
+}
+
+/*
 unknown_setting
-  The usage error of a path no setting has, with the nearest that one has.
+  The usage error of a KEY that names nothing a run takes, with the nearest
+that does: among the registry's names, and the sheet file's paths where the
+sheet has been read.
 */
 int unknown_setting(
     kit::program&      _program,
     kit::command       _command,
-    const std::string& _path
+    const std::string& _path,
+    int                _keys,
+    const sheet*       _sheet
 )
 {
-    std::vector<std::string> paths;
+    std::vector<std::string> known;
 
-    for (const sheet_setting& each : sheet_settings())
+    for (std::size_t i = 0;
+         ( ((_keys & D_CFG_BITWISEDOM_KEYS_NAMES) != 0) &&
+           (i < sheet_settings().size()) );
+         ++i)
     {
-        paths.push_back(each.path);
+        known.push_back(sheet_settings()[i].path);
     }
 
-    const std::string near = nearest(_path, paths);
+    if ( ((_keys & D_CFG_BITWISEDOM_KEYS_PATHS) != 0) &&
+         (_sheet != nullptr) )
+    {
+        const std::vector<std::string> paths = sheet_file_paths(*_sheet);
+
+        known.insert(known.end(), paths.begin(), paths.end());
+    }
+
+    const bool        paths = (_keys == D_CFG_BITWISEDOM_KEYS_PATHS);
+    const std::string near  = nearest(_path, known);
+    const std::string what  = paths ? "' is not a path of a sheet file"
+                                    : "' is not a setting";
+    const std::string list  = paths ? "; 'bitwisedom get --keys=paths "
+                                      "SHEET' lists them"
+                                    : "; 'bitwisedom get' lists them";
 
     return _program.usage_error(_command,
-                                "'" + _path + "' is not a setting" +
+                                "'" + _path + what +
                                 (near.empty()
-                                     ? std::string("; 'bitwisedom get' "
-                                                   "lists them")
+                                     ? list
                                      : "; did you mean '" + near + "'?"));
+}
+
+/*
+path_text
+  A value a sheet file's path names, as get prints it and set says it: a
+text as it is, anything else as JSON on one line.
+*/
+std::string path_text(
+    const json_value& _value
+)
+{
+    return (_value.type == json_type::string) ? _value.text
+                                              : compact_json(_value);
+}
+
+/*
+set_path
+  One PATH=VALUE written at a path of the sheet's file, and said; a usage
+error for a value the path's member does not take, or the sheet does not
+keep.
+*/
+int set_path(
+    kit::program&      _program,
+    kit::command       _command,
+    const std::string& _path,
+    const std::string& _value,
+    sheet&             _sheet,
+    std::string&       _said
+)
+{
+    std::string error;
+    json_value  now;
+
+    if (!set_sheet_file_value(_sheet, _path, _value, error))
+    {
+        return _program.usage_error(_command, _path + ": " + error);
+    }
+
+    (void)sheet_file_value(_sheet, _path, now);
+    _said += (_said.empty() ? "" : ", ") + _path + "=" + path_text(now);
+
+    return D_CLI_EXIT_OK;
 }
 
 /*
@@ -548,6 +677,7 @@ int set_one(
     kit::program&      _program,
     kit::command       _command,
     const std::string& _setting,
+    int                _keys,
     sheet&             _sheet,
     std::string&       _said
 )
@@ -562,15 +692,25 @@ int set_one(
     }
 
     const std::string    path  = _setting.substr(0, equals);
-    const sheet_setting* found = find_sheet_setting(path);
+    const std::string    value = _setting.substr(equals + 1u);
+    const sheet_setting* found = ((_keys & D_CFG_BITWISEDOM_KEYS_NAMES) != 0)
+                                 ? find_sheet_setting(path)
+                                 : nullptr;
+    json_value           held;
     std::string          error;
+
+    // a path of the file, where the registry has no such name
+    if ( (found == nullptr)                                   &&
+         ((_keys & D_CFG_BITWISEDOM_KEYS_PATHS) != 0)         &&
+         (sheet_file_value(_sheet, path, held)) )
+    {
+        return set_path(_program, _command, path, value, _sheet, _said);
+    }
 
     if (found == nullptr)
     {
-        return unknown_setting(_program, _command, path);
+        return unknown_setting(_program, _command, path, _keys, &_sheet);
     }
-
-    const std::string value = _setting.substr(equals + 1u);
 
     // a choice's word: the words it takes, and the one meant
     if ( (!found->words.empty()) &&
@@ -601,23 +741,27 @@ int run_set(
     const set_request& _request
 )
 {
-    source read;
+    int       status = D_CLI_EXIT_TROUBLE;
+    const int keys   = keys_taken(_program, _command, _request.keys, status);
+    source    read;
 
-    if (!read_source(_program, _request.sheet, read))
+    if ( (keys == 0) ||
+         (!read_source(_program, _request.sheet, read)) )
     {
-        return D_CLI_EXIT_TROUBLE;
+        return status;
     }
 
     const resolution before = resolve(read.doc);
     std::string      said;
-    int              status = D_CLI_EXIT_OK;
+
+    status = D_CLI_EXIT_OK;
 
     for (std::size_t i = 0;
          ( (status == D_CLI_EXIT_OK) && (i < _request.settings.size()) );
          ++i)
     {
-        status = set_one(_program, _command, _request.settings[i], read.doc,
-                         said);
+        status = set_one(_program, _command, _request.settings[i], keys,
+                         read.doc, said);
     }
 
     return (status != D_CLI_EXIT_OK)
@@ -626,48 +770,96 @@ int run_set(
                    before);
 }
 
+// asked_key
+//   struct: one KEY get was asked for: its registry entry, or none for a
+// path of the sheet's file.
+struct asked_key
+{
+    std::string          key;
+    const sheet_setting* setting = nullptr;
+};
+
 /*
 settings_asked
-  The settings the KEYs name, every one known before anything is read --
-every setting, without a KEY; false, the usage error said, at a KEY no
-setting has.
+  The settings the KEYs name -- every setting, without a KEY, or every path
+of the file that holds a value where only paths are taken -- each registry
+name known before anything is read; false, the usage error said, at a KEY
+that is no setting where paths are not taken either.
 */
 bool settings_asked(
-    kit::program&                      _program,
-    kit::command                       _command,
-    const std::vector<std::string>&    _keys,
-    std::vector<const sheet_setting*>& _asked,
-    int&                               _status
+    kit::program&                   _program,
+    kit::command                    _command,
+    const std::vector<std::string>& _keys,
+    int                             _taken,
+    std::vector<asked_key>&         _asked,
+    int&                            _status
 )
 {
     for (const std::string& each : _keys)
     {
-        const sheet_setting* found = find_sheet_setting(each);
+        asked_key one;
 
-        if (found == nullptr)
+        one.key     = each;
+        one.setting = ((_taken & D_CFG_BITWISEDOM_KEYS_NAMES) != 0)
+                      ? find_sheet_setting(each)
+                      : nullptr;
+
+        if ( (one.setting == nullptr) &&
+             ((_taken & D_CFG_BITWISEDOM_KEYS_PATHS) == 0) )
         {
-            _status = unknown_setting(_program, _command, each);
+            _status = unknown_setting(_program, _command, each, _taken,
+                                      nullptr);
 
             return false;
         }
 
-        _asked.push_back(found);
+        _asked.push_back(one);
     }
 
     for (std::size_t i = 0;
-         ( _keys.empty() && (i < sheet_settings().size()) );
+         ( _keys.empty()                                  &&
+           ((_taken & D_CFG_BITWISEDOM_KEYS_NAMES) != 0)  &&
+           (i < sheet_settings().size()) );
          ++i)
     {
-        _asked.push_back(&sheet_settings()[i]);
+        _asked.push_back(asked_key{ sheet_settings()[i].path,
+                                    &sheet_settings()[i] });
     }
 
     return true;
 }
 
 /*
+paths_listed
+  Every path of a sheet's file that holds a value, not an array or an
+object, as get lists them where only paths are taken.
+*/
+std::vector<asked_key> paths_listed(
+    const sheet& _sheet
+)
+{
+    std::vector<asked_key> listed;
+
+    for (const std::string& each : sheet_file_paths(_sheet))
+    {
+        json_value value;
+
+        if ( (sheet_file_value(_sheet, each, value)) &&
+             (value.type != json_type::array)        &&
+             (value.type != json_type::object) )
+        {
+            listed.push_back(asked_key{ each, nullptr });
+        }
+    }
+
+    return listed;
+}
+
+/*
 run_get
   The settings asked for as KEY=VALUE lines; one KEY alone, its value alone,
-for a script to take; or as JSON.
+for a script to take; or as JSON. A KEY that is a path is looked for once
+the sheet is read.
 */
 int run_get(
     kit::program&      _program,
@@ -675,34 +867,53 @@ int run_get(
     const get_request& _request
 )
 {
-    bool                              ok     = false;
-    const bool                        json   = json_wanted(_program,
-                                                           _command,
-                                                           _request.format,
-                                                           ok);
-    int                               status = D_CLI_EXIT_TROUBLE;
-    std::vector<const sheet_setting*> asked;
-    source                            read;
+    bool                   ok     = false;
+    const bool             json   = json_wanted(_program, _command,
+                                                _request.format, ok);
+    int                    status = D_CLI_EXIT_TROUBLE;
+    const int              taken  = ok ? keys_taken(_program, _command,
+                                                    _request.which, status)
+                                       : 0;
+    std::vector<asked_key> asked;
+    source                 read;
 
-    if ( (!ok) ||
-         (!settings_asked(_program, _command, _request.keys, asked,
+    if ( (taken == 0) ||
+         (!settings_asked(_program, _command, _request.keys, taken, asked,
                           status)) ||
          (!read_source(_program, _request.sheet, read)) )
     {
         return D_CLI_EXIT_TROUBLE;
     }
 
+    asked = ( (_request.keys.empty()) &&
+              (taken == D_CFG_BITWISEDOM_KEYS_PATHS) )
+            ? paths_listed(read.doc)
+            : asked;
+
     json_value  made = json_value::object();
     std::string text;
 
-    for (const sheet_setting* each : asked)
+    for (const asked_key& each : asked)
     {
-        const std::string value = setting_text(*each, read.doc);
+        json_value value;
 
-        made.set(each->path, json_value::string(value));
+        if ( (each.setting == nullptr) &&
+             (!sheet_file_value(read.doc, each.key, value)) )
+        {
+            return unknown_setting(_program, _command, each.key, taken,
+                                   &read.doc);
+        }
+
+        const std::string shown = (each.setting != nullptr)
+                                  ? setting_text(*each.setting, read.doc)
+                                  : path_text(value);
+
+        made.set(each.key, (each.setting != nullptr)
+                               ? json_value::string(shown)
+                               : value);
         text += (_request.keys.size() == 1u)
-                ? (value + "\n")
-                : (each->path + "=" + value + "\n");
+                ? (shown + "\n")
+                : (each.key + "=" + shown + "\n");
     }
 
     emit(_program, json ? write_json(made) : text);
@@ -1095,7 +1306,8 @@ void define_sort(
 
 /*
 define_set_get
-  set and get: the settings, by the paths the window's Options show.
+  set and get: the settings, by the names the window's Options show, or by
+the paths a sheet file holds, as --keys says.
 */
 void define_set_get(
     kit::program& _program
@@ -1104,7 +1316,7 @@ void define_set_get(
     const auto   sets = std::make_shared<set_request>();
     kit::command set  = _program.add_command(
         "set",
-        "change settings, by the paths the window's Options show",
+        "change settings, by name or by a sheet file's path",
         [sets](kit::program& _p, kit::command _c)
         {
             return run_set(_p, _c, *sets);
@@ -1113,8 +1325,9 @@ void define_set_get(
     set.group(CHANGING);
     add_sheet(_program, set, sets->where, sets->sheet);
     set.add_option("SETTING", sets->settings,
-                   "KEY=VALUE: gen.level=c11, grid.lines=false")
+                   "KEY=VALUE: gen.level=c11, grid.lines=false, probe=0x10")
        .required();
+    add_keys(set, sets->keys);
     add_destination(_program, set, sets->where);
 
     const auto   gets = std::make_shared<get_request>();
@@ -1130,7 +1343,9 @@ void define_set_get(
     get.add_option("SHEET", gets->sheet, "the sheet, as gen reads one")
        .required();
     get.add_option("KEY", gets->keys,
-                   "a setting's path; one KEY prints its value alone");
+                   "a setting's name, or a path in a sheet file; one KEY "
+                   "prints its value alone");
+    add_keys(get, gets->which);
     add_format(get, gets->format);
 
     return;

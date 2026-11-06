@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/cli/cli.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -89,7 +89,7 @@ V.    concepts                    (C++20 analogs)
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"          // NS_*, D_CONSTEXPR_INLINE, clean_t
+#include "../djinterp.hpp"          // NS_*, D_CONSTEXPR_INLINE_VAR, clean_t
 #include "../meta/type_utility.hpp"    // clean_t
 #include "../option/option.hpp"     // option<>
 #include "../meta/fixed_string.hpp" // fixed_string<> (authoring-boundary NTTP)
@@ -335,7 +335,7 @@ struct is_dji_cli_node : internal::is_dji_cli_node_impl<clean_t<Type>>
 // is_dji_cli_node_v
 //   value: variable-template shorthand for is_dji_cli_node<Type>::value.
 template<typename Type>
-D_CONSTEXPR_INLINE bool is_dji_cli_node_v = is_dji_cli_node<Type>::value;
+D_CONSTEXPR_INLINE_VAR bool is_dji_cli_node_v = is_dji_cli_node<Type>::value;
 
 
 // dji_cli_kind
@@ -347,7 +347,8 @@ struct dji_cli_kind : internal::dji_cli_kind_impl<clean_t<Type>>
 // dji_cli_kind_v
 //   value: variable-template shorthand for dji_cli_kind<Type>::value.
 template<typename Type>
-D_CONSTEXPR_INLINE dji_cli::value dji_cli_kind_v = dji_cli_kind<Type>::value;
+D_CONSTEXPR_INLINE_VAR dji_cli::value dji_cli_kind_v =
+    dji_cli_kind<Type>::value;
 
 
 // is_dji_cli_payload
@@ -366,7 +367,8 @@ struct is_dji_cli_payload
 // is_dji_cli_payload_v
 //   value: variable-template shorthand for is_dji_cli_payload<Type>::value.
 template<typename Type>
-D_CONSTEXPR_INLINE bool is_dji_cli_payload_v = is_dji_cli_payload<Type>::value;
+D_CONSTEXPR_INLINE_VAR bool is_dji_cli_payload_v =
+    is_dji_cli_payload<Type>::value;
 
 
 // ===========================================================================

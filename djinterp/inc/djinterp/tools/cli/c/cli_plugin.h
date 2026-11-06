@@ -15,30 +15,39 @@
 * and the program exports nothing. D_CLI_PLUGIN defines the entry point.
 *   FINDING ONE. The module of command NAME of program PROGRAM is the file
 * `PROGRAM-NAME` with the platform's suffix (D_ENV_CLI_MODULE_SUFFIX), looked
-* for in the directories PROGRAM_PLUGIN_PATH lists -- the program's name
-* upper-cased, each `-` an `_` -- then in the program's own directory, then in
+* for in the directories the program was told of at run time
+* (d_cli_program_set_plugin_path), then in those PROGRAM_PLUGIN_PATH lists --
+* the program's name upper-cased, each `-` an `_` -- unless the build reads
+* no such variable (D_CFG_CLI_PLUGIN_VARIABLE), then in the build's own
+* (D_CFG_CLI_PLUGIN_SEARCH): by default the program's own directory, then
 * `../lib/PROGRAM/` from it. A program whose file carries a tag after its
 * name -- `bitwisedom-linux64`, as a build's bin/ directory names it, so that
 * every platform's builds can share one -- looks in each first for the
 * module with the same tag, `bitwisedom-gui-linux64.so`.
 *   LOADING ONE. A module whose ABI is another, or that belongs to another
-* program, or to another version of this one, is refused, by name and with
-* both versions. A module loaded stays loaded until the process ends: what
-* it started -- a window system's or a GPU driver's threads -- may outlive
-* its run.
+* program, is refused. One that belongs to another version of this program
+* is refused too, by name and with both versions, unless the build
+* (D_CFG_CLI_PLUGIN_STRICT_VERSION) or the program's setting for the run
+* (d_cli_program_set_plugin_versions) says to load it, with a warning that
+* names both. A module loaded stays loaded until the process ends: what it
+* started -- a window system's or a GPU driver's threads -- may outlive its
+* run.
 *   ITS PROGRAM. A module reads its arguments with its own parser and the
 * same kit: d_cli_program_init_plugin names its program as the host's and
 * takes the host's verbosity and colour, so that `bitwisedom -v gui` is
 * verbose in the window too, and `bitwisedom gui --help` is the window's help.
 * It keeps the host, so that `bitwisedom gui --version -v` names the
 * program's file and the module's; and a host's `--version -v` says where
-* each of its modules would be loaded from.
+* each of its modules would be loaded from. A host that reads response files
+* has read them before the module is run, so the module's help says `@FILE`,
+* as every page of the program's does, and its parser does not read them
+* again.
 *
 *
 * path:      /inc/djinterp/tools/cli/c/cli_plugin.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -65,8 +74,10 @@ TABLE OF CONTENTS
     1.  Records
          1.  dj_cli_module
          2.  D_CLI_MODULE_INIT
+         3.  dj_cli_plugin_versions
     2.  Finding
          1.  d_cli_plugin_find
+         2.  d_cli_plugin_find_with
     3.  Loading
          1.  d_cli_module_load
          2.  d_cli_module_unload
@@ -74,6 +85,8 @@ TABLE OF CONTENTS
     ------------
     1.  The host's side
          1.  d_cli_program_add_plugin
+         2.  d_cli_program_set_plugin_path
+         3.  d_cli_program_set_plugin_versions
     2.  The module's side
          1.  d_cli_program_init_plugin
 */
@@ -268,6 +281,19 @@ struct dj_cli_module
 //   constant: the initializer of a dj_cli_module that holds no module.
 #define D_CLI_MODULE_INIT { NULL, NULL, NULL }
 
+// 3.1.3
+// dj_cli_plugin_versions
+//   enum: what a program does with a module that belongs to another version
+// of it: what the build says (D_CFG_CLI_PLUGIN_STRICT_VERSION); refuse it;
+// or load it, with a warning naming both versions. A module of another ABI
+// is refused whatever this says.
+enum dj_cli_plugin_versions
+{
+    D_CLI_PLUGIN_VERSIONS_DEFAULT = 0,
+    D_CLI_PLUGIN_VERSIONS_REFUSE  = 1,
+    D_CLI_PLUGIN_VERSIONS_WARN    = 2
+};
+
 // 3.2    Finding
 //------------------------------------------------------------------------------
 // 3.2.1
@@ -298,6 +324,40 @@ int d_cli_plugin_find(
     const char*           _program,
     const char*           _name,
     const char*           _executable,
+    struct dj_arg_buffer* _found,
+    struct dj_arg_buffer* _searched
+);
+
+// 3.2.2
+// d_cli_plugin_find_with
+/**
+ * @brief Finds the module of a program's command, looking first in the
+ *        directories a run was told of; d_cli_plugin_find is this with
+ *        none.
+ *
+ * @note The order is `_path`'s directories, then PROGRAM_PLUGIN_PATH's
+ *       (where the build reads it, D_CFG_CLI_PLUGIN_VARIABLE), then the
+ *       build's (D_CFG_CLI_PLUGIN_SEARCH), each with `$ORIGIN` and
+ *       `$PROGRAM` written out; a directory of the build's that needs
+ *       `$ORIGIN` is passed over when `_executable` is NULL. A directory
+ *       named at run time keeps its separators as given.
+ *
+ * @param[in]     _program     the program's name, `bitwisedom`.
+ * @param[in]     _name        the command's, `gui`.
+ * @param[in]     _executable  the program's own file, or NULL.
+ * @param[in]     _path        directories to look in first, separated as
+ *                             PATH separates them; NULL or empty for none.
+ * @param[in,out] _found       the module's path is appended to it when
+ *                             found.
+ * @param[in,out] _searched    each directory searched is appended to it, a
+ *                             line each; may be NULL.
+ * @return as d_cli_plugin_find.
+ */
+int d_cli_plugin_find_with(
+    const char*           _program,
+    const char*           _name,
+    const char*           _executable,
+    const char*           _path,
     struct dj_arg_buffer* _found,
     struct dj_arg_buffer* _searched
 );
@@ -373,7 +433,9 @@ void d_cli_module_unload(
  *       D_CLI_EXIT_TROUBLE; so is the command where the kit has no plugin
  *       loader, which says so. The program's `--version --verbose` says
  *       where the module would be loaded from: `gui module: PATH`, or `gui
- *       module: not installed`.
+ *       module: not installed`. Where it looks, and whether it takes a
+ *       module of another version, are the build's unless the program's
+ *       settings below say otherwise.
  *
  * @param[in,out] _program      the program.
  * @param[in,out] _parent       the command to add it under; NULL for the
@@ -390,6 +452,40 @@ struct dj_arg_command* d_cli_program_add_plugin(
     const char*            _description
 );
 
+// 4.1.2
+// d_cli_program_set_plugin_path
+/**
+ * @brief Gives a program, for its runs, directories to look for its modules
+ *        in before any other: what a run-time option names.
+ *
+ * @param[in,out] _program  the program.
+ * @param[in]     _path     the directories, separated as PATH separates
+ *                          them, copied; NULL or empty for none.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, the setting left as it was
+ *         and the want kept in the program's `status`, so that its runs
+ *         end in trouble and say why; D_ARG_ERROR_BAD_ARGUMENT for a NULL
+ *         program.
+ */
+int d_cli_program_set_plugin_path(
+    struct dj_cli_program* _program,
+    const char*            _path
+);
+
+// 4.1.3
+// d_cli_program_set_plugin_versions
+/**
+ * @brief Says, for a program's runs, what it does with a module that
+ *        belongs to another version of it: what a run-time option names.
+ *
+ * @param[in,out] _program   the program; NULL is ignored.
+ * @param[in]     _versions  a dj_cli_plugin_versions; any other value is
+ *                           D_CLI_PLUGIN_VERSIONS_DEFAULT, the build's.
+ */
+void d_cli_program_set_plugin_versions(
+    struct dj_cli_program* _program,
+    int                    _versions
+);
+
 // 4.2    The module's side
 //------------------------------------------------------------------------------
 // 4.2.1
@@ -401,7 +497,9 @@ struct dj_arg_command* d_cli_program_add_plugin(
  *        and reading and writing as it does: the host's
  *        D_CLI_PROGRAM_PARSER_HELP, D_CLI_PROGRAM_PLAIN_ERRORS,
  *        D_CLI_PROGRAM_ABBREVIATIONS and D_CLI_PROGRAM_EDITS_TO_OUTPUT
- *        joined to `_flags`.
+ *        joined to `_flags`; and the host's D_CLI_PROGRAM_RESPONSE_FILES,
+ *        so that its help says `@FILE` -- the host read them -- while its
+ *        parser reads none again.
  *
  * @note The parser should be made with the host's `command` as its name,
  *       so that the module's usage lines read `Usage: bitwisedom gui ...`.

@@ -27,11 +27,15 @@ djinterp's are `djinterp/` -- and has a build of its own (2026.10.23).
 Use `cmake --preset msvc` from `build/ui/bitwisedom/` for everything, or
 from `build/cmake/djinterp/tools/bitwisedom/` for the command line alone
 (on Windows, in a Developer Command Prompt). The window's build finds uxoxo
-two directories above the djinterp root -- `uxoxo/uxoxo-project` there,
-else `uxoxo` -- unless `UXOXO_ROOT` names it. A previous standalone
-bitfield_manager build should not be reused. The public header paths are now
-`#include <djinterp/tools/bitwisedom/sheet.hpp>`, etc. The library's C++
-namespace remains `bitwisedom`. The target names are unchanged.
+where `UXOXO_ROOT` names it -- `-DUXOXO_ROOT=<path>`, or the environment's --
+and otherwise at the sibling checkout: `uxoxo` beside djinterp's checkout,
+or `uxoxo/uxoxo-project` there, then the same a level up, as a directory of
+projects with a folder for each keeps them. It is found when the window is
+built, never when it runs, and never inside djinterp's tree. A previous
+standalone bitfield_manager build should not be reused. The public header
+paths are now `#include <djinterp/tools/bitwisedom/sheet.hpp>`, etc. The
+library's C++ namespace remains `bitwisedom`. The target names are
+unchanged.
 
 This overlay does **not** change djinterp's main build registration.
 bitwisedom currently builds from its own CMake entrypoint under `build/`.

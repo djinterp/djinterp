@@ -27,7 +27,7 @@
 # path:      /build/cmake/config/ui/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.10.26
+#                                                            revised: 2026.11.04
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.21)
 
@@ -186,9 +186,10 @@ if(BITWISEDOM_BUILD_TESTS)
         PASS_REGULAR_EXPRESSION "passed: 46   failed: 0")
 
     # the module found beside the command line, loaded and run, with no
-    # window opened: its help; its version; and a SHEET it refuses as the
-    # commands refuse one -- each held to its status and its words by the
-    # kit's d_cli_add_test
+    # window opened: its help; its version; a SHEET it refuses, by
+    # --sheets=refuse, as the commands refuse one (reporting, the default,
+    # would open the window); and a --sheets it does not know -- each held
+    # to its status and its words by the kit's d_cli_add_test
     d_cli_add_test(gui_help
         COMMAND bitwisedom gui --help
         STATUS  0
@@ -201,7 +202,12 @@ if(BITWISEDOM_BUILD_TESTS)
         MATCHES "\nwindow: [^\n]+\nimgui: ")
 
     d_cli_add_test(gui_unknown_example
-        COMMAND bitwisedom gui example:nonesuch
+        COMMAND bitwisedom gui --sheets=refuse example:nonesuch
         STATUS  2
         MATCHES "bitwisedom: error: 'nonesuch' is not a built-in example")
+
+    d_cli_add_test(gui_sheets_word
+        COMMAND bitwisedom gui --sheets=never example:uart_cr
+        STATUS  2
+        MATCHES "--sheets: 'never' is not refuse or report")
 endif()

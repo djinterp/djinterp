@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/tools/cli/cli_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./cli_tests.hpp"  // corresponding header
 // std
@@ -1065,8 +1065,10 @@ bool d_tests_cli_cpp_edits()
 /*
 d_tests_cli_cpp_plugins
   The runner's file; a module found along the list; PROBE loaded and held,
-then OTHER refused with why and nothing held; and the module unloaded by
-the destructor.
+then OTHER refused with why and nothing held; the module unloaded by the
+destructor; and a run's settings -- where it looks first, what it does with
+a module of another version -- kept in the C record as the C calls keep
+them.
 */
 bool d_tests_cli_cpp_plugins()
 {
@@ -1082,6 +1084,7 @@ bool d_tests_cli_cpp_plugins()
                                  "G01",
                                  "the runner's own file");
 
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
     (void)d_tests_cli_setenv("PROG_PLUGIN_PATH",
                              MODULES.c_str());
     held = d_tests_cli_check( (kit::find_plugin("prog",
@@ -1097,6 +1100,26 @@ bool d_tests_cli_cpp_plugins()
                               "a module found along the list") && held;
     (void)d_tests_cli_setenv("PROG_PLUGIN_PATH",
                              D_NULLPTR);
+#else
+    found = MODULES + D_ENV_CLI_PATH_SEPARATOR + "prog-probe" + suffix;
+#endif
+
+    kit::program told("prog",
+                      "1.2");
+
+    held = d_tests_cli_check( (told.plugin_path(MODULES).ok())             &&
+                              (told.kit().plugin_path != D_NULLPTR)        &&
+                              (MODULES == told.kit().plugin_path)          &&
+                              (&told.plugin_versions(
+                                   kit::plugin_versions::warn) == &told)   &&
+                              (told.kit().plugin_versions ==
+                               static_cast<int>(
+                                   D_CLI_PLUGIN_VERSIONS_WARN))            &&
+                              (told.plugin_path("").ok())                  &&
+                              (told.kit().plugin_path == D_NULLPTR),
+                              "G05",
+                              "a run's settings, as the C record keeps "
+                              "them") && held;
 
 #if (D_INTERNAL_CLI_PLUGINS == 1)
     kit::DPluginModule module;

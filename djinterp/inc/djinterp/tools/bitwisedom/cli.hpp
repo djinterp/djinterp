@@ -13,13 +13,16 @@
 * work as `bitwisedom gen`, under the options it always took, so that build
 * scripts written for it run unchanged.
 *   The window, which is built apart from djinterp (build/cmake/config/ui),
-* takes its SHEET operands through window_sheet_of, by the commands' rules, so
-* that `bitwisedom gui` refuses what they refuse, in their words.
+* takes its SHEET operands one of two ways (ruling cli-taken 25): every one
+* handed over, what it will not open said on standard error as it starts and
+* the run ending in trouble when it closes (window_sheet_opens, the default);
+* or by the commands' rules, so that `bitwisedom gui` refuses what they
+* refuse, in their words, before any window opens (window_sheet_of).
 *
 * path:      /inc/djinterp/tools/bitwisedom/cli.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -33,6 +36,7 @@ TABLE OF CONTENTS
     -------------------
     1.  window_sheet
     2.  window_sheet_of
+    3.  window_sheet_opens
 */
 
 #ifndef DJINTERP_TOOLS_BITWISEDOM_CLI_HPP
@@ -131,6 +135,30 @@ struct window_sheet
  * @return `true` if the window can open it; `false`, having said why.
  */
 D_NODISCARD bool window_sheet_of(
+    ::djinterp::cli::program& _program,
+    const std::string&        _operand,
+    window_sheet&             _sheet
+);
+
+// 2.1.3
+// window_sheet_opens
+/**
+ * @brief Takes a SHEET operand as the window will open it, whether it can
+ *        or not: `example:NAME` a built-in example, by its place, where
+ *        there is one; anything else a file, by its path.
+ *
+ * @note What the window will not open is said as an error, in the
+ *       commands' words, without ending the run: a name no example has; `-`,
+ *       standard input, which a window cannot read; a file it cannot read;
+ *       JSON that is no sheet, bitfield or export; code with no #define to
+ *       import. The file is read as the window reads it.
+ *
+ * @param[in]  _program  the window's program, which says what is wrong.
+ * @param[in]  _operand  the operand.
+ * @param[out] _sheet    the example, or the file the window is to try.
+ * @return `true` if the window will open it; `false`, having said why.
+ */
+D_NODISCARD bool window_sheet_opens(
     ::djinterp::cli::program& _program,
     const std::string&        _operand,
     window_sheet&             _sheet

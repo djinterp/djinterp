@@ -28,8 +28,10 @@ binaries go to `<djinterp>/bin/tools/bitwisedom/`, and Debug binaries to
 `bitwisedom-win64.exe`, and beside it the window's module,
 `bitwisedom-gui-win64.dll`, where `bitwisedom gui` looks for it.
 `DJINTERP_ROOT` defaults to the containing djinterp checkout; `UXOXO_ROOT`,
-which only the window's build reads, to uxoxo two directories above it
-(the roots, below).
+which only the window's build reads, to the environment's `UXOXO_ROOT`, then
+to the sibling checkout -- `uxoxo`, or `uxoxo/uxoxo-project`, beside
+djinterp's checkout -- and never to a directory inside djinterp's tree (the
+roots, below).
 
 # Building bitwis(e)dom
 
@@ -107,7 +109,7 @@ ctest --preset msvc-debug
 programs are five directories down from the root rather than three.
 
 Elsewhere, in `build/ui/bitwisedom` -- naming uxoxo's root only where it is
-not two directories above djinterp's:
+not the sibling checkout beside djinterp's:
 
 ```
 cmake --preset clang -DUXOXO_ROOT=/path/to/uxoxo
@@ -127,14 +129,16 @@ its `bitwisedom-gui.dll`, on Linux (see below).
 | variable | default | must contain |
 |---|---|---|
 | `DJINTERP_ROOT` | the djinterp checkout the build is in | `inc/djinterp/djinterp.hpp` |
-| `UXOXO_ROOT` | the window's build only: two directories above djinterp's root, `uxoxo/uxoxo-project` there, else `uxoxo` | `inc/uxoxo/element.hpp`, `build/cmake/CMakeLists.txt` |
+| `UXOXO_ROOT` | the window's build only: the environment's `UXOXO_ROOT`, else the sibling checkout beside djinterp's -- `uxoxo`, else `uxoxo/uxoxo-project`, then both a level up -- never inside djinterp's tree | `inc/uxoxo/element.hpp`, `build/cmake/CMakeLists.txt` |
 | `BITWISEDOM_ROOT` | djinterp's root | |
 
 The djinterp root is found from the build's own directory. uxoxo is looked
-for where a directory of projects keeps the two side by side: a djinterp at
+for beside djinterp's checkout -- `uxoxo`, then `uxoxo/uxoxo-project` -- and
+then the same a level up, where a directory of projects keeps each
+project's checkouts in a folder of its own: a djinterp checked out at
 `D:/sam/code/projects/frameworks/djinterp/release` finds uxoxo at
 `D:/sam/code/projects/frameworks/uxoxo/uxoxo-project`, the path that was
-the default before; one not found there names the places it looked. Each
+the default before; one not found names the places it looked. Each
 root is checked at configure time (`build/ui/bitwisedom/cmake/UiRoots.cmake`
 for the window's), and a wrong one is one message naming the variable to
 set.

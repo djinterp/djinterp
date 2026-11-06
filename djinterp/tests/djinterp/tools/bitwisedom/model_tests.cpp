@@ -6,7 +6,8 @@
 * the order a sheet's rows are shown in, what each cell of the grid shows,
 * where the grid's probe and usage rows are, and what the preprocessor
 * cannot read in a definition file; then the edits the window and the
-* command line share, the settings by path, and the self-test.
+* command line share, the settings by path and by a file's, and the
+* self-test.
 *   A suite is a table of sections, as djinterp's are: each section a
 * function that checks one thing and says which check failed, the runner a
 * loop over the table that prints each verdict and the totals. The count is
@@ -16,7 +17,7 @@
 * path:      /tests/djinterp/tools/bitwisedom/model_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // std
 #include <cmath>    // std::fabs
@@ -144,6 +145,24 @@ bool contains(
 )
 {
     return (_text.find(_phrase) != std::string::npos);
+}
+
+// has_path
+//   whether a list of a sheet file's paths holds one.
+bool has_path(
+    const std::vector<std::string>& _paths,
+    const std::string&              _path
+)
+{
+    for (const std::string& each : _paths)
+    {
+        if (each == _path)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // longest_line
@@ -2950,6 +2969,71 @@ void settings_by_path()
 }
 
 /*
+settings_by_file_path
+  Anything a sheet file holds, by its path: the paths, in the file's order;
+a value read; a text, a flag, a number and an array written, each read back
+as the file holds it; and what the file does not hold, a value of the
+wrong form, and one the sheet does not keep, each refused, the sheet as it
+was.
+*/
+void settings_by_file_path()
+{
+    const sheet                    original = make_example("uart_cr");
+    const std::vector<std::string> paths    = sheet_file_paths(original);
+    sheet                          s        = original;
+    json_value                     value;
+    std::string                    error;
+
+    expect( (!paths.empty()) && (paths.front() == "format") &&
+            has_path(paths, "rows.0.rows.0.width") &&
+            has_path(paths, "generator.upper_hex"),
+           "every path, members and elements, in the file's order");
+    expect( sheet_file_value(original, "rows.0.rows.0.width", value) &&
+            (value.type == json_type::number) &&
+            (!sheet_file_value(original, "rows.99", value)) &&
+            (!sheet_file_value(original, "title.x", value)),
+           "a value by its path, and only where the file holds one");
+    expect( set_sheet_file_value(s, "rows.0.rows.0.name", "TXEN", error) &&
+            sheet_file_value(s, "rows.0.rows.0.name", value) &&
+            (value.text == "TXEN"),
+           "a text, as it is");
+    expect( set_sheet_file_value(s, "generator.upper_hex", "false", error) &&
+            sheet_file_value(s, "generator.upper_hex", value) &&
+            (value.type == json_type::boolean) && (!value.flag),
+           "a flag");
+    expect( set_sheet_file_value(s, "generator.word", "64", error) &&
+            sheet_file_value(s, "generator.word", value) &&
+            (compact_json(value) == "64"),
+           "a number");
+    expect( set_sheet_file_value(s, "segments", "[]", error) &&
+            sheet_file_value(s, "segments", value) &&
+            (compact_json(value) == "[]"),
+           "an array, as JSON");
+
+    const sheet before = s;
+
+    expect( (!set_sheet_file_value(s, "rows.0.wide", "1", error)) &&
+            (error == "a sheet file holds no such path"),
+           "a path the file does not hold");
+    expect( (!set_sheet_file_value(s, "generator.upper_hex", "maybe",
+                                   error)) &&
+            (error == "'maybe' is not true or false"),
+           "a flag in words JSON does not have");
+    expect( (!set_sheet_file_value(s, "rows.0.rows.0.width", "wide",
+                                   error)) &&
+            (error == "'wide' is not a number"),
+           "a number that is not one");
+    expect( (!set_sheet_file_value(s, "generator.language", "klingon",
+                                   error)) &&
+            (error == "a sheet does not keep 'klingon' there"),
+           "a value the sheet does not keep");
+    expect( sheet_file_paths(s) == sheet_file_paths(before),
+           "each refused, the sheet as it was");
+
+    return;
+}
+
+/*
 self_test_written
   A header's self-test: it includes the header by the name given, says who
 wrote it, and checks every macro.
@@ -3019,6 +3103,7 @@ const section SECTIONS[] = {
     { "edit: rows changed",           edits_changed },
     { "edit: rows copied, moved",     edits_rows },
     { "settings: by path",            settings_by_path },
+    { "settings: by a file's path",   settings_by_file_path },
     { "self-test: written",           self_test_written }
 };
 

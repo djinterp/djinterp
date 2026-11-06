@@ -44,7 +44,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.10.25
+#                                                            revised: 2026.11.04
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -85,7 +85,7 @@ get_filename_component(DJINTERP_CLI_ROOT
 
 set(DJINTERP_CLI_C_LEVELS "99;11;17;23" CACHE STRING
     "C levels the command-line kit's C suites are built and run at")
-set(DJINTERP_CLI_CXX_LEVELS "98;11;14;17;20;23" CACHE STRING
+set(DJINTERP_CLI_CXX_LEVELS "98;11;14;17;20;23;26" CACHE STRING
     "C++ levels the command-line kit's C++ suite is built and run at")
 option(DJINTERP_CLI_NO_EXCEPTIONS
        "Also build the C++ suite without exceptions, lowest and highest"

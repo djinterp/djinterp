@@ -43,7 +43,7 @@
 #           CXXFLAGS    more C++ compile flags (default: none)
 #           C_LEVELS    C levels               (default: c99 c11 c17 c23)
 #           CXX_LEVELS  C++ levels             (default: c++98 c++11 c++14
-#                                               c++17 c++20 c++23)
+#                                               c++17 c++20 c++23 c++26)
 #           RUN_PREFIX  what runs a test       (default: nothing; e.g.
 #                       `env LC_ALL=C.UTF-8 wine` for a Windows build)
 #           EXE_SUFFIX  a test's file suffix   (default: nothing; .exe for
@@ -54,7 +54,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/run_cli_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.10.25
+#                                                            revised: 2026.11.04
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
@@ -66,7 +66,7 @@ CXX="${CXX:-g++}"
 AR="${AR:-ar}"
 C_LEVELS="${C_LEVELS:-c99 c11 c17 c23}"
 C_FLOOR="c99"
-CXX_LEVELS="${CXX_LEVELS:-c++98 c++11 c++14 c++17 c++20 c++23}"
+CXX_LEVELS="${CXX_LEVELS:-c++98 c++11 c++14 c++17 c++20 c++23 c++26}"
 RUN_PREFIX="${RUN_PREFIX:-}"
 EXE_SUFFIX="${EXE_SUFFIX:-}"
 
@@ -151,16 +151,16 @@ fi
 # the kit's, and filesys
 LIB_SOURCES=( "${ROOT}"/src/djinterp/c/modules/parse/cli/arg_parser/*.c
               "${ROOT}/src/djinterp/c/util/sink_common.c"
-              "${ROOT}/src/djinterp/c/re_std/dstdint.c"
+              "${ROOT}/src/re_std/c/cstdint/dstdint.c"
               "${ROOT}"/src/djinterp/tools/cli/c/*.c
               "${ROOT}"/src/djinterp/c/filesys/file_*.c )
 
 TESTS="${ROOT}/tests/djinterp/tools/cli"
-PARSER_TESTS="${ROOT}/tests/djinterp/parse/cli/arg_parser"
+PARSER_TESTS="${ROOT}/tests/djinterp/c/modules/parse/cli/arg_parser"
 PROBE="${TESTS}/c/probe/cli_tests_probe.c"
 PROBES=( probe other old abi short idle null none kit )
 C_SUITES=( "${TESTS}/c/cli_tests_support.c"
-           "${PARSER_TESTS}/c/arg_tests_files.c"
+           "${PARSER_TESTS}/arg_tests_files.c"
            "${TESTS}/c/cli_io_tests.c"
            "${TESTS}/c/cli_format_tests.c"
            "${TESTS}/c/cli_program_tests.c"
@@ -170,7 +170,7 @@ C_SUITES=( "${TESTS}/c/cli_tests_support.c"
            "${HERE}/cli_c_tests_runner.c" )
 SWEEP=( "${TESTS}/c/cli_sweep_tests.c"
         "${TESTS}/c/cli_tests_support.c"
-        "${PARSER_TESTS}/c/arg_tests_files.c"
+        "${PARSER_TESTS}/arg_tests_files.c"
         "${HERE}/cli_c_sweep_runner.c" )
 CXX_SUITES=( "${TESTS}/cli_tests.cpp"
              "${HERE}/cli_cpp_tests_runner.cpp" )
@@ -234,7 +234,7 @@ std_flag()
 # nothing.
 expected()
 {
-    awk -v level="$1" '$1 == level { print $2 }' \
+    awk -v level="$1" '{ sub(/\r$/, "") } $1 == level { print $2 }' \
         "${HERE}/expected_sections.txt"
 }
 
@@ -288,7 +288,7 @@ build_library()
     "${AR}" rcs "${out}/cli.a" "${out}"/objects/*.o
 
     for source in "${TESTS}/c/cli_tests_support.c" \
-                  "${PARSER_TESTS}/c/arg_tests_files.c"; do
+                  "${PARSER_TESTS}/arg_tests_files.c"; do
         if ! "${CC}" ${floor} "${COMMON[@]}" -c "${source}" \
                 -o "${out}/cxx/$(basename "${source%.c}").o" \
                 2>>"${out}/log"; then

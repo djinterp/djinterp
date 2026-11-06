@@ -930,16 +930,26 @@ each one's options:
 
 A SHEET is any of the three shapes of JSON -- a sheet file, a bitfield or
 an export -- `example:NAME` for a built-in example, or `-` for standard
-input. A command exits 0 when it did what was asked, 1 when the answer it
-was asked for is no, and 2 for trouble: the command line, a file, or the
-program.
+input. `set` and `get` take a setting by the name the window's Options show,
+`gen.level`, and anything else a sheet file holds by its path in the file,
+`probe` or `rows.0.name`: read as the file has it, and written as the
+member there is, refused where the sheet would not keep the value.
+`--keys=names` or `--keys=paths` takes the one alone; the build's
+`D_CFG_BITWISEDOM_KEYS` chooses which is the default. A command exits 0
+when it did what was asked, 1 when the answer it was asked for is no, and 2
+for trouble: the command line, a file, or the program.
 
 The window is a module of its own, `bitwisedom-gui`, which `bitwisedom gui`
 loads only when it is asked for: the program carries no window system, no
 GPU code and no fonts, and a system with no display can install it alone
-(`BUILD.md` builds the two apart). `bitwisedom gui` reads its SHEETs as the
-commands do -- any file the window opens, a header to import among them --
-and `bitwisedom gui --help` lists the window's own options.
+(`BUILD.md` builds the two apart). `bitwisedom gui` hands the window every
+SHEET it is given -- any file the window opens, a header to import among
+them -- and says on standard error, as the window starts, each it cannot
+open, as the commands would say it; the window opens on the rest, and the
+run ends with 2 when it closes, so that a script still learns of a typo.
+`--sheets=refuse` refuses such a SHEET before any window opens instead (the
+build's `D_CFG_BITWISEDOM_GUI_SHEETS` chooses the default), and `bitwisedom
+gui --help` lists the window's own options.
 
 `bitwisedom-gen` is the generator's command line from before, kept so that
 build scripts written for it run unchanged: `bitwisedom gen`'s work, under

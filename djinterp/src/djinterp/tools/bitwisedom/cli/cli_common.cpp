@@ -12,14 +12,16 @@
 * that gave a row an error it did not have is refused unless forced, and
 * every issue it brought is said either way.
 *   The window's SHEET operands are taken here too, by read_source's rules,
-* so that `bitwisedom gui` refuses what the commands refuse, in their words.
-* An example is a named operand, `example:NAME`, read through the kit, which
-* says so when a file has the operand's name too (ruling 11).
+* so that `bitwisedom gui` refuses what the commands refuse, in their words
+* -- or, reporting, says so of each and hands the window every one, as
+* ruling 25 has it by default (window_sheet_opens). An example is a named
+* operand, `example:NAME`, read through the kit, which says so when a file
+* has the operand's name too (ruling 11).
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_common.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./cli_internal.hpp"  // corresponding header
 
@@ -35,7 +37,10 @@
 #include <utility>    // std::move
 // bitwisedom
 #include <djinterp/tools/bitwisedom/bits.hpp>      // parse_wide
-#include <djinterp/tools/bitwisedom/cli.hpp>       // window_sheet_of
+#include <djinterp/tools/bitwisedom/cimport.hpp>   // looks_like_sheet,
+                                                   // import_code
+#include <djinterp/tools/bitwisedom/cli.hpp>       // window_sheet_of,
+                                                   // window_sheet_opens
 #include <djinterp/tools/bitwisedom/codegen.hpp>   // generate, standard_name
 #include <djinterp/tools/bitwisedom/examples.hpp>  // example_names
 #include <djinterp/tools/bitwisedom/exchange.hpp>  // read_json_sheet
@@ -1267,6 +1272,98 @@ bool window_sheet_of(
     _sheet.path = _operand;
 
     return true;
+}
+
+/*
+window_sheet_opens
+  Every operand handed over -- an example the window knows by its place,
+anything else as a file to open -- and what the window will not open said:
+read as File > Open reads it, a sheet's JSON by read_json_sheet, anything
+else imported as code.
+*/
+bool window_sheet_opens(
+    cmd::kit::program& _program,
+    const std::string& _operand,
+    window_sheet&      _sheet
+)
+{
+    std::string name;
+    std::string text;
+
+    _sheet      = window_sheet();
+    _sheet.path = _operand;
+
+    // standard input, which the window cannot read
+    if (cmd::kit::is_standard(_operand))
+    {
+        _program.report(cmd::kit::severity::error,
+                        "'-' is standard input; the window opens sheet "
+                        "files and examples");
+
+        return false;
+    }
+
+    // no room to look for a file of the example's name, said
+    if (!cmd::kit::named_operand(_program,
+                                 _operand,
+                                 cmd::EXAMPLE_PREFIX,
+                                 cmd::EXAMPLE_WHAT,
+                                 name).ok())
+    {
+        return false;
+    }
+
+    // a built-in example, by its place, where there is one
+    if (!name.empty())
+    {
+        const int place = cmd::example_place(_program,
+                                             name);
+
+        _sheet.example = place;
+        _sheet.path    = (place >= 0) ? std::string() : _operand;
+
+        return (place >= 0);
+    }
+
+    const int failed = cmd::kit::read_file(_operand,
+                                           text);
+
+    if (failed != 0)
+    {
+        (void)_program.file_error("read",
+                                  _operand,
+                                  failed);
+
+        return false;
+    }
+
+    // JSON, as a sheet, a bitfield or an export; else code to import
+    if (looks_like_sheet(text))
+    {
+        const json_read read = read_json_sheet(text);
+
+        cmd::report_lines(_program,
+                          static_cast<int>(cmd::kit::severity::error),
+                          _operand,
+                          read.ok ? std::vector<std::string>()
+                                  : std::vector<std::string>(1u,
+                                                             read.error));
+
+        return read.ok;
+    }
+
+    const imported in = import_code(text,
+                                    import_options());
+
+    cmd::report_lines(_program,
+                      static_cast<int>(cmd::kit::severity::error),
+                      _operand,
+                      in.ok ? std::vector<std::string>()
+                            : std::vector<std::string>(
+                                  1u,
+                                  "no #define to import"));
+
+    return in.ok;
 }
 
 }  // namespace bitwisedom

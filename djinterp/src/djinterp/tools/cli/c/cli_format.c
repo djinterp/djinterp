@@ -16,14 +16,19 @@
 *   The formatter's context, when the kit made the program, is the program,
 * which says whether a command has work of its own -- a command without work
 * requires one of its subcommands, and its usage line says so -- and whether
-* the program reads response files, which its root's page then lists as
-* `@FILE`, before help and version (GRAMMAR.md, R14).
+* the program reads response files, which every page then lists as `@FILE`
+* among the program's own options (GRAMMAR.md, R14; ruling cli-taken 84):
+* the root's Options, before help and version; a command's Global options,
+* after them; and the Options of a command that takes none from above. A
+* program that keeps the argument parser's own layout, or a build without
+* the kit's, says it too, last among a page's OPTIONS: the parser's steps
+* with one of the kit's, the group step (THE PARSER'S LAYOUT, at the end).
 *
 *
 * path:      /src/djinterp/tools/cli/c/cli_format.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_format.h"  // corresponding header
 // std
@@ -1264,17 +1269,16 @@ int d_cli_internal_collect_group(
 }
 
 /**
- * @brief Whether a page is the root's of a program that reads response
- *        files, which its help then says (GRAMMAR.md, R14).
+ * @brief Whether a page is one of a program that reads response files,
+ *        which every page of its help then says (GRAMMAR.md, R14; ruling
+ *        cli-taken 84) -- a module's too, whose host read them.
  *
  * @param[in] _formatter  the formatter, whose context may be the program.
- * @param[in] _command    the command the page is for.
  * @return `true` if it is.
  */
 static
 bool d_cli_internal_reads_responses(
-    const struct dj_arg_formatter* _formatter,
-    const struct dj_arg_command*   _command
+    const struct dj_arg_formatter* _formatter
 )
 {
 #if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
@@ -1283,21 +1287,56 @@ bool d_cli_internal_reads_responses(
 
     return ( (program != NULL)                                      &&
              (program->parser != NULL)                              &&
-             (_command == &program->parser->command)                &&
              ((program->flags & D_CLI_PROGRAM_RESPONSE_FILES) != 0u) );
 #else
     (void)_formatter;
-    (void)_command;
 
     return false;
 #endif
 }
 
 /**
+ * @brief Adds `@FILE` to the section begun last.
+ *
+ * @param[in,out] _page  the page.
+ * @return D_ARG_OK, or the scratch buffer's status.
+ */
+static
+int d_cli_internal_add_responses(
+    struct dj_cli_internal_page* _page
+)
+{
+    return d_cli_internal_add_text(_page,
+                                   "@FILE",
+                                   "read more arguments from FILE, in its "
+                                   "place");
+}
+
+/**
+ * @brief The command a command takes options from: its parent, when it
+ *        takes them -- fallthrough -- or none.
+ *
+ * @param[in] _command  the command.
+ * @return the parent, or NULL.
+ */
+static
+const struct dj_arg_command* d_cli_internal_above(
+    const struct dj_arg_command* _command
+)
+{
+    return (d_arg_command_has_flag(_command,
+                                   D_ARG_COMMAND_FALLTHROUGH))
+           ? _command->parent
+           : NULL;
+}
+
+/**
  * @brief Collects a command's named options: a section for each group, in
  *        the order first met, its help and version last, as GNU lists them;
- *        and on the root's page of a program that reads response files,
- *        `@FILE` before them, in Options, as `gcc --help` lists `@<file>`.
+ *        and, where the program reads response files and the command takes
+ *        no options from above -- the root, or a command that does not fall
+ *        through -- `@FILE` before them, in Options, as `gcc --help` lists
+ *        `@<file>`, an Options of its own where the command has none.
  *
  * @param[in]     _formatter  the formatter.
  * @param[in]     _command    the command.
@@ -1311,12 +1350,13 @@ int d_cli_internal_collect_options(
     struct dj_cli_internal_page*   _page
 )
 {
-    const bool responses = d_cli_internal_reads_responses(_formatter,
-                                                          _command);
+    const bool responses = ( (d_cli_internal_reads_responses(_formatter)) &&
+                             (d_cli_internal_above(_command) == NULL) );
 
     const char* groups[D_INTERNAL_CLI_GROUPS_MAX];
     size_t      count  = 0u;
     int         status = D_ARG_OK;
+    bool        said   = false;
 
     for (size_t index = 0u; index < _command->options.count; ++index)
     {
@@ -1345,17 +1385,28 @@ int d_cli_internal_collect_options(
                    (responses)          &&
                    (strcmp(groups[known],
                            "Options") == 0) )
-                 ? d_cli_internal_add_text(_page,
-                                           "@FILE",
-                                           "read more arguments from FILE, "
-                                           "in its place")
+                 ? d_cli_internal_add_responses(_page)
                  : status;
+        said   = ( (said) ||
+                   ( (responses) &&
+                     (strcmp(groups[known],
+                             "Options") == 0) ) );
         status = (status == D_ARG_OK)
                  ? d_cli_internal_collect_group(_command,
                                                 groups[known],
                                                 true,
                                                 _page)
                  : status;
+    }
+
+    // a command with no Options of its own: one, for `@FILE`
+    if ( (status == D_ARG_OK) &&
+         (responses)          &&
+         (!said) )
+    {
+        d_cli_internal_section(_page,
+                               "Options");
+        status = d_cli_internal_add_responses(_page);
     }
 
     return status;
@@ -1406,24 +1457,6 @@ int d_cli_internal_collect_option_groups(
     }
 
     return status;
-}
-
-/**
- * @brief The command a command takes options from: its parent, when it
- *        takes them -- fallthrough -- or none.
- *
- * @param[in] _command  the command.
- * @return the parent, or NULL.
- */
-static
-const struct dj_arg_command* d_cli_internal_above(
-    const struct dj_arg_command* _command
-)
-{
-    return (d_arg_command_has_flag(_command,
-                                   D_ARG_COMMAND_FALLTHROUGH))
-           ? _command->parent
-           : NULL;
 }
 
 /**
@@ -1481,16 +1514,19 @@ int d_cli_internal_collect_held(
 /**
  * @brief Collects the options a subcommand takes from the commands above
  *        it -- theirs, and their option groups', which fall through as
- *        theirs do -- under "Global options".
+ *        theirs do -- under "Global options"; and last, where the program
+ *        reads response files, `@FILE`, read wherever it stands.
  *
- * @param[in]     _command  the command.
- * @param[in,out] _page     the page.
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in,out] _page       the page.
  * @return D_ARG_OK, or the scratch buffer's status.
  */
 static
 int d_cli_internal_collect_global(
-    const struct dj_arg_command* _command,
-    struct dj_cli_internal_page* _page
+    const struct dj_arg_formatter* _formatter,
+    const struct dj_arg_command*   _command,
+    struct dj_cli_internal_page*   _page
 )
 {
     int  status  = D_ARG_OK;
@@ -1522,6 +1558,20 @@ int d_cli_internal_collect_global(
                                                    &started)
                      : status;
         }
+    }
+
+    // `@FILE`, with the options the program reads wherever they stand
+    if ( (status == D_ARG_OK)                           &&
+         (d_cli_internal_above(_command) != NULL)       &&
+         (d_cli_internal_reads_responses(_formatter)) )
+    {
+        if (!started)
+        {
+            d_cli_internal_section(_page,
+                                   "Global options");
+        }
+
+        status = d_cli_internal_add_responses(_page);
     }
 
     return status;
@@ -1562,7 +1612,8 @@ int d_cli_internal_collect(
              : status;
 
     return (status == D_ARG_OK)
-           ? d_cli_internal_collect_global(_command,
+           ? d_cli_internal_collect_global(_formatter,
+                                           _command,
                                            _page)
            : status;
 }
@@ -2004,6 +2055,165 @@ const struct dj_arg_formatter_vtable d_cli_formatter_steps =
 };
 
 #endif  // D_INTERNAL_CLI_FORMATTER
+
+//==============================================================================
+// THE PARSER'S LAYOUT
+//==============================================================================
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+
+/**
+ * @brief Whether a group is the options' own, as the parser's layout heads
+ *        it, `OPTIONS`, in any case.
+ *
+ * @param[in] _group  the group's heading.
+ * @return `true` if it is.
+ */
+static
+bool d_cli_internal_is_options(
+    struct dj_pack_text _group
+)
+{
+    static const char options[] = "options";
+
+    bool same = (_group.length == (sizeof(options) - 1u));
+
+    for (size_t index = 0u; (same) && (index < _group.length); ++index)
+    {
+        const char each = _group.data[index];
+        const char low  = ( (each >= 'A') &&
+                            (each <= 'Z') )
+                          ? (char)(each - 'A' + 'a')
+                          : each;
+
+        same = (low == options[index]);
+    }
+
+    return same;
+}
+
+/**
+ * @brief The parser's group step, and after the options' own group, on a
+ *        page of a program that reads response files, `@FILE`: its name
+ *        where an option's names stand, two in, and its description at the
+ *        layout's column, or on the next line where the name reaches it.
+ *
+ * @param[in]     _formatter   the formatter, whose context is the program.
+ * @param[in]     _group       the group's heading.
+ * @param[in]     _positional  whether the group holds positionals.
+ * @param[in]     _options     the group's options.
+ * @param[in,out] _out         the page.
+ * @return D_ARG_OK, or the status that stopped it.
+ */
+static
+int d_cli_internal_parser_group(
+    const struct dj_arg_formatter*   _formatter,
+    struct dj_pack_text              _group,
+    bool                             _positional,
+    const struct dj_arg_option_list* _options,
+    struct dj_arg_buffer*            _out
+)
+{
+    static const char name[] = "  @FILE";
+
+    const struct dj_cli_program* const program =
+        (const struct dj_cli_program*)_formatter->context;
+    int                               status  =
+        d_arg_format_group_default(_formatter,
+                                   _group,
+                                   _positional,
+                                   _options,
+                                   _out);
+    const size_t                      column  = _formatter->column_width;
+
+    // not the page's options, or a program that reads no response files
+    if ( (status != D_ARG_OK)                                     ||
+         (_positional)                                            ||
+         (!d_cli_internal_is_options(_group))                     ||
+         (program == NULL)                                        ||
+         ((program->flags & D_CLI_PROGRAM_RESPONSE_FILES) == 0u) )
+    {
+        return status;
+    }
+
+    status = d_arg_buffer_append_cstr(_out,
+                                      name);
+
+    // to the column, or onto a line of its own past it
+    for (size_t at = sizeof(name) - 1u;
+         (status == D_ARG_OK) && (at < column);
+         ++at)
+    {
+        status = d_arg_buffer_append_char(_out,
+                                          ' ');
+    }
+
+    if ( (status == D_ARG_OK) &&
+         (sizeof(name) - 1u >= column) )
+    {
+        status = d_arg_buffer_append_char(_out,
+                                          '\n');
+
+        for (size_t at = 0u;
+             (status == D_ARG_OK) && (at < column);
+             ++at)
+        {
+            status = d_arg_buffer_append_char(_out,
+                                              ' ');
+        }
+    }
+
+    return (status == D_ARG_OK)
+           ? d_arg_buffer_append_cstr(_out,
+                                      "read more arguments from FILE, in "
+                                      "its place\n")
+           : status;
+}
+
+// d_cli_parser_steps
+//   constant: the parser's own steps, but for its group step, which says
+// `@FILE` after the options where response files are read.
+static const struct dj_arg_formatter_vtable d_cli_parser_steps =
+{
+    NULL,
+    d_cli_internal_parser_group,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+#endif  // D_INTERNAL_ARG_PARSER_RESPONSE_FILES
+
+/*
+d_cli_internal_parser_layout
+  The parser's steps with the kit's group step, where response files are
+read.
+*/
+void d_cli_internal_parser_layout(
+    struct dj_arg_formatter* _formatter
+)
+{
+    // nothing to set
+    if (!_formatter)
+    {
+        return;
+    }
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+    _formatter->vtable = &d_cli_parser_steps;
+#endif
+
+    return;
+}
 
 /*
 d_cli_formatter_use

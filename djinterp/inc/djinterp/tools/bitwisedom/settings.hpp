@@ -17,11 +17,19 @@
 * choice as its word, a colour as #RRGGBBAA, text as it is. Nothing is read
 * by locale, and a value outside a setting's bounds is refused rather than
 * held to them, so that a script learns of its mistake.
+*   BY THE FILE'S PATHS, anything a sheet file holds is reached by its path
+* in the file, `generator.level`, `rows.0.name`: the members of the object
+* the file holds, an array's elements by their index from 0, as this build
+* writes a sheet (sheet_object). It is read as the file has it, and written
+* as the member there is -- a text as it is, a number, true or false, and
+* an array or object as JSON -- then the sheet is read back from the file's
+* object, and must keep the value, or nothing changes: a value the sheet
+* does not keep is refused, never dropped in silence (ruling cli-taken 16).
 *
 * path:      /inc/djinterp/tools/bitwisedom/settings.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -43,6 +51,12 @@ TABLE OF CONTENTS
     1.  setting_text
     2.  set_setting
     3.  setting_values
+4.  BY THE FILE'S PATHS
+    -------------------
+    1.  sheet_file_paths
+    2.  sheet_file_value
+    3.  set_sheet_file_value
+    4.  compact_json
 */
 
 #ifndef DJINTERP_TOOLS_BITWISEDOM_SETTINGS_HPP
@@ -59,6 +73,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "djinterp/cpp/djinterp.hpp"  // framework root
 // bitwisedom
+#include "./json.hpp"   // json_value
 #include "./sheet.hpp"  // sheet, rgba
 
 
@@ -197,6 +212,73 @@ D_NODISCARD bool set_setting(
 // from 0 to 1, or auto".
 D_NODISCARD std::string setting_values(
     const sheet_setting& _setting
+);
+
+
+//==============================================================================
+// 4.  BY THE FILE'S PATHS
+//==============================================================================
+
+
+// 4.1.1
+// sheet_file_paths
+//   function: every path a sheet's file holds, each member and each element
+// of an array, in the file's order: `format`, `version`, ..., `rows`,
+// `rows.0`, `rows.0.id`, ...
+D_NODISCARD std::vector<std::string> sheet_file_paths(
+    const sheet& _sheet
+);
+
+// 4.1.2
+// sheet_file_value
+/**
+ * @brief The value a sheet's file holds at a path.
+ *
+ * @param[in]  _sheet  the sheet.
+ * @param[in]  _path   the path: members' names and arrays' indices, joined
+ *                     by `.`.
+ * @param[out] _value  the value, when the file holds the path.
+ * @return `true` if the file holds the path.
+ */
+D_NODISCARD bool sheet_file_value(
+    const sheet&       _sheet,
+    const std::string& _path,
+    json_value&        _value
+);
+
+// 4.1.3
+// set_sheet_file_value
+/**
+ * @brief Writes a value, given as text, at a path of a sheet's file, and
+ *        reads the sheet back from the file's object.
+ *
+ * @note The text is read as the member at the path is: a text, as it is; a
+ *       number, as JSON writes one; true or false; null, an array or an
+ *       object, as JSON of the same kind.
+ *
+ * @param[in,out] _sheet  the sheet.
+ * @param[in]     _path   a path the file holds.
+ * @param[in]     _value  the value, as text.
+ * @param[out]    _error  why it was refused, when it was: in lower case, no
+ *                        full stop, without the path.
+ * @return `true` if the sheet now holds the value; `false`, the sheet as it
+ *         was, for a path the file does not hold, a value of the wrong
+ *         form, a sheet the file's object no longer makes, or a value the
+ *         sheet does not keep.
+ */
+D_NODISCARD bool set_sheet_file_value(
+    sheet&             _sheet,
+    const std::string& _path,
+    const std::string& _value,
+    std::string&       _error
+);
+
+// 4.1.4
+// compact_json
+//   function: a value as one line of JSON, as `bitwisedom get` prints an
+// array or an object a path names; a scalar as write_json writes it.
+D_NODISCARD std::string compact_json(
+    const json_value& _value
 );
 
 

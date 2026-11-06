@@ -18,14 +18,14 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.10.27
+#                                                            revised: 2026.11.04
 
 # the C suites: streams and files 8, help 5, the program 18, commands that
-# change a file 4, operands that name no file 2, plugins 8
-c99 45
-c11 45
-c17 45
-c23 45
+# change a file 4, operands that name no file 2, plugins 9
+c99 46
+c11 46
+c17 46
+c23 46
 
 # the allocation sweep, at the C floor: making, endings, work, files,
 # plugins
@@ -40,7 +40,10 @@ c++14 10
 c++17 10
 c++20 10
 c++23 10
+c++26 10
 
-# without exceptions the exceptions' section goes: 1 fewer
+# without exceptions the exceptions' section goes: 1 fewer, at the lowest
+# level built and the highest
 c++98-noexc 8
 c++23-noexc 9
+c++26-noexc 9

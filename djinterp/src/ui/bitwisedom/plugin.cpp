@@ -5,8 +5,12 @@
 *   The module is a program of its own, made from the host that runs it --
 * its name, version, verbosity and colours bitwisedom's -- so that
 * `bitwisedom gui --help` is the window's help, and what the window says, it
-* says as bitwisedom does. Its operands are SHEETs, taken by the commands'
-* own rules (window_sheet_of); its options are the window's size and the
+* says as bitwisedom does. Its operands are SHEETs, every one handed to the
+* window, what it will not open said on standard error as it starts and the
+* run ending in trouble when it closes (window_sheet_opens); or, by --sheets
+* or the build (D_CFG_BITWISEDOM_GUI_SHEETS), refused by the commands' own
+* rules before any window opens (window_sheet_of) -- ruling cli-taken 25.
+* Its options are the window's size and the
 * display's scale, and, for building and testing, the events posted before
 * the first frame and what the host linked can do besides: a screenshot on
 * GLFW's, WARP on Win32's (window_features). Its `--version --verbose` says,
@@ -26,7 +30,7 @@
 * path:      /src/ui/bitwisedom/plugin.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 // std
 #include <cstddef>    // std::size_t
@@ -49,8 +53,11 @@
 #endif  // _WIN32
 // djinterp
 #include <djinterp/tools/cli/cli.hpp>  // program, command, D_CLI_PLUGIN
+#include <djinterp/config/tools/bitwisedom/cfg_bitwisedom.h>  // D_INTERNAL_
+                                       // BITWISEDOM_GUI_SHEETS
 // bitwisedom
-#include <djinterp/tools/bitwisedom/cli.hpp>      // window_sheet_of
+#include <djinterp/tools/bitwisedom/cli.hpp>      // window_sheet_of,
+                                                  // window_sheet_opens
 #include <djinterp/tools/bitwisedom/version.hpp>  // BITWISEDOM_PROGRAM,
                                                   // BITWISEDOM_VERSION
 #include "../../../inc/ui/bitwisedom/host.hpp"    // run_window,
@@ -87,14 +94,23 @@ const long SIZE_LARGEST = 32767L;
 const double SCALE_LEAST = 0.25;
 const double SCALE_MOST  = 8.0;
 
+// SHEETS_WORDS
+//   constant: the words of --sheets, in the order of
+// D_CFG_BITWISEDOM_GUI_SHEETS_*: refuse a SHEET the window cannot open
+// before it opens, or report it and open the rest.
+const char* const SHEETS_WORDS[] = { "refuse", "report" };
+
 // window_request
-//   struct: what `bitwisedom gui` was given: the sheets, the --do events and
-// the size as typed, and the rest of the window's options as they bind.
+//   struct: what `bitwisedom gui` was given: the sheets, the --do events,
+// the size as typed and what to do with a sheet the window cannot open, and
+// the rest of the window's options as they bind.
 struct window_request
 {
     std::vector<std::string> sheets;
     std::vector<std::string> events;
     std::string              size;
+    std::string              unopened =
+        SHEETS_WORDS[D_INTERNAL_BITWISEDOM_GUI_SHEETS - 1];
     window_options           options;
 };
 
@@ -282,6 +298,21 @@ std::string scale_problem(
 }
 
 /*
+sheets_problem
+  --sheets' check: nothing for one of its words, else what they are.
+*/
+std::string sheets_problem(
+    const std::string& _text
+)
+{
+    return ( (_text == SHEETS_WORDS[0]) ||
+             (_text == SHEETS_WORDS[1]) )
+               ? std::string()
+               : "'" + _text + "' is not " + SHEETS_WORDS[0] + " or " +
+                 SHEETS_WORDS[1];
+}
+
+/*
 event_problem
   --do's check: nothing for an event with a kind, else that it needs one.
 */
@@ -312,6 +343,14 @@ void add_options(
                      "a sheet to open: a sheet file, a bitfield, an export or "
                      "a header to import; example:NAME for a built-in "
                      "example");
+    _root.add_option("--sheets",
+                     _request.unopened,
+                     "what to do with a SHEET the window cannot open: report "
+                     "it on standard error, open the rest and end in "
+                     "trouble; or refuse it before the window opens")
+         .type_name("HOW")
+         .default_str(_request.unopened)
+         .check(sheets_problem);
     _root.add_option("--size",
                      _request.size,
                      "the window's size, in points (default 1600x960)")
@@ -365,23 +404,34 @@ void add_options(
 
 /*
 post_sheets
-  Each SHEET, taken by the commands' rules, posted as the window opens it:
-an example as the Examples menu posts one, by its place; a file as File >
-Open posts one, by its path. False, having said why, at the first the
-window could not open.
+  Each SHEET posted as the window opens it: an example as the Examples menu
+posts one, by its place; a file as File > Open posts one, by its path.
+Reporting, every one is posted, and what the window will not open is said
+as it is met, `_unopened` set; refusing, by the commands' rules, false,
+having said why, at the first the window could not open.
 */
 bool post_sheets(
     kit::program&                   _program,
     const std::vector<std::string>& _sheets,
-    window_options&                 _options
+    bool                            _report,
+    window_options&                 _options,
+    bool&                           _unopened
 )
 {
+    _unopened = false;
+
     for (const std::string& each : _sheets)
     {
         bitwisedom::window_sheet sheet;
         uxoxo::event             made;
 
-        if (!bitwisedom::window_sheet_of(_program, each, sheet))
+        if (_report)
+        {
+            _unopened = (!bitwisedom::window_sheet_opens(_program, each,
+                                                         sheet)) ||
+                        _unopened;
+        }
+        else if (!bitwisedom::window_sheet_of(_program, each, sheet))
         {
             return false;
         }
@@ -422,16 +472,19 @@ void leave_console()
 /*
 open_window
   The module's work: the sheets named, then each --do, as the events the
-window posts first; the size asked; and the window, run.
+window posts first; the size asked; and the window, run -- its status, or
+trouble where a sheet it was handed could not be opened.
 */
 int open_window(
     kit::program&   _program,
     window_request& _request
 )
 {
-    window_options& options = _request.options;
+    window_options& options  = _request.options;
+    const bool      report   = (_request.unopened == SHEETS_WORDS[1]);
+    bool            unopened = false;
 
-    if (!post_sheets(_program, _request.sheets, options))
+    if (!post_sheets(_program, _request.sheets, report, options, unopened))
     {
         return D_CLI_EXIT_TROUBLE;
     }
@@ -451,8 +504,10 @@ int open_window(
 
     leave_console();
 
-    return bitwisedom::gui::run_window(_program,
-                                       options);
+    const int status = bitwisedom::gui::run_window(_program,
+                                                   options);
+
+    return (unopened) ? D_CLI_EXIT_TROUBLE : status;
 }
 
 /*

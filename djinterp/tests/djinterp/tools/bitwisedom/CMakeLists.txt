@@ -5,7 +5,7 @@
 # every level, and the window driven headless.
 #
 #     model_c++NN        the model's suite, built at C++17, 20 and 23 -- each
-#                        level this compiler can select; 41 sections
+#                        level this compiler can select; 42 sections
 #     header_*           each example's header and self-test, written by
 #                        bitwisedom-gen and compiled at every C and C++ level
 #                        the compiler can select: the self-test does not
@@ -36,7 +36,7 @@
 # path:      /tests/djinterp/tools/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.11.04
 #*******************************************************************************
 
 #-------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ foreach(_level 17 20 23)
     add_test(NAME model_c++${_level}
              COMMAND bitwisedom_model_tests_${_level})
     set_tests_properties(model_c++${_level} PROPERTIES
-        PASS_REGULAR_EXPRESSION "passed: 41   failed: 0")
+        PASS_REGULAR_EXPRESSION "passed: 42   failed: 0")
 endforeach()
 
 

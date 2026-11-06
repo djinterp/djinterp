@@ -1,4 +1,5 @@
-# set and get: the settings by the paths the window's Options show
+# set and get: the settings by the names the window's Options show, and
+# anything else a sheet file holds by its path in the file
 $ bitwisedom new --width=16 -o s.json
 $ bitwisedom get s.json gen.level
 > c99
@@ -36,4 +37,54 @@ $ bitwisedom get s.json gen.level
 $ bitwisedom get s.json nothing.here
 ! bitwisedom: error: get: 'nothing.here' is not a setting; 'bitwisedom get' lists them
 ! Try 'bitwisedom get --help' for more information.
+? 2
+# a sheet file's path, for anything the registry does not list (ruling
+# cli-taken 16): read as the file holds it, written as its member there is,
+# and refused where the sheet would not keep it
+$ bitwisedom get s.json probe
+> 0x0
+$ bitwisedom set s.json probe=0x10 -v
+! bitwisedom: note: set probe=0x10
+$ bitwisedom get s.json probe generator.level gen.level
+> probe=0x10
+> generator.level=c11
+> gen.level=c11
+$ bitwisedom get s.json rows.0.rows.0.width generator.upper_hex --format=json
+> { "rows.0.rows.0.width": 1, "generator.upper_hex": true }
+$ bitwisedom get s.json rows.0.rows.0.name
+> FLAG
+$ bitwisedom set s.json rows.0.rows.0.name=BIT0 generator.word=64 -v
+! bitwisedom: note: set rows.0.rows.0.name=BIT0, generator.word=64
+$ bitwisedom get s.json segments
+> []
+$ bitwisedom set s.json generator.upper_hex=maybe
+! bitwisedom: error: set: generator.upper_hex: 'maybe' is not true or false
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json width=wide
+! bitwisedom: error: set: width: 'wide' is not a number
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json generator.language=klingon
+! bitwisedom: error: set: generator.language: a sheet does not keep 'klingon' there
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json generator.levle=c11
+! bitwisedom: error: set: 'generator.levle' is not a setting; did you mean 'generator.level'?
+! Try 'bitwisedom set --help' for more information.
+? 2
+# --keys: the registry's names alone, or the file's paths alone
+$ bitwisedom get --keys=names s.json probe
+! bitwisedom: error: get: 'probe' is not a setting; 'bitwisedom get' lists them
+! Try 'bitwisedom get --help' for more information.
+? 2
+$ bitwisedom get --keys=paths s.json gen.level
+! bitwisedom: error: get: 'gen.level' is not a path of a sheet file; 'bitwisedom get --keys=paths SHEET' lists them
+! Try 'bitwisedom get --help' for more information.
+? 2
+$ bitwisedom get --keys=paths s.json generator.level
+> c11
+$ bitwisedom set --keys=nonsense s.json probe=0x1
+! bitwisedom: error: set: --keys: 'nonsense' is not names, paths or both
+! Try 'bitwisedom set --help' for more information.
 ? 2

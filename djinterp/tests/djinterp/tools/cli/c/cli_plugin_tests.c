@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_plugin_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./cli_plugin_tests.h"  // corresponding header
 // std
@@ -223,6 +223,8 @@ bool d_tests_cli_plugin_executable(void)
 // 2.  FINDING
 //==============================================================================
 
+#if (D_INTERNAL_CLI_PLUGIN_SEARCH_DEFAULT == 1)
+
 /**
  * @brief Finds a module of a program's command and compares where it was
  *        found and where it was looked for.
@@ -289,6 +291,68 @@ bool d_tests_cli_find_case(
                              "where the module was found") && same;
 }
 
+#endif  // the default's places
+
+/**
+ * @brief Finds `prog`'s module `gui`, told of directories to look in first,
+ *        and compares where it was found and where it was looked for.
+ *
+ * @param[in] _tag         the case's tag.
+ * @param[in] _path        the directories the run names; NULL for none.
+ * @param[in] _list        PROG_PLUGIN_PATH's value, or NULL to unset it.
+ * @param[in] _executable  the program's file, or NULL.
+ * @param[in] _found       where it must be found; NULL for nowhere.
+ * @param[in] _searched    the directories it must have looked in, a line
+ *                         each.
+ * @return whether it held.
+ */
+static
+bool d_tests_cli_find_with_case(
+    const char* _tag,
+    const char* _path,
+    const char* _list,
+    const char* _executable,
+    const char* _found,
+    const char* _searched
+)
+{
+    struct dj_arg_buffer found    = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer searched = D_ARG_BUFFER_INIT;
+
+    (void)d_tests_cli_setenv("PROG_PLUGIN_PATH",
+                             _list);
+
+    const int  status = d_cli_plugin_find_with("prog",
+                                               "gui",
+                                               _executable,
+                                               _path,
+                                               &found,
+                                               &searched);
+    const bool held   = ( (_found != NULL)
+                          ? ( (status == D_ARG_OK) &&
+                              (d_tests_cli_holds(&found,
+                                                 _found)) )
+                          : ( (status == D_ARG_ERROR_FILE) &&
+                              (found.length == 0u) ) );
+
+    (void)d_tests_cli_setenv("PROG_PLUGIN_PATH",
+                             NULL);
+
+    const bool same = d_tests_cli_same(_tag,
+                                       "searched",
+                                       _searched,
+                                       searched.data,
+                                       searched.length);
+
+    d_arg_buffer_release(&found);
+    d_arg_buffer_release(&searched);
+
+    return d_tests_cli_check(held,
+                             _tag,
+                             "where the module was found, told where "
+                             "first") && same;
+}
+
 /**
  * @brief Makes the scratch directory's modules: plain and tagged, in the
  *        list's directories, beside a program and in ../lib/prog, a
@@ -348,6 +412,19 @@ bool d_tests_cli_find_files(
 static
 bool d_tests_cli_find_lists(void)
 {
+#if (D_INTERNAL_CLI_PLUGIN_SEARCH_DEFAULT == 0)
+    // the build's own places may need no program's file, and are looked in
+    // after these: the cases are the default's
+    return true;
+#elif (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0)
+    // the build reads no variable: its directories are not looked in
+    return d_tests_cli_find_case("F01",
+                                 "prog",
+                                 "one" D_TESTS_CLI_SEPARATOR "two",
+                                 NULL,
+                                 NULL,
+                                 "");
+#else
     bool held = d_tests_cli_find_case(
                     "F01",
                     "prog",
@@ -386,6 +463,7 @@ bool d_tests_cli_find_lists(void)
                                  "four\n") && held;
 
     return held;
+#endif  // D_INTERNAL_CLI_PLUGIN_VARIABLE
 }
 
 /**
@@ -399,6 +477,12 @@ bool d_tests_cli_find_lists(void)
 static
 bool d_tests_cli_find_beside(void)
 {
+#if ( (D_INTERNAL_CLI_PLUGIN_SEARCH_DEFAULT == 0) ||                           \
+      (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0) )
+    // the build looks elsewhere, or reads no variable: these places are the
+    // default's
+    return true;
+#else
     bool held = d_tests_cli_find_case(
                     "F06",
                     "prog",
@@ -455,6 +539,67 @@ bool d_tests_cli_find_beside(void)
 #endif
 
     return held;
+#endif  // the default's places
+}
+
+/**
+ * @brief The cases of directories a run names (d_cli_plugin_find_with):
+ *        looked in first, before the variable's, then the build's; an empty
+ *        list is none.
+ *
+ * @return whether every case held.
+ */
+static
+bool d_tests_cli_find_told(void)
+{
+    bool held = d_tests_cli_find_with_case(
+                    "F11",
+                    "one" D_TESTS_CLI_SEPARATOR "two",
+                    NULL,
+                    NULL,
+                    "two" D_TESTS_CLI_SLASH D_TESTS_CLI_MODULE("prog-gui"),
+                    "one\ntwo\n");
+
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+    held = d_tests_cli_find_with_case("F12",
+                                      "three",
+                                      "two",
+                                      NULL,
+                                      "two" D_TESTS_CLI_SLASH
+                                      D_TESTS_CLI_MODULE("prog-gui"),
+                                      "three\ntwo\n") && held;
+    held = d_tests_cli_find_with_case("F13",
+                                      "",
+                                      "two",
+                                      NULL,
+                                      "two" D_TESTS_CLI_SLASH
+                                      D_TESTS_CLI_MODULE("prog-gui"),
+                                      "two\n") && held;
+#else
+    held = d_tests_cli_find_with_case("F12",
+                                      "three",
+                                      "two",
+                                      NULL,
+                                      NULL,
+                                      "three\n") && held;
+#endif
+
+#if (D_INTERNAL_CLI_PLUGIN_SEARCH_DEFAULT == 1)
+    held = d_tests_cli_find_with_case("F14",
+                                      "empty",
+                                      NULL,
+                                      "bin/prog",
+                                      "bin" D_TESTS_CLI_SLASH ".."
+                                      D_TESTS_CLI_SLASH "lib"
+                                      D_TESTS_CLI_SLASH "prog"
+                                      D_TESTS_CLI_SLASH
+                                      D_TESTS_CLI_MODULE("prog-gui"),
+                                      "empty\nbin\nbin" D_TESTS_CLI_SLASH
+                                      ".." D_TESTS_CLI_SLASH "lib"
+                                      D_TESTS_CLI_SLASH "prog\n") && held;
+#endif
+
+    return held;
 }
 
 /*
@@ -480,6 +625,7 @@ bool d_tests_cli_plugin_finding(void)
 
     held = d_tests_cli_find_lists();
     held = d_tests_cli_find_beside() && held;
+    held = d_tests_cli_find_told() && held;
     d_tests_arg_files_leave(&files);
 
     return held;
@@ -778,6 +924,138 @@ bool d_tests_cli_make_styled(
                                       D_CLI_PROGRAM_EDITS_TO_OUTPUT);
 }
 
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+/**
+ * @brief RESPONDING: HOST reading response files, which it reads before
+ *        its modules are run.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_responding(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return d_tests_cli_make_host_with(_program,
+                                      _parser,
+                                      D_CLI_PROGRAM_COMMANDS |
+                                      D_CLI_PROGRAM_RESPONSE_FILES);
+}
+
+/**
+ * @brief STYLED_RESPONDING: STYLED reading response files.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_styled_responding(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return d_tests_cli_make_host_with(_program,
+                                      _parser,
+                                      D_CLI_PROGRAM_COMMANDS        |
+                                      D_CLI_PROGRAM_PLAIN_ERRORS    |
+                                      D_CLI_PROGRAM_PARSER_HELP     |
+                                      D_CLI_PROGRAM_ABBREVIATIONS   |
+                                      D_CLI_PROGRAM_EDITS_TO_OUTPUT |
+                                      D_CLI_PROGRAM_RESPONSE_FILES);
+}
+#endif  // D_INTERNAL_ARG_PARSER_RESPONSE_FILES
+
+/**
+ * @brief LENIENT: HOST told to load a module of another version, with a
+ *        warning.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_lenient(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    const bool made = d_tests_cli_make_host(_program,
+                                            _parser);
+
+    d_cli_program_set_plugin_versions(_program,
+                                      (int)D_CLI_PLUGIN_VERSIONS_WARN);
+
+    return made;
+}
+
+/**
+ * @brief STRICT: HOST told to refuse a module of another version, whatever
+ *        the build says.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_strict(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    const bool made = d_tests_cli_make_host(_program,
+                                            _parser);
+
+    d_cli_program_set_plugin_versions(_program,
+                                      (int)D_CLI_PLUGIN_VERSIONS_REFUSE);
+
+    return made;
+}
+
+/**
+ * @brief TOLD: HOST told to look in the modules' directory first.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_told(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return ( (d_tests_cli_make_host(_program,
+                                    _parser)) &&
+             (d_cli_program_set_plugin_path(_program,
+                                            d_tests_cli_modules) ==
+              D_ARG_OK) );
+}
+
+/**
+ * @brief ELSEWHERE: HOST told to look first in two directories that do not
+ *        hold its modules.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_elsewhere(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return ( (d_tests_cli_make_host(_program,
+                                    _parser)) &&
+             (d_cli_program_set_plugin_path(_program,
+                                            "a" D_TESTS_CLI_SEPARATOR "b") ==
+              D_ARG_OK) );
+}
+
 /**
  * @brief Runs a host on a command line, PROG_PLUGIN_PATH the modules'
  *        directory, and gives back its status and what it wrote.
@@ -814,8 +1092,17 @@ bool d_tests_cli_host_run(
         return false;
     }
 
+    // the modules' directory, as the variable names it, or as the run does
+    // where the build reads no variable
     (void)d_tests_cli_setenv("PROG_PLUGIN_PATH",
                              d_tests_cli_modules);
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 0)
+    if (program.plugin_path == NULL)
+    {
+        (void)d_cli_program_set_plugin_path(&program,
+                                            d_tests_cli_modules);
+    }
+#endif
     *_status = d_cli_program_run(&program,
                                  words.count,
                                  words.items);
@@ -888,7 +1175,9 @@ bool d_tests_cli_probe_case(
  * @param[in] _tag    the case's tag.
  * @param[in] _line   the command line.
  * @param[in] _first  the error output's first line.
- * @param[in] _notes  how many notes must follow it.
+ * @param[in] _notes  how many notes must follow it; (size_t)-1 for any
+ *                    number, where the build's own places are not the
+ *                    default's.
  * @return whether it held.
  */
 static
@@ -925,7 +1214,8 @@ bool d_tests_cli_refused_case(
                         (strncmp(err.data,
                                  _first,
                                  length) == 0)                 &&
-                        (notes == _notes) );
+                        ( (_notes == (size_t)-1) ||
+                          (notes == _notes) ) );
 
     if (!held)
     {
@@ -1038,7 +1328,10 @@ bool d_tests_cli_plugin_running(void)
                                     D_TESTS_CLI_MODULE("prog-missing")
                                     " was not found\n"
                                     "prog: note: looked in ",
-                                    3u) && held;
+                                    (D_INTERNAL_CLI_PLUGIN_SEARCH_DEFAULT ==
+                                     1)
+                                    ? 3u
+                                    : (size_t)-1) && held;
     held = d_tests_cli_probe_case("U06",
                                   d_tests_cli_make_styled,
                                   "prog probe report.txt",
@@ -1180,6 +1473,58 @@ static const char KIT_HELP_PARSER[] =
     "always or never\n"
     "          --shout             say it in capitals\n";
 
+// KIT_HELP_RESPONDING / KIT_HELP_PARSER_RESPONDING
+//   constants: KIT's help through RESPONDING: `@FILE` among its options, its
+// host having read them; and through STYLED reading response files, the
+// argument parser's layout, `@FILE` last among its OPTIONS.
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+static const char KIT_HELP_PARSER_RESPONDING[] =
+    "say hello from a module\n"
+    "\n"
+    "\n"
+    "prog kit [OPTIONS] NAME\n"
+    "\n"
+    "\n"
+    "POSITIONALS:\n"
+    "  NAME REQUIRED               who to say hello to\n"
+    "\n"
+    "OPTIONS:\n"
+    "  -h,     --help              display this help and exit\n"
+    "          --version           output version information and exit\n"
+    "  -q,     --quiet             say nothing but errors\n"
+    "  -v,     --verbose           say more; twice, more again\n"
+    "          --color{always} WHEN \n"
+    "                              colour diagnostics: auto (the default), "
+    "always or never\n"
+    "          --shout             say it in capitals\n"
+    "  @FILE                       read more arguments from FILE, in its "
+    "place\n";
+
+static const char KIT_HELP_RESPONDING[] =
+    "Usage: prog kit [OPTION]... NAME\n"
+    "Say hello from a module.\n"
+    "\n"
+    "Arguments:\n"
+    "  NAME                who to say hello to\n"
+    "\n"
+    "Options:\n"
+    "  -q, --quiet         say nothing but errors\n"
+    "  -v, --verbose       say more; twice, more again\n"
+    "      --color[=WHEN]  colour diagnostics: auto (the default), always "
+    "or never\n"
+    "      --shout         say it in capitals\n"
+    "  @FILE               read more arguments from FILE, in its place\n"
+    "  -h, --help          display this help and exit\n"
+    "      --version       output version information and exit\n"
+    "\n"
+    "Exit status:\n"
+    "  0  if it did what was asked, and the answer, if one was asked, is "
+    "yes\n"
+    "  1  if it did, and the answer is no\n"
+    "  2  if there was trouble: the command line, a file, or the "
+    "program\n";
+#endif
+
 // KIT_BUILD
 //   constant: what KIT says of its build, and its own line.
 static const char KIT_BUILD[] =
@@ -1239,12 +1584,66 @@ bool d_tests_cli_kit_version(
     return held;
 }
 
+/**
+ * @brief KIT through a host that reads response files: its help says
+ *        `@FILE`, in the kit's layout and the parser's, and a file -- one
+ *        naming another, too -- is read by the host, before KIT is run.
+ *
+ * @return whether every case held.
+ */
+static
+bool d_tests_cli_kit_responding(void)
+{
+    bool held = true;
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+    held = d_tests_cli_check(
+               (d_tests_cli_file_write("args.txt",
+                                       "--shout world\n",
+                                       14u)) &&
+               (d_tests_cli_file_write("inner.txt",
+                                       "@args.txt\n",
+                                       10u)),
+               "K12",
+               "the response files could not be made") && held;
+    held = d_tests_cli_kit_case("K12",
+                                d_tests_cli_make_responding,
+                                "prog kit --help",
+                                0,
+                                KIT_HELP_RESPONDING,
+                                "") && held;
+    held = d_tests_cli_kit_case("K13",
+                                d_tests_cli_make_responding,
+                                "prog kit @args.txt",
+                                0,
+                                "HELLO world\n",
+                                "") && held;
+    held = d_tests_cli_kit_case("K14",
+                                d_tests_cli_make_responding,
+                                "prog kit @inner.txt",
+                                0,
+                                "HELLO world\n",
+                                "") && held;
+    held = d_tests_cli_kit_case("K15",
+                                d_tests_cli_make_styled_responding,
+                                "prog kit --help",
+                                0,
+                                KIT_HELP_PARSER_RESPONDING,
+                                "") && held;
+    (void)remove("args.txt");
+    (void)remove("inner.txt");
+#endif
+
+    return held;
+}
+
 /*
 d_tests_cli_plugin_kit
   KIT's work, its note at the host's `-v`, its help, its failures in the
 host's colour, and its version, plain and with its build -- `-v` its own,
-or the host's; and through STYLED, a failure without its word, help in the
-parser's layout and a prefix taken for a long name, as the host has them.
+or the host's; through STYLED, a failure without its word, help in the
+parser's layout and a prefix taken for a long name, as the host has them;
+and through RESPONDING, `@FILE` in its help and its files read by the host.
 */
 bool d_tests_cli_plugin_kit(void)
 {
@@ -1326,10 +1725,12 @@ bool d_tests_cli_plugin_kit(void)
                                 0,
                                 "HELLO world\n",
                                 "") && held;
+    held = d_tests_cli_kit_responding() && held;
     d_tests_arg_files_leave(&files);
 
     return held;
 }
+
 
 
 //==============================================================================
@@ -1557,18 +1958,21 @@ bool d_tests_cli_module_refused(
 
 /**
  * @brief Makes a module's program from a host, as a module makes one, and
- *        gives back the flags it was made with.
+ *        gives back the flags it was made with, and its parser's.
  *
- * @param[in]  _host   the host.
- * @param[in]  _own    the module's own D_CLI_PROGRAM_* flags.
- * @param[out] _flags  receives the program's flags.
+ * @param[in]  _host     the host.
+ * @param[in]  _own      the module's own D_CLI_PROGRAM_* flags.
+ * @param[out] _flags    receives the program's flags.
+ * @param[out] _reading  receives its parser's D_ARG_PARSER_* flags; may be
+ *                       NULL.
  * @return what d_cli_program_init_plugin returned.
  */
 static
-int d_tests_cli_module_flags(
+int d_tests_cli_module_reading(
     const struct dj_cli_plugin_host* _host,
     uint32_t                         _own,
-    uint32_t*                        _flags
+    uint32_t*                        _flags,
+    uint32_t*                        _reading
 )
 {
     struct dj_cli_program program;
@@ -1592,6 +1996,12 @@ int d_tests_cli_module_flags(
                                                  _own);
 
     *_flags = program.flags;
+
+    if (_reading != NULL)
+    {
+        *_reading = parser.flags;
+    }
+
     d_cli_program_release(&program);
     d_arg_parser_release(&parser);
 
@@ -1599,10 +2009,33 @@ int d_tests_cli_module_flags(
 }
 
 /**
+ * @brief d_tests_cli_module_reading, the parser's flags aside.
+ *
+ * @param[in]  _host   the host.
+ * @param[in]  _own    the module's own D_CLI_PROGRAM_* flags.
+ * @param[out] _flags  receives the program's flags.
+ * @return what d_cli_program_init_plugin returned.
+ */
+static
+int d_tests_cli_module_flags(
+    const struct dj_cli_plugin_host* _host,
+    uint32_t                         _own,
+    uint32_t*                        _flags
+)
+{
+    return d_tests_cli_module_reading(_host,
+                                      _own,
+                                      _flags,
+                                      NULL);
+}
+
+/**
  * @brief The host's flags a module's program takes: those that shape what
- *        is read and written, joined to its own, and no others; none from a
- *        record of the first size, which has none, and which is still
- *        accepted; and a record shorter than that refused.
+ *        is read and written, and whether the host read response files,
+ *        joined to its own, and no others; none from a record of the first
+ *        size, which has none, and which is still accepted; a record
+ *        shorter than that refused; and the host's response files said by
+ *        the module, never read by it again.
  *
  * @param[in] _host  a whole host.
  * @return whether every check held.
@@ -1612,8 +2045,9 @@ bool d_tests_cli_module_styles(
     const struct dj_cli_plugin_host* _host
 )
 {
-    struct dj_cli_plugin_host host  = *_host;
-    uint32_t                 flags = 0u;
+    struct dj_cli_plugin_host host    = *_host;
+    uint32_t                 flags   = 0u;
+    uint32_t                 reading = 0u;
 
     host.flags = D_CLI_PROGRAM_COMMANDS       |
                  D_CLI_PROGRAM_RESPONSE_FILES |
@@ -1626,13 +2060,26 @@ bool d_tests_cli_module_styles(
                     (d_tests_cli_module_flags(&host,
                                               0u,
                                               &flags) == D_ARG_OK) &&
-                    (flags == (D_CLI_PROGRAM_PARSER_HELP   |
-                               D_CLI_PROGRAM_PLAIN_ERRORS  |
-                               D_CLI_PROGRAM_ABBREVIATIONS |
+                    (flags == (D_CLI_PROGRAM_RESPONSE_FILES |
+                               D_CLI_PROGRAM_PARSER_HELP    |
+                               D_CLI_PROGRAM_PLAIN_ERRORS   |
+                               D_CLI_PROGRAM_ABBREVIATIONS  |
                                D_CLI_PROGRAM_EDITS_TO_OUTPUT)),
                     "S05",
                     "a host's flags that shape what is read and written, "
                     "and no others");
+
+    host.flags = D_CLI_PROGRAM_RESPONSE_FILES;
+    held       = d_tests_cli_check(
+                     (d_tests_cli_module_reading(&host,
+                                                 0u,
+                                                 &flags,
+                                                 &reading) == D_ARG_OK) &&
+                     (flags == D_CLI_PROGRAM_RESPONSE_FILES)            &&
+                     ((reading & D_ARG_PARSER_RESPONSE_FILES) == 0u),
+                     "S09",
+                     "the host's response files said, and not read "
+                     "again") && held;
 
     host.flags = D_CLI_PROGRAM_PLAIN_ERRORS;
     held       = d_tests_cli_check(
@@ -1718,7 +2165,322 @@ bool d_tests_cli_plugin_module_side(void)
 
 
 //==============================================================================
-// 8.  NULLS
+// 8.  SETTINGS
+//==============================================================================
+
+/**
+ * @brief Runs a host on a command line and compares its status, what it
+ *        wrote to standard output, and its error output -- whole, or the
+ *        start of it.
+ *
+ * @param[in] _tag     the case's tag.
+ * @param[in] _make    the host's fixture.
+ * @param[in] _line    the command line.
+ * @param[in] _status  the status the run must give.
+ * @param[in] _err     what the error output must hold, or begin with.
+ * @param[in] _whole   whether it must hold that and no more.
+ * @return whether it held.
+ */
+static
+bool d_tests_cli_setting_case(
+    const char*          _tag,
+    dj_tests_cli_make_fn _make,
+    const char*          _line,
+    int                  _status,
+    const char*          _err,
+    bool                 _whole
+)
+{
+    struct dj_arg_buffer out    = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer err    = D_ARG_BUFFER_INIT;
+    int                 status = -1;
+    const bool          ran    = d_tests_cli_host_run(_line,
+                                                      _make,
+                                                      &status,
+                                                      &out,
+                                                      &err);
+    const size_t        length = strlen(_err);
+    const char* const   said   = (err.data != NULL) ? err.data : "";
+    const bool          held   = ( (ran)                        &&
+                                   (status == _status)          &&
+                                   (out.length == 0u)           &&
+                                   (err.length >= length)       &&
+                                   ( (!_whole) ||
+                                     (err.length == length) )   &&
+                                   (strncmp(said,
+                                            _err,
+                                            length) == 0) );
+
+    if (!held)
+    {
+        printf("  [%s] status %d, err: %s\n",
+               _tag,
+               status,
+               said);
+    }
+
+    (void)remove("report.txt");
+    d_arg_buffer_release(&out);
+    d_arg_buffer_release(&err);
+
+    return d_tests_cli_check(held,
+                             _tag,
+                             "the status, and what the host said");
+}
+
+/**
+ * @brief A module of another version: refused as the build says, unless
+ *        the program is told otherwise; loaded with a warning where it is
+ *        told to, silent under `-q`; one of its own version without one;
+ *        and one of another interface refused whatever it is told.
+ *
+ * @return whether every case held.
+ */
+static
+bool d_tests_cli_setting_versions(void)
+{
+    char refused[D_TESTS_CLI_PATH_MAX + 128u];
+    char warned[D_TESTS_CLI_PATH_MAX + 128u];
+    char abi[D_TESTS_CLI_PATH_MAX + 128u];
+    char path[D_TESTS_CLI_PATH_MAX];
+
+    (void)d_tests_cli_probe_path("old",
+                                 path,
+                                 sizeof(path));
+    (void)snprintf(refused,
+                   sizeof(refused),
+                   "prog: error: cannot load '%s': it belongs to prog 0.9, "
+                   "and this is prog 1.2\n",
+                   path);
+    (void)snprintf(warned,
+                   sizeof(warned),
+                   "prog: warning: '%s' belongs to prog 0.9, and this is "
+                   "prog 1.2; loading it all the same\n",
+                   path);
+    (void)snprintf(abi,
+                   sizeof(abi),
+                   "prog: error: cannot load '%s': it was built for plugin "
+                   "interface 99, and this program takes 1\n",
+                   d_tests_cli_probe_path("abi",
+                                          path,
+                                          sizeof(path)));
+
+#if (D_INTERNAL_CLI_PLUGIN_STRICT_VERSION == 1)
+    bool held = d_tests_cli_setting_case("Z01",
+                                         d_tests_cli_make_host,
+                                         "prog old report.txt 4",
+                                         D_CLI_EXIT_TROUBLE,
+                                         refused,
+                                         true);
+#else
+    bool held = d_tests_cli_setting_case("Z01",
+                                         d_tests_cli_make_host,
+                                         "prog old report.txt 4",
+                                         4,
+                                         warned,
+                                         true);
+#endif
+
+    held = d_tests_cli_setting_case("Z02",
+                                    d_tests_cli_make_lenient,
+                                    "prog old report.txt 4",
+                                    4,
+                                    warned,
+                                    true) && held;
+    held = d_tests_cli_setting_case("Z03",
+                                    d_tests_cli_make_lenient,
+                                    "prog -q old report.txt 4",
+                                    4,
+                                    "",
+                                    true) && held;
+    held = d_tests_cli_setting_case("Z04",
+                                    d_tests_cli_make_lenient,
+                                    "prog probe report.txt 5",
+                                    5,
+                                    "",
+                                    true) && held;
+    held = d_tests_cli_setting_case("Z05",
+                                    d_tests_cli_make_lenient,
+                                    "prog abi",
+                                    D_CLI_EXIT_TROUBLE,
+                                    abi,
+                                    true) && held;
+
+    return d_tests_cli_setting_case("Z06",
+                                    d_tests_cli_make_strict,
+                                    "prog old report.txt 4",
+                                    D_CLI_EXIT_TROUBLE,
+                                    refused,
+                                    true) && held;
+}
+
+/**
+ * @brief Directories a run names: looked in first, so that a module is
+ *        found there with the variable naming nowhere; said first among
+ *        the places looked in; what `--version -v` says, found as a run
+ *        finds it; and the setting's own contract.
+ *
+ * @return whether every case held.
+ */
+static
+bool d_tests_cli_setting_path(void)
+{
+    struct dj_cli_program program;
+    struct dj_arg_parser  parser;
+    char                 missing[D_TESTS_CLI_PATH_MAX + 256u];
+    char                 version[D_TESTS_CLI_PATH_MAX + 64u];
+    char                 path[D_TESTS_CLI_PATH_MAX];
+
+    (void)snprintf(missing,
+                   sizeof(missing),
+                   "prog: error: 'missing' is not installed: "
+                   D_TESTS_CLI_MODULE("prog-missing") " was not found\n"
+                   "prog: note: looked in a\n"
+                   "prog: note: looked in b\n"
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+                   "prog: note: looked in %s\n",
+                   d_tests_cli_modules);
+#else
+                   "%s",
+                   "");
+#endif
+    (void)snprintf(version,
+                   sizeof(version),
+                   "probe module: %s\n",
+                   d_tests_cli_probe_path("probe",
+                                          path,
+                                          sizeof(path)));
+
+    bool held = d_tests_cli_setting_case("Z07",
+                                         d_tests_cli_make_told,
+                                         "prog probe report.txt 6",
+                                         6,
+                                         "",
+                                         true);
+
+    held = d_tests_cli_setting_case("Z08",
+                                    d_tests_cli_make_elsewhere,
+                                    "prog missing",
+                                    D_CLI_EXIT_TROUBLE,
+                                    missing,
+                                    false) && held;
+
+    // what the version says, the variable unset: found as told
+    struct dj_arg_buffer out = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer err = D_ARG_BUFFER_INIT;
+    int                 said = -1;
+    const char* const   argv[] = { "prog", "--version", "-v", NULL };
+
+    if (d_tests_cli_start(&program,
+                          &parser,
+                          d_tests_cli_make_told,
+                          &out,
+                          &err))
+    {
+        said = d_cli_program_run(&program,
+                                 3,
+                                 argv);
+        d_tests_cli_finish(&program,
+                           &parser);
+    }
+
+    held = d_tests_cli_check(
+               (said == D_CLI_EXIT_OK) &&
+               (out.data != NULL)      &&
+               (strstr(out.data,
+                       version) != NULL),
+               "Z09",
+               "--version -v finds a module as a run is told to") && held;
+    d_arg_buffer_release(&out);
+    d_arg_buffer_release(&err);
+
+    return held;
+}
+
+/**
+ * @brief The settings' own contract: the list copied, cleared by NULL or an
+ *        empty list, refused for no program; an unknown version rule the
+ *        build's.
+ *
+ * @return whether every check held.
+ */
+static
+bool d_tests_cli_setting_contract(void)
+{
+    struct dj_cli_program program;
+
+    memset(&program,
+           0,
+           sizeof(program));
+
+    char list[] = "x";
+    bool kept   = (d_cli_program_set_plugin_path(&program,
+                                                 list) == D_ARG_OK);
+
+    list[0] = 'y';
+    kept    = ( (kept)                                       &&
+                (program.plugin_path != NULL)                &&
+                (strcmp(program.plugin_path,
+                        "x") == 0)                           &&
+                (d_cli_program_set_plugin_path(&program,
+                                               "") == D_ARG_OK) &&
+                (program.plugin_path == NULL)                &&
+                (d_cli_program_set_plugin_path(&program,
+                                               "z") == D_ARG_OK) &&
+                (d_cli_program_set_plugin_path(&program,
+                                               NULL) == D_ARG_OK) &&
+                (program.plugin_path == NULL)                &&
+                (d_cli_program_set_plugin_path(NULL,
+                                               "x") ==
+                 D_ARG_ERROR_BAD_ARGUMENT) );
+    d_cli_program_set_plugin_versions(&program,
+                                      (int)D_CLI_PLUGIN_VERSIONS_WARN);
+    kept = (kept) &&
+           (program.plugin_versions == (int)D_CLI_PLUGIN_VERSIONS_WARN);
+    d_cli_program_set_plugin_versions(&program,
+                                      99);
+    kept = (kept) &&
+           (program.plugin_versions == (int)D_CLI_PLUGIN_VERSIONS_DEFAULT);
+    d_cli_program_set_plugin_versions(NULL,
+                                      (int)D_CLI_PLUGIN_VERSIONS_WARN);
+    (void)d_cli_program_set_plugin_path(&program,
+                                        NULL);
+
+    return d_tests_cli_check(kept,
+                             "Z10",
+                             "the settings copied, cleared and kept to "
+                             "their values");
+}
+
+/*
+d_tests_cli_plugin_settings
+  What a program is told for its runs, over what the build says: the
+versions it takes, and where it looks first.
+*/
+bool d_tests_cli_plugin_settings(void)
+{
+    struct dj_tests_arg_files files;
+    bool                     held = d_tests_arg_files_enter(&files);
+
+    // a scratch directory for the probe's reports
+    if (!d_tests_cli_check(held,
+                           "Z01",
+                           "the scratch directory could not be made"))
+    {
+        return false;
+    }
+
+    held = d_tests_cli_setting_versions();
+    held = d_tests_cli_setting_path() && held;
+    held = d_tests_cli_setting_contract() && held;
+    d_tests_arg_files_leave(&files);
+
+    return held;
+}
+
+
+//==============================================================================
+// 9.  NULLS
 //==============================================================================
 
 /*
@@ -1805,6 +2567,7 @@ const struct dj_tests_section d_tests_cli_plugin[] =
     { "cli_plugin_loading",     d_tests_cli_plugin_loading     },
     { "cli_plugin_running",     d_tests_cli_plugin_running     },
     { "cli_plugin_kit",         d_tests_cli_plugin_kit         },
+    { "cli_plugin_settings",    d_tests_cli_plugin_settings    },
 #endif
     { "cli_plugin_version",     d_tests_cli_plugin_version     },
     { "cli_plugin_module_side", d_tests_cli_plugin_module_side },

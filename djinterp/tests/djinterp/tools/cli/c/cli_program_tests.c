@@ -26,7 +26,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_program_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./cli_program_tests.h"  // corresponding header
 // std
@@ -528,6 +528,28 @@ bool d_tests_cli_make_responding(
                                           D_CLI_PROGRAM_COMMANDS |
                                           D_CLI_PROGRAM_RESPONSE_FILES);
 }
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+/**
+ * @brief RESPONDING_LAYOUT: RESPONDING with the argument parser's own help.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_make_responding_layout(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    return d_tests_cli_make_commands_with(_program,
+                                          _parser,
+                                          D_CLI_PROGRAM_COMMANDS       |
+                                          D_CLI_PROGRAM_PARSER_HELP    |
+                                          D_CLI_PROGRAM_RESPONSE_FILES);
+}
+#endif  // D_INTERNAL_ARG_PARSER_RESPONSE_FILES
 
 /**
  * @brief SINGLE's work: prints its files and how often `-n` was given.
@@ -1589,7 +1611,8 @@ static const struct dj_tests_cli_case LAYOUT[] =
 
 // HELP_RESPONDING
 //   constant: RESPONDING's root help: COMMANDS', and `@FILE` before help and
-// version where the parser reads response files.
+// version where the parser reads response files. HELP_SHOW_RESPONDING and
+// HELP_ONE_RESPONDING: a command's, `@FILE` after its Global options.
 #if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
 static const char HELP_RESPONDING[] =
     "Usage: prog [OPTION]... COMMAND [ARGUMENT]...\n"
@@ -1618,25 +1641,129 @@ static const char HELP_RESPONDING[] =
     "  0  if it did what was asked, and the answer, if one was asked, is yes\n"
     "  1  if it did, and the answer is no\n"
     "  2  if there was trouble: the command line, a file, or the program\n";
+static const char HELP_SHOW_RESPONDING[] =
+    "Usage: prog show [OPTION]... SHEET\n"
+    "List what a sheet holds.\n"
+    "\n"
+    "Arguments:\n"
+    "  SHEET               the sheet to list\n"
+    "\n"
+    "Options:\n"
+    "  -o, --out=FILE      write the list to FILE\n"
+    "      --all           every row, hidden ones too\n"
+    "  -h, --help          display this help and exit\n"
+    "\n"
+    "Global options:\n"
+    "  -q, --quiet         say nothing but errors\n"
+    "  -v, --verbose       say more; twice, more again\n"
+    "      --color[=WHEN]  colour diagnostics: auto (the default), always "
+    "or never\n"
+    "  -D, --define=NAME   define NAME for every command\n"
+    "      --level=N       how far to go (default: 3)\n"
+    "  @FILE               read more arguments from FILE, in its place\n";
+static const char HELP_ONE_RESPONDING[] =
+    "Usage: prog group one [OPTION]...\n"
+    "The group's first command.\n"
+    "\n"
+    "Options:\n"
+    "  -h, --help          display this help and exit\n"
+    "\n"
+    "Global options:\n"
+    "  -q, --quiet         say nothing but errors\n"
+    "  -v, --verbose       say more; twice, more again\n"
+    "      --color[=WHEN]  colour diagnostics: auto (the default), always "
+    "or never\n"
+    "  -D, --define=NAME   define NAME for every command\n"
+    "      --level=N       how far to go (default: 3)\n"
+    "  @FILE               read more arguments from FILE, in its place\n";
 #else
-    #define HELP_RESPONDING HELP_ROOT
+    #define HELP_RESPONDING      HELP_ROOT
+    #define HELP_SHOW_RESPONDING HELP_SHOW
+    #define HELP_ONE_RESPONDING  HELP_ONE
 #endif
 
 // RESPONDING
 //   constant: what d_tests_cli_program_responses' command lines come to on
-// RESPONDING: `@FILE` on the root's page, and on no command's.
+// RESPONDING: `@FILE` on every page (ruling cli-taken 84), the root's and
+// each command's, however the page is asked for.
 static const struct dj_tests_cli_case RESPONDING[] =
 {
     { "R01", "prog --help", 0,
       HELP_RESPONDING,
       "" },
     { "R02", "prog show --help", 0,
-      HELP_SHOW,
+      HELP_SHOW_RESPONDING,
       "" },
     { "R03", "prog help", 0,
       HELP_RESPONDING,
+      "" },
+    { "R04", "prog help show", 0,
+      HELP_SHOW_RESPONDING,
+      "" },
+    { "R05", "prog group one --help", 0,
+      HELP_ONE_RESPONDING,
       "" }
 };
+
+
+// RESPONDING_LAYOUT
+//   constant: what d_tests_cli_program_responses' command lines come to
+// with the argument parser's own help: `@FILE` last among the OPTIONS, on
+// the root's page and a command's (ruling cli-taken 84).
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+static const struct dj_tests_cli_case RESPONDING_LAYOUT[] =
+{
+    { "R06", "prog --help", 0,
+      "a probe of the kit\n"
+      "\n"
+      "\n"
+      "prog [OPTIONS] [SUBCOMMAND]\n"
+      "\n"
+      "\n"
+      "OPTIONS:\n"
+      "  -h,     --help              display this help and exit\n"
+      "          --version           output version information and exit\n"
+      "  -q,     --quiet             say nothing but errors\n"
+      "  -v,     --verbose           say more; twice, more again\n"
+      "          --color{always} WHEN \n"
+      "                              colour diagnostics: auto (the default), always or\n"
+      "                              never\n"
+      "  -D,     --define NAME ...   define NAME for every command\n"
+      "          --level N [3]       how far to go\n"
+      "  @FILE                       read more arguments from FILE, in "
+      "its place\n"
+      "\n"
+      "SUBCOMMANDS:\n"
+      "  show                        list what a sheet holds\n"
+      "  check                       report a sheet's issues\n"
+      "  group                       hold commands of its own\n"
+      "  fail                        end with a usage error of its own\n"
+      "  open                        read a file\n"
+      "  help                        display help for a command\n"
+      "  completion                  print a completion script for a shell\n",
+      "" },
+    { "R07", "prog help group one", 0,
+      "the group's first command\n"
+      "\n"
+      "\n"
+      "prog group one [OPTIONS]\n"
+      "\n"
+      "\n"
+      "OPTIONS:\n"
+      "  -h,     --help              display this help and exit\n"
+      "          --version           output version information and exit\n"
+      "  -q,     --quiet             say nothing but errors\n"
+      "  -v,     --verbose           say more; twice, more again\n"
+      "          --color{always} WHEN \n"
+      "                              colour diagnostics: auto (the default), always or\n"
+      "                              never\n"
+      "  -D,     --define NAME ...   define NAME for every command\n"
+      "          --level N [3]       how far to go\n"
+      "  @FILE                       read more arguments from FILE, in "
+      "its place\n",
+      "" }
+};
+#endif
 
 
 //==============================================================================
@@ -3415,13 +3542,22 @@ bool d_tests_cli_program_nulls(void)
 
 /*
 d_tests_cli_program_responses
-  RESPONDING on RESPONDING.
+  RESPONDING on RESPONDING; and, where response files are read,
+RESPONDING_LAYOUT on RESPONDING with the parser's own help.
 */
 bool d_tests_cli_program_responses(void)
 {
-    return d_tests_cli_cases_run(RESPONDING,
-                                 D_TESTS_CLI_COUNT(RESPONDING),
-                                 d_tests_cli_make_responding);
+    bool held = d_tests_cli_cases_run(RESPONDING,
+                                      D_TESTS_CLI_COUNT(RESPONDING),
+                                      d_tests_cli_make_responding);
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+    held = d_tests_cli_cases_run(RESPONDING_LAYOUT,
+                                 D_TESTS_CLI_COUNT(RESPONDING_LAYOUT),
+                                 d_tests_cli_make_responding_layout) && held;
+#endif
+
+    return held;
 }
 
 

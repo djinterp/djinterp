@@ -3,8 +3,11 @@
 *
 * A program's commands that live in modules of their own, declared in
 * cli_plugin.h.
-*   Finding a module is string work over three kinds of directory; loading
-* one is cli_system.c's, and checking it is reading its record. The host's
+*   Finding a module is string work over three kinds of directory -- those a
+* run names, those PROGRAM_PLUGIN_PATH lists, and the build's, written out
+* from their `$ORIGIN` and `$PROGRAM`; loading one is cli_system.c's, and
+* checking it is reading its record, against the version the program takes,
+* its own unless it was told to take any with a warning. The host's
 * command takes everything after its name as the parser leaves it -- a prefix
 * command with no options of its own, its help flag removed and the root's
 * options not falling through -- so the module reads every argument itself,
@@ -16,7 +19,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_plugin.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // corresponding header
 // std
@@ -367,6 +370,8 @@ int d_cli_internal_module_names(
     return status;
 }
 
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+
 /**
  * @brief The variable a program's modules are looked for along first: the
  *        program's name upper-cased, `-` as `_`, and `_PLUGIN_PATH`.
@@ -401,6 +406,8 @@ int d_cli_internal_plugin_variable(
                                       "_PLUGIN_PATH")
            : status;
 }
+
+#endif  // D_INTERNAL_CLI_PLUGIN_VARIABLE
 
 /**
  * @brief Tries each directory a list holds, separated as PATH separates
@@ -448,19 +455,175 @@ int d_cli_internal_try_list(
 }
 
 /**
- * @brief Tries the program's own directory, then `../lib/PROGRAM` from it.
+ * @brief How long a placeholder of the build's list is where it stands:
+ *        `$NAME`, not followed by a letter, a digit or `_`, or `${NAME}`.
+ *
+ * @param[in] _at    where the text continues.
+ * @param[in] _left  how much of it is left.
+ * @param[in] _name  the placeholder's name, `ORIGIN` or `PROGRAM`.
+ * @return its length; 0 when the text does not begin with it.
+ */
+static
+size_t d_cli_internal_placeholder(
+    const char* _at,
+    size_t      _left,
+    const char* _name
+)
+{
+    const size_t length = strlen(_name);
+
+    // ${NAME}
+    if ( (_left >= length + 3u)               &&
+         (_at[0] == '$')                      &&
+         (_at[1] == '{')                      &&
+         (strncmp(_at + 2,
+                  _name,
+                  length) == 0)               &&
+         (_at[length + 2u] == '}') )
+    {
+        return length + 3u;
+    }
+
+    // $NAME, where the name ends
+    if ( (_left >= length + 1u) &&
+         (_at[0] == '$')        &&
+         (strncmp(_at + 1,
+                  _name,
+                  length) == 0) )
+    {
+        const char next = (_left > length + 1u) ? _at[length + 1u] : '\0';
+        const bool word = ( ( (next >= 'a') && (next <= 'z') ) ||
+                            ( (next >= 'A') && (next <= 'Z') ) ||
+                            ( (next >= '0') && (next <= '9') ) ||
+                            (next == '_') );
+
+        return (word) ? 0u : (length + 1u);
+    }
+
+    return 0u;
+}
+
+/**
+ * @brief Whether a character separates the parts of a path here: `/`, and
+ *        on Windows `\\` too.
+ *
+ * @param[in] _character  the character.
+ * @return `true` if it does.
+ */
+static
+bool d_cli_internal_is_separator(
+    char _character
+)
+{
+#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+    return ( (_character == '/') ||
+             (_character == '\\') );
+#else
+    return (_character == '/');
+#endif
+}
+
+/**
+ * @brief Writes one directory of the build's list out: `$ORIGIN` as the
+ *        directory of the program's file, `$PROGRAM` as the program's name,
+ *        and on Windows each `/` as `\\`, the separator its loader asks
+ *        for. A separator after `$ORIGIN` that names a root -- `/`, `C:\\`
+ *        -- is the root's own.
+ *
+ * @param[in]     _entry       the directory as the list writes it.
+ * @param[in]     _length      its length.
+ * @param[in]     _program     the program's name.
+ * @param[in]     _executable  the program's file, or NULL.
+ * @param[in,out] _directory   receives the directory.
+ * @return D_ARG_OK; D_ARG_ERROR_FILE when it needs `$ORIGIN` and the
+ *         program's file names no directory; the buffer's status when it
+ *         could not grow.
+ */
+static
+int d_cli_internal_expand(
+    const char*           _entry,
+    size_t                _length,
+    const char*           _program,
+    const char*           _executable,
+    struct dj_arg_buffer* _directory
+)
+{
+    const size_t origin = (_executable != NULL)
+                          ? d_cli_internal_directory_length(_executable)
+                          : 0u;
+    int          status = D_ARG_OK;
+    size_t       at     = 0u;
+
+    while ( (status == D_ARG_OK) &&
+            (at < _length) )
+    {
+        const size_t own  = d_cli_internal_placeholder(_entry + at,
+                                                       _length - at,
+                                                       "ORIGIN");
+        const size_t name = (own == 0u)
+                            ? d_cli_internal_placeholder(_entry + at,
+                                                         _length - at,
+                                                         "PROGRAM")
+                            : 0u;
+
+        if ( (own > 0u) &&
+             (origin == 0u) )
+        {
+            status = D_ARG_ERROR_FILE;
+        }
+        else if (own > 0u)
+        {
+            status = d_arg_buffer_append(_directory,
+                                         _executable,
+                                         origin);
+            at    += own;
+
+            // a root's separator stands for the one after it
+            at    += ( (at < _length)                                    &&
+                       (d_cli_internal_is_separator(_entry[at]))         &&
+                       (d_cli_internal_is_separator(
+                            _executable[origin - 1u])) )
+                     ? 1u
+                     : 0u;
+        }
+        else if (name > 0u)
+        {
+            status = d_arg_buffer_append_cstr(_directory,
+                                              _program);
+            at    += name;
+        }
+        else
+        {
+#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+            const char each = (_entry[at] == '/') ? '\\' : _entry[at];
+#else
+            const char each = _entry[at];
+#endif
+
+            status = d_arg_buffer_append_char(_directory,
+                                              each);
+            ++at;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Tries each directory of the build's list (D_CFG_CLI_PLUGIN_SEARCH),
+ *        written out, until one holds the module; one that needs the
+ *        program's directory, unknown, is passed over.
  *
  * @param[in]     _program     the program's name.
- * @param[in]     _executable  the program's file.
+ * @param[in]     _executable  the program's file, or NULL.
  * @param[in]     _tagged      the module's tagged name, or NULL.
  * @param[in]     _plain       its plain name.
  * @param[in,out] _found       receives the path when found.
  * @param[in,out] _searched    the directories searched; may be NULL.
- * @return as d_cli_internal_try_directory; D_ARG_ERROR_FILE for a file
- *         named without a directory.
+ * @return as d_cli_internal_try_directory.
  */
 static
-int d_cli_internal_try_beside(
+int d_cli_internal_try_search(
     const char*           _program,
     const char*           _executable,
     const char*           _tagged,
@@ -469,56 +632,152 @@ int d_cli_internal_try_beside(
     struct dj_arg_buffer* _searched
 )
 {
-    const size_t        length = d_cli_internal_directory_length(
-                                     _executable);
-    struct dj_arg_buffer lib    = D_ARG_BUFFER_INIT;
-    int                 result = d_cli_internal_try_directory(_executable,
-                                                              length,
-                                                              _tagged,
-                                                              _plain,
-                                                              _found,
-                                                              _searched);
+    static const char list[] = D_INTERNAL_CLI_PLUGIN_SEARCH;
 
-    // ../lib/PROGRAM, where a POSIX installation puts the modules
-    if ( (result == D_ARG_ERROR_FILE) &&
-         (length > 0u) )
+    int result = D_ARG_ERROR_FILE;
+
+    for (const char* at = list; at != NULL; )
     {
-        const char up[] = { '.', '.', D_ENV_CLI_PATH_SEPARATOR,
-                            'l', 'i', 'b', D_ENV_CLI_PATH_SEPARATOR, '\0' };
+        const char* const   end       = strchr(at,
+                                               D_ENV_CLI_PATH_LIST_SEPARATOR);
+        const size_t        length    = (end != NULL)
+                                        ? (size_t)(end - at)
+                                        : strlen(at);
+        struct dj_arg_buffer directory = D_ARG_BUFFER_INIT;
 
-        result = d_cli_internal_join(&lib,
-                                     _executable,
-                                     length,
-                                     up);
+        result = d_cli_internal_expand(at,
+                                       length,
+                                       _program,
+                                       _executable,
+                                       &directory);
         result = (result == D_ARG_OK)
-                 ? d_arg_buffer_append_cstr(&lib,
-                                            _program)
-                 : result;
-        result = (result == D_ARG_OK)
-                 ? d_cli_internal_try_directory(lib.data,
-                                                lib.length,
+                 ? d_cli_internal_try_directory(directory.data,
+                                                directory.length,
                                                 _tagged,
                                                 _plain,
                                                 _found,
                                                 _searched)
                  : result;
-    }
+        at     = ( (result == D_ARG_ERROR_FILE) &&
+                   (end != NULL) )
+                 ? (end + 1)
+                 : NULL;
 
-    d_arg_buffer_release(&lib);
+        d_arg_buffer_release(&directory);
+    }
 
     return result;
 }
 
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+
+/**
+ * @brief Tries the directories PROGRAM_PLUGIN_PATH lists.
+ *
+ * @param[in]     _program   the program's name.
+ * @param[in]     _tagged    the module's tagged name, or NULL.
+ * @param[in]     _plain     its plain name.
+ * @param[in,out] _found     receives the path when found.
+ * @param[in,out] _searched  the directories searched; may be NULL.
+ * @return as d_cli_internal_try_list; D_ARG_ERROR_OUT_OF_MEMORY when there
+ *         was no room to name or read the variable -- never a variable
+ *         unset.
+ */
+static
+int d_cli_internal_try_variable(
+    const char*           _program,
+    const char*           _tagged,
+    const char*           _plain,
+    struct dj_arg_buffer* _found,
+    struct dj_arg_buffer* _searched
+)
+{
+    struct dj_arg_buffer variable = D_ARG_BUFFER_INIT;
+    char*               list     = NULL;
+    int                 status   = d_cli_internal_plugin_variable(_program,
+                                                                  &variable);
+
+    status = ( (status == D_ARG_OK) &&
+               (d_cli_internal_getenv(variable.data,
+                                      &list) == ENOMEM) )
+             ? D_ARG_ERROR_OUT_OF_MEMORY
+             : status;
+    status = (status == D_ARG_OK)
+             ? d_cli_internal_try_list(list,
+                                       _tagged,
+                                       _plain,
+                                       _found,
+                                       _searched)
+             : status;
+
+    D_INTERNAL_CLI_FREE(list);
+    d_arg_buffer_release(&variable);
+
+    return status;
+}
+
+#else
+
+/**
+ * @brief Reads no PROGRAM_PLUGIN_PATH: the build reads none.
+ *
+ * @param[in]     _program   unused.
+ * @param[in]     _tagged    unused.
+ * @param[in]     _plain     unused.
+ * @param[in,out] _found     unused.
+ * @param[in,out] _searched  unused.
+ * @return D_ARG_ERROR_FILE.
+ */
+static
+int d_cli_internal_try_variable(
+    const char*           _program,
+    const char*           _tagged,
+    const char*           _plain,
+    struct dj_arg_buffer* _found,
+    struct dj_arg_buffer* _searched
+)
+{
+    (void)_program;
+    (void)_tagged;
+    (void)_plain;
+    (void)_found;
+    (void)_searched;
+
+    return D_ARG_ERROR_FILE;
+}
+
+#endif  // D_INTERNAL_CLI_PLUGIN_VARIABLE
+
 /*
 d_cli_plugin_find
-  PROGRAM_PLUGIN_PATH's directories, the program's own, then ../lib/PROGRAM
-from it; the first that holds the module wins, by its tagged name before its
-plain one in each.
+  d_cli_plugin_find_with, told of no directory first.
 */
 int d_cli_plugin_find(
     const char*           _program,
     const char*           _name,
     const char*           _executable,
+    struct dj_arg_buffer* _found,
+    struct dj_arg_buffer* _searched
+)
+{
+    return d_cli_plugin_find_with(_program,
+                                  _name,
+                                  _executable,
+                                  NULL,
+                                  _found,
+                                  _searched);
+}
+
+/*
+d_cli_plugin_find_with
+  The run's directories, PROGRAM_PLUGIN_PATH's, then the build's; the first
+that holds the module wins, by its tagged name before its plain one in each.
+*/
+int d_cli_plugin_find_with(
+    const char*           _program,
+    const char*           _name,
+    const char*           _executable,
+    const char*           _path,
     struct dj_arg_buffer* _found,
     struct dj_arg_buffer* _searched
 )
@@ -531,55 +790,44 @@ int d_cli_plugin_find(
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    struct dj_arg_buffer tagged   = D_ARG_BUFFER_INIT;
-    struct dj_arg_buffer plain    = D_ARG_BUFFER_INIT;
-    struct dj_arg_buffer variable = D_ARG_BUFFER_INIT;
-    int                 status   = d_cli_internal_module_names(_program,
-                                                               _name,
-                                                               _executable,
-                                                               &tagged,
-                                                               &plain);
-    const char* const   by_tag   = (tagged.length > 0u) ? tagged.data : NULL;
+    struct dj_arg_buffer tagged = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer plain  = D_ARG_BUFFER_INIT;
+    const int           named  = d_cli_internal_module_names(_program,
+                                                             _name,
+                                                             _executable,
+                                                             &tagged,
+                                                             &plain);
+    const char* const   by_tag = (tagged.length > 0u) ? tagged.data : NULL;
 
-    status = (status == D_ARG_OK)
-             ? d_cli_internal_plugin_variable(_program,
-                                              &variable)
-             : status;
-
-    char* list = NULL;
-
-    // the variable, which there was no room to read is no variable unset
-    status = ( (status == D_ARG_OK) &&
-               (d_cli_internal_getenv(variable.data,
-                                      &list) == ENOMEM) )
-             ? D_ARG_ERROR_OUT_OF_MEMORY
-             : status;
-
-    int result = (status == D_ARG_OK)
-                 ? d_cli_internal_try_list(list,
+    // the run's directories, then the variable's
+    int result = (named == D_ARG_OK)
+                 ? d_cli_internal_try_list(_path,
                                            by_tag,
                                            plain.data,
                                            _found,
                                            _searched)
-                 : status;
+                 : named;
 
-    D_INTERNAL_CLI_FREE(list);
-
-    // the program's directory, then ../lib/PROGRAM from it
-    if ( (result == D_ARG_ERROR_FILE) &&
-         (_executable != NULL) )
-    {
-        result = d_cli_internal_try_beside(_program,
-                                           _executable,
+    result = (result == D_ARG_ERROR_FILE)
+             ? d_cli_internal_try_variable(_program,
                                            by_tag,
                                            plain.data,
                                            _found,
-                                           _searched);
-    }
+                                           _searched)
+             : result;
+
+    // the build's, from the program's directory where they name it
+    result = (result == D_ARG_ERROR_FILE)
+             ? d_cli_internal_try_search(_program,
+                                         _executable,
+                                         by_tag,
+                                         plain.data,
+                                         _found,
+                                         _searched)
+             : result;
 
     d_arg_buffer_release(&tagged);
     d_arg_buffer_release(&plain);
-    d_arg_buffer_release(&variable);
 
     return result;
 }
@@ -902,12 +1150,16 @@ void d_cli_module_unload(
 //   constant: the program flags a host gives the module it runs, which
 // shape how a program reads its command line and what it writes, and where
 // it writes a file it changes, so that the module reads and writes as its
-// host does.
+// host does; and whether the host read response files, so that the
+// module's help says `@FILE` as every page of the host's does (ruling
+// cli-taken 84). A module of an older kit masks the last away, and says
+// nothing of `@FILE`, as before.
 #define D_INTERNAL_CLI_HOST_FLAGS                                              \
-    (D_CLI_PROGRAM_PARSER_HELP   |                                             \
-     D_CLI_PROGRAM_PLAIN_ERRORS  |                                             \
-     D_CLI_PROGRAM_ABBREVIATIONS |                                             \
-     D_CLI_PROGRAM_EDITS_TO_OUTPUT)
+    (D_CLI_PROGRAM_PARSER_HELP     |                                           \
+     D_CLI_PROGRAM_PLAIN_ERRORS    |                                           \
+     D_CLI_PROGRAM_ABBREVIATIONS   |                                           \
+     D_CLI_PROGRAM_EDITS_TO_OUTPUT |                                           \
+     D_CLI_PROGRAM_RESPONSE_FILES)
 
 #if (D_INTERNAL_CLI_PLUGINS == 1)
 
@@ -1199,11 +1451,13 @@ bool d_cli_internal_find_module(
 )
 {
     struct dj_arg_buffer searched = D_ARG_BUFFER_INIT;
-    const int           status   = d_cli_plugin_find(_program->name,
-                                                     _name,
-                                                     _exe,
-                                                     _found,
-                                                     &searched);
+    const int           status   = d_cli_plugin_find_with(
+                                       _program->name,
+                                       _name,
+                                       _exe,
+                                       _program->plugin_path,
+                                       _found,
+                                       &searched);
 
     // no memory to look with, or to say where it looked
     if ( (status == (int)D_ARG_ERROR_OUT_OF_MEMORY) ||
@@ -1228,8 +1482,69 @@ bool d_cli_internal_find_module(
 }
 
 /**
+ * @brief Whether a program refuses a module of another version of it: as
+ *        its setting for the run says, else as the build does.
+ *
+ * @param[in] _program  the program.
+ * @return `true` if it does.
+ */
+static
+bool d_cli_internal_strict_versions(
+    const struct dj_cli_program* _program
+)
+{
+    return (_program->plugin_versions ==
+            (int)D_CLI_PLUGIN_VERSIONS_REFUSE)
+           ? true
+           : (_program->plugin_versions ==
+              (int)D_CLI_PLUGIN_VERSIONS_WARN)
+             ? false
+             : (D_INTERNAL_CLI_PLUGIN_STRICT_VERSION == 1);
+}
+
+/**
+ * @brief Warns that a module loaded belongs to another version of the
+ *        program, which took it all the same; says nothing of one of its
+ *        own version.
+ *
+ * @param[in] _program  the program.
+ * @param[in] _module   the module, loaded.
+ */
+static
+void d_cli_internal_other_version(
+    const struct dj_cli_program* _program,
+    const struct dj_cli_module*  _module
+)
+{
+    const char* const theirs = _module->plugin->version;
+
+    // the program's own version, or a program of none
+    if ( (_program->version == NULL) ||
+         ( (theirs != NULL) &&
+           (strcmp(theirs,
+                   _program->version) == 0) ) )
+    {
+        return;
+    }
+
+    d_cli_report(_program,
+                 (int)D_CLI_SEVERITY_WARNING,
+                 "'%s' belongs to %s %s, and this is %s %s; loading it all "
+                 "the same",
+                 _module->path,
+                 _program->name,
+                 (theirs != NULL) ? theirs : "of no version",
+                 _program->name,
+                 _program->version);
+
+    return;
+}
+
+/**
  * @brief Loads a plugin command's module, saying why when it cannot: the
- *        module's refusal, or the want of memory to load it with.
+ *        module's refusal, or the want of memory to load it with; and,
+ *        where the program takes a module of another version, warning of
+ *        one.
  *
  * @param[in]  _program  the program.
  * @param[in]  _path     the module's file.
@@ -1243,11 +1558,14 @@ bool d_cli_internal_load_module(
     struct dj_cli_module*        _module
 )
 {
+    const bool          strict = d_cli_internal_strict_versions(_program);
     struct dj_arg_buffer why    = D_ARG_BUFFER_INIT;
     const int           status = d_cli_module_load(_module,
                                                    _path,
                                                    _program->name,
-                                                   _program->version,
+                                                   (strict)
+                                                   ? _program->version
+                                                   : NULL,
                                                    &why);
 
     // no memory to load it with, or to say why not
@@ -1267,6 +1585,12 @@ bool d_cli_internal_load_module(
                      "cannot load '%s': %s",
                      _path,
                      (why.data != NULL) ? why.data : "it was refused");
+    }
+    // taken, though it may be another version's
+    else if (!strict)
+    {
+        d_cli_internal_other_version(_program,
+                                     _module);
     }
 
     d_arg_buffer_release(&why);
@@ -1404,6 +1728,69 @@ struct dj_arg_command* d_cli_program_add_plugin(
 }
 
 /*
+d_cli_program_set_plugin_path
+  A copy, or none for an empty list; the old one freed once the new one is
+made. A want of memory is kept in the program too, as a definition's is, so
+that its runs end in trouble and say so rather than look in the wrong
+places.
+*/
+int d_cli_program_set_plugin_path(
+    struct dj_cli_program* _program,
+    const char*            _path
+)
+{
+    // parameter validation
+    if (!_program)
+    {
+        return D_ARG_ERROR_BAD_ARGUMENT;
+    }
+
+    char* const copy = ( (_path != NULL) &&
+                         (*_path != '\0') )
+                       ? d_cli_internal_copy(_path)
+                       : NULL;
+
+    // a list given, and no room for it
+    if ( (copy == NULL) &&
+         (_path != NULL) &&
+         (*_path != '\0') )
+    {
+        _program->status = D_ARG_ERROR_OUT_OF_MEMORY;
+
+        return D_ARG_ERROR_OUT_OF_MEMORY;
+    }
+
+    D_INTERNAL_CLI_FREE(_program->plugin_path);
+    _program->plugin_path = copy;
+
+    return D_ARG_OK;
+}
+
+/*
+d_cli_program_set_plugin_versions
+  One of the three, anything else the build's.
+*/
+void d_cli_program_set_plugin_versions(
+    struct dj_cli_program* _program,
+    int                    _versions
+)
+{
+    // nothing to set
+    if (!_program)
+    {
+        return;
+    }
+
+    _program->plugin_versions =
+        ( (_versions == (int)D_CLI_PLUGIN_VERSIONS_REFUSE) ||
+          (_versions == (int)D_CLI_PLUGIN_VERSIONS_WARN) )
+        ? _versions
+        : (int)D_CLI_PLUGIN_VERSIONS_DEFAULT;
+
+    return;
+}
+
+/*
 d_cli_program_init_plugin
   d_cli_program_init under the host's name and version, with the host's
 flags that shape what is read and written where its record has them; then
@@ -1436,6 +1823,18 @@ int d_cli_program_init_plugin(
                                                _host->program,
                                                _host->version,
                                                _flags | styles);
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+    // the host read the response files: the module's help says so, and its
+    // parser reads none again
+    if ( (status == D_ARG_OK) &&
+         ((styles & D_CLI_PROGRAM_RESPONSE_FILES) != 0u) )
+    {
+        d_arg_parser_set_response_files(_parser,
+                                        false,
+                                        (int)D_ARG_QUOTING_NATIVE_RESPONSE);
+    }
+#endif
 
     // the host's say on how much is said, and in what colour
     if (status == D_ARG_OK)
@@ -1483,11 +1882,13 @@ int d_cli_internal_module_said(
 )
 {
     struct dj_arg_buffer found  = D_ARG_BUFFER_INIT;
-    const int           status = d_cli_plugin_find(_program->name,
-                                                   _name,
-                                                   _executable,
-                                                   &found,
-                                                   NULL);
+    const int           status = d_cli_plugin_find_with(
+                                     _program->name,
+                                     _name,
+                                     _executable,
+                                     _program->plugin_path,
+                                     &found,
+                                     NULL);
 
     // found, or looked for everywhere it is looked for and not there
     if (status == D_ARG_OK)

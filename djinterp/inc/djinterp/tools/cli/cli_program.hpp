@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/tools/cli/cli_program.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -49,6 +49,7 @@ TABLE OF CONTENTS
          2.  severity
     2.  Program flags
          1.  program_flags
+         2.  plugin_versions
 2.  THE PROGRAM
     -----------
     1.  The class
@@ -156,6 +157,21 @@ struct program_flags
         plain_errors    = D_CLI_PROGRAM_PLAIN_ERRORS,
         abbreviations   = D_CLI_PROGRAM_ABBREVIATIONS,
         edits_to_output = D_CLI_PROGRAM_EDITS_TO_OUTPUT
+    };
+};
+
+// 1.2.2
+// plugin_versions
+//   enum: the dj_cli_plugin_versions values: what a program does with a
+// module of another version of it -- the build's choice, refuse it, or load
+// it with a warning.
+struct plugin_versions
+{
+    enum value
+    {
+        build_default = D_CLI_PLUGIN_VERSIONS_DEFAULT,
+        refuse        = D_CLI_PLUGIN_VERSIONS_REFUSE,
+        warn          = D_CLI_PLUGIN_VERSIONS_WARN
     };
 };
 
@@ -269,6 +285,18 @@ public:
         DCString     _name,
         DCString     _description
     );
+
+    // where a run looks for modules first, and what it does with one of
+    // another version: d_cli_program_set_plugin_path, which copies the list
+    // -- empty for none, a want of memory leaving the setting as it was --
+    // and d_cli_program_set_plugin_versions; each overrides the build's
+    // knob for the program's runs
+    status plugin_path(
+        DCString _path
+    ) D_NOEXCEPT;
+    program& plugin_versions(
+        cli::plugin_versions::value _versions
+    ) D_NOEXCEPT;
 
     // running: d_cli_program_run, d_cli_program_parse and
     // d_cli_program_dispatch; reached() is the command the last parse
@@ -773,6 +801,28 @@ status program::add_build(
     return status(d_cli_program_add_build(&m_program,
                                           _key.get(),
                                           _value.get()));
+}
+
+// program::plugin_path / plugin_versions
+//   The C calls.
+inline
+status program::plugin_path(
+    DCString _path
+) D_NOEXCEPT
+{
+    return status(d_cli_program_set_plugin_path(&m_program,
+                                                _path.get()));
+}
+
+inline
+program& program::plugin_versions(
+    cli::plugin_versions::value _versions
+) D_NOEXCEPT
+{
+    d_cli_program_set_plugin_versions(&m_program,
+                                      static_cast<int>(_versions));
+
+    return *this;
 }
 
 inline

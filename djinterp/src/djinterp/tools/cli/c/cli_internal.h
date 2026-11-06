@@ -17,7 +17,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -54,6 +54,10 @@ TABLE OF CONTENTS
     -----------
     1.  Modules
          1.  d_cli_internal_modules_said
+4.  HELP
+    ----
+    1.  The parser's layout
+         1.  d_cli_internal_parser_layout
 */
 
 #ifndef DJINTERP_TOOLS_CLI_C_CLI_INTERNAL_H
@@ -256,6 +260,25 @@ int d_cli_internal_modules_said(
     const struct dj_cli_program* _program,
     const char*                  _executable,
     struct dj_arg_buffer*        _out
+);
+
+
+//==============================================================================
+// 4.  HELP
+//==============================================================================
+
+
+// 4.1    The parser's layout
+//------------------------------------------------------------------------------
+// 4.1.1
+// d_cli_internal_parser_layout
+//   setting: gives a formatter that keeps the argument parser's own layout
+// the one step the kit adds to it: on every page of a program that reads
+// response files, `@FILE` last in the OPTIONS group, laid out as an option
+// is (ruling cli-taken 84). The formatter's context must be the program.
+// Where the parser reads no response files, nothing changes.
+void d_cli_internal_parser_layout(
+    struct dj_arg_formatter* _formatter
 );
 
 D_EXTERN_C_END

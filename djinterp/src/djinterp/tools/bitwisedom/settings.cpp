@@ -16,7 +16,7 @@
 * path:      /src/djinterp/tools/bitwisedom/settings.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/settings.hpp>  // corresponding header
 
@@ -34,6 +34,8 @@
 // bitwisedom
 #include <djinterp/tools/bitwisedom/bits.hpp>     // format_dec
 #include <djinterp/tools/bitwisedom/codegen.hpp>  // standard_name, is_cpp
+#include <djinterp/tools/bitwisedom/persist.hpp>  // sheet_object,
+                                                  // sheet_from_object
 
 
 namespace bitwisedom
@@ -1475,6 +1477,310 @@ std::string setting_values(
     }
 
     return "text";
+}
+
+
+//==============================================================================
+// 4.  BY THE FILE'S PATHS
+//==============================================================================
+
+namespace
+{
+
+/*
+member_of
+  The value one step of a path names: an object's member by its name, an
+array's element by its index, written as decimal digits; nullptr for none.
+*/
+json_value* member_of(
+    json_value&        _value,
+    const std::string& _step
+)
+{
+    if (_value.type == json_type::object)
+    {
+        for (json_member& each : _value.members)
+        {
+            if (each.key == _step)
+            {
+                return &each.value;
+            }
+        }
+
+        return nullptr;
+    }
+
+    std::size_t       index = 0;
+    const char* const begin = _step.data();
+    const char* const end   = begin + _step.size();
+    const auto        read  = std::from_chars(begin, end, index);
+
+    return ( (_value.type == json_type::array) &&
+             (!_step.empty())                  &&
+             (read.ec == std::errc())          &&
+             (read.ptr == end)                 &&
+             (index < _value.items.size()) )
+           ? &_value.items[index]
+           : nullptr;
+}
+
+/*
+value_at
+  The value a whole path names, its steps joined by `.`; nullptr for none,
+an empty step among them.
+*/
+json_value* value_at(
+    json_value&        _root,
+    const std::string& _path
+)
+{
+    json_value* at    = &_root;
+    std::size_t start = 0;
+
+    while ( (at != nullptr) &&
+            (start <= _path.size()) )
+    {
+        const std::size_t dot  = _path.find('.', start);
+        const std::size_t stop = (dot == std::string::npos) ? _path.size()
+                                                            : dot;
+        const std::string step = _path.substr(start, stop - start);
+
+        at    = step.empty() ? nullptr : member_of(*at, step);
+        start = stop + 1u;
+    }
+
+    return at;
+}
+
+/*
+collect_paths
+  Each member and element below a value, in order, by its path.
+*/
+void collect_paths(
+    const json_value&         _value,
+    const std::string&        _above,
+    std::vector<std::string>& _paths
+)
+{
+    const std::string lead = _above.empty() ? std::string() : (_above + ".");
+
+    for (const json_member& each : _value.members)
+    {
+        _paths.push_back(lead + each.key);
+        collect_paths(each.value, lead + each.key, _paths);
+    }
+
+    for (std::size_t i = 0; i < _value.items.size(); ++i)
+    {
+        _paths.push_back(lead + std::to_string(i));
+        collect_paths(_value.items[i], lead + std::to_string(i), _paths);
+    }
+
+    return;
+}
+
+/*
+value_of_text
+  A value, given as text, as the member it is to replace is: a text as it
+is; true or false; a number; null, an array or an object as JSON of the
+same kind.
+*/
+bool value_of_text(
+    const json_value&  _was,
+    const std::string& _text,
+    json_value&        _value,
+    std::string&       _error
+)
+{
+    std::string why;
+
+    if (_was.type == json_type::string)
+    {
+        _value = json_value::string(_text);
+
+        return true;
+    }
+
+    if (_was.type == json_type::boolean)
+    {
+        const bool known = ( (_text == "true") ||
+                             (_text == "false") );
+
+        _value = json_value::boolean(_text == "true");
+        _error = known ? std::string()
+                       : ("'" + _text + "' is not true or false");
+
+        return known;
+    }
+
+    const bool parsed = parse_json(_text, _value, why);
+    const bool same   = ( (parsed) &&
+                          ( (_value.type == _was.type) ||
+                            (_was.type == json_type::null) ) );
+
+    _error = same ? std::string()
+           : (_was.type == json_type::number) ? ("'" + _text +
+                                                 "' is not a number")
+           : (_was.type == json_type::array)  ? ("'" + _text +
+                                                 "' is not a JSON array")
+                                              : ("'" + _text +
+                                                 "' is not a JSON object");
+
+    return same;
+}
+
+/*
+same_value
+  Whether a sheet kept a value: numbers by what they are, whatever their
+spelling; the rest by their JSON.
+*/
+bool same_value(
+    const json_value& _kept,
+    const json_value& _given
+)
+{
+    if ( (_kept.type == json_type::number) &&
+         (_given.type == json_type::number) )
+    {
+        return (_kept.as_real(0.0) == _given.as_real(1.0));
+    }
+
+    return (write_json(_kept) == write_json(_given));
+}
+
+}  // anonymous namespace
+
+/*
+sheet_file_paths
+  The file's object, walked.
+*/
+std::vector<std::string> sheet_file_paths(
+    const sheet& _sheet
+)
+{
+    std::vector<std::string> paths;
+
+    collect_paths(sheet_object(_sheet), std::string(), paths);
+
+    return paths;
+}
+
+/*
+sheet_file_value
+  The file's object, and the path in it.
+*/
+bool sheet_file_value(
+    const sheet&       _sheet,
+    const std::string& _path,
+    json_value&        _value
+)
+{
+    json_value        file  = sheet_object(_sheet);
+    const json_value* found = value_at(file, _path);
+
+    if (found != nullptr)
+    {
+        _value = *found;
+    }
+
+    return (found != nullptr);
+}
+
+/*
+set_sheet_file_value
+  The value written into the file's object, the sheet read back from it,
+and the value read back from the sheet: kept, or nothing changes.
+*/
+bool set_sheet_file_value(
+    sheet&             _sheet,
+    const std::string& _path,
+    const std::string& _value,
+    std::string&       _error
+)
+{
+    json_value  file  = sheet_object(_sheet);
+    json_value* at    = value_at(file, _path);
+    json_value  given;
+
+    if (at == nullptr)
+    {
+        _error = "a sheet file holds no such path";
+
+        return false;
+    }
+
+    if (!value_of_text(*at, _value, given, _error))
+    {
+        return false;
+    }
+
+    *at = given;
+
+    sheet       made;
+    std::string why;
+
+    if (!sheet_from_object(file, made, why))
+    {
+        _error = why;
+
+        return false;
+    }
+
+    json_value        back = sheet_object(made);
+    const json_value* kept = value_at(back, _path);
+
+    if ( (kept == nullptr) ||
+         (!same_value(*kept, given)) )
+    {
+        _error = "a sheet does not keep '" + _value + "' there";
+
+        return false;
+    }
+
+    _sheet = std::move(made);
+
+    return true;
+}
+
+/*
+compact_json
+  A scalar as write_json writes it, its line's end aside; an array or an
+object, its parts so, joined without blanks.
+*/
+std::string compact_json(
+    const json_value& _value
+)
+{
+    if ( (_value.type != json_type::array) &&
+         (_value.type != json_type::object) )
+    {
+        std::string one = write_json(_value);
+
+        while ( (!one.empty()) &&
+                ( (one.back() == '\n') ||
+                  (one.back() == '\r') ) )
+        {
+            one.pop_back();
+        }
+
+        return one;
+    }
+
+    std::string out = (_value.type == json_type::array) ? "[" : "{";
+
+    for (std::size_t i = 0; i < _value.items.size(); ++i)
+    {
+        out += ((i == 0u) ? "" : ",") + compact_json(_value.items[i]);
+    }
+
+    for (std::size_t i = 0; i < _value.members.size(); ++i)
+    {
+        out += ((i == 0u) ? "" : ",") +
+               compact_json(json_value::string(_value.members[i].key)) +
+               ":" + compact_json(_value.members[i].value);
+    }
+
+    return out + ((_value.type == json_type::array) ? "]" : "}");
 }
 
 }  // namespace bitwisedom

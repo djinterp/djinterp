@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/cpp/cli/cli_render.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -436,7 +436,7 @@ struct dji_cli_format
 // Env>::value.
 template<typename Template,
          typename Env = option_set<>>
-D_CONSTEXPR_INLINE dji_cli_string<> dji_cli_format_v =
+D_CONSTEXPR_INLINE_VAR dji_cli_string<> dji_cli_format_v =
     dji_cli_format<Template, Env>::value;
 
 
