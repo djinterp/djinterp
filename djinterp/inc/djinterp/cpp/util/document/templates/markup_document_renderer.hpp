@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/markup_document_renderer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -95,6 +95,8 @@ IV.   ALIASES                      (xml_document_renderer /
                                                     // D_OVERRIDE
 #include "../../../text/markup_string_template.hpp" // xml_escape_policy,
                                                     // html_escape_policy
+#include "../../output/output_stream.hpp"           // DOutputStream:
+                                                    // write_to
 
 
 NS_DJINTERP
@@ -386,6 +388,17 @@ public:
     D_NODISCARD const std::string& str() const D_NOEXCEPT
     {
         return m_out;
+    }
+
+    // write_to
+    //   writes the accumulated document to an output stream -- the console,
+    // a file, a dj_string, a caller's array, several at once. True only when
+    // every byte arrived; the stream keeps why it did not.
+    bool write_to(
+        DOutputStream& _os
+    ) const D_NOEXCEPT
+    {
+        return _os.write(m_out.data(), m_out.size());
     }
 
     // profile

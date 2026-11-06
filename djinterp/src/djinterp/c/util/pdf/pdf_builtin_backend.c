@@ -6,14 +6,16 @@
 * helpers in pdf_builtin_backend.hpp. Every emitter follows snprintf: it
 * writes at most `_out_capacity - 1` bytes and a terminator when there is any
 * room, and returns the length the whole result needs, so a NULL buffer
-* measures. Numbers use "%g", deliberately locale-dependent as the header
-* explains.
+* measures. Numbers are written by d_ostream_write_double
+* (c/text/ostream_format.h), as "%g" writes them in the C locale whatever the
+* program's locale (the decimal-point ruling, stream 1), onto a stream over
+* the caller's buffer (d_ostream_init_fixed), whose contract is snprintf's.
 *
 *
 * path:      /src/djinterp/c/util/pdf/pdf_builtin_backend.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/pdf/pdf_builtin_backend.h"  // corresponding header
 // std
@@ -21,6 +23,11 @@
 #include <stdio.h>   // snprintf
 #include <string.h>  // memcpy
 #include <time.h>    // time, localtime, gmtime, strftime
+// djinterp
+#include "../../../../../inc/djinterp/c/util/ostream/ostream.h"
+                                    // d_ostream_init_fixed, d_ostream_write
+#include "../../../../../inc/djinterp/c/text/ostream_format.h"
+                                    // d_ostream_write_double
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 
@@ -130,17 +137,84 @@ size_t d_internal_pdf_print_length(
     return (_written > 0) ? (size_t)_written : 0u;
 }
 
+/*
+d_internal_pdf_fixed
+  Opens a stream over the caller's buffer with snprintf's contract: a NULL
+buffer, or no room, only counts.
+*/
+static
+void d_internal_pdf_fixed(
+    struct dj_ostream*       _os,
+    struct dj_ostream_fixed* _fixed,
+    char*                    _out,
+    size_t                   _out_capacity
+)
+{
+    (void)d_ostream_init_fixed(_os,
+                               _fixed,
+                               _out,
+                               (_out != NULL) ? _out_capacity : 0u,
+                               1);
+
+    return;
+}
+
+/*
+d_internal_pdf_finish
+  Closes a stream opened by d_internal_pdf_fixed and returns the length the
+whole output needed, terminator excluded, which a fixed stream counts past
+its array.
+*/
+static
+size_t d_internal_pdf_finish(
+    struct dj_ostream* _os
+)
+{
+    const size_t needed = d_ostream_written(_os);
+
+    (void)d_ostream_close(_os);
+
+    return needed;
+}
+
+/*
+d_pdf_num
+  "%g"'s bytes in the C locale, through d_ostream_write_double: 'g' with
+printf's default precision, and the decimal point always '.'.
+*/
 size_t d_pdf_num(
     double _value,
     char*  _out,
     size_t _out_capacity
 )
 {
-    return d_internal_pdf_print_length(
-        snprintf(_out,
-                 (_out != NULL) ? _out_capacity : 0u,
-                 "%g",
-                 _value));
+    struct dj_ostream       os;
+    struct dj_ostream_fixed fixed;
+
+    d_internal_pdf_fixed(&os, &fixed, _out, _out_capacity);
+    (void)d_ostream_write_double(&os, _value, 'g', -1);
+
+    return d_internal_pdf_finish(&os);
+}
+
+/*
+d_internal_pdf_numbers
+  Writes _count numbers as d_pdf_num writes each, a space after every one.
+*/
+static
+void d_internal_pdf_numbers(
+    struct dj_ostream*  _os,
+    const double* const _values,
+    size_t              _count
+)
+{
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        (void)d_ostream_write_double(_os, _values[i], 'g', -1);
+        (void)d_ostream_write_char(_os, ' ');
+    }
+
+    return;
 }
 
 /*
@@ -156,9 +230,6 @@ size_t d_pdf_set_color(
     size_t                     _out_capacity
 )
 {
-    char* const  out      = _out;
-    const size_t capacity = (_out != NULL) ? _out_capacity : 0u;
-
     // no colour, no operator
     if (!_color)
     {
@@ -167,24 +238,45 @@ size_t d_pdf_set_color(
         return 0u;
     }
 
+    struct dj_ostream       os;
+    struct dj_ostream_fixed fixed;
+
+    d_internal_pdf_fixed(&os, &fixed, _out, _out_capacity);
+
     switch (_color->space)
     {
         case D_PDF_COLOR_GRAY:
-            return d_internal_pdf_print_length(
-                snprintf(out, capacity, "%g %s\n", _color->r,
-                         _fill ? "g" : "G"));
+        {
+            const double v[1] = { _color->r };
+
+            d_internal_pdf_numbers(&os, v, 1u);
+            (void)d_ostream_write_cstr(&os, _fill ? "g\n" : "G\n");
+
+            break;
+        }
 
         case D_PDF_COLOR_CMYK:
-            return d_internal_pdf_print_length(
-                snprintf(out, capacity, "%g %g %g %g %s\n", _color->c,
-                         _color->m, _color->y, _color->k,
-                         _fill ? "k" : "K"));
+        {
+            const double v[4] = { _color->c, _color->m, _color->y, _color->k };
+
+            d_internal_pdf_numbers(&os, v, 4u);
+            (void)d_ostream_write_cstr(&os, _fill ? "k\n" : "K\n");
+
+            break;
+        }
 
         default:
-            return d_internal_pdf_print_length(
-                snprintf(out, capacity, "%g %g %g %s\n", _color->r,
-                         _color->g, _color->b, _fill ? "rg" : "RG"));
+        {
+            const double v[3] = { _color->r, _color->g, _color->b };
+
+            d_internal_pdf_numbers(&os, v, 3u);
+            (void)d_ostream_write_cstr(&os, _fill ? "rg\n" : "RG\n");
+
+            break;
+        }
     }
+
+    return d_internal_pdf_finish(&os);
 }
 
 /*

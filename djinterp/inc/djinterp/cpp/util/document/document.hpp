@@ -18,6 +18,13 @@
 * Building the tree is identical either way; the format lives entirely in the
 * policy at serialisation time.
 *
+*   EVERY DESTINATION SAYS WHETHER THE DOCUMENT ARRIVED. to_stream and
+* to_file write through an output stream (cpp/util/output), which keeps the
+* first failure -- a file that would not open, a std::ostream gone bad, a
+* full disk -- and each returns true only when every byte reached its
+* destination; to_file also counts the final flush and close, as fclose
+* does. to_stream takes a std::ostream or any DOutputStream.
+*
 *   Requires C++17 (the writer and printer layers it composes are C++17);
 * self-suppresses below it.
 *
@@ -25,16 +32,17 @@
 * path:      /inc/djinterp/cpp/util/document/document.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    DOCUMENT FACADE
-      ---------------
-      a. document<Policy>
-      b. xml_document
+1.  DOCUMENT FACADE
+    ---------------
+    1.  The facade
+         1.  document<Policy>
+         2.  xml_document
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_HPP
@@ -47,13 +55,14 @@ I.    DOCUMENT FACADE
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <fstream>
-#include <ostream>
-#include <string>
+#include <ostream>  // std::ostream
+#include <string>   // std::string
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../text/printer.hpp"           // document_printer, render, policies
-#include "./document_writer.hpp"   // document_writer, cursor
+#include "../../djinterp.hpp"               // framework root
+#include "../../text/printer.hpp"           // document_printer, render,
+                                            // policies, the sinks
+#include "../output/output_stream.hpp"      // DOutputStream
+#include "./document_writer.hpp"            // document_writer, cursor
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -62,10 +71,14 @@ I.    DOCUMENT FACADE
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  I.   DOCUMENT FAÇADE                                   ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  DOCUMENT FACADE
+//==============================================================================
 
+
+// 1.1    The facade
+//------------------------------------------------------------------------------
+// 1.1.1
 // document
 //   class: build-and-serialise in one handle. Build the tree through
 // `root(...)` and cursors exactly as with `document_writer`; configure
@@ -120,6 +133,7 @@ public:
     )
     {
         m_options.pretty = _pretty;
+
         return *this;
     }
 
@@ -129,6 +143,7 @@ public:
     )
     {
         m_options.indent = static_cast<xml_string_t&&>(_indent);
+
         return *this;
     }
 
@@ -138,6 +153,7 @@ public:
     )
     {
         m_options = static_cast<print_options&&>(_options);
+
         return *this;
     }
 
@@ -150,8 +166,9 @@ public:
         return render(m_writer.document(), m_policy, m_options);
     }
 
-    // to_stream -- render the document into an output stream.
-    void
+    // to_stream -- render the document into a std::ostream; true when every
+    // byte reached it (a stream gone bad, or one that throws, is false).
+    bool
     to_stream(
         std::ostream& _stream
     ) const
@@ -160,21 +177,38 @@ public:
             stream_sink(_stream), m_options, m_policy);
         _printer.print(m_writer.document());
 
-        return;
+        return _printer.sink().ok();
     }
 
-    // to_file -- render the document into a file (binary mode, verbatim).
-    void
+    // to_stream -- render the document into any output stream: the console,
+    // a file, a dj_string, a caller's array, several at once; true while the
+    // stream is healthy, which keeps the reason when it is not.
+    bool
+    to_stream(
+        DOutputStream& _stream
+    ) const
+    {
+        document_printer<output_stream_sink, Policy> _printer(
+            output_stream_sink(_stream), m_options, m_policy);
+        _printer.print(m_writer.document());
+
+        return _stream.is_valid();
+    }
+
+    // to_file -- render the document into a file (binary mode, verbatim);
+    // true only when the file opened, every byte was written, and it closed.
+    bool
     to_file(
         const std::string& _path
     ) const
     {
-        std::ofstream _file(_path, std::ios::out | std::ios::binary);
-        document_printer<stream_sink, Policy> _printer(
-            stream_sink(_file), m_options, m_policy);
-        _printer.print(m_writer.document());
+        DOutputStream _file;
 
-        return;
+        (void)_file.open_file(_path.c_str());
+
+        const bool written = to_stream(_file);
+
+        return _file.close() && written;
     }
 
     // -- access --------------------------------------------------------------
@@ -198,6 +232,7 @@ private:
 };
 
 
+// 1.1.2
 // xml_document
 //   type: the fluent façade fixed to XML serialisation (compile-time policy).
 using xml_document = document<xml_print_policy>;

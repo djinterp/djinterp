@@ -50,7 +50,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_canvas.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -95,6 +95,7 @@ IV.   CONVENIENCE FACTORIES
 #include "../../djinterp.hpp"
 #include "./pdf.hpp"
 #include "./pdf_metrics.hpp"
+#include "../output/output_stream.hpp"  // DOutputStream: save_to
 
 
 NS_DJINTERP
@@ -818,6 +819,18 @@ public:
         ensure_started();
 
         return m_doc->to_bytes();
+    }
+
+    // save_to
+    //   finalizes and writes the document to an output stream; true only
+    // when the stream took every byte, and the stream keeps why it did not.
+    bool save_to(
+        DOutputStream& _os
+    )
+    {
+        ensure_started();
+
+        return m_doc->save_to(_os);
     }
 
 private:

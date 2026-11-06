@@ -5,10 +5,10 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_document.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_DOCUMENT_HPP
-#define DJINTERP_UTIL_PDF_PDF_DOCUMENT_HPP
+#define DJINTERP_UTIL_PDF_PDF_DOCUMENT_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -325,6 +325,22 @@ public:
         }
 
         return m_backend->save(_path);
+    }
+
+    // save_to
+    //   ends the document if still open, then writes it to a stream: a
+    // string, the console, a caller's array, several at once. True only when
+    // the stream took every byte; the stream keeps why it did not.
+    bool save_to(
+        DOutputStream& _os
+    )
+    {
+        if (m_open)
+        {
+            close();
+        }
+
+        return m_backend->save_to(_os);
     }
 
 

@@ -42,7 +42,7 @@
 * path:      /src/djinterp/c/util/compress/compress_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -948,6 +948,98 @@ d_internal_codec_owns_knob(
     return 0;
 }
 
+/**
+ * @brief Pins the table's default on each knob a codec owns that the set
+ *        leaves UNSET, as far as the build's pinning knobs allow.
+ *
+ * @param[in]     _codec  the codec the set is resolved for.
+ * @param[in,out] _work   the set being resolved.
+ *
+ * The generic level is not touched here: it is resolved first, by the
+ * caller. A worker count is pinned under D_CFG_COMPRESS_PIN_THREADS, every
+ * other knob under D_CFG_COMPRESS_PIN_DEFAULTS; one left UNSET is the
+ * backend's to choose.
+ */
+static void
+d_internal_compress_pin_defaults(
+    enum dj_codec_id            _codec,
+    struct dj_compress_options* _work
+)
+{
+    for (int i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
+    {
+        const enum dj_compress_knob k = (enum dj_compress_knob)i;
+
+        // the generic level, a knob of another codec, or one already set
+        if ( (k == D_COMPRESS_KNOB_LEVEL)                ||
+             (!d_internal_codec_owns_knob(_codec, k))    ||
+             (d_compress_options_knob_get(_work, k) !=
+              D_COMPRESS_KNOB_UNSET) )
+        {
+            continue;
+        }
+
+        const int pinned = ( (k == D_COMPRESS_KNOB_LZMA_THREADS) ||
+                             (k == D_COMPRESS_KNOB_ZSTD_WORKERS) )
+                               ? D_INTERNAL_COMPRESS_PIN_THREADS
+                               : D_INTERNAL_COMPRESS_PIN_DEFAULTS;
+
+        if (pinned)
+        {
+            (void)d_compress_options_knob_set(_work,
+                                              k,
+                                              d_internal_knob_defaults[i]);
+        }
+    }
+
+    return;
+}
+
+/**
+ * @brief Gives a codec with a private level the generic effort, mapped onto
+ *        its own scale, when the caller left that level alone.
+ *
+ * @param[in]     _codec  the codec the set is resolved for.
+ * @param[in]     _in     the caller's set; null leaves the level as it is.
+ * @param[in,out] _work   the set being resolved; its generic level is set.
+ */
+static void
+d_internal_compress_own_level(
+    enum dj_codec_id                  _codec,
+    const struct dj_compress_options* _in,
+    struct dj_compress_options*       _work
+)
+{
+    enum dj_compress_knob own = D_COMPRESS_KNOB_ZSTD_LEVEL;
+
+    switch (_codec)
+    {
+        case D_CODEC_ID_ZSTD:   own = D_COMPRESS_KNOB_ZSTD_LEVEL;     break;
+        case D_CODEC_ID_LZ4:    own = D_COMPRESS_KNOB_LZ4_LEVEL;      break;
+        case D_CODEC_ID_BROTLI: own = D_COMPRESS_KNOB_BROTLI_QUALITY; break;
+        case D_CODEC_ID_BZIP2:
+            own = D_COMPRESS_KNOB_BZIP2_BLOCK_SIZE_100K;
+            break;
+        default:
+            // every other codec reads the generic level itself
+            return;
+    }
+
+    if ( (_in != NULL) &&
+         (d_compress_options_knob_get(_in, own) == D_COMPRESS_KNOB_UNSET) )
+    {
+        const int32_t level =
+            d_compress_options_knob_get(_work, D_COMPRESS_KNOB_LEVEL);
+
+        (void)d_compress_options_knob_set(_work,
+                                          own,
+                                          d_compress_resolve_level(_codec,
+                                                                   level));
+    }
+
+    return;
+}
+
 /*
 d_compress_options_resolve
   Produce a fully specified option set from one that may carry UNSET knobs.
@@ -977,7 +1069,6 @@ d_compress_options_resolve(
 )
 {
     struct dj_compress_options work;
-    int                       i;
 
     if ( (_out == NULL) ||
          (!D_CODEC_ID_IS_VALID(_codec)) )
@@ -1004,85 +1095,8 @@ d_compress_options_resolve(
             &work, D_COMPRESS_KNOB_LEVEL, D_COMPRESS_LEVEL_DEFAULT);
     }
 
-    for (i = 0; i < D_COMPRESS_KNOB_COUNT; ++i)
-    {
-        enum dj_compress_knob k = (enum dj_compress_knob)i;
-
-        if (k == D_COMPRESS_KNOB_LEVEL)
-        {
-            continue;
-        }
-        if (!d_internal_codec_owns_knob(_codec, k))
-        {
-            continue;
-        }
-        if (d_compress_options_knob_get(&work, k) != D_COMPRESS_KNOB_UNSET)
-        {
-            continue;
-        }
-
-        // a worker count is pinned under D_CFG_COMPRESS_PIN_THREADS, every
-        // other knob under D_CFG_COMPRESS_PIN_DEFAULTS; one left UNSET is the
-        // backend's to choose
-        if ( (k == D_COMPRESS_KNOB_LZMA_THREADS) ||
-             (k == D_COMPRESS_KNOB_ZSTD_WORKERS) )
-        {
-            if (!D_INTERNAL_COMPRESS_PIN_THREADS)
-            {
-                continue;
-            }
-        }
-        else if (!D_INTERNAL_COMPRESS_PIN_DEFAULTS)
-        {
-            continue;
-        }
-
-        (void)d_compress_options_knob_set(&work, k,
-                                          d_internal_knob_defaults[i]);
-    }
-
-    // a codec with a private level that the caller left alone takes the
-    // generic effort, mapped onto its own scale.
-    switch (_codec)
-    {
-        case D_CODEC_ID_ZSTD:
-        case D_CODEC_ID_LZ4:
-        case D_CODEC_ID_BROTLI:
-        case D_CODEC_ID_BZIP2:
-        {
-            enum dj_compress_knob own = D_COMPRESS_KNOB_ZSTD_LEVEL;
-
-            if (_codec == D_CODEC_ID_LZ4)
-            {
-                own = D_COMPRESS_KNOB_LZ4_LEVEL;
-            }
-            else if (_codec == D_CODEC_ID_BROTLI)
-            {
-                own = D_COMPRESS_KNOB_BROTLI_QUALITY;
-            }
-            else if (_codec == D_CODEC_ID_BZIP2)
-            {
-                own = D_COMPRESS_KNOB_BZIP2_BLOCK_SIZE_100K;
-            }
-
-            if ( (_in != NULL) &&
-                 (d_compress_options_knob_get(_in, own) ==
-                  D_COMPRESS_KNOB_UNSET) )
-            {
-                (void)d_compress_options_knob_set(
-                    &work, own,
-                    d_compress_resolve_level(
-                        _codec,
-                        d_compress_options_knob_get(&work,
-                                                    D_COMPRESS_KNOB_LEVEL)));
-            }
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
+    d_internal_compress_pin_defaults(_codec, &work);
+    d_internal_compress_own_level(_codec, _in, &work);
 
     *_out = work;
 
@@ -1674,183 +1688,14 @@ uint32_t d_pack_crc32(
 // without requiring the caller's sink to be countable.
 struct dj_internal_tee
 {
-    struct dj_pack_sink  inner;
+    struct dj_pack_sink inner;
     size_t              total;
 };
 
-/*
-d_internal_count_write
-  The counting sink's write: accept everything, record the total.
-
-Parameter(s):
-  _context: a struct dj_pack_counting_sink.
-  _data:    ignored.
-  _size:    the byte count to add.
-Return:
-  _size always -- a counting sink never refuses.
-*/
-static
-size_t d_internal_count_write(
-    void*       _context,
-    const void* _data,
-    size_t      _size
-)
-{
-    struct dj_pack_counting_sink* c = (struct dj_pack_counting_sink*)_context;
-
-    (void)_data;
-
-    if (c != NULL)
-    {
-        c->total += _size;
-    }
-
-    return _size;
-}
-
-/*
-d_internal_buffer_write
-  The buffer sink's write: copy what fits, and keep counting what does not.
-
-  A short write would abort the transform, so this ACCEPTS every byte and
-records the overflow instead.  That is what lets one failed pass report the
-exact size to grow to: the encoder runs to completion, the sink knows the full
-requirement, and the caller retries once rather than measuring separately.
-
-Parameter(s):
-  _context: a struct dj_pack_buffer_sink.
-  _data:    the bytes offered.
-  _size:    how many.
-Return:
-  _size always; the caller checks `overflow` rather than the return.
-*/
-static
-size_t d_internal_buffer_write(
-    void*       _context,
-    const void* _data,
-    size_t      _size
-)
-{
-    struct dj_pack_buffer_sink* b = (struct dj_pack_buffer_sink*)_context;
-
-    if (b == NULL)
-    {
-        return 0;
-    }
-
-    b->needed += _size;
-
-    if ( (b->buffer != NULL) &&
-         ((b->written + _size) <= b->capacity) )
-    {
-        if (_size != 0u)
-        {
-            memcpy(b->buffer + b->written, _data, _size);
-        }
-
-        b->written += _size;
-    }
-    else if (_size != 0u)
-    {
-        b->overflow = 1;
-    }
-
-    return _size;
-}
-
-/*
-d_pack_counting_sink_init
-  Reset a counting sink to zero.
-
-Parameter(s):
-  _counter: the sink context; may be null, which does nothing.
-Return:
-  none.
-*/
-void d_pack_counting_sink_init(
-    struct dj_pack_counting_sink* _counter
-)
-{
-    if (_counter != NULL)
-    {
-        _counter->total = 0u;
-    }
-
-    return;
-}
-
-/*
-d_pack_buffer_sink_init
-  Point a buffer sink at caller-owned memory.
-
-Parameter(s):
-  _sink:     the sink context; may be null, which does nothing.
-  _buffer:   the destination; null makes the sink behave as a counter.
-  _capacity: how many bytes _buffer holds.
-Return:
-  none.
-*/
-void d_pack_buffer_sink_init(
-    struct dj_pack_buffer_sink* _sink,
-    void*                       _buffer,
-    size_t                      _capacity
-)
-{
-    if (_sink == NULL)
-    {
-        return;
-    }
-
-    _sink->buffer   = (unsigned char*)_buffer;
-    _sink->capacity = _capacity;
-    _sink->written  = 0u;
-    _sink->needed   = 0u;
-    _sink->overflow = 0;
-
-    return;
-}
-
-/*
-d_pack_sink_from_counter
-  A sink driving a counting context.
-
-Parameter(s):
-  _counter: the context to bind.
-Return:
-  The bound sink.
-*/
-struct dj_pack_sink d_pack_sink_from_counter(
-    struct dj_pack_counting_sink* _counter
-)
-{
-    struct dj_pack_sink s;
-
-    s.write   = &d_internal_count_write;
-    s.context = _counter;
-
-    return s;
-}
-
-/*
-d_pack_sink_from_buffer
-  A sink driving a fixed-buffer context.
-
-Parameter(s):
-  _buffer: the context to bind.
-Return:
-  The bound sink.
-*/
-struct dj_pack_sink d_pack_sink_from_buffer(
-    struct dj_pack_buffer_sink* _buffer
-)
-{
-    struct dj_pack_sink s;
-
-    s.write   = &d_internal_buffer_write;
-    s.context = _buffer;
-
-    return s;
-}
+//   The counting and buffer sinks -- d_pack_counting_sink_init,
+// d_pack_buffer_sink_init, d_pack_sink_from_counter and d_pack_sink_from_buffer
+// -- are defined in sink_common.c, beside their declarations, so a program
+// that uses a sink without compression links.
 
 /*
 d_internal_tee_write

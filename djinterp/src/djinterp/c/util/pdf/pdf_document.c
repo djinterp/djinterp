@@ -9,12 +9,14 @@
 * is the backend's to finish. Unlike the C++, drawing with no page open is
 * refused (D_PDF_DOC_BAD_STATE), as the header specifies, and every call
 * records why it failed in `last_status`. State changes only on success.
+* save_to is save to a stream instead of a path, read only from a table large
+* enough to hold it.
 *
 *
 * path:      /src/djinterp/c/util/pdf/pdf_document.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/pdf/pdf_document.h"  // corresponding header
 // std
@@ -463,6 +465,42 @@ int32_t d_pdf_document_save(
         _doc,
         d_internal_pdf_ran(_doc->backend->save(_doc->backend->context,
                                                _path)));
+}
+
+/*
+d_pdf_document_save_to
+  As d_pdf_document_save, but the slot is the appended save_to, so the table
+must be large enough to reach it before the slot is read: a table from before
+the slot existed is unsupported, never read past its end.
+*/
+int32_t d_pdf_document_save_to(
+    struct dj_pdf_document* _doc,
+    struct dj_ostream*      _os
+)
+{
+    // no document, or one that cannot be closed first
+    if ( (!_doc) ||
+         (!d_pdf_document_close(_doc)) )
+    {
+        return 0;
+    }
+
+    if (!d_pdf_backend_is_valid(_doc->backend))
+    {
+        return d_internal_pdf_result(_doc, (int32_t)D_PDF_DOC_NO_BACKEND);
+    }
+
+    // an older table does not reach the slot; a newer one may leave it null
+    if ( (!D_INTERNAL_PDF_HAS_SLOT(_doc->backend, save_to)) ||
+         (!_doc->backend->save_to) )
+    {
+        return d_internal_pdf_result(_doc, (int32_t)D_PDF_DOC_UNSUPPORTED);
+    }
+
+    return d_internal_pdf_result(
+        _doc,
+        d_internal_pdf_ran(_doc->backend->save_to(_doc->backend->context,
+                                                  _os)));
 }
 
 const char* d_pdf_document_status_name(

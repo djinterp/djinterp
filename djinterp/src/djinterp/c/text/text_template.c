@@ -5,9 +5,11 @@
 * path:      /src/djinterp/c/text/text_template.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/text_template.h"
+// djinterp
+#include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul: sizes
 
 
 // =============================================================================
@@ -79,6 +81,15 @@ Return:
 struct dj_text_template* d_text_template_new(void)
 {
     struct dj_text_template* tmpl;
+    size_t                   bytes = 0;
+
+    // the binding array's size, checked before anything is allocated
+    if (d_ckd_mul(&bytes,
+                  D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY,
+                  sizeof(struct dj_text_template_binding)))
+    {
+        return NULL;
+    }
 
     tmpl = malloc(sizeof(struct dj_text_template));
 
@@ -89,8 +100,7 @@ struct dj_text_template* d_text_template_new(void)
     }
 
     // allocate the binding array
-    tmpl->bindings = malloc(D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY
-                            * sizeof(struct dj_text_template_binding));
+    tmpl->bindings = malloc(bytes);
     if (!tmpl->bindings)
     {
         free(tmpl);
@@ -101,8 +111,7 @@ struct dj_text_template* d_text_template_new(void)
     // zero out the binding array
     d_memset(tmpl->bindings,
              0,
-             D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY
-             * sizeof(struct dj_text_template_binding));
+             bytes);
 
     tmpl->binding_count    = 0;
     tmpl->binding_capacity = D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY;
@@ -535,7 +544,8 @@ d_internal_template_ensure_capacity
     struct dj_text_template* _template
 )
 {
-    size_t                          new_capacity;
+    size_t                           new_capacity = 0;
+    size_t                           bytes        = 0;
     struct dj_text_template_binding* new_bindings;
 
     // check if there is room
@@ -544,22 +554,34 @@ d_internal_template_ensure_capacity
         return D_TEXT_TEMPLATE_SUCCESS;
     }
 
-    // double the capacity
-    new_capacity = _template->binding_capacity * 2;
+    // double the capacity; a capacity that cannot double cannot grow
+    if (d_ckd_mul(&new_capacity, _template->binding_capacity, 2))
+    {
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
+
     if (new_capacity < D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY)
     {
         new_capacity = D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY;
     }
 
+    // the new array's size, checked before it is allocated
+    if (d_ckd_mul(&bytes,
+                  new_capacity,
+                  sizeof(struct dj_text_template_binding)))
+    {
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
+
     // allocate new binding array
-    new_bindings = malloc(new_capacity
-                          * sizeof(struct dj_text_template_binding));
+    new_bindings = malloc(bytes);
     if (!new_bindings)
     {
         return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
     }
 
-    // copy existing bindings
+    // copy existing bindings; this size and the next are below bytes, since
+    // binding_count was the old capacity, which is less than new_capacity
     if ( (_template->bindings) &&
          (_template->binding_count > 0) )
     {

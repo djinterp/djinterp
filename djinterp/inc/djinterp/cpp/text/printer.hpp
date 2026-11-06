@@ -23,12 +23,17 @@
 *
 *   DESTINATION:
 *   The sink is a template parameter whose only requirement is to be
-* callable as `sink(const char*, std::size_t)`. Two adapters are provided
-* -- `string_sink` (append into an `xml_string_t`) and `stream_sink`
-* (write into a `std::ostream`) -- so file, console, string, and in-memory
-* buffer destinations are all just different sinks, not different
-* printers. Any callable with that signature (including a functional-style
-* consumer) works directly.
+* callable as `sink(const char*, std::size_t)`. writer.hpp provides three
+* -- `string_sink` (append into an `xml_string_t`), `stream_sink` (write
+* into a `std::ostream`) and `output_stream_sink` (write into any output
+* stream) -- so file, console, string, and in-memory buffer destinations are
+* all just different sinks, not different printers. Any callable with that
+* signature (including a functional-style consumer) works directly.
+*   Those three write through an output stream (cpp/util/output), which
+* keeps a failed write: a sink returns nothing, so its ok() is where a
+* failure shows. `file_printer` writes through one it opens, and its
+* print(), close() and print_document_to_file() report whether the whole
+* document reached the file.
 *
 *   OPTIONS:
 *   Rendering options are a small typed struct (`print_options`: indent
@@ -44,7 +49,7 @@
 * path:      /inc/djinterp/cpp/text/printer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -99,17 +104,18 @@ VII.  FILE PRINTER
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <fstream>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <type_traits>
-#include <utility>
+#include <cstddef>      // std::size_t
+#include <memory>       // std::shared_ptr: boxed_print_policy
+#include <ostream>      // std::ostream
+#include <string>       // std::string, std::char_traits
+#include <type_traits>  // std::enable_if, std::is_same
 // djinterp
-#include "../djinterp.hpp"
-#include "./writer.hpp"           // output sinks (string_sink, stream_sink)
-#include "./xml/xml.hpp"          // node protocol traits + xml_node_kind
+#include "../djinterp.hpp"                   // framework root
+#include "./writer.hpp"                      // the sinks: string_sink,
+                                             // stream_sink, output_stream_sink
+#include "./xml/xml.hpp"                     // node protocol traits,
+                                             // xml_node_kind
+#include "../util/output/output_stream.hpp"  // DOutputStream: file_printer
 
 
 // `if constexpr` is the spine of the accessor dispatch; below C++17 this
@@ -149,12 +155,13 @@ struct print_options
 ///                  II.   OUTPUT SINKS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-//   The output sinks (`string_sink`, `stream_sink`) now live in
-// `writer.hpp` -- the generic IO foundation this header includes -- because
+//   The output sinks (`string_sink`, `stream_sink`, `output_stream_sink`) live
+// in `writer.hpp` -- the generic IO foundation this header includes -- because
 // a sink is an IO concept, not a printing-a-document concept. They remain in
 // the `djinterp` namespace, so existing references (e.g. in `node_to_string`
 // below) are unchanged. Any callable `(const char*, std::size_t)` is equally
-// a valid sink.
+// a valid sink; each of the three keeps a failed write in its stream, read
+// with ok().
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -636,6 +643,15 @@ public:
         return;
     }
 
+    // sink
+    //   function: the bound sink, to ask it after printing whether every
+    // byte arrived (the sinks in writer.hpp answer with ok()).
+    D_NODISCARD const Sink&
+    sink() const
+    {
+        return m_sink;
+    }
+
     // options
     //   function: the bound rendering options (mutable, for reuse).
     D_NODISCARD print_options&
@@ -925,6 +941,7 @@ private:
         -> decltype(std::begin(_range))
     {
         using std::begin;
+
         return begin(_range);
     }
 
@@ -936,6 +953,7 @@ private:
         -> decltype(std::end(_range))
     {
         using std::end;
+
         return end(_range);
     }
 
@@ -1022,69 +1040,90 @@ D_NODISCARD inline xml_string_t render(
 // document into it. As a sink it is text-agnostic -- `operator()(const char*,
 // std::size_t)` writes raw bytes -- so it composes with anything that writes
 // to a sink. `print(node)` serialises a document to the file via
-// `document_printer`. The file is opened in binary mode so bytes pass through
-// verbatim; check `good()` after construction.
+// `document_printer`. The file is opened in binary mode through an output
+// stream (c/filesys underneath), which keeps the first failure -- a file that
+// would not open, a write that did not land -- so good(), print() and close()
+// all report it; close() also reports the last flush, as fclose does.
 class file_printer
 {
 public:
     explicit file_printer(
         const std::string& _path
-    )
-        : m_file(_path, std::ios::out | std::ios::binary)
-    {}
+    ) D_NOEXCEPT
+        : m_stream()
+    {
+        (void)m_stream.open_file(_path.c_str());
+    }
 
     // operator() -- the sink face: write raw bytes to the file.
     void operator()(
         const char* _data,
         std::size_t _size
-    )
+    ) D_NOEXCEPT
     {
-        m_file.write(_data, static_cast<std::streamsize>(_size));
+        (void)m_stream.write(_data, _size);
 
         return;
     }
 
-    // print -- serialise a document (any node-protocol type) into the file.
+    // print -- serialise a document (any node-protocol type) into the file;
+    // true while every byte so far has reached it.
     template<typename Node>
-    void print(
+    bool print(
         const Node&   _node,
         print_options _options = print_options()
     )
     {
-        document_printer<stream_sink> _printer(
-            stream_sink(m_file),
+        document_printer<output_stream_sink> _printer(
+            output_stream_sink(m_stream),
             static_cast<print_options&&>(_options));
         _printer.print(_node);
 
-        return;
+        return m_stream.is_valid();
     }
 
-    // good -- whether the underlying file stream is healthy.
-    D_NODISCARD bool good() const
+    // good -- whether the file opened and every write so far reached it.
+    D_NODISCARD bool good() const D_NOEXCEPT
     {
-        return m_file.good();
+        return m_stream.is_valid();
+    }
+
+    // close -- flushes and closes the file; true only when nothing failed,
+    // the final flush included. The destructor closes too, unreported.
+    bool close() D_NOEXCEPT
+    {
+        return m_stream.close();
+    }
+
+    // stream -- the stream the printer writes through, for its status.
+    D_NODISCARD const DOutputStream& stream() const D_NOEXCEPT
+    {
+        return m_stream;
     }
 
 private:
-    std::ofstream m_file;
+    DOutputStream m_stream;
 };
 
 
 // print_document_to_file
 //   function: serialise `_node` to the file at `_path` with the default
-// policy, in one call.
+// policy, in one call. True only when the file opened, the whole document
+// was written, and it closed cleanly.
 template<typename Node>
 inline
-void print_document_to_file(
+bool print_document_to_file(
     const std::string& _path,
     const Node&        _node,
     print_options      _options = print_options()
 )
 {
     file_printer _printer(_path);
-    _printer.print(_node, static_cast<print_options&&>(_options));
 
-    return;
+    const bool printed =
+        _printer.print(_node, static_cast<print_options&&>(_options));
+
+    return _printer.close() && printed;
 }
 
 

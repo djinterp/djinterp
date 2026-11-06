@@ -28,8 +28,17 @@
 *   SINKS:
 *   A sink is any callable `(const char*, std::size_t)`. `string_sink`
 *   appends into a std::string; `stream_sink` writes into a std::ostream;
-*   a user lambda or a functional-style consumer works directly. File,
-*   console, string, and buffer destinations are all just different sinks.
+*   `output_stream_sink` writes into any output stream (cpp/util/output): the
+*   console, a file, a dj_string, a caller's array, several at once; a user
+*   lambda or a functional-style consumer works directly. File, console,
+*   string, and buffer destinations are all just different sinks.
+*
+*   A SINK RETURNS NOTHING, SO ITS STREAM KEEPS THE FAILURE. The three sinks
+*   here write through an output stream, whose status is sticky: a failed
+*   write -- std::bad_alloc from a string, a std::ostream gone bad, a full
+*   disk -- ends the stream for good instead of throwing through the writer
+*   or vanishing. Ask the sink, or the writer, ok() once after writing. A
+*   sink of the caller's own that has an ok() is asked the same way.
 *
 *   BINARY:
 *   "Type-agnostic" includes binary: a sink moves raw bytes, and a
@@ -44,30 +53,39 @@
 * path:      /inc/djinterp/cpp/text/writer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    OUTPUT SINKS
-      ------------
-      a. string_sink
-      b. stream_sink
-
-II.   PRINTER FUNCTOR
-      ---------------
-      a. identity_fn / compose_fn (internal)
-      b. printer<Fn>
-      c.    make_printer, id_printer
-            d. print
-
-III.  WRITER FUNCTOR
-      --------------
-      a. writer<Sink, Printer>
-      b. make_writer
-      c.    string_writer
-            d. stream_writer
+1.  OUTPUT SINKS
+    ------------
+    1.  Sinks over a stream
+         1.  string_sink
+         2.  stream_sink
+         3.  output_stream_sink
+2.  PRINTER FUNCTOR
+    ---------------
+    1.  Transforms (internal)
+         1.  identity_fn
+         2.  to_string_fn
+         3.  compose_fn
+    2.  The printer
+         1.  printer<Fn>
+         2.  make_printer
+         3.  id_printer
+         4.  print
+3.  WRITER FUNCTOR
+    --------------
+    1.  The writer
+         1.  sink_has_ok (internal)
+         2.  writer<Sink, Printer>
+         3.  make_writer
+    2.  Writers with a destination
+         1.  string_writer
+         2.  stream_writer
+         3.  output_writer
 */
 
 #ifndef DJINTERP_TEXT_WRITER_HPP
@@ -80,13 +98,17 @@ III.  WRITER FUNCTOR
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <ostream>
-#include <string>
-#include <type_traits>
-#include <utility>
+#include <cstddef>      // std::size_t
+#include <ostream>      // std::ostream
+#include <string>       // std::string
+#include <type_traits>  // std::decay, std::true_type, std::false_type
+#include <utility>      // std::declval
 // djinterp
-#include "../djinterp.hpp"
+#include "../djinterp.hpp"                       // framework root
+#include "../util/output/output_stream.hpp"      // DOutputStream,
+                                                 // DOutputStreamSink
+#include "../util/output/output_stream_std.hpp"  // attach_std_string,
+                                                 // attach_std_ostream
 
 
 // Return-type deduction (`auto` returns) underlies the factories and
@@ -97,68 +119,127 @@ III.  WRITER FUNCTOR
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  I.   OUTPUT SINKS                                      ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  OUTPUT SINKS
+//==============================================================================
+// Each owns or borrows an output stream and writes through it, so a failed
+// write is the stream's sticky status, read with ok().
 
+
+// 1.1    Sinks over a stream
+//------------------------------------------------------------------------------
+// 1.1.1
 // string_sink
-//   struct: a sink that appends written bytes to a std::string. Holds the
-// target by pointer; the target must outlive the sink. Satisfies the sink
-// contract -- `operator()(const char*, std::size_t)`.
-struct string_sink
+//   class: a sink that appends written bytes to a std::string, through an
+// output stream it owns, so a failed append (std::bad_alloc) ends the stream
+// rather than throwing through the writer. The target must outlive the sink.
+// Movable, not copyable, as the stream is.
+class string_sink
 {
-    std::string* out;
-
+public:
     explicit string_sink(
         std::string& _out
-    )
-        : out(&_out)
-    {}
+    ) D_NOEXCEPT
+        : m_stream()
+    {
+        (void)attach_std_string(m_stream, _out);
+    }
 
+    string_sink(string_sink&&)            = default;
+    string_sink& operator=(string_sink&&) = default;
+
+    // the sink face: append the bytes
     void operator()(
         const char* _data,
         std::size_t _size
-    )
+    ) D_NOEXCEPT
     {
-        out->append(_data, _size);
+        (void)m_stream.write(_data, _size);
 
         return;
     }
+
+    // ok: whether every append so far succeeded
+    D_NODISCARD bool ok() const D_NOEXCEPT
+    {
+        return m_stream.is_valid();
+    }
+
+    // stream: the stream the sink writes through, for its status
+    D_NODISCARD const DOutputStream& stream() const D_NOEXCEPT
+    {
+        return m_stream;
+    }
+
+private:
+    DOutputStream m_stream;
 };
 
-
+// 1.1.2
 // stream_sink
-//   struct: a sink that writes bytes to a std::ostream (std::cout, an
-// ofstream, an ostringstream). Holds the stream by pointer; the stream
-// must outlive the sink.
-struct stream_sink
+//   class: a sink that writes bytes to a std::ostream (std::cout, an ofstream,
+// an ostringstream) through an output stream it owns, so a std::ostream gone
+// bad, or one that throws, ends the stream and shows in ok(). The std::ostream
+// must outlive the sink. Movable, not copyable.
+class stream_sink
 {
-    std::ostream* out;
-
+public:
     explicit stream_sink(
         std::ostream& _out
-    )
-        : out(&_out)
-    {}
+    ) D_NOEXCEPT
+        : m_stream()
+    {
+        (void)attach_std_ostream(m_stream, _out);
+    }
 
+    stream_sink(stream_sink&&)            = default;
+    stream_sink& operator=(stream_sink&&) = default;
+
+    // the sink face: write the bytes
     void operator()(
         const char* _data,
         std::size_t _size
-    )
+    ) D_NOEXCEPT
     {
-        out->write(_data, static_cast<std::streamsize>(_size));
+        (void)m_stream.write(_data, _size);
 
         return;
     }
+
+    // ok: whether every write so far reached the std::ostream
+    D_NODISCARD bool ok() const D_NOEXCEPT
+    {
+        return m_stream.is_valid();
+    }
+
+    // stream: the stream the sink writes through, for its status
+    D_NODISCARD const DOutputStream& stream() const D_NOEXCEPT
+    {
+        return m_stream;
+    }
+
+private:
+    DOutputStream m_stream;
 };
 
+// 1.1.3
+// output_stream_sink
+//   type: a sink over the caller's own output stream, which must outlive it:
+// any destination a DOutputStream reaches. Copyable; it borrows the stream,
+// which keeps the failure (DOutputStreamSink, cpp/util/output).
+typedef DOutputStreamSink output_stream_sink;
 
-///////////////////////////////////////////////////////////////////////////////
-///                  II.   PRINTER FUNCTOR                                  ///
-///////////////////////////////////////////////////////////////////////////////
 
+//==============================================================================
+// 2.  PRINTER FUNCTOR
+//==============================================================================
+
+
+// 2.1    Transforms (internal)
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
+    // 2.1.1
     // identity_fn
     //   function object: returns its input unchanged. Use as a printer's
     // transform when inputs are already in the destination's byte form
@@ -176,6 +257,7 @@ NS_INTERNAL
     };
 
 
+    // 2.1.2
     // to_string_fn
     //   function object: coerces an input to an owned std::string -- the
     // writers' default transform, so string literals, `const char*`,
@@ -194,6 +276,7 @@ NS_INTERNAL
     };
 
 
+    // 2.1.3
     // compose_fn
     //   function object: the composition g . f -- applies `f` then `g`.
     // Produced by `printer::then`; kept as a named type (not a lambda) so a
@@ -216,7 +299,9 @@ NS_INTERNAL
 
 NS_END  // internal
 
-
+// 2.2    The printer
+//------------------------------------------------------------------------------
+// 2.2.1
 // printer
 //   class: a pure transformation `In -> Out`, wrapped as a composable
 // functor. Applying a printer never mutates its input (the input is taken
@@ -277,6 +362,7 @@ private:
 };
 
 
+// 2.2.2
 // make_printer
 //   function: build a printer from any callable, deducing and decaying the
 // stored transform type.
@@ -290,6 +376,7 @@ D_NODISCARD printer<typename std::decay<Fn>::type> make_printer(
 }
 
 
+// 2.2.3
 // id_printer
 //   function: the identity printer -- returns its input unchanged.
 D_NODISCARD inline printer<internal::identity_fn> id_printer()
@@ -298,6 +385,7 @@ D_NODISCARD inline printer<internal::identity_fn> id_printer()
 }
 
 
+// 2.2.4
 // print
 //   function: apply `_printer` to `_value`, returning the produced output.
 // `_value` is not modified. A convenience for the one-shot case; the
@@ -313,10 +401,57 @@ D_NODISCARD auto print(
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  III.   WRITER FUNCTOR                                  ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  WRITER FUNCTOR
+//==============================================================================
 
+
+// 3.1    The writer
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // 3.1.1
+    // sink_has_ok
+    //   trait: whether a sink can say whether its writes succeeded, by an
+    // ok() a const sink answers.
+    template<typename Sink,
+             typename = void>
+    struct sink_has_ok : std::false_type
+    {};
+
+    template<typename Sink>
+    struct sink_has_ok<Sink,
+                       decltype(static_cast<void>(
+                           std::declval<const Sink&>().ok()))>
+        : std::true_type
+    {};
+
+    // sink_ok
+    //   function: the sink's ok(), or true for a sink that cannot fail
+    // visibly.
+    template<typename Sink>
+    bool sink_ok(
+        const Sink& _sink,
+        std::true_type
+    )
+    {
+        return static_cast<bool>(_sink.ok());
+    }
+
+    template<typename Sink>
+    bool sink_ok(
+        const Sink& _sink,
+        std::false_type
+    )
+    {
+        (void)_sink;
+
+        return true;
+    }
+
+NS_END  // internal
+
+// 3.1.2
 // writer
 //   class: an effectful builder over a sink. `write(x)` renders `x` through
 // the bound printer and appends the result to the sink, leaving `x`
@@ -378,6 +513,15 @@ public:
         return write(_value);
     }
 
+    // ok
+    //   function: whether every write so far reached the destination, when
+    // the sink can say (the sinks above all can); true for one that cannot.
+    D_NODISCARD bool
+    ok() const
+    {
+        return internal::sink_ok(m_sink, internal::sink_has_ok<Sink>());
+    }
+
     // sink / printer accessors
     D_NODISCARD const Sink&
     sink() const
@@ -397,6 +541,7 @@ private:
 };
 
 
+// 3.1.3
 // make_writer
 //   function: build a writer from a sink (and optional printer), decaying
 // the stored sink type.
@@ -421,6 +566,9 @@ D_NODISCARD writer<typename std::decay<Sink>::type, Printer> make_writer(
 }
 
 
+// 3.2    Writers with a destination
+//------------------------------------------------------------------------------
+// 3.2.1
 // string_writer
 //   class: a writer that OWNS its output buffer (a std::string) and exposes
 // it. Convenient when the destination is an in-memory string rather than an
@@ -490,9 +638,11 @@ private:
 };
 
 
+// 3.2.2
 // stream_writer
 //   function: a writer bound to a std::ostream destination. The returned
-// writer holds a `stream_sink`; the stream must outlive it.
+// writer holds a `stream_sink`; the stream must outlive it, and the writer's
+// ok() says whether every write reached it.
 template<typename Printer = printer<internal::to_string_fn>>
 D_NODISCARD writer<stream_sink, Printer>
 stream_writer(
@@ -510,6 +660,31 @@ D_NODISCARD writer<stream_sink, Printer> stream_writer(
 {
     return writer<stream_sink, Printer>(
         stream_sink(_stream), static_cast<Printer&&>(_printer));
+}
+
+// 3.2.3
+// output_writer
+//   function: a writer bound to the caller's output stream -- the console, a
+// file, a dj_string, a caller's array, several at once. The returned writer
+// holds an `output_stream_sink`; the stream must outlive it, and keeps any
+// failure.
+template<typename Printer = printer<internal::to_string_fn>>
+D_NODISCARD writer<output_stream_sink, Printer>
+output_writer(
+    DOutputStream& _stream
+)
+{
+    return writer<output_stream_sink, Printer>(output_stream_sink(_stream));
+}
+
+template<typename Printer>
+D_NODISCARD writer<output_stream_sink, Printer> output_writer(
+    DOutputStream& _stream,
+    Printer        _printer
+)
+{
+    return writer<output_stream_sink, Printer>(
+        output_stream_sink(_stream), static_cast<Printer&&>(_printer));
 }
 
 

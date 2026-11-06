@@ -30,7 +30,14 @@
 *   facade tests `size` before reading any slot beyond the original set. The
 *   alternative is that adding a tenth operation silently reads past the end
 *   of every existing caller's struct. `size` is checked, never trusted to
-*   match sizeof.
+*   match sizeof. `save_to`, the first slot added since, is the proof: it sits
+*   after `destroy`, and an older table simply does not reach it.
+*
+*   A DOCUMENT GOES TO A FILE, OR TO ANY STREAM. `save` writes a path;
+* `save_to` writes the same bytes to a struct dj_ostream (c/util/ostream), and
+* so to a string, the console, a caller's array, several of those at once, or
+* any sink. The stream keeps a failed write, so a backend's 0 has a reason the
+* caller can read from the stream.
 *
 *   THE FACADE IS A VALUE, NOT A HANDLE. `dj_pdf_document` is a struct the
 * caller owns and may put on the stack; there is no create/destroy pair,
@@ -46,23 +53,29 @@
 * path:      /inc/djinterp/c/util/pdf/pdf_document.h
 * link(s):   ch-pdf.tex
 * author(s): TBA                                             created: 2026.08.09
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_C_UTIL_PDF_PDF_DOCUMENT_H
 #define DJINTERP_C_UTIL_PDF_PDF_DOCUMENT_H 1
 
 // std
-#include <stddef.h>
+#include <stddef.h>  // size_t, offsetof
 // djinterp
-#include "../../djinterp.h"
-#include "./pdf_primitives.h"
-#include "./pdf_backend.h"
+#include "../../djinterp.h"      // framework root
+#include "./pdf_primitives.h"    // dj_pdf_point, dj_pdf_size, dj_pdf_font, ...
+#include "./pdf_backend.h"       // dj_pdf_capabilities
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
+
+// struct dj_ostream
+//   forward declaration: save_to writes to a stream (c/util/ostream), which a
+// table only points at, so a backend that never saves to one includes nothing
+// of the stream.
+struct dj_ostream;
 
 // dj_pdf_backend
 //   type: the backend protocol. Every slot takes the context as its first
@@ -121,6 +134,10 @@ struct dj_pdf_backend
 
     // optional: called by the facade only when owns_context is non-zero
     void    (*destroy)(void* _context);
+
+    // optional, appended 2026.11.05: writes the document to a stream, and
+    // returns 1 only when the stream took every byte (the stream keeps why)
+    int32_t (*save_to)(void* _context, struct dj_ostream* _os);
 };
 
 // dj_pdf_document
@@ -209,6 +226,20 @@ int32_t d_pdf_document_capabilities(
 int32_t d_pdf_document_save(
     struct dj_pdf_document* _doc,
     const char*             _path
+);
+/**
+ * @brief Closes the document, then writes it to a stream through the
+ *        backend's save_to slot.
+ *
+ * @param[in,out] _doc  the facade.
+ * @param[in,out] _os   the stream; it keeps the reason a write failed.
+ * @return 1 on success; 0 with last_status D_PDF_DOC_UNSUPPORTED for a table
+ *         without the slot (an older table, or a null slot), or
+ *         D_PDF_DOC_BACKEND_FAILED when the backend or the stream failed.
+ */
+int32_t d_pdf_document_save_to(
+    struct dj_pdf_document* _doc,
+    struct dj_ostream*      _os
 );
 
 // VI.  status

@@ -5,10 +5,10 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_builtin_backend.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_BUILTIN_BACKEND_HPP
-#define DJINTERP_UTIL_PDF_PDF_BUILTIN_BACKEND_HPP
+#define DJINTERP_UTIL_PDF_PDF_BUILTIN_BACKEND_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -26,7 +26,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // djinterp
-#include "./pdf_backend.hpp"
+#include "./pdf_backend.hpp"                  // DPdfBackend
+#include "../../../c/util/ostream/ostream.h"  // d_ostream_init_fixed
+#include "../../../c/text/ostream_format.h"   // d_ostream_write_double
 
 NS_DJINTERP
 
@@ -82,16 +84,23 @@ NS_INTERNAL
     }
 
     // pdf_num
-    //   helper: locale-independent-enough decimal formatting of a
-    // coordinate or scalar for content-stream emission.
+    //   helper: a coordinate or scalar for content-stream emission, as "%g"
+    // writes it in the C locale, whatever the program's locale -- the C
+    // tier's d_pdf_num, byte for byte, through the same d_ostream_write_double
+    // (the decimal-point ruling, stream 1). "%g" under a German locale wrote
+    // "1,5", which no PDF reader takes as a number.
     inline
     std::string pdf_num(
         double _v
     )
     {
-        char buf[64];
+        char              buf[64];
+        dj_ostream        os;
+        dj_ostream_fixed  fixed;
 
-        std::snprintf(buf, sizeof(buf), "%g", _v);
+        (void)d_ostream_init_fixed(&os, &fixed, buf, sizeof(buf), 1);
+        (void)d_ostream_write_double(&os, _v, 'g', -1);
+        (void)d_ostream_close(&os);
 
         return std::string(buf);
     }

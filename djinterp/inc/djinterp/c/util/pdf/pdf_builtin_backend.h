@@ -12,20 +12,14 @@
 * rather than two can use the D_PDF_*_MAX bounds below, all of which are exact
 * rather than generous.
 *
-*   THE DECIMAL POINT IS A SHARED HAZARD, NOT A PORTING CHOICE. `pdf_num` on
-* the C++ side formats with "%g", and its own comment hedges: "locale-
-* independent-ENOUGH". It is not. %g takes its decimal separator from
-* LC_NUMERIC, so under a German or French locale a coordinate emits as "1,5"
-* -- which is not a number in a PDF content stream, and produces a file that
-* every reader rejects. A document that renders correctly on one machine
-* silently corrupts on another with no code change.
-*   This port emits "%g" ANYWAY, deliberately. Fixing it here alone would mean
-* the two tiers write different bytes for the same document under exactly the
-* locales where it matters, and the differential -- which runs under the C
-* locale -- would never see the difference. It belongs in both tiers as a
-* ruling, and until then both are wrong in the same way, which is at least
-* detectable. The fixture pins the C-locale output so any unilateral change
-* shows up as a divergence rather than as a silent improvement.
+*   THE DECIMAL POINT IS ALWAYS '.', IN BOTH TIERS. "%g" takes its decimal
+* separator from LC_NUMERIC, so under a German or French locale a coordinate
+* emitted as "1,5" -- which is not a number in a PDF content stream, and makes
+* a file every reader rejects. Both tiers now write numbers through
+* d_ostream_write_double (c/text/ostream_format.h), which gives "%g"'s bytes
+* in the C locale whatever the program's locale: the decimal-point ruling
+* (stream 1, 2026.11.03), made in one change to both, so they still write the
+* same bytes, and under the C locale the same bytes as before.
 *
 *   THE DATE IS LOCAL TIME, and therefore not reproducible. `pdf_creation_date`
 * stamps a document with the machine's wall clock in its own timezone, so two
@@ -45,17 +39,17 @@
 * path:      /inc/djinterp/c/util/pdf/pdf_builtin_backend.h
 * link(s):   ch-pdf.tex
 * author(s): TBA                                             created: 2026.08.09
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_C_UTIL_PDF_PDF_BUILTIN_BACKEND_H
 #define DJINTERP_C_UTIL_PDF_PDF_BUILTIN_BACKEND_H 1
 
 // std
-#include <stddef.h>
+#include <stddef.h>  // size_t
 // djinterp
-#include "../../djinterp.h"
-#include "./pdf_primitives.h"
+#include "../../djinterp.h"    // framework root
+#include "./pdf_primitives.h"  // dj_pdf_color
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t
 

@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/document_renderer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -71,6 +71,7 @@ II.   DPlainDocumentRenderer      (the plain-text reference realisation)
 // djinterp
 #include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "./document_attributes.hpp"    // doc_attributes, attr_*, text_alignment
+#include "../../output/output_stream.hpp"  // DOutputStream: write_to
 
 
 NS_DJINTERP
@@ -250,6 +251,17 @@ public:
     D_NODISCARD const std::string& str() const D_NOEXCEPT
     {
         return m_out;
+    }
+
+    // write_to
+    //   writes the accumulated document to an output stream -- the console,
+    // a file, a dj_string, a caller's array, several at once. True only when
+    // every byte arrived; the stream keeps why it did not.
+    bool write_to(
+        DOutputStream& _os
+    ) const D_NOEXCEPT
+    {
+        return _os.write(m_out.data(), m_out.size());
     }
 
     // clear

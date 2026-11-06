@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_canvas_document_renderer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
@@ -490,6 +490,16 @@ public:
     )
     {
         return m_canvas->save(_path);
+    }
+
+    // save_to
+    //   finalize and write the document to an output stream; true only when
+    // every byte arrived.
+    bool save_to(
+        DOutputStream& _os
+    )
+    {
+        return m_canvas->save_to(_os);
     }
 
 protected:

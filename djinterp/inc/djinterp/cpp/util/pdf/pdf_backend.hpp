@@ -5,10 +5,10 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_backend.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_BACKEND_HPP
-#define DJINTERP_UTIL_PDF_PDF_BACKEND_HPP
+#define DJINTERP_UTIL_PDF_PDF_BACKEND_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -26,7 +26,8 @@
 
 // djinterp
 #include "../../../env/env_pdf.h"   // external PDF library detection + preferred-backend hint
-#include "./pdf_primitives.hpp"
+#include "./pdf_primitives.hpp"     // DPdfPoint, DPdfSize, DPdfRect, ...
+#include "../output/output_stream.hpp"  // DOutputStream: save_to
 
 NS_DJINTERP
 
@@ -306,6 +307,22 @@ public:
     bool save(
         const char* _path
     ) = 0;
+
+    // save_to
+    //   writes the document to a stream -- a string, the console, a caller's
+    // array, a file, several at once -- and returns true only when the
+    // stream took every byte; the stream keeps why it did not. The default
+    // writes serialize()'s bytes, so every backend has it; one that can
+    // write as it goes overrides it. The C table's save_to slot is the same.
+    virtual
+    bool save_to(
+        DOutputStream& _os
+    )
+    {
+        const std::string bytes = serialize();
+
+        return _os.write(bytes.data(), bytes.size());
+    }
 };
 
 

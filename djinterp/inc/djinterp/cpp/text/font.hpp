@@ -12,8 +12,7 @@
 * configurable data aggregate.  Capabilities that not every platform
 * supports - underline, strikethrough, color, small caps, variable-
 * font axes, OpenType feature tags - are gated behind feature-flag
-* EBO mixins, matching the pattern used by button, input_control,
-* and dialog elsewhere in uxoxo.  Disabled capabilities consume zero
+* EBO mixins, one per capability.  Disabled capabilities consume zero
 * bytes (EBO folds the empty mixin into the outer struct).
 *
 *   Fundamental identity is always present:
@@ -41,7 +40,7 @@
 * path:      /inc/djinterp/cpp/text/font.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.18
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 /*
