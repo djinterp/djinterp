@@ -8,7 +8,7 @@
 #   include "./face.hpp"  // negative: a C++ face, inside a conditional
 #endif
 // djinterp
-#include "../djinterp.h"  // D_INLINE
+#include "../djinterp.h"  // framework root
 #include "../../re_std/cstddef/dstddef.h"  // positive: no // re_std above
 #include "./other.h"      // positive: after re_std's
 

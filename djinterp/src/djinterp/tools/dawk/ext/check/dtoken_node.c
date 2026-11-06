@@ -1241,6 +1241,146 @@ uint32_t d_internal_emit_directive(
 
 
 /**
+ * @brief Reports whether an item is a block that stands down a case, among
+ *        the statements under its label, rather than as the label's body.
+ *
+ * Parse sets every braced block under a label on the label's level, as the
+ * label's own body stands: `case 2:` then `{`. A block after a statement of
+ * the same case is one of that case's statements, and stands a level in.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      the item's index.
+ * @return true for a block, under a label, whose item before it in its scope
+ *         is no label; false otherwise.
+ */
+static
+bool d_internal_down_a_case(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const items = _build->items.items;
+    const struct dj_syntax_item* const item  = &items[_k];
+
+    if ( (item->kind != D_SYNTAX_ITEM_STATEMENT)                     ||
+         ((item->flags & D_SYNTAX_ITEM_FLAG_UNDER_LABEL) == 0u)      ||
+         (_build->tokens[item->first].kind != D_TOKEN_BRACE_OPEN) )
+    {
+        return false;
+    }
+
+    // a scope's items are recognized together, so the one before it is near
+    for (uint32_t at = _k; at > 0u; )
+    {
+        const struct dj_syntax_item* const before = &items[--at];
+
+        if (before->scope != item->scope)
+        {
+            break;
+        }
+
+        // a braceless body belongs to the item before it
+        if (before->parent == D_SYNTAX_NONE)
+        {
+            return (before->kind != D_SYNTAX_ITEM_LABEL);
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Reports whether a namespace indents what it holds.
+ *
+ * Parse holds a namespace's items on the namespace's own level. The guide
+ * shows both forms, and a header keeps one throughout, so a namespace's
+ * contents stand where its first item does: one that begins further in than
+ * the `namespace` keyword sets every item of the namespace a level in.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      an item's index.
+ * @return true when the item is a `namespace` block whose first item opens a
+ *         line further right than the block does; false otherwise.
+ */
+static
+bool d_internal_namespace_indents(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+
+    if ( (item->kind != D_SYNTAX_ITEM_BLOCK)                          ||
+         (_build->tokens[item->first].kind != D_TOKEN_KW_NAMESPACE)  ||
+         (item->body == D_SYNTAX_NONE) )
+    {
+        return false;
+    }
+
+    // the first item recognized in the namespace's braces
+    for (uint32_t at = _k + 1u; at < (uint32_t)_build->items.count; ++at)
+    {
+        const struct dj_syntax_item* const inner = &_build->items.items[at];
+
+        if (inner->scope == item->body)
+        {
+            return ( ((_build->tokens[inner->first].flags &
+                       D_TOKEN_FLAG_LINE_START) != 0u)            &&
+                     (_build->tokens[inner->first].span.column >
+                      _build->tokens[item->first].span.column) );
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Counts the levels an item stands further in than parse's level says.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      the item's index.
+ * @return one for each block down a case (d_internal_down_a_case) that is the
+ *         item or holds it, and one for each namespace around it that indents
+ *         what it holds (d_internal_namespace_indents).
+ */
+static
+unsigned d_internal_lift(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    unsigned lift = 0u;
+    uint32_t at   = _k;
+
+    // out through braceless bodies and the scopes that hold them
+    while ( (at != D_SYNTAX_NONE) && (at < (uint32_t)_build->items.count) )
+    {
+        const struct dj_syntax_item* const item = &_build->items.items[at];
+        const uint32_t                    out  =
+            (item->parent != D_SYNTAX_NONE) ? item->parent
+          : (item->scope != D_SYNTAX_NONE)  ? _build->items.item_of[item->scope]
+                                            : D_SYNTAX_NONE;
+
+        lift += d_internal_down_a_case(_build, at) ? 1u : 0u;
+
+        // the namespace holding it, which is never the item itself
+        if ( (out != at) && (out != D_SYNTAX_NONE) &&
+             (item->parent == D_SYNTAX_NONE) &&
+             (d_internal_namespace_indents(_build, out)) )
+        {
+            ++lift;
+        }
+
+        at = (out != at) ? out : D_SYNTAX_NONE;
+    }
+
+    return lift;
+}
+
+
+/**
  * @brief Emits the node for an opening bracket.
  *
  * The closer's position is read through the match array now, since it must be
@@ -1314,7 +1454,8 @@ uint32_t d_internal_emit_group(
         d_internal_number(tree,
                           node,
                           "level",
-                          _build->items.level_of[_at]);
+                          _build->items.level_of[_at] +
+                          ((known) ? d_internal_lift(_build, owner) : 0u));
 
         // and under the conditionals that item is under, which is what a
         // layout rule asks before it asks for a column.  Only a brace is
@@ -2759,6 +2900,245 @@ bool d_internal_fn_no_return(
 
 
 /**
+ * @brief Reports whether two tokens are spelled alike.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _a      one token's index.
+ * @param[in] _b      the other's.
+ * @return true when their byte ranges hold the same text, false otherwise.
+ */
+static
+bool d_internal_same_spelling(
+    const struct dj_internal_build* _build,
+    uint32_t                        _a,
+    uint32_t                        _b
+)
+{
+    const struct dj_token* const a = &_build->tokens[_a];
+    const struct dj_token* const b = &_build->tokens[_b];
+
+    return ( (a->span.length == b->span.length) &&
+             (memcmp(_build->source->text + a->span.offset,
+                     _build->source->text + b->span.offset,
+                     a->span.length) == 0) );
+}
+
+
+/**
+ * @brief Steps back over a template argument list that ends at a token.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _first  the lowest index the walk may reach.
+ * @param[in] _at     the token to start from.
+ * @return the index just before the `<` that opens the list when `_at` is the
+ *         `>` (or `>>`) that closes one; `_at` itself otherwise, and
+ *         D_SYNTAX_NONE when the list runs back past `_first`.
+ */
+static
+uint32_t d_internal_before_angles(
+    const struct dj_internal_build* _build,
+    uint32_t                        _first,
+    uint32_t                        _at
+)
+{
+    const int closing = _build->tokens[_at].kind;
+    int       open    = (closing == D_TOKEN_GREATER)     ? 1
+                      : (closing == D_TOKEN_SHIFT_RIGHT) ? 2
+                                                         : 0;
+
+    // not the end of a list
+    if (open == 0)
+    {
+        return _at;
+    }
+
+    for (uint32_t at = _at; at > _first; )
+    {
+        const int kind = _build->tokens[--at].kind;
+
+        open += (kind == D_TOKEN_GREATER)     ? 1
+              : (kind == D_TOKEN_SHIFT_RIGHT) ? 2
+              : (kind == D_TOKEN_LESS)        ? -1
+                                              : 0;
+
+        if (open == 0)
+        {
+            return (at > _first) ? (at - 1u) : D_SYNTAX_NONE;
+        }
+    }
+
+    return D_SYNTAX_NONE;
+}
+
+
+/**
+ * @brief Reports whether a C++ function is a constructor or a destructor,
+ *        which has no return type.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      the function's item index.
+ * @return true when the name follows `~`; when the class that qualifies it
+ *         has its spelling (`d_holder<Type>::d_holder`); or when the head
+ *         before it holds no type: a template head, and the specifiers that
+ *         may stand before a constructor, alone. An operator is never one: a
+ *         conversion function returns what it names.
+ */
+static
+bool d_internal_fn_special(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+    const uint32_t                    name = item->name;
+
+    if ( (name == D_SYNTAX_NONE) ||
+         (_build->tokens[name].kind == D_TOKEN_KW_OPERATOR) )
+    {
+        return false;
+    }
+
+    // `~d_holder`, and `d_holder::d_holder` or `d_holder<Type>::d_holder`
+    if (name > item->first)
+    {
+        const int before = _build->tokens[name - 1u].kind;
+
+        if (before == D_TOKEN_TILDE)
+        {
+            return true;
+        }
+
+        if ( (before == D_TOKEN_SCOPE) && (name - 1u > item->first) )
+        {
+            const uint32_t owner =
+                d_internal_before_angles(_build, item->first, name - 2u);
+
+            return ( (owner != D_SYNTAX_NONE) &&
+                     (d_internal_same_spelling(_build, owner, name)) );
+        }
+    }
+
+    for (uint32_t at = item->first; at < name; ++at)
+    {
+        const int kind = _build->tokens[at].kind;
+
+        // a template head's arguments, and an attribute's brackets
+        if ( (kind == D_TOKEN_LESS) || (kind == D_TOKEN_BRACKET_OPEN) )
+        {
+            int open = 1;
+
+            while ( (open > 0) && (++at < name) )
+            {
+                const int inner = _build->tokens[at].kind;
+
+                open += ( (inner == D_TOKEN_LESS) ||
+                          (inner == D_TOKEN_BRACKET_OPEN) )  ? 1
+                      : (inner == D_TOKEN_SHIFT_RIGHT)       ? -2
+                      : ( (inner == D_TOKEN_GREATER) ||
+                          (inner == D_TOKEN_BRACKET_CLOSE) ) ? -1
+                                                             : 0;
+            }
+
+            continue;
+        }
+
+        if ( (kind != D_TOKEN_COMMENT)       &&
+             (kind != D_TOKEN_KW_TEMPLATE)   &&
+             (kind != D_TOKEN_KW_EXPLICIT)   &&
+             (kind != D_TOKEN_KW_INLINE)     &&
+             (kind != D_TOKEN_KW_CONSTEXPR)  &&
+             (kind != D_TOKEN_KW_CONSTEVAL)  &&
+             (kind != D_TOKEN_KW_FRIEND) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ * @brief Reports whether a function's head spells `void` outside every
+ *        template argument list, as a return type does.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      the function's item index.
+ * @return false when each `void` before the name stands among template
+ *         arguments -- `result<void> run()` returns a value -- true otherwise.
+ *         Only the head's own tokens are read; a group's are its own.
+ */
+static
+bool d_internal_void_outside_angles(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+    const uint32_t                    end  =
+        (item->name != D_SYNTAX_NONE) ? item->name : item->last;
+    int                               open = 0;
+
+    for (uint32_t at = item->first; at < end; ++at)
+    {
+        const int kind = _build->tokens[at].kind;
+
+        if (_build->groups.parent[at] != item->scope)
+        {
+            continue;
+        }
+
+        open += (kind == D_TOKEN_LESS)        ? 1
+              : (kind == D_TOKEN_GREATER)     ? -1
+              : (kind == D_TOKEN_SHIFT_RIGHT) ? -2
+                                              : 0;
+        open  = (open < 0) ? 0 : open;
+
+        if ( (kind == D_TOKEN_KW_VOID) && (open == 0) )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Says what a function gives back.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      the function's item index.
+ * @return `none` for a function that never returns, and for a C++
+ *         constructor or destructor, which has nothing to give back; `void`
+ *         when parse found a `void` return type that stands outside every
+ *         template argument list; `value` otherwise.
+ */
+static
+const char* d_internal_fn_returns(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+    const bool                        cpp  =
+        ( (_build->dialect) &&
+          (strcmp(_build->dialect->language, "c++") == 0) );
+
+    if ( (d_internal_fn_no_return(_build, _k)) ||
+         ( (cpp) && (d_internal_fn_special(_build, _k)) ) )
+    {
+        return "none";
+    }
+
+    return ( ((item->flags & D_SYNTAX_ITEM_FLAG_RETURNS_VOID) != 0u) &&
+             (d_internal_void_outside_angles(_build, _k)) )
+           ? "void"
+           : "value";
+}
+
+
+/**
  * @brief Sets the attributes only a function carries.
  *
  * @param[in] _build  the build.
@@ -2778,13 +3158,10 @@ void d_internal_fn_attributes(
 
     d_internal_fn_facts(_build, _k, &facts);
 
-    (void)d_node_set_attribute(
-        tree,
-        _node,
-        "returns",
-        (d_internal_fn_no_return(_build, _k))                   ? "none"
-      : ((item->flags & D_SYNTAX_ITEM_FLAG_RETURNS_VOID) != 0u) ? "void"
-                                                                : "value");
+    (void)d_node_set_attribute(tree,
+                               _node,
+                               "returns",
+                               d_internal_fn_returns(_build, _k));
     d_internal_number(tree,
                       _node,
                       "params",
@@ -3013,7 +3390,7 @@ uint32_t d_internal_emit_item(
         d_internal_number(tree,
                           node,
                           "level",
-                          item->level);
+                          item->level + d_internal_lift(_build, _k));
     }
 
     // every conditional around the item, the include guard excluded: the

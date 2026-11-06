@@ -289,9 +289,11 @@ bool d_edit_delete_line(
 
 /*
 d_edit_insert_line
-  SCRATCH: dcheck.c calls this and neither archive defines it.  Inserts
-`_text` and a terminator before line `_line`; one past the last line appends.
-Mirrors d_edit_delete_line: read whole, splice, write whole.
+  Inserts `_text` and a terminator before line `_line`; one past the last line
+appends. Mirrors d_edit_delete_line: read whole, splice, write whole. The
+terminator is spelled as the file spells its own: as the line above ends, or,
+at the top, as the line it goes before ends, so an empty line put into a CRLF
+file is CRLF too.
 */
 bool d_edit_insert_line(
     const char* _path,
@@ -361,11 +363,25 @@ bool d_edit_insert_line(
         return false;
     }
 
-    const size_t length = strlen(_text);
-    bool         ok     = (fwrite(source, 1u, start, out) == start);
+    // the line above's terminator, or the next line's when there is none
+    size_t next = start;
+
+    while ( (next < read) && (source[next] != '\n') )
+    {
+        ++next;
+    }
+
+    const bool crlf = (start > 0u)
+                    ? ( (start >= 2u) && (source[start - 2u] == '\r') )
+                    : ( (next < read) && (next > 0u) &&
+                        (source[next - 1u] == '\r') );
+
+    const char* const eol    = crlf ? "\r\n" : "\n";
+    const size_t      length = strlen(_text);
+    bool              ok     = (fwrite(source, 1u, start, out) == start);
 
     ok = ok && (fwrite(_text, 1u, length, out) == length);
-    ok = ok && (fputc('\n', out) != EOF);
+    ok = ok && (fputs(eol, out) != EOF);
     ok = ok && (fwrite(source + start, 1u, read - start, out) == read - start);
     ok = (fclose(out) == 0) && ok;
 

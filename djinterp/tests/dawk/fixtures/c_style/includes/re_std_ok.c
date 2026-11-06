@@ -3,7 +3,7 @@
 // std
 #include <stddef.h>  // size_t
 // djinterp
-#include "../djinterp.h"  // D_INLINE
+#include "../djinterp.h"  // framework root
 // re_std
 #include "../../re_std/cstddef/dstddef.h"  // max_align_t
 #include "../../re_std/cstdint/dstdint.h"  // uint32_t

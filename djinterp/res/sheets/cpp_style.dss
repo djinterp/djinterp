@@ -1,0 +1,71 @@
+########################################################################
+#  cpp_style.dss -- the rules only the C++ guide states.
+#
+#  c_style.dss carries what both guides say in the same words, and
+#  judges C++ files by them too; this sheet adds what the C++ guide
+#  says alone.  Every rule is scoped to `file[lang="c++"]`, so the
+#  sheet may be run over a mixed tree, and over the C files of one,
+#  without judging C by C++'s conventions.  Evaluation is the engine's
+#  (docs/dss-evaluation.md in the dawk tree): a rule whose every match
+#  is a finding declares `violation`, with the finding's message, and a
+#  `repair`, where one is stated, is the only one dcheck --fix makes.
+#
+#  The template rules read a template head token by token: the builder
+#  gives a head no node of its own, so `keyword[kind=kw-template] ...`
+#  -- the template keyword earlier among the same siblings -- is what
+#  keeps a rule inside one.
+########################################################################
+
+@set source.tree true;
+
+#  ── brackets ──────────────────────────────────────────────────────
+#  "As an exception to the rule that every opening brace sits on its
+#  own line, empty class, struct, and other bodies should have `{};` on
+#  its own line, separate from the type declaration."  `level` marks a
+#  brace that opens a body; one with nothing in it whose partner begins
+#  a later line is joined to it.
+file[lang="c++"] group[open="{"][level][close-line-start]:not(:has(> *)) {
+    violation: "an empty body is {} on one line";
+    severity:  warn;
+    repair:    join;
+}
+
+#  ── exceptions ────────────────────────────────────────────────────
+#  "No `throw` in any header a consumer instantiates": failure is
+#  reported by value, as `expected<T, E>`.  A source may still throw in
+#  the two cases the guide keeps, and re_std throws what the facility it
+#  reimplements is specified to throw.  Only a throw in a body is one;
+#  a `throw()` after a declaration is a specification.
+file[lang="c++"][path$=".hpp"]:not([path*="re_std/"]) fn-def keyword[kind=kw-throw] {
+    violation: "a header does not throw: failure is reported by value";
+    severity:  warn;
+}
+
+#  ── language levels ───────────────────────────────────────────────
+#  "Test the level with D_ENV_LANG_IS_CPPnn_OR_HIGHER, which env
+#  defines at every level (0 below nn, and 0 in C), not with __cplusplus
+#  directly."  Whether the unit is C++ at all -- `#ifdef __cplusplus`,
+#  `defined(__cplusplus)` -- is no level; `macro` marks that operand.
+file[lang="c++"] directive:is([name=if], [name=elif]) > identifier[text=__cplusplus]:not([macro]) {
+    violation: "a level is tested with D_ENV_LANG_IS_CPPnn_OR_HIGHER, not __cplusplus";
+    severity:  warn;
+}
+
+#  ── templates ─────────────────────────────────────────────────────
+#  "Always use `typename`, never `class`, for type template
+#  parameters."  A parameter opens the list or follows a comma; the
+#  `class` of a template template parameter follows its own `>`, and the
+#  guide's examples keep it.
+file[lang="c++"] keyword[kind=kw-template] ... :is(punctuator[kind=less], punctuator[kind=comma]) + keyword[kind=kw-class] {
+    violation: "a type template parameter is introduced by typename";
+    severity:  warn;
+}
+
+#  A template parameter's name follows its `typename` or `class`, or a
+#  pack's `...`.  "A leading underscore followed by an upper-case letter
+#  is reserved", as is a double underscore anywhere, and the standard
+#  library's own spelling of its parameters is the one to avoid.
+file[lang="c++"] keyword[kind=kw-template] ... :is(keyword[kind=kw-typename], keyword[kind=kw-class], punctuator[kind=ellipsis]) + identifier:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
+    violation: "a template parameter's name is not reserved";
+    severity:  warn;
+}

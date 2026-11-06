@@ -70,7 +70,7 @@ d_deep(
 
 /*
 d_long
-  positive: more than sixty lines.
+  positive: more than seventy-five lines (decision 57).
 */
 int
 d_long(
@@ -139,6 +139,12 @@ d_long(
     total = total + 57;
     total = total + 58;
     total = total + 59;
+    total = total + 60;
+    total = total + 61;
+    total = total + 62;
+    total = total + 63;
+    total = total + 64;
+    total = total + 65;
 
     return total;
 }

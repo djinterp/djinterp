@@ -1,0 +1,121 @@
+########################################################################
+#  std.dss -- the language floor: C99 for C, C++98 for C++.
+#
+#  Every C file must compile at -std=c99 and every C++ file at
+#  -std=c++98 (ruled 2026.09.29).  The compilers are the authority: a
+#  census compiling every unit at the floor under -pedantic-errors is
+#  the proof.  This sheet is the fast lint that points at what the
+#  floor forbids, in code no conditional guards.  Code under a
+#  conditional is left to the census, since a version test such as
+#  `__cplusplus >= 201103L` is how newer code is let in.
+#
+#  Facts: `since` on a keyword is the standard that made it one, from
+#  the lexer's own keyword table, written above C89 and C++98.
+#  `pp-depth` counts the conditionals around a node, the include guard
+#  excluded.  `variadic` marks a #define whose parameters hold `...`.
+########################################################################
+
+@set source.tree true;
+
+#  ── C: nothing newer than C99 ─────────────────────────────────────
+#  `bool`, `true` and `false` are keywords only from C23; in C99 they
+#  are <stdbool.h>'s macros, so the lexer's C23 reading of them is no
+#  finding.
+file[lang=c] keyword[since>1999]:not([pp-depth>0]):not(directive *):not([text=bool]):not([text=true]):not([text=false]) {
+    violation: "a keyword newer than C99, in code no conditional guards";
+    severity:  error;
+}
+file[lang=c] directive[name=include]:not([pp-depth>0]):is([header="stdalign.h"], [header="stdatomic.h"], [header="stdnoreturn.h"], [header="threads.h"], [header="uchar.h"], [header="stdbit.h"], [header="stdckdint.h"]) {
+    violation: "a C header newer than C99, included unguarded";
+    severity:  error;
+}
+
+#  ── C++: nothing newer than C++98 ─────────────────────────────────
+file[lang="c++"] keyword[since>1998]:not([pp-depth>0]):not(directive *) {
+    violation: "a keyword newer than C++98, in code no conditional guards";
+    severity:  error;
+}
+#  The list is split by standard: a selector list holds 32 at most.
+#  C++11
+file[lang="c++"] directive[name=include]:not([pp-depth>0]):is([header="array"], [header="atomic"], [header="cfenv"], [header="chrono"], [header="cinttypes"], [header="codecvt"], [header="condition_variable"], [header="cstdalign"], [header="cstdbool"], [header="cstdint"], [header="ctgmath"], [header="cuchar"], [header="forward_list"], [header="future"], [header="initializer_list"], [header="mutex"], [header="random"], [header="ratio"], [header="regex"], [header="scoped_allocator"], [header="system_error"], [header="thread"], [header="tuple"], [header="type_traits"], [header="typeindex"], [header="unordered_map"], [header="unordered_set"]) {
+    violation: "a C++ header newer than C++98, included unguarded";
+    severity:  error;
+}
+#  C++14 and C++17
+file[lang="c++"] directive[name=include]:not([pp-depth>0]):is([header="shared_mutex"], [header="any"], [header="charconv"], [header="execution"], [header="filesystem"], [header="memory_resource"], [header="optional"], [header="string_view"], [header="variant"]) {
+    violation: "a C++ header newer than C++98, included unguarded";
+    severity:  error;
+}
+#  C++20 and C++23
+file[lang="c++"] directive[name=include]:not([pp-depth>0]):is([header="barrier"], [header="bit"], [header="compare"], [header="concepts"], [header="coroutine"], [header="format"], [header="latch"], [header="numbers"], [header="ranges"], [header="semaphore"], [header="source_location"], [header="span"], [header="stop_token"], [header="syncstream"], [header="version"], [header="expected"], [header="flat_map"], [header="flat_set"], [header="generator"], [header="mdspan"], [header="print"], [header="spanstream"], [header="stacktrace"], [header="stdfloat"]) {
+    violation: "a C++ header newer than C++98, included unguarded";
+    severity:  error;
+}
+
+#  "Anonymous variadic macros were introduced in C++11."
+file[lang="c++"] directive[name=define][variadic]:not([pp-depth>0]) {
+    violation: "a variadic macro, which C++98 does not have";
+    severity:  error;
+}
+
+#  C++11 constructs spelled with words C++98 already has.
+file[lang="c++"] keyword[text=long] + keyword[text=long]:not([pp-depth>0]):not(directive *) {
+    violation: "long long, which C++98 does not have";
+    severity:  error;
+}
+file[lang="c++"] keyword[text=enum] + keyword:is([text=class], [text=struct]):not([pp-depth>0]):not(directive *) {
+    violation: "a scoped enum, which C++98 does not have";
+    severity:  error;
+}
+file[lang="c++"] punctuator[text="="] + keyword:is([text=default], [text=delete]):not([pp-depth>0]):not(directive *) {
+    violation: "a defaulted or deleted function, which C++98 does not have";
+    severity:  error;
+}
+file[lang="c++"] keyword:is([text=typename], [text=class]) + punctuator[text="..."]:not([pp-depth>0]):not(directive *) {
+    violation: "a variadic template, which C++98 does not have";
+    severity:  error;
+}
+file[lang="c++"] keyword[text=using] + identifier + punctuator[text="="]:not([pp-depth>0]):not(directive *) {
+    violation: "an alias declaration, which C++98 does not have";
+    severity:  error;
+}
+
+#  ── C++11 with no keyword of its own ──────────────────────────────
+#  `auto` in C++98 is a storage class nobody writes; in this tree it
+#  is always C++11's deduction.
+file[lang="c++"] keyword[text=auto]:not([pp-depth>0]):not(directive *) {
+    violation: "auto type deduction, which C++98 does not have";
+    severity:  error;
+}
+#  A `:` at the top of a for's parentheses is a range-based for.
+file[lang="c++"] statement[kind=for] > group[open="("] > punctuator[text=":"]:not([pp-depth>0]) {
+    violation: "a range-based for, which C++98 does not have";
+    severity:  error;
+}
+#  A capture list, then parameters or a body: a lambda.  A group
+#  carries no pp-depth of its own, so a lambda is guarded when the item
+#  around it is.
+file[lang="c++"] group[open="["] + group[open="("] + group[open="{"]:not([pp-depth>0] *) {
+    violation: "a lambda, which C++98 does not have";
+    severity:  error;
+}
+file[lang="c++"] :is(group[open="("], keyword[text=const]) + identifier:is([text=override], [text=final]):not([pp-depth>0]) {
+    violation: "override or final, which C++98 does not have";
+    severity:  error;
+}
+#  C++11's library, named through std::.
+file[lang="c++"] identifier[text=std] + punctuator[text="::"] + identifier:is([text=unique_ptr], [text=shared_ptr], [text=weak_ptr], [text=make_shared], [text=move], [text=forward], [text=function], [text=tuple], [text=make_tuple], [text=tie], [text=get], [text=array], [text=unordered_map], [text=unordered_set], [text=enable_if], [text=is_same], [text=conditional], [text=remove_cv], [text=remove_reference], [text=decay], [text=integral_constant], [text=true_type], [text=false_type], [text=declval], [text=nullptr_t], [text=initializer_list], [text=thread], [text=mutex], [text=atomic], [text=chrono]):not([pp-depth>0]) {
+    violation: "a C++11 library name, which C++98 does not have";
+    severity:  error;
+}
+
+#  ── C++11's constexpr, and C++14's ────────────────────────────────
+#  D_CONSTEXPR is `constexpr` from C++11, whose constexpr function is
+#  one return statement: a loop in one is ill-formed until C++14.  The
+#  root's D_CONSTEXPR_CPP14 is `constexpr` from C++14 and nothing below
+#  it, the spelling such a function takes.  A member of a class
+#  template is a function like any other.
+file[lang="c++"] fn-def[pp-depth=0]:has(> identifier[text=D_CONSTEXPR]):has(statement:is([kind=for], [kind=while], [kind=do])) {
+    violation: "a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14";
+    severity:  error;
+}

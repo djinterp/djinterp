@@ -1,0 +1,1 @@
+tests/dawk/fixtures/c_style/spacing/endif_includes.c:8:1: exactly two empty lines follow the last #include

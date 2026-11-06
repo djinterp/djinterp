@@ -3,7 +3,7 @@
 *
 * Exercises `dedit.h`'s runs of lines: d_edit_replace_lines,
 * d_edit_may_shift_lines and d_edit_shift_lines, which drepair.c's repairs
-* write through.
+* write through, and d_edit_insert_line, which puts an empty line in.
 *   Each check writes a small file, edits it, and compares every byte with
 * what the edit should leave. Every check runs with LF and with CRLF line
 * ends, because the one thing dedit must never do is change a line end it
@@ -98,8 +98,8 @@ bool d_tests_write(
     const char* _eol
 )
 {
-    char        spelt[4096];
-    FILE* const out = fopen(g_path, "wb");
+    char        spelt[4096] = "";
+    FILE* const out         = fopen(g_path, "wb");
 
     if (!out)
     {
@@ -125,9 +125,9 @@ bool d_tests_holds(
     const char* _eol
 )
 {
-    char        spelt[4096];
-    char        read[4096];
-    FILE* const in = fopen(g_path, "rb");
+    char        spelt[4096] = "";
+    char        read[4096]  = "";
+    FILE* const in          = fopen(g_path, "rb");
 
     if (!in)
     {
@@ -242,8 +242,8 @@ void d_tests_shift(
                    _name);
 
     // a line of 76 characters may move four, and not eight
-    char line[128];
-    char text[256];
+    char line[128] = "";
+    char text[256] = "";
 
     memset(line, 'x', 76u);
     line[76] = '\0';
@@ -269,16 +269,49 @@ void d_tests_shift(
 }
 
 /*
+d_tests_insert
+  d_edit_insert_line, with the line ends given: an empty line put in the
+middle, a line at the top and one past the last line each take the file's
+own terminator; a line past that is refused, and the file left unchanged.
+*/
+static
+void d_tests_insert(
+    const char* _eol,
+    const char* _name
+)
+{
+    const char* const start = "one\ntwo\n";
+
+    // between two lines, above the first, and past the last
+    (void)d_tests_write(start, _eol);
+    d_tests_check( (d_edit_insert_line(g_path, 2u, ""))  &&
+                   (d_edit_insert_line(g_path, 1u, "0")) &&
+                   (d_edit_insert_line(g_path, 5u, "3")) &&
+                   (d_tests_holds("0\none\n\ntwo\n3\n", _eol)),
+                   "insert: each line ends as the file's do",
+                   _name);
+
+    // two past the last line
+    (void)d_tests_write(start, _eol);
+    d_tests_check( (!d_edit_insert_line(g_path, 4u, "x")) &&
+                   (d_tests_holds(start, _eol)),
+                   "insert: past the end is refused",
+                   _name);
+
+    return;
+}
+
+/*
 main
   Runs each group with LF and with CRLF, reports the tally, and exits
 non-zero on any failure.
 */
 int main(
-    int    argc,
-    char** argv
+    int    _argc,
+    char** _argv
 )
 {
-    const char* const work = (argc > 1) ? argv[1] : ".";
+    const char* const work = (_argc > 1) ? _argv[1] : ".";
 
     (void)snprintf(g_path, sizeof(g_path), "%s/test_dedit.txt", work);
 
@@ -286,6 +319,8 @@ int main(
     d_tests_replace("\r\n", "CRLF");
     d_tests_shift("\n", "LF");
     d_tests_shift("\r\n", "CRLF");
+    d_tests_insert("\n", "LF");
+    d_tests_insert("\r\n", "CRLF");
 
     (void)remove(g_path);
     printf("%d checks, %d failed\n",

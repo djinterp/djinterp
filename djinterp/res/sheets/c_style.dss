@@ -8,14 +8,17 @@
 #  match is a finding declares `violation`, with the finding's message;
 #  `start-column` fails only a node in another column; `severity` is a
 #  modifier that sets how a failure is reported, never a claim itself.
-#  Every rule is scoped to `file[lang=c]`, so the sheet may be run over
+#  Every rule is scoped to `file`, so the sheet may be run over
 #  a mixed tree without judging C++ by C's conventions.
 #
 #  Naming rules are negations and are written as such, with `:not()`
 #  over the name's own `text`; `:has()` lets a rule's subject be the
-#  name it is about while still looking at what follows it.  Under
-#  dcheck, set `source.tree` to build the trees this sheet reads.
+#  name it is about while still looking at what follows it.  The sheet
+#  asks dcheck for the trees it reads itself, with `source.tree`.
 ########################################################################
+
+@set source.tree true;
+@set source.files all;
 
 #  ── naming ────────────────────────────────────────────────────────
 #  Macros djinterp defines are D_-prefixed.  Exempt, because another
@@ -36,8 +39,8 @@
 #  one is a descendant combinator, and `identifier[a] [b]` asks for a
 #  `[b]` inside an identifier.  The parser warns about exactly that
 #  shape; break only at a combinator, so this line runs long.
-file[lang=c] directive[name=define]:not([guarded])[macro!=WIN32_LEAN_AND_MEAN][macro!=NOMINMAX][macro!=LZMA_API_STATIC]:not([macro^="d_"]:not([function-like]):has(> identifier:not([macro]):is([text$="32"], [text$="64"], [text$="32_t"], [text$="64_t"])))
-    > identifier[macro]:not([text^="D_"], [text^="DJINTERP_"], [text^="_"]) {
+file directive[name=define]:not([guarded])[macro!=WIN32_LEAN_AND_MEAN][macro!=NOMINMAX][macro!=LZMA_API_STATIC]:not([macro^="d_"]:not([function-like]):has(> identifier:not([macro]):is([text$="32"], [text$="64"], [text$="32_t"], [text$="64_t"])))
+    > identifier[macro]:not([text^="D_"], [text^="DJINTERP_"], [text^="NS_"], [text^="_"]) {
     violation: "a macro djinterp defines is D_-prefixed";
     severity:  warn;
 }
@@ -46,17 +49,17 @@ file[lang=c] directive[name=define]:not([guarded])[macro!=WIN32_LEAN_AND_MEAN][m
 #  subject is the tag's name; `:has(+ group)` asks that a body follow
 #  it, so `struct stat st;`, which uses someone else's tag, is not
 #  matched.
-file[lang=c] keyword[text=struct]
+file keyword[text=struct]
     + identifier:not([text^="d_"]):has(+ group[open="{"]) {
     violation: "a struct djinterp defines is d_-prefixed";
     severity:  warn;
 }
-file[lang=c] keyword[text=union]
+file keyword[text=union]
     + identifier:not([text^="d_"]):has(+ group[open="{"]) {
     violation: "a union djinterp defines is d_-prefixed";
     severity:  warn;
 }
-file[lang=c] keyword[text=enum]
+file keyword[text=enum]
     + identifier:not([text^="d_"]):has(+ group[open="{"]) {
     violation: "a enum djinterp defines is d_-prefixed";
     severity:  warn;
@@ -67,26 +70,26 @@ file[lang=c] keyword[text=enum]
 #  marks the identifier a declaration names, so a type or a macro in
 #  the parameter never trips the rule; the descendant combinator
 #  reaches the name inside a function-pointer parameter too.
-file[lang=c] param identifier[declarator]:not([text^="_"]) {
+file param identifier[declarator]:not([text^="_"]) {
     violation: "a parameter's name begins with one underscore";
     severity:  warn;
 }
 
 #  A void function ends with an explicit `return;`.
-file[lang=c] fn-def[returns=void][ends!=return] {
+file fn-def[returns=void][ends!=return] {
     violation: "a void function ends with an explicit return";
     severity:  warn;
 }
 
 #  A typedef may name a function-pointer type, a portability alias or
 #  a scalar abstraction; it may not hide a struct, union or enum.
-file[lang=c] typedef[hides] {
+file typedef[hides] {
     violation: "a typedef may not hide a struct, union or enum";
     severity:  warn;
 }
 
 #  Aligned parameters begin under the first one.
-file[lang=c] param[misaligned] {
+file param[misaligned] {
     violation: "a parameter does not begin under the first";
     severity:  warn;
 }
@@ -96,34 +99,40 @@ file[lang=c] param[misaligned] {
 #  each on its own line, one level in; one parameter, `(void)` and `()`
 #  may stay on the name's line, since the guide splits only past one.
 #  Once per function, not once per parameter.
-file[lang=c] fn-decl[detached] {
+file fn-decl[detached] {
     violation: "a declaration's parameters begin after its (";
     severity:  warn;
 }
-file[lang=c] fn-def[aligned][params>1] {
+file fn-def[aligned][params>1] {
     violation: "a definition with several parameters puts each on its own line";
     severity:  warn;
+    repair:    one-per-line;
 }
 
 #  An #if inside a function body.  The guide forbids an #if whose two
 #  arms have different control flow; which arms differ is not decidable
 #  over tokens, so this flags every conditional in a body -- a superset
 #  of the rule -- and is info, a place to look, not a violation.
-file[lang=c] fn-def[pp-split] {
+file fn-def[pp-split] {
     violation: "a conditional inside a function body";
     severity:  advise;
 }
 
 #  The size tripwires: signals that need a reason, not prohibitions.
-file[lang=c] fn-def[lines>60] {
-    violation: "a function over 60 lines";
+#  The length one counts from the return type to the closing brace and
+#  trips past 75 lines (decision 57).  A body that is one switch, with
+#  at most a return after it, is a dispatch table, which the guides let
+#  run long (decision 57, ruled 2026.10.11); anything else in the body,
+#  a conditional around the switch included, keeps the tripwire.
+file fn-def[lines>75]:not(:has(> group[open="{"] > statement[kind=switch]:only-child)):not(:has(> group[open="{"] > statement[kind=switch]:first-child + statement[kind=return]:last-child)) {
+    violation: "a function over 75 lines";
     severity:  advise;
 }
-file[lang=c] fn-def[nesting>4] {
+file fn-def[nesting>4] {
     violation: "a function nested past 4 levels";
     severity:  advise;
 }
-file[lang=c] fn-def[params>5] {
+file fn-def[params>5] {
     violation: "a function with more than 5 parameters";
     severity:  advise;
 }
@@ -131,15 +140,22 @@ file[lang=c] fn-def[params>5] {
 #  ── layout ────────────────────────────────────────────────────────
 #  Four spaces per structural level: a body, a member list, a braceless
 #  body and the statements under a `case` each add one; an `extern "C"`
-#  block adds none.  Items inside a conditional are left to the rule
+#  block adds none, and a namespace adds one when its first item is
+#  indented -- its contents stand where that item does.  Items inside a conditional are left to the rule
 #  above, and aligned parameters carry no level, so neither is measured
-#  here.
-file[lang=c] *[line-start][level=1][pp-depth=0] { start-column: 5; }
-file[lang=c] *[line-start][level=2][pp-depth=0] { start-column: 9; }
-file[lang=c] *[line-start][level=3][pp-depth=0] { start-column: 13; }
-file[lang=c] *[line-start][level=4][pp-depth=0] { start-column: 17; }
-file[lang=c] *[line-start][level=5][pp-depth=0] { start-column: 21; }
-file[lang=c] *[line-start][level=6][pp-depth=0] { start-column: 25; }
+#  here.  "Access specifiers stand on the class's own column", a level
+#  out from the members they head.  An `if` whose header an #if splits
+#  reads as two ifs, the second the first's body, so what it holds has
+#  a level one too deep; the conditional rule reports that shape, and
+#  it is not measured here either.
+file *[line-start][level=0][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 1; repair: shift; }
+file *[line-start][level=1][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 5; repair: shift; }
+file *[line-start][level=2][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 9; repair: shift; }
+file *[line-start][level=3][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 13; repair: shift; }
+file *[line-start][level=4][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 17; repair: shift; }
+file *[line-start][level=5][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 21; repair: shift; }
+file *[line-start][level=6][pp-depth=0]:not(label[kind=access]):not(statement[kind=if]:has(> directive) *) { start-column: 25; repair: shift; }
+file label[kind=access][line-start][level=1][pp-depth=0] { start-column: 1; repair: shift; }
 
 #  ── brackets ──────────────────────────────────────────────────────
 #  "No bracketless if-statements (always use brackets)."  A braced body
@@ -152,7 +168,7 @@ file[lang=c] *[line-start][level=6][pp-depth=0] { start-column: 25; }
 #  `if (a)` / `#else` / `if (b)` / `#endif` / `{` -- and there the
 #  second header reads as the first one's body.  The pp-split rule
 #  above already reports that shape, so this one stays out of it.
-file[lang=c] statement[kind=if]:not(:has(> directive)) > statement {
+file statement[kind=if]:not(:has(> directive)) > statement {
     violation: "an if-statement's body is braced";
     severity:  warn;
 }
@@ -164,9 +180,17 @@ file[lang=c] statement[kind=if]:not(:has(> directive)) > statement {
 #  linkage form the converted env headers use (decisions register,
 #  section 1.1), since D_EXTERN_C_BEGIN is not yet defined below
 #  djinterp.h.
-file[lang=c] group[open="{"][level]:not([line-start]):not(keyword[text=extern] + string + *) {
+#
+#  Exempt too, until its shape is ruled on: a table of ifs, three or
+#  more in a row each on one line (`if (_kind == 1) { return 10; }`).
+#  Laid out one by one with an empty line under each, it would be
+#  neither the table it is nor the guide's form.  The if-statement rule
+#  below leaves its rows alone for the same reason.  Two such ifs are no
+#  table, and are laid out.
+file group[open="{"][level]:not([line-start]):not(keyword[text=extern] + string + *):not(:is(statement[kind=if]:not([end-line-start]):has(+ statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start])), statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]):has(+ statement[kind=if]:not([end-line-start])), statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start])) > *) {
     violation: "an opening brace is on its own line";
     severity:  warn;
+    repair:    own-line;
 }
 
 #  ── conditional-block closures ────────────────────────────────────
@@ -174,9 +198,10 @@ file[lang=c] group[open="{"][level]:not([line-start]):not(keyword[text=extern] +
 #  must identify the controlling symbol in a trailing comment."  The
 #  builder pairs each #endif with its opener (`closes`) and says whether
 #  a comment on its line names the opener's macro (`named`).
-file[lang=c][path$=".h"] directive[name=endif]:is([closes=ifdef], [closes=ifndef]):not([named]) {
+file:is([path$=".h"], [path$=".hpp"]) directive[name=endif]:is([closes=ifdef], [closes=ifndef]):not([named]) {
     violation: "an #endif closing #ifdef or #ifndef names its symbol";
     severity:  warn;
+    repair:    trailing-comment symbol;
 }
 
 #  ── include directives ────────────────────────────────────────────
@@ -184,8 +209,41 @@ file[lang=c][path$=".h"] directive[name=endif]:is([closes=ifdef], [closes=ifndef
 #  path, must use the exact summary `// framework root`."  djinterp.c's
 #  include of its own header is its corresponding header, and that
 #  rule wins there (decisions register, #33).
-file[lang=c]:not([path$="/djinterp.c"]) directive[name=include]:is([header="djinterp.h"], [header$="/djinterp.h"], [header="djinterp.hpp"], [header$="/djinterp.hpp"]):not(:has(> comment[text="// framework root"])) {
+file:not([path$="/djinterp.c"]) directive[name=include]:is([header="djinterp.h"], [header$="/djinterp.h"], [header="djinterp.hpp"], [header$="/djinterp.hpp"]):not(:has(> comment[text="// framework root"])) {
     violation: "an include of djinterp.h is summarized // framework root";
+    severity:  warn;
+}
+
+#  "The fixed-width integers come from re_std.  A C file includes
+#  re_std's cstdint/dstdint.h and a C++ file cstdint/cstdint.hpp, never
+#  <stdint.h>, <cstdint>, <inttypes.h> or <cinttypes>."  dstdint.h
+#  itself is the one file exempt, and it lives under re_std/.
+file:not([path*="re_std/"]) directive[name=include][form=angle]:is([header="stdint.h"], [header="inttypes.h"], [header="cstdint"], [header="cinttypes"]) {
+    violation: "fixed-width integers come from re_std: dstdint.h in C, cstdint.hpp in C++";
+    severity:  warn;
+}
+
+#  The re_std includes stand "in a `// re_std` group of its own right
+#  after the `// djinterp` group", so that djinterp's configuration is
+#  read first.  A djinterp include -- in quotes, neither re_std's nor
+#  the corresponding header -- after a re_std one is out of order; one
+#  under a conditional is a language's own face and is left alone.  A
+#  re_std include is out of its group when another group's category
+#  comment, a line comment directly above an include, stands between
+#  the `// re_std` comment and it.
+file directive[name=include][header*="re_std/"] ... directive[name=include][form=quote][pp-depth=0]:not([header*="re_std/"]):not([corresponding]) {
+    violation: "djinterp's includes come before re_std's";
+    severity:  warn;
+}
+file comment[text="// re_std"] ... comment[form=line]:not([text="// re_std"]):has(+ directive[name=include]) ... directive[name=include][header*="re_std/"] {
+    violation: "re_std's includes sit in a // re_std group";
+    severity:  warn;
+}
+
+#  "Do not place an include-category comment between the source banner
+#  and the corresponding include."
+file > comment[form=line] + directive[corresponding]:not([blank-before]) {
+    violation: "no category comment above the corresponding include";
     severity:  warn;
 }
 
@@ -196,11 +254,11 @@ file[lang=c]:not([path$="/djinterp.c"]) directive[name=include]:is([header="djin
 #  project declares are checked, and names it #defines -- except a
 #  fallback (`guarded`) and the four configuration macros the platform
 #  reads by exactly these reserved names.
-file[lang=c] identifier[declarator]:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
+file identifier[declarator]:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
     violation: "a name djinterp declares is not reserved";
     severity:  warn;
 }
-file[lang=c] directive[name=define]:not([guarded])[macro!=_POSIX_C_SOURCE][macro!=_WIN32_WINNT][macro!=_CRT_SECURE_NO_WARNINGS][macro!=_TIMESPEC_DEFINED] > identifier[macro]:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
+file directive[name=define]:not([guarded])[macro!=_POSIX_C_SOURCE][macro!=_WIN32_WINNT][macro!=_CRT_SECURE_NO_WARNINGS][macro!=_TIMESPEC_DEFINED] > identifier[macro]:is([text*="__"], [text^="_A"], [text^="_B"], [text^="_C"], [text^="_D"], [text^="_E"], [text^="_F"], [text^="_G"], [text^="_H"], [text^="_I"], [text^="_J"], [text^="_K"], [text^="_L"], [text^="_M"], [text^="_N"], [text^="_O"], [text^="_P"], [text^="_Q"], [text^="_R"], [text^="_S"], [text^="_T"], [text^="_U"], [text^="_V"], [text^="_W"], [text^="_X"], [text^="_Y"], [text^="_Z"]) {
     violation: "a macro djinterp defines is not reserved";
     severity:  warn;
 }
@@ -208,16 +266,20 @@ file[lang=c] directive[name=define]:not([guarded])[macro!=_POSIX_C_SOURCE][macro
 #  ── assertions ────────────────────────────────────────────────────
 #  "Give every static assertion a message."  A top-level comma in the
 #  argument group is what separates a message from the condition; a
-#  comma nested deeper sits in a group of its own.
-file[lang=c] :is(keyword[kind=kw-static-assert], keyword[kind=kw-static-assert-reserved], identifier[text=static_assert]) + group[open="("]:not(:has(> punctuator[kind=comma])) {
+#  comma nested deeper sits in a group of its own.  Where the call reads
+#  as a declaration -- D_STATIC_ASSERT in a class -- the comma ends a
+#  parameter, and two parameters are the condition and the message.
+file :is(keyword[kind=kw-static-assert], keyword[kind=kw-static-assert-reserved], identifier[text=static_assert], identifier[text=D_STATIC_ASSERT]) + group[open="("]:not(:has(> punctuator[kind=comma])):not(:has(> param + param)) {
     violation: "a static assertion carries a message";
     severity:  warn;
 }
 
-#  "Use the <assert.h> spelling so the code reads the same in both
-#  languages."
-file[lang=c] keyword[kind=kw-static-assert-reserved] {
-    violation: "a static assertion is spelled static_assert";
+#  "Spell it D_STATIC_ASSERT(condition, message), from the root" -- in
+#  both guides, since it "reads the same in both languages and at every
+#  level, which neither standard spelling does from C99."  The root's
+#  own #defines spell the standard forms, inside the directive.
+file :is(keyword[kind=kw-static-assert], keyword[kind=kw-static-assert-reserved], identifier[text=static_assert]):not(directive *) {
+    violation: "a static assertion is spelled D_STATIC_ASSERT";
     severity:  warn;
 }
 
@@ -229,29 +291,45 @@ file[lang=c] keyword[kind=kw-static-assert-reserved] {
 #  opening its block has nothing to be set apart from -- nor has one
 #  right after a `case` label, or one that is a braceless body (which
 #  the brace rule reports) -- and a comment directly above a return
-#  takes the empty line for both.
-file[lang=c] :not(comment):not(punctuator):not(label):not(group) + statement[kind=return]:not([blank-before]) {
+#  takes the empty line for both.  That empty line belongs above the
+#  comment, where no repair stated for the return could put it, so the
+#  second rule states none.  A directive that opens a branch --
+#  #if, #ifdef, #ifndef, #elif, #else -- opens the return's block too;
+#  an #endif closes one, and a return under it is set apart as under
+#  any statement.
+file :not(comment):not(punctuator):not(label):not(group):not(directive:is([name=if], [name=ifdef], [name=ifndef], [name=elif], [name=elifdef], [name=elifndef], [name=else])) + statement[kind=return]:not([blank-before]) {
     violation: "a return statement is preceded by an empty line";
     severity:  warn;
+    repair:    blank-before 1;
 }
-file[lang=c] :not(comment):not(punctuator):not(label):not(group) + comment:not([blank-before]) + statement[kind=return]:not([blank-before]) {
+file :not(comment):not(punctuator):not(label):not(group):not(directive:is([name=if], [name=ifdef], [name=ifndef], [name=elif], [name=elifdef], [name=elifndef], [name=else])) + comment:not([blank-before]) + statement[kind=return]:not([blank-before]) {
     violation: "a return statement is preceded by an empty line";
     severity:  warn;
 }
 
 #  "if-statements should be followed by an empty line, unless the next
 #  line contains another closing bracket."  An else chain belongs to
-#  its if, and a closing brace is no sibling of the statement.
-file[lang=c] statement[kind=if] + :not(punctuator):not([blank-before]) {
+#  its if, and a closing brace is no sibling of the statement.  A
+#  directive that ends the if's branch -- #elif, #else, #endif -- is a
+#  closing bracket of its own; an #if is not, and is set apart like a
+#  statement.  A comment on the if's last line is part of that line,
+#  so what stands under the line is judged.
+file statement[kind=if]:not(:is(statement[kind=if]:not([end-line-start]):has(+ statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start])), statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]):has(+ statement[kind=if]:not([end-line-start])), statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]))) + :not(punctuator):not(comment:not([line-start])):not(directive:is([name=elif], [name=elifdef], [name=elifndef], [name=else], [name=endif])):not([blank-before]) {
     violation: "an if-statement is followed by an empty line";
     severity:  warn;
+    repair:    blank-before 1;
+}
+file statement[kind=if]:not(:is(statement[kind=if]:not([end-line-start]):has(+ statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start])), statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]):has(+ statement[kind=if]:not([end-line-start])), statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]) + statement[kind=if]:not([end-line-start]))) + comment:not([line-start]) + :not(punctuator):not(directive:is([name=elif], [name=elifdef], [name=elifndef], [name=else], [name=endif])):not([blank-before]) {
+    violation: "an if-statement is followed by an empty line";
+    severity:  warn;
+    repair:    blank-before 1;
 }
 
 #  ── variable declarations ─────────────────────────────────────────
 #  "Initialize a variable in its declaration; do not declare it
 #  uninitialized and assign to it later."  `initialized` marks a
 #  declared name a top-level `=` follows.
-file[lang=c] fn-def declaration > identifier[declarator]:not([initialized]) {
+file fn-def declaration > identifier[declarator]:not([initialized]) {
     violation: "a variable is initialized in its declaration";
     severity:  warn;
 }
@@ -262,7 +340,7 @@ file[lang=c] fn-def declaration > identifier[declarator]:not([initialized]) {
 #  between two declarations may be a group boundary the guide also
 #  allows ("one blank line between distinct declaration groups when
 #  useful"), so this only advises.
-file[lang=c][path$=".h"] fn-decl + fn-decl[blank-before] {
+file[path$=".h"] fn-decl + fn-decl[blank-before] {
     violation: "no blank line inside a declaration group";
     severity:  advise;
 }
@@ -270,15 +348,27 @@ file[lang=c][path$=".h"] fn-decl + fn-decl[blank-before] {
 #  ── file structure ────────────────────────────────────────────────
 #  "After the last #include, use exactly two empty lines before the
 #  first function comment.  No other location in a .c file should
-#  contain two consecutive empty lines."
-file[lang=c][path$=".c"] > directive[name=include] + :not(directive[name=include]):not([blank-before=2]) {
+#  contain two consecutive empty lines."  The C++ guide says the same of
+#  a .cpp file.  The includes run on past an #include through the
+#  conditionals that choose among them and the category comments that
+#  head their groups -- a line comment directly above a directive -- so
+#  what follows the last of those is judged.  An #endif directly after
+#  an #include closes the includes' own conditional, and what follows it
+#  is judged the same way.
+file:is([path$=".c"], [path$=".cpp"]) > directive[name=include] + :not(directive):not(comment[form=line]:has(+ directive)):not([blank-before=2]) {
     violation: "exactly two empty lines follow the last #include";
     severity:  warn;
+    repair:    blank-before 2;
+}
+file:is([path$=".c"], [path$=".cpp"]) > directive[name=include] + directive[name=endif] + :not(directive):not(comment[form=line]:has(+ directive)):not([blank-before=2]) {
+    violation: "exactly two empty lines follow the last #include";
+    severity:  warn;
+    repair:    blank-before 2;
 }
 #  Advice until ruled: the tree puts two empty lines between function
 #  definitions about 1,200 times, recently converted files included,
 #  against the guide's letter.
-file[lang=c][path$=".c"] *[blank-before>=2]:not(directive[name=include] + *) {
+file:is([path$=".c"], [path$=".cpp"]) *[blank-before>=2]:not(directive[name=include] + *):not(directive[name=include] + directive[name=endif] + *) {
     violation: "two consecutive empty lines only after the last #include";
     severity:  advise;
 }
@@ -288,13 +378,14 @@ file[lang=c][path$=".c"] *[blank-before>=2]:not(directive[name=include] + *) {
 #  // corresponding header".  `corresponding` marks an include whose
 #  header shares the file's stem; a file with none (a main, a test) is
 #  not judged.
-file[lang=c][path$=".c"]:has(> directive[corresponding]) > directive[name=include]:not([corresponding]):not(directive[name=include] ... *) {
+file:is([path$=".c"], [path$=".cpp"]):has(> directive[corresponding]) > directive[name=include]:not([corresponding]):not(directive[name=include] ... *) {
     violation: "a source's first include is its corresponding header";
     severity:  warn;
 }
-file[lang=c][path$=".c"] > directive[corresponding]:not(:has(> comment[text="// corresponding header"])) {
+file:is([path$=".c"], [path$=".cpp"]) > directive[corresponding]:not(:has(> comment[text="// corresponding header"])) {
     violation: "the corresponding header is summarized // corresponding header";
     severity:  warn;
+    repair:    trailing-comment "corresponding header" unmeasured;
 }
 
 #  ── brief comments ────────────────────────────────────────────────
@@ -305,7 +396,7 @@ file[lang=c][path$=".c"] > directive[corresponding]:not(:has(> comment[text="// 
 #  block ("one comment for the entire block is sufficient"); a fallback
 #  (`guarded`) is documented above its #ifndef, as the config skeleton
 #  shows.
-file[lang=c] directive[name=define]:not([documented]):not([guarded]):not(directive[name=define] + directive[name=define]:not([blank-before])) {
+file directive[name=define]:not([documented]):not([guarded]):not(directive[name=define] + directive[name=define]:not([blank-before])) {
     violation: "a #define carries a // NAME comment above it";
     severity:  warn;
 }
@@ -315,8 +406,55 @@ file[lang=c] directive[name=define]:not([documented]):not([guarded]):not(directi
 #  A file-local `static` definition is left out: where its contract
 #  goes is open (decisions register, #84), and the proposal there puts a
 #  Doxygen block above it, which need not open with the name.
-file[lang=c][path$=".c"] fn-def:not([documented]):not(:has(> keyword[text=static])) {
+file:is([path$=".c"], [path$=".cpp"]) fn-def:not([documented]):not(:has(> keyword[text=static])) {
     violation: "a definition carries a comment opening with its name";
+    severity:  warn;
+}
+
+#  "Include parameter names, not just types" (Function Declarations,
+#  rule 2, in both guides).  `(void)` and `...` have no name to give;
+#  an upper-case name is a macro's call that reads as a declaration --
+#  `D_STATIC_ASSERT(cond, "message");` -- and its arguments are no
+#  parameters.
+file fn-decl:not(:has(> identifier[declarator][case=upper])) > group > param:not([name]):not([void]):not([variadic]) {
+    violation: "a declaration names its parameters";
+    severity:  warn;
+}
+
+#  "One label per function for cleanup.  Several unwind labels means the
+#  function is doing several things" (Control Transfer).  Every named label
+#  after a function's first is reported.
+file fn-def label[kind=named] ... label[kind=named] {
+    violation: "a second label in one function";
+    severity:  warn;
+}
+
+#  ── function contracts ────────────────────────────────────────────
+#  "In the header, on the declaration -- the contract": a Doxygen block
+#  directly above the function.  `contract` marks a function that has
+#  one; the builder counts what the block misses -- named parameters no
+#  @param names (`undocumented`), @param tags with no direction
+#  (`undirected`) and @param tags naming no parameter (`strangers`) --
+#  and marks a block that describes a return (`return-tag`).  A function
+#  with no block, or with a plain comment, is not judged here.
+file :is(fn-decl, fn-def)[contract][undocumented>0] {
+    violation: "a contract gives every parameter its @param";
+    severity:  warn;
+}
+file :is(fn-decl, fn-def)[contract][undirected>0] {
+    violation: "a @param marks its direction: [in], [out] or [in,out]";
+    severity:  warn;
+}
+file :is(fn-decl, fn-def)[contract][strangers>0] {
+    violation: "a @param names a parameter of the function below it";
+    severity:  warn;
+}
+file :is(fn-decl, fn-def)[contract][returns=value]:not([return-tag]) {
+    violation: "a contract says what the function returns";
+    severity:  warn;
+}
+file :is(fn-decl, fn-def)[contract][returns=void][return-tag] {
+    violation: "a void function's contract omits @return";
     severity:  warn;
 }
 
@@ -324,14 +462,46 @@ file[lang=c][path$=".c"] fn-def:not([documented]):not(:has(> keyword[text=static
 #  "Outside that directory [c/util/macro/], a function-like macro needs
 #  a reason that survives review."  No sheet can judge the reason, so
 #  every such macro is listed for the review, as advice.
-file[lang=c]:not([path*="c/util/macro/"]) directive[name=define][function-like] {
+file:not([path*="c/util/macro/"]) directive[name=define][function-like] {
     violation: "a function-like macro outside c/util/macro/ needs a reason";
     severity:  advise;
 }
 
+#  ── header structure ──────────────────────────────────────────────
+#  "A header divided into sections carries a table of contents", and
+#  the table and the sections are numbered alike: "decimal, never Roman
+#  numerals", to four levels, the fourth numbered too.  The builder reads
+#  each `/* TABLE OF CONTENTS` block (`toc`), counting its entries
+#  numbered in Roman numerals (`roman`) or letters (`lettered`) and the
+#  empty lines inside it (`blank`), and marks each section, subsection
+#  and item comment (`marker`) with how it is numbered (`numeral`).  A
+#  list counted in letters is not one counted in Roman numerals, though
+#  C, I, L, V and X are both, and an ordinal in two parts is read by its
+#  first run of numeral letters.
+file:is([path$=".h"], [path$=".hpp"]):has(> comment[marker=section]):not(:has(> comment[toc])) {
+    violation: "a header divided into sections carries a table of contents";
+    severity:  warn;
+}
+file comment[toc][roman>0] {
+    violation: "a table of contents is numbered in decimal, never in Roman numerals";
+    severity:  warn;
+}
+file comment[toc][lettered>0] {
+    violation: "a table of contents numbers its fourth level";
+    severity:  warn;
+}
+file comment[toc][blank>0] {
+    violation: "no blank line inside a table of contents";
+    severity:  warn;
+}
+file comment[marker][numeral=roman] {
+    violation: "a section is numbered in decimal, never in Roman numerals";
+    severity:  warn;
+}
+
 #  ── section delimiters ────────────────────────────────────────────
 #  "Use zero empty lines after the //--- delimiter."
-file[lang=c] comment[text^="//-----"] + *[blank-before] {
+file comment[text^="//-----"] + *[blank-before] {
     violation: "no empty line after a subsection delimiter";
     severity:  warn;
 }

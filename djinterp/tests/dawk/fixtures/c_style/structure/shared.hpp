@@ -12,7 +12,7 @@ II.  NAMES
 */
 
 #include <cstdint>
-#include "../djinterp.hpp"  // NS_*, feature macros
+#include "../djinterp.hpp"  // framework root
 
 
 // =============================================================================

@@ -11,7 +11,7 @@
 * path:      /src/djinterp/tools/dawk/dproperty.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dproperty.h"  // corresponding header
 // std
@@ -944,9 +944,10 @@ bool d_property_repair(
 // d_internal_lint_properties
 //   constant: every property a lint sheet may declare, sorted by name.  The
 // evaluable ones share d_property_evaluate, which dispatches within; the
-// modifiers -- severity, initial, immutable -- and min-gap, which a table
-// layout reads beside its display, go through it too and come back
-// unevaluated, exactly as before the registry.
+// modifiers -- severity, initial, immutable -- min-gap, which a table layout
+// reads beside its display, and repair, which drepair.c reads beside a
+// violation, go through it too and come back unevaluated, exactly as before
+// the registry.
 static const struct dj_schema_property d_internal_lint_properties[] =
 {
     { "content",      false, NULL, NULL, d_property_evaluate, NULL },
@@ -956,6 +957,7 @@ static const struct dj_schema_property d_internal_lint_properties[] =
     { "immutable",    false, NULL, NULL, d_property_evaluate, NULL },
     { "initial",      false, NULL, NULL, d_property_evaluate, NULL },
     { "min-gap",      false, NULL, NULL, d_property_evaluate, NULL },
+    { "repair",       false, NULL, NULL, d_property_evaluate, NULL },
     { "required",     false, NULL, NULL, d_property_evaluate, NULL },
     { "severity",     false, NULL, NULL, d_property_evaluate, NULL },
     { "start-column", false, NULL, NULL, d_property_evaluate, NULL },

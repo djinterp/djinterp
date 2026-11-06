@@ -5,7 +5,7 @@
 #include <stddef.h>    // size_t: negative
 #include <stdint.h>    // uint32_t: positive
 // djinterp
-#include "../djinterp.h"  // D_INLINE
+#include "../djinterp.h"  // framework root
 // re_std
 #include "../../re_std/cstdint/dstdint.h"  // uint32_t: negative
 
