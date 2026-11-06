@@ -7,13 +7,14 @@
 * path:      /src/djinterp/c/modules/parse/program.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parse/program.h"  // corresponding header
 // std
 #include <stdio.h>   // printf, snprintf
 #include <string.h>  // memset, memcpy
 // djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"                 // d_ckd_mul
 #include "../../../../../inc/djinterp/c/modules/parse/storage.h"  // d_parse_grow, the shared
                                                        // growth policy
 #if (D_INTERNAL_PARSE_PROGRAM_HEAP == 1)
@@ -113,8 +114,17 @@ int d_parse_program_init_heap(
                            ? _capacity
                            : (uint32_t)D_PARSE_PROGRAM_DEFAULT_CODE;
 
-    struct dj_parse_instr* code =
-        (struct dj_parse_instr*)malloc((size_t)slots * sizeof(*code));
+    size_t code_bytes = 0u;
+
+    // refuse a size that does not fit in a size_t
+    if (d_ckd_mul(&code_bytes,
+                  (size_t)slots,
+                  sizeof(struct dj_parse_instr)))
+    {
+        return -1;
+    }
+
+    struct dj_parse_instr* code = (struct dj_parse_instr*)malloc(code_bytes);
 
     // check if memory allocation was successful
     if (!code)

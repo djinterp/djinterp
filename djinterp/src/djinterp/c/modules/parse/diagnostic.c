@@ -7,7 +7,7 @@
 * path:      /src/djinterp/c/modules/parse/diagnostic.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parse/diagnostic.h"  // corresponding header
 // std
@@ -19,6 +19,8 @@
 #if (D_INTERNAL_PARSE_HEAP == 1)
 #include <stdlib.h>  // malloc, free
 #endif  // D_INTERNAL_PARSE_HEAP
+// djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 /*
@@ -148,8 +150,18 @@ int d_parse_diag_sink_init_heap(
                            ? _text_bytes
                            : (uint32_t)D_PARSE_DIAG_DEFAULT_TEXT;
 
+    size_t record_bytes = 0u;
+
+    // refuse a size that does not fit in a size_t
+    if (d_ckd_mul(&record_bytes,
+                  (size_t)items,
+                  sizeof(struct dj_parse_diagnostic)))
+    {
+        return -1;
+    }
+
     struct dj_parse_diagnostic* records =
-        (struct dj_parse_diagnostic*)malloc((size_t)items * sizeof(*records));
+        (struct dj_parse_diagnostic*)malloc(record_bytes);
 
     // check if the record allocation was successful
     if (!records)

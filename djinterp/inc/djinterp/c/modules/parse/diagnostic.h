@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/c/modules/parse/diagnostic.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 /*
@@ -42,8 +42,9 @@ TABLE OF CONTENTS
               b. D_PARSE_DIAG_DOMAIN_MACHINE
               c. D_PARSE_DIAG_DOMAIN_PROGRAM
               d. D_PARSE_DIAG_DOMAIN_LEX
-              e. D_PARSE_DIAG_DOMAIN_PARSEGEN
-              f. D_PARSE_DIAG_DOMAIN_USER
+              e. D_PARSE_DIAG_DOMAIN_EXPR
+              f. D_PARSE_DIAG_DOMAIN_PARSEGEN
+              g. D_PARSE_DIAG_DOMAIN_USER
     3.  Core codes
          1.  dj_parse_diag_code
 2.  TYPES
@@ -128,6 +129,10 @@ enum dj_parse_severity
 //   constant: diagnostics emitted by the C and C++ scanner and literal decoder
 // (lex/lex_scan.h, lex/lex_literal.h). Codes are enum dj_lex_error.
 #define D_PARSE_DIAG_DOMAIN_LEX         3u
+// D_PARSE_DIAG_DOMAIN_EXPR
+//   constant: diagnostics emitted by expression core v2 (expr/signature.h,
+// expr/parse.h). Codes are enum dj_parse_expr_diag.
+#define D_PARSE_DIAG_DOMAIN_EXPR        4u
 // D_PARSE_DIAG_DOMAIN_PARSEGEN
 //   constant: the first domain reserved for the generator subsystem. parsegen
 // numbers its frontends, families, passes, and backends upward from here.

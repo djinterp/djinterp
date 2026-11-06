@@ -7,7 +7,7 @@
 * path:      /src/djinterp/c/modules/parsegen/analysis.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parsegen/analysis.h"  // corresponding header
 // std
@@ -16,6 +16,8 @@
 #if (D_INTERNAL_PARSEGEN_GRAMMAR_HEAP == 1)
 #include <stdlib.h>  // malloc, free
 #endif  // D_INTERNAL_PARSEGEN_GRAMMAR_HEAP
+// djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
 
 // D_INTERNAL_ANALYSIS_MESSAGE
@@ -82,6 +84,48 @@ void d_parsegen_facts_init(
 
 #if (D_INTERNAL_PARSEGEN_GRAMMAR_HEAP == 1)
 
+// dj_parsegen_internal_facts_bytes
+//   struct: the sizes of the heap facts' arrays that a count multiplies.
+struct dj_parsegen_internal_facts_bytes
+{
+    size_t node;   // the per-node facts
+    size_t rule;   // the per-rule facts
+    size_t work;   // the worklist, two indices per rule
+    size_t stack;  // the traversal stack, an index per node
+};
+
+/*
+d_parsegen_internal_facts_bytes
+  Computes the heap facts' sizes, refusing any that does not fit in a size_t:
+four of the upgrade audit's five sites here (the fifth, the visited set, is a
+byte per rule, and its size is its count).
+
+Parameter(s):
+  _nodes: the node count, at least 1.
+  _rules: the rule count, at least 1.
+  _bytes: the sizes; may not be NULL.
+Return:
+  true where every size fits; false otherwise.
+*/
+static
+bool d_parsegen_internal_facts_bytes(
+    uint32_t                                 _nodes,
+    uint32_t                                 _rules,
+    struct dj_parsegen_internal_facts_bytes* _bytes
+)
+{
+    size_t work_count = 0u;
+
+    return ( (!d_ckd_mul(&_bytes->node, (size_t)_nodes,
+                         sizeof(struct dj_parsegen_node_facts)))       &&
+             (!d_ckd_mul(&_bytes->rule, (size_t)_rules,
+                         sizeof(struct dj_parsegen_rule_facts)))       &&
+             (!d_ckd_mul(&work_count, (size_t)_rules, 2u))             &&
+             (!d_ckd_mul(&_bytes->work, work_count, sizeof(uint32_t))) &&
+             (!d_ckd_mul(&_bytes->stack, (size_t)_nodes,
+                         sizeof(int32_t))) );
+}
+
 /*
 d_parsegen_facts_init_heap
   Initialises facts sized for one grammar, over storage it allocates and owns.
@@ -111,10 +155,17 @@ int d_parsegen_facts_init_heap(
     const uint32_t rules = (_grammar->rule_count > 0u)
                            ? _grammar->rule_count
                            : 1u;
+    struct dj_parsegen_internal_facts_bytes bytes;
+
+    // refuse any size that does not fit in a size_t, before anything is
+    // allocated
+    if (!d_parsegen_internal_facts_bytes(nodes, rules, &bytes))
+    {
+        return -1;
+    }
 
     struct dj_parsegen_node_facts* node_store =
-        (struct dj_parsegen_node_facts*)malloc((size_t)nodes *
-                                              sizeof(*node_store));
+        (struct dj_parsegen_node_facts*)malloc(bytes.node);
 
     // check if the per-node allocation was successful
     if (!node_store)
@@ -123,8 +174,7 @@ int d_parsegen_facts_init_heap(
     }
 
     struct dj_parsegen_rule_facts* rule_store =
-        (struct dj_parsegen_rule_facts*)malloc((size_t)rules *
-                                              sizeof(*rule_store));
+        (struct dj_parsegen_rule_facts*)malloc(bytes.rule);
 
     // check if the per-rule allocation was successful
     if (!rule_store)
@@ -134,7 +184,7 @@ int d_parsegen_facts_init_heap(
         return -1;
     }
 
-    uint32_t* work = (uint32_t*)malloc((size_t)rules * 2u * sizeof(*work));
+    uint32_t* work = (uint32_t*)malloc(bytes.work);
 
     // check if the worklist allocation was successful
     if (!work)
@@ -145,7 +195,7 @@ int d_parsegen_facts_init_heap(
         return -1;
     }
 
-    uint8_t* mark = (uint8_t*)malloc((size_t)rules * sizeof(*mark));
+    uint8_t* mark = (uint8_t*)malloc((size_t)rules);
 
     // check if the visited-set allocation was successful
     if (!mark)
@@ -157,7 +207,7 @@ int d_parsegen_facts_init_heap(
         return -1;
     }
 
-    int32_t* stack = (int32_t*)malloc((size_t)nodes * sizeof(*stack));
+    int32_t* stack = (int32_t*)malloc(bytes.stack);
 
     // check if the traversal-stack allocation was successful
     if (!stack)

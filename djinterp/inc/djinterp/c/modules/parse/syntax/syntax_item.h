@@ -21,12 +21,15 @@
 * namespace.  `pp_depth` counts the preprocessor conditionals opened inside
 * the item's own scope.  Both are facts; what column they imply is a style
 * sheet's decision.
+*   One fact tokens cannot give: which macros open and close a namespace,
+* `NS_DJINTERP` and `NS_END`.  A caller who knows names them in a
+* dj_syntax_options, and each becomes an item of its own.
 *
 *
 * path:      /inc/djinterp/c/modules/parse/syntax/syntax_item.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 /*
@@ -41,6 +44,7 @@ TABLE OF CONTENTS
          2.  dj_syntax_statement
          3.  dj_syntax_item
          4.  dj_syntax_items
+         5.  dj_syntax_options
 2.  OPERATIONS
     ----------
     1.  Recognition
@@ -132,7 +136,10 @@ enum dj_syntax_item_kind
 //   enum: what a statement is, by its leading token -- which is as far as
 //   tokens can tell.  SIMPLE is an expression statement or a declaration
 //   whose type is a typedef name; the two are not told apart.  MACRO is a
-//   macro invocation followed by a braced body, `D_FOREACH(x) { }`.
+//   macro invocation followed by a braced body, `D_FOREACH(x) { }`.  OPEN
+//   and CLOSE are a block's: a macro the caller named as opening or closing
+//   a namespace, `NS_DJINTERP` or `D_NAMESPACE(x)` and `NS_END`, standing
+//   alone with its arguments (dj_syntax_options).
 enum dj_syntax_statement
 {
     D_SYNTAX_STMT_NONE = 0,
@@ -153,7 +160,9 @@ enum dj_syntax_statement
     D_SYNTAX_STMT_CASE,
     D_SYNTAX_STMT_DEFAULT,
     D_SYNTAX_STMT_NAMED,
-    D_SYNTAX_STMT_ACCESS
+    D_SYNTAX_STMT_ACCESS,
+    D_SYNTAX_STMT_OPEN,
+    D_SYNTAX_STMT_CLOSE
 };
 
 // 1.2.3
@@ -184,8 +193,11 @@ struct dj_syntax_item
 // dj_syntax_items
 //   struct: every item of a token stream.  `item_of[i]` is the innermost item
 //   containing token i; `level_of[o]` is, for an opener that is some item's
-//   body, the level of the item that owns it.  Both are parallel to the
-//   tokens, as the grouping's arrays are.
+//   body, the level of the item that owns it; `pp_of[i]` is how many
+//   preprocessor conditionals are open around token i, the include guard
+//   excluded as an item's `pp_total` excludes it (a conditional's own
+//   directive lines stand outside it; 255 at most).  All three are parallel
+//   to the tokens, as the grouping's arrays are.
 struct dj_syntax_items
 {
     struct dj_syntax_item*  items;
@@ -194,6 +206,20 @@ struct dj_syntax_items
     uint32_t*              item_of;
     uint8_t*               level_of;
     size_t                 token_count;
+    uint8_t*               pp_of;
+};
+
+// 1.2.5
+// dj_syntax_options
+//   struct: what a caller knows that tokens cannot tell.  `scope_open`
+//   names the macros that open a namespace, `NS_DJINTERP`, or open one they
+//   name, `D_NAMESPACE`; `scope_close` the macros that close one, `NS_END`.
+//   Each list is NULL-terminated and may be NULL.  The spellings are the
+//   caller's: djinterp's are in c/djinterp_cpp.h, which parse does not read.
+struct dj_syntax_options
+{
+    const char* const*  scope_open;
+    const char* const*  scope_close;
 };
 
 
@@ -206,9 +232,11 @@ struct dj_syntax_items
 //------------------------------------------------------------------------------
 // d_syntax_items_build recognizes the items of a grouped token stream.
 // `_text` is the source the tokens index, read only to spell the names of
-// directives.  Returns false only when memory ran out; a construct the
-// recognizer does not understand still becomes an item, of the most general
-// kind that fits.
+// directives and of the macros an options names.  Returns false only when
+// memory ran out; a construct the recognizer does not understand still
+// becomes an item, of the most general kind that fits.
+// d_syntax_items_build_with does the same with options; with none it is
+// d_syntax_items_build.
 /**
  * @brief Recognizes the declarations, statements, labels and parameters of a
  *        grouped token stream.
@@ -229,6 +257,34 @@ bool d_syntax_items_build(
     const struct dj_syntax_groups* _groups,
     const char*                    _text,
     struct dj_syntax_items*        _out_items
+);
+/**
+ * @brief Recognizes the items of a grouped token stream, told what tokens
+ *        cannot tell.
+ *
+ * A macro `_options` names as opening or closing a namespace, beginning an
+ * item at file or namespace scope, is a `block` item of its own, with the
+ * statement `open` or `close` and the flag MACRO_HEAD; an argument group on
+ * its line is its `params`.  The items between an open and its close are
+ * the scope around them, as a namespace's are.
+ *
+ * @param[in]  _tokens     the tokens, in source order.
+ * @param[in]  _count      how many.
+ * @param[in]  _groups     their grouping, from d_syntax_group.
+ * @param[in]  _text       the source the tokens index.
+ * @param[in]  _options    what the caller knows; may be `NULL`.
+ * @param[out] _out_items  receives the items.
+ * @pre  `_groups` describes exactly `_tokens`.
+ * @post The items are released with d_syntax_items_free.
+ * @return `true` on success, `false` only if memory ran out.
+ */
+bool d_syntax_items_build_with(
+    const struct dj_token*          _tokens,
+    size_t                          _count,
+    const struct dj_syntax_groups*  _groups,
+    const char*                     _text,
+    const struct dj_syntax_options* _options,
+    struct dj_syntax_items*         _out_items
 );
 /**
  * @brief Releases a recognition's arrays.

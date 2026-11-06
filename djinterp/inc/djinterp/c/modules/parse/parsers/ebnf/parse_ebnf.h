@@ -16,14 +16,15 @@
 * path:      /inc/djinterp/c/modules/parse/parsers/ebnf/parse_ebnf.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.09
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 
 #ifndef DJINTERP_C_PARSE_PARSERS_EBNF_PARSE_EBNF_H
 #define DJINTERP_C_PARSE_PARSERS_EBNF_PARSE_EBNF_H 1
 
 // djinterp
-#include "../bnf/parse_bnf_common.h"
+#include "../../../../dckdint.h"         // d_ckd_mul
+#include "../bnf/parse_bnf_common.h"     // the parser, the grammar
 
 /* ============================================================================
  * Forward declarations
@@ -122,7 +123,8 @@ int d_parse_ebnf_create_one_or_more(
     int rhs[2];
 
     synth_rep_index  = d_parse_ebnf_create_repetition(_grammar, _symbol_index);
-    synth_plus_index = d_parse_grammar_create_synthetic_symbol(_grammar, "plus");
+    synth_plus_index = d_parse_grammar_create_synthetic_symbol(_grammar,
+                                                               "plus");
 
     /* Production: synth_plus -> symbol synth_rep */
     rhs[0] = _symbol_index;
@@ -469,6 +471,32 @@ int d_parse_ebnf_is_alternative_end(
 }
 
 /* ============================================================================
+ * EBNF Parser: the bytes of a count of symbol indices
+ * ========================================================================== */
+
+/*
+d_parse_ebnf_int_bytes
+  The bytes of `_count` ints. A count whose bytes do not fit a size_t ends the
+parse as the allocator's refusal does, the header's way with memory.
+*/
+static
+size_t d_parse_ebnf_int_bytes(
+    size_t _count
+)
+{
+    size_t bytes = 0u;
+
+    if (d_ckd_mul(&bytes, _count, sizeof(int)))
+    {
+        fprintf(stderr, "d_parse_ebnf: out of memory\n");
+
+        exit(EXIT_FAILURE);
+    }
+
+    return bytes;
+}
+
+/* ============================================================================
  * EBNF Parser: Parse an alternative (sequence of primaries)
  * ========================================================================== */
 
@@ -514,11 +542,13 @@ void d_parse_ebnf_parser_parse_alternative(
 
         if (tmp_count == tmp_capacity)
         {
+            // the capacity's bytes were had, and an int is at least two
+            // bytes on every target, so doubling it cannot wrap
             new_capacity =
                 (tmp_capacity != 0u) ? (tmp_capacity * 2u) : 4u;
 
-            tmp_rhs =
-                d_parse_realloc(tmp_rhs, new_capacity * sizeof(int));
+            tmp_rhs = (int*)d_parse_realloc(
+                          tmp_rhs, d_parse_ebnf_int_bytes(new_capacity));
 
             tmp_capacity = new_capacity;
         }
@@ -536,7 +566,7 @@ void d_parse_ebnf_parser_parse_alternative(
     if (tmp_count > 0u)
     {
         production->rhs_indices =
-            (int*)malloc(tmp_count * sizeof(int));
+            (int*)malloc(d_parse_ebnf_int_bytes(tmp_count));
 
         if (!production->rhs_indices)
         {
@@ -813,7 +843,8 @@ void d_parse_grammar_from_ebnf_with_config(
             else
             {
                 fprintf(stderr,
-                        "parse error at %d:%d: expected '::=' after rule head\n",
+                        "parse error at %d:%d: "
+                        "expected '::=' after rule head\n",
                         token->line,
                         token->column);
 

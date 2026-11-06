@@ -7,12 +7,13 @@
 * path:      /src/djinterp/c/modules/parse/pool.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parse/pool.h"  // corresponding header
 // std
 #include <string.h>  // memset, memcpy, memcmp, strlen
 // djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"                 // d_ckd_mul
 #include "../../../../../inc/djinterp/c/modules/parse/storage.h"  // d_parse_grow, the shared
                                                        // growth policy
 #if (D_INTERNAL_PARSE_POOL_HEAP == 1)
@@ -98,6 +99,16 @@ int d_parse_pool_init_heap(
                            ? _entry_capacity
                            : (uint32_t)D_PARSE_POOL_DEFAULT_ENTRIES;
 
+    size_t table_bytes = 0u;
+
+    // refuse a size that does not fit in a size_t
+    if (d_ckd_mul(&table_bytes,
+                  (size_t)slots,
+                  sizeof(struct dj_parse_pool_entry)))
+    {
+        return -1;
+    }
+
     char* store = (char*)malloc((size_t)bytes);
 
     // check if the blob allocation was successful
@@ -107,7 +118,7 @@ int d_parse_pool_init_heap(
     }
 
     struct dj_parse_pool_entry* table =
-        (struct dj_parse_pool_entry*)malloc((size_t)slots * sizeof(*table));
+        (struct dj_parse_pool_entry*)malloc(table_bytes);
 
     // check if the table allocation was successful
     if (!table)

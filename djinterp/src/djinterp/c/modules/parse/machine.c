@@ -7,12 +7,13 @@
 * path:      /src/djinterp/c/modules/parse/machine.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parse/machine.h"  // corresponding header
 // std
 #include <string.h>  // memset
 // djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"                 // d_ckd_mul
 #include "../../../../../inc/djinterp/c/modules/parse/storage.h"  // d_parse_grow, the shared
                                                        // growth policy
 #if (D_INTERNAL_PARSE_OP_SET_HEAP == 1)
@@ -149,8 +150,17 @@ int d_parse_op_set_init_heap(
         return 0;
     }
 
-    struct dj_parse_op* table =
-        (struct dj_parse_op*)malloc((size_t)_capacity * sizeof(*table));
+    size_t table_bytes = 0u;
+
+    // refuse a size that does not fit in a size_t
+    if (d_ckd_mul(&table_bytes,
+                  (size_t)_capacity,
+                  sizeof(struct dj_parse_op)))
+    {
+        return -1;
+    }
+
+    struct dj_parse_op* table = (struct dj_parse_op*)malloc(table_bytes);
 
     // check if memory allocation was successful
     if (!table)
@@ -158,7 +168,7 @@ int d_parse_op_set_init_heap(
         return -1;
     }
 
-    memset(table, 0, (size_t)_capacity * sizeof(*table));
+    memset(table, 0, table_bytes);
 
     _set->ops      = table;
     _set->capacity = _capacity;

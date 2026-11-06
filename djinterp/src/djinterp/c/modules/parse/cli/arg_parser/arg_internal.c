@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -28,6 +28,7 @@
                      // strstr
 // djinterp
 #include "../../../../../../../inc/djinterp/c/djinterp.h"  // framework root
+#include "../../../../../../../inc/djinterp/c/dckdint.h"   // d_ckd_mul
 #include "../../../../../../../inc/djinterp/c/util/sink_common.h"  // dj_pack_text
 #include "../../../../../../../inc/djinterp/env/parse/cli/arg_parser/env_arg_parser.h"  // D_ENV_ARG_PARSER_LONG_DOUBLE
 #include "../../../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h"  // statuses
@@ -2285,15 +2286,17 @@ void* d_arg_internal_grow(
         capacity *= 2u;
     }
 
+    size_t bytes = 0u;
+
     // the byte count must fit a size_t
     if ( (_size == 0u) ||
-         (capacity > ((size_t)-1 / _size)) )
+         (d_ckd_mul(&bytes, capacity, _size)) )
     {
         return NULL;
     }
 
     void* const items = realloc(_items,
-                                capacity * _size);
+                                bytes);
 
     // check if memory allocation was successful
     if (!items)

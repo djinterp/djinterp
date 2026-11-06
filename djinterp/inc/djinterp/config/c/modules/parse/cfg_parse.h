@@ -22,6 +22,11 @@
 *           parse/c/machine.h    -> D_INTERNAL_PARSE_MACHINE_TRACE /
 *                                 D_INTERNAL_PARSE_OP_SET_HEAP /
 *                                 D_PARSE_MACHINE_STEP_LIMIT
+*           parse/c/expr/...     -> D_INTERNAL_PARSE_EXPR_HEAP /
+*                                 D_INTERNAL_PARSE_EXPR_RENDER /
+*                                 D_CFG_PARSE_EXPR_MAX_DEPTH /
+*                                 D_CFG_PARSE_EXPR_MAX_ERRORS /
+*                                 D_CFG_PARSE_EXPR_ERROR_ORDER
 *           the parse sources  -> D_INTERNAL_PARSE_HEAP
 * requires: cfg_common.h (helpers, and the testing preset it applies)
 *
@@ -29,14 +34,14 @@
 * path:      /inc/djinterp/config/c/modules/parse/cfg_parse.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H
 #define DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H 1
 
 // (0) root first: helpers, user overrides, testing flag/preset.
-#include "../../../cfg_common.h"
+#include "../../../cfg_common.h"  // D_CFG_ helpers, overrides, testing
 
 
 //==============================================================================
@@ -107,6 +112,19 @@
 #   endif
 #endif
 
+// 1.2.5
+// D_CFG_PARSE_EXPR_HEAP
+//   brief: 1 compiles expression core v2's heap forms: a term, a signature and
+// the parser's scratch that allocate as they grow; 0 leaves only caller-
+// supplied fixed storage, and the parse performs no allocation. Default 1.
+#ifndef D_CFG_PARSE_EXPR_HEAP
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_EXPR_HEAP        D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_EXPR_HEAP        1
+#   endif
+#endif
+
 
 // 1.3    Optional facilities
 //------------------------------------------------------------------------------
@@ -154,6 +172,18 @@
 #   endif
 #endif
 
+// 1.3.4
+// D_CFG_PARSE_EXPR_RENDER
+//   brief: 1 compiles expression core v2's renderer, which writes a term back
+// as text; 0 leaves the term without it. Default 1.
+#ifndef D_CFG_PARSE_EXPR_RENDER
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_EXPR_RENDER      D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_EXPR_RENDER      1
+#   endif
+#endif
+
 
 // 1.4    Validation
 //------------------------------------------------------------------------------
@@ -177,6 +207,12 @@
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_PARSE_PROGRAM_TRANSPORT)
 #   error "D_CFG_PARSE_PROGRAM_TRANSPORT must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_EXPR_HEAP)
+#   error "D_CFG_PARSE_EXPR_HEAP must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_EXPR_RENDER)
+#   error "D_CFG_PARSE_EXPR_RENDER must be 0 or 1"
 #endif
 
 
@@ -249,6 +285,60 @@
 // by assigning machine.step_limit; 0 means no limit.
 #ifndef D_PARSE_MACHINE_STEP_LIMIT
 #   define D_PARSE_MACHINE_STEP_LIMIT       1000000L
+#endif
+
+// 2.4    Expression core v2
+//------------------------------------------------------------------------------
+//   Each sets the default of the run-time option of the same name in
+// struct dj_parse_expr_options; an option of 0 takes the knob's value.
+
+// 2.4.1
+// D_CFG_PARSE_EXPR_MAX_DEPTH
+//   brief: the depth guard: the deepest term a parse builds before it stops
+// with D_PARSE_EXPR_DIAG_TOO_DEEP. The core recurses nowhere and needs no
+// guard; the bound protects what consumes a term recursively (v1's cata
+// through the bridge, a simplifier), and 1000 of those frames fit in a 1 MB
+// stack, Windows' default, with room to spare. It is at most 65535, the
+// deepest a node records, or 0xFFFFFFFF, which leaves memory as the only
+// bound.
+#ifndef D_CFG_PARSE_EXPR_MAX_DEPTH
+#   define D_CFG_PARSE_EXPR_MAX_DEPTH       1000
+#endif
+
+// 2.4.2
+// D_CFG_PARSE_EXPR_MAX_ERRORS
+//   brief: the errors a parse reports before it stops. The parse goes on after
+// an error so that it can find one further left, a bracket never closed, that
+// it only learns of later; 1 stops it at the first error met, and 65535 is
+// the most, the bound of lane E's setting that will override it.
+#ifndef D_CFG_PARSE_EXPR_MAX_ERRORS
+#   define D_CFG_PARSE_EXPR_MAX_ERRORS      16
+#endif
+
+// 2.4.3
+// D_CFG_PARSE_EXPR_ERROR_ORDER
+//   brief: which of a parse's errors is the error: 1, the leftmost (S209's
+// rule, every compiler's); 2, the leftmost bracket error where there is one,
+// as math's parser layer orders them today. The values are parse.h's
+// D_PARSE_EXPR_ORDER_LEFTMOST and _STRUCTURE_FIRST.
+#ifndef D_CFG_PARSE_EXPR_ERROR_ORDER
+#   define D_CFG_PARSE_EXPR_ERROR_ORDER     1
+#endif
+
+#if ( (D_CFG_PARSE_EXPR_ERROR_ORDER != 1) &&                                  \
+      (D_CFG_PARSE_EXPR_ERROR_ORDER != 2) )
+#   error "D_CFG_PARSE_EXPR_ERROR_ORDER must be 1 or 2"
+#endif
+#if ( (D_CFG_PARSE_EXPR_MAX_ERRORS < 1) ||                                     \
+      (D_CFG_PARSE_EXPR_MAX_ERRORS > 65535) )
+#   error "D_CFG_PARSE_EXPR_MAX_ERRORS must be 1 to 65535"
+#endif
+#if (D_CFG_PARSE_EXPR_MAX_DEPTH < 1)
+#   error "D_CFG_PARSE_EXPR_MAX_DEPTH must be at least 1"
+#endif
+#if ( (D_CFG_PARSE_EXPR_MAX_DEPTH > 65535) &&                                  \
+      (D_CFG_PARSE_EXPR_MAX_DEPTH != 0xFFFFFFFF) )
+#   error "D_CFG_PARSE_EXPR_MAX_DEPTH must be at most 65535, or 0xFFFFFFFF"
 #endif
 
 
@@ -336,17 +426,39 @@
 #   define D_INTERNAL_PARSE_PROGRAM_TRANSPORT 0
 #endif
 
+// 3.1.8
+// D_INTERNAL_PARSE_EXPR_HEAP
+//   brief: 1 when expression core v2 may allocate. Computed from
+// D_CFG_PARSE_EXPR_HEAP; read by the expr/ headers and sources.
+#if D_CFG_IS_ON(D_CFG_PARSE_EXPR_HEAP)
+#   define D_INTERNAL_PARSE_EXPR_HEAP       1
+#else
+#   define D_INTERNAL_PARSE_EXPR_HEAP       0
+#endif
+
+// 3.1.9
+// D_INTERNAL_PARSE_EXPR_RENDER
+//   brief: 1 when expression core v2's renderer is compiled. Computed from
+// D_CFG_PARSE_EXPR_RENDER; read by expr/render.h and render.c.
+#if D_CFG_IS_ON(D_CFG_PARSE_EXPR_RENDER)
+#   define D_INTERNAL_PARSE_EXPR_RENDER     1
+#else
+#   define D_INTERNAL_PARSE_EXPR_RENDER     0
+#endif
+
 // 3.2    Aggregate consequences
 //------------------------------------------------------------------------------
 // 3.2.1
 // D_INTERNAL_PARSE_HEAP
 //   brief: 1 when any part of the substrate may allocate, and therefore when
-// the source files need <stdlib.h>. Computed from the two heap gates; read by
-// diagnostic.c and machine.c so neither has to re-derive the disjunction.
+// the source files need <stdlib.h> and storage.h's d_parse_grow is compiled.
+// Computed from the heap gates; read by diagnostic.c, machine.c, storage.h and
+// the expr/ sources so none has to re-derive the disjunction.
 #if ( (D_INTERNAL_PARSE_DIAG_HEAP == 1)    ||                                 \
       (D_INTERNAL_PARSE_OP_SET_HEAP == 1)  ||                                 \
       (D_INTERNAL_PARSE_POOL_HEAP == 1)    ||                                 \
-      (D_INTERNAL_PARSE_PROGRAM_HEAP == 1) )
+      (D_INTERNAL_PARSE_PROGRAM_HEAP == 1) ||                                 \
+      (D_INTERNAL_PARSE_EXPR_HEAP == 1) )
 #   define D_INTERNAL_PARSE_HEAP            1
 #else
 #   define D_INTERNAL_PARSE_HEAP            0

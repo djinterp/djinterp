@@ -7,13 +7,14 @@
 * path:      /src/djinterp/c/modules/parsegen/registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parsegen/registry.h"  // corresponding header
 // std
 #include <stdio.h>   // snprintf
 #include <string.h>  // memset, strcmp
 // djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"                 // d_ckd_mul
 #include "../../../../../inc/djinterp/c/modules/parse/storage.h"  // d_parse_grow, the shared
                                                        // growth policy
 #if (D_INTERNAL_PARSEGEN_REGISTRY_HEAP == 1)
@@ -107,8 +108,18 @@ int d_parsegen_registry_init_heap(
         return 0;
     }
 
+    size_t table_bytes = 0u;
+
+    // refuse a size that does not fit in a size_t
+    if (d_ckd_mul(&table_bytes,
+                  (size_t)_capacity,
+                  sizeof(struct dj_parsegen_stage)))
+    {
+        return -1;
+    }
+
     struct dj_parsegen_stage* table =
-        (struct dj_parsegen_stage*)malloc((size_t)_capacity * sizeof(*table));
+        (struct dj_parsegen_stage*)malloc(table_bytes);
 
     // check if memory allocation was successful
     if (!table)
@@ -116,7 +127,7 @@ int d_parsegen_registry_init_heap(
         return -1;
     }
 
-    memset(table, 0, (size_t)_capacity * sizeof(*table));
+    memset(table, 0, table_bytes);
 
     _registry->stages   = table;
     _registry->capacity = _capacity;

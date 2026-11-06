@@ -25,7 +25,7 @@
 * path:      /src/djinterp/tools/vparse/cli/commands.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "./commands.hpp"  // corresponding header
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER  // the floor the header has
@@ -161,7 +161,7 @@ int next_run_id(
     std::error_code code;
 
     // every entry of the session folder, until one cannot be read
-    for (fs::DDirectoryIterator each(_session, code), end;
+    for (fs::directory_iterator each(_session, code), end;
          ( (!code) &&
            (each != end) );
          each.increment(code))

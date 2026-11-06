@@ -14,12 +14,18 @@
 * `struct` a member list, and an `extern "C"` or a namespace a transparent
 * block.  The order matters: `struct d_x* d_x_new(void) {` has both a
 * `struct` and a parameter group, and is a function.
+*   In C++ three things in a head hide what they hold (lane H, 11-05 (2)):
+* template arguments, between a `<` after a name and its `>`; a class's base
+* list, after its `:`; and a constructor's initializer list, after the `:`
+* that follows its parameters, where each initializer's own `(` or `{` comes
+* before the body's brace.  Nothing among them ends, starts or names an
+* item.
 *
 *
 * path:      /src/djinterp/c/modules/parse/syntax/syntax_item.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"  // corresponding header
 // std
@@ -28,6 +34,7 @@
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memcmp, memset
 // djinterp
+#include "../../../../../../inc/djinterp/c/dckdint.h"                 // d_ckd_mul
 #include "../../../../../../inc/djinterp/c/modules/parse/storage.h"  // d_parse_grow
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t, uint16_t,
@@ -107,6 +114,11 @@ struct dj_internal_scratch
     uint8_t   macro_head;
     uint8_t   else_seen;
     uint8_t   enum_like;
+    uint8_t   angle;         // template argument lists open
+    uint8_t   base_list;     // in a class head's base list
+    uint8_t   ctor_init;     // in an initializer list: 1 before an
+                             // initializer's group, 2 after it
+    uint8_t   scope_macro;   // a namespace macro, waiting for its arguments
 };
 
 // 1.3.2
@@ -128,6 +140,7 @@ struct dj_internal_build
     uint8_t*                       pp;         // per token: open conditionals
     uint8_t                        file_pp;    // around the whole file: its
                                                // include guard
+    const struct dj_syntax_options* options;   // the caller's; may be NULL
 };
 
 // 1.3.3
@@ -420,6 +433,89 @@ bool d_internal_is_tag_keyword(
 }
 
 
+/**
+ * @brief Reports whether an extent spells one of a NULL-terminated list of
+ *        words.
+ *
+ * A function rather than a macro, as the guide asks wherever one will do.
+ *
+ * @param[in] _text   the extent's first byte.
+ * @param[in] _size   the extent's length in bytes.
+ * @param[in] _words  the words, `NULL`-terminated.
+ * @return `true` if the extent spells one of the words, `false` otherwise.
+ */
+static
+bool d_internal_spelled(
+    const char*        _text,
+    size_t             _size,
+    const char* const* _words
+)
+{
+    for (size_t at = 0u; _words[at]; ++at)
+    {
+        if ( (strlen(_words[at]) == _size) &&
+             (memcmp(_words[at], _text, _size) == 0) )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Counts a child into a depth of template argument lists, and reports
+ *        whether it is an angle bracket of one or among its arguments.
+ *
+ * A `<` after a name or after `template` opens a list, a `>` closes one and a
+ * `>>` two. A `<` after anything else is a comparison. The rule is wrong only
+ * where a `<` after a name compares, which no head has outside a group.
+ *
+ * @param[in]     _kind       the child's token kind.
+ * @param[in]     _prev_kind  the previous significant child's kind, or
+ *                            D_TOKEN_END where no list may open.
+ * @param[in,out] _depth      the lists open; 255 at most.
+ * @return `true` if the child is an angle bracket of a list or inside one,
+ *         `false` otherwise.
+ */
+static
+bool d_internal_angle_step(
+    int      _kind,
+    int      _prev_kind,
+    uint8_t* _depth
+)
+{
+    if ( (_kind == D_TOKEN_LESS) &&
+         ( (_prev_kind == D_TOKEN_IDENTIFIER) ||
+           (_prev_kind == D_TOKEN_KW_TEMPLATE) ) )
+    {
+        if (*_depth < 0xFFu)
+        {
+            ++(*_depth);
+        }
+
+        return true;
+    }
+
+    if (*_depth == 0u)
+    {
+        return false;
+    }
+
+    if (_kind == D_TOKEN_GREATER)
+    {
+        --(*_depth);
+    }
+    else if (_kind == D_TOKEN_SHIFT_RIGHT)
+    {
+        *_depth = (*_depth > 2u) ? (uint8_t)(*_depth - 2u) : 0u;
+    }
+
+    return true;
+}
+
+
 //==============================================================================
 // 4.  ITEMS
 //==============================================================================
@@ -545,6 +641,7 @@ void d_internal_set_scope(
  * a parameter group declares a function type; otherwise the declared name is
  * the last identifier before an initializer, a bitfield or the end, and an
  * identifier following a tag keyword is the tag and never the name.
+ * Template arguments, and so a template head, are passed over.
  *
  * @param[in,out] _b  the recognition in progress.
  * @param[in]     _k  the item's index.
@@ -561,6 +658,7 @@ void d_internal_declarator(
 
     uint32_t name      = D_SYNTAX_NONE;
     int      prev_kind = D_TOKEN_END;
+    uint8_t  angle     = 0u;
 
     for (uint32_t at = item->first;
          at < end;
@@ -570,6 +668,12 @@ void d_internal_declarator(
 
         if (d_internal_is_trivia(token))
         {
+            continue;
+        }
+
+        if (d_internal_angle_step(token->kind, prev_kind, &angle))
+        {
+            prev_kind = token->kind;
             continue;
         }
 
@@ -752,6 +856,8 @@ void d_internal_classify_param(
  * @brief Reports whether the tokens before a function's name declare a `void`
  *        return and not a pointer.
  *
+ * A `void` among template arguments, `d_result<void> run()`, is none.
+ *
  * @param[in] _b  the recognition in progress.
  * @param[in] _k  the item's index.
  * @return `true` if the function returns `void` and not a pointer, `false`
@@ -767,6 +873,8 @@ bool d_internal_returns_void(
     const uint32_t                    scope = item->scope;
     const uint32_t                    end   = item->name;
     bool                              seen  = false;
+    int                               prev  = D_TOKEN_END;
+    uint8_t                           angle = 0u;
 
     if (end == D_SYNTAX_NONE)
     {
@@ -778,6 +886,19 @@ bool d_internal_returns_void(
          at = d_internal_next_child(_b, at, scope, end))
     {
         const int kind = _b->tokens[at].kind;
+
+        if (d_internal_is_trivia(&_b->tokens[at]))
+        {
+            continue;
+        }
+
+        if (d_internal_angle_step(kind, prev, &angle))
+        {
+            prev = kind;
+            continue;
+        }
+
+        prev = kind;
 
         if ((kind == D_TOKEN_STAR) || (kind == D_TOKEN_PAREN_OPEN))
         {
@@ -1180,6 +1301,110 @@ uint32_t d_internal_open(
 
 
 /**
+ * @brief Moves an item past a significant child: the child is its previous
+ *        one, and one more is seen.
+ *
+ * @param[in,out] _scratch  the item's scratch.
+ * @param[in]     _at       the child's token index.
+ */
+static
+void d_internal_step(
+    struct dj_internal_scratch* _scratch,
+    uint32_t                    _at
+)
+{
+    _scratch->prev = _at;
+
+    if (_scratch->seen < 0xFFFFu)
+    {
+        ++_scratch->seen;
+    }
+
+    return;
+}
+
+
+/**
+ * @brief Records what a child tells a C++ head, and reports whether the child
+ *        is among template arguments, which tell the rest of the head nothing.
+ *
+ * A template head is a list of template arguments after `template`. A `:`
+ * after a class's tag and before its body begins its base list; a `:` after a
+ * function's parameters begins its initializer list, where an initializer's
+ * `(` or `{` and a `,` alternate until the body's brace. Only a declaration
+ * or a parameter has a head: a statement's `<` compares.
+ *
+ * @param[in,out] _b   the recognition in progress.
+ * @param[in]     _s   the scope being walked.
+ * @param[in]     _k   the item's index.
+ * @param[in]     _at  the child's token index.
+ * @return `true` if the child is an angle bracket or a template argument,
+ *         `false` otherwise.
+ */
+static
+bool d_internal_note_head(
+    struct dj_internal_build*       _b,
+    const struct dj_internal_scope* _s,
+    uint32_t                        _k,
+    uint32_t                        _at
+)
+{
+    struct dj_internal_scratch* const scratch = &_b->scratch[_k];
+    const int  kind   = _b->tokens[_at].kind;
+    const bool params = (_s->mode == D_INTERNAL_MODE_PARAMS);
+
+    if ( (_s->mode != D_INTERNAL_MODE_FILE)    &&
+         (_s->mode != D_INTERNAL_MODE_MEMBERS) &&
+         (!params) )
+    {
+        return false;
+    }
+
+    // a list opens before the item's `=`, and anywhere in a parameter's
+    // default; once open it is counted to its end
+    const bool may_open  = ( (params) ||
+                             (scratch->assign_at == D_SYNTAX_NONE) ||
+                             (scratch->angle > 0u) );
+    const int  prev_kind = ( (may_open) && (scratch->prev != D_SYNTAX_NONE) )
+                         ? _b->tokens[scratch->prev].kind
+                         : D_TOKEN_END;
+
+    if (d_internal_angle_step(kind, prev_kind, &scratch->angle))
+    {
+        return true;
+    }
+
+    if ( (kind == D_TOKEN_COLON) && (!params) &&
+         (scratch->assign_at == D_SYNTAX_NONE) )
+    {
+        if ( (scratch->struct_at != D_SYNTAX_NONE) &&
+             (scratch->fn_params == D_SYNTAX_NONE) &&
+             (!scratch->struct_body) )
+        {
+            scratch->base_list = 1u;
+        }
+        else if ( (scratch->fn_params != D_SYNTAX_NONE) &&
+                  (!scratch->macro_head) && (scratch->ctor_init == 0u) )
+        {
+            scratch->ctor_init = 1u;
+        }
+    }
+    else if ( (scratch->ctor_init == 1u) &&
+              ( (kind == D_TOKEN_PAREN_OPEN) ||
+                (kind == D_TOKEN_BRACE_OPEN) ) )
+    {
+        scratch->ctor_init = 2u;
+    }
+    else if ( (scratch->ctor_init == 2u) && (kind == D_TOKEN_COMMA) )
+    {
+        scratch->ctor_init = 1u;
+    }
+
+    return false;
+}
+
+
+/**
  * @brief Records what a significant child tells an item in its simple state.
  *
  * @note `name(` with nothing before it is a macro invocation at file or block
@@ -1204,6 +1429,13 @@ void d_internal_note(
     const bool in_operator =
         ( (scratch->operator_at != D_SYNTAX_NONE) &&
           (scratch->fn_params == D_SYNTAX_NONE) );
+
+    // template arguments name, begin and end nothing
+    if (d_internal_note_head(_b, _s, _k, _at))
+    {
+        d_internal_step(scratch, _at);
+        return;
+    }
 
     // the `=` of `operator=` is the operator's name, not an initializer
     if ( (kind == D_TOKEN_ASSIGN) && (!in_operator) &&
@@ -1242,11 +1474,12 @@ void d_internal_note(
         scratch->operator_at = _at;
     }
 
-    // the first parenthesis after a name, before any `=`, is a candidate
-    // parameter list
+    // the first parenthesis after a name, before any `=` and outside a base
+    // list, is a candidate parameter list
     if ( (kind == D_TOKEN_PAREN_OPEN) &&
          (scratch->fn_params == D_SYNTAX_NONE) &&
          (scratch->assign_at == D_SYNTAX_NONE) &&
+         (!scratch->base_list) &&
          (scratch->prev != D_SYNTAX_NONE) )
     {
         const int prev_kind = _b->tokens[scratch->prev].kind;
@@ -1276,12 +1509,7 @@ void d_internal_note(
         }
     }
 
-    scratch->prev = _at;
-
-    if (scratch->seen < 0xFFFFu)
-    {
-        ++scratch->seen;
-    }
+    d_internal_step(scratch, _at);
 
     return;
 }
@@ -1319,6 +1547,13 @@ void d_internal_brace(
 
     // after `=`, an initializer, and the item runs on to its `;`
     if (scratch->assign_at != D_SYNTAX_NONE)
+    {
+        d_internal_note(_b, _s, _k, _at);
+        return;
+    }
+
+    // in an initializer list, an initializer's brace: `m_values{}`
+    if (scratch->ctor_init == 1u)
     {
         d_internal_note(_b, _s, _k, _at);
         return;
@@ -1374,6 +1609,89 @@ void d_internal_brace(
 
 
 /**
+ * @brief Recognizes a macro the caller named as opening or closing a
+ *        namespace, as the first child of an item at file scope, and takes
+ *        an argument group on its line as its own.
+ *
+ * Such a macro is its own item whatever follows it: `NS_DJINTERP` then a
+ * function on the next line is two items, not a function whose head begins
+ * with a macro.
+ *
+ * @param[in,out] _b   the recognition in progress.
+ * @param[in,out] _s   the scope being walked.
+ * @param[in]     _k   the item's index.
+ * @param[in]     _at  the child's token index.
+ * @return `true` if the child belongs to such a macro, `false` otherwise.
+ */
+static
+bool d_internal_scope_macro(
+    struct dj_internal_build* _b,
+    struct dj_internal_scope* _s,
+    uint32_t                  _k,
+    uint32_t                  _at
+)
+{
+    struct dj_syntax_item* const      item    = &_b->out->items[_k];
+    struct dj_internal_scratch* const scratch = &_b->scratch[_k];
+    const struct dj_token* const      token   = &_b->tokens[_at];
+
+    // the argument group the macro waited for
+    if (_at != item->first)
+    {
+        if (!scratch->scope_macro)
+        {
+            return false;
+        }
+
+        item->params = _at;
+        d_internal_complete(_b, _s, _k, d_internal_extent(_b, _at));
+
+        return true;
+    }
+
+    const char* const spelling = _b->text + token->span.offset;
+    const bool        opens    =
+        ( (_b->options->scope_open) &&
+          (d_internal_spelled(spelling, token->span.length,
+                              _b->options->scope_open)) );
+
+    if ( (!opens) &&
+         ( (!_b->options->scope_close) ||
+           (!d_internal_spelled(spelling, token->span.length,
+                                _b->options->scope_close)) ) )
+    {
+        return false;
+    }
+
+    item->kind      = D_SYNTAX_ITEM_BLOCK;
+    item->statement = (opens) ? D_SYNTAX_STMT_OPEN : D_SYNTAX_STMT_CLOSE;
+    item->flags    |= D_SYNTAX_ITEM_FLAG_MACRO_HEAD;
+
+    uint32_t next = d_internal_next_child(_b, _at, _s->opener, _s->end);
+
+    while ( (next < _s->end) && (d_internal_is_trivia(&_b->tokens[next])) )
+    {
+        next = d_internal_next_child(_b, next, _s->opener, _s->end);
+    }
+
+    // `D_NAMESPACE(name)`: its arguments are on its line
+    if ( (next < _s->end) &&
+         (_b->tokens[next].kind == D_TOKEN_PAREN_OPEN) &&
+         ((_b->tokens[next].flags & D_TOKEN_FLAG_LINE_START) == 0u) )
+    {
+        scratch->scope_macro = 1u;
+        scratch->prev        = _at;
+
+        return true;
+    }
+
+    d_internal_complete(_b, _s, _k, _at);
+
+    return true;
+}
+
+
+/**
  * @brief Offers a child to an item in its simple state.
  *
  * @param[in,out] _b   the recognition in progress.
@@ -1390,6 +1708,21 @@ void d_internal_simple(
 )
 {
     const int kind = _b->tokens[_at].kind;
+
+    // a namespace macro the caller named
+    if ( (_s->mode == D_INTERNAL_MODE_FILE) && (_b->options) &&
+         ( (kind == D_TOKEN_IDENTIFIER) || (_b->scratch[_k].scope_macro) ) &&
+         (d_internal_scope_macro(_b, _s, _k, _at)) )
+    {
+        return;
+    }
+
+    // among template arguments nothing ends at a `,` or begins at a `{`
+    if ( (_b->scratch[_k].angle > 0u) && (kind != D_TOKEN_SEMICOLON) )
+    {
+        d_internal_note(_b, _s, _k, _at);
+        return;
+    }
 
     // parameters and enumerators end at their commas
     if ( (_s->mode == D_INTERNAL_MODE_PARAMS) ||
@@ -1871,29 +2204,112 @@ bool d_internal_walk(
 
 
 /**
- * @brief Reports whether an extent spells one of a NULL-terminated list of
- *        words.
+ * @brief Reports whether a directive begins at a token and is named by one of
+ *        a list of words.
  *
- * A function rather than a macro, as the guide asks wherever one will do.
- *
- * @param[in] _text   the extent's first byte.
- * @param[in] _size   the extent's length in bytes.
- * @param[in] _words  the words, `NULL`-terminated.
- * @return `true` if the extent spells one of the words, `false` otherwise.
+ * @param[in] _b      the recognition in progress.
+ * @param[in] _at     the token index; may be past the end.
+ * @param[in] _words  the names, `NULL`-terminated.
+ * @return `true` if a directive so named begins at `_at`, `false` otherwise.
  */
 static
-bool d_internal_spelled(
-    const char*        _text,
-    size_t             _size,
-    const char* const* _words
+bool d_internal_directive_is(
+    const struct dj_internal_build* _b,
+    uint32_t                        _at,
+    const char* const*              _words
 )
 {
-    for (size_t at = 0u; _words[at]; ++at)
+    if ( ((_at + 1u) >= _b->count) ||
+         (!d_syntax_is_directive_start(&_b->tokens[_at])) ||
+         ((_b->tokens[_at + 1u].flags & D_TOKEN_FLAG_DIRECTIVE_NAME) == 0u) )
     {
-        if ( (strlen(_words[at]) == _size) &&
-             (memcmp(_words[at], _text, _size) == 0) )
+        return false;
+    }
+
+    return d_internal_spelled(_b->text + _b->tokens[_at + 1u].span.offset,
+                              _b->tokens[_at + 1u].span.length,
+                              _words);
+}
+
+
+/**
+ * @brief Reports the first token at or after an index that is no comment.
+ *
+ * @param[in] _b   the recognition in progress.
+ * @param[in] _at  where to begin.
+ * @return the token's index, or the token count when only comments remain.
+ */
+static
+uint32_t d_internal_past_comments(
+    const struct dj_internal_build* _b,
+    uint32_t                        _at
+)
+{
+    while ( (_at < _b->count) &&
+            ( (_b->tokens[_at].kind == D_TOKEN_COMMENT) ||
+              (_b->tokens[_at].kind == D_TOKEN_END) ) )
+    {
+        ++_at;
+    }
+
+    return _at;
+}
+
+
+/**
+ * @brief Reports whether the file is held in an include guard: an `#ifndef X`
+ *        that is its first token past comments, a `#define X` that is the
+ *        next, and the `#endif` that closes the first as its last directive,
+ *        with nothing but comments after it.
+ *
+ * Nothing else is a guard: an `#if` around the whole of a source, after an
+ * `#include`, is a conditional like any other (lane H, 11-05 (2)).
+ *
+ * @param[in] _b  the recognition in progress, its depths counted.
+ * @return `true` if the file has an include guard, `false` otherwise.
+ */
+static
+bool d_internal_pp_guarded(
+    const struct dj_internal_build* _b
+)
+{
+    static const char* const ifndef[] = { "ifndef", NULL };
+    static const char* const define[] = { "define", NULL };
+    static const char* const endif[]  = { "endif", NULL };
+
+    const uint32_t open = d_internal_past_comments(_b, 0u);
+
+    if ( (!d_internal_directive_is(_b, open, ifndef)) ||
+         ((open + 2u) > d_internal_extent(_b, open)) )
+    {
+        return false;
+    }
+
+    const uint32_t named = d_internal_past_comments(_b,
+                               d_internal_extent(_b, open) + 1u);
+    const struct dj_token* const guard = &_b->tokens[open + 2u];
+
+    // the `#define` names what the `#ifndef` tests
+    if ( (!d_internal_directive_is(_b, named, define))           ||
+         ((named + 2u) > d_internal_extent(_b, named))            ||
+         (_b->tokens[named + 2u].span.length != guard->span.length) ||
+         (memcmp(_b->text + _b->tokens[named + 2u].span.offset,
+                 _b->text + guard->span.offset,
+                 guard->span.length) != 0) )
+    {
+        return false;
+    }
+
+    // the first directive back at the guard's own depth closes it: an
+    // `#endif`, not an `#else`, and nothing but comments after it
+    for (uint32_t at = d_internal_extent(_b, open) + 1u; at < _b->count; ++at)
+    {
+        if ( (d_syntax_is_directive_start(&_b->tokens[at])) &&
+             (_b->pp[at] == 0u) )
         {
-            return true;
+            return ( (d_internal_directive_is(_b, at, endif)) &&
+                     (d_internal_past_comments(_b,
+                          d_internal_extent(_b, at) + 1u) == _b->count) );
         }
     }
 
@@ -1976,7 +2392,108 @@ void d_internal_pp_depths(
         at    = last + 1u;
     }
 
+    // an include guard is no conditional a layout rule cares about
+    _b->file_pp = (d_internal_pp_guarded(_b)) ? 1u : 0u;
+
     return;
+}
+
+
+/**
+ * @brief Rebases every token's count of open conditionals past the file's
+ *        include guard, if it has one, as an item's `pp_total` is: what the
+ *        recognition keeps as `pp_of`.
+ *
+ * @param[in,out] _b  the recognition, its walk done.
+ */
+static
+void d_internal_pp_rebase(
+    struct dj_internal_build* _b
+)
+{
+    for (uint32_t at = 0u; ( (_b->pp) && (at < _b->count) ); ++at)
+    {
+        _b->pp[at] = (_b->pp[at] > _b->file_pp)
+                   ? (uint8_t)(_b->pp[at] - _b->file_pp)
+                   : 0u;
+    }
+
+    return;
+}
+
+
+/**
+ * @brief Records how each function's body ends -- empty, or with `return` --
+ *        once every body has been walked.
+ *
+ * @param[in,out] _b  the recognition, its walks done.
+ */
+static
+void d_internal_body_ends(
+    struct dj_internal_build* _b
+)
+{
+    struct dj_syntax_items* const out = _b->out;
+
+    for (size_t k = 0u; k < out->count; ++k)
+    {
+        struct dj_syntax_item* const item = &out->items[k];
+
+        if ( (item->kind != D_SYNTAX_ITEM_FN_DEF) ||
+             (item->body == D_SYNTAX_NONE) )
+        {
+            continue;
+        }
+
+        const uint32_t last = _b->last_item[item->body];
+
+        if (last == D_SYNTAX_NONE)
+        {
+            item->flags |= D_SYNTAX_ITEM_FLAG_EMPTY_BODY;
+        }
+        else if ( (out->items[last].kind == D_SYNTAX_ITEM_STATEMENT) &&
+                  (out->items[last].statement == D_SYNTAX_STMT_RETURN) )
+        {
+            item->flags |= D_SYNTAX_ITEM_FLAG_ENDS_RETURN;
+        }
+    }
+
+    return;
+}
+
+
+/**
+ * @brief Walks the file, then every scope in the order of its opener, so that
+ *        an item always exists before the scopes inside it are walked; then
+ *        records how each function's body ends.
+ *
+ * @param[in,out] _b  the recognition, its depths counted.
+ * @return `true` on success, `false` if memory ran out.
+ */
+static
+bool d_internal_walk_all(
+    struct dj_internal_build* _b
+)
+{
+    bool ok = d_internal_walk(_b, D_SYNTAX_NONE, D_INTERNAL_MODE_FILE);
+
+    for (uint32_t at = 0u; ( (ok) && (at < _b->count) ); ++at)
+    {
+        if ( (_b->mode[at] != D_INTERNAL_MODE_NONE)          &&
+             (d_syntax_is_opener(_b->tokens[at].kind))        &&
+             (_b->groups->match[at] != D_SYNTAX_NONE) )
+        {
+            ok = d_internal_walk(_b, at, _b->mode[at]);
+        }
+    }
+
+    // how each function's body ends, now that every body has been walked
+    if (ok)
+    {
+        d_internal_body_ends(_b);
+    }
+
+    return ok;
 }
 
 
@@ -1995,6 +2512,25 @@ bool d_syntax_items_build(
     const struct dj_syntax_groups* _groups,
     const char*                    _text,
     struct dj_syntax_items*        _out_items
+)
+{
+    return d_syntax_items_build_with(_tokens, _count, _groups, _text, NULL,
+                                     _out_items);
+}
+
+
+/*
+d_syntax_items_build_with
+  Recognizes the items of a grouped token stream, told what tokens cannot
+tell.
+*/
+bool d_syntax_items_build_with(
+    const struct dj_token*          _tokens,
+    size_t                          _count,
+    const struct dj_syntax_groups*  _groups,
+    const char*                     _text,
+    const struct dj_syntax_options* _options,
+    struct dj_syntax_items*         _out_items
 )
 {
     struct dj_internal_build build;
@@ -2017,18 +2553,29 @@ bool d_syntax_items_build(
         return true;
     }
 
-    build.tokens = _tokens;
-    build.count  = (uint32_t)_count;
-    build.groups = _groups;
-    build.text   = _text;
-    build.out    = _out_items;
+    size_t wide = 0u;
 
-    _out_items->item_of  = malloc(_count * sizeof(uint32_t));
-    _out_items->level_of = malloc(_count * sizeof(uint8_t));
-    build.mode           = malloc(_count * sizeof(uint8_t));
-    build.owner          = malloc(_count * sizeof(uint32_t));
-    build.last_item      = malloc(_count * sizeof(uint32_t));
-    build.pp             = malloc(_count * sizeof(uint8_t));
+    // the arrays are indexed by 32 bits, and their sizes must fit a size_t
+    if ( (_count > (size_t)0xFFFFFFFFu) ||
+         (d_ckd_mul(&wide, _count, sizeof(uint32_t))) )
+    {
+        return false;
+    }
+
+    build.tokens  = _tokens;
+    build.count   = (uint32_t)_count;
+    build.groups  = _groups;
+    build.text    = _text;
+    build.out     = _out_items;
+    build.options = _options;
+
+    _out_items->item_of  = malloc(wide);
+    _out_items->level_of = malloc(_count);
+    build.mode           = malloc(_count);
+    build.owner          = malloc(wide);
+    build.last_item      = malloc(wide);
+    _out_items->pp_of    = malloc(_count);
+    build.pp             = _out_items->pp_of;
 
     bool ok = ( _out_items->item_of && _out_items->level_of &&
                 build.mode && build.owner && build.last_item && build.pp );
@@ -2045,65 +2592,14 @@ bool d_syntax_items_build(
         }
 
         d_internal_pp_depths(&build);
-
-        // a header's content sits inside its include guard, which is no
-        // conditional a layout rule cares about: the depth at the first real
-        // token is the file's floor
-        for (uint32_t at = 0u; at < build.count; ++at)
-        {
-            if (!d_internal_is_trivia(&_tokens[at]))
-            {
-                build.file_pp = build.pp[at];
-                break;
-            }
-        }
-
-        // the file first, then every scope in the order of its opener, so
-        // that an item always exists before the scopes inside it are walked
-        ok = d_internal_walk(&build, D_SYNTAX_NONE, D_INTERNAL_MODE_FILE);
-
-        for (uint32_t at = 0u; ok && (at < build.count); ++at)
-        {
-            if ( (build.mode[at] != D_INTERNAL_MODE_NONE) &&
-                 d_syntax_is_opener(_tokens[at].kind) &&
-                 (_groups->match[at] != D_SYNTAX_NONE) )
-            {
-                ok = d_internal_walk(&build, at, build.mode[at]);
-            }
-        }
+        ok = d_internal_walk_all(&build);
     }
 
-    // how each function's body ends, now that every body has been walked
-    for (size_t k = 0u; ok && (k < _out_items->count); ++k)
-    {
-        struct dj_syntax_item* const item = &_out_items->items[k];
-
-        if ( (item->kind != D_SYNTAX_ITEM_FN_DEF) ||
-             (item->body == D_SYNTAX_NONE) )
-        {
-            continue;
-        }
-
-        const uint32_t last = build.last_item[item->body];
-
-        if (last == D_SYNTAX_NONE)
-        {
-            item->flags |= D_SYNTAX_ITEM_FLAG_EMPTY_BODY;
-        }
-        else if ( (_out_items->items[last].kind ==
-                   D_SYNTAX_ITEM_STATEMENT) &&
-                  (_out_items->items[last].statement ==
-                   D_SYNTAX_STMT_RETURN) )
-        {
-            item->flags |= D_SYNTAX_ITEM_FLAG_ENDS_RETURN;
-        }
-    }
-
+    d_internal_pp_rebase(&build);
     free(build.scratch);
     free(build.mode);
     free(build.owner);
     free(build.last_item);
-    free(build.pp);
 
     if (!ok)
     {
@@ -2131,6 +2627,7 @@ void d_syntax_items_free(
     free(_items->items);
     free(_items->item_of);
     free(_items->level_of);
+    free(_items->pp_of);
 
     memset(_items, 0, sizeof(*_items));
 
@@ -2169,7 +2666,7 @@ const char* d_syntax_statement_name(
     {
         "", "simple", "compound", "empty", "if", "for", "while", "do",
         "switch", "return", "break", "continue", "goto", "try", "macro",
-        "case", "default", "named", "access"
+        "case", "default", "named", "access", "open", "close"
     };
 
     return (_statement < (sizeof(names) / sizeof(names[0])))

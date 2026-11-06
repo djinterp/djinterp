@@ -10,13 +10,15 @@
 * path:      /src/djinterp/c/modules/parse/syntax/syntax_group.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_group.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
 #include <stdlib.h>   // malloc, free
+// djinterp
+#include "../../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 // re_std
 #include "../../../../../../inc/re_std/c/cstdint/dstdint.h"              // uint32_t
 
@@ -145,8 +147,17 @@ bool d_syntax_group(
         return true;
     }
 
-    _out_groups->parent = malloc(_count * sizeof(uint32_t));
-    _out_groups->match  = malloc(_count * sizeof(uint32_t));
+    size_t bytes = 0u;
+
+    // the arrays are indexed by 32 bits, and their size must fit a size_t
+    if ( (_count > (size_t)0xFFFFFFFFu) ||
+         (d_ckd_mul(&bytes, _count, sizeof(uint32_t))) )
+    {
+        return false;
+    }
+
+    _out_groups->parent = malloc(bytes);
+    _out_groups->match  = malloc(bytes);
 
     // the arrays could not be held
     if ((!_out_groups->parent) || (!_out_groups->match))

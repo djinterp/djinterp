@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/tools/vparse/cli_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.05
 *******************************************************************************/
 #include "cli/cli.hpp"     // the unit under test
 #include "cli/report.hpp"  // json_quote
@@ -1583,7 +1583,7 @@ bool tests_cli_corpus()
     std::error_code          code;
 
     // every file written, each held to the input JSON lists
-    for (fs::DDirectoryIterator each(at("made/corpus"),
+    for (fs::directory_iterator each(at("made/corpus"),
                                      code), end;
          ( (!code) &&
            (each != end) );

@@ -7,13 +7,14 @@
 * path:      /src/djinterp/c/modules/parsegen/grammar.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/parsegen/grammar.h"  // corresponding header
 // std
 #include <stdio.h>   // snprintf
 #include <string.h>  // memset, strcmp
 // djinterp
+#include "../../../../../inc/djinterp/c/dckdint.h"                 // d_ckd_mul
 #include "../../../../../inc/djinterp/c/modules/parse/storage.h"  // d_parse_grow, the shared
                                                        // growth policy
 #if (D_INTERNAL_PARSEGEN_GRAMMAR_HEAP == 1)
@@ -51,7 +52,8 @@ const struct dj_parsegen_node_info* d_parsegen_kind_info(
     int _kind
 )
 {
-    static const struct dj_parsegen_node_info table[D_PARSEGEN_NODE_KIND_COUNT] =
+    static const struct dj_parsegen_node_info
+        table[D_PARSEGEN_NODE_KIND_COUNT] =
     {
         { "empty",     D_PARSEGEN_ARITY_NONE, 4u, { 0u, 0u },
           D_PARSEGEN_EMPTY_PRODUCTION },
@@ -148,9 +150,21 @@ int d_parsegen_grammar_init_heap(
 
     const uint32_t nodes = (_nodes > 0u) ? _nodes : 64u;
     const uint32_t rules = (_rules > 0u) ? _rules : 16u;
+    size_t         node_bytes = 0u;
+    size_t         rule_bytes = 0u;
+
+    // refuse either size that does not fit in a size_t, before anything is
+    // allocated
+    if ( (d_ckd_mul(&node_bytes, (size_t)nodes,
+                    sizeof(struct dj_parsegen_node)))   ||
+         (d_ckd_mul(&rule_bytes, (size_t)rules,
+                    sizeof(struct dj_parsegen_rule))) )
+    {
+        return -1;
+    }
 
     struct dj_parsegen_node* node_store =
-        (struct dj_parsegen_node*)malloc((size_t)nodes * sizeof(*node_store));
+        (struct dj_parsegen_node*)malloc(node_bytes);
 
     // check if the node allocation was successful
     if (!node_store)
@@ -159,7 +173,7 @@ int d_parsegen_grammar_init_heap(
     }
 
     struct dj_parsegen_rule* rule_store =
-        (struct dj_parsegen_rule*)malloc((size_t)rules * sizeof(*rule_store));
+        (struct dj_parsegen_rule*)malloc(rule_bytes);
 
     // check if the rule allocation was successful
     if (!rule_store)
