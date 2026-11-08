@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 /*
