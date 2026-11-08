@@ -40,7 +40,7 @@
 #include <stdlib.h>  // getenv, strtod
 #include <string.h>  // memchr, memcpy, memmove, strlen, strncmp
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"                  // bool
+#include "../../../../inc/djinterp/c/djinterp.h"                  // framework root
 #include "../../../../inc/djinterp/c/meta/type_info.h"            // D_TYPE_*
 #include "../../../../inc/djinterp/c/option/option_common.h"      // d_option_*
 #include "../../../../inc/djinterp/c/option/option_set_common.h"  // the set

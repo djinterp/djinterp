@@ -1201,7 +1201,7 @@ d_env_report_here(void)
 #if D_CFG_IS_ON(D_CFG_ENV_PRINTER_CPP_FEATURES)
     static const struct dj_env_feature cpp_features[] =
     {
-        // BEGIN GENERATED: tools/gen_env_printer_features.py
+        // BEGIN GENERATED: scripts/env/gen_env_printer_features.py
         D_INTERNAL_ENV_PRINTER_FEATURE(LANG_ALIAS_TEMPLATES),
         D_INTERNAL_ENV_PRINTER_FEATURE(LANG_ATTRIBUTES),
         D_INTERNAL_ENV_PRINTER_FEATURE(LANG_CONSTEXPR),
@@ -1363,7 +1363,7 @@ d_env_report_here(void)
         D_INTERNAL_ENV_PRINTER_FEATURE(STL_SENDERS),
         D_INTERNAL_ENV_PRINTER_FEATURE(STL_SIMD),
         D_INTERNAL_ENV_PRINTER_FEATURE(STL_TEXT_ENCODING)
-        // END GENERATED: tools/gen_env_printer_features.py
+        // END GENERATED: scripts/env/gen_env_printer_features.py
     };
 #endif  // D_CFG_ENV_PRINTER_CPP_FEATURES
 #endif  // D_ENV_LANG_USING_CPP
