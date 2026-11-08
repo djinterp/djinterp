@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -302,4 +302,195 @@ void d_fs_tests_common(
     d_fs_tests_common_notify(_suite);
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_common_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * I.  file_common  --  NOTIFICATIONS, INTROSPECTION
+ *
+ *   The suite's own preamble: it reports how the build was configured, which
+ * is what every other group's assertions are conditioned on. If this group is
+ * wrong, the rest are testing something other than what they say.
+ *****************************************************************************/
+
+// d_tests_file_notice_count
+//   variable: how many notices the handler below has seen.
+static int d_tests_file_notice_count = 0;
+
+/*
+d_tests_file_notice_handler
+  Counts notices. The suite installs it to prove the hook actually fires when
+D_CFG_FILE_NOTIFY is on -- and, more usefully, that it fires NEVER when the
+knob is off, because a notification layer that survives being switched off is
+not switched off.
+*/
+// d_tests_file_notice_marker
+//   An object whose ADDRESS is the payload. Its value is never read; it exists
+// so the context round-trip can be asserted against something that cannot be
+// produced by accident.
+static int d_tests_file_notice_marker;
+
+static
+void d_tests_file_notice_handler(
+    const struct dj_file_notice* _notice,
+    void*                        _context
+)
+{
+    (void)_notice;
+    (void)_context;
+    ++d_tests_file_notice_count;
+
+    return;
+}
+
+
+/*
+d_tests_file_notify
+  Tests the notification hook.
+  Tests the following:
+  - a handler can be installed and read back
+  - the hook fires exactly when the build says it should
+  - NULL removes the handler
+*/
+static
+bool d_tests_file_notify(struct dj_test_suite* _suite)
+{
+    size_t                size;
+#if D_FILE_NOTIFY_IS_ACTIVE
+    //   Declared inside the gate, with the assertions that use it. Outside,
+    // the hook does not exist to be queried, so the variable was set and never
+    // read -- which is a warning in exactly the build where the notification
+    // code is compiled out, i.e. the default one.
+    void*                 ctx = NULL;
+#endif
+
+    //   A non-NULL context on purpose. Installing NULL and reading NULL back
+    // would pass whether or not the context is stored at all -- it would be
+    // testing a lucky value, not the contract. A marker address can only come
+    // back if it was kept.
+    d_test_suite_test(_suite, "notifications");
+
+    d_file_notify_set_handler(d_tests_file_notice_handler, &d_tests_file_notice_marker);
+
+#if D_FILE_NOTIFY_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "get_handler",
+                     ((void*)d_file_notify_get_handler(&ctx)) == ((void*)d_tests_file_notice_handler),
+                     "the installed handler reads back");
+    D_TEST_CHECK_MSG(_suite,
+                     "get_context",
+                     (ctx) == ((void*)&d_tests_file_notice_marker),
+                     "the installed context reads back with it");
+
+    d_tests_file_notice_count = 0;
+    (void)d_file_read_all("no/such/file/at/all", &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "fires",
+                     d_tests_file_notice_count > 0,
+                     "a failure raises a notice when NOTIFY is on");
+
+    d_file_notify_set_handler(NULL, NULL);
+    d_tests_file_notice_count = 0;
+    (void)d_file_read_all("no/such/file/at/all", &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "removable",
+                     (d_tests_file_notice_count) == (0),
+                     "a NULL handler silences the hook");
+#else
+    // the knob is off, so the hook must be GONE -- not merely quiet. This is
+    // the assertion that catches a notification layer which was compiled in
+    // and then filtered at runtime, which is what the knob exists to avoid.
+    d_tests_file_notice_count = 0;
+    (void)d_file_read_all("no/such/file/at/all", &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "compiled_out",
+                     (d_tests_file_notice_count) == (0),
+                     "NOTIFY=0 removes the hook entirely");
+#endif
+
+    d_file_notify_set_handler(NULL, NULL);
+
+    D_TEST_CHECK_MSG(_suite,
+                     "level_name",
+                     ((void*)d_file_notify_level_name(D_FILE_NOTIFY_ERROR)) != NULL,
+                     "every level has a name");
+    D_TEST_CHECK_MSG(_suite,
+                     "level_name_unknown",
+                     d_test_suite_str_equal((d_file_notify_level_name(999)), ("unknown")),
+                     "an out-of-range level is named, not NULL");
+
+    return true;
+}
+
+
+/*
+d_tests_file_introspection
+  Reports the resolved build configuration.
+  These are not really tests -- they are the preamble every other group's
+assertions are conditioned on. Asserting them makes the configuration visible
+in the output, so a surprising result elsewhere can be read against the build
+that produced it rather than guessed at.
+*/
+static
+bool d_tests_file_introspection(struct dj_test_suite* _suite)
+{
+    d_test_suite_test(_suite, "build introspection");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "backend_name",
+                     ((void*)d_file_backend_name()) != NULL,
+                     "the backend names itself");
+
+#if D_FILE_BACKEND_IS_NATIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "backend",
+                     d_test_suite_str_equal((d_file_backend_name()), ("native")),
+                     "D_FILE_BACKEND_IS_NATIVE agrees with the runtime");
+#elif D_FILE_BACKEND_IS_POSIX
+    D_TEST_CHECK_MSG(_suite,
+                     "backend",
+                     d_test_suite_str_equal((d_file_backend_name()), ("posix")),
+                     "D_FILE_BACKEND_IS_POSIX agrees with the runtime");
+#else
+    D_TEST_CHECK_MSG(_suite,
+                     "backend",
+                     d_test_suite_str_equal((d_file_backend_name()), ("stdc")),
+                     "D_FILE_BACKEND_IS_STDC agrees with the runtime");
+#endif
+
+    D_TEST_CHECK_MSG(_suite,
+                     "path_max",
+                     D_FILE_PATH_MAX > 0,
+                     "D_FILE_PATH_MAX is set");
+    D_TEST_CHECK_MSG(_suite,
+                     "name_max",
+                     D_FILE_NAME_MAX > 0,
+                     "D_FILE_NAME_MAX is set");
+
+    // the struct must be laid out, not merely declared -- this catches the
+    // st_mtime macro collision at its cheapest possible point
+    D_TEST_CHECK_MSG(_suite,
+                     "stat_layout",
+                     sizeof(struct dj_stat_t) >= 40,
+                     "dj_stat_t is a real layout, not a macro casualty");
+
+    return true;
+}
+
+
+/*
+d_tests_file_common_all
+  Runs every file_common test.
+*/
+bool d_tests_file_common_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "I. file_common");
+
+    d_tests_file_introspection(_suite);
+    d_tests_file_notify(_suite);
+
+    return true;
 }

@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_open.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -417,4 +417,154 @@ void d_fs_tests_open(
     d_fs_tests_open_fclose(_suite);
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_open_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * II.  file_open  --  STREAM LIFECYCLE
+ *****************************************************************************/
+
+/*
+d_tests_file_fopen
+  Tests d_file_open_stream / d_file_close_stream.
+  Tests the following:
+  - opens an existing file for reading
+  - creates a file for writing
+  - returns NULL for a nonexistent file
+  - rejects NULL arguments
+*/
+static
+bool d_tests_file_fopen(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    char                  fresh[D_TEST_FILE_PATH_BUF];
+    FILE*                 file;
+
+    d_test_suite_test(_suite, "d_file_open_stream / d_file_close_stream");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+    d_tests_file_path(fresh, sizeof(fresh), "fopen_new.txt");
+
+    file = d_file_open_stream(path, "rb");
+    D_TEST_CHECK_MSG(_suite,
+                     "read_existing",
+                     (file) != NULL,
+                     "d_file_open_stream opens an existing file");
+
+    if (file)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "close",
+                         (d_file_close_stream(file)) == (0),
+                         "d_file_close_stream closes a stream");
+    }
+
+    file = d_file_open_stream(fresh, "wb");
+    D_TEST_CHECK_MSG(_suite,
+                     "create",
+                     (file) != NULL,
+                     "d_file_open_stream creates a file for writing");
+
+    if (file)
+    {
+        (void)d_file_close_stream(file);
+    }
+
+    (void)d_file_remove(fresh);
+
+    D_TEST_CHECK_MSG(_suite,
+                     "nonexistent",
+                     (d_file_open_stream("no/such/file/at/all", "rb")) == NULL,
+                     "d_file_open_stream returns NULL for a missing file");
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_path",
+                     (d_file_open_stream(NULL, "rb")) == NULL,
+                     "d_file_open_stream rejects a NULL path");
+    #endif
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_mode",
+                     (d_file_open_stream(path, NULL)) == NULL,
+                     "d_file_open_stream rejects a NULL mode");
+    #endif
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "close_null",
+                     (d_file_close_stream(NULL)) == (EOF),
+                     "d_file_close_stream rejects NULL");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_fopen_s
+  Tests d_file_open_stream_s.
+  Tests the following:
+  - reports success through the return value
+  - clears the out-parameter before anything else
+  - rejects a NULL out-parameter
+*/
+static
+bool d_tests_file_fopen_s(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    FILE*                 stream;
+
+    d_test_suite_test(_suite, "d_file_open_stream_s");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+
+    stream = NULL;
+    D_TEST_CHECK_MSG(_suite,
+                     "success",
+                     (d_file_open_stream_s(&stream, path, "rb")) == (0),
+                     "d_file_open_stream_s returns 0 on success");
+    D_TEST_CHECK_MSG(_suite,
+                     "stream_set",
+                     (stream) != NULL,
+                     "...and sets the stream");
+
+    if (stream)
+    {
+        (void)d_file_close_stream(stream);
+    }
+
+    // the out-parameter must be cleared FIRST, so a caller who ignores the
+    // return code is left holding NULL rather than an indeterminate pointer
+    stream = (FILE*)(void*)&path;
+    (void)d_file_open_stream_s(&stream, "no/such/file/at/all", "rb");
+    D_TEST_CHECK_MSG(_suite,
+                     "cleared_on_failure",
+                     (stream) == NULL,
+                     "a failed d_file_open_stream_s leaves NULL, not garbage");
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_out",
+                     (d_file_open_stream_s(NULL, path, "rb")) == (EINVAL),
+                     "d_file_open_stream_s rejects a NULL out-parameter");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_open_all
+  Runs every file_open test.
+*/
+bool d_tests_file_open_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "II. file_open");
+
+    d_tests_file_fopen(_suite);
+    d_tests_file_fopen_s(_suite);
+
+    return true;
 }

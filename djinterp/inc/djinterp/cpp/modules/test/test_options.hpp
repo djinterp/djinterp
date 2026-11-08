@@ -122,7 +122,7 @@ TABLE OF CONTENTS
 #include <string>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                // NS_*, D_*, env gating macros
+#include "../../djinterp.hpp"                // framework root
 #include "../../meta/fixed_string.hpp"       // fixed_string<> (authoring NTTP)
 #include "../../meta/carrier.hpp"            // val_t<>
 #include "../../option/option.hpp"           // option<>

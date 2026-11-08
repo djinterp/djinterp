@@ -1,6 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/
-#                      test_suite/CMakeLists.txt
+# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/test_suite/CMakeLists.txt
 #
 #   Test leaf for DTest's C face, c/modules/test/test_suite.h, in the C spec
 # form: the runner in this directory, the section translation units globbed

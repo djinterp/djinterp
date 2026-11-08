@@ -2,17 +2,16 @@
 * djinterp [test]                                                 test_counter.c
 *
 * The two operations on the field-form tally, test_counter.h: reset and sum.
-*   Moved here from test_standalone.c, which defined them while its header
-* declared them, so a suite that uses the tally alone no longer links the
-* standalone framework to get them.
+*   They were defined in the retired standalone framework's source while this
+* header declared them; this is their home.
 *
 *
 * path:      /src/djinterp/c/modules/test/test_counter.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.07
 *******************************************************************************/
-#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_counter.h"  // corresponding header
 
 
 /*

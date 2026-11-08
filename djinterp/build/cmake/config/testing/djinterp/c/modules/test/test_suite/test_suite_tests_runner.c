@@ -7,15 +7,14 @@
 * command line, runs every test and returns the exit code.
 *
 *
-* path:      /build/cmake/config/testing/djinterp/c/modules/test/test_suite/
-*            test_suite_tests_runner.c
+* path:      /build/cmake/config/testing/djinterp/c/modules/test/test_suite/test_suite_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
 *                                                            revised: 2026.11.05
 *******************************************************************************/
 #define DTEST_SPEC_MODE  // the suite header's provider face
 
-#include "test_suite_tests.h"
+#include "test_suite_tests.h"  // d_tests_test_suite_spec
 
 
 /*

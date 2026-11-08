@@ -52,7 +52,7 @@
 * path:      /inc/djinterp/c/memory/dmemory.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.03
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_C_MEMORY_DMEMORY_H
@@ -66,7 +66,7 @@
 // djinterp
 #include "../djinterp.h"  // D_EXTERN_C_BEGIN, D_NODISCARD
 // re_std
-#include "../../../re_std/c/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../re_std/c/cstdint/dstdint.h"  // SIZE_MAX, uintptr_t
 
 
 //==============================================================================
@@ -121,8 +121,10 @@ void* d_memcpy(
 
 // d_memcpy_s
 //   function: copies _amount bytes when they fit in _destination_size, as
-// Annex K's memcpy_s. Returns 0, or EINVAL for a null pointer, or ERANGE when
-// the copy does not fit; after a failure with a destination, it is cleared.
+// Annex K's memcpy_s. Returns 0; EINVAL for a null pointer, a size above
+// D_MEMORY_RSIZE_MAX (nothing written) or regions that overlap; or ERANGE when
+// the copy does not fit. After any other failure with a destination, it is
+// cleared.
 int d_memcpy_s(
     void*       _destination,
     size_t      _destination_size,
@@ -140,7 +142,8 @@ void* d_memdup(
 );
 
 // d_memdup_s
-//   function: d_memdup through d_memcpy_s; NULL as well for a zero _size.
+//   function: d_memdup through d_memcpy_s; NULL as well for a zero _size or
+// one above D_MEMORY_RSIZE_MAX, which it refuses before allocating.
 D_NODISCARD
 void* d_memdup_s(
     const void* _source,

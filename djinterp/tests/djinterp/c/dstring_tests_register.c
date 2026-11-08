@@ -9,7 +9,7 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
 *                                                            revised: 2026.11.05
 *******************************************************************************/
-#include "./dstring_tests.h"
+#include "./dstring_tests.h"  // corresponding header
 
 // std
 #include <stdio.h>   // sprintf
@@ -117,7 +117,7 @@ d_tests_dstring_split_growth(void)
     struct dj_string*  s;
     struct dj_string** tokens;
     char               text[1000 * 5 + 1];
-    char               expect[8];
+    char               expect[24];  // any unsigned long, as %03lu writes it
     size_t             count;
     size_t             i;
     size_t             at;

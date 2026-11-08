@@ -7,7 +7,7 @@
 * path:      /src/djinterp/c/modules/test/test_options.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_options.h"
 
@@ -64,8 +64,6 @@ const struct dj_test_registry_row* d_internal_test_registry_config_row_from_flag
     uint32_t _flag
 )
 {
-    struct dj_test_registry_row* row;
-
     /*
       NOTE:
         DTestConfigKey and DTestMetadataFlag share the same numeric space
@@ -73,9 +71,8 @@ const struct dj_test_registry_row* d_internal_test_registry_config_row_from_flag
         We must search for a row that matches BOTH:
           - the flag value, and
           - the entry kind (IS_CONFIG).
+      D_TEST_REGISTRY_FOREACH declares `row` itself, in its loop.
     */
-    row = NULL;
-
     D_TEST_REGISTRY_FOREACH(row)
     {
         if ((row->flag == _flag) &&

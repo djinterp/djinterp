@@ -78,7 +78,7 @@
 * path:      /inc/djinterp/c/modules/test/test_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 #ifndef DJINTERP_C_TEST_TEST_COMMON_H
@@ -86,17 +86,19 @@
 
 // std
 // c
-#include <stddef.h>
-#include <stdint.h>
+#include <stddef.h>  // size_t
+// re_std
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 // djinterp
-#include "../../djinterp.h"
-#include "../../../config/c/modules/test/cfg_test_object.h"   // D_CFG_TEST_STATUS_TYPE,
-                                                 // D_CFG_TEST_*_ID_TYPE
-//   NO CONFIG INCLUDE, DELIBERATELY. D_CFG_TEST_COMMON_SKIP_IS_FAILURE was the
-// only knob this module ever had, and dropping it (revision.md §3) left
+#include "../../djinterp.h"  // framework root
+#include "../../../config/c/modules/test/cfg_test_object.h"  // D_CFG_TEST_*
+
+//   NO KNOB OF ITS OWN. D_CFG_TEST_COMMON_SKIP_IS_FAILURE was the only knob
+// this module ever had, and dropping it (revision.md §3) left
 // cfg_test_common.h with nothing to say, so the file is deleted rather than
-// kept empty. This module is now unconfigurable, which is the point: a value
-// set and a record are not things a build should be able to disagree about.
+// kept empty. A value set and a record are not things a build should be able
+// to disagree about; the three widths below are cfg_test_object.h's, which
+// owns them.
 
 
 
@@ -212,11 +214,12 @@ D_STATIC_ASSERT((sizeof(dj_test_status) == 1) ||
 typedef D_CFG_TEST_TYPE_ID_TYPE dj_test_type_id;
 
 D_STATIC_ASSERT(((dj_test_type_id)-1) < 0,
-                "dj_test_type_id: D_CFG_TEST_TYPE_ID_TYPE must name an "
-                "integer type");
+                "dj_test_type_id: D_CFG_TEST_TYPE_ID_TYPE must name a "
+                "SIGNED integer type");
 D_STATIC_ASSERT((sizeof(dj_test_type_id) == 1) ||
                 (sizeof(dj_test_type_id) == 2) ||
-                (sizeof(dj_test_type_id) == 4) || (sizeof(dj_test_type_id) == 8),
+                (sizeof(dj_test_type_id) == 4) ||
+                (sizeof(dj_test_type_id) == 8),
                 "dj_test_type_id: width must be 1, 2, 4 or 8 bytes");
 
 // dj_test_callable_id
@@ -271,12 +274,20 @@ D_STATIC_ASSERT((sizeof(dj_test_callable_id) == 1) ||
 //   BOTH TABLES ARE `static const` LOCALS rather than file-scope objects, so
 // they do not sit at file scope in every translation unit that includes this
 // header and cannot warn as unused in one that calls neither function.
+//
+//   THE ARGUMENTS ARE int64_t, THE ONE PLACE THE RULE ABOVE BENDS. What these
+// take is a value that may not be a status at all -- test_event.h's record
+// carries one as int32_t -- and a parameter of dj_test_status would narrow it
+// before it is checked: at int8_t, 257 would arrive as 1 and pass. int64_t is
+// the widest width the assertions in II allow, so no configured width or
+// caller's type is narrowed on the way in. What they RETURN is a status, so
+// that is dj_test_status.
 
 // d_test_status_is_valid
 //   Whether the value names one of the five statuses.
 D_STATIC_INLINE
 int d_test_status_is_valid(
-    int32_t _status
+    int64_t _status
 )
 {
     return ( (_status >= 0) && (_status < D_TEST_STATUS_COUNT) ) ? 1 : 0;
@@ -295,12 +306,13 @@ int d_test_status_is_valid(
 // One inline function in the module that owns dj_test_status is the cheapest
 // place for them not to disagree.
 D_STATIC_INLINE
-int32_t d_test_status_or_error(
-    int32_t _status
+dj_test_status d_test_status_or_error(
+    int64_t _status
 )
 {
-    return d_test_status_is_valid(_status) ? _status
-                                           : (int32_t)D_TEST_STATUS_ERROR;
+    return d_test_status_is_valid(_status)
+        ? (dj_test_status)_status
+        : (dj_test_status)D_TEST_STATUS_ERROR;
 }
 
 /*
@@ -318,7 +330,7 @@ Return:
 */
 D_STATIC_INLINE
 int d_test_status_is_terminal(
-    int32_t _status
+    int64_t _status
 )
 {
     if (!d_test_status_is_valid(_status))
@@ -341,7 +353,7 @@ Return:
 */
 D_STATIC_INLINE
 const char* d_test_status_name(
-    int32_t _status
+    int64_t _status
 )
 {
     static const char* const k_status[D_TEST_STATUS_COUNT] =
@@ -389,9 +401,9 @@ Return:
 status nobody can classify is exactly the case error exists for.
 */
 D_STATIC_INLINE
-int32_t d_test_status_worse_of(
-    int32_t _a,
-    int32_t _b
+dj_test_status d_test_status_worse_of(
+    int64_t _a,
+    int64_t _b
 )
 {
     /* severity rank, indexed by status value. higher is worse. */
@@ -407,10 +419,10 @@ int32_t d_test_status_worse_of(
     if ( (!d_test_status_is_valid(_a)) ||
          (!d_test_status_is_valid(_b)) )
     {
-        return D_TEST_STATUS_ERROR;
+        return (dj_test_status)D_TEST_STATUS_ERROR;
     }
 
-    return (k_rank[_a] >= k_rank[_b]) ? _a : _b;
+    return (dj_test_status)( (k_rank[_a] >= k_rank[_b]) ? _a : _b );
 }
 
 

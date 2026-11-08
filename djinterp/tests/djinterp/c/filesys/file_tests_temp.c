@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_temp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -255,4 +255,204 @@ void d_fs_tests_temp(
     d_fs_tests_temp_tempdir(_suite);
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_temp_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * XII.  file_temp  --  TEMPORARY FILES
+ *****************************************************************************/
+
+/*
+d_tests_file_tmpfile
+  Tests d_file_temp_stream / d_file_temp_stream_s.
+*/
+static
+bool d_tests_file_tmpfile(struct dj_test_suite* _suite)
+{
+    FILE*                 tmp;
+    FILE*                 stream;
+
+    d_test_suite_test(_suite, "d_file_temp_stream / d_file_temp_stream_s");
+
+    tmp = d_file_temp_stream();
+    D_TEST_CHECK_MSG(_suite,
+                     "create",
+                     (tmp) != NULL,
+                     "d_file_temp_stream creates an anonymous file");
+
+    if (tmp)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "writable",
+                         fprintf(tmp, "test data") > 0,
+                         "...that is writable");
+        (void)fclose(tmp);
+    }
+
+    stream = NULL;
+    D_TEST_CHECK_MSG(_suite,
+                     "s_create",
+                     (d_file_temp_stream_s(&stream)) == (0),
+                     "d_file_temp_stream_s reports success");
+    D_TEST_CHECK_MSG(_suite,
+                     "s_stream",
+                     (stream) != NULL,
+                     "...and sets the stream");
+
+    if (stream)
+    {
+        (void)fclose(stream);
+    }
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "s_null",
+                     (d_file_temp_stream_s(NULL)) == (EINVAL),
+                     "d_file_temp_stream_s rejects a NULL out-parameter");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_mkstemp
+  Tests d_file_temp_create -- the only SAFE named form.
+*/
+static
+bool d_tests_file_mkstemp(struct dj_test_suite* _suite)
+{
+    struct dj_stat_t       st;
+    char                  tpl[D_TEST_FILE_PATH_BUF];
+    char                  original[D_TEST_FILE_PATH_BUF];
+    char                  bad[D_TEST_FILE_PATH_BUF];
+    int                   fd;
+
+    d_test_suite_test(_suite, "d_file_temp_create (atomic; no race)");
+
+    d_tests_file_path(tpl, sizeof(tpl), "tmpXXXXXX");
+    memcpy(original, tpl, strlen(tpl) + 1);
+
+    fd = d_file_temp_create(tpl);
+    D_TEST_CHECK_MSG(_suite,
+                     "create",
+                     fd >= 0,
+                     "d_file_temp_create creates and opens atomically");
+    D_TEST_CHECK_MSG(_suite,
+                     "template_rewritten",
+                     strcmp(tpl, original) != 0,
+                     "the template is rewritten with the chosen name");
+
+    if (fd >= 0)
+    {
+#if !D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+        // 0600 is the whole point: a temporary in a world-writable directory
+        // is the most attacked object a program creates
+        (void)d_file_stat(tpl, &st);
+        D_TEST_CHECK_MSG(_suite,
+                         "mode",
+                         (st.st_mode & 0777) == ((uint32_t)D_INTERNAL_FILE_TEMP_MODE),
+                         "the file is private, whatever the umask says");
+#else
+        (void)st;
+#endif
+        (void)d_file_close_fd(fd);
+        (void)d_file_remove(tpl);
+    }
+
+    // a template the platform would reject arbitrarily, checked here so the
+    // failure is the same on every libc
+    memcpy(bad, "no_x_suffix", 12);
+    D_TEST_CHECK_MSG(_suite,
+                     "bad_template",
+                     (d_file_temp_create(bad)) == (-1),
+                     "a template without XXXXXX is rejected");
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null",
+                     (d_file_temp_create(NULL)) == (-1),
+                     "d_file_temp_create rejects NULL");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_tempdir
+  Tests d_dir_temp, and d_file_temp_name where the build still has it.
+*/
+static
+bool d_tests_file_tempdir(struct dj_test_suite* _suite)
+{
+    char                  buf[D_FILE_PATH_MAX];
+    size_t                length;
+
+    d_test_suite_test(_suite, "d_dir_temp");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "get",
+                     (d_dir_temp(buf, sizeof(buf))) != NULL,
+                     "d_dir_temp reports a directory");
+    D_TEST_CHECK_MSG(_suite, "exists", d_dir_exists(buf), "...that exists");
+
+    // no trailing separator, so d_path_join needs no special case
+    length = strlen(buf);
+    D_TEST_CHECK_MSG(_suite,
+                     "no_trailing_sep",
+                     (length > 0) && (buf[length - 1] != '/') && (buf[length - 1] != D_FILE_PATH_SEP),
+                     "...with no trailing separator");
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null",
+                     (d_dir_temp(NULL, 100)) == NULL,
+                     "d_dir_temp rejects a NULL buffer");
+    #endif
+
+#if D_FILE_TEMP_HAS_TMPNAM
+    // present for compatibility, and racy by construction -- the flaw is the
+    // interface, not the implementation. Set D_CFG_FILE_TEMP_ALLOW_TMPNAM=0
+    // and the symbol disappears from the object file entirely.
+    memset(buf, 0, sizeof(buf));
+    D_TEST_CHECK_MSG(_suite,
+                     "tmpnam",
+                     (d_file_temp_name(buf, sizeof(buf))) == (0),
+                     "d_file_temp_name generates a name");
+    D_TEST_CHECK_MSG(_suite,
+                     "tmpnam_nonempty",
+                     strlen(buf) > 0,
+                     "...a non-empty one");
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "tmpnam_null",
+                     d_file_temp_name(NULL, 100) != 0,
+                     "d_file_temp_name rejects a NULL buffer");
+    #endif
+    D_TEST_CHECK_MSG(_suite,
+                     "tmpnam_tiny",
+                     d_file_temp_name(buf, 1) != 0,
+                     "d_file_temp_name rejects a tiny buffer");
+#endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_temp_all
+  Runs every file_temp test.
+*/
+bool d_tests_file_temp_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "XII. file_temp");
+
+    d_tests_file_tmpfile(_suite);
+    d_tests_file_mkstemp(_suite);
+    d_tests_file_tempdir(_suite);
+
+    return true;
 }

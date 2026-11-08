@@ -46,7 +46,7 @@
 #include <stddef.h>  // size_t
 #include <stdio.h>   // FILE
 // djinterp
-#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // under test
 
 
 D_EXTERN_C_BEGIN

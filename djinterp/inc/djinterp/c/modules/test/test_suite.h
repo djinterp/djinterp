@@ -66,7 +66,7 @@
 #include <stddef.h>  // size_t
 #include <stdio.h>   // FILE
 // djinterp
-#include "../../djinterp.h"  // framework root: bool, D_EXTERN_C_BEGIN
+#include "../../djinterp.h"  // framework root
 
 
 D_EXTERN_C_BEGIN

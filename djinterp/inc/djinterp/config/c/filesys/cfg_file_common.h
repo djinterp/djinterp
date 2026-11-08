@@ -583,9 +583,9 @@ TABLE OF CONTENTS
 // D_INTERNAL_FILE_OS_WASI
 //   constant: 1 on WASI, the WebAssembly system interface. Its libc lacks two
 // of the ISO C calls c/filesys makes (1.9.18, 1.9.19), and env counts it as no
-// POSIX system, so it builds on the ISO C backend. env has no identity for it
-// yet, so the compiler's own __wasi__ names it here.
-#if defined(__wasi__)
+// POSIX system, so it builds on the ISO C backend. env names it:
+// D_ENV_PLATFORM_WASI, defined to 1 on WASI only (filesystem decision 17).
+#if defined(D_ENV_PLATFORM_WASI)
     #define D_INTERNAL_FILE_OS_WASI 1
 #else
     #define D_INTERNAL_FILE_OS_WASI 0

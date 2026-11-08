@@ -76,7 +76,7 @@ III.  PACK REPORT              (the one public entry)
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"       // NS_*, D_INLINE, D_NODISCARD
+#include "../../djinterp.hpp"       // framework root
 // ---- swappable compress/archive facade (test seam) -------------------------
 //   The facades are included by their in-tree paths. A test build that
 // defines DTEST_PACK_USE_FACADE_DOUBLE gets the instrumented doubles in

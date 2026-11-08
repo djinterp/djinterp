@@ -7,7 +7,7 @@
 *   targets:  c/modules/test/test_printer.c -> D_CFG_TEST_ENABLE_CLI,
 *                                              D_TEST_SYMBOL_*
 *             c/modules/test/test_module.c,
-*             c/modules/test/test_standalone.c -> D_TEST_SYMBOL_*
+*             c/modules/test/test_session.c -> D_TEST_SYMBOL_*
 *   requires: cfg_common.h (helpers, D_CFG_TESTING); djinterp.h (D_ENABLED)
 *
 *   ONE HOME FOR WHAT WAS TWO.  This file replaces config/core/test/cfg_test.h
@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_printer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_PRINTER_H

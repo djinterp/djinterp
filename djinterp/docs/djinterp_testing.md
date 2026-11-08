@@ -818,13 +818,16 @@ The modules below are the pieces a suite is built on. They live under
   compress/archive facade call: the output-naming helpers, availability routers,
   the internal enum→tag dispatch, and `pack_report`.
 
-### 10.8 Concurrency (not yet suited)
+### 10.8 Concurrency
 
-- **`inc/djinterp/cpp/modules/test/sync/`** — a concurrency subframework
-  (`test_thread`, `test_race`, `test_deadlock`, `test_stress`, `test_invariant`,
-  `test_sync`, `test_threadsafe`, `test_thread_traits`, `test_thread_concepts`,
-  and the `sync` façade). These have **no test suites yet**; authoring them is a
-  separate effort from the spec-mode migration.
+- **`inc/djinterp/cpp/modules/test/sync/`** — the concurrency subframework:
+  `test_thread`, `test_race`, `test_deadlock`, `test_stress`,
+  `test_invariant`, `test_threadsafe`, `test_concurrent`, and the `test_sync`
+  façade over them. Each has a suite in `tests/djinterp/cpp/modules/test/sync/`
+  and a leaf of its own, and `sync_tests` runs them together. The headers
+  are C++11 and up, with parts that need C++17 or C++20; their suites, like
+  every C++ suite, are C++17 and up. They are framework internals, not part
+  of the frozen surface of Section 13.
 
 ---
 
@@ -999,8 +1002,7 @@ imperative sections can share one suite (`d_test_suite_add_module`).
 
 ```cmake
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/c/foo")
-file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/bar_tests_*.c")
-list(FILTER _sections EXCLUDE REGEX "_tests_sa[^/]*\\.c$")   # the old form
+file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/bar_tests*.c")
 
 djinterp_add_test_executable(c_bar_tests
     SOURCES
@@ -1012,7 +1014,9 @@ djinterp_add_test_executable(c_bar_tests
         "${_tests_dir}")
 ```
 
-Until `djinterp_c_runtime` carries `test_suite.c` (requested of lane A on
+The glob takes `bar_tests.c` as well as `bar_tests_*.c`: a suite converted
+from the standalone form keeps its aggregator there (14.2). Until
+`djinterp_c_runtime` carries `test_suite.c` (requested of lane A on
 2026-11-06), each leaf lists it. Prefix C targets with `c_`: target names are
 global, and the C++ suite of the same header takes the bare name.
 
@@ -1054,14 +1058,19 @@ field-form tally `dj_test_counter` of `test_counter.h` with
 **Not frozen**, and not to be written against: the classic C tree
 (`default/test.h`, `test_block.h`, `test_module.h`, `assert.h`,
 `test_handler`, `test_session`, `test_printer`, `test_tree`, the `dtest`
-umbrella), which does not compile yet and is being ported or retired; the
-standalone framework (`test_standalone.h`), which runs again and is kept until
-its suites are converted, then retired; the C++ framework's internals
+umbrella), which does not compile yet and is being ported (B5: its sources
+stay, its old `_sa` suites are gone, and its suites are written against the C
+face when it is ported); the C++ framework's internals
 (`test_tree`, `test_kind`, `test_session`, the report model and the output
 headers), which may change under the surface above; and `test_counter` /
 `test_timer` derived from the C `counter.h` and `timer.h` with thread-safe
 versions (style #79), which arrive once lane D's modules exist, as new types
 beside `dj_test_counter`, so nothing frozen changes shape.
+
+**Retired** (the owner's ruling of 2026-11-06, register 4.6): the standalone
+framework, `test_standalone.h` and `.c`, its defaults header and
+`d_assert_standalone`. Nothing runs a `_tests_sa*` suite any more; one still in
+the tree is converted (14.2) before its module's tests count.
 
 ---
 
@@ -1075,8 +1084,9 @@ A converted file is done when no mark is left and its suite passes.
 ```
 cd <repository root>
 # a dry run first: it reports what it would change, and changes nothing
-python3 scripts/dtest/dtest_convert.py --from sa --report x_tests_sa_*.c
-python3 scripts/dtest/dtest_convert.py --from sa --in-place x_tests_sa_*.c
+python3 scripts/dtest/dtest_convert.py --from sa --report x_tests_sa*.[ch]
+python3 scripts/dtest/dtest_convert.py --from sa --in-place --final \
+    x_tests_sa*.[ch]
 ```
 
 ### 14.1 The `dtest_*` bridge (`--from bridge`)
@@ -1095,30 +1105,53 @@ its stand-in and its C++ runner are retired, and its runner is C.
 
 ### 14.2 The standalone suites (`--from sa`)
 
-`*_tests_sa*.c` come in two styles, and the converter handles both:
+The standalone tier is retired (13), so a `*_tests_sa*` suite builds only once
+converted. They come in two styles, and the converter handles both:
 
 - **Counter style**: `bool f(struct dj_test_counter* _counter)` with
   `d_assert_standalone(cond, name, msg, _counter)`. The parameter becomes
   `struct dj_test_suite* _suite`, each assertion
   `D_TEST_CHECK_MSG(_suite, name, cond, msg)`, and the counter bookkeeping
-  (`_counter->tests_total++` and its kin) goes. Add a `d_test_suite_test`
-  where a function is one test, or a `d_test_suite_block` where it groups
-  tests, at its top.
+  (`_counter->tests_total++`, a snapshot of `tests_passed`, a summary
+  printer) goes.
 - **Tree style**: `struct dj_test_object* f(void)` building a group with
   `d_test_object_new_interior` and leaves with `D_ASSERT_TRUE` / `_FALSE` /
   `_NULL` / `_NOT_NULL` / `_EQUAL` / `_STR_EQUAL`. The function becomes
-  `bool f(struct dj_test_suite* _suite)`, the group a `d_test_suite_test` of
-  the same name, each leaf a `D_TEST_CHECK_MSG`, and a child group stored into
-  its parent a call over the same suite. What is left — the group's
-  `if (!group)` guard, `return group;`, a local `dj_test_counter` — is marked.
+  `bool f(struct dj_test_suite* _suite)`, each leaf a `D_TEST_CHECK_MSG`, and
+  a child group stored into its parent a call over the same suite. Each
+  group's variable goes with its declaration, its `if (!group)` guard and its
+  return, whatever it is named: a guard left behind would read a pointer
+  nothing sets.
 
-Then rename the files (`x_tests_sa_y.c` → `x_tests_y.c`, the header to
-`x_tests.h`), drop the `_sa_` from function names, and replace the
-`_run_all` aggregator by the runner of 12.3. The standalone runner
-(`test_standalone.c`) compiles and runs again (2026-11-05), so a suite not yet
-converted keeps running as it is; convert a module's suite when its lane
-writes that module's tests, and keep the two forms in separate files until
-then. The CMake glob of 12.4 already leaves `_tests_sa*` files out.
+In both, a function that checks opens a `d_test_suite_test` of its name, one
+that only calls others a `d_test_suite_block`; the tier's own progress lines
+(`--- Testing X ---`, `[PASS]` / `[FAIL]`, `[SECTION]`) go, since the report
+says the same, and the flag they printed becomes what the section returns. A
+local the conversion leaves unread goes with its assignments; one set from a
+call keeps the call as a `(void)` statement. Diagnostic prints (a detected
+value, say) stay.
+
+`--final` then gives the suite its final names: `d_tests_sa_` becomes
+`d_tests_`, and `x_tests_sa*.{c,h}` become `x_tests*.{c,h}`, in the code, the
+includes, the guards and the banners. A file whose new name a C-face suite
+already has is left in place and reported. What is left by hand:
+
+- **Merging into a C-face suite.** Where the module has one, the converted
+  header's body goes into its header (lane B put it in a third section,
+  outside spec mode, with the entry points declared in the spec section, where
+  the runner sees them), and a function name a register test already has
+  takes a suffix (`_cases`).
+- **The runner and the leaf.** The runner of 12.3 creates the suite, adds the
+  spec if there is one, and calls each entry point: a function no other one
+  calls. A module without a spec opens its module in the runner
+  (`d_test_suite_module`). The leaf is 12.4's.
+- **What the old tier hid.** It compiled without most warnings and ran no
+  check of its own, so expect stale API names, a test that checks nothing
+  (the face counts it as failed), and placeholders. A section that only prints
+  TODO is not a test: drop it, with what only it fed.
+
+Lane B converted its fifteen suites this way on 2026-11-07; `docs/` has no
+per-file record, but each suite's runner lists its entry points.
 
 ### 14.3 The programs in `tests/unintegrated` (`--from program`)
 

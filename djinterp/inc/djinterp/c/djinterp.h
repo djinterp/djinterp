@@ -936,15 +936,18 @@ D_EXTERN_C_END
 //------------------------------------------------------------------------------
 // 5.3.1
 // D_SAFE_ARR_IDX
-//   macro: safe array indexing that returns an element value, not a pointer.
+//   macro: safe array indexing that returns an element value, not a pointer:
+// the element `_index` addresses, or the first for an index out of range.
+// The position is chosen before the one subscript (D_NEG_IDX's, or 0), so no
+// out-of-range subscript is written even in the arm not taken, which a
+// compiler's bounds analysis would otherwise flag for a constant index.
 //   note: only to be used on stack-allocated arrays whose size is known at
 // compile time. Evaluates `_index` more than once.
 #define D_SAFE_ARR_IDX(_arr, _index)                                          \
-    ( D_IS_VALID_INDEX_N((_index),                                            \
-                         sizeof(_arr) / sizeof((_arr)[0]))                    \
-        ? D_ARR_IDX((_arr),                                                   \
-                    (_index))                                                 \
-        : (_arr)[0] )
+    ( (_arr)[ D_IS_VALID_INDEX_N((_index),                                    \
+                                 sizeof(_arr) / sizeof((_arr)[0]))            \
+              ? D_NEG_IDX((_index), sizeof(_arr) / sizeof((_arr)[0]))         \
+              : (size_t)0 ] )
 
 // 5.3.2
 // D_NEG_IDX
@@ -964,13 +967,12 @@ D_EXTERN_C_END
 // 5.3.3
 // D_ARR_IDX
 //   macro: given a negative index and array, returns the array element at the
-// equivalent positive index.
+// equivalent positive index, which D_NEG_IDX computes, so the subscript is
+// one size_t whatever the signedness of `_index`.
 //   note: only to be used on stack-allocated arrays whose size is known at
 // compile time. Evaluates `_index` more than once.
 #define D_ARR_IDX(_array, _index)                                             \
-    ( (_array)[(_index) < 0                                                   \
-        ? ( (sizeof(_array)/sizeof((_array)[0])) + (_index) )                 \
-        : (_index)] )
+    ( (_array)[D_NEG_IDX((_index), sizeof(_array) / sizeof((_array)[0]))] )
 
 
 #endif  // DJINTERP

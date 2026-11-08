@@ -1,11 +1,8 @@
 /*******************************************************************************
 * djinterp [c/test]                                               test_counter.h
 *
-* Tallies for the C test framework.
-*   `struct dj_test_counter` was used by 47 files and declared by none. The
-* type was incomplete everywhere, so `test_standalone.h` -- which embeds it by
-* value -- could not compile, and nor could the standalone test tier beneath
-* it. This header supplies the definition.
+* Tallies for the C test framework: assertions evaluated and held, tests run
+* and passed, as test_printer and the C++ session report them.
 *   THE FIELD FORM (style #79, ruled 2026.11.04). The four fields are the API,
 * as 690 uses already had them, and the two functions below only reset and
 * sum them. The API that four files called and nothing defined
@@ -25,13 +22,12 @@
 * 2.  OPERATIONS
 *     ----------
 *     1.  reset and sum
-*     2.  the standalone assertion
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_counter.h
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+* author(s): TBA                                             created: 2026.10.30
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 #ifndef DJINTERP_C_TEST_TEST_COUNTER_H
 #define DJINTERP_C_TEST_TEST_COUNTER_H 1
@@ -62,10 +58,10 @@ D_EXTERN_C_BEGIN
 //   struct: assertion and test tallies for one module, or aggregated for a
 // suite.
 //
-//   The field set is not invented. It is what the 47 files that use this type
-// already read and write, at 685 sites: `tests_passed`, `tests_total`,
-// `assertions_passed` and `assertions_total`, and nothing else. `size_t`
-// matches the neighbouring counts in `dj_test_standalone_suite_results`.
+//   The field set is not invented. It is what the code that uses this type
+// already reads and writes: `tests_passed`, `tests_total`,
+// `assertions_passed` and `assertions_total`, and nothing else. `size_t`, as
+// every other count in the C framework.
 //
 //   A failure count is deliberately absent. Every site derives it as
 // total - passed, and storing it too would let the two disagree.
@@ -89,27 +85,6 @@ struct dj_test_counter
 void d_test_counter_reset(struct dj_test_counter* _counter);
 void d_test_counter_add(struct dj_test_counter*       _dest,
                         const struct dj_test_counter* _source);
-
-// 2.2    the standalone assertion
-//------------------------------------------------------------------------------
-//   Declared here, not only in test_standalone.h: the 339 counter-style
-// suites include this header alone and call it, which GCC let through as an
-// implicit declaration and Clang refuses. It is defined in test_standalone.c,
-// which a counter-style suite links.
-
-/**
- * @brief Counts one assertion into a tally and prints its line.
- *
- * @param[in]     _condition  whether the assertion held.
- * @param[in]     _test_name  the assertion's name.
- * @param[in]     _message    what a failure means.
- * @param[in,out] _test_info  the tally; `NULL` counts and prints nothing.
- * @return `_condition`.
- */
-bool d_assert_standalone(bool                    _condition,
-                         const char*             _test_name,
-                         const char*             _message,
-                         struct dj_test_counter* _test_info);
 
 
 D_EXTERN_C_END

@@ -3,23 +3,27 @@
 #
 #   Test leaf for dio.h's suite, in DTest's C face: the runner in this
 # directory, the section translation units globbed from the tests tree (the
-# standalone *_tests_sa*.c files there are left out), the sources under test,
-# and DTest's C face, which djinterp_c_runtime does not yet carry (a request
-# to lane A).
+# spec's and those built call by call), the sources under test, and DTest's
+# C face, which djinterp_c_runtime does not yet carry (a request to lane A).
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.05
+# revised:   2026.11.06 (the sections built call by call join the spec)
 # =============================================================================
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/c")
 
-file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/dio_tests_*.c")
-list(FILTER _sections EXCLUDE REGEX "_tests_sa[^/]*\\.c$")
+file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/dio_tests*.c")
+
+# The sections open their files through c/filesys.
+file(GLOB _filesys CONFIGURE_DEPENDS
+     "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/*.c")
 
 djinterp_add_test_executable(c_dio_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/dio_tests_runner.c"
         ${_sections}
         "${DJINTERP_SRC_ROOT}/djinterp/c/dio.c"
+        ${_filesys}
         "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"

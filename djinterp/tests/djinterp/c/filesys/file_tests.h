@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 #ifndef DJINTERP_FILE_TESTS_H_
@@ -61,7 +61,6 @@
     #define T_FALSE                      "false"
     #define T_MISSING_STATUS_OK(_status) ((_status) == 127)
 #endif
-
 
 
 #if defined(__cplusplus)
@@ -248,3 +247,165 @@ void d_fs_tests_space(
 
 
 #endif  // DJINTERP_FILE_TESTS_H_
+
+/******************************************************************************
+ * THE BLOCKS BUILT BY d_tests_file_run_all
+ *   Each area's second block, which the runner adds after the sections
+ * above; their own scratch directory (D_TEST_FILE_TEMP_DIR) and helpers.
+ *****************************************************************************/
+                                                              // dj_test_object
+
+
+/******************************************************************************
+ * TEST CONFIGURATION
+ *****************************************************************************/
+
+// D_TEST_FILE_TEMP_DIR
+//   constant: base directory for the suite's scratch files.
+#define D_TEST_FILE_TEMP_DIR       "file_test_tmp"
+
+// D_TEST_FILE_TEST_FILENAME
+//   constant: the standard fixture file.
+#define D_TEST_FILE_TEST_FILENAME  "test_file.txt"
+
+// D_TEST_FILE_TEST_CONTENT
+//   constant: the fixture's contents. Written in binary mode, so its length
+// is its byte count on every platform -- a text-mode write would make this
+// 37 bytes on Windows and 35 everywhere else, and every size assertion in the
+// suite would need a platform branch.
+#define D_TEST_FILE_TEST_CONTENT   "Hello, World!\nThis is a test file.\n"
+
+// D_TEST_FILE_PATH_BUF
+//   constant: buffer size for path construction in tests.
+#define D_TEST_FILE_PATH_BUF       512
+
+// D_TEST_FILE_MAX_ASSERTS
+//   constant: the largest number of assertions any one group may hold.
+//   Groups build into a local array of this size and report the count they
+// actually filled, rather than declaring a count up front and hoping it
+// matches. See d_tests_file_group.
+#define D_TEST_FILE_MAX_ASSERTS    24
+
+// D_TEST_FILE_HOST_SEP
+//   constant: the separator the RUNNING system accepts, which is not the same
+// question as D_CFG_FILE_PATH_SYNTAX. That knob says which grammar the lexical
+// module reads and writes; this says what the kernel under the test will open.
+// They agree on a native build and disagree on a cross-grammar one, and the
+// harness needs the second.
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+#   define D_TEST_FILE_HOST_SEP    '\\'
+#else
+#   define D_TEST_FILE_HOST_SEP    '/'
+#endif
+
+// D_TEST_FILE_EMIT_SEP
+//   constant: the separator file_path EMITS, as a string, for building the
+// expected results of lexical assertions.
+//   Three separators are in play and they are not the same question:
+//     - what file_path ACCEPTS as input   -- both, under the Windows grammar
+//     - what file_path EMITS              -- this
+//     - what the running kernel opens     -- D_TEST_FILE_HOST_SEP
+//   D_FILE_PATH_UNDERSTANDS_WINDOWS is the module's own published answer, and
+// its comment already says the suite uses it to decide which syntax to assert.
+// It did not: every expected string was written with a literal '/', so the
+// whole lexical group failed the first time the cross grammar was built.
+#if D_FILE_PATH_UNDERSTANDS_WINDOWS
+#   define D_TEST_FILE_EMIT_SEP    "\\"
+#else
+#   define D_TEST_FILE_EMIT_SEP    "/"
+#endif
+
+
+/******************************************************************************
+ * TEST UTILITIES
+ *****************************************************************************/
+
+// d_tests_file_setup
+//   function: creates the scratch directory and the fixture file.
+// returns true on success.
+bool d_tests_file_setup(void);
+
+// d_tests_file_teardown
+//   function: removes the scratch directory and everything in it.
+// returns true on success.
+bool d_tests_file_teardown(void);
+
+// d_tests_file_path
+//   function: builds a path inside the scratch directory.
+// writes to _buf and returns it, or NULL on failure.
+char* d_tests_file_path(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _filename
+);
+
+
+char* d_tests_file_child(
+    char*       _buf,
+    size_t      _bufsize,
+    const char* _parent,
+    const char* _name
+);
+
+
+/******************************************************************************
+ * PER-MODULE SUITES  (one per c/filesys module, same order as dfile.h)
+ *****************************************************************************/
+
+// I.    file_common  -- notifications, backend introspection
+bool d_tests_file_common_all(struct dj_test_suite* _suite);
+
+// II.   file_open
+bool d_tests_file_open_all(struct dj_test_suite* _suite);
+
+// III.  file_desc
+bool d_tests_file_desc_all(struct dj_test_suite* _suite);
+
+// IV.   file_io
+bool d_tests_file_io_all(struct dj_test_suite* _suite);
+
+// V.    file_seek
+bool d_tests_file_seek_all(struct dj_test_suite* _suite);
+
+// VI.   file_sync
+bool d_tests_file_sync_all(struct dj_test_suite* _suite);
+
+// VII.  file_lock
+bool d_tests_file_lock_all(struct dj_test_suite* _suite);
+
+// VIII. file_stat
+bool d_tests_file_stat_all(struct dj_test_suite* _suite);
+
+// IX.   file_path
+bool d_tests_file_path_all(struct dj_test_suite* _suite);
+
+// X.    file_dir
+bool d_tests_file_dir_all(struct dj_test_suite* _suite);
+
+// XI.   file_ops
+bool d_tests_file_ops_all(struct dj_test_suite* _suite);
+
+// XII.  file_temp
+bool d_tests_file_temp_all(struct dj_test_suite* _suite);
+
+// XIII. file_link
+//   Compiled only where the platform has symbolic links. The suite omits the
+// whole group otherwise rather than reporting an empty pass.
+#if D_FILE_LINK_IS_AVAILABLE
+bool d_tests_file_link_all(struct dj_test_suite* _suite);
+#endif
+
+// XIV.  file_pipe
+#if D_FILE_PIPE_IS_AVAILABLE
+bool d_tests_file_pipe_all(struct dj_test_suite* _suite);
+#endif
+
+// XV.   file_space
+#if D_FILE_SPACE_IS_AVAILABLE
+bool d_tests_file_space_all(struct dj_test_suite* _suite);
+#endif
+
+// master runner
+bool d_tests_file_run_all(struct dj_test_suite* _suite);
+
+

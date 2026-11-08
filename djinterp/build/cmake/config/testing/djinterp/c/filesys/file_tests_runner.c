@@ -20,11 +20,11 @@
 * path:      /build/cmake/config/testing/djinterp/c/filesys/file_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
-#include <stdio.h>
+#include <stdio.h>  // fprintf, printf, stderr
 
-#include "file_tests.h"
+#include "file_tests.h"  // the sections, the environment, d_test_suite_*
 
 
 /*
@@ -102,6 +102,10 @@ main(
 #endif
 
     d_fs_tests_space(suite);
+
+    // each area's second block, which d_tests_file_run_all builds in its own
+    // scratch directory
+    (void)d_tests_file_run_all(suite);
 
     rc = d_test_suite_run(suite, NULL);
 

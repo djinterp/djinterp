@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_sync.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -173,4 +173,133 @@ void d_fs_tests_sync(
     d_fs_tests_sync_fflush(_suite);
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_sync_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * VI.  file_sync  --  DURABILITY
+ *
+ *   These tests can verify that the calls SUCCEED. They cannot verify that
+ * the data survives a power cut, which is what the module is actually for --
+ * that needs hardware nobody has in CI. So what is asserted is the contract's
+ * shape: the calls work, they reject nonsense, and D_FILE_SYNC_REACHES_PLATTER
+ * says which promise this build makes.
+ *****************************************************************************/
+
+/*
+d_tests_file_fsync
+  Tests d_file_sync_fd and d_file_sync_stream.
+*/
+static
+bool d_tests_file_fsync(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    FILE*                 file;
+    int                   fd;
+
+    d_test_suite_test(_suite,
+                      D_FILE_SYNC_REACHES_PLATTER
+                          ? "d_file_sync_fd (reaches the device)"
+                          : "d_file_sync_fd (kernel only -- see D_CFG_FILE_SYNC_FULL)");
+
+    d_tests_file_path(path, sizeof(path), "fsync.txt");
+
+    fd = d_file_open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+
+    if (fd >= 0)
+    {
+        (void)d_file_write_fd(fd, "test", 4);
+        D_TEST_CHECK_MSG(_suite,
+                         "valid_fd",
+                         (d_file_sync_fd(fd)) == (0),
+                         "d_file_sync_fd succeeds on a valid descriptor");
+        (void)d_file_close_fd(fd);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "bad_fd",
+                     (d_file_sync_fd(-1)) == (-1),
+                     "d_file_sync_fd rejects a bad descriptor");
+
+    file = d_file_open_stream(path, "wb");
+
+    if (file)
+    {
+        (void)fprintf(file, "test data");
+        D_TEST_CHECK_MSG(_suite,
+                         "stream",
+                         (d_file_sync_stream(file)) == (0),
+                         "d_file_sync_stream flushes then syncs");
+        (void)d_file_close_stream(file);
+    }
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "stream_null",
+                     (d_file_sync_stream(NULL)) == (-1),
+                     "d_file_sync_stream rejects NULL");
+    #endif
+
+    (void)d_file_remove(path);
+
+    return true;
+}
+
+
+/*
+d_tests_file_fflush
+  Tests d_file_flush_stream.
+*/
+static
+bool d_tests_file_fflush(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    FILE*                 file;
+
+    d_test_suite_test(_suite, "d_file_flush_stream");
+
+    d_tests_file_path(path, sizeof(path), "fflush.txt");
+
+    file = d_file_open_stream(path, "wb");
+
+    if (file)
+    {
+        (void)fprintf(file, "test data");
+        D_TEST_CHECK_MSG(_suite,
+                         "valid",
+                         (d_file_flush_stream(file)) == (0),
+                         "d_file_flush_stream hands the buffer to the kernel");
+        (void)d_file_close_stream(file);
+    }
+
+    // NULL is a documented, meaningful argument here -- flush every output
+    // stream -- rather than a mistake to reject
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_flushes_all",
+                     (d_file_flush_stream(NULL)) == (0),
+                     "d_file_flush_stream(NULL) flushes all streams, per ISO C");
+    #endif
+
+    (void)d_file_remove(path);
+
+    return true;
+}
+
+
+/*
+d_tests_file_sync_all
+  Runs every file_sync test.
+*/
+bool d_tests_file_sync_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "VI. file_sync");
+
+    d_tests_file_fsync(_suite);
+    d_tests_file_fflush(_suite);
+
+    return true;
 }

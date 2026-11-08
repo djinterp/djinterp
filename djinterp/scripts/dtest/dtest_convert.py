@@ -30,9 +30,17 @@
 # is not done until each is resolved by hand. The conversion is idempotent:
 # a converted file converts to itself.
 #
+#   --final (with --from sa --in-place) gives a converted suite its final
+# names: d_tests_sa_ becomes d_tests_, and X_tests_sa*.{c,h} X_tests*.{c,h},
+# in the code, the includes, the guards and the banners; each file is renamed
+# when its new name is free, and one whose new name a C-face suite already
+# has is reported, to merge by hand. A name a register test already has, a
+# runner and a CMake leaf are the suite's own work (docs/djinterp_testing.md,
+# the migration guide).
+#
 # usage:
-#   dtest_convert.py --from {bridge,sa,program} [--in-place | --out DIR]
-#                    [--report] FILE...
+#   dtest_convert.py --from {bridge,sa,program,paths} [--in-place | --out DIR]
+#                    [--report] [--final] FILE...
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.05
 # =============================================================================
@@ -103,6 +111,12 @@ def rewrite_calls(text, name, fn):
             break
         # the call's own column: arguments align under its first
         indent = m.start() - (text.rfind('\n', 0, m.start()) + 1)
+        # a macro's own definition is not a call of it
+        line_start = text.rfind('\n', 0, m.start()) + 1
+        if re.match(r'\s*#\s*define\s*$', text[line_start:m.start()]):
+            out.append(text[pos:end])
+            pos = end
+            continue
         repl = fn(args, indent)
         if repl is None:
             out.append(text[pos:end])
@@ -128,7 +142,14 @@ def rel_include(path):
 
 
 def one_line(s):
-    return re.sub(r'\s+', ' ', s).strip()
+    """An argument on one line: each run of whitespace outside string and
+    character literals becomes one space; a literal is kept as it is, since
+    its spaces are its value."""
+    out = []
+    for i, part in enumerate(re.split(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')',
+                                      s)):
+        out.append(part if i % 2 else re.sub(r'\s+', ' ', part))
+    return ''.join(out).strip()
 
 
 def check_msg(indent, args):
@@ -208,7 +229,7 @@ def convert_sa_checks(text, marks):
     macros become D_TEST_CHECK_MSG(_suite, name, cond, msg)."""
     # a leaf stored into its group: the store goes first, so the check that
     # replaces the leaf is laid out from the column it will stand at
-    text = re.sub(r'\b\w+\s*->\s*elements\s*\[\s*\w+\s*\+\+\s*\]\s*=\s*'
+    text = re.sub(r'\b\w+(?:\s*->\s*elements)?\s*\[\s*\w+\s*\+\+\s*\]\s*=\s*'
                   r'(D_ASSERT_[A-Z_]+\s*\()', r'\1', text)
     def standalone(args, indent):
         if len(args) != 4:
@@ -247,6 +268,9 @@ def convert_sa_tree(text, marks):
     text = re.sub(r'\bstruct\s+dj_test_object\s*\*\s*(d_tests_\w+)\s*\(\s*'
                   r'void\s*\)',
                   r'bool \1(struct dj_test_suite* _suite)', text)
+    # the groups' variables, whatever their names (group, root, ...)
+    groups = set(re.findall(r'(\w+)\s*=\s*d_test_object_new_interior\s*\(',
+                            text)) | {'group'}
     # the group: a test of the same name
     text = re.sub(r'(\w+)\s*=\s*d_test_object_new_interior\s*\(\s*("[^"]*")'
                   r'\s*,[^;]*\);',
@@ -255,15 +279,37 @@ def convert_sa_tree(text, marks):
     text = re.sub(r'\b\w+\s*->\s*elements\s*\[\s*\w+\s*\+\+\s*\]\s*=\s*'
                   r'(d_tests_\w+)\s*\(\s*\)\s*;',
                   r'\1(_suite);', text)
-    # the group's declaration, its allocation guard and its return go: the
-    # suite holds the test now
-    text = re.sub(r'\n[ \t]*struct\s+dj_test_object\s*\*\s*group\s*;', '',
-                  text)
-    text = re.sub(r'\n[ \t]*\n([ \t]*)if\s*\(\s*!\s*group\s*\)\s*\{\s*'
-                  r'return\s+NULL\s*;\s*\}\n', '\n', text)
-    text = re.sub(r'\n([ \t]*)if\s*\(\s*!\s*group\s*\)\s*\{\s*return\s+'
-                  r'NULL\s*;\s*\}\n', '\n', text)
-    text = re.sub(r'\breturn\s+group\s*;', 'return true;', text)
+    # each group's declaration, its allocation guard (and the comment that
+    # leads it) and its return go: the suite holds the test now, and a guard
+    # left behind would read a pointer nothing sets
+    for g in sorted(groups):
+        text = re.sub(r'\n[ \t]*struct\s+dj_test_object\s*\*\s*%s\s*;' % g,
+                      '', text)
+        guard = (r'(?:\n[ \t]*//[^\n]*)*\n[ \t]*if\s*\(\s*!\s*%s\s*\)\s*'
+                 r'\{[^{}]*\}\n' % g)
+        text = re.sub(r'\n[ \t]*\n' + guard[:-2] + r'\n', '\n', text)
+        text = re.sub(guard, '\n', text)
+        text = re.sub(r'\breturn\s+%s\s*;' % g, 'return true;', text)
+    # slots filled with failures when an earlier step failed: one failing
+    # check says it (the loop counted on the store the conversion removed)
+    def fill(m):
+        call = m.group(2)
+        args, _ = split_call(call, call.index('('))
+        if not args or len(args) != 4:
+            return m.group(0)
+        return m.group(1) + check_msg(len(m.group(1)), args[1:]) + ';\n'
+    text = re.sub(r'([ \t]*)while\s*\(\s*(?:child_idx|idx)\s*<\s*\w+\s*\)\s*'
+                  r'\{\s*(D_TEST_CHECK_MSG\((?:[^;]|"[^"]*")*\));\s*\}\n',
+                  fill, text)
+    # a converted section returns false where its group gave up with NULL
+    out, pos = [], 0
+    for name, open_, close in sections(text):
+        out.append(text[pos:open_])
+        out.append(re.sub(r'\breturn\s+NULL\s*;', 'return false;',
+                          text[open_:close]))
+        pos = close
+    out.append(text[pos:])
+    text = ''.join(out)
     # a group of groups (an *_all aggregator) is a block, not a test: its
     # checks are its children's
     parts = text.split('\n}\n')
@@ -283,6 +329,400 @@ def convert_sa_tree(text, marks):
     return text
 
 
+def match_brace(text, i):
+    """Given text[i] == '{', the index of its matching '}', skipping strings,
+    character constants and comments; -1 when it does not close."""
+    depth = 0
+    n = len(text)
+    while i < n:
+        c = text[i]
+        if c in '"\'':
+            q = c
+            i += 1
+            while i < n and text[i] != q:
+                if text[i] == '\\':
+                    i += 1
+                i += 1
+        elif text.startswith('/*', i):
+            j = text.find('*/', i + 2)
+            i = n if j < 0 else j + 1
+        elif text.startswith('//', i):
+            j = text.find('\n', i)
+            i = n if j < 0 else j
+        elif c == '{':
+            depth += 1
+        elif c == '}':
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return -1
+
+
+SECTION_DEF = re.compile(r'^(?:static\s+)?bool\s+(d_tests?_\w+)\s*\(\s*struct\s+'
+                         r'dj_test_suite\s*\*\s*_suite\s*\)\s*\{', re.M)
+
+
+def sections(text):
+    """Each section function's (name, index of its '{', index of its '}')."""
+    out = []
+    for m in SECTION_DEF.finditer(text):
+        open_ = m.end() - 1
+        close = match_brace(text, open_)
+        if close > 0:
+            out.append((m.group(1), open_, close))
+    return out
+
+
+def label_of(name):
+    """A section's test or block name: its function name without the
+    suite prefix (d_tests_, d_tests_sa_, d_test_)."""
+    return re.sub(r'^d_tests?_(sa_)?', '', name)
+
+
+STATEMENT = re.compile(r'^\s*(if|for|while|do|switch|return|goto|break|'
+                       r'continue|else)\b')
+DECLARATION = re.compile(r'^\s*(?:(?:static|const|volatile|unsigned|signed|'
+                         r'struct|enum|union|register)\s+)*[A-Za-z_]\w*'
+                         r'(?:\s+|\s*\*+\s*)\**[A-Za-z_]\w*\s*'
+                         r'(?:\[[^\]]*\]\s*)*(?:[=;,]|$)')
+
+
+def body_start(text, open_, close):
+    """Where a section's first statement begins: after its declarations, and
+    after an `if (!_suite)` guard that leads the body."""
+    i = text.find('\n', open_) + 1
+    while 0 < i < close:
+        end = text.find('\n', i)
+        end = close if end < 0 or end > close else end
+        line = text[i:end]
+        s = line.strip()
+        if (not s) or s.startswith(('//', '/*', '*', '#')):
+            i = end + 1
+            continue
+        if DECLARATION.match(line) and not STATEMENT.match(line):
+            # a declaration may run over several lines, a struct's members
+            # or an initializer's braces among them: to its own ';'
+            j = i
+            depth = 0
+            while j < close:
+                c = text[j]
+                if c in '{([':
+                    depth += 1
+                elif c in '})]':
+                    depth -= 1
+                elif c == ';' and depth == 0:
+                    break
+                elif c in '"\'':
+                    q = c
+                    j += 1
+                    while j < close and text[j] != q:
+                        j += 2 if text[j] == '\\' else 1
+                j += 1
+            i = text.find('\n', j) + 1 if j < close else close
+            continue
+        guard = re.match(r'[ \t]*if\s*\(\s*(!\s*_suite|_suite\s*==\s*NULL)\s*\)'
+                         r'\s*\{\s*return\s+false\s*;\s*\}\s*\n', text[i:])
+        if guard:
+            i += guard.end()
+            while text.startswith('\n', i):
+                i += 1
+            return i
+        return i
+    return i
+
+
+def convert_sa_bookkeeping(text, marks):
+    """What a counter-style test kept of its own count goes, since the suite
+    keeps it: a snapshot of a count into a local, and a return that compares
+    a count with one."""
+    count = r'_suite\s*->\s*(?:tests|assertions)_(?:passed|total)'
+    text = re.sub(r'\n[ \t]*(?:size_t\s+)?\w+\s*=\s*' + count + r'\s*;[^\n]*',
+                  '', text)
+    # a count raised under a condition: `if (ok) _suite->tests_passed++;`
+    text = re.sub(r'\n[ \t]*if\s*\([^\n]*\)\s*' + count +
+                  r'\s*(?:\+\+|\+=[^;]*|=[^;]*);[^\n]*', '', text)
+    text = re.sub(r'\n[ \t]*if\s*\([^\n]*\)\s*\{\s*' + count +
+                  r'\s*(?:\+\+|\+=[^;]*|=[^;]*);\s*\}[^\n]*', '', text)
+    text = re.sub(r'\breturn\s*\(?\s*' + count + r'\s*[<>=!]=?\s*\w+\s*\)?\s*;',
+                  'return true;', text)
+    text = re.sub(r'\breturn\s*\(?\s*\w+\s*[<>=!]=?\s*' + count + r'\s*\)?\s*;',
+                  'return true;', text)
+    # a local that held a snapshot and is no longer read
+    for name in set(re.findall(r'\n[ \t]*size_t\s+(initial_\w+|\w+_before|'
+                               r'start_\w+)\s*;', text)):
+        if len(re.findall(r'\b%s\b' % re.escape(name), text)) == 1:
+            text = re.sub(r'\n[ \t]*size_t\s+%s\s*;[^\n]*' % re.escape(name),
+                          '', text)
+    return text
+
+
+def convert_sa_aggregators(text, marks):
+    """A section that keeps a counter of its own (struct dj_test_counter x)
+    is an aggregator: it ran its children over that counter and printed what
+    it counted. Its body becomes the calls it makes, in order, with any #if
+    around them; the suite counts and reports. A report helper over a
+    counter (now `const struct dj_test_suite*`) goes with them."""
+    out = []
+    pos = 0
+    for name, open_, close in sections(text):
+        body = text[open_ + 1:close]
+        locals_ = re.findall(r'\bstruct\s+dj_test_counter\s+(\w+)', body)
+        if not locals_:
+            continue
+        args = '|'.join(['_suite'] + [r'&\s*' + re.escape(v) for v in locals_])
+        keep = []
+        for line in body.split('\n'):
+            s = line.strip()
+            if re.match(r'#\s*(if|ifdef|ifndef|elif|else|endif)\b', s):
+                keep.append(s)
+                continue
+            for m in re.finditer(r'\b(d_tests?_\w+)\s*\(\s*(?:%s)\s*\)' % args,
+                                 line):
+                keep.append('    %s(_suite);' % m.group(1))
+            for m in re.finditer(r'\b(d_tests?_\w+_(?:setup|teardown|cleanup|'
+                                 r'init))\s*\(\s*\)', line):
+                keep.append('    (void)%s();' % m.group(1))
+        # an #if left with nothing inside goes
+        changed = True
+        while changed:
+            changed = False
+            for k in range(len(keep) - 1):
+                if (re.match(r'#\s*(if|ifdef|ifndef)\b', keep[k]) and
+                        re.match(r'#\s*endif\b', keep[k + 1])):
+                    del keep[k:k + 2]
+                    changed = True
+                    break
+        new = '\n' + '\n'.join(keep) + ('\n\n' if keep else '') + \
+              '    return true;\n'
+        out.append(text[pos:open_ + 1])
+        out.append(new)
+        pos = close
+    out.append(text[pos:])
+    text = ''.join(out)
+    # report helpers over a counter, definitions and prototypes
+    helper = re.compile(r'\n(?:static\s+)?(?:void|bool|int)\s+(d_tests?_\w+)'
+                        r'\s*\([^;{)]*const\s+struct\s+dj_test_suite\s*\*'
+                        r'[^;{)]*\)\s*')
+    gone = set()
+    while True:
+        m = helper.search(text)
+        if not m:
+            break
+        gone.add(m.group(1))
+        j = m.end()
+        if text.startswith(';', j):
+            text = text[:m.start()] + text[j + 1:]
+            continue
+        if not text.startswith('{', j):
+            break
+        close = match_brace(text, j)
+        if close < 0:
+            break
+        # the doc comment right above it goes too
+        start = m.start()
+        doc = re.search(r'\n/\*[^*]?(?:[^*]|\*(?!/))*\*/\s*$', text[:start])
+        if doc and m.group(1) in doc.group(0):
+            start = doc.start()
+        text = text[:start] + text[close + 1:]
+    # and the calls to them, the summary printers a run_all kept
+    for name in gone | REPORT_HELPERS:
+        text = re.sub(r'\n[ \t]*(?:\(void\)\s*)?%s\s*\([^;]*\)\s*;[^\n]*'
+                      % re.escape(name), '', text)
+    REPORT_HELPERS.update(gone)
+    return text
+
+
+# REPORT_HELPERS
+#   variable: the report helpers over a counter that the conversion removed,
+# across the files of a run: a run_all in one file may call a printer that
+# another file defined.
+REPORT_HELPERS = set()
+
+# GROUP_HELPERS
+#   variable: the functions that build a standalone group from an array of
+# results (a `struct dj_test_object**` parameter), across the files of a run:
+# the suite builds the tree now, so they go, prototypes and doc comments too.
+GROUP_HELPERS = set()
+
+
+def remove_functions(text, names):
+    """Each prototype and definition of the named functions, with the doc
+    comment right above a definition, removed."""
+    for name in names:
+        decl = re.compile(r'\n(?:static\s+)?(?:const\s+)?(?:struct\s+)?\w+'
+                          r'(?:\s*\*+\s*|\s+)%s\s*\([^;{]*\)\s*' % re.escape(name))
+        while True:
+            m = decl.search(text)
+            if not m:
+                break
+            j = m.end()
+            if text.startswith(';', j):
+                text = text[:m.start()] + text[j + 1:]
+                continue
+            if not text.startswith('{', j):
+                break
+            close = match_brace(text, j)
+            if close < 0:
+                break
+            start = m.start()
+            doc = re.search(r'\n/\*(?:[^*]|\*(?!/))*\*/\s*$', text[:start])
+            if doc and name in doc.group(0):
+                start = doc.start()
+            text = text[:start] + text[close + 1:]
+        # a header's one-line note naming it
+        text = re.sub(r'\n// %s\n(?://[^\n]*\n)*' % re.escape(name), '\n', text)
+    return text
+
+
+# CHECKERS
+#   variable: the sections that check something, across every file of a run
+# (filled by main before converting): a section that only calls others opens
+# a block when one of them checks, and nothing when it only dispatches to
+# other blocks, so that no empty heading is left.
+CHECKERS = set()
+
+
+def find_checkers(text):
+    """The functions of a standalone source that check: each definition whose
+    body asserts, in either style, or opens a group."""
+    found = set()
+    for m in re.finditer(r'^(?:static\s+)?(?:bool|struct\s+dj_test_object\s*\*)'
+                         r'\s*(d_tests?_\w+)\s*\([^;{]*\)\s*\{', text, re.M):
+        close = match_brace(text, m.end() - 1)
+        body = text[m.end():close] if close > 0 else ''
+        if re.search(r'\b(d_assert_standalone|D_ASSERT_[A-Z_]+|'
+                     r'D_TEST_CHECK(?:_MSG)?)\s*\(', body):
+            found.add(m.group(1))
+    return found
+
+
+def open_call(what, label):
+    """`    d_test_suite_test(_suite, label);` and a blank line, laid out as the
+    guide lays out a call that does not fit 80 columns: the label under the
+    first argument, and a conditional label broken before its ? and :."""
+    flat = '    d_test_suite_%s(_suite, %s);' % (what, label)
+    if len(flat) <= 80:
+        return flat + '\n\n'
+    pad = ' ' * len('    d_test_suite_%s(' % what)
+    cond = re.match(r'(.+?)\s+\?\s+(.+?)\s+:\s+(.+)$', label)
+    if cond:
+        body = (cond.group(1) + '\n' + pad + '    ? ' + cond.group(2) + '\n' +
+                pad + '    : ' + cond.group(3))
+    else:
+        body = label
+    return '    d_test_suite_%s(_suite,\n%s%s);\n\n' % (what, pad, body)
+
+
+def convert_sa_item_arrays(text, marks):
+    """The tree style's other form: leaves and child groups stored into a
+    local array (items[idx++] = ...), and the group made from it by a
+    helper, `d_tests_x_group("name", items, idx)`. A child becomes a call
+    over the suite, the helper's call goes, and its name opens the section:
+    a test when the section checks, a block when it calls."""
+    text = re.sub(r'\b\w+\s*\[\s*\w+\s*\+\+\s*\]\s*=\s*(d_tests?_\w+)\s*\(\s*'
+                  r'\)\s*;', r'\1(_suite);', text)
+    helper_re = re.compile(r'(?:\b(\w+)\s*=\s*|\breturn\s+)(d_tests?_\w*group'
+                           r'\w*)\s*\(')
+
+    def helper_call(body):
+        """The first group-helper call in a body: (start, end, label, var),
+        its name the first of its three arguments, whatever expression."""
+        for m in helper_re.finditer(body):
+            args, end = split_call(body, m.end() - 1)
+            if not args or len(args) != 3:
+                continue
+            semi = re.match(r'\s*;', body[end:])
+            if not semi:
+                continue
+            return m.start(), end + semi.end(), one_line(args[0]), m.group(1)
+        return None
+
+    while True:
+        found = None
+        for name, open_, close in sections(text):
+            call = helper_call(text[open_ + 1:close])
+            if call:
+                found = (open_, close, call)
+                break
+        if not found:
+            return text
+        open_, close, (start, end, label, var) = found
+        body = text[open_ + 1:close]
+        if var:
+            body = body[:start] + body[end:]
+            body = re.sub(r'\breturn\s+%s\s*;' % re.escape(var),
+                          'return true;', body)
+            body = re.sub(r'\n[ \t]*struct\s+dj_test_object\s*\*\s*%s\s*;'
+                          % re.escape(var), '', body)
+        else:
+            body = body[:start] + 'return true;' + body[end:]
+        # the array and its index, once nothing stores into them
+        for arr in re.findall(r'\bstruct\s+dj_test_object\s*\*\s*(\w+)\s*\[',
+                              body):
+            if not re.search(r'\b%s\b' % re.escape(arr),
+                             re.sub(r'\bstruct\s+dj_test_object\s*\*\s*%s\s*'
+                                    r'\[[^\]]*\]\s*;' % re.escape(arr), '',
+                                    body)):
+                body = re.sub(r'\n[ \t]*struct\s+dj_test_object\s*\*\s*%s\s*'
+                              r'\[[^\]]*\]\s*;[^\n]*' % re.escape(arr), '', body)
+        for idx in ('idx', 'child_idx'):
+            if len(re.findall(r'\b%s\b' % idx, body)) and not re.search(
+                    r'\b%s\b(?!\s*=\s*0\s*;)' % idx,
+                    re.sub(r'\n[ \t]*size_t\s+%s\s*;' % idx, '', body)):
+                body = re.sub(r'\n[ \t]*size_t\s+%s\s*;[^\n]*' % idx, '', body)
+                body = re.sub(r'\n[ \t]*%s\s*=\s*0\s*;[^\n]*' % idx, '', body)
+        what = 'test' if re.search(r'\bD_TEST_CHECK(?:_MSG)?\s*\(', body) \
+            else 'block'
+        text = text[:open_ + 1] + body + text[close:]
+        close = open_ + 1 + len(body)
+        at = body_start(text, open_, close)
+        text = text[:at] + open_call(what, label) + text[at:]
+
+
+def convert_sa_open_tests(text, marks):
+    """Each section opens what it is: a test when it checks, a block when it
+    calls sections that check, and nothing when it only dispatches to other
+    blocks; one that already opens something is left as it is."""
+    out = []
+    pos = 0
+    for name, open_, close in sections(text):
+        body = text[open_ + 1:close]
+        if re.search(r'\bd_test_suite_(test|block|module)\s*\(', body):
+            continue
+        calls = re.findall(r'\b(d_tests?_\w+)\s*\(\s*_suite\s*\)', body)
+        checks = re.search(r'\bD_TEST_CHECK(?:_MSG)?\s*\(', body)
+        if checks:
+            what = 'test'
+        elif any(c in CHECKERS for c in calls):
+            what = 'block'
+        else:
+            continue
+        at = body_start(text, open_, close)
+        out.append(text[pos:at])
+        out.append(open_call(what, '"%s"' % label_of(name)))
+        pos = at
+    out.append(text[pos:])
+    return ''.join(out)
+
+
+def ensure_suite_include(text, path):
+    """A file that now names the suite includes the C face."""
+    if 'test_suite.h' in text:
+        return text
+    if not re.search(r'\bstruct\s+dj_test_suite\b|\bD_TEST_CHECK', text):
+        return text
+    line = '#include "%s"  // DTest\'s C face' % rel_include(path)
+    incs = list(re.finditer(r'^[ \t]*#\s*include\s*"[^"]*"[^\n]*\n', text,
+                            re.M))
+    if incs:
+        at = incs[-1].end()
+        return text[:at] + line + '\n' + text[at:]
+    guard = re.search(r'^#define\s+\w+[^\n]*\n', text, re.M)
+    at = guard.end() if guard else 0
+    return text[:at] + '\n' + line + '\n' + text[at:]
+
+
 def convert_sa(text, path, marks):
     text = re.sub(r'#include\s+"[^"]*test_standalone\.h"[^\n]*',
                   '#include "%s"  // DTest\'s C face' % rel_include(path),
@@ -290,10 +730,153 @@ def convert_sa(text, path, marks):
     text = re.sub(r'#include\s+"[^"]*test_counter\.h"[^\n]*',
                   '#include "%s"  // DTest\'s C face' % rel_include(path),
                   text)
+    # one include of the C face, where both were included
+    first = text.find('test_suite.h')
+    if first >= 0:
+        head, tail = text[:first + 1], text[first + 1:]
+        tail = re.sub(r'\n[ \t]*#include\s+"[^"]*test_suite\.h"[^\n]*', '',
+                      tail)
+        text = head + tail
+    text = remove_functions(text, GROUP_HELPERS)
     text = convert_sa_checks(text, marks)
     text = convert_sa_counter(text, marks)
     text = convert_sa_tree(text, marks)
+    text = convert_sa_bookkeeping(text, marks)
+    text = convert_sa_aggregators(text, marks)
+    text = convert_sa_item_arrays(text, marks)
+    text = convert_sa_open_tests(text, marks)
+    text = convert_sa_verdicts(text)
+    text = drop_dead_locals(text)
+    text = ensure_suite_include(text, path)
     return text
+
+
+# a progress line opens with D_INDENT's %s or with spaces of its own
+LEAD = r'(?:%s|[ ]*)'
+VERDICT = re.compile(r'(?:\n[ \t]*//[^\n]*)?\n[ \t]*if\s*\(\s*(\w+)\s*\)\s*\{'
+                     r'\s*printf\s*\(\s*"' + LEAD + r'\[PASS\][^;]*;\s*\}\s*'
+                     r'else\s*\{\s*printf\s*\(\s*"' + LEAD + r'\[FAIL\][^;]*;'
+                     r'\s*\}[^\n]*')
+PROGRESS = [
+    # "--- Testing X ---"
+    re.compile(r'\n[ \t]*printf\s*\(\s*"' + LEAD + r'---[^"]*---\\n"\s*'
+               r'(?:,\s*D_INDENT\s*)?\)\s*;[^\n]*(?=\n)'),
+    # "[SECTION] X" and the rule under it: the block heading says it
+    re.compile(r'\n[ \t]*printf\s*\(\s*"(?:\\n)?' + LEAD + r'\[SECTION\][^"]*"'
+               r'\s*\)\s*;[^\n]*(?:\n[ \t]*printf\s*\(\s*"' + LEAD +
+               r'-+\\n"\s*\)\s*;[^\n]*)?(?=\n)'),
+    # "Testing `x`..."
+    re.compile(r'\n[ \t]*printf\s*\(\s*"' + LEAD + r'Testing [^"]*\.\.\.\\n"\s*'
+               r'\)\s*;[^\n]*(?=\n)'),
+]
+
+
+def convert_sa_verdicts(text):
+    """The tier's own progress lines, which the suite's report now gives: a
+    section's "--- Testing X ---" banner, and its [PASS]/[FAIL] print, whose
+    flag becomes what the section returns."""
+    out, pos = [], 0
+    for name, open_, close in sections(text):
+        body = text[open_:close]
+        for pattern in PROGRESS:
+            body = pattern.sub('', body)
+        m = VERDICT.search(body)
+        if m:
+            flag = m.group(1)
+            body = body[:m.start()] + body[m.end():]
+            tail = body.rstrip()
+            ret = re.search(r'\breturn\s+true\s*;\s*$', tail[:-1] if
+                            tail.endswith('}') else tail)
+            if ret:
+                k = body.rfind('return true;')
+                body = body[:k] + 'return %s;' % flag + body[k + 12:]
+        body = re.sub(r'\{\n\n+', '{\n', body)
+        body = re.sub(r'\n\n\n+', '\n\n', body)
+        out.append(text[pos:open_])
+        out.append(body)
+        pos = close
+    out.append(text[pos:])
+    return ''.join(out)
+
+
+# a declaration, not a statement: `return true;` has the same shape
+LOCAL = re.compile(r'\n([ \t]+)(?!(?:return|goto|case|else|do|break|continue)'
+                   r'\b)(?:(?:const|unsigned|signed|struct)\s+)*\w+'
+                   r'(?:\s+|\s*\*+\s*)(?!(?:true|false|NULL)\b)(\w+)\s*;'
+                   r'[^\n]*')
+
+
+def code_only(text):
+    """The text with its comments and literals blanked, for counting uses;
+    each keeps its length, so an index into one is an index into the other."""
+    return re.sub(r'//[^\n]*|/\*(?:[^*]|\*(?!/))*\*/|"(?:[^"\\\n]|\\.)*"|'
+                  r"'(?:[^'\\\n]|\\.)*'", lambda m: ' ' * len(m.group(0)),
+                  text)
+
+
+# the tier's own bookkeeping, which the conversion leaves: no macro pastes it
+TIER_LOCALS = {'initial_tests_passed', 'initial_assertions_passed'}
+# a name a macro may paste together is a use no search sees
+PASTE = re.compile(r'##|\bD_(?:CONCAT|PASTE|CAT)\w*\s*\(')
+
+
+def dead_local(body):
+    """(declaration, its sets) of the first local nothing reads, or None:
+    only the function's own declarations (a struct's members, declared
+    deeper, are not locals), and none where a macro pastes names."""
+    pasting = bool(PASTE.search(body))
+    code = code_only(body)
+    for m in LOCAL.finditer(body):
+        if code[:m.start()].count('{') - code[:m.start()].count('}') != 1:
+            continue
+        var = m.group(2)
+        if pasting and var not in TIER_LOCALS:
+            continue
+        rest = body[:m.start()] + body[m.end():]
+        sets = list(re.finditer(r'(?:\n[ \t]*//[^\n]*)*\n([ \t]*)%s\s*'
+                                r'(?:[-+*/%%&|^]|<<|>>)?=(?!=)\s*([^;]*);[^\n]*'
+                                % var, rest))
+        uses = len(re.findall(r'\b%s\b' % var, code_only(rest)))
+        if uses == len(sets):
+            return m, sets
+    return None
+
+
+def drop_dead_locals(text):
+    """A local the conversion left with nothing to do: one never read again
+    (a counter's snapshot, a group's size) goes with its assignments, the
+    comment that leads one, and an #if left empty by them; an assignment
+    whose value is a call keeps the call, as a (void) statement."""
+    out, pos = [], 0
+    for name, open_, close in sections(text):
+        body = text[open_:close]
+        while True:
+            found = dead_local(body)
+            if not found:
+                break
+            m, sets = found
+            rest = body[:m.start()] + body[m.end():]
+            for st in reversed(sets):
+                rhs = st.group(2).strip()
+                if re.search(r'\w\s*\(', re.sub(r'\bsizeof\s*\(', '(',
+                                                   rhs)):
+                    keep = '\n%s(void)%s;' % (st.group(1), rhs)
+                    head = st.group(0)[:st.group(0).rfind('\n')]
+                    rest = rest[:st.start()] + head + keep + rest[st.end():]
+                else:
+                    rest = rest[:st.start()] + rest[st.end():]
+            body = rest
+        # an #if the removal emptied, and the comment that led it
+        body = re.sub(r'(?:\n[ \t]*//[^\n]*)*\n[ \t]*#\s*if[^\n]*'
+                      r'(?:\n[ \t]*#\s*(?:else|elif)[^\n]*)*\n[ \t]*#\s*endif'
+                      r'[^\n]*', '', body)
+        body = re.sub(r'\{\n\n+', '{\n', body)
+        body = re.sub(r'\n\n\n+', '\n\n', body)
+        out.append(text[pos:open_])
+        out.append(body)
+        pos = close
+    out.append(text[pos:])
+    return ''.join(out)
 
 
 # -----------------------------------------------------------------------------
@@ -429,7 +1012,8 @@ LEFTOVERS = [
     (r'\bd_test_object_\w+', 'a standalone object call is left'),
     (r'\bd_test_counter_\w+', 'a counter call is left'),
     (r'\bdtest_\w+', 'a bridge name is left'),
-    (r'\bD_ASSERT_\w+', 'a standalone assertion is left'),
+    # D_ASSERT_SAME_SIZE is dmacro.h's own compile-time check, not the tier's
+    (r'\bD_ASSERT_(?!SAME_SIZE\b)\w+', 'a standalone assertion is left'),
     (r'\breturn\s+group\s*;', 'a group is still returned'),
 ]
 
@@ -447,6 +1031,30 @@ def mark_leftovers(text, path, marks):
                 break
 
 
+def final_path(path):
+    d, b = os.path.split(path)
+    return os.path.join(d, re.sub(r'_tests_sa(?=[_.])', '_tests', b))
+
+
+def final_names(text, path):
+    """d_tests_sa_ -> d_tests_, and the file's own names without _sa."""
+    text = re.sub(r'\bd_tests_sa_', 'd_tests_', text)
+    text = re.sub(r'(#\s*include\s*"[^"]*_tests)_sa(?=[_.][^"]*")', r'\1',
+                  text)
+    for g in re.findall(r'#ifndef\s+(\w*_SA\w*)\s*\n#define\s+\1\b', text):
+        text = re.sub(r'\b%s\b' % g, re.sub(r'_SA(?=_|$)', '', g), text)
+    old, new = os.path.basename(path), os.path.basename(final_path(path))
+    lines = text.split('\n')
+    for i, line in enumerate(lines[:4]):
+        if line.rstrip().endswith(old):
+            head = line.rstrip()[:-len(old)].rstrip()
+            lines[i] = head + ' ' * max(1, 80 - len(head) - len(new)) + new
+            break
+    text = '\n'.join(lines)
+    return re.sub(r'(\* path:\s+\S*)' + re.escape(old), r'\g<1>' + new, text,
+                  count=1)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--from', dest='form', required=True,
@@ -455,12 +1063,29 @@ def main():
     g.add_argument('--in-place', action='store_true')
     g.add_argument('--out')
     ap.add_argument('--report', action='store_true')
+    ap.add_argument('--final', action='store_true')
     ap.add_argument('files', nargs='+')
     a = ap.parse_args()
+    if a.final and not (a.form == 'sa' and a.in_place):
+        ap.error('--final goes with --from sa --in-place')
 
     conv = {'bridge': convert_bridge, 'sa': convert_sa,
             'program': convert_program, 'paths': convert_paths}[a.form]
     marks = []
+    if a.form == 'sa':
+        # which sections check, across every file of the run, before any
+        # changes: a suite's sections call each other across its files
+        for path in a.files:
+            raw = open(path, 'rb').read().decode('utf-8', 'surrogateescape')
+            raw = raw.replace('\r\n', '\n')
+            CHECKERS.update(find_checkers(raw))
+            # a report helper over a counter: `const struct dj_test_counter*`
+            GROUP_HELPERS.update(re.findall(
+                r'^(?:static\s+)?(?:struct\s+)?\w+\s*\**\s*(d_tests?_\w+)\s*\([^;{)]*'
+                r'struct\s+dj_test_object\s*\*\s*\*', raw, re.M))
+            REPORT_HELPERS.update(re.findall(
+                r'^(?:static\s+)?(?:void|bool|int)\s+(d_tests?_\w+)\s*\([^;{)]*'
+                r'const\s+struct\s+dj_test_counter\s*\*', raw, re.M))
     for path in a.files:
         raw = open(path, 'rb').read()
         crlf = b'\r\n' in raw
@@ -469,10 +1094,21 @@ def main():
         new = conv(text, path, marks)
         if a.form != 'paths':
             mark_leftovers(new, path, marks)
+        if a.final:
+            new = final_names(new, path)
         data = new.replace('\n', '\r\n') if crlf else new
         data = data.encode('utf-8', errors='surrogateescape')
         if a.in_place:
             open(path, 'wb').write(data)
+            if a.final:
+                dst = final_path(path)
+                if dst == path:
+                    pass
+                elif os.path.exists(dst):
+                    print('%s: %s is taken: merge by hand' % (path, dst),
+                          file=sys.stderr)
+                else:
+                    os.rename(path, dst)
         elif a.out:
             dst = os.path.join(a.out, path)
             os.makedirs(os.path.dirname(dst), exist_ok=True)

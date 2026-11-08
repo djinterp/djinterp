@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_desc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -313,4 +313,214 @@ void d_fs_tests_desc(
 #endif
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_desc_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * III.  file_desc  --  DESCRIPTOR LIFECYCLE
+ *****************************************************************************/
+
+/*
+d_tests_file_open_close
+  Tests d_file_open / d_file_close_fd.
+*/
+static
+bool d_tests_file_open_close(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    char                  fresh[D_TEST_FILE_PATH_BUF];
+    int                   fd;
+
+    d_test_suite_test(_suite, "d_file_open / d_file_close_fd");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+    d_tests_file_path(fresh, sizeof(fresh), "open_new.txt");
+
+    fd = d_file_open(path, O_RDONLY);
+    D_TEST_CHECK_MSG(_suite,
+                     "open_existing",
+                     fd >= 0,
+                     "d_file_open opens an existing file");
+
+    if (fd >= 0)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "close",
+                         (d_file_close_fd(fd)) == (0),
+                         "d_file_close_fd closes it");
+    }
+
+    fd = d_file_open(fresh, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    D_TEST_CHECK_MSG(_suite,
+                     "create",
+                     fd >= 0,
+                     "d_file_open creates with O_CREAT");
+
+    if (fd >= 0)
+    {
+        (void)d_file_close_fd(fd);
+    }
+
+    (void)d_file_remove(fresh);
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_path",
+                     (d_file_open(NULL, O_RDONLY)) == (-1),
+                     "d_file_open rejects a NULL path");
+    #endif
+    D_TEST_CHECK_MSG(_suite,
+                     "nonexistent",
+                     (d_file_open("no/such/file/at/all", O_RDONLY)) == (-1),
+                     "d_file_open fails for a missing file");
+    D_TEST_CHECK_MSG(_suite,
+                     "close_bad",
+                     (d_file_close_fd(-1)) == (-1),
+                     "d_file_close_fd rejects a bad descriptor");
+
+    return true;
+}
+
+
+/*
+d_tests_file_dup
+  Tests d_file_dup_fd / d_file_dup2_fd, and the close-on-exec property POSIX would silently
+drop.
+*/
+static
+bool d_tests_file_dup(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    int                   fd;
+    int                   dup_fd;
+
+    d_test_suite_test(_suite, "d_file_dup_fd / d_file_dup2_fd");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+
+    fd = d_file_open(path, O_RDONLY);
+
+    if (fd >= 0)
+    {
+        dup_fd = d_file_dup_fd(fd);
+        D_TEST_CHECK_MSG(_suite,
+                         "dup",
+                         dup_fd >= 0,
+                         "d_file_dup_fd returns a descriptor");
+        D_TEST_CHECK_MSG(_suite,
+                         "dup_distinct",
+                         dup_fd != fd,
+                         "...a different one");
+
+#if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) &&                                    \
+      D_CFG_IS_ON(D_CFG_FILE_DESC_CLOEXEC) )
+        // POSIX SPECIFIES that dup() clears FD_CLOEXEC on the copy, so a
+        // careful O_CLOEXEC open followed by a dup silently yields an
+        // inheritable descriptor. d_file_dup_fd uses F_DUPFD_CLOEXEC instead.
+        D_TEST_CHECK_MSG(_suite,
+                         "open_cloexec",
+                         (fcntl(fd, F_GETFD) & FD_CLOEXEC) != 0,
+                         "d_file_open sets close-on-exec");
+        D_TEST_CHECK_MSG(_suite,
+                         "dup_keeps_cloexec",
+                         (fcntl(dup_fd, F_GETFD) & FD_CLOEXEC) != 0,
+                         "d_file_dup_fd preserves it, unlike raw dup()");
+#endif
+
+        if (dup_fd >= 0)
+        {
+            (void)d_file_close_fd(dup_fd);
+        }
+
+        (void)d_file_close_fd(fd);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "dup_bad",
+                     (d_file_dup_fd(-1)) == (-1),
+                     "d_file_dup_fd rejects a bad descriptor");
+
+    fd     = d_file_open(path, O_RDONLY);
+    dup_fd = d_file_open(path, O_RDONLY);
+
+    if ( (fd >= 0) &&
+         (dup_fd >= 0) )
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "dup2",
+                         (d_file_dup2_fd(fd, dup_fd)) == (dup_fd),
+                         "d_file_dup2_fd returns the target descriptor");
+    }
+
+    if (fd >= 0)
+    {
+        (void)d_file_close_fd(fd);
+    }
+
+    if (dup_fd >= 0)
+    {
+        (void)d_file_close_fd(dup_fd);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "dup2_bad_src",
+                     (d_file_dup2_fd(-1, 10)) == (-1),
+                     "d_file_dup2_fd rejects a bad source");
+
+    return true;
+}
+
+
+/*
+d_tests_file_fileno
+  Tests d_file_descriptor_stream.
+*/
+static
+bool d_tests_file_fileno(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    FILE*                 file;
+
+    d_test_suite_test(_suite, "d_file_descriptor_stream");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+
+    file = d_file_open_stream(path, "rb");
+
+    if (file)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "valid",
+                         d_file_descriptor_stream(file) >= 0,
+                         "d_file_descriptor_stream borrows the stream's descriptor");
+        (void)d_file_close_stream(file);
+    }
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null",
+                     (d_file_descriptor_stream(NULL)) == (-1),
+                     "d_file_descriptor_stream rejects NULL");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_desc_all
+  Runs every file_desc test.
+*/
+bool d_tests_file_desc_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "III. file_desc");
+
+    d_tests_file_open_close(_suite);
+    d_tests_file_dup(_suite);
+    d_tests_file_fileno(_suite);
+
+    return true;
 }

@@ -9,7 +9,7 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
 *                                                            revised: 2026.11.05
 *******************************************************************************/
-#include "./djinterp_tests.h"
+#include "./djinterp_tests.h"  // corresponding header
 
 // std
 #include <limits.h>  // SSIZE_MAX, through djinterp.h

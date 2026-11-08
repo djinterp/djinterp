@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_lock.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -171,4 +171,141 @@ void d_fs_tests_lock(
     d_fs_tests_lock_flock_stream(_suite);
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_lock_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * VII.  file_lock  --  ADVISORY LOCKING
+ *
+ *   Single-process tests, which is a real limit worth naming: contention is
+ * the interesting behaviour and it needs a second process, which this harness
+ * does not have. So what is covered is the contract -- operations are
+ * accepted, contradictions are refused, the backend is what the config says.
+ *****************************************************************************/
+
+/*
+d_tests_file_flock
+  Tests d_file_lock_fd.
+*/
+static
+bool d_tests_file_flock(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    int                   fd;
+
+    d_test_suite_test(_suite,
+                      D_FILE_LOCK_IS_PER_DESCRIPTION
+                          ? "d_file_lock_fd (flock: per open file description)"
+                          : "d_file_lock_fd (fcntl: per process -- ANY close drops it)");
+
+    d_tests_file_path(path, sizeof(path), "flock.txt");
+    (void)d_file_write_all(path, "test", 4);
+
+    fd = d_file_open(path, O_RDWR);
+
+    if (fd >= 0)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "shared",
+                         (d_file_lock_fd(fd, D_LOCK_SH)) == (0),
+                         "d_file_lock_fd takes a shared lock");
+        D_TEST_CHECK_MSG(_suite,
+                         "unlock",
+                         (d_file_lock_fd(fd, D_LOCK_UN)) == (0),
+                         "d_file_lock_fd releases it");
+        D_TEST_CHECK_MSG(_suite,
+                         "exclusive",
+                         (d_file_lock_fd(fd, D_LOCK_EX)) == (0),
+                         "d_file_lock_fd takes an exclusive lock");
+        D_TEST_CHECK_MSG(_suite,
+                         "nonblocking",
+                         (d_file_lock_fd(fd, D_LOCK_EX | D_LOCK_NB)) == (0),
+                         "re-locking what we hold does not block");
+        (void)d_file_lock_fd(fd, D_LOCK_UN);
+        (void)d_file_close_fd(fd);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "bad_fd",
+                     (d_file_lock_fd(-1, D_LOCK_SH)) == (-1),
+                     "d_file_lock_fd rejects a bad descriptor");
+
+    // SH|EX is not a richer request, it is a contradiction -- and a platform
+    // handed the OR of two flags does something arbitrary rather than object
+    //   Gated: the refusal IS the parameter check. With validation off the
+    // operation word is passed through unexamined, which is what the knob
+    // asks for, so there is nothing here to assert -- and asserting it anyway
+    // was reporting the build as broken for doing exactly what it was told.
+#if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "contradiction",
+                     (d_file_lock_fd(0, D_LOCK_SH | D_LOCK_EX)) == (-1),
+                     "SH|EX is refused, not guessed at");
+    D_TEST_CHECK_MSG(_suite,
+                     "no_operation",
+                     (d_file_lock_fd(0, D_LOCK_NB)) == (-1),
+                     "NB alone names no operation");
+#endif
+
+    (void)d_file_remove(path);
+
+    return true;
+}
+
+
+/*
+d_tests_file_flock_stream
+  Tests d_file_lock_stream.
+*/
+static
+bool d_tests_file_flock_stream(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    FILE*                 file;
+
+    d_test_suite_test(_suite, "d_file_lock_stream");
+
+    d_tests_file_path(path, sizeof(path), "flock_stream.txt");
+    (void)d_file_write_all(path, "test", 4);
+
+    file = d_file_open_stream(path, "r+b");
+
+    if (file)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "lock",
+                         (d_file_lock_stream(file, D_LOCK_SH)) == (0),
+                         "d_file_lock_stream locks through a stream");
+        (void)d_file_lock_stream(file, D_LOCK_UN);
+        (void)d_file_close_stream(file);
+    }
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null",
+                     (d_file_lock_stream(NULL, D_LOCK_SH)) == (-1),
+                     "d_file_lock_stream rejects NULL");
+    #endif
+
+    (void)d_file_remove(path);
+
+    return true;
+}
+
+
+/*
+d_tests_file_lock_all
+  Runs every file_lock test.
+*/
+bool d_tests_file_lock_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "VII. file_lock");
+
+    d_tests_file_flock(_suite);
+    d_tests_file_flock_stream(_suite);
+
+    return true;
 }

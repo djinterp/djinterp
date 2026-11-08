@@ -7,7 +7,7 @@
 * path:      /src/djinterp/c/memory/dmemory.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.03
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/memory/dmemory.h"
 
@@ -72,6 +72,15 @@ int d_memcpy_s(
         return EINVAL;
     }
 
+    // reject a size above D_MEMORY_RSIZE_MAX before writing anything, as
+    // d_memset_s does: a destination size that large is not one to clear
+    if ( (_destination_size > D_MEMORY_RSIZE_MAX) ||
+         (_amount > D_MEMORY_RSIZE_MAX) )
+    {
+
+        return EINVAL;
+    }
+
     // reject a null source and clear the destination on failure
     if (_source == NULL)
     {
@@ -86,6 +95,18 @@ int d_memcpy_s(
         d_memset(_destination, 0, _destination_size);
 
         return ERANGE;
+    }
+
+    // reject overlapping regions, which Annex K forbids (K.3.7.1.1) and
+    // memcpy leaves undefined; checked before every branch, since MSVC's
+    // memcpy_s does not check it
+    if ( (_amount > 0) &&
+         ((uintptr_t)_destination < (uintptr_t)_source + _amount) &&
+         ((uintptr_t)_source < (uintptr_t)_destination + _amount) )
+    {
+        d_memset(_destination, 0, _destination_size);
+
+        return EINVAL;
     }
 
     // prefer the platform bounds-checked implementation when available
@@ -170,7 +191,8 @@ Parameter(s):
   _size:   number of bytes to duplicate.
 Return:
   A pointer to the new allocation on success; NULL if _source is NULL, _size is
-0, allocation fails, or the copy operation fails.
+0 or above D_MEMORY_RSIZE_MAX (refused before anything is allocated), the
+allocation fails, or the copy operation fails.
 */
 void* d_memdup_s(
     const void* _source,
@@ -179,9 +201,11 @@ void* d_memdup_s(
 {
     void* destination;
 
-    // validate the source and requested allocation size
+    // validate the source and requested allocation size: D_MEMORY_RSIZE_MAX
+    // bounds every bounded function's sizes (dmemory.h, I)
     if ( (_source == NULL) ||
-         (_size == 0) )
+         (_size == 0)      ||
+         (_size > D_MEMORY_RSIZE_MAX) )
     {
 
         return NULL;

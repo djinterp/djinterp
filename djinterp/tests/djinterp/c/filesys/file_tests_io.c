@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_io.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 // std
@@ -766,4 +766,332 @@ void d_fs_tests_io(
     d_fs_tests_io_fappend_all(_suite);
 
     return;
+}
+
+/******************************************************************************
+ * d_tests_file_io_all: this area's block in d_tests_file_run_all
+ *****************************************************************************/
+
+/******************************************************************************
+ * IV.  file_io  --  BYTE TRANSFER
+ *****************************************************************************/
+
+/*
+d_tests_file_read_write
+  Tests d_file_read_fd / d_file_write_fd and their _full forms.
+*/
+static
+bool d_tests_file_read_write(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    char                  write_buf[] = "Test data for read/write";
+    char                  read_buf[64];
+    int                   fd;
+    ssize_t               n;
+
+    d_test_suite_test(_suite, "d_file_read_fd / d_file_write_fd");
+
+    d_tests_file_path(path, sizeof(path), "read_write.txt");
+
+    fd = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    //   d_file_read_fd and d_file_write_fd are the SHORT-TRANSFER primitives: read(2)'s
+    // contract is that a short transfer is success, and the chunk knobs make
+    // it happen deliberately. Asserting == on them passed at the default 1 MiB
+    // chunk by coincidence -- it was testing a lucky number, not the contract,
+    // and it failed the moment the matrix set the chunk to 1. What each one
+    // actually promises is asserted below: the primitive moves SOME bytes and
+    // never more than asked; the _full variant moves ALL of them.
+    if (fd >= 0)
+    {
+        n = d_file_write_fd(fd, write_buf, strlen(write_buf));
+        D_TEST_CHECK_MSG(_suite,
+                         "write_partial",
+                         (n > 0) && (n <= (ssize_t)strlen(write_buf)),
+                         "d_file_write_fd transfers some bytes, never more than asked");
+        (void)d_file_close_fd(fd);
+    }
+
+    fd = d_file_open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    if (fd >= 0)
+    {
+        D_TEST_CHECK_MSG(_suite,
+                         "write_full",
+                         (d_file_write_full_fd(fd, write_buf, strlen(write_buf))) == ((ssize_t)strlen(write_buf)),
+                         "d_file_write_full_fd writes every requested byte");
+        (void)d_file_close_fd(fd);
+    }
+
+    fd = d_file_open(path, O_RDONLY);
+
+    if (fd >= 0)
+    {
+        memset(read_buf, 0, sizeof(read_buf));
+        n = d_file_read_fd(fd, read_buf, sizeof(read_buf) - 1);
+        D_TEST_CHECK_MSG(_suite,
+                         "read_partial",
+                         (n > 0) && (n <= (ssize_t)strlen(write_buf)),
+                         "d_file_read_fd transfers some bytes, never more than asked");
+        (void)d_file_close_fd(fd);
+    }
+
+    // d_file_read_full_fd loops over short reads; on a regular file it must deliver
+    // everything, and report the shortfall honestly at EOF. The integrity
+    // check belongs HERE, after the full read -- hung off d_file_read_fd it was
+    // asserting the whole content survived a call that never promised to
+    // deliver it.
+    fd = d_file_open(path, O_RDONLY);
+
+    if (fd >= 0)
+    {
+        memset(read_buf, 0, sizeof(read_buf));
+        D_TEST_CHECK_MSG(_suite,
+                         "read_full_eof",
+                         (d_file_read_full_fd(fd, read_buf, sizeof(read_buf) - 1)) == ((ssize_t)strlen(write_buf)),
+                         "d_file_read_full_fd returns what EOF allowed");
+        D_TEST_CHECK_MSG(_suite,
+                         "integrity",
+                         d_test_suite_str_equal((read_buf), (write_buf)),
+                         "the bytes survive the round trip");
+        (void)d_file_close_fd(fd);
+    }
+
+    (void)d_file_remove(path);
+
+    D_TEST_CHECK_MSG(_suite,
+                     "read_bad_fd",
+                     (d_file_read_fd(-1, read_buf, 4)) == ((ssize_t)-1),
+                     "d_file_read_fd rejects a bad descriptor");
+    D_TEST_CHECK_MSG(_suite,
+                     "write_bad_fd",
+                     (d_file_write_fd(-1, write_buf, 4)) == ((ssize_t)-1),
+                     "d_file_write_fd rejects a bad descriptor");
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "read_null_buf",
+                     (d_file_read_fd(0, NULL, 4)) == ((ssize_t)-1),
+                     "d_file_read_fd rejects a NULL buffer");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_fread_all
+  Tests d_file_read_all.
+  Tests the following:
+  - reads a whole file, reporting payload bytes only
+  - NUL-terminates when the build says it does
+  - reads an UNSIZED source (the /proc case) rather than returning empty
+*/
+static
+bool d_tests_file_fread_all(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    void*                 content;
+    size_t                size;
+
+    d_test_suite_test(_suite, "d_file_read_all");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+
+    content = d_file_read_all(path, &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "read",
+                     (content) != NULL,
+                     "d_file_read_all reads a file");
+    D_TEST_CHECK_MSG(_suite,
+                     "size",
+                     (size) == (strlen(D_TEST_FILE_TEST_CONTENT)),
+                     "the size is the payload, not the allocation");
+
+#if D_CFG_IS_ON(D_CFG_FILE_READ_NUL_TERMINATE)
+    D_TEST_CHECK_MSG(_suite,
+                     "nul_terminated",
+                     d_test_suite_str_equal(((char*)content), (D_TEST_FILE_TEST_CONTENT)),
+                     "the buffer is usable as a string");
+#else
+    D_TEST_CHECK_MSG(_suite,
+                     "exact_bytes",
+                     content && memcmp(content, D_TEST_FILE_TEST_CONTENT, size) == 0,
+                     "NUL_TERMINATE=0 gives exactly the payload");
+#endif
+
+    if (content)
+    {
+        free(content);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "nonexistent",
+                     (d_file_read_all("no/such/file/at/all", &size)) == NULL,
+                     "d_file_read_all returns NULL for a missing file");
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_path",
+                     (d_file_read_all(NULL, &size)) == NULL,
+                     "d_file_read_all rejects a NULL path");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_fwrite_all
+  Tests d_file_write_all and d_file_append_all.
+*/
+static
+bool d_tests_file_fwrite_all(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    char*                 back;
+    size_t                size;
+
+    d_test_suite_test(_suite, "d_file_write_all / d_file_append_all");
+
+    d_tests_file_path(path, sizeof(path), "fwrite_all.txt");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "write",
+                     (d_file_write_all(path, "test content", 12)) == (0),
+                     "d_file_write_all writes a file");
+
+    back = (char*)d_file_read_all(path, &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "content",
+                     back && size == 12 && memcmp(back, "test content", 12) == 0,
+                     "the bytes land exactly");
+
+    if (back)
+    {
+        free(back);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "overwrite",
+                     (d_file_write_all(path, "new", 3)) == (0),
+                     "d_file_write_all replaces the contents");
+
+    back = (char*)d_file_read_all(path, &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "overwrite_truncates",
+                     back && size == 3,
+                     "...and truncates rather than overlaying");
+
+    if (back)
+    {
+        free(back);
+    }
+
+    D_TEST_CHECK_MSG(_suite,
+                     "append",
+                     (d_file_append_all(path, " tail", 5)) == (0),
+                     "d_file_append_all appends");
+
+    back = (char*)d_file_read_all(path, &size);
+    D_TEST_CHECK_MSG(_suite,
+                     "append_content",
+                     back && size == 8 && memcmp(back, "new tail", 8) == 0,
+                     "the appended bytes follow the old ones");
+
+    if (back)
+    {
+        free(back);
+    }
+
+    (void)d_file_remove(path);
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_path",
+                     (d_file_write_all(NULL, "x", 1)) == (-1),
+                     "d_file_write_all rejects a NULL path");
+    #endif
+
+    // NULL data with a nonzero size is a mistake; NULL data with zero size is
+    // a legitimate way to create an empty file
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_data_sized",
+                     (d_file_write_all(path, NULL, 5)) == (-1),
+                     "NULL data with a size is rejected");
+    #endif
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_data_empty",
+                     (d_file_write_all(path, NULL, 0)) == (0),
+                     "NULL data with size 0 creates an empty file");
+    #endif
+    (void)d_file_remove(path);
+
+    return true;
+}
+
+
+/*
+d_tests_file_fread_all_into
+  Tests d_file_read_all_into -- the no-allocation form.
+*/
+static
+bool d_tests_file_fread_all_into(struct dj_test_suite* _suite)
+{
+    char                  path[D_TEST_FILE_PATH_BUF];
+    char                  buf[128];
+    char                  tiny[4];
+    size_t                size;
+
+    d_test_suite_test(_suite, "d_file_read_all_into");
+
+    d_tests_file_path(path, sizeof(path), D_TEST_FILE_TEST_FILENAME);
+
+    D_TEST_CHECK_MSG(_suite,
+                     "read",
+                     (d_file_read_all_into(path, buf, sizeof(buf), &size)) == (0),
+                     "d_file_read_all_into fills the caller's buffer");
+    D_TEST_CHECK_MSG(_suite,
+                     "size",
+                     (size) == (strlen(D_TEST_FILE_TEST_CONTENT)),
+                     "...and reports the payload size");
+
+    // a file larger than the buffer is a FAILURE, not a truncation. Handing
+    // back a prefix is how a caller ends up parsing half a config file.
+    D_TEST_CHECK_MSG(_suite,
+                     "overflow",
+                     (d_file_read_all_into(path, tiny, sizeof(tiny), &size)) == (ERANGE),
+                     "a file that does not fit is ERANGE, not a prefix");
+
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_path",
+                     (d_file_read_all_into(NULL, buf, sizeof(buf), &size)) == (EINVAL),
+                     "d_file_read_all_into rejects a NULL path");
+    #endif
+    #if D_FILE_VALIDATE_IS_ACTIVE
+    D_TEST_CHECK_MSG(_suite,
+                     "null_buf",
+                     (d_file_read_all_into(path, NULL, 10, &size)) == (EINVAL),
+                     "d_file_read_all_into rejects a NULL buffer");
+    #endif
+
+    return true;
+}
+
+
+/*
+d_tests_file_io_all
+  Runs every file_io test.
+*/
+bool d_tests_file_io_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "IV. file_io");
+
+    d_tests_file_read_write(_suite);
+    d_tests_file_fread_all(_suite);
+    d_tests_file_fwrite_all(_suite);
+    d_tests_file_fread_all_into(_suite);
+
+    return true;
 }

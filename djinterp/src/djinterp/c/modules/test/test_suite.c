@@ -19,7 +19,7 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
 *                                                            revised: 2026.11.05
 *******************************************************************************/
-#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // corresponding header
 
 // std
 #include <stdlib.h>  // malloc, realloc, free

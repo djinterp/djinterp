@@ -1,6 +1,5 @@
 # =============================================================================
-# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/
-#                      CMakeLists.txt
+# djinterp [test]  --  build/cmake/config/testing/djinterp/c/modules/test/CMakeLists.txt
 #
 #   Aggregate over DTest's C suites: every leaf below this directory.
 #

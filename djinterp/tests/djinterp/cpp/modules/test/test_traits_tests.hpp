@@ -85,7 +85,7 @@ IV.   TEST DECLARATIONS
 // the spec-provider face (DTEST_SPEC_MODE) drops it and pulls the spec
 // machinery instead, so the umbrella TU that includes every suite header at
 // once never compiles this suite's fixtures.
-#include <djinterp/cpp/djinterp.hpp>              // NS_* macros (both modes)
+#include <djinterp/cpp/djinterp.hpp>              // framework root
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/modules/test/test_traits.hpp"      // the header under test (section-file mode)
 #endif

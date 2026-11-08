@@ -12,7 +12,7 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
 *                                                            revised: 2026.11.05
 *******************************************************************************/
-#include "./test_suite_tests.h"
+#include "./test_suite_tests.h"  // corresponding header
 
 // std
 #include <stdlib.h>  // free

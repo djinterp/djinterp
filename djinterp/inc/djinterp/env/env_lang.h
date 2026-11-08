@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_lang.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.06
 *******************************************************************************/
 
 /*
@@ -332,8 +332,9 @@ TABLE OF CONTENTS
 //==============================================================================
 // 3.  LANGUAGE PREDICATES
 //==============================================================================
-// Usable in #if. The C++ comparisons exist only under a C++ compiler; the C
-// comparisons always exist, and under C++ compare against 199000L.
+// Usable in #if. Every predicate is always defined: the C++ comparisons are 0
+// under a C compiler (decision 20), and the C comparisons compare against
+// 199000L under C++.
 
 
 // 3.1    C++

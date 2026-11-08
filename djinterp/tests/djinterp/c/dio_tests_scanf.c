@@ -13,7 +13,7 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
 *                                                            revised: 2026.11.05
 *******************************************************************************/
-#include "./dio_tests.h"
+#include "./dio_tests.h"  // corresponding header
 
 // std
 #include <stdio.h>   // EOF, tmpfile, fputs, rewind
