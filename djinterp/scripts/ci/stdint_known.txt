@@ -4,7 +4,6 @@ inc/djinterp/c/modules/parse/parsers/bnf/parse_bnf_common.h	stdint.h
 inc/djinterp/c/modules/test/default/test.h	stdint.h
 inc/djinterp/c/modules/test/default/test_block.h	stdint.h
 inc/djinterp/c/modules/test/default/test_module.h	stdint.h
-inc/djinterp/c/modules/test/test_common.h	stdint.h
 inc/djinterp/c/modules/test/test_cvar.h	stdint.h
 inc/djinterp/c/modules/test/test_event.h	stdint.h
 inc/djinterp/c/modules/test/test_handler.h	stdint.h
@@ -20,7 +19,6 @@ inc/djinterp/c/util/kv.h	stdint.h
 inc/djinterp/c/util/lookup.h	stdint.h
 inc/djinterp/c/util/type_info_common.h	stdint.h
 inc/djinterp/cpp/container/sync/concurrency_strategy_traits.hpp	cstdint
-inc/djinterp/cpp/db/database_common.hpp	cstdint
 inc/djinterp/cpp/modules/net/web.hpp	cstdint
 inc/djinterp/cpp/modules/parse/parsers/cpp/c.hpp	cstdint
 inc/djinterp/tools/dawk/dawk.h	stdint.h
@@ -52,9 +50,6 @@ inc/djinterp/tools/dawk/ext/dext_c.h	stdint.h
 inc/djinterp/tools/dawk/ext/dext_cpp.h	stdint.h
 inc/djinterp/tools/dawk/ext/dext_source.h	stdint.h
 inc/djinterp/tools/dawk/ext/dtoken_node.h	stdint.h
-src/djinterp/c/modules/net/net.c	stdint.h
-src/djinterp/c/modules/net/ssh/ssh_base64.c	stdint.h
-src/djinterp/c/modules/net/ssl_openssl.c	stdint.h
 src/djinterp/tools/dawk/dcheck.c	stdint.h
 src/djinterp/tools/dawk/dinterp.c	stdint.h
 src/djinterp/tools/dawk/dline_width.h	stdint.h
@@ -72,7 +67,6 @@ src/djinterp/tools/dawk/ext/wiki/dwiki_driver.h	stdint.h
 src/djinterp/tools/dawk/ext/wiki/dwiki_tables.h	stdint.h
 tests/dawk/fixtures/c_style/includes/fixed_width.c	inttypes.h, stdint.h
 tests/dawk/fixtures/c_style/structure/shared.hpp	cstdint
-tests/dawk/fuzz_dregex.c	stdint.h
 tests/djinterp/c/cli/test_cli_option_sa.h	stdint.h
 tests/djinterp/c/cli/test_cli_unix_sa.h	stdint.h
 tests/djinterp/c/cli/test_common_tests_sa.h	stdint.h
@@ -87,11 +81,6 @@ tests/djinterp/c/container/registry/registry_tests_sa.h	stdint.h
 tests/djinterp/c/container/vector/ptr_vector_tests_sa.h	stdint.h
 tests/djinterp/c/container/vector/vector_common_tests_sa.h	stdint.h
 tests/djinterp/c/container/vector/vector_tests_sa.h	stdint.h
-tests/djinterp/c/datomic_tests_sa.h	stdint.h
-tests/djinterp/c/dio_tests_sa.h	stdint.h
-tests/djinterp/c/dmacro_tests_sa.h	stdint.h
-tests/djinterp/c/dmutex_tests_sa.h	stdint.h
-tests/djinterp/c/env_tests_sa.h	stdint.h
 tests/djinterp/c/event/event_tests_sa.h	stdint.h
 tests/djinterp/c/functional/compose_tests_sa.h	stdint.h
 tests/djinterp/c/functional/filter_tests_sa.h	stdint.h
@@ -102,15 +91,6 @@ tests/djinterp/c/functional/test_functional_laws.h	stdint.h
 tests/djinterp/c/functional/test_interp.c	stdint.h
 tests/djinterp/c/functional/test_sequence.c	stdint.h
 tests/djinterp/c/functional/test_tier34.c	stdint.h
-tests/djinterp/c/modules/test/default/test_tests_sa.h	stdint.h
-tests/djinterp/c/modules/test/test_common_tests_sa.h	stdint.h
-tests/djinterp/c/modules/test/test_cvar_tests_sa.h	stdint.h
-tests/djinterp/c/modules/test/test_options_tests_sa.h	stdint.h
-tests/djinterp/c/modules/test/test_printer_tests_sa.h	stdint.h
-tests/djinterp/c/modules/test/test_standalone_tests_sa.h	stdint.h
-tests/djinterp/c/modules/test/test_tests_sa.h	stdint.h
-tests/djinterp/c/sync/datomic_tests_sa.h	stdint.h
-tests/djinterp/c/sync/dmutex_tests_sa.h	stdint.h
 tests/djinterp/c/text/test_number_to_string_it.c	inttypes.h
 tests/djinterp/c/text/test_number_to_string_pt.c	inttypes.h
 tests/djinterp/c/util/cli/test_cli_option_sa.h	stdint.h
@@ -181,4 +161,3 @@ tests/djinterp/tools/bitwisedom/platform/macos_macho_flags.c	stdint.h
 tests/djinterp/tools/bitwisedom/platform/win32_hresult.c	stdint.h
 tests/djinterp/tools/bitwisedom/platform/win32_hresults.c	stdint.h
 tests/djinterp/tools/bitwisedom/platform/win32_window_style.c	stdint.h
-tests/djinterp/tools/dawk/fuzz_dregex.c	stdint.h

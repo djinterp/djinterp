@@ -134,6 +134,11 @@ add_library(djinterp_c_runtime STATIC
     "${DJINTERP_SRC_ROOT}/djinterp/c/util/compress/compress_common.c"
     # and the sinks compress_common.c writes through
     "${DJINTERP_SRC_ROOT}/djinterp/c/util/sink_common.c"
+    # the output stream and its formatting half, which header-only C++ code
+    # calls (pdf_builtin_backend.hpp's pdf_num, writer.hpp's sinks), so every
+    # runner on DTest's report path needs them at link time
+    "${DJINTERP_SRC_ROOT}/djinterp/c/util/ostream/ostream.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/c/text/ostream_format.c"
 )
 
 # ---------------------------------------------------------------------------

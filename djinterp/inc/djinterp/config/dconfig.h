@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -42,6 +42,7 @@
 #include "djinterp/config/env/net/curl/cfg_env_curl.h"  // env: curl
 #include "djinterp/config/env/net/ssh/cfg_env_ssh.h"    // env: SSH
 #include "djinterp/config/env/net/imap/cfg_env_imap.h"  // env: IMAP
+#include "djinterp/config/env/cfg_env_printer.h"  // env: the printer
 // env/util: the compression codecs, their link pragmas, the archive formats
 #include "djinterp/config/env/util/compress/cfg_env_compress.h"
 #include "djinterp/config/env/util/compress/cfg_env_compress_link.h"
@@ -105,7 +106,12 @@
 // C++ filesys: the path, and the file tree
 #include "djinterp/config/cpp/filesys/cfg_file_path.h"
 #include "djinterp/config/cpp/container/tree/file/cfg_filesys.h"
-// C++ options
+// c/util/ostream: the output stream, after filesys (its file backend),
+// then text's template formatter over it
+#include "djinterp/config/c/util/ostream/cfg_ostream.h"
+#include "djinterp/config/c/text/cfg_ostream_template.h"
+// options: the C environment source, then the C++ options
+#include "djinterp/config/c/option/cfg_option_env.h"
 #include "djinterp/config/cpp/option/cfg_option.h"
 // c/modules/test: the object and its parts (the printer comes later)
 #include "djinterp/config/c/modules/test/cfg_test_object.h"
@@ -121,6 +127,8 @@
 #include "djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"
 #include "djinterp/config/tools/cli/cfg_cli.h"
 #include "djinterp/config/c/modules/parsegen/cfg_parsegen.h"
+// tools: bitwisedom
+#include "djinterp/config/tools/bitwisedom/cfg_bitwisedom.h"
 // c/modules/math: the generic value's boxes, then the wide integer's
 #include "djinterp/config/c/modules/math/cfg_value.h"       // boxed holders
 #include "djinterp/config/c/modules/math/cfg_value_wide.h"  // wide integer
