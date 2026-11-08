@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [c]                                                        djinterp.h
 *
-* djinterp C framework root header.
+* djinterp framework root header for C/C++.
 *   Targets a tentative C99 language floor and supplies the common facilities
 * assumed by other modules: cross-platform scalar types, the qualifier kit,
 * shared function-pointer typedefs, the global keyword vocabulary, and
