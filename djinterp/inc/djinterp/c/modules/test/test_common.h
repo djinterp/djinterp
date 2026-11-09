@@ -1,23 +1,23 @@
 /*******************************************************************************
-* djinterp [test][c]                                               test_common.h
+* djinterp [c/test]                                                test_common.h
 *
-*   This module defines the DTest vocabulary common to both the C and C++ 
-* implementations. Specifies the status (`dj_test_status`) and two identifier 
-* types (`dj_test_type_id` and `dj_test_callable_id`), as defined by the 
+*   This module defines the DTest vocabulary common to both the C and C++
+* implementations. Specifies the status (`dj_test_status`) and two identifier
+* types (`dj_test_type_id` and `dj_test_callable_id`), as defined by the
 * `D_CFG_*` variables in `cfg_test_object.h`. Compiles in both C and/or C++ (or
 * both, in the case of the latter.
-* 
+*
 * Notes
 * =====
 *  1. `dj_test_status` is a C++ SCOPED enum (`test_status::passed`) but C has no
-*     equivalent. 
-*     - Therefore, the VALUES are written once, as macros.  Each language then 
-*       declares the enum in the form it can express; both declarations read 
-*       the same macros. 
+*     equivalent.
+*     - Therefore, the VALUES are written once, as macros.  Each language then
+*       declares the enum in the form it can express; both declarations read
+*       the same macros.
 *  2. event-agnostic by design
 *     - included by `test_event.h` but not the other way around.
-*  3. widths come from the config (not from this file) 
-*     
+*  3. widths come from the config (not from this file)
+*
 *     AN EARLIER BANNER ARGUED THE OPPOSITE for the event id, and it is worth
 * saying why it was superseded rather than letting it look like an oversight.
 * It read: left as size_t rather than pinned, "because pinning it would change
@@ -43,7 +43,7 @@
 *  1. The following types are set by the following values:
 *     +----------------------+-------------------------------+-----------------+
 *     |      type            |       config variable         |     default     |
-*     +----------------------+-------------------------------+-----------------+ 
+*     +----------------------+-------------------------------+-----------------+
 *     | dj_test_status       |  D_CFG_TEST_STATUS_TYPE       |     int32_t     |
 *     | dj_test_type_id      |  D_CFG_TEST_TYPE_ID_TYPE      |     int32_t     |
 *     | dj_test_callable_id  |  D_CFG_TEST_CALLABLE_ID_TYPE  |     int32_t     |
@@ -51,20 +51,20 @@
 *     Each typedef asserts what the knob must satisfy:
 *     - signedness
 *     - a width of 1, 2, 4 or 8 bytes.
-* 
+*
 *   IMPORTANT:
 *   ----------
 *   Code names the typedef, NEVER the underlying type:
-*   - A knob that names a type (instead of a typedef) cannot be checked against 
+*   - A knob that names a type (instead of a typedef) cannot be checked against
       a declared bit count the way a width knob can
-      - Therefore: the assertions check the PROPERTIES the code depends on 
-        instead. 
+      - Therefore: the assertions check the PROPERTIES the code depends on
+        instead.
 *   - Writing `int32_t` where `dj_test_type_id` is meant compiles today and
 *     breaks silently the moment the width is reconfigured. That is the one
 *     thing this mechanism exists to prevent.
 *   - As per dconfig 6.1: misconfiguration results in a build-time failure.
-*   
-* 
+*
+*
 * path:      /inc/djinterp/c/modules/test/test_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
@@ -105,19 +105,19 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-// re_std
-#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 // djinterp
 #include "../../djinterp.h"                                  // framework root
 #include "../../../config/c/modules/test/cfg_test_object.h"  // D_CFG_TEST_*
+// re_std
+#include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 
 
 //==============================================================================
 // 1.  STATUS VALUES
 //==============================================================================
-// The value set, written once, here.  
-// Both enum declarations below read these, so the two notations cannot drift.  
-// Values are pinned, because a status is recorded in a parity stream and passed 
+// The value set, written once, here.
+// Both enum declarations below read these, so the two notations cannot drift.
+// Values are pinned, because a status is recorded in a parity stream and passed
 // across the DTest bridge.
 
 // 1.1    value set
@@ -125,7 +125,7 @@ TABLE OF CONTENTS
 
 // 1.1.1
 // D_TEST_STATUS_PASSED
-//   constant: this status value indicates that the test both ran AND every 
+//   constant: this status value indicates that the test both ran AND every
 // check held.
 #define D_TEST_STATUS_PASSED    0
 
