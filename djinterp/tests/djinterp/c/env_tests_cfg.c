@@ -181,20 +181,6 @@ bool d_tests_env_cfg_bit_flags(
         all_assertions_passed = false;
     }
 
-    printf("%s    Bit flags: LANG=0x%02X POSIX=0x%02X COMPILER=0x%02X "
-           "OS=0x%02X ARCH=0x%02X BUILD=0x%02X\n",
-           D_INDENT,
-           D_CFG_ENV_BIT_LANG,
-           D_CFG_ENV_BIT_POSIX,
-           D_CFG_ENV_BIT_COMPILER,
-           D_CFG_ENV_BIT_OS,
-           D_CFG_ENV_BIT_ARCH,
-           D_CFG_ENV_BIT_BUILD);
-
-    printf("%s    Combined: 0x%02X (expected 0x3F)\n",
-           D_INDENT,
-           combined_flags);
-
     return all_assertions_passed;
 }
 
@@ -266,9 +252,6 @@ bool d_tests_env_cfg_custom_value(
     // identify and report current mode
     if (cfg_value == 0)
     {
-        printf("%s    Mode: FULL AUTOMATIC DETECTION (D_CFG_ENV_CUSTOM = 0)\n",
-               D_INDENT);
-
         if (!D_TEST_CHECK_MSG(_suite,
                               "automatic detection mode active",
                               true,
@@ -279,11 +262,6 @@ bool d_tests_env_cfg_custom_value(
     }
     else if (cfg_value == 1)
     {
-        printf("%s    Mode: SKIP ALL DETECTION (D_CFG_ENV_CUSTOM = 1)\n",
-               D_INDENT);
-        printf("%s    Note: requires pre-defined D_ENV_DETECTED_* variables\n",
-               D_INDENT);
-
         if (!D_TEST_CHECK_MSG(_suite,
                               "skip-all mode active",
                               true,
@@ -294,45 +272,6 @@ bool d_tests_env_cfg_custom_value(
     }
     else
     {
-        printf("%s    Mode: SELECTIVE DETECTION (D_CFG_ENV_CUSTOM = 0x%02X)\n",
-               D_INDENT,
-               cfg_value);
-
-        // report which sections are skipped
-        printf("%s    Skipped sections:", D_INDENT);
-
-        if (cfg_value & D_CFG_ENV_BIT_LANG)
-        {
-            printf(" LANG");
-        }
-
-        if (cfg_value & D_CFG_ENV_BIT_POSIX)
-        {
-            printf(" POSIX");
-        }
-
-        if (cfg_value & D_CFG_ENV_BIT_COMPILER)
-        {
-            printf(" COMPILER");
-        }
-
-        if (cfg_value & D_CFG_ENV_BIT_OS)
-        {
-            printf(" OS");
-        }
-
-        if (cfg_value & D_CFG_ENV_BIT_ARCH)
-        {
-            printf(" ARCH");
-        }
-
-        if (cfg_value & D_CFG_ENV_BIT_BUILD)
-        {
-            printf(" BUILD");
-        }
-
-        printf("\n");
-
         if (!D_TEST_CHECK_MSG(_suite,
                               "selective detection mode active",
                               true,
@@ -454,33 +393,6 @@ bool d_tests_env_cfg_enabled_macros(
         all_assertions_passed = false;
     }
 
-    // report current enabled states
-    printf("%s    Section enable states:\n", D_INDENT);
-    printf("%s      LANG:     %s (expected %s)\n",
-           D_INDENT,
-           D_CFG_ENV_LANG_ENABLED ? "ENABLED" : "DISABLED",
-           lang_enabled_expected ? "ENABLED" : "DISABLED");
-    printf("%s      POSIX:    %s (expected %s)\n",
-           D_INDENT,
-           D_CFG_ENV_POSIX_ENABLED ? "ENABLED" : "DISABLED",
-           posix_enabled_expected ? "ENABLED" : "DISABLED");
-    printf("%s      COMPILER: %s (expected %s)\n",
-           D_INDENT,
-           D_CFG_ENV_COMPILER_ENABLED ? "ENABLED" : "DISABLED",
-           compiler_enabled_expected ? "ENABLED" : "DISABLED");
-    printf("%s      OS:       %s (expected %s)\n",
-           D_INDENT,
-           D_CFG_ENV_OS_ENABLED ? "ENABLED" : "DISABLED",
-           os_enabled_expected ? "ENABLED" : "DISABLED");
-    printf("%s      ARCH:     %s (expected %s)\n",
-           D_INDENT,
-           D_CFG_ENV_ARCH_ENABLED ? "ENABLED" : "DISABLED",
-           arch_enabled_expected ? "ENABLED" : "DISABLED");
-    printf("%s      BUILD:    %s (expected %s)\n",
-           D_INDENT,
-           D_CFG_ENV_BUILD_ENABLED ? "ENABLED" : "DISABLED",
-           build_enabled_expected ? "ENABLED" : "DISABLED");
-
     return all_assertions_passed;
 }
 
@@ -511,8 +423,6 @@ bool d_tests_env_cfg_enabled_zero_case(
     // when custom == 0, all should be enabled
 
     #if (D_CFG_ENV_CUSTOM == 0)
-        printf("%s    D_CFG_ENV_CUSTOM is 0, verifying all sections enabled\n",
-               D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "LANG enabled when CUSTOM == 0",
@@ -562,11 +472,6 @@ bool d_tests_env_cfg_enabled_zero_case(
             all_assertions_passed = false;
         }
     #else
-        printf("%s    D_CFG_ENV_CUSTOM is %d, skipping zero-case verification\n",
-               D_INDENT,
-               D_CFG_ENV_CUSTOM);
-        printf("%s    (test only applicable when D_CFG_ENV_CUSTOM == 0)\n",
-               D_INDENT);
 
         // still count as pass since we can't test this case in current config
         if (!D_TEST_CHECK_MSG(_suite,
@@ -632,12 +537,6 @@ bool d_tests_env_cfg_detected_vars_lang(
         has_c_detected = true;
     #endif
 
-    printf("%s    C++ detected vars present: %s\n",
-           D_INDENT,
-           has_cpp_detected ? "YES" : "NO");
-    printf("%s    C detected vars present:   %s\n",
-           D_INDENT,
-           has_c_detected ? "YES" : "NO");
 
     // verify D_CFG_ENV_DETECTED_CPP consistency
     #ifdef D_CFG_ENV_DETECTED_CPP
@@ -649,7 +548,6 @@ bool d_tests_env_cfg_detected_vars_lang(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_CFG_ENV_DETECTED_CPP is defined\n", D_INDENT);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_CFG_ENV_DETECTED_CPP absent when no C++ vars",
@@ -659,7 +557,6 @@ bool d_tests_env_cfg_detected_vars_lang(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_CFG_ENV_DETECTED_CPP is NOT defined\n", D_INDENT);
     #endif
 
     // verify D_CFG_ENV_DETECTED_C_ONLY consistency
@@ -672,7 +569,6 @@ bool d_tests_env_cfg_detected_vars_lang(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_CFG_ENV_DETECTED_C_ONLY is defined\n", D_INDENT);
     #else
         // c_only should be absent if we have cpp or no c vars
         if (!D_TEST_CHECK_MSG(_suite,
@@ -683,7 +579,6 @@ bool d_tests_env_cfg_detected_vars_lang(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_CFG_ENV_DETECTED_C_ONLY is NOT defined\n", D_INDENT);
     #endif
 
     // verify language bit in D_CFG_ENV_CUSTOM
@@ -739,9 +634,6 @@ bool d_tests_env_cfg_detected_vars_compiler(
         has_compiler_detected = true;
     #endif
 
-    printf("%s    Compiler detected vars present: %s\n",
-           D_INDENT,
-           has_compiler_detected ? "YES" : "NO");
 
     // simulating nothing, the section runs its own detection
     if (!D_TEST_CHECK_MSG(_suite,
@@ -769,8 +661,6 @@ bool d_tests_env_cfg_detected_vars_compiler(
 
     // test MSVC-specific macros
     #ifdef D_ENV_DETECTED_COMPILER_MSVC
-        printf("%s    MSVC detected via D_ENV_DETECTED_COMPILER_MSVC\n",
-               D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_CRT_MSVC == 1 for MSVC",
@@ -813,14 +703,6 @@ bool d_tests_env_cfg_detected_vars_compiler(
         #endif
     #endif
 
-#ifdef D_ENV_CRT_MSVC
-        printf("%s    D_ENV_CRT_MSVC: %d\n", D_INDENT, D_ENV_CRT_MSVC);
-        printf("%s    D_ENV_MSC_VER:  %d\n", D_INDENT, D_ENV_MSC_VER);
-#else
-        printf("%s    D_ENV_CRT_MSVC: (not defined)\n", D_INDENT);
-        printf("%s    D_ENV_MSC_VER:  (not defined)\n", D_INDENT);
-#endif
-
     return all_assertions_passed;
 }
 
@@ -855,73 +737,58 @@ bool d_tests_env_cfg_detected_vars_os(
     #ifdef D_ENV_DETECTED_OS_APPLE
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_APPLE is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_MACOS
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_MACOS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_IOS
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_IOS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_LINUX
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_LINUX is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_ANDROID
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_ANDROID is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_WINDOWS
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_WINDOWS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_BSD
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_BSD is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_SOLARIS
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_SOLARIS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_UNIX
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_UNIX is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_MSDOS
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_MSDOS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_OS_UNKNOWN
         has_os_detected = true;
         os_count++;
-        printf("%s    D_ENV_DETECTED_OS_UNKNOWN is defined\n", D_INDENT);
     #endif
 
-    printf("%s    OS detected vars present: %s (count: %d)\n",
-           D_INDENT,
-           has_os_detected ? "YES" : "NO",
-           os_count);
 
     // verify at most one OS is detected (exclusive)
     if (!D_TEST_CHECK_MSG(_suite,
@@ -980,79 +847,63 @@ bool d_tests_env_cfg_detected_vars_arch(
     #ifdef D_ENV_DETECTED_ARCH_X86
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_X86 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_X64
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_X64 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_ARM
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_ARM is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_ARM64
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_ARM64 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_RISCV
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_RISCV is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_POWERPC
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_POWERPC is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_MIPS
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_MIPS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_SPARC
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_SPARC is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_S390
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_S390 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_IA64
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_IA64 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_ALPHA
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_ALPHA is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_ARCH_UNKNOWN
         has_arch_detected = true;
         arch_count++;
-        printf("%s    D_ENV_DETECTED_ARCH_UNKNOWN is defined\n", D_INDENT);
     #endif
 
-    printf("%s    Arch detected vars present: %s (count: %d)\n",
-           D_INDENT,
-           has_arch_detected ? "YES" : "NO",
-           arch_count);
 
     // verify at most one arch is detected (exclusive)
     if (!D_TEST_CHECK_MSG(_suite,
@@ -1113,18 +964,13 @@ bool d_tests_env_cfg_detected_vars_build(
     #ifdef D_ENV_DETECTED_BUILD_DEBUG
         has_build_detected = true;
         has_debug          = true;
-        printf("%s    D_ENV_DETECTED_BUILD_DEBUG is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_BUILD_RELEASE
         has_build_detected = true;
         has_release        = true;
-        printf("%s    D_ENV_DETECTED_BUILD_RELEASE is defined\n", D_INDENT);
     #endif
 
-    printf("%s    Build detected vars present: %s\n",
-           D_INDENT,
-           has_build_detected ? "YES" : "NO");
 
     // verify debug and release are mutually exclusive
     if (!D_TEST_CHECK_MSG(_suite,
@@ -1167,7 +1013,6 @@ bool d_tests_env_cfg_detected_vars_posix(
     bool   all_assertions_passed;
     bool   has_posix_detected;
     int    posix_version_count;
-    int    posix_feature_count;
 
     if (!_suite)
     {
@@ -1179,94 +1024,69 @@ bool d_tests_env_cfg_detected_vars_posix(
     all_assertions_passed  = true;
     has_posix_detected     = false;
     posix_version_count    = 0;
-    posix_feature_count    = 0;
 
     // check for POSIX version detected variables
     #ifdef D_ENV_DETECTED_POSIX_1988
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1988 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1990
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1990 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1993
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1993 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1996
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1996 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2001
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2001 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2008
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2008 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2017
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2017 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2024
         has_posix_detected = true;
         posix_version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2024 is defined\n", D_INDENT);
     #endif
 
     // check for POSIX feature detected variables
     #ifdef D_ENV_DETECTED_POSIX_XSI
         has_posix_detected = true;
-        posix_feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_XSI is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_THREADS
         has_posix_detected = true;
-        posix_feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_THREADS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_REALTIME
         has_posix_detected = true;
-        posix_feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_REALTIME is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_SOCKETS
         has_posix_detected = true;
-        posix_feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_SOCKETS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_NONE
         has_posix_detected = true;
-        printf("%s    D_ENV_DETECTED_POSIX_NONE is defined\n", D_INDENT);
     #endif
 
-    printf("%s    POSIX detected vars present: %s\n",
-           D_INDENT,
-           has_posix_detected ? "YES" : "NO");
-    printf("%s    Version vars: %d, Feature vars: %d\n",
-           D_INDENT,
-           posix_version_count,
-           posix_feature_count);
 
     // verify at most one POSIX version is detected (exclusive)
     if (!D_TEST_CHECK_MSG(_suite,

@@ -177,7 +177,14 @@ bool d_tests_dmemory_run_all(struct dj_test_suite* _suite)
 
     if (!setup_success)
     {
-        printf("Failed to setup dmemory test environment\n");
+        // a failed setup is a failed test, not a line on stdout
+        (void)d_test_suite_test(_suite, "setup");
+        (void)D_TEST_CHECK_MSG(_suite,
+                               "setup",
+                               false,
+                               "the dmemory test environment could not "
+                               "be set up");
+
         return false;
     }
 

@@ -60,7 +60,7 @@ bool d_tests_dmacro_inc_basic(
                           "incrementing 0 should give 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(1)
@@ -72,7 +72,7 @@ bool d_tests_dmacro_inc_basic(
                           "incrementing 1 should give 2"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(5)
@@ -84,7 +84,7 @@ bool d_tests_dmacro_inc_basic(
                           "incrementing 5 should give 6"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(9) - single to double digit boundary
@@ -96,7 +96,7 @@ bool d_tests_dmacro_inc_basic(
                           "incrementing 9 should give 10"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(10)
@@ -108,7 +108,7 @@ bool d_tests_dmacro_inc_basic(
                           "incrementing 10 should give 11"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -148,7 +148,7 @@ bool d_tests_dmacro_inc_medium(
                           "incrementing 15 should give 16"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(16)
@@ -160,7 +160,7 @@ bool d_tests_dmacro_inc_medium(
                           "incrementing 16 should give 17"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(20)
@@ -172,7 +172,7 @@ bool d_tests_dmacro_inc_medium(
                           "incrementing 20 should give 21"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(31) - power of 2 minus 1
@@ -184,7 +184,7 @@ bool d_tests_dmacro_inc_medium(
                           "incrementing 31 should give 32"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(32)
@@ -196,7 +196,7 @@ bool d_tests_dmacro_inc_medium(
                           "incrementing 32 should give 33"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -236,7 +236,7 @@ bool d_tests_dmacro_inc_large(
                           "incrementing 40 should give 41"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(50)
@@ -248,7 +248,7 @@ bool d_tests_dmacro_inc_large(
                           "incrementing 50 should give 51"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(62)
@@ -260,7 +260,7 @@ bool d_tests_dmacro_inc_large(
                           "incrementing 62 should give 63"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC(63) - boundary for 64 variant
@@ -272,7 +272,7 @@ bool d_tests_dmacro_inc_large(
                           "incrementing 63 should give 64"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -313,7 +313,7 @@ bool d_tests_dmacro_inc_chained(
                           "double increment of 0 should give 2"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test triple increment: D_INC(D_INC(D_INC(0)))
@@ -325,7 +325,7 @@ bool d_tests_dmacro_inc_chained(
                           "triple increment of 0 should give 3"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test quadruple increment
@@ -337,7 +337,7 @@ bool d_tests_dmacro_inc_chained(
                           "quadruple increment of 0 should give 4"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test chained from non-zero base
@@ -349,7 +349,7 @@ bool d_tests_dmacro_inc_chained(
                           "triple increment of 10 should give 13"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC result in arithmetic expression
@@ -361,7 +361,7 @@ bool d_tests_dmacro_inc_chained(
                           "6 + 11 should equal 17"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_INC in multiplication
@@ -373,7 +373,7 @@ bool d_tests_dmacro_inc_chained(
                           "4 * 5 should equal 20"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -418,7 +418,7 @@ bool d_tests_dmacro_eval_basic(
                           "D_EVAL should pass through integer"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_EVAL with expression
@@ -430,7 +430,7 @@ bool d_tests_dmacro_eval_basic(
                           "D_EVAL should evaluate expression"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_EVAL with macro result
@@ -442,7 +442,7 @@ bool d_tests_dmacro_eval_basic(
                           "D_EVAL should expand D_INC"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_EVAL with string
@@ -454,7 +454,7 @@ bool d_tests_dmacro_eval_basic(
                           "D_EVAL should pass through string"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_result);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_result);
     }
 
     // test D_EVAL with D_VARG_COUNT
@@ -466,7 +466,7 @@ bool d_tests_dmacro_eval_basic(
                           "D_EVAL should expand D_VARG_COUNT"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -506,7 +506,7 @@ bool d_tests_dmacro_eval_nested(
                           "double D_EVAL should be stable"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test triple D_EVAL
@@ -518,7 +518,7 @@ bool d_tests_dmacro_eval_nested(
                           "triple D_EVAL should be stable"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test nested D_EVAL with macro expansion
@@ -530,7 +530,7 @@ bool d_tests_dmacro_eval_nested(
                           "nested eval with nested inc"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_EVAL with complex expression
@@ -542,7 +542,7 @@ bool d_tests_dmacro_eval_nested(
                           "D_EVAL with complex expression (6+10)"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -587,7 +587,7 @@ bool d_tests_dmacro_for_each_stringify(
                               "should create array of 3 stringified identifiers"))
         {
             all_assertions_passed = false;
-            printf("%s    Got count: %zu\n", D_INDENT, count);
+            (void)d_test_suite_note(_suite, "Got count: %zu", count);
         }
 
         strings[0] = test_arr[0];
@@ -600,7 +600,7 @@ bool d_tests_dmacro_for_each_stringify(
                               "D_STRINGIFY should convert alpha to \"alpha\""))
         {
             all_assertions_passed = false;
-            printf("%s    Got: \"%s\"\n", D_INDENT, strings[0]);
+            (void)d_test_suite_note(_suite, "Got: \"%s\"", strings[0]);
         }
 
         if (!D_TEST_CHECK_MSG(_suite,
@@ -609,7 +609,7 @@ bool d_tests_dmacro_for_each_stringify(
                               "D_STRINGIFY should convert beta to \"beta\""))
         {
             all_assertions_passed = false;
-            printf("%s    Got: \"%s\"\n", D_INDENT, strings[1]);
+            (void)d_test_suite_note(_suite, "Got: \"%s\"", strings[1]);
         }
 
         if (!D_TEST_CHECK_MSG(_suite,
@@ -618,7 +618,7 @@ bool d_tests_dmacro_for_each_stringify(
                               "D_STRINGIFY should convert gamma to \"gamma\""))
         {
             all_assertions_passed = false;
-            printf("%s    Got: \"%s\"\n", D_INDENT, strings[2]);
+            (void)d_test_suite_note(_suite, "Got: \"%s\"", strings[2]);
         }
     }
 
@@ -668,9 +668,9 @@ bool d_tests_dmacro_eval_practical(
                           "D_INC can generate sequences"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d,%d,%d,%d,%d\n", D_INDENT,
-               sequence[0], sequence[1], sequence[2],
-               sequence[3], sequence[4]);
+        (void)d_test_suite_note(_suite, "Got: %d,%d,%d,%d,%d",
+                                sequence[0], sequence[1], sequence[2],
+                                sequence[3], sequence[4]);
     }
 
     // pattern: chained D_INC to compute value
@@ -683,7 +683,7 @@ bool d_tests_dmacro_eval_practical(
                           "chained increment pattern"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // pattern: using D_VARG_COUNT with D_INC
@@ -695,7 +695,7 @@ bool d_tests_dmacro_eval_practical(
                           "combining counting with increment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // pattern: conditional computation simulation
@@ -709,7 +709,7 @@ bool d_tests_dmacro_eval_practical(
                               "conditional pattern (1 * inc(20))"))
         {
             all_assertions_passed = false;
-            printf("%s    Got: %d\n", D_INDENT, result);
+            (void)d_test_suite_note(_suite, "Got: %d", result);
         }
     }
 

@@ -91,14 +91,6 @@ bool d_tests_env_pp_limit_constants_c89(
         all_assertions_passed = false;
     }
 
-    printf("%s    C89 limits: args=%d nest=%d ids=%d params=%d str=%d\n",
-           D_INDENT,
-           D_ENV_PP_LIMIT_C89_MACRO_ARGS,
-           D_ENV_PP_LIMIT_C89_NESTING_DEPTH,
-           D_ENV_PP_LIMIT_C89_MACRO_IDS,
-           D_ENV_PP_LIMIT_C89_PARAMS,
-           D_ENV_PP_LIMIT_C89_STRING_LENGTH);
-
     return all_assertions_passed;
 }
 
@@ -172,14 +164,6 @@ bool d_tests_env_pp_limit_constants_c99(
         all_assertions_passed = false;
     }
 
-    printf("%s    C99 limits: args=%d nest=%d ids=%d params=%d str=%d\n",
-           D_INDENT,
-           D_ENV_PP_LIMIT_C99_MACRO_ARGS,
-           D_ENV_PP_LIMIT_C99_NESTING_DEPTH,
-           D_ENV_PP_LIMIT_C99_MACRO_IDS,
-           D_ENV_PP_LIMIT_C99_PARAMS,
-           D_ENV_PP_LIMIT_C99_STRING_LENGTH);
-
     return all_assertions_passed;
 }
 
@@ -252,14 +236,6 @@ bool d_tests_env_pp_limit_constants_cpp(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    C++ limits: args=%d nest=%d ids=%d params=%d str=%d\n",
-           D_INDENT,
-           D_ENV_PP_LIMIT_CPP_MACRO_ARGS,
-           D_ENV_PP_LIMIT_CPP_NESTING_DEPTH,
-           D_ENV_PP_LIMIT_CPP_MACRO_IDS,
-           D_ENV_PP_LIMIT_CPP_PARAMS,
-           D_ENV_PP_LIMIT_CPP_STRING_LENGTH);
 
     return all_assertions_passed;
 }
@@ -476,7 +452,6 @@ bool d_tests_env_pp_min_limits_values(
 
     // test language standard-specific limits
     #ifdef D_ENV_LANG_CPP_STANDARD
-        printf("%s    Detected C++ standard\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "C++ min macro args == C++ standard limit",
@@ -520,7 +495,6 @@ bool d_tests_env_pp_min_limits_values(
 
     #elif defined(D_ENV_LANG_IS_C99_OR_HIGHER)
         #if D_ENV_LANG_IS_C99_OR_HIGHER
-            printf("%s    Detected C99 or higher standard\n", D_INDENT);
 
             if (!D_TEST_CHECK_MSG(_suite,
                                   "C99+ min macro args == C99 standard limit",
@@ -562,7 +536,6 @@ bool d_tests_env_pp_min_limits_values(
                 all_assertions_passed = false;
             }
         #else
-            printf("%s    Detected C89/C95 standard\n", D_INDENT);
 
             if (!D_TEST_CHECK_MSG(_suite,
                                   "C89 min macro args == C89 standard limit",
@@ -605,14 +578,6 @@ bool d_tests_env_pp_min_limits_values(
             }
         #endif
     #endif
-
-    printf("%s    Minimum limits: args=%d nest=%d ids=%d params=%d str=%d\n",
-           D_INDENT,
-           D_ENV_PP_MIN_MACRO_ARGS,
-           D_ENV_PP_MIN_NESTING_DEPTH,
-           D_ENV_PP_MIN_MACRO_IDS,
-           D_ENV_PP_MIN_PARAMS,
-           D_ENV_PP_MIN_STRING_LENGTH);
 
     return all_assertions_passed;
 }
@@ -850,20 +815,9 @@ bool d_tests_env_pp_max_limits_values(
         all_assertions_passed = false;
     }
 
-    printf("%s    Maximum limits: args=%d nest=%d ids=%d str=%d\n",
-           D_INDENT,
-           D_ENV_PP_MAX_MACRO_ARGS,
-           D_ENV_PP_MAX_NESTING_DEPTH,
-           D_ENV_PP_MAX_MACRO_IDS,
-           D_ENV_PP_MAX_STRING_LENGTH);
-
-    #ifdef D_ENV_PP_LIMIT_SOURCE
-        printf("%s    Limit source: %s\n", D_INDENT, D_ENV_PP_LIMIT_SOURCE);
-    #endif
 
     // test specific known compiler limits
     #if defined(D_ENV_COMPILER_GCC)
-        printf("%s    Detected GCC compiler\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "GCC max macro args == 10000",
@@ -898,7 +852,6 @@ bool d_tests_env_pp_max_limits_values(
         }
 
     #elif defined(D_ENV_COMPILER_CLANG)
-        printf("%s    Detected Clang compiler\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "Clang max macro args == 10000",
@@ -933,7 +886,6 @@ bool d_tests_env_pp_max_limits_values(
         }
 
     #elif defined(D_ENV_COMPILER_MSVC)
-        printf("%s    Detected MSVC compiler\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "MSVC max macro args == 127",
@@ -968,7 +920,6 @@ bool d_tests_env_pp_max_limits_values(
         }
 
     #elif defined(D_ENV_COMPILER_BORLAND)
-        printf("%s    Detected Borland compiler\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "Borland max macro args == 32",
@@ -1002,7 +953,6 @@ bool d_tests_env_pp_max_limits_values(
             all_assertions_passed = false;
         }
     #else
-        printf("%s    Unknown or undetected compiler\n", D_INDENT);
 
         // for unknown compilers, max should equal min (fallback to standard minimums)
         if (!D_TEST_CHECK_MSG(_suite,
@@ -1269,22 +1219,6 @@ bool d_tests_env_pp_utility_macros_functionality(
         all_assertions_passed = false;
     }
 
-    printf("%s    D_ENV_PP_ARGS_WITHIN_LIMIT(64) = %d\n",
-           D_INDENT,
-           D_ENV_PP_ARGS_WITHIN_LIMIT(64));
-
-    printf("%s    D_ENV_PP_ARGS_WITHIN_STANDARD(30) = %d\n",
-           D_INDENT,
-           D_ENV_PP_ARGS_WITHIN_STANDARD(30));
-
-    printf("%s    D_ENV_PP_IS_UNLIMITED(D_ENV_PP_MAX_MACRO_IDS) = %d\n",
-           D_INDENT,
-           D_ENV_PP_IS_UNLIMITED(D_ENV_PP_MAX_MACRO_IDS));
-
-    printf("%s    D_ENV_PP_EFFECTIVE_LIMIT(D_ENV_PP_MAX_MACRO_IDS) = %ld\n",
-           D_INDENT,
-           D_ENV_PP_EFFECTIVE_LIMIT(D_ENV_PP_MAX_MACRO_IDS));
-
     return all_assertions_passed;
 }
 
@@ -1345,9 +1279,6 @@ bool d_tests_env_pp_va_opt_detection(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_PP_HAS_VA_OPT = %d\n",
-               D_INDENT,
-               D_ENV_PP_HAS_VA_OPT);
 
         // verify value is either 0 or 1
         if (!D_TEST_CHECK_MSG(_suite,

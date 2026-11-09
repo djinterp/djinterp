@@ -74,7 +74,7 @@ bool d_tests_dmacro_for_each_pair(
                           "type-name pair generates int field"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, ps.x);
+        (void)d_test_suite_note(_suite, "Got: %d", ps.x);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -83,7 +83,7 @@ bool d_tests_dmacro_for_each_pair(
                           "second type-name pair generates field"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, ps.y);
+        (void)d_test_suite_note(_suite, "Got: %d", ps.y);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -92,7 +92,7 @@ bool d_tests_dmacro_for_each_pair(
                           "third type-name pair with double type"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %f\n", D_INDENT, ps.z);
+        (void)d_test_suite_note(_suite, "Got: %f", ps.z);
     }
 
     // concept: name-value pairs for enum generation
@@ -111,7 +111,7 @@ bool d_tests_dmacro_for_each_pair(
                           "name-value pair for enum"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, VAL_A);
+        (void)d_test_suite_note(_suite, "Got: %d", VAL_A);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -120,7 +120,7 @@ bool d_tests_dmacro_for_each_pair(
                           "second name-value pair"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, VAL_B);
+        (void)d_test_suite_note(_suite, "Got: %d", VAL_B);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -129,7 +129,7 @@ bool d_tests_dmacro_for_each_pair(
                           "third name-value pair"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, VAL_C);
+        (void)d_test_suite_note(_suite, "Got: %d", VAL_C);
     }
 
     return all_assertions_passed;
@@ -177,7 +177,7 @@ bool d_tests_dmacro_for_each_pair_sep(
                           "first pair assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, a);
+        (void)d_test_suite_note(_suite, "Got: %d", a);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -186,7 +186,7 @@ bool d_tests_dmacro_for_each_pair_sep(
                           "second pair assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, b);
+        (void)d_test_suite_note(_suite, "Got: %d", b);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -195,7 +195,7 @@ bool d_tests_dmacro_for_each_pair_sep(
                           "third pair assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, c);
+        (void)d_test_suite_note(_suite, "Got: %d", c);
     }
 
     sum = a + b + c;
@@ -206,7 +206,7 @@ bool d_tests_dmacro_for_each_pair_sep(
                           "all pair assignments executed"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 
     return all_assertions_passed;
@@ -261,7 +261,7 @@ bool d_tests_dmacro_for_each_triple(
                           "first triple creates field"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, ts.x);
+        (void)d_test_suite_note(_suite, "Got: %d", ts.x);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -270,7 +270,7 @@ bool d_tests_dmacro_for_each_triple(
                           "second triple creates field"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, ts.y);
+        (void)d_test_suite_note(_suite, "Got: %d", ts.y);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -279,7 +279,7 @@ bool d_tests_dmacro_for_each_triple(
                           "third triple with double type"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %f\n", D_INDENT, ts.z);
+        (void)d_test_suite_note(_suite, "Got: %f", ts.z);
     }
 
     // verify struct size
@@ -341,7 +341,7 @@ bool d_tests_dmacro_for_each_4tuple(
                           "first 4tuple creates field"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, s4.field_x);
+        (void)d_test_suite_note(_suite, "Got: %d", s4.field_x);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -350,7 +350,7 @@ bool d_tests_dmacro_for_each_4tuple(
                           "second 4tuple creates field"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, s4.field_y);
+        (void)d_test_suite_note(_suite, "Got: %d", s4.field_y);
     }
 
     return all_assertions_passed;
@@ -402,7 +402,7 @@ bool d_tests_dmacro_for_each_indexed(
                           "index 0 assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, arr[0]);
+        (void)d_test_suite_note(_suite, "Got: %d", arr[0]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -411,7 +411,7 @@ bool d_tests_dmacro_for_each_indexed(
                           "index 1 assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, arr[1]);
+        (void)d_test_suite_note(_suite, "Got: %d", arr[1]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -420,7 +420,7 @@ bool d_tests_dmacro_for_each_indexed(
                           "index 2 assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, arr[2]);
+        (void)d_test_suite_note(_suite, "Got: %d", arr[2]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -429,7 +429,7 @@ bool d_tests_dmacro_for_each_indexed(
                           "index 3 assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, arr[3]);
+        (void)d_test_suite_note(_suite, "Got: %d", arr[3]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -438,7 +438,7 @@ bool d_tests_dmacro_for_each_indexed(
                           "index 4 assignment"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, arr[4]);
+        (void)d_test_suite_note(_suite, "Got: %d", arr[4]);
     }
 
     sum = arr[0] + arr[1] + arr[2] + arr[3] + arr[4];
@@ -449,7 +449,7 @@ bool d_tests_dmacro_for_each_indexed(
                           "all indexed assignments correct"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 
     return all_assertions_passed;

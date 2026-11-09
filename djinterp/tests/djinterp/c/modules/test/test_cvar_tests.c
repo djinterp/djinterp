@@ -1,14 +1,16 @@
 /*******************************************************************************
 * djinterp [test]                                              test_cvar_tests.c
 *
+* test_cvar.h's suite: d_tests_cvar_run_all, which runs the thirteen blocks of
+* test_cvar_tests.h in order.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
 /*
@@ -25,17 +27,16 @@ d_tests_cvar_run_all
   - Reset functions (single reset, reset_all, idempotent)
   - Arg validation (config, metadata, wrong flag, NULL, invalid)
   - Typed access macros (GET, VALUE_BOOL/SIZE_T/UINT32/PTR, HELP/FLAG/TYPE)
-  - Predicate functions (is_config_row, is_metadata_row, is_required_row)
+  - Row kinds (each row's IS_CONFIG, IS_METADATA and IS_REQUIRED flags)
   - Registry table integrity (keys, help, config/metadata flags, counts)
-  - Default value helpers (get_default, get_default_by_key, persistence)
+  - Defaults (after reset_all, by flag and by key, after a set)
 */
-bool d_tests_cvar_run_all(
+bool
+d_tests_cvar_run_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // run all test categories
     result = d_tests_cvar_row_flag_all(_suite)        && result;

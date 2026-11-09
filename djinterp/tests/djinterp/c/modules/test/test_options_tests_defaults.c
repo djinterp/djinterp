@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                  test_options_tests_defaults.c
 *
+* test_options.h's suite, block "config_default_all": D_TEST_DEFAULT_INDENT,
+* _MAX_INDENT, _MAX_FAILURES and _TIMEOUT.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_defaults.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * VIII. DEFAULT VALUE TESTS
- *****************************************************************************/
+//==============================================================================
+// 8.  DEFAULT VALUE TESTS
+//==============================================================================
 
 /*
 d_tests_options_default_indent
@@ -22,15 +24,15 @@ d_tests_options_default_indent
   - Value is "  " (two spaces)
   - Length is 2
 */
-bool d_tests_options_default_indent(
+bool
+d_tests_options_default_indent(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_default_indent");
 
-    d_test_suite_test(_suite, "config_default_indent");
-
-    result = true;
+    bool result = true;
 
     // test 1: not NULL
     result = D_TEST_CHECK_MSG(_suite,
@@ -41,13 +43,15 @@ bool d_tests_options_default_indent(
     // test 2: is two spaces
     result = D_TEST_CHECK_MSG(_suite,
                               "default_indent_value",
-                              d_strcasecmp(D_TEST_DEFAULT_INDENT, "  ") == 0,
+                              d_strcasecmp(D_TEST_DEFAULT_INDENT,
+                                           "  ") == 0,
                               "D_TEST_DEFAULT_INDENT should be two spaces") && result;
 
     // test 3: length is 2
     result = D_TEST_CHECK_MSG(_suite,
                               "default_indent_length",
-                              d_strnlen(D_TEST_DEFAULT_INDENT, 16) == 2,
+                              d_strnlen(D_TEST_DEFAULT_INDENT,
+                                        16) == 2,
                               "D_TEST_DEFAULT_INDENT should have length 2") && result;
 
     return result;
@@ -60,17 +64,16 @@ d_tests_options_default_max_indent
   - Value is 10
   - Type is uint16_t-compatible
 */
-bool d_tests_options_default_max_indent(
+bool
+d_tests_options_default_max_indent(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint16_t val;
+    d_test_suite_test(_suite,
+                      "config_default_max_indent");
 
-    d_test_suite_test(_suite, "config_default_max_indent");
-
-    result = true;
-    val    = D_TEST_DEFAULT_MAX_INDENT;
+    bool           result = true;
+    const uint16_t val    = D_TEST_DEFAULT_MAX_INDENT;
 
     // test 1: value is 10
     result = D_TEST_CHECK_MSG(_suite,
@@ -93,17 +96,16 @@ d_tests_options_default_max_failures
   Tests the following:
   - Value is 0 (unlimited)
 */
-bool d_tests_options_default_max_failures(
+bool
+d_tests_options_default_max_failures(
     struct dj_test_suite* _suite
 )
 {
-    bool   result;
-    size_t val;
+    d_test_suite_test(_suite,
+                      "config_default_max_failures");
 
-    d_test_suite_test(_suite, "config_default_max_failures");
-
-    result = true;
-    val    = D_TEST_DEFAULT_MAX_FAILURES;
+    bool         result = true;
+    const size_t val    = D_TEST_DEFAULT_MAX_FAILURES;
 
     // test 1: value is 0
     result = D_TEST_CHECK_MSG(_suite,
@@ -120,17 +122,16 @@ d_tests_options_default_timeout
   Tests the following:
   - Value is 1000 (milliseconds)
 */
-bool d_tests_options_default_timeout(
+bool
+d_tests_options_default_timeout(
     struct dj_test_suite* _suite
 )
 {
-    bool   result;
-    size_t val;
+    d_test_suite_test(_suite,
+                      "config_default_timeout");
 
-    d_test_suite_test(_suite, "config_default_timeout");
-
-    result = true;
-    val    = D_TEST_DEFAULT_TIMEOUT;
+    bool         result = true;
+    const size_t val    = D_TEST_DEFAULT_TIMEOUT;
 
     // test 1: value is 1000
     result = D_TEST_CHECK_MSG(_suite,
@@ -151,15 +152,15 @@ bool d_tests_options_default_timeout(
 d_tests_options_default_all
   Aggregation function that runs all default value tests.
 */
-bool d_tests_options_default_all(
+bool
+d_tests_options_default_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_default_all");
 
-    d_test_suite_block(_suite, "config_default_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_default_indent(_suite) && result;
     result = d_tests_options_default_max_indent(_suite) && result;

@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                   test_cvar_tests_row_struct.c
 *
+* test_cvar.h's suite, block "cvar_row_struct_all": dj_test_registry_row's
+* members, the key first, then flag, command_flags, value_type, value and help.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_row_struct.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * III. ROW STRUCTURE TESTS
- *****************************************************************************/
+//==============================================================================
+// 3.  ROW STRUCTURE TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_row_struct_key
@@ -22,16 +24,16 @@ d_tests_cvar_row_struct_key
   - key member is accessible
   - key is the first member (offset 0)
 */
-bool d_tests_cvar_row_struct_key(
+bool
+d_tests_cvar_row_struct_key(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row  row;
+    d_test_suite_test(_suite,
+                      "cvar_row_struct_key");
 
-    d_test_suite_test(_suite, "cvar_row_struct_key");
-
-    result = true;
+    bool                        result = true;
+    struct dj_test_registry_row row    = {0};
 
     // test 1: key member is accessible
     row.key = "test-key";
@@ -44,7 +46,8 @@ bool d_tests_cvar_row_struct_key(
     // test 2: key is the first member (offset 0)
     result = D_TEST_CHECK_MSG(_suite,
                               "row_struct_key_offset_zero",
-                              offsetof(struct dj_test_registry_row, key) == 0,
+                              offsetof(struct dj_test_registry_row,
+                                       key) == 0,
                               "key must be the first member (offset 0) for registry lookup") && result;
 
     return result;
@@ -57,16 +60,16 @@ d_tests_cvar_row_struct_flag
   - flag member is accessible
   - flag member stores uint32_t values
 */
-bool d_tests_cvar_row_struct_flag(
+bool
+d_tests_cvar_row_struct_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row  row;
+    d_test_suite_test(_suite,
+                      "cvar_row_struct_flag");
 
-    d_test_suite_test(_suite, "cvar_row_struct_flag");
-
-    result = true;
+    bool                        result = true;
+    struct dj_test_registry_row row    = {0};
 
     // test 1: flag member is accessible
     row.flag = D_TEST_OPTIONS_ENABLED;
@@ -94,16 +97,16 @@ d_tests_cvar_row_struct_command_flags
   - command_flags member is accessible
   - command_flags stores DTestRegistryRowFlag values
 */
-bool d_tests_cvar_row_struct_command_flags(
+bool
+d_tests_cvar_row_struct_command_flags(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row  row;
+    d_test_suite_test(_suite,
+                      "cvar_row_struct_command_flags");
 
-    d_test_suite_test(_suite, "cvar_row_struct_command_flags");
-
-    result = true;
+    bool                        result = true;
+    struct dj_test_registry_row row    = {0};
 
     // test 1: command_flags is accessible with IS_CONFIG
     row.command_flags = D_TEST_REGISTRY_FLAG_IS_CONFIG;
@@ -132,16 +135,16 @@ d_tests_cvar_row_struct_value_type
   - value_type member is accessible
   - value_type stores d_type_info values
 */
-bool d_tests_cvar_row_struct_value_type(
+bool
+d_tests_cvar_row_struct_value_type(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row  row;
+    d_test_suite_test(_suite,
+                      "cvar_row_struct_value_type");
 
-    d_test_suite_test(_suite, "cvar_row_struct_value_type");
-
-    result = true;
+    bool                        result = true;
+    struct dj_test_registry_row row    = {0};
 
     // test 1: value_type is accessible
     row.value_type = D_TYPE_INFO_BOOL;
@@ -169,16 +172,16 @@ d_tests_cvar_row_struct_value_help
   - value member (dj_test_value union) is accessible
   - help member stores a string pointer
 */
-bool d_tests_cvar_row_struct_value_help(
+bool
+d_tests_cvar_row_struct_value_help(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row  row;
+    d_test_suite_test(_suite,
+                      "cvar_row_struct_value_help");
 
-    d_test_suite_test(_suite, "cvar_row_struct_value_help");
-
-    result = true;
+    bool                        result = true;
+    struct dj_test_registry_row row    = {0};
 
     // test 1: value union is accessible through row
     row.value.b = true;
@@ -203,15 +206,15 @@ bool d_tests_cvar_row_struct_value_help(
 d_tests_cvar_row_struct_all
   Aggregation function that runs all row structure tests.
 */
-bool d_tests_cvar_row_struct_all(
+bool
+d_tests_cvar_row_struct_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_row_struct_all");
 
-    d_test_suite_block(_suite, "cvar_row_struct_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_row_struct_key(_suite)           && result;
     result = d_tests_cvar_row_struct_flag(_suite)          && result;

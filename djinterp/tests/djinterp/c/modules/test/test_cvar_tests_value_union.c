@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                                  test_cvar_tests_value_union.c
 *
+* test_cvar.h's suite, block "cvar_value_union_all": each member of
+* dj_test_value (pointer, size_t, uint32_t, uint16_t, int32_t, bool) holds its
+* value.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_value_union.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * II. VALUE UNION TESTS
- *****************************************************************************/
+//==============================================================================
+// 2.  VALUE UNION TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_value_union_ptr
@@ -22,20 +25,20 @@ d_tests_cvar_value_union_ptr
   - ptr member is accessible and can store a pointer
   - ptr member can store NULL
 */
-bool d_tests_cvar_value_union_ptr(
+bool
+d_tests_cvar_value_union_ptr(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
-    int                dummy;
+    d_test_suite_test(_suite,
+                      "cvar_value_union_ptr");
 
-    d_test_suite_test(_suite, "cvar_value_union_ptr");
-
-    result = true;
+    bool result = true;
 
     // test 1: ptr member stores a valid pointer
-    dummy   = 42;
+    int                 dummy = 42;
+    union dj_test_value val   = {0};
+
     val.ptr = &dummy;
 
     result = D_TEST_CHECK_MSG(_suite,
@@ -61,16 +64,17 @@ d_tests_cvar_value_union_size_t
   - z member is accessible and stores zero
   - z member stores a large value
 */
-bool d_tests_cvar_value_union_size_t(
+bool
+d_tests_cvar_value_union_size_t(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_value_union_size_t");
 
-    d_test_suite_test(_suite, "cvar_value_union_size_t");
+    bool result = true;
 
-    result = true;
+    union dj_test_value val = {0};
 
     // test 1: z member stores zero
     val.z = 0;
@@ -98,16 +102,17 @@ d_tests_cvar_value_union_uint32
   - u32 member stores zero
   - u32 member stores max uint32 value
 */
-bool d_tests_cvar_value_union_uint32(
+bool
+d_tests_cvar_value_union_uint32(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_value_union_uint32");
 
-    d_test_suite_test(_suite, "cvar_value_union_uint32");
+    bool result = true;
 
-    result = true;
+    union dj_test_value val = {0};
 
     // test 1: u32 member stores zero
     val.u32 = 0;
@@ -135,16 +140,17 @@ d_tests_cvar_value_union_uint16
   - u16 member stores zero
   - u16 member stores UINT16_MAX
 */
-bool d_tests_cvar_value_union_uint16(
+bool
+d_tests_cvar_value_union_uint16(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_value_union_uint16");
 
-    d_test_suite_test(_suite, "cvar_value_union_uint16");
+    bool result = true;
 
-    result = true;
+    union dj_test_value val = {0};
 
     // test 1: u16 member stores zero
     val.u16 = 0;
@@ -173,16 +179,17 @@ d_tests_cvar_value_union_int32
   - i32 member stores negative value
   - i32 member stores positive value
 */
-bool d_tests_cvar_value_union_int32(
+bool
+d_tests_cvar_value_union_int32(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_value_union_int32");
 
-    d_test_suite_test(_suite, "cvar_value_union_int32");
+    bool result = true;
 
-    result = true;
+    union dj_test_value val = {0};
 
     // test 1: i32 member stores zero
     val.i32 = 0;
@@ -218,16 +225,17 @@ d_tests_cvar_value_union_bool
   - b member stores true
   - b member stores false
 */
-bool d_tests_cvar_value_union_bool(
+bool
+d_tests_cvar_value_union_bool(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_value_union_bool");
 
-    d_test_suite_test(_suite, "cvar_value_union_bool");
+    bool result = true;
 
-    result = true;
+    union dj_test_value val = {0};
 
     // test 1: b member stores true
     val.b = true;
@@ -252,15 +260,15 @@ bool d_tests_cvar_value_union_bool(
 d_tests_cvar_value_union_all
   Aggregation function that runs all value union tests.
 */
-bool d_tests_cvar_value_union_all(
+bool
+d_tests_cvar_value_union_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_value_union_all");
 
-    d_test_suite_block(_suite, "cvar_value_union_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_value_union_ptr(_suite)    && result;
     result = d_tests_cvar_value_union_size_t(_suite) && result;

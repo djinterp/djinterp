@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                     test_options_tests_modes.c
 *
+* test_options.h's suite, block "config_mode_all": the D_TEST_MODE_* modes, the
+* D_TEST_OPTIONS_PRESET_* aliases of them, and D_TEST_SETTINGS_STACK_PUSH_ALL.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_modes.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * V. MODE DEFINITION AND PRESET TESTS
- *****************************************************************************/
+//==============================================================================
+// 5.  MODE DEFINITION AND PRESET TESTS
+//==============================================================================
 
 /*
 d_tests_options_mode_silent
@@ -23,15 +25,15 @@ d_tests_options_mode_silent
   - No message flags are set
   - No settings flags are set
 */
-bool d_tests_options_mode_silent(
+bool
+d_tests_options_mode_silent(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_mode_silent");
 
-    d_test_suite_test(_suite, "config_mode_silent");
-
-    result = true;
+    bool result = true;
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mode_silent_value",
@@ -60,17 +62,16 @@ d_tests_options_mode_minimal
   - No pass counter flags are set
   - No settings flags are set
 */
-bool d_tests_options_mode_minimal(
+bool
+d_tests_options_mode_minimal(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t mode;
+    d_test_suite_test(_suite,
+                      "config_mode_minimal");
 
-    d_test_suite_test(_suite, "config_mode_minimal");
-
-    result = true;
-    mode   = D_TEST_MODE_MINIMAL;
+    bool           result = true;
+    const uint32_t mode   = D_TEST_MODE_MINIMAL;
 
     // test 1: all 4 counter fail flags are set
     result = D_TEST_CHECK_MSG(_suite,
@@ -112,17 +113,16 @@ d_tests_options_mode_normal
   - All print fail flags are set
   - No print pass flags are set
 */
-bool d_tests_options_mode_normal(
+bool
+d_tests_options_mode_normal(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t mode;
+    d_test_suite_test(_suite,
+                      "config_mode_normal");
 
-    d_test_suite_test(_suite, "config_mode_normal");
-
-    result = true;
-    mode   = D_TEST_MODE_NORMAL;
+    bool           result = true;
+    const uint32_t mode   = D_TEST_MODE_NORMAL;
 
     // test 1: all counter flags set
     result = D_TEST_CHECK_MSG(_suite,
@@ -159,15 +159,15 @@ d_tests_options_mode_verbose
   - All counter and print flags are set
   - Equals 0xFFFF
 */
-bool d_tests_options_mode_verbose(
+bool
+d_tests_options_mode_verbose(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_mode_verbose");
 
-    d_test_suite_test(_suite, "config_mode_verbose");
-
-    result = true;
+    bool result = true;
 
     // test 1: equals MSG_ALL
     result = D_TEST_CHECK_MSG(_suite,
@@ -193,15 +193,15 @@ d_tests_options_presets
   - PRESET_NORMAL == MODE_NORMAL
   - PRESET_VERBOSE == MODE_VERBOSE
 */
-bool d_tests_options_presets(
+bool
+d_tests_options_presets(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_presets");
 
-    d_test_suite_test(_suite, "config_presets");
-
-    result = true;
+    bool result = true;
 
     result = D_TEST_CHECK_MSG(_suite,
                               "preset_silent",
@@ -233,17 +233,16 @@ d_tests_options_settings_stack_push_all
   - Contains all four stack push settings shifted to upper bits
   - Resides entirely within the stack mask
 */
-bool d_tests_options_settings_stack_push_all(
+bool
+d_tests_options_settings_stack_push_all(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t push_all;
+    d_test_suite_test(_suite,
+                      "config_settings_stack_push_all");
 
-    d_test_suite_test(_suite, "config_settings_stack_push_all");
-
-    result   = true;
-    push_all = D_TEST_SETTINGS_STACK_PUSH_ALL;
+    bool           result   = true;
+    const uint32_t push_all = D_TEST_SETTINGS_STACK_PUSH_ALL;
 
     // test 1: all four push flags present
     result = D_TEST_CHECK_MSG(_suite,
@@ -285,15 +284,15 @@ bool d_tests_options_settings_stack_push_all(
 d_tests_options_mode_all
   Aggregation function that runs all mode definition and preset tests.
 */
-bool d_tests_options_mode_all(
+bool
+d_tests_options_mode_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_mode_all");
 
-    d_test_suite_block(_suite, "config_mode_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_mode_silent(_suite) && result;
     result = d_tests_options_mode_minimal(_suite) && result;

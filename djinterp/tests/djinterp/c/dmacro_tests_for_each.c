@@ -58,8 +58,9 @@ bool d_tests_dmacro_for_each_basic(
                           "FOR_EACH should apply SQUARE to all elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d, %d, %d\n", D_INDENT,
-               squares[0], squares[1], squares[2], squares[3], squares[4]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d, %d, %d",
+                                squares[0], squares[1], squares[2], squares[3],
+                                squares[4]);
     }
 
     // test D_FOR_EACH_COMMA with single element
@@ -71,7 +72,7 @@ bool d_tests_dmacro_for_each_basic(
                           "FOR_EACH should work with one element"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, single[0]);
+        (void)d_test_suite_note(_suite, "Got: %d", single[0]);
     }
 
     // test D_FOR_EACH_COMMA with many elements
@@ -83,7 +84,8 @@ bool d_tests_dmacro_for_each_basic(
                           "FOR_EACH should handle many elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got first: %d, last: %d\n", D_INDENT, many[0], many[9]);
+        (void)d_test_suite_note(_suite, "Got first: %d, last: %d",
+                                many[0], many[9]);
     }
 
     return all_assertions_passed;
@@ -127,7 +129,7 @@ bool d_tests_dmacro_for_each_sep(
                           "SEP should insert + between elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_FOR_EACH_SEP with * separator
@@ -139,7 +141,7 @@ bool d_tests_dmacro_for_each_sep(
                           "SEP should insert * between elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with transformation function
@@ -151,7 +153,7 @@ bool d_tests_dmacro_for_each_sep(
                           "1^2 + 2^2 + 3^2 = 14"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with single element (no separator needed)
@@ -163,7 +165,7 @@ bool d_tests_dmacro_for_each_sep(
                           "single element needs no separator"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -203,8 +205,9 @@ bool d_tests_dmacro_for_each_comma(
                           "COMMA should create valid initializer list"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d, %d, %d\n", D_INDENT,
-               test_arr[0], test_arr[1], test_arr[2], test_arr[3], test_arr[4]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d, %d, %d",
+                                test_arr[0], test_arr[1], test_arr[2],
+                                test_arr[3], test_arr[4]);
     }
 
     // test count of elements
@@ -216,7 +219,7 @@ bool d_tests_dmacro_for_each_comma(
                           "COMMA should produce correct arg count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with transformation
@@ -228,8 +231,8 @@ bool d_tests_dmacro_for_each_comma(
                           "COMMA should apply transformation"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d, %d\n", D_INDENT,
-               squared[0], squared[1], squared[2], squared[3]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d, %d",
+                                squared[0], squared[1], squared[2], squared[3]);
     }
 
     return all_assertions_passed;
@@ -273,7 +276,7 @@ bool d_tests_dmacro_for_each_semicolon(
                           "statement generation concept"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: a=%d, b=%d, c=%d\n", D_INDENT, a, b, c);
+        (void)d_test_suite_note(_suite, "Got: a=%d, b=%d, c=%d", a, b, c);
     }
 
     // Verify D_FOR_EACH_SEP(;, ...) concept using arithmetic
@@ -288,7 +291,7 @@ bool d_tests_dmacro_for_each_semicolon(
                           "alternative to SEMICOLON macro"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: a=%d, b=%d, c=%d\n", D_INDENT, a, b, c);
+        (void)d_test_suite_note(_suite, "Got: a=%d, b=%d, c=%d", a, b, c);
     }
 
     return all_assertions_passed;
@@ -341,8 +344,8 @@ bool d_tests_dmacro_for_each_data(
                           "100 + {1,2,3} = {101,102,103}"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT,
-               results[0], results[1], results[2]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d",
+                                results[0], results[1], results[2]);
     }
 
     // Verify concept with D_FOR_EACH_COMMA and manual data application
@@ -357,8 +360,8 @@ bool d_tests_dmacro_for_each_data(
                           "data-passing concept verified"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT,
-               results[0], results[1], results[2]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d",
+                                results[0], results[1], results[2]);
     }
 
     return all_assertions_passed;

@@ -49,7 +49,7 @@ bool d_tests_dmacro_probe_check(
                           "non-probe should return 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_CHECK with simple token returns 0
@@ -61,7 +61,7 @@ bool d_tests_dmacro_probe_check(
                           "number should return 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_CHECK with D_PROBE returns 1
@@ -73,7 +73,7 @@ bool d_tests_dmacro_probe_check(
                           "probe should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_CHECK_IMPL directly
@@ -85,7 +85,7 @@ bool d_tests_dmacro_probe_check(
                           "CHECK_IMPL extracts second arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_CHECK_IMPL(a, 1, );
@@ -96,7 +96,7 @@ bool d_tests_dmacro_probe_check(
                           "CHECK_IMPL extracts second arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -141,7 +141,7 @@ bool d_tests_dmacro_is_paren(
                           "parenthesized content should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IS_PAREN with non-parenthesized content
@@ -153,7 +153,7 @@ bool d_tests_dmacro_is_paren(
                           "non-parenthesized should return 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IS_PAREN with empty parentheses
@@ -165,7 +165,7 @@ bool d_tests_dmacro_is_paren(
                           "empty parentheses should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IS_PAREN with number
@@ -177,7 +177,7 @@ bool d_tests_dmacro_is_paren(
                           "number should return 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IS_PAREN with parenthesized number
@@ -189,7 +189,7 @@ bool d_tests_dmacro_is_paren(
                           "parenthesized number should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IS_PAREN with multiple items in parentheses
@@ -201,7 +201,7 @@ bool d_tests_dmacro_is_paren(
                           "parenthesized list should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -246,7 +246,7 @@ bool d_tests_dmacro_if_macros(
                           "D_IF(1) should select true case"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IF(0) with else case
@@ -258,7 +258,7 @@ bool d_tests_dmacro_if_macros(
                           "D_IF(0) should select else case"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IF_1 directly
@@ -270,7 +270,7 @@ bool d_tests_dmacro_if_macros(
                           "D_IF_1 should return true case"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IF_0 directly
@@ -282,7 +282,7 @@ bool d_tests_dmacro_if_macros(
                           "D_IF_0 should return else case"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -322,7 +322,7 @@ bool d_tests_dmacro_iif_macros(
                           "D_IIF(1) should select first arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IIF(0) selects second argument
@@ -334,7 +334,7 @@ bool d_tests_dmacro_iif_macros(
                           "D_IIF(0) should select second arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IIF_1 directly
@@ -346,7 +346,7 @@ bool d_tests_dmacro_iif_macros(
                           "D_IIF_1 should return first arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_IIF_0 directly
@@ -358,7 +358,7 @@ bool d_tests_dmacro_iif_macros(
                           "D_IIF_0 should return second arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with expressions
@@ -370,7 +370,7 @@ bool d_tests_dmacro_iif_macros(
                           "D_IIF should work with expressions"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -415,7 +415,7 @@ bool d_tests_dmacro_not_compl(
                           "NOT of 0 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_NOT(1) returns 0
@@ -427,7 +427,7 @@ bool d_tests_dmacro_not_compl(
                           "NOT of 1 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_NOT with non-zero returns 0
@@ -439,7 +439,7 @@ bool d_tests_dmacro_not_compl(
                           "NOT of non-zero should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_COMPL(0) returns 1
@@ -451,7 +451,7 @@ bool d_tests_dmacro_not_compl(
                           "complement of 0 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_COMPL(1) returns 0
@@ -463,7 +463,7 @@ bool d_tests_dmacro_not_compl(
                           "complement of 1 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test double NOT
@@ -475,7 +475,7 @@ bool d_tests_dmacro_not_compl(
                           "double NOT of 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test double COMPL
@@ -487,7 +487,7 @@ bool d_tests_dmacro_not_compl(
                           "double complement of 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -528,7 +528,7 @@ bool d_tests_dmacro_bool_macro(
                           "BOOL of 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_BOOL(1) returns 1
@@ -540,7 +540,7 @@ bool d_tests_dmacro_bool_macro(
                           "BOOL of 1 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_BOOL with various non-zero values
@@ -552,7 +552,7 @@ bool d_tests_dmacro_bool_macro(
                           "BOOL of 42 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_BOOL(100);
@@ -563,7 +563,7 @@ bool d_tests_dmacro_bool_macro(
                           "BOOL of 100 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test idempotency: D_BOOL(D_BOOL(x)) == D_BOOL(x)
@@ -575,7 +575,7 @@ bool d_tests_dmacro_bool_macro(
                           "BOOL is idempotent for non-zero"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_BOOL(D_BOOL(0));
@@ -586,7 +586,7 @@ bool d_tests_dmacro_bool_macro(
                           "BOOL is idempotent for zero"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -626,7 +626,7 @@ bool d_tests_dmacro_and_or(
                           "0 AND 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_AND(0, 1);
@@ -637,7 +637,7 @@ bool d_tests_dmacro_and_or(
                           "0 AND 1 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_AND(1, 0);
@@ -648,7 +648,7 @@ bool d_tests_dmacro_and_or(
                           "1 AND 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_AND(1, 1);
@@ -659,7 +659,7 @@ bool d_tests_dmacro_and_or(
                           "1 AND 1 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_OR truth table
@@ -671,7 +671,7 @@ bool d_tests_dmacro_and_or(
                           "0 OR 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_OR(0, 1);
@@ -682,7 +682,7 @@ bool d_tests_dmacro_and_or(
                           "0 OR 1 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_OR(1, 0);
@@ -693,7 +693,7 @@ bool d_tests_dmacro_and_or(
                           "1 OR 0 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_OR(1, 1);
@@ -704,7 +704,7 @@ bool d_tests_dmacro_and_or(
                           "1 OR 1 should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_AND with non-normalized inputs (uses D_BOOL internally)
@@ -716,7 +716,7 @@ bool d_tests_dmacro_and_or(
                           "non-zero AND non-zero should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_AND(42, 0);
@@ -727,7 +727,7 @@ bool d_tests_dmacro_and_or(
                           "non-zero AND 0 should be 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_OR with non-normalized inputs
@@ -739,7 +739,7 @@ bool d_tests_dmacro_and_or(
                           "0 OR non-zero should be 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;

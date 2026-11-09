@@ -2,13 +2,14 @@
 * djinterp [test]                                             env_tests_runner.c
 *
 * The runner for env.h's suite: options, then the module, which its
-* entry points build call by call (test_suite.h 3.2).
+* entry points build call by call (test_suite.h 3.2). The module carries the
+* build profile as a note, which the report prints when an env test fails.
 *
 *
 * path:      /build/cmake/config/testing/djinterp/c/env/env_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include <stdio.h>  // fprintf, printf, stderr
 
@@ -53,6 +54,7 @@ main(
     (void)d_test_suite_describe(
         suite,
         "env/env.h: the build environment");
+    (void)d_tests_env_profile(suite);
     (void)d_tests_env_all(suite);
     (void)d_tests_env_stdlib_all(suite);
 

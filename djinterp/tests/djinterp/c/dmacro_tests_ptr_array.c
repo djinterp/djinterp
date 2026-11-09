@@ -66,7 +66,7 @@ bool d_tests_dmacro_for_each_data_comma(
                           "first element with data multiplier"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, results[0]);
+        (void)d_test_suite_note(_suite, "Got: %d", results[0]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -75,7 +75,7 @@ bool d_tests_dmacro_for_each_data_comma(
                           "second element with data multiplier"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, results[1]);
+        (void)d_test_suite_note(_suite, "Got: %d", results[1]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -84,7 +84,7 @@ bool d_tests_dmacro_for_each_data_comma(
                           "third element with data multiplier"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, results[2]);
+        (void)d_test_suite_note(_suite, "Got: %d", results[2]);
     }
 
     // example use case: prefixing strings with a namespace
@@ -164,7 +164,7 @@ bool d_tests_dmacro_struct_array_init(
                           "first tuple initializes struct"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: (%d, %d)\n", D_INDENT, points[0].x, points[0].y);
+        (void)d_test_suite_note(_suite, "got %d, %d", points[0].x, points[0].y);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -173,7 +173,7 @@ bool d_tests_dmacro_struct_array_init(
                           "second tuple initializes struct"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: (%d, %d)\n", D_INDENT, points[1].x, points[1].y);
+        (void)d_test_suite_note(_suite, "got %d, %d", points[1].x, points[1].y);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -182,7 +182,7 @@ bool d_tests_dmacro_struct_array_init(
                           "third tuple initializes struct"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: (%d, %d)\n", D_INDENT, points[2].x, points[2].y);
+        (void)d_test_suite_note(_suite, "got %d, %d", points[2].x, points[2].y);
     }
 
     // verify array count
@@ -194,7 +194,7 @@ bool d_tests_dmacro_struct_array_init(
                           "all tuples converted to structs"))
     {
         all_assertions_passed = false;
-        printf("%s    Got count: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got count: %zu", count);
     }
 
     // test with different struct type

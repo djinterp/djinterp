@@ -80,7 +80,7 @@ bool d_tests_dmacro_for_each_member_ptr(
                           "baseline for member ptr test"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 
     // test that the macro exists and compiles
@@ -93,7 +93,7 @@ bool d_tests_dmacro_for_each_member_ptr(
         all_assertions_passed = false;
     }
 #else
-    printf("%s    (D_FOR_EACH_MEMBER_PTR not available)\n", D_INDENT);
+    (void)d_test_suite_note(_suite, "(D_FOR_EACH_MEMBER_PTR not available)");
 
     // still verify struct access works
     sum = ptr->field_a + ptr->field_b + ptr->field_c;
@@ -104,7 +104,7 @@ bool d_tests_dmacro_for_each_member_ptr(
                           "baseline struct access"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 #endif
 
@@ -159,7 +159,7 @@ bool d_tests_dmacro_for_each_member_dot(
                           "baseline for member dot test"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 
     // test that the macro exists
@@ -171,7 +171,7 @@ bool d_tests_dmacro_for_each_member_dot(
         all_assertions_passed = false;
     }
 #else
-    printf("%s    (D_FOR_EACH_MEMBER_DOT not available)\n", D_INDENT);
+    (void)d_test_suite_note(_suite, "(D_FOR_EACH_MEMBER_DOT not available)");
 
     // still verify struct access works
     sum = rec.field_a + rec.field_b + rec.field_c + rec.field_d;
@@ -182,7 +182,7 @@ bool d_tests_dmacro_for_each_member_dot(
                           "baseline struct access"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 #endif
 
@@ -233,7 +233,7 @@ bool d_tests_dmacro_for_each_op(
                           "basic struct member access"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, sum);
+        (void)d_test_suite_note(_suite, "Got: %d", sum);
     }
 
     // test D_INTERNAL_MEMBER_DOT_OP directly if available
@@ -247,7 +247,7 @@ bool d_tests_dmacro_for_each_op(
                           "internal dot op should access member"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, val);
+        (void)d_test_suite_note(_suite, "Got: %d", val);
     }
 #else
     // just verify the concept works

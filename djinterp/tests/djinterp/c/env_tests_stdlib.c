@@ -181,13 +181,6 @@ bool d_tests_env_stdlib_c_standard_headers(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_STDBOOL_H:  %d\n", D_INDENT, has_stdbool);
-    printf("%s    HAS_STDINT_H:   %d\n", D_INDENT, has_stdint);
-    printf("%s    HAS_INTTYPES_H: %d\n", D_INDENT, has_inttypes);
-    printf("%s    HAS_STDALIGN_H: %d\n", D_INDENT, has_stdalign);
-    printf("%s    HAS_UCHAR_H:    %d\n", D_INDENT, has_uchar);
-
     return all_assertions_passed;
 }
 
@@ -287,12 +280,6 @@ bool d_tests_env_stdlib_posix_headers(
     {
         all_assertions_passed = false;
     }
-
-    // report values
-    printf("%s    HAS_UNISTD_H:    %d\n", D_INDENT, has_unistd);
-    printf("%s    HAS_SYS_TYPES_H: %d\n", D_INDENT, has_sys_types);
-    printf("%s    HAS_SYS_STAT_H:  %d\n", D_INDENT, has_sys_stat);
-    printf("%s    HAS_DIRENT_H:    %d\n", D_INDENT, has_dirent);
 
     return all_assertions_passed;
 }
@@ -436,16 +423,6 @@ bool d_tests_env_stdlib_string_functions(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_STRTOK_R:   %d\n", D_INDENT, has_strtok_r);
-    printf("%s    HAS_STRTOK_S:   %d\n", D_INDENT, has_strtok_s);
-    printf("%s    HAS_SNPRINTF:   %d\n", D_INDENT, has_snprintf);
-    printf("%s    HAS_STRDUP:     %d\n", D_INDENT, has_strdup);
-    printf("%s    HAS_STRNDUP:    %d\n", D_INDENT, has_strndup);
-    printf("%s    HAS_STRCASECMP: %d\n", D_INDENT, has_strcasecmp);
-    printf("%s    HAS_STRICMP:    %d\n", D_INDENT, has_stricmp);
-    printf("%s    HAS_MEMCCPY:    %d\n", D_INDENT, has_memccpy);
-
     return all_assertions_passed;
 }
 
@@ -553,13 +530,6 @@ bool d_tests_env_stdlib_file_io_features(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_FOPEN_S:  %d\n", D_INDENT, has_fopen_s);
-    printf("%s    HAS_MMAP:     %d\n", D_INDENT, has_mmap);
-    printf("%s    HAS_FSYNC:    %d\n", D_INDENT, has_fsync);
-    printf("%s    HAS_FLOCK:    %d\n", D_INDENT, has_flock);
-    printf("%s    HAS_LOCKFILE: %d\n", D_INDENT, has_lockfile);
-
     return all_assertions_passed;
 }
 
@@ -652,12 +622,6 @@ bool d_tests_env_stdlib_time_features(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_TIMESPEC_GET:             %d\n", D_INDENT, has_timespec_get);
-    printf("%s    HAS_CLOCK_GETTIME:            %d\n", D_INDENT, has_clock_gettime);
-    printf("%s    HAS_GETTIMEOFDAY:             %d\n", D_INDENT, has_gettimeofday);
-    printf("%s    HAS_QUERYPERFORMANCECOUNTER:  %d\n", D_INDENT, has_qpc);
-
     return all_assertions_passed;
 }
 
@@ -749,11 +713,6 @@ bool d_tests_env_stdlib_math_features(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_TGMATH_H:  %d\n", D_INDENT, has_tgmath);
-    printf("%s    HAS_COMPLEX_H: %d\n", D_INDENT, has_complex);
-    printf("%s    HAS_FENV_H:    %d\n", D_INDENT, has_fenv);
-
     return all_assertions_passed;
 }
 
@@ -836,11 +795,6 @@ bool d_tests_env_stdlib_network_features(
             all_assertions_passed = false;
         }
     #endif
-
-    // report values
-    printf("%s    HAS_WINSOCK:     %d\n", D_INDENT, has_winsock);
-    printf("%s    HAS_BSD_SOCKETS: %d\n", D_INDENT, has_bsd_sockets);
-    printf("%s    HAS_GETADDRINFO: %d\n", D_INDENT, has_getaddrinfo);
 
     return all_assertions_passed;
 }
@@ -933,12 +887,6 @@ bool d_tests_env_stdlib_process_features(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_FORK:     %d\n", D_INDENT, has_fork);
-    printf("%s    HAS_EXECVE:   %d\n", D_INDENT, has_execve);
-    printf("%s    HAS_GETPID:   %d\n", D_INDENT, has_getpid);
-    printf("%s    HAS_SIGNAL_H: %d\n", D_INDENT, has_signal);
-
     return all_assertions_passed;
 }
 
@@ -1029,12 +977,6 @@ bool d_tests_env_stdlib_memory_features(
             all_assertions_passed = false;
         }
     #endif
-
-    // report values
-    printf("%s    HAS_ALIGNED_ALLOC:  %d\n", D_INDENT, has_aligned_alloc);
-    printf("%s    HAS_POSIX_MEMALIGN: %d\n", D_INDENT, has_posix_memalign);
-    printf("%s    HAS_ALIGNED_MALLOC: %d\n", D_INDENT, has_aligned_malloc);
-    printf("%s    HAS_ALLOCA:         %d\n", D_INDENT, has_alloca);
 
     return all_assertions_passed;
 }
@@ -1182,13 +1124,6 @@ bool d_tests_env_stdlib_simd_features(
         }
     #endif
 
-    // report values
-    printf("%s    HAS_SSE:  %d\n", D_INDENT, has_sse);
-    printf("%s    HAS_SSE2: %d\n", D_INDENT, has_sse2);
-    printf("%s    HAS_AVX:  %d\n", D_INDENT, has_avx);
-    printf("%s    HAS_AVX2: %d\n", D_INDENT, has_avx2);
-    printf("%s    HAS_NEON: %d\n", D_INDENT, has_neon);
-
     return all_assertions_passed;
 }
 
@@ -1271,11 +1206,6 @@ bool d_tests_env_stdlib_vla_and_security(
             all_assertions_passed = false;
         }
     #endif
-
-    // report values
-    printf("%s    HAS_VLA:               %d\n", D_INDENT, has_vla);
-    printf("%s    HAS_SECURE_STRING_LIB: %d\n", D_INDENT, has_secure_string);
-    printf("%s    HAS_GETENTROPY:        %d\n", D_INDENT, has_getentropy);
 
     return all_assertions_passed;
 }
@@ -1360,13 +1290,6 @@ bool d_tests_env_stdlib_consistency_check(
             all_assertions_passed = false;
         }
     #endif
-
-    printf("%s    Has any timer:         %s\n",
-           D_INDENT,
-           has_any_timer ? "YES" : "NO");
-    printf("%s    Has aligned alloc:     %s\n",
-           D_INDENT,
-           has_any_aligned_alloc ? "YES" : "NO");
 
     return all_assertions_passed;
 }

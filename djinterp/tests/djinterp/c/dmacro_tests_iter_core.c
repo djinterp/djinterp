@@ -54,7 +54,7 @@ bool d_tests_dmacro_map_end_detection(
                           "map should terminate after all items"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with single element (edge case for termination)
@@ -66,7 +66,7 @@ bool d_tests_dmacro_map_end_detection(
                           "map should handle single element"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with many elements to verify repeated termination checks
@@ -79,7 +79,7 @@ bool d_tests_dmacro_map_end_detection(
                           "map should handle many elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     return all_assertions_passed;
@@ -128,8 +128,8 @@ bool d_tests_dmacro_map_internals(
                           "map should process each element"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT,
-               transformed[0], transformed[1], transformed[2]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d",
+                                transformed[0], transformed[1], transformed[2]);
     }
 
     // test that map produces correct count
@@ -141,9 +141,9 @@ bool d_tests_dmacro_map_internals(
                           "map should handle multiple elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d, %d, %d\n", D_INDENT,
-               five_items[0], five_items[1], five_items[2],
-               five_items[3], five_items[4]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d, %d, %d",
+                                five_items[0], five_items[1], five_items[2],
+                                five_items[3], five_items[4]);
     }
 
     return all_assertions_passed;

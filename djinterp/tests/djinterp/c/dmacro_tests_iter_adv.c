@@ -73,8 +73,8 @@ bool d_tests_dmacro_adjacent_pair(
                           "diffs are 2,3,4"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT,
-               diffs[0], diffs[1], diffs[2]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d",
+                                diffs[0], diffs[1], diffs[2]);
     }
 
     // test with two elements (single pair)
@@ -88,7 +88,7 @@ bool d_tests_dmacro_adjacent_pair(
                           "single adjacent pair"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, single_diff);
+        (void)d_test_suite_note(_suite, "Got: %d", single_diff);
     }
 
     // test detecting increasing sequence
@@ -112,8 +112,8 @@ bool d_tests_dmacro_adjacent_pair(
                           "sequence is strictly increasing"))
     {
         all_assertions_passed = false;
-        printf("%s    Diffs: %d, %d, %d\n", D_INDENT,
-               inc_diffs[0], inc_diffs[1], inc_diffs[2]);
+        (void)d_test_suite_note(_suite, "Diffs: %d, %d, %d",
+                                inc_diffs[0], inc_diffs[1], inc_diffs[2]);
     }
 
     return all_assertions_passed;

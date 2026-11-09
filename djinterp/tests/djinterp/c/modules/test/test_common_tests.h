@@ -9,28 +9,29 @@
 * configured width narrows a value before it is checked).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* 1.  TESTS
-*     -----
-*     1.  Values and identifiers
-*     2.  Operations
-* 2.  SPEC
-*     ----
-*     1.  The provider
-*
-*
 * path:      /tests/djinterp/c/modules/test/test_common_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  TESTS
+    -----
+    1.  Values and identifiers
+    2.  Operations
+2.  SPEC
+    ----
+    1.  The provider
+*/
 
 #ifndef DJINTERP_TESTS_C_MODULES_TEST_TEST_COMMON_TESTS_H
 #define DJINTERP_TESTS_C_MODULES_TEST_TEST_COMMON_TESTS_H 1
 
 // djinterp
-#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // D_TEST_*
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"   // D_TEST_*
 #include "../../../../../inc/djinterp/c/modules/test/test_common.h"  // tested
 
 
@@ -40,6 +41,7 @@ D_EXTERN_C_BEGIN
 //==============================================================================
 // 1.  TESTS
 //==============================================================================
+
 
 // 1.1    Values and identifiers
 //------------------------------------------------------------------------------
@@ -58,6 +60,7 @@ bool d_tests_test_common_worse_of(void);
 //==============================================================================
 // 2.  SPEC
 //==============================================================================
+
 
 // 2.1    The provider
 //------------------------------------------------------------------------------

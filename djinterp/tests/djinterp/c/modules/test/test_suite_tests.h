@@ -18,26 +18,28 @@
 * outer test's requires still reach the outer suite after an inner spec run.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* 1.  FIXTURES
-*     --------
-*     1.  Inner suites
-* 2.  TESTS
-*     -----
-*     1.  Building
-*     2.  Specs
-*     3.  Report and options
-* 3.  SPEC
-*     ----
-*     1.  The provider
-*
-*
 * path:      /tests/djinterp/c/modules/test/test_suite_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  FIXTURES
+    --------
+    1.  Inner suites
+2.  TESTS
+    -----
+    1.  Building
+    2.  Specs
+    3.  Report and options
+    4.  Notes
+3.  SPEC
+    ----
+    1.  The provider
+*/
 
 #ifndef DJINTERP_TESTS_C_TEST_TEST_SUITE_TESTS_H
 #define DJINTERP_TESTS_C_TEST_TEST_SUITE_TESTS_H 1
@@ -111,6 +113,15 @@ bool d_tests_test_suite_options_defaults(void);
 bool d_tests_test_suite_options_parse(void);
 bool d_tests_test_suite_many_checks(void);
 bool d_tests_test_suite_str_equal(void);
+
+// 2.4    Notes
+//------------------------------------------------------------------------------
+bool d_tests_test_suite_note_attaches(void);
+bool d_tests_test_suite_note_test_shown(void);
+bool d_tests_test_suite_note_heading_shown(void);
+bool d_tests_test_suite_note_layout(void);
+bool d_tests_test_suite_note_format(void);
+bool d_tests_test_suite_note_spec(void);
 
 
 //==============================================================================
@@ -212,6 +223,30 @@ static const struct dj_test_case_spec d_tests_test_suite_report_rows[] =
       d_tests_test_suite_str_equal }
 };
 
+// d_tests_test_suite_note_rows
+//   constant: the notes block's rows.
+static const struct dj_test_case_spec d_tests_test_suite_note_rows[] =
+{
+    { "d_tests_test_suite_note_attaches",
+      "a note goes to the node opened last, and is not a check",
+      d_tests_test_suite_note_attaches },
+    { "d_tests_test_suite_note_test_shown",
+      "a test's note prints when the test fails, or at --checks",
+      d_tests_test_suite_note_test_shown },
+    { "d_tests_test_suite_note_heading_shown",
+      "a heading's note prints when a test beneath fails, or at --checks",
+      d_tests_test_suite_note_heading_shown },
+    { "d_tests_test_suite_note_layout",
+      "a note prints among its checks in order, its lines indented",
+      d_tests_test_suite_note_layout },
+    { "d_tests_test_suite_note_format",
+      "a note is printf-formatted, whole however long, and via a va_list",
+      d_tests_test_suite_note_format },
+    { "d_tests_test_suite_note_spec",
+      "D_TEST_NOTE notes on the spec test that makes it",
+      d_tests_test_suite_note_spec }
+};
+
 // d_tests_test_suite_blocks
 //   constant: the module's blocks, one per section translation unit.
 static const struct dj_test_block_spec d_tests_test_suite_blocks[] =
@@ -230,7 +265,12 @@ static const struct dj_test_block_spec d_tests_test_suite_blocks[] =
       "exit codes, the results table, report detail and options",
       d_tests_test_suite_report_rows,
       sizeof(d_tests_test_suite_report_rows) /
-          sizeof(d_tests_test_suite_report_rows[0]) }
+          sizeof(d_tests_test_suite_report_rows[0]) },
+    { "notes",
+      "notes: where they attach, when they print, how they read",
+      d_tests_test_suite_note_rows,
+      sizeof(d_tests_test_suite_note_rows) /
+          sizeof(d_tests_test_suite_note_rows[0]) }
 };
 
 // d_tests_test_suite_module

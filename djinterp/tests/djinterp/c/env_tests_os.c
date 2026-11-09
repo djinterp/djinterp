@@ -69,12 +69,6 @@ bool d_tests_env_os_flag_constants_apple(
         all_assertions_passed = false;
     }
 
-    printf("%s    Apple flags: APPLE=0x%02X MACOS=0x%02X IOS=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_APPLE,
-           D_ENV_OS_FLAG_MACOS,
-           D_ENV_OS_FLAG_IOS);
-
     return all_assertions_passed;
 }
 
@@ -125,12 +119,6 @@ bool d_tests_env_os_flag_constants_unix(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    Unix flags: UNIX=0x%02X LINUX=0x%02X SOLARIS=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_UNIX,
-           D_ENV_OS_FLAG_LINUX,
-           D_ENV_OS_FLAG_SOLARIS);
 
     return all_assertions_passed;
 }
@@ -210,14 +198,6 @@ bool d_tests_env_os_flag_constants_bsd(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    BSD flags: Dragon=0x%02X Free=0x%02X Net=0x%02X Open=0x%02X OS=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_BSD_DRAGONFLY,
-           D_ENV_OS_FLAG_BSD_FREE,
-           D_ENV_OS_FLAG_BSD_NET,
-           D_ENV_OS_FLAG_BSD_OPEN,
-           D_ENV_OS_FLAG_BSD_OS);
 
     return all_assertions_passed;
 }
@@ -315,17 +295,6 @@ bool d_tests_env_os_flag_constants_windows(
         all_assertions_passed = false;
     }
 
-    printf("%s    Windows flags: DOS=0x%02X PC_10=0x%02X PC_11=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_MSDOS,
-           D_ENV_OS_FLAG_WIN_PC_10,
-           D_ENV_OS_FLAG_WIN_PC_11);
-
-    printf("%s    Windows Server: NT=0x%02X 2022=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_WIN_SERVER_NT,
-           D_ENV_OS_FLAG_WIN_SERVER_2022);
-
     return all_assertions_passed;
 }
 
@@ -376,12 +345,6 @@ bool d_tests_env_os_flag_constants_mobile(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    Mobile flags: ANDROID=0x%02X BADA=0x%02X TIZEN=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_ANDROID,
-           D_ENV_OS_FLAG_BADA,
-           D_ENV_OS_FLAG_TIZEN);
 
     return all_assertions_passed;
 }
@@ -460,18 +423,6 @@ bool d_tests_env_os_flag_constants_legacy(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    Legacy flags: AIX=0x%02X HP_UX=0x%02X IRIX=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_AIX,
-           D_ENV_OS_FLAG_HP_UX,
-           D_ENV_OS_FLAG_IRIX);
-
-    printf("%s    Legacy flags: QNX=0x%02X VMS=0x%02X UNKNOWN=0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_QNX,
-           D_ENV_OS_FLAG_VMS,
-           D_ENV_OS_FLAG_UNKNOWN);
 
     return all_assertions_passed;
 }
@@ -621,16 +572,6 @@ bool d_tests_env_os_utility_constants(
         all_assertions_passed = false;
     }
 
-    printf("%s    Block size: %d\n", D_INDENT, D_ENV_OS_BLOCK_SIZE);
-    printf("%s    Discontinued range: 0x%02X-0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_DISCONTINUED_FIRST,
-           D_ENV_OS_FLAG_DISCONTINUED_LAST);
-    printf("%s    Windows range: 0x%02X-0x%02X\n",
-           D_INDENT,
-           D_ENV_OS_FLAG_WIN_FIRST,
-           D_ENV_OS_FLAG_WIN_LAST);
-
     return all_assertions_passed;
 }
 
@@ -731,8 +672,6 @@ bool d_tests_env_os_utility_macro_block(
         all_assertions_passed = false;
     }
 
-    printf("%s    Block detection working correctly\n", D_INDENT);
-
     return all_assertions_passed;
 }
 
@@ -791,12 +730,6 @@ bool d_tests_env_os_utility_macro_unix(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    Unix detection: UNIX=%d LINUX=%d WIN=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_FLAG_UNIX),
-           D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_FLAG_LINUX),
-           D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_FLAG_WIN_PC_10));
 
     return all_assertions_passed;
 }
@@ -872,12 +805,6 @@ bool d_tests_env_os_utility_macro_mobile(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    Mobile detection: iOS=%d Android=%d Linux=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_MOBILE(D_ENV_OS_FLAG_IOS),
-           D_ENV_IS_OS_MOBILE(D_ENV_OS_FLAG_ANDROID),
-           D_ENV_IS_OS_MOBILE(D_ENV_OS_FLAG_LINUX));
 
     return all_assertions_passed;
 }
@@ -965,17 +892,6 @@ bool d_tests_env_os_utility_macro_windows(
         all_assertions_passed = false;
     }
 
-    printf("%s    Windows detection: Win10=%d Server=%d Linux=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_WINDOWS(D_ENV_OS_FLAG_WIN_PC_10),
-           D_ENV_IS_OS_WINDOWS(D_ENV_OS_FLAG_WIN_SERVER_2022),
-           D_ENV_IS_OS_WINDOWS(D_ENV_OS_FLAG_LINUX));
-
-    printf("%s    MS-DOS detection: DOS=%d Win10=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_MSDOS(D_ENV_OS_FLAG_MSDOS),
-           D_ENV_IS_OS_MSDOS(D_ENV_OS_FLAG_WIN_PC_10));
-
     return all_assertions_passed;
 }
 
@@ -1054,16 +970,6 @@ bool d_tests_env_os_utility_macro_discontinued(
     {
         all_assertions_passed = false;
     }
-
-    printf("%s    Discontinued: BeOS=%d Linux=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_DISCONTINUED(D_ENV_OS_FLAG_BEOS),
-           D_ENV_IS_OS_DISCONTINUED(D_ENV_OS_FLAG_LINUX));
-
-    printf("%s    Unsupported: AIX=%d Linux=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_UNSUPPORTED(D_ENV_OS_FLAG_AIX),
-           D_ENV_IS_OS_UNSUPPORTED(D_ENV_OS_FLAG_LINUX));
 
     return all_assertions_passed;
 }
@@ -1159,15 +1065,6 @@ bool d_tests_env_os_utility_macro_posix(
         all_assertions_passed = false;
     }
 
-    printf("%s    POSIX: Unix=%d Linux=%d BSD=%d macOS=%d Android=%d Win=%d\n",
-           D_INDENT,
-           D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_FLAG_UNIX),
-           D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_FLAG_LINUX),
-           D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_FLAG_BSD_FREE),
-           D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_FLAG_MACOS),
-           D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_FLAG_ANDROID),
-           D_ENV_IS_OS_POSIX_COMPLIANT(D_ENV_OS_FLAG_WIN_PC_10));
-
     return all_assertions_passed;
 }
 
@@ -1236,7 +1133,6 @@ bool d_tests_env_os_detection_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_OS_ID = 0x%02X\n", D_INDENT, D_ENV_OS_ID);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_OS_ID should be defined",
@@ -1257,7 +1153,6 @@ bool d_tests_env_os_detection_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_OS_NAME = \"%s\"\n", D_INDENT, D_ENV_OS_NAME);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_OS_NAME should be defined",
@@ -1299,32 +1194,26 @@ bool d_tests_env_os_platform_macros(
 
     #ifdef D_ENV_PLATFORM_ANDROID
         platform_count++;
-        printf("%s    D_ENV_PLATFORM_ANDROID is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_PLATFORM_WINDOWS
         platform_count++;
-        printf("%s    D_ENV_PLATFORM_WINDOWS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_PLATFORM_LINUX
         platform_count++;
-        printf("%s    D_ENV_PLATFORM_LINUX is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_PLATFORM_MACOS
         platform_count++;
-        printf("%s    D_ENV_PLATFORM_MACOS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_PLATFORM_UNIX
         platform_count++;
-        printf("%s    D_ENV_PLATFORM_UNIX is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_PLATFORM_UNKNOWN
         platform_count++;
-        printf("%s    D_ENV_PLATFORM_UNKNOWN is defined\n", D_INDENT);
     #endif
 
     // verify exactly one platform is defined
@@ -1334,16 +1223,9 @@ bool d_tests_env_os_platform_macros(
                           "one and only one platform should be defined"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: %d platforms defined (expected 1)\n",
-               D_INDENT,
-               platform_count);
+        (void)d_test_suite_note(_suite, "%d platforms defined (expected 1)",
+                                platform_count);
     }
-
-    #ifdef D_ENV_PLATFORM_NAME
-        printf("%s    D_ENV_PLATFORM_NAME = \"%s\"\n",
-               D_INDENT,
-               D_ENV_PLATFORM_NAME);
-    #endif
 
     return all_assertions_passed;
 }

@@ -59,7 +59,7 @@ bool d_tests_dmacro_varg_count_basic(
                           "single argument should count as 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 2 arguments
@@ -71,7 +71,7 @@ bool d_tests_dmacro_varg_count_basic(
                           "two arguments should count as 2"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 3 arguments
@@ -83,7 +83,7 @@ bool d_tests_dmacro_varg_count_basic(
                           "three arguments should count as 3"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 5 arguments
@@ -95,7 +95,7 @@ bool d_tests_dmacro_varg_count_basic(
                           "five arguments should count as 5"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 10 arguments
@@ -107,7 +107,7 @@ bool d_tests_dmacro_varg_count_basic(
                           "ten arguments should count as 10"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     return all_assertions_passed;
@@ -150,7 +150,7 @@ bool d_tests_dmacro_varg_count_medium(
                           "fifteen arguments should count as 15"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 16 arguments (power of 2 boundary)
@@ -163,7 +163,7 @@ bool d_tests_dmacro_varg_count_medium(
                           "sixteen arguments (2^4) should count as 16"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 20 arguments
@@ -176,7 +176,7 @@ bool d_tests_dmacro_varg_count_medium(
                           "twenty arguments should count as 20"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 31 arguments
@@ -191,7 +191,7 @@ bool d_tests_dmacro_varg_count_medium(
                           "thirty-one arguments should count as 31"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 32 arguments (power of 2 boundary)
@@ -206,7 +206,7 @@ bool d_tests_dmacro_varg_count_medium(
                           "thirty-two arguments (2^5) should count as 32"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     return all_assertions_passed;
@@ -251,7 +251,7 @@ bool d_tests_dmacro_varg_count_large(
                           "forty-eight arguments should count as 48"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 63 arguments (max - 1 for 64 variant)
@@ -270,7 +270,7 @@ bool d_tests_dmacro_varg_count_large(
                           "sixty-three arguments should count as 63"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with 64 arguments (max for 64 variant)
@@ -291,11 +291,12 @@ bool d_tests_dmacro_varg_count_large(
                           "sixty-four arguments should count as 64"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
     #else
-    printf("%s    [SKIP] 64-argument test (variant max: %d)\n",
-           D_INDENT, D_DMACRO_VARG_MAX);
+    (void)d_test_suite_note(_suite,
+                            "64-argument case skipped (variant max: %d)",
+                            D_DMACRO_VARG_MAX);
     #endif
 
     return all_assertions_passed;
@@ -338,7 +339,7 @@ bool d_tests_dmacro_varg_count_types(
                           "integer literals in various bases"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with floating-point literals
@@ -350,7 +351,7 @@ bool d_tests_dmacro_varg_count_types(
                           "floating-point literals"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with character literals
@@ -362,7 +363,7 @@ bool d_tests_dmacro_varg_count_types(
                           "character literals including escapes"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with string literals
@@ -374,7 +375,7 @@ bool d_tests_dmacro_varg_count_types(
                           "string literals including empty and with commas"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with mixed types
@@ -386,7 +387,7 @@ bool d_tests_dmacro_varg_count_types(
                           "mixed int, float, char, string"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with expressions (parenthesized to avoid comma issues)
@@ -398,7 +399,7 @@ bool d_tests_dmacro_varg_count_types(
                           "parenthesized expressions"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with sizeof expressions
@@ -410,7 +411,7 @@ bool d_tests_dmacro_varg_count_types(
                           "sizeof expressions"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     return all_assertions_passed;
@@ -453,7 +454,7 @@ bool d_tests_dmacro_varg_count_edge_cases(
                           "parenthesized groups count as single args"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test count result in arithmetic expression
@@ -465,7 +466,7 @@ bool d_tests_dmacro_varg_count_edge_cases(
                           "count results usable in expressions"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test count in multiplication
@@ -477,7 +478,7 @@ bool d_tests_dmacro_varg_count_edge_cases(
                           "count result in multiplication"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test count usable in array size (via variable)
@@ -507,7 +508,7 @@ bool d_tests_dmacro_varg_count_edge_cases(
                           "nested D_VARG_COUNT calls count as 3 args"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test with ternary expressions
@@ -519,7 +520,7 @@ bool d_tests_dmacro_varg_count_edge_cases(
                           "ternary expressions as arguments"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     return all_assertions_passed;
@@ -564,7 +565,7 @@ bool d_tests_dmacro_has_args_basic(
                           "single argument should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with two arguments
@@ -576,7 +577,7 @@ bool d_tests_dmacro_has_args_basic(
                           "two arguments should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with five arguments
@@ -588,7 +589,7 @@ bool d_tests_dmacro_has_args_basic(
                           "five arguments should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test result as boolean condition
@@ -611,7 +612,7 @@ bool d_tests_dmacro_has_args_basic(
                           "ten arguments should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -751,7 +752,7 @@ bool d_tests_dmacro_has_args_large_counts(
                           "32 arguments should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with 63 arguments
@@ -770,7 +771,7 @@ bool d_tests_dmacro_has_args_large_counts(
                           "63 arguments should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     #if (D_DMACRO_VARG_MAX >= 64)
@@ -790,11 +791,12 @@ bool d_tests_dmacro_has_args_large_counts(
                           "64 arguments should return 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
     #else
-    printf("%s    [SKIP] 64-argument test (variant max: %d)\n",
-           D_INDENT, D_DMACRO_VARG_MAX);
+    (void)d_test_suite_note(_suite,
+                            "64-argument case skipped (variant max: %d)",
+                            D_DMACRO_VARG_MAX);
     #endif
 
     return all_assertions_passed;
@@ -836,7 +838,7 @@ bool d_tests_dmacro_has_args_conditionals(
                           "D_HAS_ARGS truthy in ternary"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, ternary_result);
+        (void)d_test_suite_note(_suite, "Got: %d", ternary_result);
     }
 
     // test in logical AND
@@ -870,7 +872,7 @@ bool d_tests_dmacro_has_args_conditionals(
                           "combined with D_VARG_COUNT"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test in complex expression
@@ -882,7 +884,7 @@ bool d_tests_dmacro_has_args_conditionals(
                           "multiple D_HAS_ARGS in expression"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -930,7 +932,7 @@ bool d_tests_dmacro_arg_count_combined(
                           "consistency with 1 arg"))
     {
         all_assertions_passed = false;
-        printf("%s    count=%d, has=%d\n", D_INDENT, count, has);
+        (void)d_test_suite_note(_suite, "count=%d, has=%d", count, has);
     }
 
     // test consistency with 5 arguments
@@ -944,7 +946,7 @@ bool d_tests_dmacro_arg_count_combined(
                           "consistency with 5 args"))
     {
         all_assertions_passed = false;
-        printf("%s    count=%d, has=%d\n", D_INDENT, count, has);
+        (void)d_test_suite_note(_suite, "count=%d, has=%d", count, has);
     }
 
     // test consistency with 20 arguments
@@ -960,7 +962,7 @@ bool d_tests_dmacro_arg_count_combined(
                           "consistency with 20 args"))
     {
         all_assertions_passed = false;
-        printf("%s    count=%d, has=%d\n", D_INDENT, count, has);
+        (void)d_test_suite_note(_suite, "count=%d, has=%d", count, has);
     }
 
     // test practical pattern: conditional based on count
@@ -981,7 +983,7 @@ bool d_tests_dmacro_arg_count_combined(
                               "practical loop pattern"))
         {
             all_assertions_passed = false;
-            printf("%s    sum=%d\n", D_INDENT, sum);
+            (void)d_test_suite_note(_suite, "sum=%d", sum);
         }
     }
 
@@ -1001,7 +1003,7 @@ bool d_tests_dmacro_arg_count_combined(
                               "practical guard pattern"))
         {
             all_assertions_passed = false;
-            printf("%s    guarded_sum=%d\n", D_INDENT, guarded_sum);
+            (void)d_test_suite_note(_suite, "guarded_sum=%d", guarded_sum);
         }
     }
 
@@ -1044,7 +1046,7 @@ bool d_tests_dmacro_arg_count_boundary(
                           "minimum variant is 64"))
     {
         all_assertions_passed = false;
-        printf("%s    max_supported=%d\n", D_INDENT, max_supported);
+        (void)d_test_suite_note(_suite, "max_supported=%d", max_supported);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -1053,7 +1055,7 @@ bool d_tests_dmacro_arg_count_boundary(
                           "maximum variant is 1024"))
     {
         all_assertions_passed = false;
-        printf("%s    max_supported=%d\n", D_INDENT, max_supported);
+        (void)d_test_suite_note(_suite, "max_supported=%d", max_supported);
     }
 
     // test at 63 (always within range)
@@ -1081,7 +1083,7 @@ bool d_tests_dmacro_arg_count_boundary(
                           "63 args always works"))
     {
         all_assertions_passed = false;
-        printf("%s    count_at_63=%d\n", D_INDENT, count_at_63);
+        (void)d_test_suite_note(_suite, "count_at_63=%d", count_at_63);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -1090,7 +1092,7 @@ bool d_tests_dmacro_arg_count_boundary(
                           "D_HAS_ARGS works at 63"))
     {
         all_assertions_passed = false;
-        printf("%s    has_at_63=%d\n", D_INDENT, has_at_63);
+        (void)d_test_suite_note(_suite, "has_at_63=%d", has_at_63);
     }
 
     // verify count is within supported range
@@ -1102,7 +1104,8 @@ bool d_tests_dmacro_arg_count_boundary(
         all_assertions_passed = false;
     }
 
-    printf("%s    Current variant max: %d arguments\n", D_INDENT, max_supported);
+    (void)d_test_suite_note(_suite, "Current variant max: %d arguments",
+                            max_supported);
 
     return all_assertions_passed;
 }

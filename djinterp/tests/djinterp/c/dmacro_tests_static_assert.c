@@ -76,8 +76,8 @@ bool d_tests_dmacro_assert_same_size(
                           "signed and unsigned int same size"))
     {
         all_assertions_passed = false;
-        printf("%s    int: %zu, unsigned int: %zu\n",
-               D_INDENT, sizeof(int), sizeof(unsigned int));
+        (void)d_test_suite_note(_suite, "int: %zu, unsigned int: %zu",
+                                sizeof(int), sizeof(unsigned int));
     }
 
     // verify char sizes
@@ -87,8 +87,8 @@ bool d_tests_dmacro_assert_same_size(
                           "signed and unsigned char same size"))
     {
         all_assertions_passed = false;
-        printf("%s    char: %zu, unsigned char: %zu\n",
-               D_INDENT, sizeof(char), sizeof(unsigned char));
+        (void)d_test_suite_note(_suite, "char: %zu, unsigned char: %zu",
+                                sizeof(char), sizeof(unsigned char));
     }
 
     // verify short sizes
@@ -98,8 +98,8 @@ bool d_tests_dmacro_assert_same_size(
                           "signed and unsigned short same size"))
     {
         all_assertions_passed = false;
-        printf("%s    short: %zu, unsigned short: %zu\n",
-               D_INDENT, sizeof(short), sizeof(unsigned short));
+        (void)d_test_suite_note(_suite, "short: %zu, unsigned short: %zu",
+                                sizeof(short), sizeof(unsigned short));
     }
 
     // verify long sizes
@@ -109,8 +109,8 @@ bool d_tests_dmacro_assert_same_size(
                           "signed and unsigned long same size"))
     {
         all_assertions_passed = false;
-        printf("%s    long: %zu, unsigned long: %zu\n",
-               D_INDENT, sizeof(long), sizeof(unsigned long));
+        (void)d_test_suite_note(_suite, "long: %zu, unsigned long: %zu",
+                                sizeof(long), sizeof(unsigned long));
     }
 
     // verify pointer sizes (all pointers should be same size)
@@ -120,8 +120,8 @@ bool d_tests_dmacro_assert_same_size(
                           "all pointer types same size"))
     {
         all_assertions_passed = false;
-        printf("%s    int*: %zu, void*: %zu\n",
-               D_INDENT, sizeof(int*), sizeof(void*));
+        (void)d_test_suite_note(_suite, "int*: %zu, void*: %zu",
+                                sizeof(int*), sizeof(void*));
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -152,8 +152,9 @@ bool d_tests_dmacro_assert_same_size(
                           "struct size comparison"))
     {
         all_assertions_passed = false;
-        printf("%s    struct a: %zu, struct b: %zu\n",
-               D_INDENT, sizeof(struct dj_size_test_a), sizeof(struct dj_size_test_b));
+        (void)d_test_suite_note(_suite, "struct a: %zu, struct b: %zu",
+                                sizeof(struct dj_size_test_a),
+                                sizeof(struct dj_size_test_b));
     }
 
     return all_assertions_passed;

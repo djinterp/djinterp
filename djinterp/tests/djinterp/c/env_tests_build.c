@@ -50,12 +50,10 @@ bool d_tests_env_build_config_defined(
 
     #ifdef D_ENV_BUILD_DEBUG
         build_count++;
-        printf("%s    D_ENV_BUILD_DEBUG is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_BUILD_RELEASE
         build_count++;
-        printf("%s    D_ENV_BUILD_RELEASE is defined\n", D_INDENT);
     #endif
 
     // verify exactly one build configuration is defined
@@ -65,9 +63,8 @@ bool d_tests_env_build_config_defined(
                           "must be either debug or release, not both"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: %d build configs defined (expected 1)\n",
-               D_INDENT,
-               build_count);
+        (void)d_test_suite_note(_suite, "%d build configs defined (expected 1)",
+                                build_count);
     }
 
     // verify D_ENV_BUILD_TYPE is defined
@@ -80,7 +77,6 @@ bool d_tests_env_build_config_defined(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_BUILD_TYPE = \"%s\"\n", D_INDENT, D_ENV_BUILD_TYPE);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_BUILD_TYPE should be defined",
@@ -138,7 +134,6 @@ bool d_tests_env_build_config_values(
             }
         #endif
 
-        printf("%s    Debug build detected\n", D_INDENT);
     #endif
 
     // test release build configuration
@@ -162,7 +157,6 @@ bool d_tests_env_build_config_values(
             }
         #endif
 
-        printf("%s    Release build detected\n", D_INDENT);
     #endif
 
     return all_assertions_passed;
@@ -193,7 +187,6 @@ bool d_tests_env_build_config_consistency(
 
     // check consistency with standard debug macros
     #if defined(DEBUG) || defined(_DEBUG)
-        printf("%s    DEBUG or _DEBUG is defined\n", D_INDENT);
 
         #ifdef D_ENV_BUILD_DEBUG
             if (!D_TEST_CHECK_MSG(_suite,
@@ -206,8 +199,6 @@ bool d_tests_env_build_config_consistency(
         #else
             // this could be valid if NDEBUG is also defined
             #ifdef NDEBUG
-                printf("%s    Note: both DEBUG and NDEBUG defined (unusual)\n",
-                       D_INDENT);
             #else
                 if (!D_TEST_CHECK_MSG(_suite,
                                       "DEBUG/_DEBUG should indicate debug build",
@@ -222,7 +213,6 @@ bool d_tests_env_build_config_consistency(
 
     // check NDEBUG consistency
     #ifdef NDEBUG
-        printf("%s    NDEBUG is defined\n", D_INDENT);
 
         #ifdef D_ENV_BUILD_RELEASE
             if (!D_TEST_CHECK_MSG(_suite,
@@ -235,8 +225,6 @@ bool d_tests_env_build_config_consistency(
         #else
             // this could be valid if DEBUG/_DEBUG also defined
             #if defined(DEBUG) || defined(_DEBUG)
-                printf("%s    Note: both NDEBUG and DEBUG defined (unusual)\n",
-                       D_INDENT);
             #else
                 if (!D_TEST_CHECK_MSG(_suite,
                                       "NDEBUG should indicate release build",
@@ -267,8 +255,6 @@ bool d_tests_env_build_config_consistency(
             all_assertions_passed = false;
         }
     #endif
-
-    printf("%s    Build configuration is consistent\n", D_INDENT);
 
     return all_assertions_passed;
 }
@@ -307,22 +293,16 @@ bool d_tests_env_build_detection_logic(
 
     #ifdef DEBUG
         debug_indicator_count++;
-        printf("%s    DEBUG is defined\n", D_INDENT);
     #endif
 
     #ifdef _DEBUG
         debug_indicator_count++;
-        printf("%s    _DEBUG is defined\n", D_INDENT);
     #endif
 
     #ifndef NDEBUG
         debug_indicator_count++;
-        printf("%s    NDEBUG is not defined (debug indicator)\n", D_INDENT);
     #endif
 
-    printf("%s    Debug indicators present: %d\n",
-           D_INDENT,
-           debug_indicator_count);
 
     // test detection logic
     if (debug_indicator_count > 0)
@@ -409,10 +389,6 @@ bool d_tests_env_build_type_string(
             str_len++;
         }
 
-        printf("%s    D_ENV_BUILD_TYPE = \"%s\" (length %zu)\n",
-               D_INDENT,
-               D_ENV_BUILD_TYPE,
-               str_len);
 
         // verify string is either "Debug" or "Release"
         #ifdef D_ENV_BUILD_DEBUG
@@ -511,13 +487,6 @@ bool d_tests_env_build_conditional_compilation(
         release_code_compiled = 1;
     #endif
 
-    printf("%s    Debug code compiled: %s\n",
-           D_INDENT,
-           debug_code_compiled ? "yes" : "no");
-
-    printf("%s    Release code compiled: %s\n",
-           D_INDENT,
-           release_code_compiled ? "yes" : "no");
 
     // verify exactly one is compiled
     if (!D_TEST_CHECK_MSG(_suite,
@@ -609,9 +578,6 @@ bool d_tests_env_build_usage_examples(
             all_assertions_passed = false;
         }
 
-        printf("%s    Build type accessible at runtime: \"%s\"\n",
-               D_INDENT,
-               build_type_ptr);
     #endif
 
     // test compile-time conditional based on build
@@ -624,7 +590,6 @@ bool d_tests_env_build_usage_examples(
             all_assertions_passed = false;
         }
 
-        printf("%s    Compile-time debug checks enabled\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_BUILD_RELEASE
@@ -636,7 +601,6 @@ bool d_tests_env_build_usage_examples(
             all_assertions_passed = false;
         }
 
-        printf("%s    Compile-time release optimizations enabled\n", D_INDENT);
     #endif
 
     // test that macros evaluate to 1 (not just defined)

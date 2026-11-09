@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                                    test_cvar_tests_row_flags.c
 *
+* test_cvar.h's suite, block "cvar_row_flag_all": DTestRegistryRowFlag's
+* IS_REQUIRED, IS_CONFIG and IS_METADATA bits, each a distinct power of two, no
+* two overlapping.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_row_flags.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * I. REGISTRY ROW FLAG TESTS
- *****************************************************************************/
+//==============================================================================
+// 1.  REGISTRY ROW FLAG TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_row_flag_is_required
@@ -22,15 +25,15 @@ d_tests_cvar_row_flag_is_required
   - IS_REQUIRED equals (1u << 0), i.e. 0x01
   - IS_REQUIRED is non-zero
 */
-bool d_tests_cvar_row_flag_is_required(
+bool
+d_tests_cvar_row_flag_is_required(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_row_flag_is_required");
 
-    d_test_suite_test(_suite, "cvar_row_flag_is_required");
-
-    result = true;
+    bool result = true;
 
     // test 1: IS_REQUIRED equals bit 0
     result = D_TEST_CHECK_MSG(_suite,
@@ -54,15 +57,15 @@ d_tests_cvar_row_flag_is_config
   - IS_CONFIG equals (1u << 1), i.e. 0x02
   - IS_CONFIG does not overlap with IS_REQUIRED
 */
-bool d_tests_cvar_row_flag_is_config(
+bool
+d_tests_cvar_row_flag_is_config(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_row_flag_is_config");
 
-    d_test_suite_test(_suite, "cvar_row_flag_is_config");
-
-    result = true;
+    bool result = true;
 
     // test 1: IS_CONFIG equals bit 1
     result = D_TEST_CHECK_MSG(_suite,
@@ -86,15 +89,15 @@ d_tests_cvar_row_flag_is_metadata
   - IS_METADATA equals (1u << 2), i.e. 0x04
   - IS_METADATA does not overlap IS_CONFIG or IS_REQUIRED
 */
-bool d_tests_cvar_row_flag_is_metadata(
+bool
+d_tests_cvar_row_flag_is_metadata(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_row_flag_is_metadata");
 
-    d_test_suite_test(_suite, "cvar_row_flag_is_metadata");
-
-    result = true;
+    bool result = true;
 
     // test 1: IS_METADATA equals bit 2
     result = D_TEST_CHECK_MSG(_suite,
@@ -118,19 +121,16 @@ d_tests_cvar_row_flag_unique_bits
   - Each flag from TEST_FN through SESSION occupies exactly one bit
   - All 9 flags have distinct values
 */
-bool d_tests_cvar_row_flag_unique_bits(
+bool
+d_tests_cvar_row_flag_unique_bits(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t flags[9];
-    size_t   i;
-    size_t   j;
-    bool     all_unique;
+    d_test_suite_test(_suite,
+                      "cvar_row_flag_unique_bits");
 
-    d_test_suite_test(_suite, "cvar_row_flag_unique_bits");
-
-    result = true;
+    bool     result   = true;
+    uint32_t flags[9] = {0};
 
     flags[0] = D_TEST_REGISTRY_FLAG_IS_REQUIRED;
     flags[1] = D_TEST_REGISTRY_FLAG_IS_CONFIG;
@@ -143,21 +143,25 @@ bool d_tests_cvar_row_flag_unique_bits(
     flags[8] = D_TEST_REGISTRY_FLAG_SESSION;
 
     // test 1: each flag is a power of 2 (exactly one bit set)
-    for (i = 0; i < 9; i++)
+    for (size_t i = 0; i < 9; i++)
     {
         result = D_TEST_CHECK_MSG(_suite,
                                   "row_flag_power_of_2",
-                                  (flags[i] != 0) && ((flags[i] & (flags[i] - 1)) == 0),
+                                  ( (flags[i] != 0) &&
+                                    ((flags[i] & (flags[i] - 1)) == 0) ),
                                   "Each registry row flag should be a power of 2") && result;
     }
 
     // test 2: all flags are distinct
-    all_unique = true;
+    bool all_unique = true;
 
-    for (i = 0; i < 9 && all_unique; i++)
+    // each flag against every later one, until two match
+    for (size_t i = 0; ( (i < 9) && (all_unique) ); i++)
     {
-        for (j = i + 1; j < 9 && all_unique; j++)
+        // each later flag
+        for (size_t j = i + 1; ( (j < 9) && (all_unique) ); j++)
         {
+            // two flags with one value
             if (flags[i] == flags[j])
             {
                 all_unique = false;
@@ -180,29 +184,26 @@ d_tests_cvar_row_flag_no_overlap
   - Bitwise OR of all flags has exactly 9 bits set (bits 0-8)
   - No bit is claimed by more than one flag
 */
-bool d_tests_cvar_row_flag_no_overlap(
+bool
+d_tests_cvar_row_flag_no_overlap(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t combined;
-    uint32_t bit_count;
-    uint32_t temp;
+    d_test_suite_test(_suite,
+                      "cvar_row_flag_no_overlap");
 
-    d_test_suite_test(_suite, "cvar_row_flag_no_overlap");
-
-    result = true;
+    bool result = true;
 
     // combine all flags
-    combined = D_TEST_REGISTRY_FLAG_IS_REQUIRED |
-               D_TEST_REGISTRY_FLAG_IS_CONFIG   |
-               D_TEST_REGISTRY_FLAG_IS_METADATA |
-               D_TEST_REGISTRY_FLAG_TEST_FN     |
-               D_TEST_REGISTRY_FLAG_ASSERTS     |
-               D_TEST_REGISTRY_FLAG_TESTS       |
-               D_TEST_REGISTRY_FLAG_BLOCKS      |
-               D_TEST_REGISTRY_FLAG_MODULES     |
-               D_TEST_REGISTRY_FLAG_SESSION;
+    const uint32_t combined = D_TEST_REGISTRY_FLAG_IS_REQUIRED |
+                              D_TEST_REGISTRY_FLAG_IS_CONFIG   |
+                              D_TEST_REGISTRY_FLAG_IS_METADATA |
+                              D_TEST_REGISTRY_FLAG_TEST_FN     |
+                              D_TEST_REGISTRY_FLAG_ASSERTS     |
+                              D_TEST_REGISTRY_FLAG_TESTS       |
+                              D_TEST_REGISTRY_FLAG_BLOCKS      |
+                              D_TEST_REGISTRY_FLAG_MODULES     |
+                              D_TEST_REGISTRY_FLAG_SESSION;
 
     // test 1: combined value should be 0x1FF (bits 0 through 8)
     result = D_TEST_CHECK_MSG(_suite,
@@ -211,9 +212,10 @@ bool d_tests_cvar_row_flag_no_overlap(
                               "OR of all 9 flags should be 0x1FF") && result;
 
     // test 2: count bits - should be exactly 9
-    bit_count = 0;
-    temp      = combined;
+    uint32_t bit_count = 0;
+    uint32_t temp      = combined;
 
+    // count the bits set in the union of the flags
     while (temp)
     {
         bit_count += (temp & 1u);
@@ -232,15 +234,15 @@ bool d_tests_cvar_row_flag_no_overlap(
 d_tests_cvar_row_flag_all
   Aggregation function that runs all registry row flag tests.
 */
-bool d_tests_cvar_row_flag_all(
+bool
+d_tests_cvar_row_flag_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_row_flag_all");
 
-    d_test_suite_block(_suite, "cvar_row_flag_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_row_flag_is_required(_suite) && result;
     result = d_tests_cvar_row_flag_is_config(_suite)   && result;

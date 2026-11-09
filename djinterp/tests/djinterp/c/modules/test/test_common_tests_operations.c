@@ -10,9 +10,8 @@
 * path:      /tests/djinterp/c/modules/test/test_common_tests_operations.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-
 #include "./test_common_tests.h"  // corresponding header
 
 
@@ -32,9 +31,8 @@ d_tests_test_common_is_valid
 bool
 d_tests_test_common_is_valid(void)
 {
-    int64_t status;
-
-    for (status = 0; status < D_TEST_STATUS_COUNT; status++)
+    // each of the five is valid
+    for (int64_t status = 0; status < D_TEST_STATUS_COUNT; status++)
     {
         D_TEST_REQUIRE(d_test_status_is_valid(status) == 1);
     }
@@ -62,9 +60,8 @@ share: a status passes through, anything else is stored as error.
 bool
 d_tests_test_common_or_error(void)
 {
-    int64_t status;
-
-    for (status = 0; status < D_TEST_STATUS_COUNT; status++)
+    // each of the five comes back as itself
+    for (int64_t status = 0; status < D_TEST_STATUS_COUNT; status++)
     {
         D_TEST_REQUIRE((int64_t)d_test_status_or_error(status) == status);
     }
@@ -112,24 +109,23 @@ d_tests_test_common_name
 bool
 d_tests_test_common_name(void)
 {
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TEST_STATUS_PASSED), "passed"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TEST_STATUS_FAILED), "failed"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TEST_STATUS_SKIPPED), "skipped"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TEST_STATUS_PENDING), "pending"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TEST_STATUS_ERROR), "error"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TEST_STATUS_PASSED),
+                                          "passed"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TEST_STATUS_FAILED),
+                                          "failed"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TEST_STATUS_SKIPPED),
+                                          "skipped"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TEST_STATUS_PENDING),
+                                          "pending"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TEST_STATUS_ERROR),
+                                          "error"));
 
     D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(-1),
                                           "unknown"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TEST_STATUS_COUNT), "unknown"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(
-                       d_test_status_name(D_TESTS_TEST_COMMON_WIDE),
-                       "unknown"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TEST_STATUS_COUNT),
+                                          "unknown"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(d_test_status_name(D_TESTS_TEST_COMMON_WIDE),
+                                          "unknown"));
 
     return true;
 }
@@ -148,25 +144,32 @@ d_tests_test_common_worse_of(void)
 {
     // severity rank by status value, as the header's comment orders them
     static const int rank[D_TEST_STATUS_COUNT] = { 0, 3, 2, 1, 4 };
-    int64_t          a;
-    int64_t          b;
-    int64_t          want;
 
-    for (a = 0; a < D_TEST_STATUS_COUNT; a++)
+    int64_t want = 0;
+
+    // every pair of statuses, against the rank table
+    for (int64_t a = 0; a < D_TEST_STATUS_COUNT; a++)
     {
-        for (b = 0; b < D_TEST_STATUS_COUNT; b++)
+        // the worse of a and each b
+        for (int64_t b = 0; b < D_TEST_STATUS_COUNT; b++)
         {
             want = (rank[a] >= rank[b]) ? a : b;
 
-            D_TEST_REQUIRE((int64_t)d_test_status_worse_of(a, b) == want);
-            D_TEST_REQUIRE(d_test_status_worse_of(a, b) ==
-                           d_test_status_worse_of(b, a));
+            D_TEST_REQUIRE((int64_t)d_test_status_worse_of(a,
+                                                           b) == want);
+            D_TEST_REQUIRE(d_test_status_worse_of(a,
+                                                  b) ==
+                           d_test_status_worse_of(b,
+                                                  a));
         }
 
-        D_TEST_REQUIRE(d_test_status_worse_of(a, -1) == D_TEST_STATUS_ERROR);
-        D_TEST_REQUIRE(d_test_status_worse_of(D_TEST_STATUS_COUNT, a) ==
+        D_TEST_REQUIRE(d_test_status_worse_of(a,
+                                              -1) == D_TEST_STATUS_ERROR);
+        D_TEST_REQUIRE(d_test_status_worse_of(D_TEST_STATUS_COUNT,
+                                              a) ==
                        D_TEST_STATUS_ERROR);
-        D_TEST_REQUIRE(d_test_status_worse_of(a, D_TESTS_TEST_COMMON_WIDE) ==
+        D_TEST_REQUIRE(d_test_status_worse_of(a,
+                                              D_TESTS_TEST_COMMON_WIDE) ==
                        D_TEST_STATUS_ERROR);
     }
 

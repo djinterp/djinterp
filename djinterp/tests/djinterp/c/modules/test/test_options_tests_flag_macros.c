@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                               test_options_tests_flag_macros.c
 *
+* test_options.h's suite, block "config_flag_macro_all": D_TEST_SETTINGS_SHIFT,
+* D_TEST_SETTINGS_TO_FLAGS, D_TEST_FLAGS_TO_SETTINGS, and the round trip through
+* the last two.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_flag_macros.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * I. FLAG MANIPULATION MACRO TESTS
- *****************************************************************************/
+//==============================================================================
+// 1.  FLAG MANIPULATION MACRO TESTS
+//==============================================================================
 
 /*
 d_tests_options_settings_shift
@@ -22,15 +25,15 @@ d_tests_options_settings_shift
   - Value is 16
   - Shifting 1 by SETTINGS_SHIFT produces 0x00010000
 */
-bool d_tests_options_settings_shift(
+bool
+d_tests_options_settings_shift(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_settings_shift");
 
-    d_test_suite_test(_suite, "config_settings_shift");
-
-    result = true;
+    bool result = true;
 
     // test 1: value is 16
     result = D_TEST_CHECK_MSG(_suite,
@@ -56,19 +59,18 @@ d_tests_options_settings_to_flags
   - Multiple settings flags combine correctly
   - All four settings flags produce expected combined value
 */
-bool d_tests_options_settings_to_flags(
+bool
+d_tests_options_settings_to_flags(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t flags;
+    d_test_suite_test(_suite,
+                      "config_settings_to_flags");
 
-    d_test_suite_test(_suite, "config_settings_to_flags");
-
-    result = true;
+    bool result = true;
 
     // test 1: zero settings -> zero flags
-    flags = D_TEST_SETTINGS_TO_FLAGS(0);
+    uint32_t flags = D_TEST_SETTINGS_TO_FLAGS(0);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "to_flags_zero",
@@ -131,19 +133,18 @@ d_tests_options_flags_to_settings
   - Message-only flags (lower 16 bits) produce zero settings
   - Mixed flags extract only settings portion
 */
-bool d_tests_options_flags_to_settings(
+bool
+d_tests_options_flags_to_settings(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t settings;
+    d_test_suite_test(_suite,
+                      "config_flags_to_settings");
 
-    d_test_suite_test(_suite, "config_flags_to_settings");
-
-    result = true;
+    bool result = true;
 
     // test 1: zero flags -> zero settings
-    settings = D_TEST_FLAGS_TO_SETTINGS(0);
+    uint32_t settings = D_TEST_FLAGS_TO_SETTINGS(0);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "from_flags_zero",
@@ -184,22 +185,20 @@ d_tests_options_flag_roundtrip
   - Each individual settings flag survives the round-trip
   - Combined settings flags survive the round-trip
 */
-bool d_tests_options_flag_roundtrip(
+bool
+d_tests_options_flag_roundtrip(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t original;
-    uint32_t recovered;
+    d_test_suite_test(_suite,
+                      "config_flag_roundtrip");
 
-    d_test_suite_test(_suite, "config_flag_roundtrip");
-
-    result = true;
+    bool result = true;
 
     // test 1: STACK_PUSH_FAIL round-trip
-    original  = D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL;
-    recovered = D_TEST_FLAGS_TO_SETTINGS(
-                    D_TEST_SETTINGS_TO_FLAGS(original));
+    uint32_t original  = D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL;
+    uint32_t recovered = D_TEST_FLAGS_TO_SETTINGS(
+                             D_TEST_SETTINGS_TO_FLAGS(original));
 
     result = D_TEST_CHECK_MSG(_suite,
                               "roundtrip_push_fail",
@@ -236,15 +235,15 @@ bool d_tests_options_flag_roundtrip(
 d_tests_options_flag_macro_all
   Aggregation function that runs all flag manipulation macro tests.
 */
-bool d_tests_options_flag_macro_all(
+bool
+d_tests_options_flag_macro_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_flag_macro_all");
 
-    d_test_suite_block(_suite, "config_flag_macro_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_settings_shift(_suite) && result;
     result = d_tests_options_settings_to_flags(_suite) && result;

@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                                     test_options_tests_enums.c
 *
+* test_options.h's suite, block "config_enum_all": the values of
+* DTestMessageFlag, DTestSettingsFlag, DTestConfigKey, DTestMetadataFlag and
+* DTestEvent.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_enums.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * III. ENUM VALUE TESTS
- *****************************************************************************/
+//==============================================================================
+// 3.  ENUM VALUE TESTS
+//==============================================================================
 
 /*
 d_tests_options_enum_message_flag
@@ -25,15 +28,15 @@ d_tests_options_enum_message_flag
   - Print flags are within the print mask
   - No two enum values collide
 */
-bool d_tests_options_enum_message_flag(
+bool
+d_tests_options_enum_message_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_enum_message_flag");
 
-    d_test_suite_test(_suite, "config_enum_message_flag");
-
-    result = true;
+    bool result = true;
 
     // test 1: counter flags occupy bits 0-7
     result = D_TEST_CHECK_MSG(_suite,
@@ -139,15 +142,15 @@ d_tests_options_enum_settings_flag
   - Each settings flag is a unique power of 2
   - Settings flags are within bits 0-3 (before shifting)
 */
-bool d_tests_options_enum_settings_flag(
+bool
+d_tests_options_enum_settings_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_enum_settings_flag");
 
-    d_test_suite_test(_suite, "config_enum_settings_flag");
-
-    result = true;
+    bool result = true;
 
     // test 1: individual values
     result = D_TEST_CHECK_MSG(_suite,
@@ -192,15 +195,15 @@ d_tests_options_enum_config_key
   - Each key has a distinct value
   - D_TEST_OPTIONS_INDENT alias matches D_TEST_OPTIONS_INDENT_STR
 */
-bool d_tests_options_enum_config_key(
+bool
+d_tests_options_enum_config_key(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_enum_config_key");
 
-    d_test_suite_test(_suite, "config_enum_config_key");
-
-    result = true;
+    bool result = true;
 
     // test 1: ENABLED is 0
     result = D_TEST_CHECK_MSG(_suite,
@@ -252,15 +255,15 @@ d_tests_options_enum_metadata_flag
   - Subsequent values are sequential from 1
   - VERSION_STRING is the last value (17)
 */
-bool d_tests_options_enum_metadata_flag(
+bool
+d_tests_options_enum_metadata_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_enum_metadata_flag");
 
-    d_test_suite_test(_suite, "config_enum_metadata_flag");
-
-    result = true;
+    bool result = true;
 
     // test 1: UNKNOWN is 0
     result = D_TEST_CHECK_MSG(_suite,
@@ -301,15 +304,15 @@ d_tests_options_enum_event
   - Events are sequential starting from 0
   - All six events have distinct values
 */
-bool d_tests_options_enum_event(
+bool
+d_tests_options_enum_event(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_enum_event");
 
-    d_test_suite_test(_suite, "config_enum_event");
-
-    result = true;
+    bool result = true;
 
     // test 1: SETUP is 0
     result = D_TEST_CHECK_MSG(_suite,
@@ -354,15 +357,15 @@ bool d_tests_options_enum_event(
 d_tests_options_enum_all
   Aggregation function that runs all enum value tests.
 */
-bool d_tests_options_enum_all(
+bool
+d_tests_options_enum_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_enum_all");
 
-    d_test_suite_block(_suite, "config_enum_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_enum_message_flag(_suite) && result;
     result = d_tests_options_enum_settings_flag(_suite) && result;

@@ -65,7 +65,7 @@ bool d_tests_dmacro_array_count_basic(
                           "single element array should have count 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with 5 element array
@@ -77,7 +77,7 @@ bool d_tests_dmacro_array_count_basic(
                           "5 element array should have count 5"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with 10 element array
@@ -89,7 +89,7 @@ bool d_tests_dmacro_array_count_basic(
                           "10 element array should have count 10"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with 100 element array
@@ -101,7 +101,7 @@ bool d_tests_dmacro_array_count_basic(
                           "100 element array should have count 100"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with char array
@@ -113,7 +113,7 @@ bool d_tests_dmacro_array_count_basic(
                           "char array should have correct count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with double array
@@ -125,7 +125,7 @@ bool d_tests_dmacro_array_count_basic(
                           "double array should have correct count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with pointer array
@@ -137,7 +137,7 @@ bool d_tests_dmacro_array_count_basic(
                           "pointer array should have correct count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     return all_assertions_passed;
@@ -181,7 +181,7 @@ bool d_tests_dmacro_array_count_initialized(
                           "brace-initialized array should have count 5"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with string literal (includes null terminator)
@@ -193,7 +193,9 @@ bool d_tests_dmacro_array_count_initialized(
                           "string array includes null terminator"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu (expected 6 for \"hello\" + null)\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite,
+                                "Got: %zu (expected 6 for \"hello\" + null)",
+                                count);
     }
 
     // test with auto-sized 10 element array
@@ -205,7 +207,7 @@ bool d_tests_dmacro_array_count_initialized(
                           "auto-sized array should have correct count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // verify values are accessible via index
@@ -279,7 +281,7 @@ bool d_tests_dmacro_array_count_structs(
                           "struct array should have correct element count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with small struct array
@@ -291,7 +293,7 @@ bool d_tests_dmacro_array_count_structs(
                           "small struct array should have correct count"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // verify D_ARRAY_COUNT returns count, not byte size
@@ -304,8 +306,8 @@ bool d_tests_dmacro_array_count_structs(
                           "D_ARRAY_COUNT formula is correct"))
     {
         all_assertions_passed = false;
-        printf("%s    total=%zu, element=%zu, count=%zu\n",
-               D_INDENT, total_size, element_size, count);
+        (void)d_test_suite_note(_suite, "total=%zu, element=%zu, count=%zu",
+                                total_size, element_size, count);
     }
 
     // verify count is independent of struct size
@@ -317,10 +319,9 @@ bool d_tests_dmacro_array_count_structs(
         all_assertions_passed = false;
     }
 
-    printf("%s    struct test_struct: size=%zu, arr[8] total=%zu\n",
-           D_INDENT,
-           sizeof(struct test_struct),
-           sizeof(struct_arr));
+    (void)d_test_suite_note(_suite,
+                            "struct test_struct: size=%zu, arr[8] total=%zu",
+                            sizeof(struct test_struct), sizeof(struct_arr));
 
     return all_assertions_passed;
 }
@@ -364,7 +365,7 @@ bool d_tests_dmacro_array_count_safe(
                           "single element should count as 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with 3 ints
@@ -376,7 +377,7 @@ bool d_tests_dmacro_array_count_safe(
                           "three elements should count as 3"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with 5 ints
@@ -388,7 +389,7 @@ bool d_tests_dmacro_array_count_safe(
                           "five elements should count as 5"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with char type
@@ -400,7 +401,7 @@ bool d_tests_dmacro_array_count_safe(
                           "four char elements should count as 4"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with double type
@@ -412,7 +413,7 @@ bool d_tests_dmacro_array_count_safe(
                           "six double elements should count as 6"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     return all_assertions_passed;
@@ -457,7 +458,7 @@ bool d_tests_dmacro_array_count_t(
                           "single int element should count as 1"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with multiple ints
@@ -469,7 +470,7 @@ bool d_tests_dmacro_array_count_t(
                           "eight int elements should count as 8"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with const char* (string literals)
@@ -481,7 +482,7 @@ bool d_tests_dmacro_array_count_t(
                           "three string literals should count as 3"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %zu", count);
     }
 
     // test with void* type
@@ -503,7 +504,7 @@ bool d_tests_dmacro_array_count_t(
                               "three pointers should count as 3"))
         {
             all_assertions_passed = false;
-            printf("%s    Got: %zu\n", D_INDENT, count);
+            (void)d_test_suite_note(_suite, "Got: %zu", count);
         }
     }
 
@@ -566,7 +567,7 @@ bool d_tests_dmacro_make_array(
                           "array should have 5 elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got count: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got count: %zu", count);
     }
 
     // verify values
@@ -671,7 +672,7 @@ bool d_tests_dmacro_make_string_array(
                           "should have 3 strings"))
     {
         all_assertions_passed = false;
-        printf("%s    Got count: %zu\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got count: %zu", count);
     }
 
     // verify strings match expected values
@@ -681,7 +682,7 @@ bool d_tests_dmacro_make_string_array(
                           "first string should be \"foo\""))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, test_strings[0]);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", test_strings[0]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -690,7 +691,7 @@ bool d_tests_dmacro_make_string_array(
                           "second string should be \"bar\""))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, test_strings[1]);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", test_strings[1]);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -699,7 +700,7 @@ bool d_tests_dmacro_make_string_array(
                           "third string should be \"baz\""))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, test_strings[2]);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", test_strings[2]);
     }
 
     // test with longer identifier names
@@ -725,7 +726,7 @@ bool d_tests_dmacro_make_string_array(
                           "underscore in identifier preserved"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, long_names[0]);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", long_names[0]);
     }
 
     // test with numeric-like identifiers
@@ -739,7 +740,9 @@ bool d_tests_dmacro_make_string_array(
         all_assertions_passed = false;
     }
 
-    printf("%s    Created arrays: test_strings, long_names, num_names\n", D_INDENT);
+    (void)d_test_suite_note(_suite,
+                            "Created arrays: test_strings, long_names, "
+                            "num_names");
 
     return all_assertions_passed;
 }

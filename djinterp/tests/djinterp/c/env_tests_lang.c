@@ -133,13 +133,6 @@ bool d_tests_env_lang_c_standard_constants(
         all_assertions_passed = false;
     }
 
-    // print constant values for verification
-    printf("%s    C95:  %ldL\n", D_INDENT, D_ENV_LANG_C_STANDARD_C95);
-    printf("%s    C99:  %ldL\n", D_INDENT, D_ENV_LANG_C_STANDARD_C99);
-    printf("%s    C11:  %ldL\n", D_INDENT, D_ENV_LANG_C_STANDARD_C11);
-    printf("%s    C17:  %ldL\n", D_INDENT, D_ENV_LANG_C_STANDARD_C17);
-    printf("%s    C23:  %ldL\n", D_INDENT, D_ENV_LANG_C_STANDARD_C23);
-
     return all_assertions_passed;
 }
 
@@ -270,14 +263,6 @@ bool d_tests_env_lang_cpp_standard_constants(
         all_assertions_passed = false;
     }
 
-    // print constant values for verification
-    printf("%s    C++98:  %ldL\n", D_INDENT, D_ENV_LANG_CPP_STANDARD_CPP98);
-    printf("%s    C++11:  %ldL\n", D_INDENT, D_ENV_LANG_CPP_STANDARD_CPP11);
-    printf("%s    C++14:  %ldL\n", D_INDENT, D_ENV_LANG_CPP_STANDARD_CPP14);
-    printf("%s    C++17:  %ldL\n", D_INDENT, D_ENV_LANG_CPP_STANDARD_CPP17);
-    printf("%s    C++20:  %ldL\n", D_INDENT, D_ENV_LANG_CPP_STANDARD_CPP20);
-    printf("%s    C++23:  %ldL\n", D_INDENT, D_ENV_LANG_CPP_STANDARD_CPP23);
-
     return all_assertions_passed;
 }
 
@@ -295,10 +280,6 @@ bool d_tests_env_lang_standard_constant_ranges(
 )
 {
     bool   all_assertions_passed;
-    long   c_min;
-    long   c_max;
-    long   cpp_min;
-    long   cpp_max;
 
     if (!_suite)
     {
@@ -308,14 +289,6 @@ bool d_tests_env_lang_standard_constant_ranges(
     d_test_suite_test(_suite, "env_lang_standard_constant_ranges");
 
     all_assertions_passed = true;
-
-    // determine C standard range
-    c_min = D_ENV_LANG_C_STANDARD_C95;
-    c_max = D_ENV_LANG_C_STANDARD_C23;
-
-    // determine C++ standard range
-    cpp_min = D_ENV_LANG_CPP_STANDARD_CPP98;
-    cpp_max = D_ENV_LANG_CPP_STANDARD_CPP23;
 
     // verify all constants follow YYYYMM format (6 digits)
     // minimum valid: 199000 (year 1990, month 00)
@@ -369,10 +342,6 @@ bool d_tests_env_lang_standard_constant_ranges(
     {
         all_assertions_passed = false;
     }
-
-    // report ranges
-    printf("%s    C standard range:   %ldL to %ldL\n", D_INDENT, c_min, c_max);
-    printf("%s    C++ standard range: %ldL to %ldL\n", D_INDENT, cpp_min, cpp_max);
 
     return all_assertions_passed;
 }
@@ -527,10 +496,9 @@ bool d_tests_env_lang_c_standard_detection(
                               "name and value should be consistent"))
         {
             all_assertions_passed = false;
-            printf("%s    ERROR: value=%ld but name=\"%s\"\n",
-                   D_INDENT,
-                   D_ENV_LANG_C_STANDARD,
-                   D_ENV_LANG_C_STANDARD_NAME);
+            (void)d_test_suite_note(_suite, "value=%ld but name=\"%s\"",
+                                    D_ENV_LANG_C_STANDARD,
+                                    D_ENV_LANG_C_STANDARD_NAME);
         }
     #endif
 
@@ -543,15 +511,6 @@ bool d_tests_env_lang_c_standard_detection(
         {
             all_assertions_passed = false;
         }
-    #endif
-
-    // report detected values
-    #if defined(D_ENV_LANG_C_STANDARD) && defined(D_ENV_LANG_C_STANDARD_NAME)
-        printf("%s    Detected: %s (%ldL)\n",
-               D_INDENT,
-               D_ENV_LANG_C_STANDARD_NAME,
-               D_ENV_LANG_C_STANDARD);
-        printf("%s    D_ENV_LANG_USING_C: %d\n", D_INDENT, D_ENV_LANG_USING_C);
     #endif
 
     return all_assertions_passed;
@@ -584,7 +543,6 @@ bool d_tests_env_lang_c_standard_fallback(
     // test that C90 fallback value is correct
     // when __STDC_VERSION__ is not defined, should get 199000L
     #ifndef __STDC_VERSION__
-        printf("%s    __STDC_VERSION__ is NOT defined (C90 mode)\n", D_INDENT);
 
         #ifdef D_ENV_LANG_C_STANDARD
             if (!D_TEST_CHECK_MSG(_suite,
@@ -606,10 +564,6 @@ bool d_tests_env_lang_c_standard_fallback(
             }
         #endif
     #else
-        printf("%s    __STDC_VERSION__ is defined: %ldL\n",
-               D_INDENT,
-               (long)__STDC_VERSION__);
-        printf("%s    (C90 fallback not active in this compilation)\n", D_INDENT);
 
         // even when __STDC_VERSION__ is defined, verify the logic is correct
         // by checking that detected standard >= C90 fallback
@@ -668,9 +622,6 @@ bool d_tests_env_lang_cpp_standard_detection(
     all_assertions_passed = true;
 
     #ifdef __cplusplus
-        printf("%s    Compiling as C++ (__cplusplus = %ldL)\n",
-               D_INDENT,
-               (long)__cplusplus);
 
         // verify D_ENV_LANG_CPP_STANDARD is defined in C++ mode
         #ifdef D_ENV_LANG_CPP_STANDARD
@@ -794,14 +745,9 @@ bool d_tests_env_lang_cpp_standard_detection(
                 all_assertions_passed = false;
             }
 
-            printf("%s    Detected: %s (%ldL)\n",
-                   D_INDENT,
-                   D_ENV_LANG_CPP_STANDARD_NAME,
-                   D_ENV_LANG_CPP_STANDARD);
         #endif
 
     #else
-        printf("%s    Compiling as C (not C++)\n", D_INDENT);
 
         // verify D_ENV_LANG_CPP_STANDARD is NOT defined in C mode
         #ifdef D_ENV_LANG_CPP_STANDARD
@@ -853,8 +799,6 @@ bool d_tests_env_lang_cpp_standard_detection(
         // suppress unused variable warning
         (void)name_matches_value;
     #endif
-
-    printf("%s    D_ENV_LANG_USING_CPP: %d\n", D_INDENT, D_ENV_LANG_USING_CPP);
 
     return all_assertions_passed;
 }
@@ -996,13 +940,6 @@ bool d_tests_env_lang_c_version_comparison_macros(
         }
     #endif
 
-    // report results
-    printf("%s    IS_C95_OR_HIGHER: %s\n", D_INDENT, is_c95 ? "true" : "false");
-    printf("%s    IS_C99_OR_HIGHER: %s\n", D_INDENT, is_c99 ? "true" : "false");
-    printf("%s    IS_C11_OR_HIGHER: %s\n", D_INDENT, is_c11 ? "true" : "false");
-    printf("%s    IS_C17_OR_HIGHER: %s\n", D_INDENT, is_c17 ? "true" : "false");
-    printf("%s    IS_C23_OR_HIGHER: %s\n", D_INDENT, is_c23 ? "true" : "false");
-
     return all_assertions_passed;
 }
 
@@ -1044,7 +981,6 @@ bool d_tests_env_lang_cpp_version_comparison_macros(
         bool is_cpp20 = D_ENV_LANG_IS_CPP20_OR_HIGHER;
         bool is_cpp23 = D_ENV_LANG_IS_CPP23_OR_HIGHER;
 
-        printf("%s    Compiling as C++, testing comparison macros\n", D_INDENT);
 
         // verify monotonic property
         if (is_cpp23)
@@ -1160,18 +1096,9 @@ bool d_tests_env_lang_cpp_version_comparison_macros(
             all_assertions_passed = false;
         }
 
-        // report results
-        printf("%s    IS_CPP98_OR_HIGHER: %s\n", D_INDENT, is_cpp98 ? "true" : "false");
-        printf("%s    IS_CPP11_OR_HIGHER: %s\n", D_INDENT, is_cpp11 ? "true" : "false");
-        printf("%s    IS_CPP14_OR_HIGHER: %s\n", D_INDENT, is_cpp14 ? "true" : "false");
-        printf("%s    IS_CPP17_OR_HIGHER: %s\n", D_INDENT, is_cpp17 ? "true" : "false");
-        printf("%s    IS_CPP20_OR_HIGHER: %s\n", D_INDENT, is_cpp20 ? "true" : "false");
-        printf("%s    IS_CPP23_OR_HIGHER: %s\n", D_INDENT, is_cpp23 ? "true" : "false");
 
     #else
         // C mode: verify the C++ comparison macros are 0
-        printf("%s    Compiling as C, C++ comparison macros should be 0\n",
-               D_INDENT);
 
         // decision 20: each C++ predicate is defined, and 0, in a C build,
         // so #if can read one; reading them here is the definedness check
@@ -1314,8 +1241,6 @@ bool d_tests_env_lang_version_comparison_boundary_cases(
         all_assertions_passed = false;
     }
 
-    printf("%s    Boundary tests completed\n", D_INDENT);
-
     return all_assertions_passed;
 }
 
@@ -1452,9 +1377,6 @@ bool d_tests_env_lang_using_macros(
     // note: C and C++ can both be "used" since C++ includes C features
     // so we don't test for mutual exclusivity
 
-    printf("%s    D_ENV_LANG_USING_C:   %d\n", D_INDENT, using_c);
-    printf("%s    D_ENV_LANG_USING_CPP: %d\n", D_INDENT, using_cpp);
-
     return all_assertions_passed;
 }
 
@@ -1492,27 +1414,22 @@ bool d_tests_env_lang_detected_vars_c(
     // count how many C detection variables are defined
     #ifdef D_ENV_DETECTED_C95
         detected_count++;
-        printf("%s    D_ENV_DETECTED_C95 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_C99
         detected_count++;
-        printf("%s    D_ENV_DETECTED_C99 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_C11
         detected_count++;
-        printf("%s    D_ENV_DETECTED_C11 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_C17
         detected_count++;
-        printf("%s    D_ENV_DETECTED_C17 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_C23
         detected_count++;
-        printf("%s    D_ENV_DETECTED_C23 is defined\n", D_INDENT);
     #endif
 
     // verify at most one C detection variable is defined
@@ -1524,11 +1441,9 @@ bool d_tests_env_lang_detected_vars_c(
         all_assertions_passed = false;
     }
 
-    printf("%s    C detection vars count: %d\n", D_INDENT, detected_count);
 
     // if manual detection is active (language bit set), verify mapping
     #if (D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_LANG)
-        printf("%s    Manual detection mode active\n", D_INDENT);
 
         #ifdef D_ENV_DETECTED_C23
             #ifdef D_ENV_LANG_C_STANDARD
@@ -1582,8 +1497,6 @@ bool d_tests_env_lang_detected_vars_c(
             #endif
         #endif
     #else
-        printf("%s    Automatic detection mode (manual vars not used)\n",
-               D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "automatic detection mode active",
@@ -1626,32 +1539,26 @@ bool d_tests_env_lang_detected_vars_cpp(
     // count how many C++ detection variables are defined
     #ifdef D_ENV_DETECTED_CPP98
         detected_count++;
-        printf("%s    D_ENV_DETECTED_CPP98 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_CPP11
         detected_count++;
-        printf("%s    D_ENV_DETECTED_CPP11 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_CPP14
         detected_count++;
-        printf("%s    D_ENV_DETECTED_CPP14 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_CPP17
         detected_count++;
-        printf("%s    D_ENV_DETECTED_CPP17 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_CPP20
         detected_count++;
-        printf("%s    D_ENV_DETECTED_CPP20 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_CPP23
         detected_count++;
-        printf("%s    D_ENV_DETECTED_CPP23 is defined\n", D_INDENT);
     #endif
 
     // verify at most one C++ detection variable is defined
@@ -1663,11 +1570,9 @@ bool d_tests_env_lang_detected_vars_cpp(
         all_assertions_passed = false;
     }
 
-    printf("%s    C++ detection vars count: %d\n", D_INDENT, detected_count);
 
     // if manual detection is active, verify mapping
     #if (D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_LANG)
-        printf("%s    Manual detection mode active\n", D_INDENT);
 
         #ifdef D_ENV_DETECTED_CPP23
             #ifdef D_ENV_LANG_CPP_STANDARD
@@ -1731,8 +1636,6 @@ bool d_tests_env_lang_detected_vars_cpp(
             #endif
         #endif
     #else
-        printf("%s    Automatic detection mode (manual vars not used)\n",
-               D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "automatic detection mode active",
@@ -1895,13 +1798,6 @@ bool d_tests_env_lang_consistency_check(
     }
     #endif
 
-    printf("%s    C standard defined:   %s\n",
-           D_INDENT,
-           c_standard_defined ? "YES" : "NO");
-    printf("%s    C++ standard defined: %s\n",
-           D_INDENT,
-           cpp_standard_defined ? "YES" : "NO");
-
     return all_assertions_passed;
 }
 
@@ -1934,21 +1830,15 @@ bool d_tests_env_lang_feature_test_macros(
     // test common C99 feature gate pattern
     #if D_ENV_LANG_IS_C99_OR_HIGHER
         has_c99_features = true;
-        printf("%s    C99+ features available (inline, restrict, etc.)\n",
-               D_INDENT);
     #else
         has_c99_features = false;
-        printf("%s    Pre-C99 mode (no inline, restrict, etc.)\n", D_INDENT);
     #endif
 
     // test common C11 feature gate pattern
     #if D_ENV_LANG_IS_C11_OR_HIGHER
         has_c11_features = true;
-        printf("%s    C11+ features available (_Generic, _Atomic, etc.)\n",
-               D_INDENT);
     #else
         has_c11_features = false;
-        printf("%s    Pre-C11 mode (no _Generic, _Atomic, etc.)\n", D_INDENT);
     #endif
 
     // verify feature flags are consistent with each other
@@ -1965,22 +1855,6 @@ bool d_tests_env_lang_feature_test_macros(
     }
 
     // test C++ feature gate patterns
-    #ifdef D_ENV_LANG_CPP_STANDARD
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            printf("%s    C++11+ features (auto, nullptr, lambdas, etc.)\n",
-                   D_INDENT);
-        #endif
-
-        #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-            printf("%s    C++17+ features (if constexpr, fold expressions)\n",
-                   D_INDENT);
-        #endif
-
-        #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-            printf("%s    C++20+ features (concepts, ranges, modules)\n",
-                   D_INDENT);
-        #endif
-    #endif
 
     // verify the pattern of conditional compilation works
     if (!D_TEST_CHECK_MSG(_suite,

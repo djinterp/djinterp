@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                        test_cvar_tests_reset.c
 *
+* test_cvar.h's suite, block "cvar_reset_all_fn": d_test_registry_reset, of an
+* unknown flag too, and d_test_registry_reset_all, run twice.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_reset.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * VIII. RESET FUNCTION TESTS
- *****************************************************************************/
+//==============================================================================
+// 8.  RESET FUNCTION TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_reset_single
@@ -24,23 +26,23 @@ d_tests_cvar_reset_single
   - Modify config-enabled to false via key, then reset restores default
   - Modify timeout to 9999 via key, then reset restores D_TEST_DEFAULT_TIMEOUT
 */
-bool d_tests_cvar_reset_single(
+bool
+d_tests_cvar_reset_single(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_reset_single");
 
-    d_test_suite_test(_suite, "cvar_reset_single");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
 
     // test 1: modify config-enabled to false via row, then reset by flag
-    row = d_test_registry_find("config-enabled");
+    struct dj_test_registry_row* row = d_test_registry_find("config-enabled");
 
+    // change it, if the row exists
     if (row)
     {
         row->value.b = false;
@@ -56,6 +58,7 @@ bool d_tests_cvar_reset_single(
     // test 2: modify timeout to 9999 via row, then reset by flag
     row = d_test_registry_find("timeout");
 
+    // change it, if the row exists
     if (row)
     {
         row->value.z = 9999;
@@ -77,15 +80,15 @@ d_tests_cvar_reset_invalid_flag
   Tests the following:
   - Invalid flag does not crash
 */
-bool d_tests_cvar_reset_invalid_flag(
+bool
+d_tests_cvar_reset_invalid_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_reset_invalid_flag");
 
-    d_test_suite_test(_suite, "cvar_reset_invalid_flag");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
@@ -114,32 +117,51 @@ d_tests_cvar_reset_all_values
   Tests the following:
   - Modify multiple values via row pointers, then reset_all restores all
 */
-bool d_tests_cvar_reset_all_values(
+bool
+d_tests_cvar_reset_all_values(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_reset_all_values");
 
-    d_test_suite_test(_suite, "cvar_reset_all_values");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
 
     // modify multiple values directly through row pointers
-    row = d_test_registry_find("config-enabled");
-    if (row) { row->value.b = false; }
+    struct dj_test_registry_row* row = d_test_registry_find("config-enabled");
+
+    // change it, if the row exists
+    if (row)
+    {
+        row->value.b = false;
+    }
 
     row = d_test_registry_find("timeout");
-    if (row) { row->value.z = 5555; }
+
+    // change it, if the row exists
+    if (row)
+    {
+        row->value.z = 5555;
+    }
 
     row = d_test_registry_find("max-failures");
-    if (row) { row->value.z = 100; }
+
+    // change it, if the row exists
+    if (row)
+    {
+        row->value.z = 100;
+    }
 
     row = d_test_registry_find("priority");
-    if (row) { row->value.i32 = -10; }
+
+    // change it, if the row exists
+    if (row)
+    {
+        row->value.i32 = -10;
+    }
 
     // reset all
     d_test_registry_reset_all();
@@ -178,15 +200,15 @@ d_tests_cvar_reset_all_idempotent
   - Double reset_all does not crash
   - Values remain at defaults after double reset
 */
-bool d_tests_cvar_reset_all_idempotent(
+bool
+d_tests_cvar_reset_all_idempotent(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_reset_all_idempotent");
 
-    d_test_suite_test(_suite, "cvar_reset_all_idempotent");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
@@ -212,15 +234,15 @@ bool d_tests_cvar_reset_all_idempotent(
 d_tests_cvar_reset_all_fn
   Aggregation function that runs all reset function tests.
 */
-bool d_tests_cvar_reset_all_fn(
+bool
+d_tests_cvar_reset_all_fn(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_reset_all_fn");
 
-    d_test_suite_block(_suite, "cvar_reset_all_fn");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_reset_single(_suite)         && result;
     result = d_tests_cvar_reset_invalid_flag(_suite)   && result;

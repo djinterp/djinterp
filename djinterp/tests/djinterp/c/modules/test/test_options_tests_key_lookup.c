@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                                test_options_tests_key_lookup.c
 *
+* test_options.h's suite, block "config_key_lookup_all":
+* d_test_options_key_from_string: config keys and their aliases resolve; NULL,
+* unknown, empty and metadata keys do not.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_key_lookup.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * XIII. KEY LOOKUP TESTS
- *****************************************************************************/
+//==============================================================================
+// 13. KEY LOOKUP TESTS
+//==============================================================================
 
 /*
 d_tests_options_key_from_string_valid
@@ -28,15 +31,15 @@ d_tests_options_key_from_string_valid
   - "message-flags" resolves to D_TEST_OPTIONS_MESSAGE_FLAGS
   - "max-indent" resolves to D_TEST_OPTIONS_INDENT_MAX_LEVEL
 */
-bool d_tests_options_key_from_string_valid(
+bool
+d_tests_options_key_from_string_valid(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_key_from_string_valid");
 
-    d_test_suite_test(_suite, "config_key_from_string_valid");
-
-    result = true;
+    bool result = true;
 
     // test 1: "config-enabled"
     result = D_TEST_CHECK_MSG(_suite,
@@ -95,17 +98,16 @@ d_tests_options_key_from_string_null
   Tests the following:
   - Returns D_TEST_OPTIONS_KEY_INVALID (UINT32_MAX) for NULL
 */
-bool d_tests_options_key_from_string_null(
+bool
+d_tests_options_key_from_string_null(
     struct dj_test_suite* _suite
 )
 {
-    bool                result;
-    enum DTestConfigKey key;
+    d_test_suite_test(_suite,
+                      "config_key_from_string_null");
 
-    d_test_suite_test(_suite, "config_key_from_string_null");
-
-    result = true;
-    key    = d_test_options_key_from_string(NULL);
+    bool                      result = true;
+    const enum DTestConfigKey key    = d_test_options_key_from_string(NULL);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "key_from_string_null",
@@ -123,19 +125,18 @@ d_tests_options_key_from_string_invalid
   - Metadata-only keys (not config) return INVALID
   - Empty string returns INVALID
 */
-bool d_tests_options_key_from_string_invalid(
+bool
+d_tests_options_key_from_string_invalid(
     struct dj_test_suite* _suite
 )
 {
-    bool                result;
-    enum DTestConfigKey key;
+    d_test_suite_test(_suite,
+                      "config_key_from_string_invalid");
 
-    d_test_suite_test(_suite, "config_key_from_string_invalid");
-
-    result = true;
+    bool result = true;
 
     // test 1: non-existent key
-    key = d_test_options_key_from_string("this-key-does-not-exist");
+    enum DTestConfigKey key = d_test_options_key_from_string("this-key-does-not-exist");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "key_from_string_nonexistent",
@@ -179,15 +180,15 @@ d_tests_options_key_from_string_alias
   - "indent-level" alias resolves to D_TEST_OPTIONS_INDENT_MAX_LEVEL
   - "timeout-ms" alias resolves to D_TEST_OPTIONS_TIMEOUT_MS
 */
-bool d_tests_options_key_from_string_alias(
+bool
+d_tests_options_key_from_string_alias(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_key_from_string_alias");
 
-    d_test_suite_test(_suite, "config_key_from_string_alias");
-
-    result = true;
+    bool result = true;
 
     // test 1: "enabled" alias
     result = D_TEST_CHECK_MSG(_suite,
@@ -226,15 +227,15 @@ bool d_tests_options_key_from_string_alias(
 d_tests_options_key_lookup_all
   Aggregation function that runs all key lookup tests.
 */
-bool d_tests_options_key_lookup_all(
+bool
+d_tests_options_key_lookup_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_key_lookup_all");
 
-    d_test_suite_block(_suite, "config_key_lookup_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_key_from_string_valid(_suite) && result;
     result = d_tests_options_key_from_string_null(_suite) && result;

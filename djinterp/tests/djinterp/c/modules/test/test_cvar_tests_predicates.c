@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                                   test_cvar_tests_predicates.c
 *
+* test_cvar.h's suite, block "cvar_predicate_all": each row's command_flags,
+* IS_CONFIG and IS_METADATA where they belong and nowhere else, IS_REQUIRED on
+* none.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_predicates.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * XI. PREDICATE FUNCTION TESTS
- *****************************************************************************/
+//==============================================================================
+// 11. PREDICATE FUNCTION TESTS
+//==============================================================================
 
 /*
   NOTE: The predicate functions d_test_registry_is_config_row,
@@ -26,7 +29,6 @@
   iterator) are tested in section XII (table integrity).
 */
 
-
 /*
 d_tests_cvar_predicate_config_true
   Tests that config entries have the IS_CONFIG command flag set.
@@ -34,25 +36,25 @@ d_tests_cvar_predicate_config_true
   - "config-enabled" row has IS_CONFIG bit set
   - "timeout" row has IS_CONFIG bit set
 */
-bool d_tests_cvar_predicate_config_true(
+bool
+d_tests_cvar_predicate_config_true(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_predicate_config_true");
 
-    d_test_suite_test(_suite, "cvar_predicate_config_true");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: config-enabled has IS_CONFIG
-    row = d_test_registry_find("config-enabled");
+    struct dj_test_registry_row* row = d_test_registry_find("config-enabled");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_config_true_enabled",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) != 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) != 0) ),
                               "'config-enabled' should have IS_CONFIG command flag") && result;
 
     // test 2: timeout has IS_CONFIG
@@ -60,7 +62,8 @@ bool d_tests_cvar_predicate_config_true(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_config_true_timeout",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) != 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) != 0) ),
                               "'timeout' should have IS_CONFIG command flag") && result;
 
     return result;
@@ -73,25 +76,25 @@ d_tests_cvar_predicate_config_false
   - "authors" row does not have IS_CONFIG bit set
   - "name" row does not have IS_CONFIG bit set
 */
-bool d_tests_cvar_predicate_config_false(
+bool
+d_tests_cvar_predicate_config_false(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_predicate_config_false");
 
-    d_test_suite_test(_suite, "cvar_predicate_config_false");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: authors does NOT have IS_CONFIG
-    row = d_test_registry_find("authors");
+    struct dj_test_registry_row* row = d_test_registry_find("authors");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_config_false_authors",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) == 0) ),
                               "'authors' should not have IS_CONFIG command flag") && result;
 
     // test 2: name does NOT have IS_CONFIG
@@ -99,7 +102,8 @@ bool d_tests_cvar_predicate_config_false(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_config_false_name",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) == 0) ),
                               "'name' should not have IS_CONFIG command flag") && result;
 
     return result;
@@ -112,25 +116,25 @@ d_tests_cvar_predicate_metadata_true
   - "authors" row has IS_METADATA bit set
   - "description" row has IS_METADATA bit set
 */
-bool d_tests_cvar_predicate_metadata_true(
+bool
+d_tests_cvar_predicate_metadata_true(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_predicate_metadata_true");
 
-    d_test_suite_test(_suite, "cvar_predicate_metadata_true");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: authors has IS_METADATA
-    row = d_test_registry_find("authors");
+    struct dj_test_registry_row* row = d_test_registry_find("authors");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_metadata_true_authors",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) != 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) != 0) ),
                               "'authors' should have IS_METADATA command flag") && result;
 
     // test 2: description has IS_METADATA
@@ -138,7 +142,8 @@ bool d_tests_cvar_predicate_metadata_true(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_metadata_true_description",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) != 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) != 0) ),
                               "'description' should have IS_METADATA command flag") && result;
 
     return result;
@@ -151,25 +156,25 @@ d_tests_cvar_predicate_metadata_false
   - "config-enabled" row does not have IS_METADATA bit set
   - "skip" row does not have IS_METADATA bit set
 */
-bool d_tests_cvar_predicate_metadata_false(
+bool
+d_tests_cvar_predicate_metadata_false(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_predicate_metadata_false");
 
-    d_test_suite_test(_suite, "cvar_predicate_metadata_false");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: config-enabled does NOT have IS_METADATA
-    row = d_test_registry_find("config-enabled");
+    struct dj_test_registry_row* row = d_test_registry_find("config-enabled");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_metadata_false_enabled",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) == 0) ),
                               "'config-enabled' should not have IS_METADATA command flag") && result;
 
     // test 2: skip does NOT have IS_METADATA
@@ -177,7 +182,8 @@ bool d_tests_cvar_predicate_metadata_false(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_metadata_false_skip",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) == 0) ),
                               "'skip' should not have IS_METADATA command flag") && result;
 
     return result;
@@ -191,25 +197,25 @@ d_tests_cvar_predicate_required_false
   - "authors" does not have IS_REQUIRED
   - "name" does not have IS_REQUIRED
 */
-bool d_tests_cvar_predicate_required_false(
+bool
+d_tests_cvar_predicate_required_false(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_predicate_required_false");
 
-    d_test_suite_test(_suite, "cvar_predicate_required_false");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: config-enabled is NOT required
-    row = d_test_registry_find("config-enabled");
+    struct dj_test_registry_row* row = d_test_registry_find("config-enabled");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_required_false_enabled",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_REQUIRED) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_REQUIRED) == 0) ),
                               "'config-enabled' should not have IS_REQUIRED flag") && result;
 
     // test 2: authors is NOT required
@@ -217,7 +223,8 @@ bool d_tests_cvar_predicate_required_false(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_required_false_authors",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_REQUIRED) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_REQUIRED) == 0) ),
                               "'authors' should not have IS_REQUIRED flag") && result;
 
     // test 3: name is NOT required
@@ -225,7 +232,8 @@ bool d_tests_cvar_predicate_required_false(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "predicate_required_false_name",
-                              row != NULL && (row->command_flags & D_TEST_REGISTRY_FLAG_IS_REQUIRED) == 0,
+                              ( (row != NULL) &&
+                                ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_REQUIRED) == 0) ),
                               "'name' should not have IS_REQUIRED flag") && result;
 
     return result;
@@ -235,15 +243,15 @@ bool d_tests_cvar_predicate_required_false(
 d_tests_cvar_predicate_all
   Aggregation function that runs all predicate function tests.
 */
-bool d_tests_cvar_predicate_all(
+bool
+d_tests_cvar_predicate_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_predicate_all");
 
-    d_test_suite_block(_suite, "cvar_predicate_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_predicate_config_true(_suite)    && result;
     result = d_tests_cvar_predicate_config_false(_suite)   && result;

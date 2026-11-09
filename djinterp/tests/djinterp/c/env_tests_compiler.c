@@ -52,37 +52,27 @@ bool d_tests_env_compiler_detection_flags(
     // count compiler flags
     #ifdef D_ENV_COMPILER_CLANG
         compiler_flag_count++;
-        printf("%s    D_ENV_COMPILER_CLANG is defined\n", D_INDENT);
 
-        #ifdef D_ENV_COMPILER_APPLE_CLANG
-            printf("%s    D_ENV_COMPILER_APPLE_CLANG is also defined\n",
-                   D_INDENT);
-        #endif
     #endif
 
     #ifdef D_ENV_COMPILER_GCC
         compiler_flag_count++;
-        printf("%s    D_ENV_COMPILER_GCC is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_COMPILER_MSVC
         compiler_flag_count++;
-        printf("%s    D_ENV_COMPILER_MSVC is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_COMPILER_INTEL
         compiler_flag_count++;
-        printf("%s    D_ENV_COMPILER_INTEL is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_COMPILER_BORLAND
         compiler_flag_count++;
-        printf("%s    D_ENV_COMPILER_BORLAND is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_COMPILER_UNKNOWN
         compiler_flag_count++;
-        printf("%s    D_ENV_COMPILER_UNKNOWN is defined\n", D_INDENT);
     #endif
 
     // verify exactly one compiler flag (Clang counts as one even with Apple)
@@ -92,9 +82,8 @@ bool d_tests_env_compiler_detection_flags(
                           "compiler detection should be mutually exclusive"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: found %d compiler flags\n",
-               D_INDENT,
-               compiler_flag_count);
+        (void)d_test_suite_note(_suite, "found %d compiler flags",
+                                compiler_flag_count);
     }
 
     // verify Apple Clang implies Clang
@@ -117,8 +106,6 @@ bool d_tests_env_compiler_detection_flags(
             }
         #endif
     #endif
-
-    printf("%s    Compiler flags count: %d\n", D_INDENT, compiler_flag_count);
 
     return all_assertions_passed;
 }
@@ -253,17 +240,6 @@ bool d_tests_env_compiler_name_macros(
             }
         #endif
     #endif
-
-    // report names
-    if (name != NULL)
-    {
-        printf("%s    COMPILER_NAME:      \"%s\"\n", D_INDENT, name);
-    }
-
-    if (full_name != NULL)
-    {
-        printf("%s    COMPILER_FULL_NAME: \"%s\"\n", D_INDENT, full_name);
-    }
 
     return all_assertions_passed;
 }
@@ -403,9 +379,6 @@ bool d_tests_env_compiler_version_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    VERSION_STRING: \"%s\"\n",
-               D_INDENT,
-               D_ENV_COMPILER_VERSION_STRING);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_COMPILER_VERSION_STRING should be defined",
@@ -415,13 +388,6 @@ bool d_tests_env_compiler_version_macros(
             all_assertions_passed = false;
         }
     #endif
-
-    // report version
-    printf("%s    Version: %d.%d.%d\n",
-           D_INDENT,
-           major_ver,
-           minor_ver,
-           patch_ver);
 
     return all_assertions_passed;
 }
@@ -545,8 +511,6 @@ bool d_tests_env_compiler_version_at_least(
         all_assertions_passed = false;
     }
 
-    printf("%s    Current version: %d.%d.%d\n", D_INDENT, major, minor, patch);
-
     return all_assertions_passed;
 }
 
@@ -658,8 +622,6 @@ bool d_tests_env_compiler_version_at_most(
         }
     }
 
-    printf("%s    Current version: %d.%d.%d\n", D_INDENT, major, minor, patch);
-
     return all_assertions_passed;
 }
 
@@ -760,9 +722,6 @@ bool d_tests_env_compiler_va_opt_detection(
             all_assertions_passed = false;
         }
     }
-
-    printf("%s    D_ENV_PP_HAS_VA_OPT:         %d\n", D_INDENT, has_va_opt);
-    printf("%s    D_ENV_PP_HAS_VA_OPT_ENABLED: %d\n", D_INDENT, va_opt_enabled);
 
     return all_assertions_passed;
 }
@@ -871,23 +830,6 @@ bool d_tests_env_compiler_pp_limit_constants(
     {
         all_assertions_passed = false;
     }
-
-    // print values
-    printf("%s    C89: args=%d depth=%d ids=%d\n",
-           D_INDENT,
-           D_ENV_PP_LIMIT_C89_MACRO_ARGS,
-           D_ENV_PP_LIMIT_C89_NESTING_DEPTH,
-           D_ENV_PP_LIMIT_C89_MACRO_IDS);
-    printf("%s    C99: args=%d depth=%d ids=%d\n",
-           D_INDENT,
-           D_ENV_PP_LIMIT_C99_MACRO_ARGS,
-           D_ENV_PP_LIMIT_C99_NESTING_DEPTH,
-           D_ENV_PP_LIMIT_C99_MACRO_IDS);
-    printf("%s    C++: args=%d depth=%d ids=%d\n",
-           D_INDENT,
-           D_ENV_PP_LIMIT_CPP_MACRO_ARGS,
-           D_ENV_PP_LIMIT_CPP_NESTING_DEPTH,
-           D_ENV_PP_LIMIT_CPP_MACRO_IDS);
 
     return all_assertions_passed;
 }
@@ -1025,7 +967,6 @@ bool d_tests_env_compiler_pp_min_limits(
             all_assertions_passed = false;
         }
 
-        printf("%s    Using C++ standard limits\n", D_INDENT);
     #elif D_ENV_LANG_IS_C99_OR_HIGHER
         if (!D_TEST_CHECK_MSG(_suite,
                               "MIN_MACRO_ARGS matches C99 limit",
@@ -1035,7 +976,6 @@ bool d_tests_env_compiler_pp_min_limits(
             all_assertions_passed = false;
         }
 
-        printf("%s    Using C99+ standard limits\n", D_INDENT);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "MIN_MACRO_ARGS matches C89 limit",
@@ -1045,12 +985,7 @@ bool d_tests_env_compiler_pp_min_limits(
             all_assertions_passed = false;
         }
 
-        printf("%s    Using C89/90 standard limits\n", D_INDENT);
     #endif
-
-    printf("%s    MIN_MACRO_ARGS:    %d\n", D_INDENT, min_args);
-    printf("%s    MIN_NESTING_DEPTH: %d\n", D_INDENT, min_depth);
-    printf("%s    MIN_MACRO_IDS:     %d\n", D_INDENT, min_ids);
 
     return all_assertions_passed;
 }
@@ -1154,7 +1089,6 @@ bool d_tests_env_compiler_pp_max_limits(
             all_assertions_passed = false;
         }
 
-        printf("%s    LIMIT_SOURCE: \"%s\"\n", D_INDENT, D_ENV_PP_LIMIT_SOURCE);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_PP_LIMIT_SOURCE should be defined",
@@ -1189,15 +1123,6 @@ bool d_tests_env_compiler_pp_max_limits(
             }
         }
     #endif
-
-    printf("%s    MAX_MACRO_ARGS:    %d%s\n",
-           D_INDENT,
-           max_args,
-           (max_args == 0) ? " (unlimited)" : "");
-    printf("%s    MAX_NESTING_DEPTH: %d%s\n",
-           D_INDENT,
-           max_depth,
-           (max_depth == 0) ? " (unlimited)" : "");
 
     return all_assertions_passed;
 }
@@ -1306,8 +1231,6 @@ bool d_tests_env_compiler_pp_limit_utility_macros(
         all_assertions_passed = false;
     }
 
-    printf("%s    Utility macros evaluated successfully\n", D_INDENT);
-
     return all_assertions_passed;
 }
 
@@ -1343,37 +1266,30 @@ bool d_tests_env_compiler_manual_detection(
     // count detection variables
     #ifdef D_ENV_DETECTED_COMPILER_APPLE_CLANG
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_APPLE_CLANG defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_COMPILER_CLANG
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_CLANG defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_COMPILER_GCC
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_GCC defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_COMPILER_MSVC
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_MSVC defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_COMPILER_INTEL
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_INTEL defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_COMPILER_BORLAND
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_BORLAND defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_COMPILER_UNKNOWN
         detected_count++;
-        printf("%s    D_ENV_DETECTED_COMPILER_UNKNOWN defined\n", D_INDENT);
     #endif
 
     // verify at most one detection variable
@@ -1385,11 +1301,9 @@ bool d_tests_env_compiler_manual_detection(
         all_assertions_passed = false;
     }
 
-    printf("%s    Detection vars count: %d\n", D_INDENT, detected_count);
 
     // if manual mode is active, verify correct mapping
     #if (D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_COMPILER)
-        printf("%s    Manual compiler detection mode active\n", D_INDENT);
 
         #ifdef D_ENV_DETECTED_COMPILER_GCC
             #ifdef D_ENV_COMPILER_GCC
@@ -1431,7 +1345,6 @@ bool d_tests_env_compiler_manual_detection(
             #endif
         #endif
     #else
-        printf("%s    Automatic compiler detection mode\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "automatic detection mode active",
@@ -1550,10 +1463,6 @@ bool d_tests_env_compiler_consistency_check(
         }
     }
     #endif
-
-    printf("%s    Has compiler flag: %s\n", D_INDENT, has_flag ? "YES" : "NO");
-    printf("%s    Has name macros:   %s\n", D_INDENT, has_name ? "YES" : "NO");
-    printf("%s    Has version info:  %s\n", D_INDENT, has_version ? "YES" : "NO");
 
     return all_assertions_passed;
 }

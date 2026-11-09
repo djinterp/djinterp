@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                     test_options_tests_masks.c
 *
+* test_options.h's suite, block "config_mask_all": each D_TEST_MASK_* mask, and
+* that the message and settings masks do not overlap.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_masks.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * II. MASK DEFINITION TESTS
- *****************************************************************************/
+//==============================================================================
+// 2.  MASK DEFINITION TESTS
+//==============================================================================
 
 /*
 d_tests_options_mask_message
@@ -23,14 +25,16 @@ d_tests_options_mask_message
   - Covers all 16 lower bits
   - Does not overlap with settings mask
 */
-bool d_tests_options_mask_message(
+bool
+d_tests_options_mask_message(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
     // test 1: value is 0x0000FFFF
-    d_test_suite_test(_suite, "config_mask_message");
+    d_test_suite_test(_suite,
+                      "config_mask_message");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mask_message_value",
@@ -60,14 +64,16 @@ d_tests_options_mask_settings
   - Covers all 16 upper bits
   - No lower bits set
 */
-bool d_tests_options_mask_settings(
+bool
+d_tests_options_mask_settings(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
     // test 1: value is 0xFFFF0000
-    d_test_suite_test(_suite, "config_mask_settings");
+    d_test_suite_test(_suite,
+                      "config_mask_settings");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mask_settings_value",
@@ -90,14 +96,16 @@ d_tests_options_mask_counter
   - Value is 0x000000FF (bits 0-7)
   - Is a subset of message flags mask
 */
-bool d_tests_options_mask_counter(
+bool
+d_tests_options_mask_counter(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
     // test 1: value is 0x000000FF
-    d_test_suite_test(_suite, "config_mask_counter");
+    d_test_suite_test(_suite,
+                      "config_mask_counter");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mask_counter_value",
@@ -121,14 +129,16 @@ d_tests_options_mask_print
   - Is a subset of message flags mask
   - Does not overlap with counter mask
 */
-bool d_tests_options_mask_print(
+bool
+d_tests_options_mask_print(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
     // test 1: value is 0x0000FF00
-    d_test_suite_test(_suite, "config_mask_print");
+    d_test_suite_test(_suite,
+                      "config_mask_print");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mask_print_value",
@@ -158,14 +168,16 @@ d_tests_options_mask_stack
   - Is a subset of settings flags mask
   - Does not overlap with message mask
 */
-bool d_tests_options_mask_stack(
+bool
+d_tests_options_mask_stack(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
     // test 1: value is 0x000F0000
-    d_test_suite_test(_suite, "config_mask_stack");
+    d_test_suite_test(_suite,
+                      "config_mask_stack");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mask_stack_value",
@@ -194,14 +206,16 @@ d_tests_options_mask_no_overlap
   - Message and settings masks fully partition the 32-bit space
   - Counter and print masks partition the message space
 */
-bool d_tests_options_mask_no_overlap(
+bool
+d_tests_options_mask_no_overlap(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
     // test 1: message and settings together cover all 32 bits
-    d_test_suite_test(_suite, "config_mask_no_overlap");
+    d_test_suite_test(_suite,
+                      "config_mask_no_overlap");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "mask_full_coverage",
@@ -227,13 +241,15 @@ bool d_tests_options_mask_no_overlap(
 d_tests_options_mask_all
   Aggregation function that runs all mask definition tests.
 */
-bool d_tests_options_mask_all(
+bool
+d_tests_options_mask_all(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
-    d_test_suite_block(_suite, "config_mask_all");
+    d_test_suite_block(_suite,
+                       "config_mask_all");
 
     result = d_tests_options_mask_message(_suite)    && result;
     result = d_tests_options_mask_settings(_suite)   && result;

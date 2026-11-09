@@ -59,7 +59,7 @@ bool d_tests_dmacro_utility_ops(
                           "declared variable is assignable"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, test_var_a);
+        (void)d_test_suite_note(_suite, "Got: %d", test_var_a);
     }
 
     // test D_DECLARE_TYPED_OP
@@ -73,7 +73,7 @@ bool d_tests_dmacro_utility_ops(
                           "declared double variable is assignable"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %f\n", D_INDENT, test_var_b);
+        (void)d_test_suite_note(_suite, "Got: %f", test_var_b);
     }
 
     // test D_ASSIGN_OP
@@ -87,7 +87,7 @@ bool d_tests_dmacro_utility_ops(
                           "variable assigned to 100"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, assign_test);
+        (void)d_test_suite_note(_suite, "Got: %d", assign_test);
     }
 
     // test D_INIT_ZERO_OP
@@ -101,7 +101,7 @@ bool d_tests_dmacro_utility_ops(
                           "variable set to 0"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, zero_test);
+        (void)d_test_suite_note(_suite, "Got: %d", zero_test);
     }
 
     // test multiple declarations
@@ -118,7 +118,8 @@ bool d_tests_dmacro_utility_ops(
                           "multiple declarations work"))
     {
         all_assertions_passed = false;
-        printf("%s    Got sum: %d\n", D_INDENT, multi_a + multi_b + multi_c);
+        (void)d_test_suite_note(_suite, "Got sum: %d",
+                                multi_a + multi_b + multi_c);
     }
 
     // test D_DECLARE_TYPED_OP with different types
@@ -158,7 +159,8 @@ bool d_tests_dmacro_utility_ops(
                           "multiple assignments"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT, chain_a, chain_b, chain_c);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d",
+                                chain_a, chain_b, chain_c);
     }
 
     // test D_INIT_ZERO_OP on multiple variables
@@ -174,7 +176,7 @@ bool d_tests_dmacro_utility_ops(
                           "all variables zeroed"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT, z1, z2, z3);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d", z1, z2, z3);
     }
 
     // note: D_PRINT_OP and D_PRINT_VAL_OP produce output to stdout

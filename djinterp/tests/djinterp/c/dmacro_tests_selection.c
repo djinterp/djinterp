@@ -49,7 +49,7 @@ bool d_tests_dmacro_first_second_third(
                           "FIRST should return first arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_GET_SECOND
@@ -61,7 +61,7 @@ bool d_tests_dmacro_first_second_third(
                           "SECOND should return second arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_GET_THIRD
@@ -73,7 +73,7 @@ bool d_tests_dmacro_first_second_third(
                           "THIRD should return third arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_GET_FOURTH
@@ -85,7 +85,7 @@ bool d_tests_dmacro_first_second_third(
                           "FOURTH should return fourth arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_GET_FIFTH
@@ -97,7 +97,7 @@ bool d_tests_dmacro_first_second_third(
                           "FIFTH should return fifth arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_GET_SIXTH through TENTH with more args
@@ -109,7 +109,7 @@ bool d_tests_dmacro_first_second_third(
                           "SIXTH should return sixth arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_VARG_GET_SEVENTH(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -120,7 +120,7 @@ bool d_tests_dmacro_first_second_third(
                           "SEVENTH should return seventh arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_VARG_GET_EIGHTH(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -131,7 +131,7 @@ bool d_tests_dmacro_first_second_third(
                           "EIGHTH should return eighth arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_VARG_GET_NINTH(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -142,7 +142,7 @@ bool d_tests_dmacro_first_second_third(
                           "NINTH should return ninth arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     result = D_VARG_GET_TENTH(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -153,7 +153,7 @@ bool d_tests_dmacro_first_second_third(
                           "TENTH should return tenth arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test with single argument
@@ -165,7 +165,7 @@ bool d_tests_dmacro_first_second_third(
                           "FIRST with single arg should work"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;
@@ -212,7 +212,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "HEAD should return first element"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, head_result);
+        (void)d_test_suite_note(_suite, "Got: %d", head_result);
     }
 
     // test D_HEAD with single element
@@ -224,7 +224,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "HEAD with single element should work"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, head_result);
+        (void)d_test_suite_note(_suite, "Got: %d", head_result);
     }
 
     // test D_REST - count remaining args
@@ -236,7 +236,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "REST should return all but first"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, rest_count);
+        (void)d_test_suite_note(_suite, "Got: %d", rest_count);
     }
 
     // test D_REST - verify first element of rest
@@ -248,7 +248,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "HEAD of REST should be second original"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, head_result);
+        (void)d_test_suite_note(_suite, "Got: %d", head_result);
     }
 
     // test D_TAIL - should be same as D_REST
@@ -260,7 +260,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "TAIL should return all but first"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, tail_count);
+        (void)d_test_suite_note(_suite, "Got: %d", tail_count);
     }
 
     // test D_TAIL - verify first element
@@ -272,7 +272,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "HEAD of TAIL should be second original"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, head_result);
+        (void)d_test_suite_note(_suite, "Got: %d", head_result);
     }
 
     // Note: Chained D_REST(D_REST(...)) doesn't work without D_EXPAND
@@ -286,7 +286,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "positional accessor for third element"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, head_result);
+        (void)d_test_suite_note(_suite, "Got: %d", head_result);
     }
 
     // test D_REST with two elements (should return single element)
@@ -298,7 +298,7 @@ bool d_tests_dmacro_head_rest_tail(
                           "REST of two elements should return one"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, rest_count);
+        (void)d_test_suite_note(_suite, "Got: %d", rest_count);
     }
 
     return all_assertions_passed;
@@ -343,7 +343,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "remove parens should expose inner args"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, count);
+        (void)d_test_suite_note(_suite, "Got: %d", count);
     }
 
     // test D_VARGS_REMOVE_PARENTHESES - get first after removal
@@ -355,7 +355,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "HEAD after remove parens should be first inner"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARGS_REMOVE_PARENTHESES with single element
@@ -367,7 +367,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "remove parens with single element"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_LAST with multiple elements
@@ -379,7 +379,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "LAST should return last argument"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_LAST with two elements
@@ -391,7 +391,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "LAST with two elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_LAST with single element
@@ -403,7 +403,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "LAST with single element should return it"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     // test D_VARG_LAST with ten elements
@@ -415,7 +415,7 @@ bool d_tests_dmacro_remove_parentheses(
                           "LAST with ten elements"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, result);
+        (void)d_test_suite_note(_suite, "Got: %d", result);
     }
 
     return all_assertions_passed;

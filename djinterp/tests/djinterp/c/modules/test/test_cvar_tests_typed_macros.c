@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                 test_cvar_tests_typed_macros.c
 *
+* test_cvar.h's suite, block "cvar_typed_macro_all": the D_TEST_REGISTRY_* typed
+* access macros, also with an unknown key.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_typed_macros.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * X. TYPED ACCESS MACRO TESTS
- *****************************************************************************/
+//==============================================================================
+// 10. TYPED ACCESS MACRO TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_macro_get_row
@@ -22,21 +24,20 @@ d_tests_cvar_macro_get_row
   - Valid key returns non-NULL row pointer
   - Returned row has correct key
 */
-bool d_tests_cvar_macro_get_row(
+bool
+d_tests_cvar_macro_get_row(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_macro_get_row");
 
-    d_test_suite_test(_suite, "cvar_macro_get_row");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: valid key returns non-NULL
-    row = D_TEST_REGISTRY_GET("config-enabled");
+    struct dj_test_registry_row* row = D_TEST_REGISTRY_GET("config-enabled");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "macro_get_row_non_null",
@@ -46,7 +47,9 @@ bool d_tests_cvar_macro_get_row(
     // test 2: returned row has matching key
     result = D_TEST_CHECK_MSG(_suite,
                               "macro_get_row_key_matches",
-                              row != NULL && d_strcasecmp(row->key, "config-enabled") == 0,
+                              ( (row != NULL) &&
+                                (d_strcasecmp(row->key,
+                                              "config-enabled") == 0) ),
                               "Returned row key should match 'config-enabled'") && result;
 
     return result;
@@ -59,15 +62,15 @@ d_tests_cvar_macro_value_bool
   - Returns true for config-enabled (default)
   - Returns false for skip (default)
 */
-bool d_tests_cvar_macro_value_bool(
+bool
+d_tests_cvar_macro_value_bool(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_macro_value_bool");
 
-    d_test_suite_test(_suite, "cvar_macro_value_bool");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -94,15 +97,15 @@ d_tests_cvar_macro_value_size_t
   - timeout returns D_TEST_DEFAULT_TIMEOUT
   - max-failures returns D_TEST_DEFAULT_MAX_FAILURES
 */
-bool d_tests_cvar_macro_value_size_t(
+bool
+d_tests_cvar_macro_value_size_t(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_macro_value_size_t");
 
-    d_test_suite_test(_suite, "cvar_macro_value_size_t");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -130,15 +133,15 @@ d_tests_cvar_macro_value_numeric
   - max-indent returns uint16 default (D_TEST_DEFAULT_MAX_INDENT)
   - priority returns int32 default (0)
 */
-bool d_tests_cvar_macro_value_numeric(
+bool
+d_tests_cvar_macro_value_numeric(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_macro_value_numeric");
 
-    d_test_suite_test(_suite, "cvar_macro_value_numeric");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -171,15 +174,15 @@ d_tests_cvar_macro_value_ptr
   - indent-string returns D_TEST_DEFAULT_INDENT (non-NULL)
   - authors returns NULL (metadata default)
 */
-bool d_tests_cvar_macro_value_ptr(
+bool
+d_tests_cvar_macro_value_ptr(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_macro_value_ptr");
 
-    d_test_suite_test(_suite, "cvar_macro_value_ptr");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -207,15 +210,15 @@ d_tests_cvar_macro_metadata_fields
   - FLAG returns expected enum for config-enabled
   - TYPE returns expected d_type_info for config-enabled
 */
-bool d_tests_cvar_macro_metadata_fields(
+bool
+d_tests_cvar_macro_metadata_fields(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_macro_metadata_fields");
 
-    d_test_suite_test(_suite, "cvar_macro_metadata_fields");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
@@ -250,15 +253,15 @@ d_tests_cvar_macro_invalid_key
   - VALUE_PTR returns NULL for invalid key
   - HELP returns NULL for invalid key
 */
-bool d_tests_cvar_macro_invalid_key(
+bool
+d_tests_cvar_macro_invalid_key(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_macro_invalid_key");
 
-    d_test_suite_test(_suite, "cvar_macro_invalid_key");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
@@ -299,15 +302,15 @@ bool d_tests_cvar_macro_invalid_key(
 d_tests_cvar_typed_macro_all
   Aggregation function that runs all typed access macro tests.
 */
-bool d_tests_cvar_typed_macro_all(
+bool
+d_tests_cvar_typed_macro_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_typed_macro_all");
 
-    d_test_suite_block(_suite, "cvar_typed_macro_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_macro_get_row(_suite)         && result;
     result = d_tests_cvar_macro_value_bool(_suite)      && result;

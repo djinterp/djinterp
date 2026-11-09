@@ -13,28 +13,29 @@
 * modules exist (lane D, c/util), so this struct does not change shape.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* 1.  TALLY TYPE
-*     ----------
-*     1.  the tally
-*          1.  dj_test_counter
-* 2.  OPERATIONS
-*     ----------
-*     1.  reset and sum
-*
-*
 * path:      /inc/djinterp/c/modules/test/test_counter.h
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  TALLY TYPE
+    ----------
+    1.  the tally
+         1.  dj_test_counter
+2.  OPERATIONS
+    ----------
+    1.  reset and sum
+*/
+
 #ifndef DJINTERP_C_TEST_TEST_COUNTER_H
 #define DJINTERP_C_TEST_TEST_COUNTER_H 1
 
 // std
 #include <stddef.h>  // size_t
-
 // djinterp
 #include "../../djinterp.h"  // framework root
 

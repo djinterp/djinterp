@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/c/dtime_tests_sleep.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // djinterp
 #include "dtime_tests.h"
@@ -26,7 +26,7 @@ d_tests_dtime_nanosleep_cases
   - returns -1 for NULL request parameter
   - handles zero duration sleep
   - handles sub-millisecond sleep
-  - remaining time is written only for a sleep cut short
+  - remaining time is untouched by a sleep that completes, on every platform
   - sleep duration is within acceptable tolerance
   - handles large nanosecond values (normalized)
 */
@@ -91,8 +91,9 @@ bool d_tests_dtime_nanosleep_cases(struct dj_test_suite* _suite)
     result = d_nanosleep(&req, &rem);
     test_sub_millisecond = (result == 0);
 
-    // test 6: after a sleep that completes, _rem is as it was (POSIX) or
-    // holds a shortfall under the request (Windows measures one)
+    // test 6: after a sleep that completes, _rem is as it was, on every
+    // platform, as POSIX's nanosleep leaves it (the owner's ruling of
+    // 2026-11-07)
     req.tv_sec  = 0;
     req.tv_nsec = 1000000;  // 1 millisecond
     memset(&rem, 0xFF, sizeof(rem));
@@ -100,10 +101,7 @@ bool d_tests_dtime_nanosleep_cases(struct dj_test_suite* _suite)
     result = d_nanosleep(&req, &rem);
     test_remaining_cleared =
         (result == 0) &&
-        ( (memcmp(&rem, &rem_unset, sizeof(rem)) == 0) ||
-          ( (rem.tv_sec == 0) &&
-            (rem.tv_nsec >= 0) &&
-            (rem.tv_nsec < req.tv_nsec) ) );
+        (memcmp(&rem, &rem_unset, sizeof(rem)) == 0);
 
     // test 8: NULL remaining parameter is acceptable
     req.tv_sec  = 0;
@@ -137,7 +135,7 @@ bool d_tests_dtime_nanosleep_cases(struct dj_test_suite* _suite)
     D_TEST_CHECK_MSG(_suite,
                      "remaining_only_when_short",
                      test_remaining_cleared,
-                     "remaining time written only for a sleep cut short");
+                     "remaining time untouched by a sleep that completes");
     D_TEST_CHECK_MSG(_suite,
                      "within_tolerance",
                      test_within_tolerance,

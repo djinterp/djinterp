@@ -1158,10 +1158,9 @@ bool d_tests_djinterp_function_macro_consistency(
                                       "d_index_is_valid and D_IS_VALID_INDEX_N disagree"))
                 {
                     all_assertions_passed = false;
-                    printf("    Disagreement: idx=%d, size=%zu, func=%s, macro=%s\n",
-                           (int)idx, size,
-                           func_result ? "true" : "false",
-                           macro_result ? "true" : "false");
+                    (void)d_test_suite_note(_suite, "idx=%d size=%zu: "
+                                            "function %d, macro %d", (int)idx,
+                                            size, func_result, macro_result);
                     break; // exit inner loop on first failure
                 }
             }
@@ -1192,8 +1191,9 @@ bool d_tests_djinterp_function_macro_consistency(
                                       "d_index_convert_fast and D_NEG_IDX should agree on valid indices"))
                 {
                     all_assertions_passed = false;
-                    printf("    Disagreement: idx=%d, size=%zu, func=%zu, macro=%zu\n",
-                           (int)idx, size, func_result, macro_result);
+                    (void)d_test_suite_note(_suite, "idx=%d size=%zu: "
+                                            "function %zu, macro %zu", (int)idx,
+                                            size, func_result, macro_result);
                 }
             }
         }
@@ -1216,8 +1216,8 @@ bool d_tests_djinterp_function_macro_consistency(
                                   "Array access methods should yield same results"))
             {
                 all_assertions_passed = false;
-                printf("    Array access disagreement: idx=%d, func_value=%d, macro_value=%d\n",
-                       (int)idx, func_value, macro_value);
+                (void)d_test_suite_note(_suite, "idx=%d: function %d, macro %d",
+                                        (int)idx, func_value, macro_value);
             }
         }
     }

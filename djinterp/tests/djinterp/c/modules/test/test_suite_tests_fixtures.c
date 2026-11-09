@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/modules/test/test_suite_tests_fixtures.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 #include "./test_suite_tests.h"  // corresponding header
 
@@ -28,21 +28,23 @@ d_tests_test_suite_quiet(
     FILE** _stream
 )
 {
-    struct dj_test_suite_options options;
-    struct dj_test_suite*        suite;
-
     *_stream = NULL;
-    suite    = d_test_suite_new();
 
+    struct dj_test_suite* const suite = d_test_suite_new();
+
+    // check if memory allocation was successful
     if (!suite)
     {
         return NULL;
     }
 
+    struct dj_test_suite_options options = {0};
+
     d_test_suite_options_init(&options);
     options.show   = _show;
     options.stream = tmpfile();
 
+    // no temporary file: the suite goes too
     if (!options.stream)
     {
         d_test_suite_free(suite);
@@ -50,7 +52,8 @@ d_tests_test_suite_quiet(
         return NULL;
     }
 
-    d_test_suite_set_options(suite, &options);
+    d_test_suite_set_options(suite,
+                             &options);
     *_stream = options.stream;
 
     return suite;
@@ -69,14 +72,11 @@ d_tests_test_suite_report(
     struct dj_test_summary* _summary
 )
 {
-    struct dj_test_summary summary;
-    char*                  text;
-    long                   length;
-    int                    code;
-
+    // parameter validation; the stream is closed and the suite freed anyway
     if ( (!_suite) ||
          (!_stream) )
     {
+        // close the stream, when there is one
         if (_stream)
         {
             fclose(_stream);
@@ -87,31 +87,44 @@ d_tests_test_suite_report(
         return NULL;
     }
 
-    code = d_test_suite_run(_suite, &summary);
+    struct dj_test_summary summary = {0};
+
+    const int code = d_test_suite_run(_suite,
+                                      &summary);
+
     d_test_suite_free(_suite);
 
-    text   = NULL;
-    length = ftell(_stream);
+    char* text   = NULL;
+    long  length = ftell(_stream);
 
+    // the stream's length, and the stream rewound to read it
     if ( (length >= 0) &&
-         (fseek(_stream, 0L, SEEK_SET) == 0) )
+         (fseek(_stream,
+                0L,
+                SEEK_SET) == 0) )
     {
         text = (char*)malloc((size_t)length + 1);
 
+        // read it, when the buffer was allocated
         if (text)
         {
-            length       = (long)fread(text, 1, (size_t)length, _stream);
+            length       = (long)fread(text,
+                                       1,
+                                       (size_t)length,
+                                       _stream);
             text[length] = '\0';
         }
     }
 
     fclose(_stream);
 
+    // the exit code, when it is wanted
     if (_code)
     {
         *_code = code;
     }
 
+    // the summary, when it is wanted
     if (_summary)
     {
         *_summary = summary;
@@ -130,11 +143,13 @@ d_tests_test_suite_contains(
     const char* _text
 )
 {
+    // parameter validation
     if ( (!_report) ||
          (!_text) )
     {
         return false;
     }
 
-    return (strstr(_report, _text) != NULL);
+    return (strstr(_report,
+                   _text) != NULL);
 }

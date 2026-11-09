@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                              test_cvar_tests_table_integrity.c
 *
+* test_cvar.h's suite, block "cvar_table_integrity_all": every row's key and
+* help text set, its command flags right, and 25 rows, 8 config and 17 metadata.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_table_integrity.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * XII. REGISTRY TABLE INTEGRITY TESTS
- *****************************************************************************/
+//==============================================================================
+// 12. REGISTRY TABLE INTEGRITY TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_table_keys_non_null
@@ -21,25 +23,24 @@ d_tests_cvar_table_keys_non_null
   Tests the following:
   - Every row iterated via D_TEST_REGISTRY_FOREACH has a non-NULL key
 */
-bool d_tests_cvar_table_keys_non_null(
+bool
+d_tests_cvar_table_keys_non_null(
     struct dj_test_suite* _suite
 )
 {
-    bool   result;
-    bool   all_non_null;
-    size_t count;
+    d_test_suite_test(_suite,
+                      "cvar_table_keys_non_null");
 
-    d_test_suite_test(_suite, "cvar_table_keys_non_null");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    all_non_null = true;
-    count        = 0;
+    bool   all_non_null = true;
+    size_t count        = 0;
 
     D_TEST_REGISTRY_FOREACH(row)
     {
+        // a row without a key
         if (row->key == NULL)
         {
             all_non_null = false;
@@ -69,23 +70,23 @@ d_tests_cvar_table_help_non_null
   Tests the following:
   - Every row has a non-NULL help member
 */
-bool d_tests_cvar_table_help_non_null(
+bool
+d_tests_cvar_table_help_non_null(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
-    bool all_non_null;
+    d_test_suite_test(_suite,
+                      "cvar_table_help_non_null");
 
-    d_test_suite_test(_suite, "cvar_table_help_non_null");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    all_non_null = true;
+    bool all_non_null = true;
 
     D_TEST_REGISTRY_FOREACH(row)
     {
+        // a row without help text
         if (row->help == NULL)
         {
             all_non_null = false;
@@ -108,25 +109,24 @@ d_tests_cvar_table_config_flags
   - All rows with IS_CONFIG counted via D_TEST_REGISTRY_FOREACH
   - Config count is 8
 */
-bool d_tests_cvar_table_config_flags(
+bool
+d_tests_cvar_table_config_flags(
     struct dj_test_suite* _suite
 )
 {
-    bool   result;
-    bool   all_valid;
-    size_t config_count;
+    d_test_suite_test(_suite,
+                      "cvar_table_config_flags");
 
-    d_test_suite_test(_suite, "cvar_table_config_flags");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    all_valid    = true;
-    config_count = 0;
+    bool   all_valid    = true;
+    size_t config_count = 0;
 
     D_TEST_REGISTRY_FOREACH(row)
     {
+        // a config row
         if ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) != 0)
         {
             config_count++;
@@ -161,25 +161,24 @@ d_tests_cvar_table_metadata_flags
   - All rows with IS_METADATA counted via D_TEST_REGISTRY_FOREACH
   - Metadata count is 17
 */
-bool d_tests_cvar_table_metadata_flags(
+bool
+d_tests_cvar_table_metadata_flags(
     struct dj_test_suite* _suite
 )
 {
-    bool   result;
-    bool   all_valid;
-    size_t metadata_count;
+    d_test_suite_test(_suite,
+                      "cvar_table_metadata_flags");
 
-    d_test_suite_test(_suite, "cvar_table_metadata_flags");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    all_valid      = true;
-    metadata_count = 0;
+    bool   all_valid      = true;
+    size_t metadata_count = 0;
 
     D_TEST_REGISTRY_FOREACH(row)
     {
+        // a metadata row
         if ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) != 0)
         {
             metadata_count++;
@@ -214,34 +213,33 @@ d_tests_cvar_table_row_counts
   - Total row count is 25
   - Config (8) + metadata (17) = 25
 */
-bool d_tests_cvar_table_row_counts(
+bool
+d_tests_cvar_table_row_counts(
     struct dj_test_suite* _suite
 )
 {
-    bool   result;
-    size_t total_count;
-    size_t config_count;
-    size_t metadata_count;
+    d_test_suite_test(_suite,
+                      "cvar_table_row_counts");
 
-    d_test_suite_test(_suite, "cvar_table_row_counts");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    total_count    = 0;
-    config_count   = 0;
-    metadata_count = 0;
+    size_t total_count    = 0;
+    size_t config_count   = 0;
+    size_t metadata_count = 0;
 
     D_TEST_REGISTRY_FOREACH(row)
     {
         total_count++;
 
+        // a config row
         if ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) != 0)
         {
             config_count++;
         }
 
+        // a metadata row
         if ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_METADATA) != 0)
         {
             metadata_count++;
@@ -263,7 +261,8 @@ bool d_tests_cvar_table_row_counts(
     // test 3: explicit breakdown
     result = D_TEST_CHECK_MSG(_suite,
                               "table_breakdown_8_17",
-                              config_count == 8 && metadata_count == 17,
+                              ( (config_count == 8) &&
+                                (metadata_count == 17) ),
                               "Should have 8 config rows and 17 metadata rows") && result;
 
     return result;
@@ -273,15 +272,15 @@ bool d_tests_cvar_table_row_counts(
 d_tests_cvar_table_integrity_all
   Aggregation function that runs all table integrity tests.
 */
-bool d_tests_cvar_table_integrity_all(
+bool
+d_tests_cvar_table_integrity_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_table_integrity_all");
 
-    d_test_suite_block(_suite, "cvar_table_integrity_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_table_keys_non_null(_suite)  && result;
     result = d_tests_cvar_table_help_non_null(_suite)  && result;

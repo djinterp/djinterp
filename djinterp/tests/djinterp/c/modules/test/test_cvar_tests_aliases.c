@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                      test_cvar_tests_aliases.c
 *
+* test_cvar.h's suite, block "cvar_alias_all": the aliases enabled, indent,
+* indent-max and indent-level, timeout-ms, framework, module and submodule.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_aliases.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * VI. ALIAS LOOKUP TESTS
- *****************************************************************************/
+//==============================================================================
+// 6.  ALIAS LOOKUP TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_alias_enabled
@@ -22,22 +24,21 @@ d_tests_cvar_alias_enabled
   - "enabled" resolves to a non-NULL row
   - Resolved row has the same flag as the "config-enabled" row
 */
-bool d_tests_cvar_alias_enabled(
+bool
+d_tests_cvar_alias_enabled(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* alias_row;
-    struct dj_test_registry_row* primary_row;
+    d_test_suite_test(_suite,
+                      "cvar_alias_enabled");
 
-    d_test_suite_test(_suite, "cvar_alias_enabled");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    alias_row   = d_test_registry_find("enabled");
-    primary_row = d_test_registry_find("config-enabled");
+    struct dj_test_registry_row* alias_row = d_test_registry_find("enabled");
+    struct dj_test_registry_row* primary_row =
+        d_test_registry_find("config-enabled");
 
     // test 1: alias resolves to non-NULL
     result = D_TEST_CHECK_MSG(_suite,
@@ -48,7 +49,9 @@ bool d_tests_cvar_alias_enabled(
     // test 2: alias resolves to the same row as primary key
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_enabled_same_flag",
-                              alias_row != NULL && primary_row != NULL && alias_row->flag == primary_row->flag,
+                              ( (alias_row != NULL)   &&
+                                (primary_row != NULL) &&
+                                (alias_row->flag == primary_row->flag) ),
                               "'enabled' should resolve to same flag as 'config-enabled'") && result;
 
     return result;
@@ -61,20 +64,19 @@ d_tests_cvar_alias_indent
   - "indent" resolves to a non-NULL row
   - Resolved row flag matches D_TEST_OPTIONS_INDENT_STR
 */
-bool d_tests_cvar_alias_indent(
+bool
+d_tests_cvar_alias_indent(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* alias_row;
+    d_test_suite_test(_suite,
+                      "cvar_alias_indent");
 
-    d_test_suite_test(_suite, "cvar_alias_indent");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    alias_row = d_test_registry_find("indent");
+    struct dj_test_registry_row* alias_row = d_test_registry_find("indent");
 
     // test 1: alias resolves to non-NULL
     result = D_TEST_CHECK_MSG(_suite,
@@ -85,7 +87,8 @@ bool d_tests_cvar_alias_indent(
     // test 2: flag matches D_TEST_OPTIONS_INDENT_STR
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_indent_flag_matches",
-                              alias_row != NULL && alias_row->flag == D_TEST_OPTIONS_INDENT_STR,
+                              ( (alias_row != NULL) &&
+                                (alias_row->flag == D_TEST_OPTIONS_INDENT_STR) ),
                               "'indent' should map to D_TEST_OPTIONS_INDENT_STR") && result;
 
     return result;
@@ -99,24 +102,23 @@ d_tests_cvar_alias_max_indent
   - "indent-level" resolves to the "max-indent" row
   - Both aliases resolve to the same flag
 */
-bool d_tests_cvar_alias_max_indent(
+bool
+d_tests_cvar_alias_max_indent(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* primary_row;
-    struct dj_test_registry_row* alias_max;
-    struct dj_test_registry_row* alias_level;
+    d_test_suite_test(_suite,
+                      "cvar_alias_max_indent");
 
-    d_test_suite_test(_suite, "cvar_alias_max_indent");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    primary_row = d_test_registry_find("max-indent");
-    alias_max   = d_test_registry_find("indent-max");
-    alias_level = d_test_registry_find("indent-level");
+    struct dj_test_registry_row* primary_row =
+        d_test_registry_find("max-indent");
+    struct dj_test_registry_row* alias_max = d_test_registry_find("indent-max");
+    struct dj_test_registry_row* alias_level =
+        d_test_registry_find("indent-level");
 
     // test 1: "indent-max" resolves to non-NULL
     result = D_TEST_CHECK_MSG(_suite,
@@ -133,12 +135,16 @@ bool d_tests_cvar_alias_max_indent(
     // test 3: both aliases match the primary row flag
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_indent_max_same_flag",
-                              alias_max != NULL && primary_row != NULL && alias_max->flag == primary_row->flag,
+                              ( (alias_max != NULL)   &&
+                                (primary_row != NULL) &&
+                                (alias_max->flag == primary_row->flag) ),
                               "'indent-max' should map to same flag as 'max-indent'") && result;
 
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_indent_level_same_flag",
-                              alias_level != NULL && primary_row != NULL && alias_level->flag == primary_row->flag,
+                              ( (alias_level != NULL) &&
+                                (primary_row != NULL) &&
+                                (alias_level->flag == primary_row->flag) ),
                               "'indent-level' should map to same flag as 'max-indent'") && result;
 
     return result;
@@ -151,20 +157,19 @@ d_tests_cvar_alias_timeout
   - "timeout-ms" resolves to the "timeout" row
   - Resolved flag matches D_TEST_OPTIONS_TIMEOUT_MS
 */
-bool d_tests_cvar_alias_timeout(
+bool
+d_tests_cvar_alias_timeout(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* alias_row;
+    d_test_suite_test(_suite,
+                      "cvar_alias_timeout");
 
-    d_test_suite_test(_suite, "cvar_alias_timeout");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
-    alias_row = d_test_registry_find("timeout-ms");
+    struct dj_test_registry_row* alias_row = d_test_registry_find("timeout-ms");
 
     // test 1: alias resolves to non-NULL
     result = D_TEST_CHECK_MSG(_suite,
@@ -175,7 +180,8 @@ bool d_tests_cvar_alias_timeout(
     // test 2: flag matches D_TEST_OPTIONS_TIMEOUT_MS
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_timeout_ms_flag_matches",
-                              alias_row != NULL && alias_row->flag == D_TEST_OPTIONS_TIMEOUT_MS,
+                              ( (alias_row != NULL) &&
+                                (alias_row->flag == D_TEST_OPTIONS_TIMEOUT_MS) ),
                               "'timeout-ms' should map to D_TEST_OPTIONS_TIMEOUT_MS") && result;
 
     return result;
@@ -189,25 +195,25 @@ d_tests_cvar_alias_name_shortcuts
   - "module" resolves to D_TEST_METADATA_MODULE_NAME
   - "submodule" resolves to D_TEST_METADATA_SUBMODULE_NAME
 */
-bool d_tests_cvar_alias_name_shortcuts(
+bool
+d_tests_cvar_alias_name_shortcuts(
     struct dj_test_suite* _suite
 )
 {
-    bool                        result;
-    struct dj_test_registry_row* row;
+    d_test_suite_test(_suite,
+                      "cvar_alias_name_shortcuts");
 
-    d_test_suite_test(_suite, "cvar_alias_name_shortcuts");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: "framework" alias
-    row = d_test_registry_find("framework");
+    struct dj_test_registry_row* row = d_test_registry_find("framework");
 
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_framework_flag",
-                              row != NULL && row->flag == D_TEST_METADATA_FRAMEWORK_NAME,
+                              ( (row != NULL) &&
+                                (row->flag == D_TEST_METADATA_FRAMEWORK_NAME) ),
                               "'framework' should map to D_TEST_METADATA_FRAMEWORK_NAME") && result;
 
     // test 2: "module" alias
@@ -215,7 +221,8 @@ bool d_tests_cvar_alias_name_shortcuts(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_module_flag",
-                              row != NULL && row->flag == D_TEST_METADATA_MODULE_NAME,
+                              ( (row != NULL) &&
+                                (row->flag == D_TEST_METADATA_MODULE_NAME) ),
                               "'module' should map to D_TEST_METADATA_MODULE_NAME") && result;
 
     // test 3: "submodule" alias
@@ -223,7 +230,8 @@ bool d_tests_cvar_alias_name_shortcuts(
 
     result = D_TEST_CHECK_MSG(_suite,
                               "alias_submodule_flag",
-                              row != NULL && row->flag == D_TEST_METADATA_SUBMODULE_NAME,
+                              ( (row != NULL) &&
+                                (row->flag == D_TEST_METADATA_SUBMODULE_NAME) ),
                               "'submodule' should map to D_TEST_METADATA_SUBMODULE_NAME") && result;
 
     return result;
@@ -233,15 +241,15 @@ bool d_tests_cvar_alias_name_shortcuts(
 d_tests_cvar_alias_all
   Aggregation function that runs all alias lookup tests.
 */
-bool d_tests_cvar_alias_all(
+bool
+d_tests_cvar_alias_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_alias_all");
 
-    d_test_suite_block(_suite, "cvar_alias_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_alias_enabled(_suite)        && result;
     result = d_tests_cvar_alias_indent(_suite)         && result;

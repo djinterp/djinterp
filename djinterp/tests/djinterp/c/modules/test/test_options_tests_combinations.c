@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                              test_options_tests_combinations.c
 *
+* test_options.h's suite, block "config_combination_all": the
+* D_TEST_MSG_COUNT_*, D_TEST_MSG_PRINT_* and D_TEST_MSG_ALL combinations, and
+* those for assertions, tests, blocks and modules.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_combinations.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * IV. MESSAGE FLAG COMBINATION TESTS
- *****************************************************************************/
+//==============================================================================
+// 4.  MESSAGE FLAG COMBINATION TESTS
+//==============================================================================
 
 /*
 d_tests_options_msg_count_combinations
@@ -24,20 +27,17 @@ d_tests_options_msg_count_combinations
   - D_TEST_MSG_COUNT_ALL combines both fail and pass
   - Fail and pass count flags are disjoint
 */
-bool d_tests_options_msg_count_combinations(
+bool
+d_tests_options_msg_count_combinations(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t count_fail;
-    uint32_t count_pass;
+    d_test_suite_test(_suite,
+                      "config_msg_count_combinations");
 
-    d_test_suite_test(_suite, "config_msg_count_combinations");
-
-    result = true;
-
-    count_fail = D_TEST_MSG_COUNT_FAIL_ALL;
-    count_pass = D_TEST_MSG_COUNT_PASS_ALL;
+    bool           result     = true;
+    const uint32_t count_fail = D_TEST_MSG_COUNT_FAIL_ALL;
+    uint32_t       count_pass = D_TEST_MSG_COUNT_PASS_ALL;
 
     // test 1: COUNT_FAIL_ALL has all 4 fail counter bits
     result = D_TEST_CHECK_MSG(_suite,
@@ -101,20 +101,17 @@ d_tests_options_msg_print_combinations
   - D_TEST_MSG_PRINT_ALL combines both fail and pass
   - Print flags reside in bits 8-15
 */
-bool d_tests_options_msg_print_combinations(
+bool
+d_tests_options_msg_print_combinations(
     struct dj_test_suite* _suite
 )
 {
-    bool     result;
-    uint32_t print_fail;
-    uint32_t print_pass;
+    d_test_suite_test(_suite,
+                      "config_msg_print_combinations");
 
-    d_test_suite_test(_suite, "config_msg_print_combinations");
-
-    result = true;
-
-    print_fail = D_TEST_MSG_PRINT_FAIL_ALL;
-    print_pass = D_TEST_MSG_PRINT_PASS_ALL;
+    bool           result     = true;
+    const uint32_t print_fail = D_TEST_MSG_PRINT_FAIL_ALL;
+    uint32_t       print_pass = D_TEST_MSG_PRINT_PASS_ALL;
 
     // test 1: PRINT_FAIL_ALL has all 4 fail print bits
     result = D_TEST_CHECK_MSG(_suite,
@@ -162,15 +159,15 @@ d_tests_options_msg_all
   - MSG_ALL equals 0xFFFF (all message bits)
   - MSG_ALL equals the message mask
 */
-bool d_tests_options_msg_all(
+bool
+d_tests_options_msg_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_msg_all");
 
-    d_test_suite_test(_suite, "config_msg_all");
-
-    result = true;
+    bool result = true;
 
     // test 1: MSG_ALL = COUNT_ALL | PRINT_ALL
     result = D_TEST_CHECK_MSG(_suite,
@@ -201,15 +198,15 @@ d_tests_options_msg_category_combinations
   - Each *_PASS_ONLY combines count + print for that category
   - Each *_ALL combines fail + pass for that category
 */
-bool d_tests_options_msg_category_combinations(
+bool
+d_tests_options_msg_category_combinations(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "config_msg_category_combinations");
 
-    d_test_suite_test(_suite, "config_msg_category_combinations");
-
-    result = true;
+    bool result = true;
 
     // asserts
     result = D_TEST_CHECK_MSG(_suite,
@@ -267,15 +264,15 @@ bool d_tests_options_msg_category_combinations(
 d_tests_options_combination_all
   Aggregation function that runs all message flag combination tests.
 */
-bool d_tests_options_combination_all(
+bool
+d_tests_options_combination_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_combination_all");
 
-    d_test_suite_block(_suite, "config_combination_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_msg_count_combinations(_suite) && result;
     result = d_tests_options_msg_print_combinations(_suite) && result;

@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/modules/test/test_suite_tests_specs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 #include "./test_suite_tests.h"  // corresponding header
 
@@ -98,35 +98,46 @@ d_tests_test_suite_run_row(
     int*                            _code
 )
 {
-    struct dj_test_suite_options options;
-    struct dj_test_block_spec    block;
-    struct dj_test_module_spec   module;
-    struct dj_test_suite*        suite;
-    FILE*                        stream;
+    struct dj_test_block_spec block = {0};
 
     block.name        = "inner_block";
     block.descriptor  = "the inner block";
     block.tests       = _row;
     block.count       = 1;
+
+    struct dj_test_module_spec module = {0};
+
     module.name       = "inner";
     module.descriptor = "the inner module";
     module.blocks     = &block;
     module.count      = 1;
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    FILE* stream = NULL;
 
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
+    // check if memory allocation was successful
     if (!suite)
     {
         return NULL;
     }
 
+    struct dj_test_suite_options options = {0};
+
     d_test_suite_options_init(&options);
     options.stream = stream;
     options.filter = _filter;
-    d_test_suite_set_options(suite, &options);
-    d_test_suite_add_module(suite, &module);
+    d_test_suite_set_options(suite,
+                             &options);
+    d_test_suite_add_module(suite,
+                            &module);
 
-    return d_tests_test_suite_report(suite, stream, _code, _summary);
+    return d_tests_test_suite_report(suite,
+                                     stream,
+                                     _code,
+                                     _summary);
 }
 
 /*
@@ -141,12 +152,17 @@ d_tests_test_suite_spec_runs_once(void)
 {
     struct dj_test_case_spec row = { "counting", "counts its runs",
                                      d_tests_test_suite_inner_counting };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
     d_tests_test_suite_calls = 0;
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(d_tests_test_suite_calls == 1);
     D_TEST_REQUIRE(summary.modules == 1);
@@ -170,18 +186,24 @@ d_tests_test_suite_spec_require(void)
 {
     struct dj_test_case_spec row = { "second_fails", "fails its second",
                                      d_tests_test_suite_inner_second_fails };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.checks == 2);
     D_TEST_REQUIRE(summary.checks_failed == 1);
     D_TEST_REQUIRE(summary.tests_failed == 1);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
-    D_TEST_REQUIRE(d_tests_test_suite_contains(report, "1 == 2"));
-    D_TEST_REQUIRE(!d_tests_test_suite_contains(report, "2 == 2"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "1 == 2"));
+    D_TEST_REQUIRE(!d_tests_test_suite_contains(report,
+                                                "2 == 2"));
     free(report);
 
     return true;
@@ -202,11 +224,15 @@ d_tests_test_suite_spec_false_return(void)
                                       d_tests_test_suite_inner_returns_false };
     struct dj_test_case_spec bare = { "bare", "returns true, checks nothing",
                                       d_tests_test_suite_inner_bare };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.checks == 2);
     D_TEST_REQUIRE(summary.checks_failed == 1);
@@ -215,7 +241,10 @@ d_tests_test_suite_spec_false_return(void)
                                                "the test returned false"));
     free(report);
 
-    report = d_tests_test_suite_run_row(&bare, NULL, &summary, &code);
+    report = d_tests_test_suite_run_row(&bare,
+                                        NULL,
+                                        &summary,
+                                        &code);
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.checks == 1);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
@@ -233,16 +262,20 @@ d_tests_test_suite_spec_null_fn
 bool
 d_tests_test_suite_spec_null_fn(void)
 {
-    struct dj_test_case_spec row = { "missing", "has no function", NULL };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
+    struct dj_test_case_spec row     = { "missing", "has no function", NULL };
+    struct dj_test_summary   summary = {0};
+    int                      code    = 0;
 
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.tests_failed == 1);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
-    D_TEST_REQUIRE(d_tests_test_suite_contains(report, "no test function"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "no test function"));
     free(report);
 
     return true;
@@ -260,17 +293,21 @@ d_tests_test_suite_spec_skip(void)
 {
     struct dj_test_case_spec row = { "skips", "skips itself",
                                      d_tests_test_suite_inner_skips };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.tests_skipped == 1);
     D_TEST_REQUIRE(summary.tests_failed == 0);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
     D_TEST_REQUIRE(d_tests_test_suite_contains(report,
-                       "needs a feature this build lacks"));
+                                               "needs a feature this build lacks"));
     free(report);
 
     return true;
@@ -288,25 +325,33 @@ d_tests_test_suite_spec_filter(void)
 {
     struct dj_test_case_spec row = { "counting", "counts its runs",
                                      d_tests_test_suite_inner_counting };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
     d_tests_test_suite_calls = 0;
-    report = d_tests_test_suite_run_row(&row, "inner_block/count", &summary,
-                                        &code);
+
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              "inner_block/count",
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(d_tests_test_suite_calls == 1);
     D_TEST_REQUIRE(summary.tests == 1);
     free(report);
 
-    report = d_tests_test_suite_run_row(&row, "no such test", &summary, &code);
+    report = d_tests_test_suite_run_row(&row,
+                                        "no such test",
+                                        &summary,
+                                        &code);
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(d_tests_test_suite_calls == 1);
     D_TEST_REQUIRE(summary.modules == 0);
     D_TEST_REQUIRE(summary.tests == 0);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
-    D_TEST_REQUIRE(!d_tests_test_suite_contains(report, "module inner"));
+    D_TEST_REQUIRE(!d_tests_test_suite_contains(report,
+                                                "module inner"));
     free(report);
 
     return true;
@@ -326,11 +371,15 @@ d_tests_test_suite_inner_middle(void)
 {
     struct dj_test_case_spec row = { "bare", "returns true",
                                      d_tests_test_suite_inner_bare };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     free(report);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
     D_TEST_REQUIRE(summary.checks == 1);
@@ -350,11 +399,15 @@ d_tests_test_suite_spec_nesting(void)
 {
     struct dj_test_case_spec row = { "middle", "runs an inner spec",
                                      d_tests_test_suite_inner_middle };
-    struct dj_test_summary   summary;
-    char*                    report;
-    int                      code;
 
-    report = d_tests_test_suite_run_row(&row, NULL, &summary, &code);
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
     D_TEST_REQUIRE(report != NULL);
     d_tests_test_suite_middle_checks = summary.checks;
     D_TEST_REQUIRE(d_tests_test_suite_middle_checks == 2);

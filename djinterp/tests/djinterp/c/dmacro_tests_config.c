@@ -157,11 +157,10 @@ bool d_tests_dmacro_cfg_constants(
         all_assertions_passed = false;
     }
 
-    printf("%s    Constants: MIN=%d, DEFAULT=%d, LIMIT=%d\n",
-           D_INDENT,
-           D_INTERNAL_DMACRO_VARG_MIN,
-           D_INTERNAL_DMACRO_VARG_DEFAULT,
-           D_INTERNAL_DMACRO_VARG_LIMIT);
+    (void)d_test_suite_note(_suite, "Constants: MIN=%d, DEFAULT=%d, LIMIT=%d",
+                            D_INTERNAL_DMACRO_VARG_MIN,
+                            D_INTERNAL_DMACRO_VARG_DEFAULT,
+                            D_INTERNAL_DMACRO_VARG_LIMIT);
 
     return all_assertions_passed;
 }
@@ -208,7 +207,7 @@ bool d_tests_dmacro_cfg_user_options(
                           "override should be boolean"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, override_val);
+        (void)d_test_suite_note(_suite, "Got: %d", override_val);
     }
 
     // verify D_CFG_DMACRO_USE_MSVC_COMPAT is 0 or 1
@@ -218,7 +217,7 @@ bool d_tests_dmacro_cfg_user_options(
                           "MSVC compat should be boolean"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, msvc_compat_val);
+        (void)d_test_suite_note(_suite, "Got: %d", msvc_compat_val);
     }
 
     // verify D_CFG_DMACRO_VARG_MAX is within valid range
@@ -228,8 +227,8 @@ bool d_tests_dmacro_cfg_user_options(
                           "VARG_MAX should be at least minimum"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, Min: %d\n", D_INDENT, varg_max_val,
-               D_INTERNAL_DMACRO_VARG_MIN);
+        (void)d_test_suite_note(_suite, "Got: %d, Min: %d",
+                                varg_max_val, D_INTERNAL_DMACRO_VARG_MIN);
     }
 
     if (!D_TEST_CHECK_MSG(_suite,
@@ -238,15 +237,13 @@ bool d_tests_dmacro_cfg_user_options(
                           "VARG_MAX should not exceed limit"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, Limit: %d\n", D_INDENT, varg_max_val,
-               D_INTERNAL_DMACRO_VARG_LIMIT);
+        (void)d_test_suite_note(_suite, "Got: %d, Limit: %d",
+                                varg_max_val, D_INTERNAL_DMACRO_VARG_LIMIT);
     }
 
-    printf("%s    Options: OVERRIDE=%d, MSVC_COMPAT=%d, VARG_MAX=%d\n",
-           D_INDENT,
-           override_val,
-           msvc_compat_val,
-           varg_max_val);
+    (void)d_test_suite_note(_suite,
+                            "Options: OVERRIDE=%d, MSVC_COMPAT=%d, VARG_MAX=%d",
+                            override_val, msvc_compat_val, varg_max_val);
 
     return all_assertions_passed;
 }
@@ -304,7 +301,7 @@ bool d_tests_dmacro_cfg_effective_values(
                           "variant should be a supported value"))
     {
         all_assertions_passed = false;
-        printf("%s    Got variant: %d\n", D_INDENT, variant);
+        (void)d_test_suite_note(_suite, "Got variant: %d", variant);
     }
 
     // verify D_DMACRO_VARG_MAX is positive
@@ -332,8 +329,8 @@ bool d_tests_dmacro_cfg_effective_values(
                           "PAIR_MAX should be half of VARG_MAX"))
     {
         all_assertions_passed = false;
-        printf("%s    PAIR_MAX=%d, VARG_MAX=%d, Expected=%d\n",
-               D_INDENT, pair_max, varg_max, varg_max / 2);
+        (void)d_test_suite_note(_suite, "PAIR_MAX=%d, VARG_MAX=%d, Expected=%d",
+                                pair_max, varg_max, varg_max / 2);
     }
 
     // verify variant and VARG_MAX are consistent
@@ -345,11 +342,9 @@ bool d_tests_dmacro_cfg_effective_values(
         all_assertions_passed = false;
     }
 
-    printf("%s    Effective: VARIANT=%d, VARG_MAX=%d, PAIR_MAX=%d\n",
-           D_INDENT,
-           variant,
-           varg_max,
-           pair_max);
+    (void)d_test_suite_note(_suite,
+                            "Effective: VARIANT=%d, VARG_MAX=%d, PAIR_MAX=%d",
+                            variant, varg_max, pair_max);
 
     return all_assertions_passed;
 }
@@ -429,10 +424,11 @@ bool d_tests_dmacro_cfg_public_aliases(
         all_assertions_passed = false;
     }
 
-    printf("%s    Aliases verified: VARG_COUNT_MAX=%d, FOR_EACH_MAX=%d\n",
-           D_INDENT,
-           D_VARG_COUNT_MAX,
-           D_FOR_EACH_MAX);
+    (void)d_test_suite_note(_suite,
+                            "Aliases verified: VARG_COUNT_MAX=%d, "
+                            "FOR_EACH_MAX=%d",
+                            D_VARG_COUNT_MAX,
+                            D_FOR_EACH_MAX);
 
     return all_assertions_passed;
 }
@@ -559,11 +555,12 @@ bool d_tests_dmacro_cfg_query_macros(
         all_assertions_passed = false;
     }
 
-    printf("%s    Query results: OVERRIDE=%d, MSVC_COMPAT=%d, USES_ENV=%d\n",
-           D_INDENT,
-           override_enabled,
-           msvc_compat,
-           uses_env);
+    (void)d_test_suite_note(_suite,
+                            "Query results: OVERRIDE=%d, MSVC_COMPAT=%d, "
+                            "USES_ENV=%d",
+                            override_enabled,
+                            msvc_compat,
+                            uses_env);
 
     return all_assertions_passed;
 }
@@ -601,8 +598,8 @@ bool d_tests_dmacro_cfg_env_integration(
     // check if D_ENV_PP_MAX_MACRO_ARGS is defined
 #ifdef D_ENV_PP_MAX_MACRO_ARGS
     env_pp_max = D_ENV_PP_MAX_MACRO_ARGS;
-    printf("%s    D_ENV_PP_MAX_MACRO_ARGS is defined: %d\n",
-           D_INDENT, env_pp_max);
+    (void)d_test_suite_note(_suite, "D_ENV_PP_MAX_MACRO_ARGS is defined: %d",
+                            env_pp_max);
 
     // if not overridden, effective max should respect env limit
     if (!D_DMACRO_IS_OVERRIDE_ENABLED())
@@ -617,7 +614,7 @@ bool d_tests_dmacro_cfg_env_integration(
     }
 #else
     env_pp_max = -1;  // not defined
-    printf("%s    D_ENV_PP_MAX_MACRO_ARGS is NOT defined\n", D_INDENT);
+    (void)d_test_suite_note(_suite, "D_ENV_PP_MAX_MACRO_ARGS is NOT defined");
 
     // without env detection, should use default or user-specified value
     if (!D_TEST_CHECK_MSG(_suite,
@@ -631,10 +628,11 @@ bool d_tests_dmacro_cfg_env_integration(
 
     // verify MSVC detection
 #if defined(_MSC_VER) && !defined(__clang__)
-    printf("%s    MSVC detected: _MSC_VER=%d\n", D_INDENT, _MSC_VER);
+    (void)d_test_suite_note(_suite, "MSVC detected: _MSC_VER=%d", _MSC_VER);
 
     #if defined(_MSVC_TRADITIONAL) && _MSVC_TRADITIONAL
-        printf("%s    MSVC traditional preprocessor detected\n", D_INDENT);
+        (void)d_test_suite_note(_suite,
+                                "MSVC traditional preprocessor detected");
 
         // should auto-enable MSVC compat unless user disabled it
         if (!D_TEST_CHECK_MSG(_suite,
@@ -645,10 +643,11 @@ bool d_tests_dmacro_cfg_env_integration(
             all_assertions_passed = false;
         }
     #else
-        printf("%s    MSVC conformant preprocessor detected\n", D_INDENT);
+        (void)d_test_suite_note(_suite,
+                                "MSVC conformant preprocessor detected");
     #endif
 #else
-    printf("%s    Non-MSVC compiler detected\n", D_INDENT);
+    (void)d_test_suite_note(_suite, "Non-MSVC compiler detected");
 
     // non-MSVC should not auto-enable MSVC compat
     if (!D_TEST_CHECK_MSG(_suite,
@@ -716,7 +715,8 @@ bool d_tests_dmacro_cfg_variant_consistency(
                           "variant should support configured max"))
     {
         all_assertions_passed = false;
-        printf("%s    VARIANT=%d, VARG_MAX=%d\n", D_INDENT, variant, varg_max);
+        (void)d_test_suite_note(_suite, "VARIANT=%d, VARG_MAX=%d",
+                                variant, varg_max);
     }
 
     // verify D_VARG_COUNT is functional
@@ -728,7 +728,7 @@ bool d_tests_dmacro_cfg_variant_consistency(
                           "D_VARG_COUNT should work with 1 arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got count: %d\n", D_INDENT, count_result);
+        (void)d_test_suite_note(_suite, "Got count: %d", count_result);
     }
 
     count_result = D_VARG_COUNT(1, 2, 3);
@@ -739,7 +739,7 @@ bool d_tests_dmacro_cfg_variant_consistency(
                           "D_VARG_COUNT should work with 3 args"))
     {
         all_assertions_passed = false;
-        printf("%s    Got count: %d\n", D_INDENT, count_result);
+        (void)d_test_suite_note(_suite, "Got count: %d", count_result);
     }
 
     // verify D_HAS_ARGS is functional
@@ -751,7 +751,7 @@ bool d_tests_dmacro_cfg_variant_consistency(
                           "D_HAS_ARGS should return 1 for args"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d\n", D_INDENT, has_args_result);
+        (void)d_test_suite_note(_suite, "Got: %d", has_args_result);
     }
 
     // test with more arguments to verify variant capacity
@@ -763,10 +763,11 @@ bool d_tests_dmacro_cfg_variant_consistency(
                           "D_VARG_COUNT should work with 10 args"))
     {
         all_assertions_passed = false;
-        printf("%s    Got count: %d\n", D_INDENT, count_result);
+        (void)d_test_suite_note(_suite, "Got count: %d", count_result);
     }
 
-    printf("%s    Variant %d provides functional macros\n", D_INDENT, variant);
+    (void)d_test_suite_note(_suite, "Variant %d provides functional macros",
+                            variant);
 
     return all_assertions_passed;
 }

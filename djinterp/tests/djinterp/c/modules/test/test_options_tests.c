@@ -1,21 +1,24 @@
 /*******************************************************************************
 * djinterp [test]                                           test_options_tests.c
 *
+* test_options.h's suite: d_tests_options_run_all, which runs the thirteen
+* blocks of test_options_tests.h in order.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
 /*
 d_tests_options_run_all
   Module-level aggregation function that runs all test_config tests.
   Executes tests for all categories:
-  - Flag manipulation macros (SETTINGS_SHIFT, SETTINGS_TO_FLAGS, FLAGS_TO_SETTINGS)
+  - Flag manipulation macros (SETTINGS_SHIFT, SETTINGS_TO_FLAGS,
+    FLAGS_TO_SETTINGS)
   - Mask definitions (MESSAGE, SETTINGS, COUNTER, PRINT, STACK)
   - Enum values (DTestMessageFlag, DTestSettingsFlag, DTestConfigKey,
     DTestMetadataFlag, DTestEvent)
@@ -25,7 +28,7 @@ d_tests_options_run_all
     IS_MODE)
   - Semantic check macros (SHOULD_COUNT_*, SHOULD_PRINT_*, SHOULD_PUSH_*)
   - Default values (INDENT, MAX_INDENT, MAX_FAILURES, TIMEOUT)
-  - Core structure (dj_test_config members and layout)
+  - Core structure (dj_test_options members and layout)
   - Constructor/destructor (new, new_preset, new_copy, free)
   - Getter functions (get_bool, get_size_t, get_int32, get_uint32,
     get_string, get_ptr)
@@ -33,13 +36,12 @@ d_tests_options_run_all
     set_string, set_ptr)
   - Key lookup (d_test_options_key_from_string)
 */
-bool d_tests_options_run_all(
+bool
+d_tests_options_run_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // run all test categories
     result = d_tests_options_flag_macro_all(_suite) && result;

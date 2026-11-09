@@ -1,19 +1,22 @@
 /*******************************************************************************
 * djinterp [test]                            test_options_tests_utility_macros.c
 *
+* test_options.h's suite, block "config_utility_macro_all": D_TEST_HAS_FLAG,
+* _HAS_ANY_FLAG, _GET_MESSAGE_FLAGS, _GET_SETTINGS_FLAGS, _IS_SILENT,
+* _IS_VERBOSE and _IS_MODE.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_utility_macros.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * VI. UTILITY MACRO TESTS
- *****************************************************************************/
+//==============================================================================
+// 6.  UTILITY MACRO TESTS
+//==============================================================================
 
 /*
 d_tests_options_has_flag
@@ -23,18 +26,21 @@ d_tests_options_has_flag
   - Returns false when only some bits of flag_mask are set
   - Returns false when no bits of flag_mask are set
 */
-bool d_tests_options_has_flag(
+bool
+d_tests_options_has_flag(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_has_flag");
+    d_test_suite_test(_suite,
+                      "config_has_flag");
 
-    config = d_test_options_new(D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |
-                               D_TEST_MSG_FLAG_COUNT_TESTS_FAIL);
+    struct dj_test_options* config =
+        d_test_options_new(D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |
+                           D_TEST_MSG_FLAG_COUNT_TESTS_FAIL);
 
+    // allocation failed: the test fails here
     if (!config)
     {
         return D_TEST_CHECK_MSG(_suite,
@@ -46,25 +52,29 @@ bool d_tests_options_has_flag(
     // test 1: exact single flag match
     result = D_TEST_CHECK_MSG(_suite,
                               "has_flag_single_set",
-                              D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL) == true,
+                              D_TEST_HAS_FLAG(config,
+                                              D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL) == true,
                               "HAS_FLAG should be true when single flag is set") && result;
 
     // test 2: multi-bit flag_mask - all bits present
     result = D_TEST_CHECK_MSG(_suite,
                               "has_flag_multi_all_set",
-                              D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL | D_TEST_MSG_FLAG_COUNT_TESTS_FAIL) == true,
+                              D_TEST_HAS_FLAG(config,
+                                              D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL | D_TEST_MSG_FLAG_COUNT_TESTS_FAIL) == true,
                               "HAS_FLAG should be true when all mask bits are set") && result;
 
     // test 3: multi-bit flag_mask - only some bits present
     result = D_TEST_CHECK_MSG(_suite,
                               "has_flag_multi_partial",
-                              D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL | D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL) == false,
+                              D_TEST_HAS_FLAG(config,
+                                              D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL | D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL) == false,
                               "HAS_FLAG should be false when only some mask bits set") && result;
 
     // test 4: flag not set at all
     result = D_TEST_CHECK_MSG(_suite,
                               "has_flag_not_set",
-                              D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS) == false,
+                              D_TEST_HAS_FLAG(config,
+                                              D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS) == false,
                               "HAS_FLAG should be false when flag is not set") && result;
 
     d_test_options_free(config);
@@ -79,17 +89,20 @@ d_tests_options_has_any_flag
   - Returns true when any bit of flag_mask is set
   - Returns false when no bits of flag_mask are set
 */
-bool d_tests_options_has_any_flag(
+bool
+d_tests_options_has_any_flag(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_has_any_flag");
+    d_test_suite_test(_suite,
+                      "config_has_any_flag");
 
-    config = d_test_options_new(D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL);
+    struct dj_test_options* config =
+        d_test_options_new(D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL);
 
+    // allocation failed: the test fails here
     if (!config)
     {
         return D_TEST_CHECK_MSG(_suite,
@@ -101,13 +114,15 @@ bool d_tests_options_has_any_flag(
     // test 1: any match succeeds
     result = D_TEST_CHECK_MSG(_suite,
                               "has_any_flag_partial_match",
-                              D_TEST_HAS_ANY_FLAG(config, D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL | D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL) == true,
+                              D_TEST_HAS_ANY_FLAG(config,
+                                                  D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL | D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL) == true,
                               "HAS_ANY_FLAG should be true when any bit matches") && result;
 
     // test 2: no match fails
     result = D_TEST_CHECK_MSG(_suite,
                               "has_any_flag_no_match",
-                              D_TEST_HAS_ANY_FLAG(config, D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS | D_TEST_MSG_FLAG_PRINT_TESTS_PASS) == false,
+                              D_TEST_HAS_ANY_FLAG(config,
+                                                  D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS | D_TEST_MSG_FLAG_PRINT_TESTS_PASS) == false,
                               "HAS_ANY_FLAG should be false when no bits match") && result;
 
     d_test_options_free(config);
@@ -122,19 +137,21 @@ d_tests_options_get_message_flags
   - Extracts only lower 16 bits
   - Strips upper settings bits
 */
-bool d_tests_options_get_message_flags(
+bool
+d_tests_options_get_message_flags(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    uint32_t               msg_flags;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_get_message_flags");
+    d_test_suite_test(_suite,
+                      "config_get_message_flags");
 
-    config = d_test_options_new(D_TEST_MODE_NORMAL |
-                               D_TEST_SETTINGS_STACK_PUSH_ALL);
+    struct dj_test_options* config =
+        d_test_options_new(D_TEST_MODE_NORMAL |
+                           D_TEST_SETTINGS_STACK_PUSH_ALL);
 
+    // allocation failed: the test fails here
     if (!config)
     {
         return D_TEST_CHECK_MSG(_suite,
@@ -143,7 +160,7 @@ bool d_tests_options_get_message_flags(
                                 "Failed to allocate config");
     }
 
-    msg_flags = D_TEST_GET_MESSAGE_FLAGS(config);
+    const uint32_t msg_flags = D_TEST_GET_MESSAGE_FLAGS(config);
 
     // test 1: extracts only message portion
     result = D_TEST_CHECK_MSG(_suite,
@@ -169,19 +186,21 @@ d_tests_options_get_settings_flags
   - Extracts only upper 16 bits
   - Strips lower message bits
 */
-bool d_tests_options_get_settings_flags(
+bool
+d_tests_options_get_settings_flags(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    uint32_t               settings_flags;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_get_settings_flags");
+    d_test_suite_test(_suite,
+                      "config_get_settings_flags");
 
-    config = d_test_options_new(D_TEST_MODE_NORMAL |
-                               D_TEST_SETTINGS_STACK_PUSH_ALL);
+    struct dj_test_options* config =
+        d_test_options_new(D_TEST_MODE_NORMAL |
+                           D_TEST_SETTINGS_STACK_PUSH_ALL);
 
+    // allocation failed: the test fails here
     if (!config)
     {
         return D_TEST_CHECK_MSG(_suite,
@@ -190,7 +209,7 @@ bool d_tests_options_get_settings_flags(
                                 "Failed to allocate config");
     }
 
-    settings_flags = D_TEST_GET_SETTINGS_FLAGS(config);
+    const uint32_t settings_flags = D_TEST_GET_SETTINGS_FLAGS(config);
 
     // test 1: extracts only settings portion
     result = D_TEST_CHECK_MSG(_suite,
@@ -217,26 +236,30 @@ d_tests_options_is_silent
   - False for non-silent modes
   - True for settings-only (no message flags)
 */
-bool d_tests_options_is_silent(
+bool
+d_tests_options_is_silent(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* silent;
-    struct dj_test_options* normal;
-    struct dj_test_options* settings_only;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_is_silent");
+    d_test_suite_test(_suite,
+                      "config_is_silent");
 
-    silent        = d_test_options_new(D_TEST_MODE_SILENT);
-    normal        = d_test_options_new(D_TEST_MODE_NORMAL);
-    settings_only = d_test_options_new(D_TEST_SETTINGS_STACK_PUSH_ALL);
+    struct dj_test_options* silent = d_test_options_new(D_TEST_MODE_SILENT);
+    struct dj_test_options* normal = d_test_options_new(D_TEST_MODE_NORMAL);
+    struct dj_test_options* settings_only =
+        d_test_options_new(D_TEST_SETTINGS_STACK_PUSH_ALL);
 
-    if ( (!silent) || (!normal) || (!settings_only) )
+    // an allocation failed: release the rest, and the test fails
+    if ( (!silent) ||
+         (!normal) ||
+         (!settings_only) )
     {
-        if (silent)        { d_test_options_free(silent); }
-        if (normal)        { d_test_options_free(normal); }
-        if (settings_only) { d_test_options_free(settings_only); }
+        // release whichever were made; d_test_options_free takes NULL
+        d_test_options_free(silent);
+        d_test_options_free(normal);
+        d_test_options_free(settings_only);
 
         return D_TEST_CHECK_MSG(_suite,
                                 "is_silent_alloc",
@@ -274,26 +297,29 @@ d_tests_options_is_verbose
   - True for verbose mode
   - False for non-verbose modes
 */
-bool d_tests_options_is_verbose(
+bool
+d_tests_options_is_verbose(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* verbose;
-    struct dj_test_options* normal;
-    struct dj_test_options* silent;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_is_verbose");
+    d_test_suite_test(_suite,
+                      "config_is_verbose");
 
-    verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
-    normal  = d_test_options_new(D_TEST_MODE_NORMAL);
-    silent  = d_test_options_new(D_TEST_MODE_SILENT);
+    struct dj_test_options* verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
+    struct dj_test_options* normal  = d_test_options_new(D_TEST_MODE_NORMAL);
+    struct dj_test_options* silent  = d_test_options_new(D_TEST_MODE_SILENT);
 
-    if ( (!verbose) || (!normal) || (!silent) )
+    // an allocation failed: release the rest, and the test fails
+    if ( (!verbose) ||
+         (!normal)  ||
+         (!silent) )
     {
-        if (verbose) { d_test_options_free(verbose); }
-        if (normal)  { d_test_options_free(normal); }
-        if (silent)  { d_test_options_free(silent); }
+        // release whichever were made; d_test_options_free takes NULL
+        d_test_options_free(verbose);
+        d_test_options_free(normal);
+        d_test_options_free(silent);
 
         return D_TEST_CHECK_MSG(_suite,
                                 "is_verbose_alloc",
@@ -331,18 +357,21 @@ d_tests_options_is_mode
   - Returns false for mode mismatch
   - Ignores settings flags when checking mode
 */
-bool d_tests_options_is_mode(
+bool
+d_tests_options_is_mode(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_is_mode");
+    d_test_suite_test(_suite,
+                      "config_is_mode");
 
-    config = d_test_options_new(D_TEST_MODE_NORMAL |
-                                D_TEST_SETTINGS_STACK_PUSH_ALL);
+    struct dj_test_options* config =
+        d_test_options_new(D_TEST_MODE_NORMAL |
+                           D_TEST_SETTINGS_STACK_PUSH_ALL);
 
+    // allocation failed: the test fails here
     if (!config)
     {
         return D_TEST_CHECK_MSG(_suite,
@@ -354,19 +383,22 @@ bool d_tests_options_is_mode(
     // test 1: exact match (ignoring settings)
     result = D_TEST_CHECK_MSG(_suite,
                               "is_mode_exact_match",
-                              D_TEST_IS_MODE(config, D_TEST_MODE_NORMAL) == true,
+                              D_TEST_IS_MODE(config,
+                                             D_TEST_MODE_NORMAL) == true,
                               "IS_MODE should match NORMAL even with settings") && result;
 
     // test 2: mismatch
     result = D_TEST_CHECK_MSG(_suite,
                               "is_mode_mismatch",
-                              D_TEST_IS_MODE(config, D_TEST_MODE_VERBOSE) == false,
+                              D_TEST_IS_MODE(config,
+                                             D_TEST_MODE_VERBOSE) == false,
                               "IS_MODE should not match VERBOSE for NORMAL config") && result;
 
     // test 3: silent mode mismatch
     result = D_TEST_CHECK_MSG(_suite,
                               "is_mode_silent_mismatch",
-                              D_TEST_IS_MODE(config, D_TEST_MODE_SILENT) == false,
+                              D_TEST_IS_MODE(config,
+                                             D_TEST_MODE_SILENT) == false,
                               "IS_MODE should not match SILENT for NORMAL config") && result;
 
     d_test_options_free(config);
@@ -378,13 +410,15 @@ bool d_tests_options_is_mode(
 d_tests_options_utility_macro_all
   Aggregation function that runs all utility macro tests.
 */
-bool d_tests_options_utility_macro_all(
+bool
+d_tests_options_utility_macro_all(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
-    d_test_suite_block(_suite, "config_utility_macro_all");
+    d_test_suite_block(_suite,
+                       "config_utility_macro_all");
 
     result = d_tests_options_has_flag(_suite)           && result;
     result = d_tests_options_has_any_flag(_suite)       && result;

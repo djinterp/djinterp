@@ -1,38 +1,43 @@
 /*******************************************************************************
 * djinterp [test]                                    test_options_tests_struct.c
 *
+* test_options.h's suite, block "config_struct_all": dj_test_options' members,
+* its size and its layout.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_struct.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * IX. CORE STRUCTURE TESTS
- *****************************************************************************/
+//==============================================================================
+// 9.  CORE STRUCTURE TESTS
+//==============================================================================
 
 /*
 d_tests_options_struct_members
-  Tests the dj_test_config structure members.
+  Tests the dj_test_options structure members.
   Tests the following:
   - flags member is accessible and writable
   - settings member is accessible
   - stage_hooks member is accessible
   - Members have correct types (by assignment compatibility)
 */
-bool d_tests_options_struct_members(
+bool
+d_tests_options_struct_members(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options config_stack;
-    bool                  result = true;
+    bool result = true;
 
     // test 1: flags member is accessible
-    d_test_suite_test(_suite, "config_struct_members");
+    d_test_suite_test(_suite,
+                      "config_struct_members");
+
+    struct dj_test_options config_stack = {0};
 
     config_stack.flags = 0x12345678u;
 
@@ -62,21 +67,22 @@ bool d_tests_options_struct_members(
 
 /*
 d_tests_options_struct_size
-  Tests the dj_test_config structure size and layout.
+  Tests the dj_test_options structure size and layout.
   Tests the following:
   - Structure has non-zero size
   - Size is at least large enough for its members
 */
-bool d_tests_options_struct_size(
+bool
+d_tests_options_struct_size(
     struct dj_test_suite* _suite
 )
 {
-    size_t config_size;
-    bool   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_struct_size");
+    d_test_suite_test(_suite,
+                      "config_struct_size");
 
-    config_size = sizeof(struct dj_test_options);
+    const size_t config_size = sizeof(struct dj_test_options);
 
     // test 1: non-zero size
     result = D_TEST_CHECK_MSG(_suite,
@@ -97,15 +103,15 @@ bool d_tests_options_struct_size(
 d_tests_options_struct_all
   Aggregation function that runs all core structure tests.
 */
-bool d_tests_options_struct_all(
+bool
+d_tests_options_struct_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "config_struct_all");
 
-    d_test_suite_block(_suite, "config_struct_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_options_struct_members(_suite) && result;
     result = d_tests_options_struct_size(_suite) && result;

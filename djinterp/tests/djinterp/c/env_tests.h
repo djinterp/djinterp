@@ -555,5 +555,11 @@ bool d_tests_env_all(
     struct dj_test_suite* _suite
 );
 
+// the build profile, d_env_report_here's report as section.name=value lines,
+// noted on the node opened last: the module (env_tests_profile.c)
+bool d_tests_env_profile(
+    struct dj_test_suite* _suite
+);
+
 
 #endif  // DJINTERP_TESTS_C_ENV_TESTS_H

@@ -183,16 +183,6 @@ bool d_tests_env_posix_version_constants(
         all_assertions_passed = false;
     }
 
-    // print constant values for verification
-    printf("%s    1988: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_1988);
-    printf("%s    1990: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_1990);
-    printf("%s    1993: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_1993);
-    printf("%s    1996: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_1996);
-    printf("%s    2001: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_2001);
-    printf("%s    2008: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_2008);
-    printf("%s    2017: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_2017);
-    printf("%s    2024: %ldL\n", D_INDENT, D_ENV_POSIX_VERSION_2024);
-
     return all_assertions_passed;
 }
 
@@ -282,14 +272,6 @@ bool d_tests_env_posix_c_source_constants(
         all_assertions_passed = false;
     }
 
-    // print values
-    printf("%s    C_SOURCE_1:       %ldL\n", D_INDENT, D_ENV_POSIX_C_SOURCE_1);
-    printf("%s    C_SOURCE_2:       %ldL\n", D_INDENT, D_ENV_POSIX_C_SOURCE_2);
-    printf("%s    C_SOURCE_199309L: %ldL\n", D_INDENT, D_ENV_POSIX_C_SOURCE_199309L);
-    printf("%s    C_SOURCE_199506L: %ldL\n", D_INDENT, D_ENV_POSIX_C_SOURCE_199506L);
-    printf("%s    C_SOURCE_200112L: %ldL\n", D_INDENT, D_ENV_POSIX_C_SOURCE_200112L);
-    printf("%s    C_SOURCE_200809L: %ldL\n", D_INDENT, D_ENV_POSIX_C_SOURCE_200809L);
-
     return all_assertions_passed;
 }
 
@@ -369,13 +351,6 @@ bool d_tests_env_posix_xsi_version_constants(
     {
         all_assertions_passed = false;
     }
-
-    // print values
-    printf("%s    XSI_VERSION_3:   %ldL (XPG3)\n", D_INDENT, D_ENV_POSIX_XSI_VERSION_3);
-    printf("%s    XSI_VERSION_4:   %ldL (XPG4)\n", D_INDENT, D_ENV_POSIX_XSI_VERSION_4);
-    printf("%s    XSI_VERSION_500: %ldL (SUSv2)\n", D_INDENT, D_ENV_POSIX_XSI_VERSION_500);
-    printf("%s    XSI_VERSION_600: %ldL (SUSv3)\n", D_INDENT, D_ENV_POSIX_XSI_VERSION_600);
-    printf("%s    XSI_VERSION_700: %ldL (SUSv4)\n", D_INDENT, D_ENV_POSIX_XSI_VERSION_700);
 
     return all_assertions_passed;
 }
@@ -475,57 +450,46 @@ bool d_tests_env_posix_version_detection(
     // count version flags (should be exactly one)
     #ifdef D_ENV_POSIX_2024
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_2024 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_2017
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_2017 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_2008
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_2008 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_2001
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_2001 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_1996
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_1996 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_1993
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_1993 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_1990
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_1990 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_1988
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_1988 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_UNKNOWN
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_UNKNOWN is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_LIKELY
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_LIKELY is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_NONE
         version_flag_count++;
-        printf("%s    D_ENV_POSIX_NONE is defined\n", D_INDENT);
     #endif
 
     // verify exactly one version flag
@@ -535,18 +499,9 @@ bool d_tests_env_posix_version_detection(
                           "detection should set exactly one flag"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: found %d version flags\n",
-               D_INDENT,
-               version_flag_count);
+        (void)d_test_suite_note(_suite, "found %d version flags",
+                                version_flag_count);
     }
-
-    // report detected values
-    #if defined(D_ENV_POSIX_VERSION) && defined(D_ENV_POSIX_NAME)
-        printf("%s    Detected: %s (%ldL)\n",
-               D_INDENT,
-               D_ENV_POSIX_NAME,
-               D_ENV_POSIX_VERSION);
-    #endif
 
     return all_assertions_passed;
 }
@@ -629,10 +584,8 @@ bool d_tests_env_posix_version_name_consistency(
                               "name should match detected version"))
         {
             all_assertions_passed = false;
-            printf("%s    ERROR: version=%ldL name=\"%s\"\n",
-                   D_INDENT,
-                   D_ENV_POSIX_VERSION,
-                   D_ENV_POSIX_NAME);
+            (void)d_test_suite_note(_suite, "version=%ldL name=\"%s\"",
+                                    D_ENV_POSIX_VERSION, D_ENV_POSIX_NAME);
         }
     #else
         if (!D_TEST_CHECK_MSG(_suite,
@@ -755,37 +708,30 @@ bool d_tests_env_posix_xsi_detection(
     // count XSI flags (should be exactly one)
     #ifdef D_ENV_POSIX_XSI_700
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_700 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_XSI_600
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_600 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_XSI_500
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_500 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_XSI_4
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_4 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_XSI_3
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_3 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_XSI_UNKNOWN
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_UNKNOWN is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_POSIX_XSI_NONE
         xsi_flag_count++;
-        printf("%s    D_ENV_POSIX_XSI_NONE is defined\n", D_INDENT);
     #endif
 
     // verify exactly one XSI flag
@@ -795,7 +741,7 @@ bool d_tests_env_posix_xsi_detection(
                           "detection should set exactly one flag"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: found %d XSI flags\n", D_INDENT, xsi_flag_count);
+        (void)d_test_suite_note(_suite, "found %d XSI flags", xsi_flag_count);
     }
 
     // verify NONE implies version 0
@@ -809,13 +755,6 @@ bool d_tests_env_posix_xsi_detection(
         }
     #endif
 
-    // report detected values
-    #if defined(D_ENV_POSIX_XSI_VERSION) && defined(D_ENV_POSIX_XSI_NAME)
-        printf("%s    Detected: %s (%ldL)\n",
-               D_INDENT,
-               D_ENV_POSIX_XSI_NAME,
-               (long)D_ENV_POSIX_XSI_VERSION);
-    #endif
 
     // suppress unused warning
     (void)detected_version;
@@ -1025,15 +964,6 @@ bool d_tests_env_posix_feature_macros(
         all_assertions_passed = false;
     }
 
-    // report feature values
-    printf("%s    THREADS:        %d\n", D_INDENT, threads_val);
-    printf("%s    REALTIME:       %d\n", D_INDENT, realtime_val);
-    printf("%s    SOCKETS:        %d\n", D_INDENT, sockets_val);
-    printf("%s    SHARED_MEMORY:  %d\n", D_INDENT, shared_mem_val);
-    printf("%s    SEMAPHORES:     %d\n", D_INDENT, semaphores_val);
-    printf("%s    MESSAGE_QUEUES: %d\n", D_INDENT, msg_queues_val);
-    printf("%s    MEMORY_MAPPING: %d\n", D_INDENT, mem_mapping_val);
-
     return all_assertions_passed;
 }
 
@@ -1171,9 +1101,6 @@ bool d_tests_env_posix_utility_is_available(
         }
     #endif
 
-    printf("%s    POSIX_IS_AVAILABLE: %d\n", D_INDENT, posix_available);
-    printf("%s    XSI_IS_AVAILABLE:   %d\n", D_INDENT, xsi_available);
-
     return all_assertions_passed;
 }
 
@@ -1236,10 +1163,8 @@ bool d_tests_env_posix_utility_is_modern(
                           "modern should mean POSIX.1-2001 or later"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: is_modern=%d but expected=%d\n",
-               D_INDENT,
-               is_modern,
-               expected_modern);
+        (void)d_test_suite_note(_suite, "is_modern=%d but expected=%d",
+                                is_modern, expected_modern);
     }
 
     // verify specific version flags
@@ -1264,11 +1189,6 @@ bool d_tests_env_posix_utility_is_modern(
             all_assertions_passed = false;
         }
     #endif
-
-    printf("%s    D_ENV_POSIX_IS_MODERN: %d (expected %d)\n",
-           D_INDENT,
-           is_modern,
-           expected_modern);
 
     return all_assertions_passed;
 }
@@ -1397,15 +1317,6 @@ bool d_tests_env_posix_utility_version_at_least(
         }
     }
 
-    printf("%s    POSIX VERSION_AT_LEAST results:\n", D_INDENT);
-    printf("%s      1988: %s\n", D_INDENT, at_least_1988 ? "true" : "false");
-    printf("%s      2001: %s\n", D_INDENT, at_least_2001 ? "true" : "false");
-    printf("%s      2008: %s\n", D_INDENT, at_least_2008 ? "true" : "false");
-    printf("%s      2024: %s\n", D_INDENT, at_least_2024 ? "true" : "false");
-    printf("%s    XSI VERSION_AT_LEAST results:\n", D_INDENT);
-    printf("%s      500:  %s\n", D_INDENT, xsi_at_least_500 ? "true" : "false");
-    printf("%s      700:  %s\n", D_INDENT, xsi_at_least_700 ? "true" : "false");
-
     return all_assertions_passed;
 }
 
@@ -1475,11 +1386,6 @@ bool d_tests_env_posix_utility_has_feature(
         all_assertions_passed = false;
     }
 
-    printf("%s    HAS_FEATURE results:\n", D_INDENT);
-    printf("%s      THREADS:  %s\n", D_INDENT, has_threads ? "true" : "false");
-    printf("%s      REALTIME: %s\n", D_INDENT, has_realtime ? "true" : "false");
-    printf("%s      SOCKETS:  %s\n", D_INDENT, has_sockets ? "true" : "false");
-
     return all_assertions_passed;
 }
 
@@ -1502,7 +1408,6 @@ bool d_tests_env_posix_manual_detection(
 {
     bool   all_assertions_passed;
     int    version_count;
-    int    feature_count;
 
     if (!_suite)
     {
@@ -1513,52 +1418,42 @@ bool d_tests_env_posix_manual_detection(
 
     all_assertions_passed = true;
     version_count         = 0;
-    feature_count         = 0;
 
     // count version detection variables
     #ifdef D_ENV_DETECTED_POSIX_2024
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2024 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2017
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2017 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2008
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2008 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_2001
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_2001 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1996
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1996 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1993
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1993 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1990
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1990 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_1988
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_1988 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_DETECTED_POSIX_NONE
         version_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_NONE is defined\n", D_INDENT);
     #endif
 
     // verify at most one version detection variable
@@ -1570,33 +1465,8 @@ bool d_tests_env_posix_manual_detection(
         all_assertions_passed = false;
     }
 
-    // count feature detection variables
-    #ifdef D_ENV_DETECTED_POSIX_THREADS
-        feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_THREADS is defined\n", D_INDENT);
-    #endif
-
-    #ifdef D_ENV_DETECTED_POSIX_REALTIME
-        feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_REALTIME is defined\n", D_INDENT);
-    #endif
-
-    #ifdef D_ENV_DETECTED_POSIX_SOCKETS
-        feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_SOCKETS is defined\n", D_INDENT);
-    #endif
-
-    #ifdef D_ENV_DETECTED_POSIX_XSI
-        feature_count++;
-        printf("%s    D_ENV_DETECTED_POSIX_XSI is defined\n", D_INDENT);
-    #endif
-
-    printf("%s    Version detection vars: %d\n", D_INDENT, version_count);
-    printf("%s    Feature detection vars: %d\n", D_INDENT, feature_count);
-
     // if manual mode is active, verify correct mapping
     #if (D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_POSIX)
-        printf("%s    Manual POSIX detection mode active\n", D_INDENT);
 
         #ifdef D_ENV_DETECTED_POSIX_2008
             if (!D_TEST_CHECK_MSG(_suite,
@@ -1618,7 +1488,6 @@ bool d_tests_env_posix_manual_detection(
             }
         #endif
     #else
-        printf("%s    Automatic POSIX detection mode\n", D_INDENT);
 
         if (!D_TEST_CHECK_MSG(_suite,
                               "automatic detection mode active",
@@ -1740,19 +1609,6 @@ bool d_tests_env_posix_consistency_check(
         #endif
     #endif
 
-    printf("%s    POSIX version defined: %s\n",
-           D_INDENT,
-           posix_version_defined ? "YES" : "NO");
-    printf("%s    POSIX name defined:    %s\n",
-           D_INDENT,
-           posix_name_defined ? "YES" : "NO");
-    printf("%s    XSI version defined:   %s\n",
-           D_INDENT,
-           xsi_version_defined ? "YES" : "NO");
-    printf("%s    XSI name defined:      %s\n",
-           D_INDENT,
-           xsi_name_defined ? "YES" : "NO");
-
     return all_assertions_passed;
 }
 
@@ -1786,29 +1642,23 @@ bool d_tests_env_posix_feature_test_patterns(
     // test common pthread availability pattern
     #if D_ENV_POSIX_IS_AVAILABLE && D_ENV_POSIX_FEATURE_THREADS
         can_use_pthreads = true;
-        printf("%s    pthreads available\n", D_INDENT);
     #else
         can_use_pthreads = false;
-        printf("%s    pthreads not available\n", D_INDENT);
     #endif
 
     // test realtime extensions pattern
     #if D_ENV_POSIX_VERSION_AT_LEAST(D_ENV_POSIX_VERSION_1993) && \
         D_ENV_POSIX_FEATURE_REALTIME
         can_use_realtime = true;
-        printf("%s    realtime extensions available\n", D_INDENT);
     #else
         can_use_realtime = false;
-        printf("%s    realtime extensions not available\n", D_INDENT);
     #endif
 
     // test Unix-like system pattern
     #if D_ENV_POSIX_IS_AVAILABLE || defined(D_ENV_POSIX_LIKELY)
         is_unix_like = true;
-        printf("%s    Unix-like system detected\n", D_INDENT);
     #else
         is_unix_like = false;
-        printf("%s    not Unix-like system\n", D_INDENT);
     #endif
 
     // verify patterns compile and evaluate correctly

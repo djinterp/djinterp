@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                 test_options_tests_lifecycle.c
 *
+* test_options.h's suite, block "config_lifecycle_all": d_test_options_new,
+* _new_preset, _new_copy (of NULL too) and _free.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_lifecycle.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * X. CONSTRUCTOR AND DESTRUCTOR TESTS
- *****************************************************************************/
+//==============================================================================
+// 10. CONSTRUCTOR AND DESTRUCTOR TESTS
+//==============================================================================
 
 /*
 d_tests_options_new
@@ -26,24 +28,25 @@ d_tests_options_new
   - Works with zero flags
   - Works with complex flag combinations
 */
-bool d_tests_options_new(
+bool
+d_tests_options_new(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    struct dj_test_options* config_zero;
-    bool                   result = true;
+    bool result = true;
 
     // test 1: basic creation
-    d_test_suite_test(_suite, "config_new");
+    d_test_suite_test(_suite,
+                      "config_new");
 
-    config = d_test_options_new(D_TEST_MODE_NORMAL);
+    struct dj_test_options* config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "new_returns_non_null",
                               config != NULL,
                               "d_test_options_new should return non-NULL") && result;
 
+    // the remaining checks need the option set
     if (config)
     {
         // test 2: flags match input
@@ -68,13 +71,14 @@ bool d_tests_options_new(
     }
 
     // test 5: zero flags
-    config_zero = d_test_options_new(0);
+    struct dj_test_options* config_zero = d_test_options_new(0);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "new_zero_flags",
                               config_zero != NULL,
                               "d_test_options_new(0) should return non-NULL") && result;
 
+    // the remaining checks need the option set
     if (config_zero)
     {
         result = D_TEST_CHECK_MSG(_suite,
@@ -89,6 +93,7 @@ bool d_tests_options_new(
     config = d_test_options_new(D_TEST_MODE_VERBOSE |
                                D_TEST_SETTINGS_STACK_PUSH_ALL);
 
+    // the remaining checks need the option set
     if (config)
     {
         result = D_TEST_CHECK_MSG(_suite,
@@ -109,31 +114,28 @@ d_tests_options_new_preset
   - Creates config with preset flags
   - Each preset produces the expected flag value
 */
-bool d_tests_options_new_preset(
+bool
+d_tests_options_new_preset(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* silent;
-    struct dj_test_options* verbose;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_new_preset");
+    d_test_suite_test(_suite,
+                      "config_new_preset");
 
-    silent  = d_test_options_new_preset(D_TEST_OPTIONS_PRESET_SILENT);
-    verbose = d_test_options_new_preset(D_TEST_OPTIONS_PRESET_VERBOSE);
+    struct dj_test_options* silent =
+        d_test_options_new_preset(D_TEST_OPTIONS_PRESET_SILENT);
+    struct dj_test_options* verbose =
+        d_test_options_new_preset(D_TEST_OPTIONS_PRESET_VERBOSE);
 
+    // an allocation failed: release the rest, and the test fails
     if ( (!silent) ||
          (!verbose) )
     {
-        if (silent)
-        {
-            d_test_options_free(silent);
-        }
-
-        if (verbose)
-        {
-            d_test_options_free(verbose);
-        }
+        // release whichever were made; d_test_options_free takes NULL
+        d_test_options_free(silent);
+        d_test_options_free(verbose);
 
         return D_TEST_CHECK_MSG(_suite,
                                 "new_preset_alloc",
@@ -168,18 +170,19 @@ d_tests_options_new_copy
   - Settings map is independently allocated (not shared)
   - Modifications to copy do not affect original
 */
-bool d_tests_options_new_copy(
+bool
+d_tests_options_new_copy(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* original;
-    struct dj_test_options* copy;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_new_copy");
+    d_test_suite_test(_suite,
+                      "config_new_copy");
 
-    original = d_test_options_new(D_TEST_MODE_VERBOSE);
+    struct dj_test_options* original = d_test_options_new(D_TEST_MODE_VERBOSE);
 
+    // allocation failed: the test fails here
     if (!original)
     {
         return D_TEST_CHECK_MSG(_suite,
@@ -188,7 +191,7 @@ bool d_tests_options_new_copy(
                                 "Failed to allocate original config");
     }
 
-    copy = d_test_options_new_copy(original);
+    struct dj_test_options* copy = d_test_options_new_copy(original);
 
     // test 1: copy is non-NULL
     result = D_TEST_CHECK_MSG(_suite,
@@ -196,6 +199,7 @@ bool d_tests_options_new_copy(
                               copy != NULL,
                               "d_test_options_new_copy should return non-NULL") && result;
 
+    // the remaining checks need the option set
     if (copy)
     {
         // test 2: flags match
@@ -238,16 +242,17 @@ d_tests_options_new_copy_null
   Tests the following:
   - Returns NULL for NULL input
 */
-bool d_tests_options_new_copy_null(
+bool
+d_tests_options_new_copy_null(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* copy;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_new_copy_null");
+    d_test_suite_test(_suite,
+                      "config_new_copy_null");
 
-    copy   = d_test_options_new_copy(NULL);
+    struct dj_test_options* copy = d_test_options_new_copy(NULL);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "new_copy_null_returns_null",
@@ -265,15 +270,16 @@ d_tests_options_free
   - Freeing a valid config does not crash
   - Freeing a config with NULL settings does not crash
 */
-bool d_tests_options_free(
+bool
+d_tests_options_free(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* config;
-    bool                   result = true;
+    bool result = true;
 
     // test 1: NULL is handled safely
-    d_test_suite_test(_suite, "config_free");
+    d_test_suite_test(_suite,
+                      "config_free");
 
     d_test_options_free(NULL);
 
@@ -283,8 +289,9 @@ bool d_tests_options_free(
                               "d_test_options_free(NULL) should not crash") && result;
 
     // test 2: valid config is freed without crash
-    config = d_test_options_new(D_TEST_MODE_NORMAL);
+    struct dj_test_options* config = d_test_options_new(D_TEST_MODE_NORMAL);
 
+    // the remaining checks need the option set
     if (config)
     {
         d_test_options_free(config);
@@ -302,13 +309,15 @@ bool d_tests_options_free(
 d_tests_options_lifecycle_all
   Aggregation function that runs all constructor/destructor tests.
 */
-bool d_tests_options_lifecycle_all(
+bool
+d_tests_options_lifecycle_all(
     struct dj_test_suite* _suite
 )
 {
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_block(_suite, "config_lifecycle_all");
+    d_test_suite_block(_suite,
+                       "config_lifecycle_all");
 
     result = d_tests_options_new(_suite)           && result;
     result = d_tests_options_new_preset(_suite)    && result;

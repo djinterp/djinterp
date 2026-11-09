@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                  test_options_tests_semantic.c
 *
+* test_options.h's suite, block "config_semantic_all": the
+* D_TEST_SHOULD_COUNT_*, D_TEST_SHOULD_PRINT_* and D_TEST_SHOULD_PUSH_* checks.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_options_tests_semantic.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_options_tests.h"
+#include "./test_options_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * VII. SEMANTIC CHECK MACRO TESTS
- *****************************************************************************/
+//==============================================================================
+// 7.  SEMANTIC CHECK MACRO TESTS
+//==============================================================================
 
 /*
 d_tests_options_semantic_count
@@ -24,26 +26,30 @@ d_tests_options_semantic_count
   - Individual category checks (asserts, tests, blocks, modules)
   - Silent mode returns false for all
 */
-bool d_tests_options_semantic_count(
+bool
+d_tests_options_semantic_count(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* verbose;
-    struct dj_test_options* silent;
-    struct dj_test_options* fail_only;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_semantic_count");
+    d_test_suite_test(_suite,
+                      "config_semantic_count");
 
-    verbose   = d_test_options_new(D_TEST_MODE_VERBOSE);
-    silent    = d_test_options_new(D_TEST_MODE_SILENT);
-    fail_only = d_test_options_new(D_TEST_MSG_COUNT_FAIL_ALL);
+    struct dj_test_options* verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
+    struct dj_test_options* silent  = d_test_options_new(D_TEST_MODE_SILENT);
+    struct dj_test_options* fail_only =
+        d_test_options_new(D_TEST_MSG_COUNT_FAIL_ALL);
 
-    if ( (!verbose) || (!silent) || (!fail_only) )
+    // an allocation failed: release the rest, and the test fails
+    if ( (!verbose) ||
+         (!silent)  ||
+         (!fail_only) )
     {
-        if (verbose)   { d_test_options_free(verbose); }
-        if (silent)    { d_test_options_free(silent); }
-        if (fail_only) { d_test_options_free(fail_only); }
+        // release whichever were made; d_test_options_free takes NULL
+        d_test_options_free(verbose);
+        d_test_options_free(silent);
+        d_test_options_free(fail_only);
 
         return D_TEST_CHECK_MSG(_suite,
                                 "semantic_count_alloc",
@@ -126,23 +132,26 @@ d_tests_options_semantic_print
   - Individual category checks
   - Normal mode prints failures but not passes
 */
-bool d_tests_options_semantic_print(
+bool
+d_tests_options_semantic_print(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* normal;
-    struct dj_test_options* verbose;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_semantic_print");
+    d_test_suite_test(_suite,
+                      "config_semantic_print");
 
-    normal  = d_test_options_new(D_TEST_MODE_NORMAL);
-    verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
+    struct dj_test_options* normal  = d_test_options_new(D_TEST_MODE_NORMAL);
+    struct dj_test_options* verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
 
-    if ( (!normal) || (!verbose) )
+    // an allocation failed: release the rest, and the test fails
+    if ( (!normal) ||
+         (!verbose) )
     {
-        if (normal)  { d_test_options_free(normal); }
-        if (verbose) { d_test_options_free(verbose); }
+        // release whichever were made; d_test_options_free takes NULL
+        d_test_options_free(normal);
+        d_test_options_free(verbose);
 
         return D_TEST_CHECK_MSG(_suite,
                                 "semantic_print_alloc",
@@ -216,27 +225,32 @@ d_tests_options_semantic_push
   - Returns true when corresponding settings flag is set
   - Returns false when corresponding settings flag is not set
 */
-bool d_tests_options_semantic_push(
+bool
+d_tests_options_semantic_push(
     struct dj_test_suite* _suite
 )
 {
-    struct dj_test_options* push_all;
-    struct dj_test_options* no_push;
-    struct dj_test_options* push_fail_only;
-    bool                   result = true;
+    bool result = true;
 
-    d_test_suite_test(_suite, "config_semantic_push");
+    d_test_suite_test(_suite,
+                      "config_semantic_push");
 
-    push_all       = d_test_options_new(D_TEST_SETTINGS_STACK_PUSH_ALL);
-    no_push        = d_test_options_new(D_TEST_MODE_NORMAL);
-    push_fail_only = d_test_options_new(
-        D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL));
+    struct dj_test_options* push_all =
+        d_test_options_new(D_TEST_SETTINGS_STACK_PUSH_ALL);
+    struct dj_test_options* no_push = d_test_options_new(D_TEST_MODE_NORMAL);
+    struct dj_test_options* push_fail_only =
+        d_test_options_new(
+            D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL));
 
-    if ( (!push_all) || (!no_push) || (!push_fail_only) )
+    // an allocation failed: release the rest, and the test fails
+    if ( (!push_all) ||
+         (!no_push)  ||
+         (!push_fail_only) )
     {
-        if (push_all)       { d_test_options_free(push_all); }
-        if (no_push)        { d_test_options_free(no_push); }
-        if (push_fail_only) { d_test_options_free(push_fail_only); }
+        // release whichever were made; d_test_options_free takes NULL
+        d_test_options_free(push_all);
+        d_test_options_free(no_push);
+        d_test_options_free(push_fail_only);
 
         return D_TEST_CHECK_MSG(_suite,
                                 "semantic_push_alloc",
@@ -298,13 +312,15 @@ bool d_tests_options_semantic_push(
 d_tests_options_semantic_all
   Aggregation function that runs all semantic check macro tests.
 */
-bool d_tests_options_semantic_all(
+bool
+d_tests_options_semantic_all(
     struct dj_test_suite* _suite
 )
 {
     bool result = true;
 
-    d_test_suite_block(_suite, "config_semantic_all");
+    d_test_suite_block(_suite,
+                       "config_semantic_all");
 
     result = d_tests_options_semantic_count(_suite) && result;
     result = d_tests_options_semantic_print(_suite) && result;

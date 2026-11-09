@@ -188,24 +188,6 @@ bool d_tests_env_arch_type_constants(
         }
     }
 
-    printf("%s    Type constants: X86=%d X64=%d ARM=%d ARM64=%d RISCV=%d\n",
-           D_INDENT,
-           D_ENV_ARCH_TYPE_X86,
-           D_ENV_ARCH_TYPE_X64,
-           D_ENV_ARCH_TYPE_ARM,
-           D_ENV_ARCH_TYPE_ARM64,
-           D_ENV_ARCH_TYPE_RISCV);
-
-    printf("%s    Type constants: PPC=%d MIPS=%d SPARC=%d S390=%d IA64=%d Alpha=%d Unknown=%d\n",
-           D_INDENT,
-           D_ENV_ARCH_TYPE_POWERPC,
-           D_ENV_ARCH_TYPE_MIPS,
-           D_ENV_ARCH_TYPE_SPARC,
-           D_ENV_ARCH_TYPE_S390,
-           D_ENV_ARCH_TYPE_IA64,
-           D_ENV_ARCH_TYPE_ALPHA,
-           D_ENV_ARCH_TYPE_UNKNOWN);
-
     return all_assertions_passed;
 }
 
@@ -272,12 +254,6 @@ bool d_tests_env_arch_endian_constants(
         all_assertions_passed = false;
     }
 
-    printf("%s    Endian constants: UNKNOWN=%d LITTLE=%d BIG=%d\n",
-           D_INDENT,
-           D_ENV_ARCH_ENDIAN_UNKNOWN,
-           D_ENV_ARCH_ENDIAN_LITTLE,
-           D_ENV_ARCH_ENDIAN_BIG);
-
     return all_assertions_passed;
 }
 
@@ -317,62 +293,50 @@ bool d_tests_env_arch_detection_macros(
 
     #ifdef D_ENV_ARCH_X86
         arch_count++;
-        printf("%s    D_ENV_ARCH_X86 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_X64
         arch_count++;
-        printf("%s    D_ENV_ARCH_X64 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_ARM
         arch_count++;
-        printf("%s    D_ENV_ARCH_ARM is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_ARM64
         arch_count++;
-        printf("%s    D_ENV_ARCH_ARM64 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_RISCV
         arch_count++;
-        printf("%s    D_ENV_ARCH_RISCV is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_POWERPC
         arch_count++;
-        printf("%s    D_ENV_ARCH_POWERPC is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_MIPS
         arch_count++;
-        printf("%s    D_ENV_ARCH_MIPS is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_SPARC
         arch_count++;
-        printf("%s    D_ENV_ARCH_SPARC is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_S390
         arch_count++;
-        printf("%s    D_ENV_ARCH_S390 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_IA64
         arch_count++;
-        printf("%s    D_ENV_ARCH_IA64 is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_ALPHA
         arch_count++;
-        printf("%s    D_ENV_ARCH_ALPHA is defined\n", D_INDENT);
     #endif
 
     #ifdef D_ENV_ARCH_UNKNOWN
         arch_count++;
-        printf("%s    D_ENV_ARCH_UNKNOWN is defined\n", D_INDENT);
     #endif
 
     // verify exactly one architecture is detected
@@ -382,9 +346,9 @@ bool d_tests_env_arch_detection_macros(
                           "one and only one architecture should be defined"))
     {
         all_assertions_passed = false;
-        printf("%s    ERROR: %d architectures detected (expected 1)\n",
-               D_INDENT,
-               arch_count);
+        (void)d_test_suite_note(_suite,
+                                "%d architectures detected (expected 1)",
+                                arch_count);
     }
 
     // verify D_ENV_ARCH_NAME is defined
@@ -397,7 +361,6 @@ bool d_tests_env_arch_detection_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    Architecture name: %s\n", D_INDENT, D_ENV_ARCH_NAME);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_NAME should be defined",
@@ -418,7 +381,6 @@ bool d_tests_env_arch_detection_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    Architecture type: %d\n", D_INDENT, D_ENV_ARCH_TYPE);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_TYPE should be defined",
@@ -439,7 +401,6 @@ bool d_tests_env_arch_detection_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    Architecture bits: %d\n", D_INDENT, D_ENV_ARCH_BITS);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_BITS should be defined",
@@ -460,7 +421,6 @@ bool d_tests_env_arch_detection_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    Architecture endianness: %d\n", D_INDENT, D_ENV_ARCH_ENDIAN);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_ENDIAN should be defined",
@@ -646,12 +606,6 @@ bool d_tests_env_arch_property_values(
         }
     #endif
 
-    printf("%s    Properties: type=%d bits=%d endian=%d\n",
-           D_INDENT,
-           D_ENV_ARCH_TYPE,
-           D_ENV_ARCH_BITS,
-           D_ENV_ARCH_ENDIAN);
-
     return all_assertions_passed;
 }
 
@@ -723,9 +677,6 @@ bool d_tests_env_arch_family_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_ARCH_IS_X86_FAMILY = %d\n",
-               D_INDENT,
-               D_ENV_ARCH_IS_X86_FAMILY);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_IS_X86_FAMILY should be defined",
@@ -755,9 +706,6 @@ bool d_tests_env_arch_family_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_ARCH_IS_ARM_FAMILY = %d\n",
-               D_INDENT,
-               D_ENV_ARCH_IS_ARM_FAMILY);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_IS_ARM_FAMILY should be defined",
@@ -860,9 +808,6 @@ bool d_tests_env_arch_bitwidth_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_ARCH_IS_64BIT = %d\n",
-               D_INDENT,
-               D_ENV_ARCH_IS_64BIT);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_IS_64BIT should be defined",
@@ -892,9 +837,6 @@ bool d_tests_env_arch_bitwidth_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_ARCH_IS_32BIT = %d\n",
-               D_INDENT,
-               D_ENV_ARCH_IS_32BIT);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_IS_32BIT should be defined",
@@ -1015,9 +957,6 @@ bool d_tests_env_arch_endianness_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_ARCH_IS_LITTLE_ENDIAN = %d\n",
-               D_INDENT,
-               D_ENV_ARCH_IS_LITTLE_ENDIAN);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_IS_LITTLE_ENDIAN should be defined",
@@ -1047,9 +986,6 @@ bool d_tests_env_arch_endianness_macros(
             all_assertions_passed = false;
         }
 
-        printf("%s    D_ENV_ARCH_IS_BIG_ENDIAN = %d\n",
-               D_INDENT,
-               D_ENV_ARCH_IS_BIG_ENDIAN);
     #else
         if (!D_TEST_CHECK_MSG(_suite,
                               "D_ENV_ARCH_IS_BIG_ENDIAN should be defined",
@@ -1345,8 +1281,6 @@ bool d_tests_env_arch_consistency_check(
             all_assertions_passed = false;
         }
     #endif
-
-    printf("%s    Architecture is consistent\n", D_INDENT);
 
     return all_assertions_passed;
 }

@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                     test_cvar_tests_defaults.c
 *
+* test_cvar.h's suite, block "cvar_default_all": the defaults after reset_all,
+* by flag and by key, after a set, and against the compile-time constants.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_defaults.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * XIII. DEFAULT VALUE HELPER TESTS
- *****************************************************************************/
+//==============================================================================
+// 13. DEFAULT VALUE HELPER TESTS
+//==============================================================================
 
 /*
   NOTE: d_test_registry_get_default and d_test_registry_get_default_by_key
@@ -22,7 +24,6 @@
   which restores all rows to their snapshot defaults, then reading back
   via d_test_registry_get(). This validates the same invariants.
 */
-
 
 /*
 d_tests_cvar_default_by_flag
@@ -36,15 +37,15 @@ d_tests_cvar_default_by_flag
   - timeout default is D_TEST_DEFAULT_TIMEOUT (size_t)
   - skip default is false (bool)
 */
-bool d_tests_cvar_default_by_flag(
+bool
+d_tests_cvar_default_by_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_default_by_flag");
 
-    d_test_suite_test(_suite, "cvar_default_by_flag");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -78,15 +79,15 @@ d_tests_cvar_default_by_key
   - "timeout" default is D_TEST_DEFAULT_TIMEOUT
   - "authors" default ptr is NULL
 */
-bool d_tests_cvar_default_by_key(
+bool
+d_tests_cvar_default_by_key(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_default_by_key");
 
-    d_test_suite_test(_suite, "cvar_default_by_key");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -119,27 +120,30 @@ d_tests_cvar_default_after_set
   - Modify ENABLED to false, reset_all restores true
   - Modify TIMEOUT_MS to 9999, reset_all restores default
 */
-bool d_tests_cvar_default_after_set(
+bool
+d_tests_cvar_default_after_set(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_default_after_set");
 
-    d_test_suite_test(_suite, "cvar_default_after_set");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
 
+    union dj_test_value val = {0};
+
     // modify ENABLED to false
     val.b = false;
-    d_test_registry_set(D_TEST_OPTIONS_ENABLED, val);
+    d_test_registry_set(D_TEST_OPTIONS_ENABLED,
+                        val);
 
     // modify TIMEOUT_MS to 9999
     val.z = 9999;
-    d_test_registry_set(D_TEST_OPTIONS_TIMEOUT_MS, val);
+    d_test_registry_set(D_TEST_OPTIONS_TIMEOUT_MS,
+                        val);
 
     // reset all to defaults
     d_test_registry_reset_all();
@@ -172,22 +176,21 @@ d_tests_cvar_default_known_values
   - MESSAGE_FLAGS default is 0
   - PRIORITY default is 0
 */
-bool d_tests_cvar_default_known_values(
+bool
+d_tests_cvar_default_known_values(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_default_known_values");
 
-    d_test_suite_test(_suite, "cvar_default_known_values");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
 
     // test 1: MAX_FAILURES default
-    val = d_test_registry_get(D_TEST_OPTIONS_MAX_FAILURES);
+    union dj_test_value val = d_test_registry_get(D_TEST_OPTIONS_MAX_FAILURES);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "default_known_max_failures",
@@ -225,15 +228,15 @@ bool d_tests_cvar_default_known_values(
 d_tests_cvar_default_all
   Aggregation function that runs all default value helper tests.
 */
-bool d_tests_cvar_default_all(
+bool
+d_tests_cvar_default_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_default_all");
 
-    d_test_suite_block(_suite, "cvar_default_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_default_by_flag(_suite)     && result;
     result = d_tests_cvar_default_by_key(_suite)      && result;

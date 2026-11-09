@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/modules/test/test_counter.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_counter.h"  // corresponding header
 
@@ -24,6 +24,7 @@ d_test_counter_reset(
     struct dj_test_counter* _counter
 )
 {
+    // parameter validation
     if (!_counter)
     {
         return;
@@ -48,6 +49,7 @@ d_test_counter_add(
     const struct dj_test_counter* _source
 )
 {
+    // parameter validation
     if ( (!_dest) ||
          (!_source) )
     {

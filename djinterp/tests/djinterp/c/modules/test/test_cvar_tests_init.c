@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                         test_cvar_tests_init.c
 *
+* test_cvar.h's suite, block "cvar_init_all": d_test_registry_init, run twice,
+* and d_test_registry_registry: non-NULL, 25 rows, the static rows flag.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_init.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * IV. INITIALIZATION AND REGISTRY ACCESS TESTS
- *****************************************************************************/
+//==============================================================================
+// 4.  INITIALIZATION AND REGISTRY ACCESS TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_init_safe
@@ -21,15 +23,15 @@ d_tests_cvar_init_safe
   Tests the following:
   - Calling init completes without error
 */
-bool d_tests_cvar_init_safe(
+bool
+d_tests_cvar_init_safe(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_init_safe");
 
-    d_test_suite_test(_suite, "cvar_init_safe");
-
-    result = true;
+    bool result = true;
 
     // test 1: init does not crash
     d_test_registry_init();
@@ -49,17 +51,15 @@ d_tests_cvar_init_idempotent
   - Double init does not crash
   - Registry pointer is the same after both calls
 */
-bool d_tests_cvar_init_idempotent(
+bool
+d_tests_cvar_init_idempotent(
     struct dj_test_suite* _suite
 )
 {
-    bool                result;
-    struct dj_registry*  reg1;
-    struct dj_registry*  reg2;
+    d_test_suite_test(_suite,
+                      "cvar_init_idempotent");
 
-    d_test_suite_test(_suite, "cvar_init_idempotent");
-
-    result = true;
+    bool result = true;
 
     // test 1: double init does not crash
     d_test_registry_init();
@@ -71,8 +71,8 @@ bool d_tests_cvar_init_idempotent(
                               "Double d_test_registry_init should not crash") && result;
 
     // test 2: registry pointer is consistent across calls
-    reg1 = d_test_registry_registry();
-    reg2 = d_test_registry_registry();
+    struct dj_registry* reg1 = d_test_registry_registry();
+    struct dj_registry* reg2 = d_test_registry_registry();
 
     result = D_TEST_CHECK_MSG(_suite,
                               "init_idempotent_same_ptr",
@@ -88,20 +88,20 @@ d_tests_cvar_registry_non_null
   Tests the following:
   - Return value is non-NULL
 */
-bool d_tests_cvar_registry_non_null(
+bool
+d_tests_cvar_registry_non_null(
     struct dj_test_suite* _suite
 )
 {
-    bool                result;
-    struct dj_registry*  reg;
+    d_test_suite_test(_suite,
+                      "cvar_registry_non_null");
 
-    d_test_suite_test(_suite, "cvar_registry_non_null");
-
-    result = true;
+    bool result = true;
 
     // test 1: registry returns non-NULL
     d_test_registry_init();
-    reg = d_test_registry_registry();
+
+    struct dj_registry* reg = d_test_registry_registry();
 
     result = D_TEST_CHECK_MSG(_suite,
                               "registry_non_null",
@@ -117,24 +117,25 @@ d_tests_cvar_registry_row_count
   Tests the following:
   - Registry count is 25 (8 config + 17 metadata)
 */
-bool d_tests_cvar_registry_row_count(
+bool
+d_tests_cvar_registry_row_count(
     struct dj_test_suite* _suite
 )
 {
-    bool                result;
-    struct dj_registry*  reg;
+    d_test_suite_test(_suite,
+                      "cvar_registry_row_count");
 
-    d_test_suite_test(_suite, "cvar_registry_row_count");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
-    reg = d_test_registry_registry();
+
+    struct dj_registry* reg = d_test_registry_registry();
 
     // test 1: row count is 25
     result = D_TEST_CHECK_MSG(_suite,
                               "registry_row_count_25",
-                              reg != NULL && reg->count == 25,
+                              ( (reg != NULL) &&
+                                (reg->count == 25) ),
                               "Registry should contain 25 rows (8 config + 17 metadata)") && result;
 
     return result;
@@ -146,24 +147,25 @@ d_tests_cvar_registry_static_flag
   Tests the following:
   - Registry flags include D_REGISTRY_FLAG_STATIC_ROWS
 */
-bool d_tests_cvar_registry_static_flag(
+bool
+d_tests_cvar_registry_static_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool                result;
-    struct dj_registry*  reg;
+    d_test_suite_test(_suite,
+                      "cvar_registry_static_flag");
 
-    d_test_suite_test(_suite, "cvar_registry_static_flag");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
-    reg = d_test_registry_registry();
+
+    struct dj_registry* reg = d_test_registry_registry();
 
     // test 1: static rows flag is set
     result = D_TEST_CHECK_MSG(_suite,
                               "registry_static_rows_flag",
-                              reg != NULL && (reg->flags & D_REGISTRY_FLAG_STATIC_ROWS) != 0,
+                              ( (reg != NULL) &&
+                                ((reg->flags & D_REGISTRY_FLAG_STATIC_ROWS) != 0) ),
                               "Registry should have D_REGISTRY_FLAG_STATIC_ROWS set") && result;
 
     return result;
@@ -173,15 +175,15 @@ bool d_tests_cvar_registry_static_flag(
 d_tests_cvar_init_all
   Aggregation function that runs all initialization tests.
 */
-bool d_tests_cvar_init_all(
+bool
+d_tests_cvar_init_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_init_all");
 
-    d_test_suite_block(_suite, "cvar_init_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_init_safe(_suite)          && result;
     result = d_tests_cvar_init_idempotent(_suite)     && result;

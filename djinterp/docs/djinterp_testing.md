@@ -949,7 +949,8 @@ D_STATIC_INLINE const struct dj_test_module_spec* d_tests_bar_spec(void)
 A test is a `bool (void)` that checks with `D_TEST_REQUIRE(expr)` — which
 records the check, with its text, file and line, and returns `false` from the
 test when it fails — and returns `true` at its end. `D_TEST_SKIP("why")` skips
-it. A test that makes no require counts its return as its one check, which is
+it, and `D_TEST_NOTE("got %d", n)` attaches a note (12.5). A test that makes no
+require counts its return as its one check, which is
 exactly a C++ spec test's `bool`, so **a C++ suite's test functions can be
 listed in a C spec table** and run at every C++ level.
 
@@ -993,7 +994,8 @@ D_TEST_CHECK_MSG(s, "errno", errno == EINVAL, "errno should be EINVAL");
 
 `D_TEST_CHECK` returns the check's result, so a section can stop on it.
 `d_test_suite_describe` gives the node opened last a descriptor;
-`d_test_suite_skip` skips the open test. The runner creates the suite, applies
+`d_test_suite_note` attaches a note to it (12.5); `d_test_suite_skip` skips the
+open test. The runner creates the suite, applies
 the parsed options (`d_test_suite_options_init`, `_parse`, `d_test_suite_
 set_options`), calls the sections, and returns `d_test_suite_run`. A spec and
 imperative sections can share one suite (`d_test_suite_add_module`).
@@ -1020,6 +1022,41 @@ from the standalone form keeps its aggregator there (14.2). Until
 2026-11-06), each leaf lists it. Prefix C targets with `c_`: target names are
 global, and the C++ suite of the same header takes the bare name.
 
+### 12.5 Notes, not prints
+
+A suite does not print. What a check cannot carry — the value a failed check
+got, the build a module ran on — goes in a note, which the report prints
+beneath its node, through the suite's stream:
+
+```c
+if (!D_TEST_CHECK(s, count == 3))
+{
+    d_test_suite_note(s, "got %d", count);
+}
+```
+
+`d_test_suite_note(suite, format, ...)` (or `_vnote` with a `va_list`) attaches
+a printf-formatted note to the node opened last: a test, or a module or block
+when no test is open. In a spec test, `D_TEST_NOTE(format, ...)` attaches one
+to the test; at ISO C++98, which has no variadic macros, the macro is absent
+and a test calls `d_test_suite_note_current(format, ...)`. A note's text may
+run to several lines. The formats are checked as printf's are
+(`D_FORMAT_PRINTF`).
+
+The report prints every note at `--checks`. Otherwise it prints a test's
+notes when the test fails, and a module's or block's when a test beneath it
+fails, so a passing run stays as short as it was. A note is kept whatever the
+options, since the verdict that decides it comes later: note beside a check,
+not in a loop of thousands.
+
+A module's build profile is the case for a heading's note: env's suite notes
+on its module the report `env_printer.h` collects for the unit,
+`d_env_report_here()`, as `section.name=value` lines, the printer's keyvalue
+form (`tests/djinterp/c/env_tests_profile.c`), so a failure in any env test
+comes with the build it failed on, and two builds' profiles compare line by
+line. A program prints the same with
+`d_env_print_file(stdout, "style=keyvalue; show_title=0; sections=all")`.
+
 ---
 
 ## 13. DTest's frozen API (2026-11-06)
@@ -1035,13 +1072,16 @@ decision with its migration first.
 `dj_test_module_spec`; the constants `D_TEST_SUITE_SHOW_FAILURES` / `_TESTS` /
 `_CHECKS` and `D_TEST_SUITE_EXIT_PASSED` / `_FAILED` / `_ERROR`; the functions
 `d_test_suite_new`, `_free`, `_options_init`, `_options_parse`,
-`_set_options`, `_module`, `_block`, `_test`, `_describe`, `_check`,
-`_check_msg`, `_skip`, `_add_module`, `_run`, `d_test_run_modules`; the macros
-`D_TEST_CHECK`, `D_TEST_CHECK_MSG`, `D_TEST_REQUIRE`, `D_TEST_SKIP`; the
+`_set_options`, `_module`, `_block`, `_test`, `_describe`, `_note` and
+`_vnote` (added 2026-11-07), `_check`, `_check_msg`, `_skip`, `_add_module`,
+`_run`, `d_test_run_modules`; the macros `D_TEST_CHECK`, `D_TEST_CHECK_MSG`,
+`D_TEST_REQUIRE`, `D_TEST_SKIP`, `D_TEST_NOTE` (added 2026-11-07); the
 NULL-safe `d_test_suite_str_equal`; the
 command-line options of 12.2 and the exit codes; and the report's results
-table. (`d_test_suite_require` and `d_test_suite_skip_current` exist for the
-macros and are not for direct use.)
+table. (`d_test_suite_require`, `d_test_suite_skip_current` and
+`d_test_suite_note_current` exist for the macros and are not for direct use,
+but for `d_test_suite_note_current` at ISO C++98, where `D_TEST_NOTE` is
+absent.)
 
 **C++ face** (`cpp/modules/test/test_defaults.hpp`, C++17 and up): the suite
 layout of Sections 2 to 7 and its `DTEST_SPEC_MODE` idiom; `test_spec`,

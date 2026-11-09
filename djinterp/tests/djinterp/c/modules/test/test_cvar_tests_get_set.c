@@ -1,19 +1,21 @@
 /*******************************************************************************
 * djinterp [test]                                      test_cvar_tests_get_set.c
 *
+* test_cvar.h's suite, block "cvar_get_set_all": d_test_registry_get and _set:
+* the default, a set read back, an unknown flag, a bool round trip.
+*
 *
 * path:      /tests/djinterp/c/modules/test/test_cvar_tests_get_set.c
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.10.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.08
 *******************************************************************************/
-// djinterp
-#include "test_cvar_tests.h"
+#include "./test_cvar_tests.h"  // corresponding header
 
 
-/******************************************************************************
- * VII. VALUE GET/SET TESTS
- *****************************************************************************/
+//==============================================================================
+// 7.  VALUE GET/SET TESTS
+//==============================================================================
 
 /*
 d_tests_cvar_get_default_value
@@ -27,15 +29,15 @@ d_tests_cvar_get_default_value
   - skip default is false (bool)
   - timeout default is D_TEST_DEFAULT_TIMEOUT (size_t, via key)
 */
-bool d_tests_cvar_get_default_value(
+bool
+d_tests_cvar_get_default_value(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_test(_suite,
+                      "cvar_get_default_value");
 
-    d_test_suite_test(_suite, "cvar_get_default_value");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
@@ -68,24 +70,26 @@ d_tests_cvar_set_then_get
   - Set a size_t value and get it back
   - Set a uint32_t value and get it back
 */
-bool d_tests_cvar_set_then_get(
+bool
+d_tests_cvar_set_then_get(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
-    bool               set_ok;
+    d_test_suite_test(_suite,
+                      "cvar_set_then_get");
 
-    d_test_suite_test(_suite, "cvar_set_then_get");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
 
+    union dj_test_value val = {0};
+
     // test 1: set max-failures to 42 and read back
     val.z  = 42;
-    set_ok = d_test_registry_set(D_TEST_OPTIONS_MAX_FAILURES, val);
+
+    bool set_ok = d_test_registry_set(D_TEST_OPTIONS_MAX_FAILURES,
+                                      val);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "set_max_failures_ok",
@@ -101,7 +105,8 @@ bool d_tests_cvar_set_then_get(
 
     // test 2: set message-flags and read back
     val.u32 = 0xABCD1234;
-    set_ok  = d_test_registry_set(D_TEST_OPTIONS_MESSAGE_FLAGS, val);
+    set_ok  = d_test_registry_set(D_TEST_OPTIONS_MESSAGE_FLAGS,
+                                  val);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "set_message_flags_ok",
@@ -128,23 +133,25 @@ d_tests_cvar_set_invalid_flag
   - Invalid flag (9999) returns false
   - Invalid flag (0xFFFFFFFF) returns false
 */
-bool d_tests_cvar_set_invalid_flag(
+bool
+d_tests_cvar_set_invalid_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
-    bool               set_ok;
+    d_test_suite_test(_suite,
+                      "cvar_set_invalid_flag");
 
-    d_test_suite_test(_suite, "cvar_set_invalid_flag");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
+    union dj_test_value val = {0};
+
     // test 1: invalid flag 9999
     val.u32 = 1;
-    set_ok  = d_test_registry_set(9999, val);
+
+    bool set_ok = d_test_registry_set(9999,
+                                      val);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "set_invalid_flag_9999",
@@ -152,7 +159,8 @@ bool d_tests_cvar_set_invalid_flag(
                               "set(9999, ...) should return false") && result;
 
     // test 2: invalid flag 0xFFFFFFFF
-    set_ok = d_test_registry_set(0xFFFFFFFF, val);
+    set_ok = d_test_registry_set(0xFFFFFFFF,
+                                 val);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "set_invalid_flag_max",
@@ -168,21 +176,20 @@ d_tests_cvar_get_invalid_flag
   Tests the following:
   - Invalid flag returns value with ptr == NULL
 */
-bool d_tests_cvar_get_invalid_flag(
+bool
+d_tests_cvar_get_invalid_flag(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_get_invalid_flag");
 
-    d_test_suite_test(_suite, "cvar_get_invalid_flag");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
 
     // test 1: invalid flag returns zeroed union (ptr == NULL)
-    val = d_test_registry_get(9999);
+    union dj_test_value val = d_test_registry_get(9999);
 
     result = D_TEST_CHECK_MSG(_suite,
                               "get_invalid_flag_null",
@@ -199,23 +206,25 @@ d_tests_cvar_set_get_bool
   - Set config-enabled to false, get returns false
   - Set config-enabled back to true, get returns true
 */
-bool d_tests_cvar_set_get_bool(
+bool
+d_tests_cvar_set_get_bool(
     struct dj_test_suite* _suite
 )
 {
-    bool               result;
-    union dj_test_value val;
+    d_test_suite_test(_suite,
+                      "cvar_set_get_bool");
 
-    d_test_suite_test(_suite, "cvar_set_get_bool");
-
-    result = true;
+    bool result = true;
 
     d_test_registry_init();
     d_test_registry_reset_all();
 
+    union dj_test_value val = {0};
+
     // test 1: set enabled to false
     val.b = false;
-    d_test_registry_set(D_TEST_OPTIONS_ENABLED, val);
+    d_test_registry_set(D_TEST_OPTIONS_ENABLED,
+                        val);
 
     val = d_test_registry_get(D_TEST_OPTIONS_ENABLED);
 
@@ -226,7 +235,8 @@ bool d_tests_cvar_set_get_bool(
 
     // test 2: set enabled back to true
     val.b = true;
-    d_test_registry_set(D_TEST_OPTIONS_ENABLED, val);
+    d_test_registry_set(D_TEST_OPTIONS_ENABLED,
+                        val);
 
     val = d_test_registry_get(D_TEST_OPTIONS_ENABLED);
 
@@ -245,15 +255,15 @@ bool d_tests_cvar_set_get_bool(
 d_tests_cvar_get_set_all
   Aggregation function that runs all value get/set tests.
 */
-bool d_tests_cvar_get_set_all(
+bool
+d_tests_cvar_get_set_all(
     struct dj_test_suite* _suite
 )
 {
-    bool result;
+    d_test_suite_block(_suite,
+                       "cvar_get_set_all");
 
-    d_test_suite_block(_suite, "cvar_get_set_all");
-
-    result = true;
+    bool result = true;
 
     result = d_tests_cvar_get_default_value(_suite)  && result;
     result = d_tests_cvar_set_then_get(_suite)       && result;

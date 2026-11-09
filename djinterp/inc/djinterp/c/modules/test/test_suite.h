@@ -15,9 +15,10 @@
 *
 *   The runner's main chooses options and nothing else: d_test_run_modules()
 * takes the specs, parses the command line, runs every test and returns the
-* process's exit code. The report is a line per test (or per failure), a
-* closing summary, and, per module, the `|...|` results table C++'s
-* test_defaults.hpp prints, in the same columns, so tooling reads both.
+* process's exit code. The report is a line per test (or per failure), with
+* the failing checks and any notes beneath it, a closing summary, and, per
+* module, the `|...|` results table C++'s test_defaults.hpp prints, in the
+* same columns, so tooling reads both.
 *
 *   This is the C ABI the filesys suite was first written against as
 * `dtest_*`; the names here follow the C guide. It is plain C99 with no
@@ -29,44 +30,65 @@
 * before they return.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* 1.  CONSTANTS
-*     ---------
-*     1.  Report detail
-*     2.  Exit codes
-* 2.  TYPES
-*     -----
-*     1.  The suite and its summary
-*     2.  Options
-*     3.  Specs
-* 3.  FUNCTIONS
-*     ---------
-*     1.  Lifetime and options
-*     2.  Building a suite
-*     3.  Running a suite
-*     4.  Support for the check macros
-*     5.  Check helpers
-* 4.  CHECK MACROS
-*     ------------
-*     1.  Imperative checks
-*     2.  Spec checks
-*
-*
 * path:      /inc/djinterp/c/modules/test/test_suite.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  CONSTANTS
+    ---------
+    1.  Report detail
+         1.  D_TEST_SUITE_SHOW_FAILURES
+         2.  D_TEST_SUITE_SHOW_TESTS
+         3.  D_TEST_SUITE_SHOW_CHECKS
+    2.  Exit codes
+         1.  D_TEST_SUITE_EXIT_PASSED
+         2.  D_TEST_SUITE_EXIT_FAILED
+         3.  D_TEST_SUITE_EXIT_ERROR
+2.  TYPES
+    -----
+    1.  The suite and its summary
+         1.  dj_test_suite
+         2.  dj_test_summary
+    2.  Options
+         1.  dj_test_suite_options
+    3.  Specs
+         1.  fn_test_case
+         2.  dj_test_case_spec
+         3.  dj_test_block_spec
+         4.  dj_test_module_spec
+3.  FUNCTIONS
+    ---------
+    1.  Lifetime and options
+    2.  Building a suite
+    3.  Running a suite
+    4.  Support for the check macros
+    5.  Check helpers
+4.  CHECK MACROS
+    ------------
+    1.  Imperative checks
+         1.  D_TEST_CHECK
+         2.  D_TEST_CHECK_MSG
+    2.  Spec checks
+         1.  D_TEST_REQUIRE
+         2.  D_TEST_SKIP
+         3.  D_TEST_NOTE
+*/
 
 #ifndef DJINTERP_C_TEST_TEST_SUITE_H
 #define DJINTERP_C_TEST_TEST_SUITE_H 1
 
 // std
+#include <stdarg.h>  // va_list
 #include <stddef.h>  // size_t
 #include <stdio.h>   // FILE
 // djinterp
-#include "../../djinterp.h"  // framework root
+#include "../../djinterp.h"                        // framework root
+#include "../../../env/c/env_vendor_attributes.h"  // D_FORMAT_PRINTF
 
 
 D_EXTERN_C_BEGIN
@@ -207,7 +229,6 @@ struct dj_test_module_spec
 
 // 3.1    Lifetime and options
 //------------------------------------------------------------------------------
-
 /**
  * @brief Creates an empty suite, with the default options.
  *
@@ -215,7 +236,8 @@ struct dj_test_module_spec
  * @post The suite belongs to the caller, who releases it with
  *       d_test_suite_free.
  */
-struct dj_test_suite* d_test_suite_new(void);
+struct dj_test_suite*
+     d_test_suite_new(void);
 
 /**
  * @brief Releases a suite and everything it recorded.
@@ -287,6 +309,43 @@ bool d_test_suite_describe(struct dj_test_suite* _suite,
                            const char*           _descriptor);
 
 /**
+ * @brief Attaches a note to the node opened last: what a check cannot carry,
+ *        such as the value a failed check got, or a module's build profile.
+ *
+ * @note The report prints a note beneath its node, in the order it was made
+ *       among that node's checks. At D_TEST_SUITE_SHOW_CHECKS every note is
+ *       printed; otherwise a test's notes are printed when the test fails, and
+ *       a module's or block's when a test beneath it fails. A note's text may
+ *       run to several lines; a final newline is dropped.
+ *
+ * @note Every note is kept until the suite is freed, whatever the options, so
+ *       a note belongs beside a check, not in a loop of thousands.
+ *
+ * @param[in,out] _suite   the suite.
+ * @param[in]     _format  a printf format.
+ * @param[in]     ...      its arguments.
+ * @return `true` if recorded; `false` when nothing is open, `_format` is
+ *         `NULL` or cannot be formatted, or out of memory (which, as for a
+ *         check, makes the run D_TEST_SUITE_EXIT_ERROR).
+ */
+bool d_test_suite_note(struct dj_test_suite* _suite,
+                       const char*           _format,
+                       ...) D_FORMAT_PRINTF(2, 3);
+
+/**
+ * @brief d_test_suite_note with its arguments as a `va_list`, for a helper
+ *        that takes its own format.
+ *
+ * @param[in,out] _suite   the suite.
+ * @param[in]     _format  a printf format.
+ * @param[in]     _args    its arguments; read as vsnprintf reads them.
+ * @return as d_test_suite_note.
+ */
+bool d_test_suite_vnote(struct dj_test_suite* _suite,
+                        const char*           _format,
+                        va_list               _args) D_FORMAT_PRINTF(2, 0);
+
+/**
  * @brief Records a check against the test opened last.
  *
  * @note A check made before any test is open opens one, named after the
@@ -351,7 +410,6 @@ bool d_test_suite_add_module(struct dj_test_suite*             _suite,
 
 // 3.3    Running a suite
 //------------------------------------------------------------------------------
-
 /**
  * @brief Reports a suite: the tests, as its options ask, the summary, and each
  *        module's results table.
@@ -387,17 +445,19 @@ int  d_test_run_modules(int                                      _argc,
 //------------------------------------------------------------------------------
 // The spec macros below reach the suite being run, which
 // d_test_suite_add_module sets for the length of each test function, through
-// these two. Outside a spec run there is no such suite: a failure is then
-// written to stderr, and the macro still returns false from the test.
+// these three. Outside a spec run there is no such suite: a failure is then
+// written to stderr, and the macro still returns false from the test; a note
+// is dropped.
 bool d_test_suite_require(bool        _result,
                           const char* _expr,
                           const char* _file,
                           int         _line);
 void d_test_suite_skip_current(const char* _reason);
+bool d_test_suite_note_current(const char* _format,
+                               ...) D_FORMAT_PRINTF(1, 2);
 
 // 3.5    Check helpers
 //------------------------------------------------------------------------------
-
 /**
  * @brief NULL-safe string equality, for a check's condition.
  *
@@ -472,6 +532,18 @@ bool d_test_suite_str_equal(const char* _a,
                                                                               \
         return true;                                                          \
     } while (0)
+
+// 4.2.3
+// D_TEST_NOTE
+//   macro: inside a spec test, attaches a note to the test, as
+// d_test_suite_note does: a printf format, then its arguments. Returns
+// whether the note was recorded; the test goes on either way. Defined where
+// the preprocessor has variadic macros (not ISO C++98); without them, a
+// test calls d_test_suite_note_current, which the macro names.
+#if D_ENV_PP_HAS_VARIADIC_MACROS
+    #define D_TEST_NOTE(...)                                                  \
+        d_test_suite_note_current(__VA_ARGS__)
+#endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 
 D_EXTERN_C_END

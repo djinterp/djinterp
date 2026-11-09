@@ -13,17 +13,23 @@
 * kit such as dckdint's makes six hundred thousand checks a configuration, and
 * keeping each would cost tens of megabytes for lines nobody asked to see.
 *
+*   Notes go in the second array too, each against the node opened last,
+* which is the open test when one is open; so the array stays in node order,
+* a heading's notes sit after its node and before the next node's records, and
+* the report's walk takes them in the same step. Every note is kept: whether
+* it is printed depends on a verdict not known until the run ends.
+*
 *
 * path:      /src/djinterp/c/modules/test/test_suite.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // corresponding header
 
 // std
 #include <stdlib.h>  // malloc, realloc, free
-#include <string.h>  // memcpy, strlen, strncmp, strstr
+#include <string.h>  // memcpy, strchr, strlen, strncmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul, d_ckd_add
 
@@ -56,12 +62,13 @@ struct dj_test_suite_node
 };
 
 // dj_test_suite_record
-//   struct: a check kept for the report.
+//   struct: a check or a note kept for the report.
 struct dj_test_suite_record
 {
-    size_t node;     // the test it was made against
+    size_t node;     // the test it was made against; a note's node, any kind
+    bool   note;     // a note, whose text is all it holds
     bool   result;   // whether it held
-    char*  text;     // the expression, or the check's name; owned
+    char*  text;     // the expression, the check's name, or the note; owned
     char*  message;  // owned; may be NULL
     char*  file;     // owned; may be NULL
     int    line;
@@ -92,10 +99,9 @@ struct dj_test_suite
 // restores the suite it found.
 static struct dj_test_suite* g_d_test_suite_current = NULL;
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             I.    STORAGE                                               ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  STORAGE
+//==============================================================================
 
 /**
  * @brief Copies a string for the suite to own.
@@ -110,17 +116,16 @@ d_internal_test_suite_strdup(
     const char*           _text
 )
 {
-    size_t length;
-    char*  copy;
-
+    // a NULL string copies to NULL
     if (!_text)
     {
         return NULL;
     }
 
-    length = strlen(_text);
-    copy   = (char*)malloc(length + 1);
+    const size_t length = strlen(_text);
+    char*        copy   = (char*)malloc(length + 1);
 
+    // allocation failed: the suite records the error
     if (!copy)
     {
         _suite->error = true;
@@ -128,7 +133,9 @@ d_internal_test_suite_strdup(
         return NULL;
     }
 
-    memcpy(copy, _text, length + 1);
+    memcpy(copy,
+           _text,
+           length + 1);
 
     return copy;
 }
@@ -156,34 +163,41 @@ d_internal_test_suite_reserve(
     size_t                _size
 )
 {
-    size_t capacity;
-    size_t bytes;
-    void*  grown;
-
+    // room for one more already
     if (_count < *_capacity)
     {
         return true;
     }
 
-    capacity = D_INTERNAL_TEST_SUITE_GROWTH;
+    size_t capacity = D_INTERNAL_TEST_SUITE_GROWTH;
 
+    // start at the growth step, or double; a doubling that overflows fails
     if ( (*_capacity != 0) &&
-         (d_ckd_mul(&capacity, *_capacity, (size_t)2)) )
+         (d_ckd_mul(&capacity,
+                    *_capacity,
+                    (size_t)2)) )
     {
         _suite->error = true;
 
         return false;
     }
 
-    if (d_ckd_mul(&bytes, capacity, _size))
+    size_t bytes = 0;
+
+    // the byte count must be representable too
+    if (d_ckd_mul(&bytes,
+                  capacity,
+                  _size))
     {
         _suite->error = true;
 
         return false;
     }
 
-    grown = realloc(*_array, bytes);
+    void* grown = realloc(*_array,
+                          bytes);
 
+    // realloc failed: the array is as it was
     if (!grown)
     {
         _suite->error = true;
@@ -215,16 +229,15 @@ d_internal_test_suite_open(
     const char*           _name
 )
 {
-    struct dj_test_suite_node* node;
-    void*                      nodes;
-
+    // parameter validation
     if (!_suite)
     {
         return false;
     }
 
-    nodes = _suite->nodes;
+    void* nodes = _suite->nodes;
 
+    // make room for the node
     if (!d_internal_test_suite_reserve(_suite,
                                        &nodes,
                                        _suite->node_count,
@@ -235,17 +248,23 @@ d_internal_test_suite_open(
     }
 
     _suite->nodes = (struct dj_test_suite_node*)nodes;
-    node          = &_suite->nodes[_suite->node_count];
 
-    memset(node, 0, sizeof(*node));
+    struct dj_test_suite_node* node = &_suite->nodes[_suite->node_count];
+
+    memset(node,
+           0,
+           sizeof(*node));
     node->kind = _kind;
-    node->name = d_internal_test_suite_strdup(_suite, _name ? _name : "");
+    node->name = d_internal_test_suite_strdup(_suite,
+                                              _name ? _name : "");
 
+    // the name could not be copied
     if (!node->name)
     {
         return false;
     }
 
+    // a module closes the open block and test; a block, the open test
     if (_kind == D_INTERNAL_TEST_SUITE_KIND_MODULE)
     {
         _suite->open_module = _suite->node_count;
@@ -269,6 +288,42 @@ d_internal_test_suite_open(
 }
 
 /**
+ * @brief Appends an empty record.
+ *
+ * @param[in,out] _suite  the suite, whose error flag a failure sets.
+ * @return the record, zeroed, or `NULL` if the array could not grow.
+ */
+static struct dj_test_suite_record*
+d_internal_test_suite_append(
+    struct dj_test_suite* _suite
+)
+{
+    void* records = _suite->records;
+
+    // make room for the record
+    if (!d_internal_test_suite_reserve(_suite,
+                                       &records,
+                                       _suite->record_count,
+                                       &_suite->record_capacity,
+                                       sizeof(struct dj_test_suite_record)))
+    {
+        return NULL;
+    }
+
+    _suite->records = (struct dj_test_suite_record*)records;
+
+    struct dj_test_suite_record* record =
+        &_suite->records[_suite->record_count];
+
+    memset(record,
+           0,
+           sizeof(*record));
+    _suite->record_count++;
+
+    return record;
+}
+
+/**
  * @brief Keeps a check for the report.
  *
  * @param[in,out] _suite    the suite.
@@ -288,39 +343,61 @@ d_internal_test_suite_keep(
     int                   _line
 )
 {
-    struct dj_test_suite_record* record;
-    void*                        records;
+    struct dj_test_suite_record* record = d_internal_test_suite_append(_suite);
 
-    records = _suite->records;
-
-    if (!d_internal_test_suite_reserve(_suite,
-                                       &records,
-                                       _suite->record_count,
-                                       &_suite->record_capacity,
-                                       sizeof(struct dj_test_suite_record)))
+    // no room for the check: the suite records the error
+    if (!record)
     {
         return;
     }
 
-    _suite->records = (struct dj_test_suite_record*)records;
-    record          = &_suite->records[_suite->record_count];
-
     record->node    = _suite->open_test;
     record->result  = _result;
-    record->text    = d_internal_test_suite_strdup(_suite, _text ? _text : "");
-    record->message = d_internal_test_suite_strdup(_suite, _message);
-    record->file    = d_internal_test_suite_strdup(_suite, _file);
+    record->text    = d_internal_test_suite_strdup(_suite,
+                                                   _text ? _text : "");
+    record->message = d_internal_test_suite_strdup(_suite,
+                                                   _message);
+    record->file    = d_internal_test_suite_strdup(_suite,
+                                                   _file);
     record->line    = _line;
-
-    _suite->record_count++;
 
     return;
 }
 
+/**
+ * @brief Keeps a note against the node opened last.
+ *
+ * @param[in,out] _suite  the suite; a node is open.
+ * @param[in]     _text   the note, malloc'd; the suite takes it, kept or not.
+ * @return `true` if kept, `false` if the array could not grow.
+ */
+static bool
+d_internal_test_suite_keep_note(
+    struct dj_test_suite* _suite,
+    char*                 _text
+)
+{
+    struct dj_test_suite_record* record = d_internal_test_suite_append(_suite);
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.   LIFETIME AND OPTIONS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+    // no room for the note: its text is freed
+    if (!record)
+    {
+        free(_text);
+
+        return false;
+    }
+
+    record->node   = _suite->open_last;
+    record->note   = true;
+    record->result = true;
+    record->text   = _text;
+
+    return true;
+}
+
+//==============================================================================
+// 2.  LIFETIME AND OPTIONS
+//==============================================================================
 
 /*
 d_test_suite_new
@@ -330,16 +407,17 @@ caught by d_test_suite_check rather than written to a node that is not there.
 struct dj_test_suite*
 d_test_suite_new(void)
 {
-    struct dj_test_suite* suite;
+    struct dj_test_suite* suite = malloc(sizeof(*suite));
 
-    suite = (struct dj_test_suite*)malloc(sizeof(struct dj_test_suite));
-
+    // allocation failed
     if (!suite)
     {
         return NULL;
     }
 
-    memset(suite, 0, sizeof(*suite));
+    memset(suite,
+           0,
+           sizeof(*suite));
     d_test_suite_options_init(&suite->options);
 
     suite->open_module = D_INTERNAL_TEST_SUITE_NONE;
@@ -360,21 +438,22 @@ d_test_suite_free(
     struct dj_test_suite* _suite
 )
 {
-    size_t i;
-
+    // parameter validation
     if (!_suite)
     {
         return;
     }
 
-    for (i = 0; i < _suite->node_count; i++)
+    // every node's strings
+    for (size_t i = 0; i < _suite->node_count; i++)
     {
         free(_suite->nodes[i].name);
         free(_suite->nodes[i].descriptor);
         free(_suite->nodes[i].skip_reason);
     }
 
-    for (i = 0; i < _suite->record_count; i++)
+    // every record's strings
+    for (size_t i = 0; i < _suite->record_count; i++)
     {
         free(_suite->records[i].text);
         free(_suite->records[i].message);
@@ -384,6 +463,7 @@ d_test_suite_free(
     free(_suite->nodes);
     free(_suite->records);
 
+    // a spec run in progress must not reach a freed suite
     if (g_d_test_suite_current == _suite)
     {
         g_d_test_suite_current = NULL;
@@ -404,6 +484,7 @@ d_test_suite_options_init(
     struct dj_test_suite_options* _options
 )
 {
+    // parameter validation
     if (!_options)
     {
         return;
@@ -458,9 +539,7 @@ d_test_suite_options_parse(
     char**                        _argv
 )
 {
-    const char* arg;
-    int         i;
-
+    // parameter validation
     if ( (!_options) ||
          (_argc < 1) ||
          (!_argv) )
@@ -468,40 +547,55 @@ d_test_suite_options_parse(
         return 0;
     }
 
-    for (i = 1; i < _argc; i++)
+    const char* arg = NULL;
+
+    // each argument after the program's name
+    for (int i = 1; i < _argc; i++)
     {
         arg = _argv[i];
 
+        // a NULL argument is skipped, not refused
         if (!arg)
         {
             continue;
         }
 
-        if (strcmp(arg, "--failures") == 0)
+        // the report's detail, the table, the filter, the usage
+        if (strcmp(arg,
+                   "--failures") == 0)
         {
             _options->show = D_TEST_SUITE_SHOW_FAILURES;
         }
-        else if (strcmp(arg, "--tests") == 0)
+        else if (strcmp(arg,
+                        "--tests") == 0)
         {
             _options->show = D_TEST_SUITE_SHOW_TESTS;
         }
-        else if (strcmp(arg, "--checks") == 0)
+        else if (strcmp(arg,
+                        "--checks") == 0)
         {
             _options->show = D_TEST_SUITE_SHOW_CHECKS;
         }
-        else if (strcmp(arg, "--no-table") == 0)
+        else if (strcmp(arg,
+                        "--no-table") == 0)
         {
             _options->table = false;
         }
-        else if (strncmp(arg, "--filter=", 9) == 0)
+        else if (strncmp(arg,
+                         "--filter=",
+                         9) == 0)
         {
             _options->filter = (arg[9] != '\0') ? (arg + 9) : NULL;
         }
-        else if ( (strcmp(arg, "--help") == 0) ||
-                  (strcmp(arg, "-h") == 0) )
+        else if ( (strcmp(arg,
+                          "--help") == 0) ||
+                  (strcmp(arg,
+                          "-h") == 0) )
         {
-            d_internal_test_suite_usage(
-                (_options->stream) ? _options->stream : stdout, _argv[0]);
+            FILE* const help = (_options->stream) ? _options->stream : stdout;
+
+            d_internal_test_suite_usage(help,
+                                        _argv[0]);
 
             return 1;
         }
@@ -509,9 +603,13 @@ d_test_suite_options_parse(
         {
             fprintf((_options->stream) ? _options->stream : stderr,
                     "%s: unknown argument '%s'\n",
-                    (_argv[0]) ? _argv[0] : "tests", arg);
-            d_internal_test_suite_usage(
-                (_options->stream) ? _options->stream : stderr, _argv[0]);
+                    (_argv[0]) ? _argv[0] : "tests",
+                    arg);
+
+            FILE* const usage = (_options->stream) ? _options->stream : stderr;
+
+            d_internal_test_suite_usage(usage,
+                                        _argv[0]);
 
             return -1;
         }
@@ -531,6 +629,7 @@ d_test_suite_set_options(
     const struct dj_test_suite_options* _options
 )
 {
+    // parameter validation
     if ( (!_suite) ||
          (!_options) )
     {
@@ -542,10 +641,9 @@ d_test_suite_set_options(
     return;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             III.  BUILDING                                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  BUILDING
+//==============================================================================
 
 /*
 d_test_suite_module
@@ -604,20 +702,110 @@ d_test_suite_describe(
     const char*           _descriptor
 )
 {
-    struct dj_test_suite_node* node;
-
+    // parameter validation; a descriptor needs a node
     if ( (!_suite) ||
          (_suite->open_last == D_INTERNAL_TEST_SUITE_NONE) )
     {
         return false;
     }
 
-    node = &_suite->nodes[_suite->open_last];
+    struct dj_test_suite_node* node = &_suite->nodes[_suite->open_last];
+
     free(node->descriptor);
-    node->descriptor = d_internal_test_suite_strdup(_suite, _descriptor);
+    node->descriptor = d_internal_test_suite_strdup(_suite,
+                                                    _descriptor);
 
     return ( (node->descriptor != NULL) ||
              (_descriptor == NULL) );
+}
+
+/*
+d_test_suite_vnote
+  Measures, then formats into a buffer of that size: a note has no length
+limit, and nothing is truncated. A format vsnprintf refuses records nothing
+and is not a suite error, since the checks are unaffected.
+*/
+bool
+d_test_suite_vnote(
+    struct dj_test_suite* _suite,
+    const char*           _format,
+    va_list               _args
+)
+{
+    va_list measure;
+
+    // parameter validation; a note needs a node
+    if ( (!_suite)  ||
+         (!_format) ||
+         (_suite->open_last == D_INTERNAL_TEST_SUITE_NONE) )
+    {
+        return false;
+    }
+
+    va_copy(measure,
+            _args);
+
+    const int length = vsnprintf(NULL,
+                                 0,
+                                 _format,
+                                 measure);
+
+    va_end(measure);
+
+    // a format vsnprintf refuses records nothing
+    if (length < 0)
+    {
+        return false;
+    }
+
+    char* text = (char*)malloc((size_t)length + 1);
+
+    // allocation failed: the suite records the error
+    if (!text)
+    {
+        _suite->error = true;
+
+        return false;
+    }
+
+    // a second pass that disagrees with the first records nothing
+    if (vsnprintf(text,
+                  (size_t)length + 1,
+                  _format,
+                  _args) != length)
+    {
+        free(text);
+
+        return false;
+    }
+
+    return d_internal_test_suite_keep_note(_suite,
+                                           text);
+}
+
+/*
+d_test_suite_note
+  The variadic form of d_test_suite_vnote.
+*/
+bool
+d_test_suite_note(
+    struct dj_test_suite* _suite,
+    const char*           _format,
+    ...
+)
+{
+    va_list args;
+
+    va_start(args,
+             _format);
+
+    const bool recorded = d_test_suite_vnote(_suite,
+                                             _format,
+                                             args);
+
+    va_end(args);
+
+    return recorded;
 }
 
 /**
@@ -641,38 +829,50 @@ d_internal_test_suite_count(
     int                   _line
 )
 {
-    struct dj_test_suite_node* test;
-
+    // no suite: a failure has nowhere to go but stderr
     if (!_suite)
     {
+        // a passing check without a suite says nothing
         if (!_result)
         {
-            fprintf(stderr, "%s:%d: check failed (no suite): %s\n",
-                    (_file) ? _file : "?", _line, (_text) ? _text : "");
+            fprintf(stderr,
+                    "%s:%d: check failed (no suite): %s\n",
+                    (_file) ? _file : "?",
+                    _line,
+                    (_text) ? _text : "");
         }
 
         return _result;
     }
 
+    // a check with no test open opens one named after it
     if ( (_suite->open_test == D_INTERNAL_TEST_SUITE_NONE) &&
-         (!d_test_suite_test(_suite, _text)) )
+         (!d_test_suite_test(_suite,
+                             _text)) )
     {
         return _result;
     }
 
-    test = &_suite->nodes[_suite->open_test];
+    struct dj_test_suite_node* test = &_suite->nodes[_suite->open_test];
+
     test->checks++;
 
+    // a failure counts against the test
     if (!_result)
     {
         test->checks_failed++;
     }
 
+    // a failing check is always kept; a passing one at --checks
     if ( (!_result) ||
          (_suite->options.show == D_TEST_SUITE_SHOW_CHECKS) )
     {
-        d_internal_test_suite_keep(_suite, _result, _text, _message,
-                                   _file, _line);
+        d_internal_test_suite_keep(_suite,
+                                   _result,
+                                   _text,
+                                   _message,
+                                   _file,
+                                   _line);
     }
 
     return _result;
@@ -691,8 +891,12 @@ d_test_suite_check(
     int                   _line
 )
 {
-    return d_internal_test_suite_count(_suite, _result, _expr, NULL,
-                                       _file, _line);
+    return d_internal_test_suite_count(_suite,
+                                       _result,
+                                       _expr,
+                                       NULL,
+                                       _file,
+                                       _line);
 }
 
 /*
@@ -710,8 +914,12 @@ d_test_suite_check_msg(
     int                   _line
 )
 {
-    return d_internal_test_suite_count(_suite, _result, _name, _message,
-                                       _file, _line);
+    return d_internal_test_suite_count(_suite,
+                                       _result,
+                                       _name,
+                                       _message,
+                                       _file,
+                                       _line);
 }
 
 /*
@@ -725,18 +933,19 @@ d_test_suite_skip(
     const char*           _reason
 )
 {
-    struct dj_test_suite_node* test;
-
+    // parameter validation; skipping needs an open test
     if ( (!_suite) ||
          (_suite->open_test == D_INTERNAL_TEST_SUITE_NONE) )
     {
         return false;
     }
 
-    test          = &_suite->nodes[_suite->open_test];
+    struct dj_test_suite_node* test = &_suite->nodes[_suite->open_test];
+
     test->skipped = true;
     free(test->skip_reason);
-    test->skip_reason = d_internal_test_suite_strdup(_suite, _reason);
+    test->skip_reason = d_internal_test_suite_strdup(_suite,
+                                                     _reason);
 
     return ( (test->skip_reason != NULL) ||
              (_reason == NULL) );
@@ -756,8 +965,12 @@ d_test_suite_require(
     int         _line
 )
 {
-    return d_internal_test_suite_count(g_d_test_suite_current, _result,
-                                       _expr, NULL, _file, _line);
+    return d_internal_test_suite_count(g_d_test_suite_current,
+                                       _result,
+                                       _expr,
+                                       NULL,
+                                       _file,
+                                       _line);
 }
 
 /*
@@ -771,13 +984,15 @@ d_test_suite_str_equal(
     const char* _b
 )
 {
+    // two NULLs are equal; one NULL is not
     if ( (!_a) ||
          (!_b) )
     {
         return (_a == _b);
     }
 
-    return (strcmp(_a, _b) == 0);
+    return (strcmp(_a,
+                   _b) == 0);
 }
 
 /*
@@ -789,18 +1004,44 @@ d_test_suite_skip_current(
     const char* _reason
 )
 {
+    // outside a spec run there is no test to mark
     if (g_d_test_suite_current)
     {
-        d_test_suite_skip(g_d_test_suite_current, _reason);
+        d_test_suite_skip(g_d_test_suite_current,
+                          _reason);
     }
 
     return;
 }
 
+/*
+d_test_suite_note_current
+  Outside a spec run there is no suite, and d_test_suite_vnote refuses a NULL
+one, so the note is dropped.
+*/
+bool
+d_test_suite_note_current(
+    const char* _format,
+    ...
+)
+{
+    va_list args;
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   SPECS                                                 ///
-///////////////////////////////////////////////////////////////////////////////
+    va_start(args,
+             _format);
+
+    const bool recorded = d_test_suite_vnote(g_d_test_suite_current,
+                                             _format,
+                                             args);
+
+    va_end(args);
+
+    return recorded;
+}
+
+//==============================================================================
+// 4.  SPECS
+//==============================================================================
 
 /**
  * @brief Whether a spec test's path passes the options' filter.
@@ -823,28 +1064,38 @@ d_internal_test_suite_selected(
     const char* _test
 )
 {
-    char path[512];
-    int  written;
-
+    // no filter selects everything
     if (!_filter)
     {
         return true;
     }
 
-    written = snprintf(path, sizeof(path), "%s/%s/%s",
-                       (_module) ? _module : "",
-                       (_block) ? _block : "",
-                       (_test) ? _test : "");
+    char path[512] = {0};
 
+    const int written = snprintf(path,
+                                 sizeof(path),
+                                 "%s/%s/%s",
+                                 (_module) ? _module : "",
+                                 (_block) ? _block : "",
+                                 (_test) ? _test : "");
+
+    // a path too long for the buffer is not selected
     if ( (written > 0) &&
          ((size_t)written < sizeof(path)) )
     {
-        return (strstr(path, _filter) != NULL);
+        return (strstr(path,
+                       _filter) != NULL);
     }
 
-    return ( ((_module) && (strstr(_module, _filter))) ||
-             ((_block) && (strstr(_block, _filter))) ||
-             ((_test) && (strstr(_test, _filter))) );
+    return ( ( (_module) &&
+               (strstr(_module,
+                       _filter)) ) ||
+             ( (_block) &&
+               (strstr(_block,
+                       _filter)) ) ||
+             ( (_test) &&
+               (strstr(_test,
+                       _filter)) ) );
 }
 
 /**
@@ -863,46 +1114,57 @@ d_internal_test_suite_run_case(
     const struct dj_test_case_spec* _case
 )
 {
-    struct dj_test_suite_node* test;
-    struct dj_test_suite*      outer;
-    size_t                     checks;
-    size_t                     failed;
-    bool                       returned;
+    struct dj_test_suite_node* test   = &_suite->nodes[_suite->open_test];
+    const size_t               checks = test->checks;
+    const size_t               failed = test->checks_failed;
 
-    test   = &_suite->nodes[_suite->open_test];
-    checks = test->checks;
-    failed = test->checks_failed;
-
+    // a row with no function fails its test
     if (!_case->fn)
     {
-        d_internal_test_suite_count(_suite, false, "no test function", NULL,
-                                    NULL, 0);
+        d_internal_test_suite_count(_suite,
+                                    false,
+                                    "no test function",
+                                    NULL,
+                                    NULL,
+                                    0);
 
         return;
     }
 
     // restored, not cleared: a test may run a suite of its own (DTest's own
     // suite does), and the outer test's requires must still reach the outer
-    outer                  = g_d_test_suite_current;
+    struct dj_test_suite* outer = g_d_test_suite_current;
+
     g_d_test_suite_current = _suite;
-    returned               = _case->fn();
+
+    const bool returned = _case->fn();
+
     g_d_test_suite_current = outer;
 
     // the function may have grown the array: take the node again
     test = &_suite->nodes[_suite->open_test];
 
+    // returning false fails the test, unless a require already did
     if ( (!returned) &&
          (test->checks_failed == failed) )
     {
-        d_internal_test_suite_count(_suite, false, "the test returned false",
-                                    NULL, NULL, 0);
+        d_internal_test_suite_count(_suite,
+                                    false,
+                                    "the test returned false",
+                                    NULL,
+                                    NULL,
+                                    0);
     }
-    else if ( (returned) &&
+    else if ( (returned)               &&
               (test->checks == checks) &&
               (!test->skipped) )
     {
-        d_internal_test_suite_count(_suite, true, "the test returned true",
-                                    NULL, NULL, 0);
+        d_internal_test_suite_count(_suite,
+                                    true,
+                                    "the test returned true",
+                                    NULL,
+                                    NULL,
+                                    0);
     }
 
     return;
@@ -919,30 +1181,27 @@ d_test_suite_add_module(
     const struct dj_test_module_spec* _module
 )
 {
-    const struct dj_test_block_spec* block;
-    const struct dj_test_case_spec*  test;
-    bool                             module_open;
-    bool                             block_open;
-    size_t                           b;
-    size_t                           t;
-
+    // parameter validation
     if ( (!_suite) ||
          (!_module) )
     {
         return false;
     }
 
-    module_open = false;
+    bool module_open = false;
 
-    for (b = 0; b < _module->count; b++)
+    // each block of the spec
+    for (size_t b = 0; b < _module->count; b++)
     {
-        block      = &_module->blocks[b];
-        block_open = false;
+        const struct dj_test_block_spec* const block      = &_module->blocks[b];
+        bool                                   block_open = false;
 
-        for (t = 0; t < block->count; t++)
+        // each test of the block
+        for (size_t t = 0; t < block->count; t++)
         {
-            test = &block->tests[t];
+            const struct dj_test_case_spec* const test = &block->tests[t];
 
+            // a test the filter leaves out opens nothing
             if (!d_internal_test_suite_selected(_suite->options.filter,
                                                 _module->name,
                                                 block->name,
@@ -951,38 +1210,46 @@ d_test_suite_add_module(
                 continue;
             }
 
+            // the module opens with its first selected test
             if (!module_open)
             {
-                module_open = d_test_suite_module(_suite, _module->name) &&
-                              d_test_suite_describe(_suite,
-                                                    _module->descriptor);
+                module_open = ( (d_test_suite_module(_suite,
+                                                     _module->name)) &&
+                                (d_test_suite_describe(_suite,
+                                                       _module->descriptor)) );
             }
 
+            // the block opens with its first selected test
             if (!block_open)
             {
-                block_open = d_test_suite_block(_suite, block->name) &&
-                             d_test_suite_describe(_suite, block->descriptor);
+                block_open = ( (d_test_suite_block(_suite,
+                                                   block->name)) &&
+                               (d_test_suite_describe(_suite,
+                                                      block->descriptor)) );
             }
 
-            if ( (!module_open) ||
-                 (!block_open) ||
-                 (!d_test_suite_test(_suite, test->name)) ||
-                 (!d_test_suite_describe(_suite, test->descriptor)) )
+            // a node that could not be opened ends the module
+            if ( (!module_open)                   ||
+                 (!block_open)                    ||
+                 (!d_test_suite_test(_suite,
+                                     test->name)) ||
+                 (!d_test_suite_describe(_suite,
+                                         test->descriptor)) )
             {
                 return false;
             }
 
-            d_internal_test_suite_run_case(_suite, test);
+            d_internal_test_suite_run_case(_suite,
+                                           test);
         }
     }
 
     return (!_suite->error);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             V.    REPORT                                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 5.  REPORT
+//==============================================================================
 
 /**
  * @brief A test's verdict word, as the report and the table print it.
@@ -995,11 +1262,13 @@ d_internal_test_suite_verdict(
     const struct dj_test_suite_node* _test
 )
 {
+    // a skipped test is neither passed nor failed
     if (_test->skipped)
     {
         return "SKIP";
     }
 
+    // a failed check, or no check at all, fails the test
     if ( (_test->checks_failed != 0) ||
          (_test->checks == 0) )
     {
@@ -1021,15 +1290,18 @@ d_internal_test_suite_tally(
     struct dj_test_summary*     _summary
 )
 {
-    const struct dj_test_suite_node* node;
-    size_t                           i;
+    memset(_summary,
+           0,
+           sizeof(*_summary));
 
-    memset(_summary, 0, sizeof(*_summary));
+    const struct dj_test_suite_node* node = NULL;
 
-    for (i = 0; i < _suite->node_count; i++)
+    // each node, once
+    for (size_t i = 0; i < _suite->node_count; i++)
     {
         node = &_suite->nodes[i];
 
+        // a module counts once; a test by its verdict
         if (node->kind == D_INTERNAL_TEST_SUITE_KIND_MODULE)
         {
             _summary->modules++;
@@ -1040,6 +1312,7 @@ d_internal_test_suite_tally(
             _summary->checks        += node->checks;
             _summary->checks_failed += node->checks_failed;
 
+            // a skip, a failure or a pass
             if (node->skipped)
             {
                 _summary->tests_skipped++;
@@ -1066,61 +1339,79 @@ d_internal_test_suite_print_record(
     const struct dj_test_suite_record* _record
 )
 {
-    fprintf(_out, "          %s ", (_record->result) ? "ok  " : "FAIL");
+    fprintf(_out,
+            "          %s ",
+            (_record->result) ? "ok  " : "FAIL");
 
+    // where the check was made, when the macro knew
     if (_record->file)
     {
-        fprintf(_out, "%s:%d: ", _record->file, _record->line);
+        fprintf(_out,
+                "%s:%d: ",
+                _record->file,
+                _record->line);
     }
 
-    fprintf(_out, "%s", (_record->text) ? _record->text : "");
+    fprintf(_out,
+            "%s",
+            (_record->text) ? _record->text : "");
 
+    // the check's message, when it has one
     if (_record->message)
     {
-        fprintf(_out, " -- %s", _record->message);
+        fprintf(_out,
+                " -- %s",
+                _record->message);
     }
 
-    fputc('\n', _out);
+    fputc('\n',
+          _out);
 
     return;
 }
 
 /**
- * @brief Whether a heading holds a test the report lists.
+ * @brief Whether a test beneath a heading failed, or, with `_skips`, failed
+ *        or was skipped.
  *
  * @param[in] _suite    the suite.
  * @param[in] _heading  a module or block node.
- * @return `true` when the options list every test, or when a test beneath the
- *         heading, before the next heading of its rank or above, did not pass.
+ * @param[in] _skips    whether a skipped test counts.
+ * @return `true` for such a test before the next heading of the heading's
+ *         rank or above.
  */
 static bool
-d_internal_test_suite_heading_listed(
+d_internal_test_suite_beneath(
     const struct dj_test_suite* _suite,
-    size_t                      _heading
+    size_t                      _heading,
+    bool                        _skips
 )
 {
-    const struct dj_test_suite_node* node;
-    int                              rank;
-    size_t                           i;
+    const int rank = _suite->nodes[_heading].kind;
 
-    if (_suite->options.show != D_TEST_SUITE_SHOW_FAILURES)
+    // each node until the next heading of this rank or above
+    for (size_t i = _heading + 1; i < _suite->node_count; i++)
     {
-        return true;
-    }
+        const struct dj_test_suite_node* const node = &_suite->nodes[i];
 
-    rank = _suite->nodes[_heading].kind;
-
-    for (i = _heading + 1; i < _suite->node_count; i++)
-    {
-        node = &_suite->nodes[i];
-
+        // a heading of this rank or above ends the heading's span
         if (node->kind <= rank)
         {
             break;
         }
 
-        if ( (node->kind == D_INTERNAL_TEST_SUITE_KIND_TEST) &&
-             (d_internal_test_suite_verdict(node)[0] != 'P') )
+        // only tests have verdicts
+        if (node->kind != D_INTERNAL_TEST_SUITE_KIND_TEST)
+        {
+            continue;
+        }
+
+        const char* const word = d_internal_test_suite_verdict(node);
+
+        // a failure, or a skip when skips count
+        if ( (word[0] == 'F') ||
+             ( (_skips) &&
+               (word[0] == 'S') ) )
         {
             return true;
         }
@@ -1130,13 +1421,198 @@ d_internal_test_suite_heading_listed(
 }
 
 /**
+ * @brief Whether a heading holds a test the report lists.
+ *
+ * @param[in] _suite    the suite.
+ * @param[in] _heading  a module or block node.
+ * @return `true` when the options list every test, or when a test beneath the
+ *         heading did not pass.
+ */
+static bool
+d_internal_test_suite_heading_listed(
+    const struct dj_test_suite* _suite,
+    size_t                      _heading
+)
+{
+    // every heading is listed unless the report lists failures only
+    if (_suite->options.show != D_TEST_SUITE_SHOW_FAILURES)
+    {
+        return true;
+    }
+
+    return d_internal_test_suite_beneath(_suite,
+                                         _heading,
+                                         true);
+}
+
+/**
+ * @brief Prints a note, a line of output per line of its text.
+ *
+ * @param[in] _out     the stream.
+ * @param[in] _text    the note; may be `NULL`.
+ * @param[in] _indent  the columns before "note", which the lines after the
+ *                     first keep, plus the word's own width.
+ *
+ * A final newline ends the note rather than opening an empty line.
+ */
+static void
+d_internal_test_suite_print_note(
+    FILE*       _out,
+    const char* _text,
+    int         _indent
+)
+{
+    const char* line  = (_text) ? _text : "";
+    bool        first = true;
+
+    // one output line per line of the note
+    for (;;)
+    {
+        const char* const end    = strchr(line,
+                                          '\n');
+        const size_t      length = (end) ? (size_t)(end - line) : strlen(line);
+
+        fprintf(_out,
+                "%*s%s%.*s\n",
+                _indent,
+                "",
+                (first) ? "note " : "     ",
+                (int)length,
+                line);
+
+        first = false;
+
+        // the text ends here, or at a final newline, which opens no line
+        if ( (!end) ||
+             (end[1] == '\0') )
+        {
+            break;
+        }
+
+        line = end + 1;
+    }
+
+    return;
+}
+
+/**
+ * @brief Prints a node's line: a module's or block's heading, or a test's
+ *        verdict, as the options list it.
+ *
+ * @param[in]  _suite  the suite.
+ * @param[in]  _out    the stream.
+ * @param[in]  _index  the node.
+ * @param[in]  _kept   whether the node has kept records.
+ * @param[out] _notes  whether the node's notes are printed.
+ * @return whether the node is listed, and so its kept checks with it.
+ *
+ * A heading's notes cost a scan of its tests, which only a heading that has
+ * notes pays.
+ */
+static bool
+d_internal_test_suite_print_node(
+    const struct dj_test_suite* _suite,
+    FILE*                       _out,
+    size_t                      _index,
+    bool                        _kept,
+    bool*                       _notes
+)
+{
+    const struct dj_test_suite_node* const node  = &_suite->nodes[_index];
+    const bool                             every =
+        (_suite->options.show == D_TEST_SUITE_SHOW_CHECKS);
+
+    // a heading: listed, and its notes, by the tests beneath it
+    if (node->kind != D_INTERNAL_TEST_SUITE_KIND_TEST)
+    {
+        const bool listed = d_internal_test_suite_heading_listed(_suite,
+                                                                 _index);
+
+        *_notes = false;
+
+        // a heading with nothing listed beneath it is left out
+        if (!listed)
+        {
+            return false;
+        }
+
+        // a module's heading carries its descriptor
+        if (node->kind == D_INTERNAL_TEST_SUITE_KIND_MODULE)
+        {
+            fprintf(_out,
+                    "\nmodule %s%s%s\n",
+                    node->name,
+                    (node->descriptor) ? " -- " : "",
+                    (node->descriptor) ? node->descriptor : "");
+        }
+        else
+        {
+            fprintf(_out,
+                    "  block %s\n",
+                    node->name);
+        }
+
+        // a heading pays for a scan of its tests only when it has notes
+        if (_kept)
+        {
+            *_notes = ( (every) ||
+                        (d_internal_test_suite_beneath(_suite,
+                                                       _index,
+                                                       false)) );
+        }
+
+        return true;
+    }
+
+    const char* const word   = d_internal_test_suite_verdict(node);
+    const bool        listed =
+        ( (_suite->options.show != D_TEST_SUITE_SHOW_FAILURES) ||
+          (word[0] != 'P') );
+
+    *_notes = ( (listed) &&
+                ( (every) ||
+                  (word[0] == 'F') ) );
+
+    // an unlisted test prints nothing, nor its checks
+    if (!listed)
+    {
+        return false;
+    }
+
+    fprintf(_out,
+            "    [%s] %s",
+            word,
+            node->name);
+
+    // a skip gives its reason; a test with no checks says so
+    if (node->skipped)
+    {
+        fprintf(_out,
+                ": %s",
+                (node->skip_reason) ? node->skip_reason : "skipped");
+    }
+    else if (node->checks == 0)
+    {
+        fprintf(_out,
+                ": no checks");
+    }
+
+    fputc('\n',
+          _out);
+
+    return true;
+}
+
+/**
  * @brief Prints the tree: headings, tests and their kept checks.
  *
  * @param[in] _suite  the suite.
  * @param[in] _out    the stream.
  *
- * Walks the nodes and the records in step; a record belongs to the test it
- * names, and every record of a test follows that test's node.
+ * Walks the nodes and the records in step; a record belongs to the node it
+ * names, and every record of a node follows that node and precedes the next
+ * node's. A heading's records are notes; a test's are checks and notes, in
+ * the order they were made.
  */
 static void
 d_internal_test_suite_print_tree(
@@ -1144,67 +1620,52 @@ d_internal_test_suite_print_tree(
     FILE*                       _out
 )
 {
-    const struct dj_test_suite_node* node;
-    const char*                      word;
-    size_t                           i;
-    size_t                           r;
-    bool                             listed;
+    size_t r = 0;
 
-    r = 0;
-
-    for (i = 0; i < _suite->node_count; i++)
+    // the nodes and the records in step
+    for (size_t i = 0; i < _suite->node_count; i++)
     {
-        node = &_suite->nodes[i];
+        // whether this node has records, which follow it
+        const bool kept = ( (r < _suite->record_count) &&
+                            (_suite->records[r].node == i) );
 
-        if (node->kind == D_INTERNAL_TEST_SUITE_KIND_MODULE)
-        {
-            if (d_internal_test_suite_heading_listed(_suite, i))
-            {
-                fprintf(_out, "\nmodule %s%s%s\n", node->name,
-                        (node->descriptor) ? " -- " : "",
-                        (node->descriptor) ? node->descriptor : "");
-            }
+        bool       notes  = false;
+        const bool listed = d_internal_test_suite_print_node(_suite,
+                                                             _out,
+                                                             i,
+                                                             kept,
+                                                             &notes);
 
-            continue;
-        }
+        // a module's notes sit at its blocks' depth, a block's at its tests'
+        const int indent =
+            (_suite->nodes[i].kind == D_INTERNAL_TEST_SUITE_KIND_MODULE)
+                ? 2
+            : (_suite->nodes[i].kind == D_INTERNAL_TEST_SUITE_KIND_BLOCK)
+                ? 4
+                : 10;
 
-        if (node->kind == D_INTERNAL_TEST_SUITE_KIND_BLOCK)
-        {
-            if (d_internal_test_suite_heading_listed(_suite, i))
-            {
-                fprintf(_out, "  block %s\n", node->name);
-            }
-
-            continue;
-        }
-
-        word   = d_internal_test_suite_verdict(node);
-        listed = ( (_suite->options.show != D_TEST_SUITE_SHOW_FAILURES) ||
-                   (word[0] != 'P') );
-
-        if (listed)
-        {
-            fprintf(_out, "    [%s] %s", word, node->name);
-
-            if (node->skipped)
-            {
-                fprintf(_out, ": %s",
-                        (node->skip_reason) ? node->skip_reason : "skipped");
-            }
-            else if (node->checks == 0)
-            {
-                fprintf(_out, ": no checks");
-            }
-
-            fputc('\n', _out);
-        }
-
+        // the records of this node, which follow it
         while ( (r < _suite->record_count) &&
                 (_suite->records[r].node == i) )
         {
-            if (listed)
+            const struct dj_test_suite_record* const record =
+                &_suite->records[r];
+
+            // a note prints by its own rule; a check with its node
+            if (record->note)
             {
-                d_internal_test_suite_print_record(_out, &_suite->records[r]);
+                // the node's notes were asked for
+                if (notes)
+                {
+                    d_internal_test_suite_print_note(_out,
+                                                     record->text,
+                                                     indent);
+                }
+            }
+            else if (listed)
+            {
+                d_internal_test_suite_print_record(_out,
+                                                   record);
             }
 
             r++;
@@ -1225,13 +1686,13 @@ d_internal_test_suite_cell_length(
     const char* _text
 )
 {
-    size_t length;
+    size_t length = 0;
 
-    length = 0;
-
+    // every character but a carriage return takes a column
     while ( (_text) &&
             (*_text) )
     {
+        // a carriage return takes no column
         if (*_text != '\r')
         {
             length++;
@@ -1258,39 +1719,47 @@ d_internal_test_suite_cell(
     size_t      _width
 )
 {
-    size_t length;
+    fputs("| ",
+          _out);
 
-    fputs("| ", _out);
-    length = 0;
+    size_t length = 0;
 
+    // every character, with the table's separator replaced
     while ( (_text) &&
             (*_text) )
     {
+        // a bar would end the cell: it prints as a slash
         if (*_text == '|')
         {
-            fputc('/', _out);
+            fputc('/',
+                  _out);
             length++;
         }
         else if (*_text == '\n')
         {
-            fputc(' ', _out);
+            fputc(' ',
+                  _out);
             length++;
         }
         else if (*_text != '\r')
         {
-            fputc(*_text, _out);
+            fputc(*_text,
+                  _out);
             length++;
         }
 
         _text++;
     }
 
+    // pad the cell to its column's width
     for (; length < _width; length++)
     {
-        fputc(' ', _out);
+        fputc(' ',
+              _out);
     }
 
-    fputc(' ', _out);
+    fputc(' ',
+          _out);
 
     return;
 }
@@ -1316,82 +1785,112 @@ d_internal_test_suite_print_table(
     size_t                      _end
 )
 {
-    const struct dj_test_suite_node* node;
-    char                             number[24];
-    size_t                           width[4];
-    size_t                           rule;
-    size_t                           n;
-    size_t                           i;
+    // each column as wide as its header: "RESULT", "#", "TEST", "DESCRIPTION"
+    size_t width[4] = { 6, 1, 4, 11 };
+    size_t n        = 0;
 
-    width[0] = 6;   // "RESULT"
-    width[1] = 1;   // "#"
-    width[2] = 4;   // "TEST"
-    width[3] = 11;  // "DESCRIPTION"
-    n        = 0;
-
-    for (i = _first; i < _end; i++)
+    // the widths: each column as wide as its widest cell
+    for (size_t i = _first; i < _end; i++)
     {
-        node = &_suite->nodes[i];
+        const struct dj_test_suite_node* const node = &_suite->nodes[i];
 
+        // only tests have rows
         if (node->kind != D_INTERNAL_TEST_SUITE_KIND_TEST)
         {
             continue;
         }
 
-        n++;
-        sprintf(number, "%lu", (unsigned long)n);
+        char number[24] = {0};
 
+        n++;
+        sprintf(number,
+                "%lu",
+                (unsigned long)n);
+
+        // the number column
         if (strlen(number) > width[1])
         {
             width[1] = strlen(number);
         }
 
+        // the name column
         if (d_internal_test_suite_cell_length(node->name) > width[2])
         {
             width[2] = d_internal_test_suite_cell_length(node->name);
         }
 
+        // the descriptor column
         if (d_internal_test_suite_cell_length(node->descriptor) > width[3])
         {
             width[3] = d_internal_test_suite_cell_length(node->descriptor);
         }
     }
 
-    fprintf(_out, "\n|-- results table (%s) --|\n", _suite->nodes[_first].name);
-    d_internal_test_suite_cell(_out, "RESULT", width[0]);
-    d_internal_test_suite_cell(_out, "#", width[1]);
-    d_internal_test_suite_cell(_out, "TEST", width[2]);
-    d_internal_test_suite_cell(_out, "DESCRIPTION", width[3]);
-    fputs("|\n|", _out);
+    fprintf(_out,
+            "\n|-- results table (%s) --|\n",
+            _suite->nodes[_first].name);
+    d_internal_test_suite_cell(_out,
+                               "RESULT",
+                               width[0]);
+    d_internal_test_suite_cell(_out,
+                               "#",
+                               width[1]);
+    d_internal_test_suite_cell(_out,
+                               "TEST",
+                               width[2]);
+    d_internal_test_suite_cell(_out,
+                               "DESCRIPTION",
+                               width[3]);
+    fputs("|\n|",
+          _out);
 
     // the header row's length less "|", its final "|" and the newline
-    rule = (width[0] + width[1] + width[2] + width[3]) + (4 * 3) + 1 - 2;
+    const size_t rule = (width[0] + width[1] + width[2] + width[3]) +
+                        (4 * 3) + 1 - 2;
 
-    for (i = 0; i < rule; i++)
+    // the rule beneath the header
+    for (size_t i = 0; i < rule; i++)
     {
-        fputc('-', _out);
+        fputc('-',
+              _out);
     }
 
-    fputs("|\n", _out);
+    fputs("|\n",
+          _out);
+
     n = 0;
 
-    for (i = _first; i < _end; i++)
+    // a row per test
+    for (size_t i = _first; i < _end; i++)
     {
-        node = &_suite->nodes[i];
+        const struct dj_test_suite_node* const node = &_suite->nodes[i];
 
+        // only tests have rows
         if (node->kind != D_INTERNAL_TEST_SUITE_KIND_TEST)
         {
             continue;
         }
 
+        char number[24] = {0};
+
         n++;
-        sprintf(number, "%lu", (unsigned long)n);
-        d_internal_test_suite_cell(_out, d_internal_test_suite_verdict(node),
+        sprintf(number,
+                "%lu",
+                (unsigned long)n);
+        d_internal_test_suite_cell(_out,
+                                   d_internal_test_suite_verdict(node),
                                    width[0]);
-        d_internal_test_suite_cell(_out, number, width[1]);
-        d_internal_test_suite_cell(_out, node->name, width[2]);
-        d_internal_test_suite_cell(_out, node->descriptor, width[3]);
-        fputs("|\n", _out);
+        d_internal_test_suite_cell(_out,
+                                   number,
+                                   width[1]);
+        d_internal_test_suite_cell(_out,
+                                   node->name,
+                                   width[2]);
+        d_internal_test_suite_cell(_out,
+                                   node->descriptor,
+                                   width[3]);
+        fputs("|\n",
+              _out);
     }
 
     return;
@@ -1409,22 +1908,25 @@ d_internal_test_suite_print_tables(
     FILE*                       _out
 )
 {
-    size_t first;
-    size_t i;
+    size_t first = D_INTERNAL_TEST_SUITE_NONE;
 
-    first = D_INTERNAL_TEST_SUITE_NONE;
-
-    for (i = 0; i <= _suite->node_count; i++)
+    // each module's span, ended by the next module or the end
+    for (size_t i = 0; i <= _suite->node_count; i++)
     {
+        // only a module, or the end, closes a span
         if ( (i < _suite->node_count) &&
              (_suite->nodes[i].kind != D_INTERNAL_TEST_SUITE_KIND_MODULE) )
         {
             continue;
         }
 
+        // a span with a module before it gets its table
         if (first != D_INTERNAL_TEST_SUITE_NONE)
         {
-            d_internal_test_suite_print_table(_suite, _out, first, i);
+            d_internal_test_suite_print_table(_suite,
+                                              _out,
+                                              first,
+                                              i);
         }
 
         first = i;
@@ -1444,25 +1946,32 @@ d_test_suite_run(
     struct dj_test_summary*     _summary
 )
 {
-    struct dj_test_summary summary;
-    FILE*                  out;
-    int                    code;
-
+    // parameter validation
     if (!_suite)
     {
         return D_TEST_SUITE_EXIT_ERROR;
     }
 
-    out = (_suite->options.stream) ? _suite->options.stream : stdout;
+    FILE* const            out     = (_suite->options.stream)
+                                         ? _suite->options.stream
+                                         : stdout;
+    struct dj_test_summary summary = {0};
 
-    d_internal_test_suite_tally(_suite, &summary);
-    d_internal_test_suite_print_tree(_suite, out);
+    d_internal_test_suite_tally(_suite,
+                                &summary);
+    d_internal_test_suite_print_tree(_suite,
+                                     out);
 
+    // the results tables, when the options ask for them
     if (_suite->options.table)
     {
-        d_internal_test_suite_print_tables(_suite, out);
+        d_internal_test_suite_print_tables(_suite,
+                                           out);
     }
 
+    int code = 0;
+
+    // an error proves nothing; a failure or no test fails the run
     if (_suite->error)
     {
         code = D_TEST_SUITE_EXIT_ERROR;
@@ -1496,6 +2005,7 @@ d_test_suite_run(
             : "ERROR (a node or check could not be recorded)");
     fflush(out);
 
+    // the caller's copy of the counts
     if (_summary)
     {
         *_summary = summary;
@@ -1518,42 +2028,54 @@ d_test_run_modules(
     size_t                                   _count
 )
 {
-    struct dj_test_suite_options options;
-    struct dj_test_suite*        suite;
-    size_t                       i;
-    int                          parsed;
-    int                          code;
+    struct dj_test_suite_options options = {0};
 
     d_test_suite_options_init(&options);
-    parsed = d_test_suite_options_parse(&options, _argc, _argv);
 
+    const int parsed = d_test_suite_options_parse(&options,
+                                                  _argc,
+                                                  _argv);
+
+    // --help exits passed; a refused argument, with an error
     if (parsed != 0)
     {
         return (parsed > 0) ? D_TEST_SUITE_EXIT_PASSED
                             : D_TEST_SUITE_EXIT_ERROR;
     }
 
-    suite = d_test_suite_new();
+    struct dj_test_suite* suite = d_test_suite_new();
 
+    // allocation failed
     if (!suite)
     {
-        fprintf(stderr, "fatal: could not create the test suite\n");
+        fprintf(stderr,
+                "fatal: could not create the test suite\n");
 
         return D_TEST_SUITE_EXIT_ERROR;
     }
 
-    d_test_suite_set_options(suite, &options);
-    printf("== %s ==\n", (_title) ? _title : "tests");
+    d_test_suite_set_options(suite,
+                             &options);
 
-    for (i = 0; i < _count; i++)
+    // the heading goes where the report goes
+    fprintf((options.stream) ? options.stream : stdout,
+            "== %s ==\n",
+            (_title) ? _title : "tests");
+
+    // every module spec, in order
+    for (size_t i = 0; i < _count; i++)
     {
+        // a NULL array adds nothing
         if (_modules)
         {
-            d_test_suite_add_module(suite, _modules[i]);
+            d_test_suite_add_module(suite,
+                                    _modules[i]);
         }
     }
 
-    code = d_test_suite_run(suite, NULL);
+    const int code = d_test_suite_run(suite,
+                                      NULL);
+
     d_test_suite_free(suite);
 
     return code;

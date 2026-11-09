@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/modules/test/test_suite_tests_report.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 #include "./test_suite_tests.h"  // corresponding header
 
@@ -28,36 +28,54 @@ d_tests_test_suite_exit_codes
 bool
 d_tests_test_suite_exit_codes(void)
 {
-    struct dj_test_suite* suite;
-    FILE*                 stream;
-    char*                 report;
-    int                   code;
-
     D_TEST_REQUIRE(D_TEST_SUITE_EXIT_PASSED == 0);
     D_TEST_REQUIRE(D_TEST_SUITE_EXIT_FAILED == 1);
     D_TEST_REQUIRE(D_TEST_SUITE_EXIT_ERROR == 2);
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    FILE* stream = NULL;
+
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
     D_TEST_REQUIRE(suite != NULL);
-    D_TEST_REQUIRE(d_test_suite_test(suite, "t"));
-    D_TEST_REQUIRE(D_TEST_CHECK(suite, true));
-    report = d_tests_test_suite_report(suite, stream, &code, NULL);
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "t"));
+    D_TEST_REQUIRE(D_TEST_CHECK(suite,
+                                true));
+
+    int code = 0;
+
+    char* report = d_tests_test_suite_report(suite,
+                                             stream,
+                                             &code,
+                                             NULL);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
-    D_TEST_REQUIRE(d_tests_test_suite_contains(report, "result:  PASSED"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "result:  PASSED"));
     free(report);
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                     &stream);
     D_TEST_REQUIRE(suite != NULL);
-    D_TEST_REQUIRE(d_test_suite_test(suite, "t"));
-    D_TEST_REQUIRE(!D_TEST_CHECK(suite, false));
-    report = d_tests_test_suite_report(suite, stream, &code, NULL);
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "t"));
+    D_TEST_REQUIRE(!D_TEST_CHECK(suite,
+                                 false));
+    report = d_tests_test_suite_report(suite,
+                                       stream,
+                                       &code,
+                                       NULL);
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
-    D_TEST_REQUIRE(d_tests_test_suite_contains(report, "result:  FAILED"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "result:  FAILED"));
     free(report);
 
-    D_TEST_REQUIRE(d_test_suite_run(NULL, NULL) == D_TEST_SUITE_EXIT_ERROR);
+    D_TEST_REQUIRE(d_test_suite_run(NULL,
+                                    NULL) == D_TEST_SUITE_EXIT_ERROR);
 
     return true;
 }
@@ -72,16 +90,24 @@ d_tests_test_suite_empty_is_failure
 bool
 d_tests_test_suite_empty_is_failure(void)
 {
-    struct dj_test_suite*  suite;
-    struct dj_test_summary summary;
-    FILE*                  stream;
-    char*                  report;
-    int                    code;
+    FILE* stream = NULL;
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
     D_TEST_REQUIRE(suite != NULL);
-    D_TEST_REQUIRE(d_test_suite_test(suite, "empty"));
-    report = d_tests_test_suite_report(suite, stream, &code, &summary);
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "empty"));
+
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_report(suite,
+                                             stream,
+                                             &code,
+                                             &summary);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.tests_failed == 1);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
@@ -89,9 +115,13 @@ d_tests_test_suite_empty_is_failure(void)
                                                "[FAIL] empty: no checks"));
     free(report);
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                     &stream);
     D_TEST_REQUIRE(suite != NULL);
-    report = d_tests_test_suite_report(suite, stream, &code, NULL);
+    report = d_tests_test_suite_report(suite,
+                                       stream,
+                                       &code,
+                                       NULL);
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
     free(report);
@@ -111,29 +141,41 @@ d_tests_test_suite_table_format
 bool
 d_tests_test_suite_table_format(void)
 {
-    struct dj_test_suite* suite;
-    FILE*                 stream;
-    char*                 report;
-    int                   code;
+    FILE* stream = NULL;
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
     D_TEST_REQUIRE(suite != NULL);
-    D_TEST_REQUIRE(d_test_suite_module(suite, "mod"));
-    D_TEST_REQUIRE(d_test_suite_test(suite, "alpha"));
-    D_TEST_REQUIRE(d_test_suite_describe(suite, "first"));
-    D_TEST_REQUIRE(D_TEST_CHECK(suite, true));
-    D_TEST_REQUIRE(d_test_suite_test(suite, "b"));
-    D_TEST_REQUIRE(!D_TEST_CHECK(suite, false));
+    D_TEST_REQUIRE(d_test_suite_module(suite,
+                                       "mod"));
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "alpha"));
+    D_TEST_REQUIRE(d_test_suite_describe(suite,
+                                         "first"));
+    D_TEST_REQUIRE(D_TEST_CHECK(suite,
+                                true));
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "b"));
+    D_TEST_REQUIRE(!D_TEST_CHECK(suite,
+                                 false));
 
-    report = d_tests_test_suite_report(suite, stream, &code, NULL);
+    int code = 0;
+
+    char* report = d_tests_test_suite_report(suite,
+                                             stream,
+                                             &code,
+                                             NULL);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(d_tests_test_suite_contains(report,
-                       "\n|-- results table (mod) --|\n"));
+                                               "\n|-- results table (mod) --|\n"));
     D_TEST_REQUIRE(d_tests_test_suite_contains(report,
-                       "| RESULT | # | TEST  | DESCRIPTION |\n"
-                       "|----------------------------------|\n"
-                       "| PASS   | 1 | alpha | first       |\n"
-                       "| FAIL   | 2 | b     |             |\n"));
+                                               "| RESULT | # | TEST  | DESCRIPTION |\n"
+                                               "|----------------------------------|\n"
+                                               "| PASS   | 1 | alpha | first       |\n"
+                                               "| FAIL   | 2 | b     |             |\n"));
     free(report);
 
     return true;
@@ -149,20 +191,30 @@ carriage return, as pipe_escape does.
 bool
 d_tests_test_suite_table_escape(void)
 {
-    struct dj_test_suite* suite;
-    FILE*                 stream;
-    char*                 report;
-    int                   code;
+    FILE* stream = NULL;
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
     D_TEST_REQUIRE(suite != NULL);
-    D_TEST_REQUIRE(d_test_suite_module(suite, "m"));
-    D_TEST_REQUIRE(d_test_suite_test(suite, "a|b\nc\rd"));
-    D_TEST_REQUIRE(D_TEST_CHECK(suite, true));
+    D_TEST_REQUIRE(d_test_suite_module(suite,
+                                       "m"));
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "a|b\nc\rd"));
+    D_TEST_REQUIRE(D_TEST_CHECK(suite,
+                                true));
 
-    report = d_tests_test_suite_report(suite, stream, &code, NULL);
+    int code = 0;
+
+    char* report = d_tests_test_suite_report(suite,
+                                             stream,
+                                             &code,
+                                             NULL);
+
     D_TEST_REQUIRE(report != NULL);
-    D_TEST_REQUIRE(d_tests_test_suite_contains(report, "| a/b cd |"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "| a/b cd |"));
     free(report);
 
     return true;
@@ -182,35 +234,50 @@ d_tests_test_suite_show_levels(void)
     static const int levels[3] = { D_TEST_SUITE_SHOW_FAILURES,
                                    D_TEST_SUITE_SHOW_TESTS,
                                    D_TEST_SUITE_SHOW_CHECKS };
-    struct dj_test_suite_options options;
-    struct dj_test_suite*        suite;
-    FILE*                        stream;
-    char*                        report;
-    int                          code;
-    int                          i;
 
-    for (i = 0; i < 3; i++)
+    // once at each level of detail
+    for (int i = 0; i < 3; i++)
     {
-        suite = d_tests_test_suite_quiet(levels[i], &stream);
+        struct dj_test_suite_options options = {0};
+        FILE*                        stream  = NULL;
+
+        struct dj_test_suite* const suite = d_tests_test_suite_quiet(levels[i],
+                                                                     &stream);
+
         D_TEST_REQUIRE(suite != NULL);
         d_test_suite_options_init(&options);
         options.show   = levels[i];
         options.table  = false;
         options.stream = stream;
-        d_test_suite_set_options(suite, &options);
-        D_TEST_REQUIRE(d_test_suite_test(suite, "passes"));
-        D_TEST_REQUIRE(D_TEST_CHECK(suite, 40 + 2 == 42));
-        D_TEST_REQUIRE(d_test_suite_test(suite, "fails"));
-        D_TEST_REQUIRE(!D_TEST_CHECK(suite, 1 > 2));
+        d_test_suite_set_options(suite,
+                                 &options);
+        D_TEST_REQUIRE(d_test_suite_test(suite,
+                                         "passes"));
+        D_TEST_REQUIRE(D_TEST_CHECK(suite,
+                                    40 + 2 == 42));
+        D_TEST_REQUIRE(d_test_suite_test(suite,
+                                         "fails"));
+        D_TEST_REQUIRE(!D_TEST_CHECK(suite,
+                                     1 > 2));
 
-        report = d_tests_test_suite_report(suite, stream, &code, NULL);
+        int code = 0;
+
+        char* const report = d_tests_test_suite_report(suite,
+                                                       stream,
+                                                       &code,
+                                                       NULL);
+
         D_TEST_REQUIRE(report != NULL);
-        D_TEST_REQUIRE(d_tests_test_suite_contains(report, "[FAIL] fails"));
-        D_TEST_REQUIRE(d_tests_test_suite_contains(report, "[PASS] passes") ==
+        D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                                   "[FAIL] fails"));
+        D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                                   "[PASS] passes") ==
                        (levels[i] != D_TEST_SUITE_SHOW_FAILURES));
-        D_TEST_REQUIRE(d_tests_test_suite_contains(report, "40 + 2 == 42") ==
+        D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                                   "40 + 2 == 42") ==
                        (levels[i] == D_TEST_SUITE_SHOW_CHECKS));
-        D_TEST_REQUIRE(!d_tests_test_suite_contains(report, "results table"));
+        D_TEST_REQUIRE(!d_tests_test_suite_contains(report,
+                                                    "results table"));
         free(report);
     }
 
@@ -227,7 +294,7 @@ d_tests_test_suite_options_defaults
 bool
 d_tests_test_suite_options_defaults(void)
 {
-    struct dj_test_suite_options options;
+    struct dj_test_suite_options options = {0};
 
     d_test_suite_options_init(&options);
     D_TEST_REQUIRE(options.show == D_TEST_SUITE_SHOW_TESTS);
@@ -252,8 +319,6 @@ d_tests_test_suite_options_parse
 bool
 d_tests_test_suite_options_parse(void)
 {
-    struct dj_test_suite_options options;
-    FILE* sink;
     char  prog[]     = "runner";
     char  failures[] = "--failures";
     char  checks[]   = "--checks";
@@ -262,40 +327,56 @@ d_tests_test_suite_options_parse(void)
     char  empty[]    = "--filter=";
     char  help[]     = "--help";
     char  bogus[]    = "--bogus";
-    char* argv1[5];
-    char* argv2[2];
-    char* argv3[2];
+    char* argv1[5]   = {NULL};
 
     argv1[0] = prog;
     argv1[1] = failures;
     argv1[2] = no_table;
     argv1[3] = filter;
     argv1[4] = NULL;
-    sink     = tmpfile();
+
+    FILE* sink = tmpfile();
+
     D_TEST_REQUIRE(sink != NULL);
+
+    struct dj_test_suite_options options = {0};
+
     d_test_suite_options_init(&options);
     options.stream = sink;  // the usage goes here, not to the console
-    D_TEST_REQUIRE(d_test_suite_options_parse(&options, 4, argv1) == 0);
+    D_TEST_REQUIRE(d_test_suite_options_parse(&options,
+                                              4,
+                                              argv1) == 0);
     D_TEST_REQUIRE(options.show == D_TEST_SUITE_SHOW_FAILURES);
     D_TEST_REQUIRE(!options.table);
     D_TEST_REQUIRE( (options.filter != NULL) &&
-                    (strcmp(options.filter, "dstring/split") == 0) );
+                    (strcmp(options.filter,
+                            "dstring/split") == 0) );
 
     argv1[1] = checks;
     argv1[2] = empty;
-    D_TEST_REQUIRE(d_test_suite_options_parse(&options, 3, argv1) == 0);
+    D_TEST_REQUIRE(d_test_suite_options_parse(&options,
+                                              3,
+                                              argv1) == 0);
     D_TEST_REQUIRE(options.show == D_TEST_SUITE_SHOW_CHECKS);
     D_TEST_REQUIRE(options.filter == NULL);
+
+    char* argv2[2] = {NULL};
 
     // --help prints the usage to stdout and returns 1
     argv2[0] = prog;
     argv2[1] = help;
-    D_TEST_REQUIRE(d_test_suite_options_parse(&options, 2, argv2) == 1);
+    D_TEST_REQUIRE(d_test_suite_options_parse(&options,
+                                              2,
+                                              argv2) == 1);
+
+    char* argv3[2] = {NULL};
 
     // a bad argument prints the usage to stderr and returns -1
     argv3[0] = prog;
     argv3[1] = bogus;
-    D_TEST_REQUIRE(d_test_suite_options_parse(&options, 2, argv3) == -1);
+    D_TEST_REQUIRE(d_test_suite_options_parse(&options,
+                                              2,
+                                              argv3) == -1);
     fclose(sink);
 
     return true;
@@ -311,27 +392,36 @@ d_tests_test_suite_many_checks
 bool
 d_tests_test_suite_many_checks(void)
 {
-    struct dj_test_suite*  suite;
-    struct dj_test_summary summary;
-    FILE*                  stream;
-    char*                  report;
-    int                    code;
-    long                   i;
+    FILE* stream = NULL;
 
-    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS, &stream);
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
     D_TEST_REQUIRE(suite != NULL);
-    D_TEST_REQUIRE(d_test_suite_test(suite, "many"));
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "many"));
 
-    for (i = 0; i < 100000L; i++)
+    // a hundred thousand passing checks
+    for (long i = 0; i < 100000L; i++)
     {
-        D_TEST_CHECK(suite, i >= 0);
+        D_TEST_CHECK(suite,
+                     i >= 0);
     }
 
-    report = d_tests_test_suite_report(suite, stream, &code, &summary);
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_report(suite,
+                                             stream,
+                                             &code,
+                                             &summary);
+
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(summary.checks == 100000u);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
-    D_TEST_REQUIRE(!d_tests_test_suite_contains(report, "i >= 0"));
+    D_TEST_REQUIRE(!d_tests_test_suite_contains(report,
+                                                "i >= 0"));
     free(report);
 
     return true;
@@ -350,12 +440,18 @@ d_tests_test_suite_str_equal(void)
 {
     char buffer[8] = "abc";
 
-    D_TEST_REQUIRE(d_test_suite_str_equal("abc", "abc"));
-    D_TEST_REQUIRE(!d_test_suite_str_equal("abc", "abd"));
-    D_TEST_REQUIRE(d_test_suite_str_equal(NULL, NULL));
-    D_TEST_REQUIRE(!d_test_suite_str_equal(NULL, "abc"));
-    D_TEST_REQUIRE(!d_test_suite_str_equal("abc", NULL));
-    D_TEST_REQUIRE(d_test_suite_str_equal(buffer, "abc"));
+    D_TEST_REQUIRE(d_test_suite_str_equal("abc",
+                                          "abc"));
+    D_TEST_REQUIRE(!d_test_suite_str_equal("abc",
+                                           "abd"));
+    D_TEST_REQUIRE(d_test_suite_str_equal(NULL,
+                                          NULL));
+    D_TEST_REQUIRE(!d_test_suite_str_equal(NULL,
+                                           "abc"));
+    D_TEST_REQUIRE(!d_test_suite_str_equal("abc",
+                                           NULL));
+    D_TEST_REQUIRE(d_test_suite_str_equal(buffer,
+                                          "abc"));
 
     return true;
 }

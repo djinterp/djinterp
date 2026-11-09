@@ -373,7 +373,7 @@ bool d_tests_dmacro_stringify_basic(
                           "identifier should be stringified exactly"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_ident);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_ident);
     }
 
     // test stringification of number
@@ -385,7 +385,7 @@ bool d_tests_dmacro_stringify_basic(
                           "number should be stringified exactly"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_number);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_number);
     }
 
     // test stringification of expression
@@ -397,7 +397,7 @@ bool d_tests_dmacro_stringify_basic(
                           "expression should be stringified with spacing"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_expr);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_expr);
     }
 
     // test stringification of C keyword
@@ -409,7 +409,7 @@ bool d_tests_dmacro_stringify_basic(
                           "keyword should be stringified exactly"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_keyword);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_keyword);
     }
 
     // test stringification of special characters
@@ -421,7 +421,7 @@ bool d_tests_dmacro_stringify_basic(
                           "underscore-prefixed identifier should stringify"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_special);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_special);
     }
 
     return all_assertions_passed;
@@ -468,7 +468,7 @@ bool d_tests_dmacro_stringify_vs_tostr(
                           "D_STRINGIFY should not expand macros"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, stringify_macro);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", stringify_macro);
     }
 
     // D_TOSTR should expand macro first, then stringify
@@ -480,7 +480,7 @@ bool d_tests_dmacro_stringify_vs_tostr(
                           "D_TOSTR should expand macros first"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, tostr_macro);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", tostr_macro);
     }
 
     // test with numeric macro
@@ -492,7 +492,7 @@ bool d_tests_dmacro_stringify_vs_tostr(
                           "D_STRINGIFY should not expand numeric macro"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, stringify_num);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", stringify_num);
     }
 
     // D_TOSTR should expand numeric macro
@@ -504,7 +504,7 @@ bool d_tests_dmacro_stringify_vs_tostr(
                           "D_TOSTR should expand numeric macro to value"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, tostr_num);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", tostr_num);
     }
 
     // test with nested macro (D_TEST_NESTED_A -> D_TEST_NESTED_B -> final_value)
@@ -516,7 +516,7 @@ bool d_tests_dmacro_stringify_vs_tostr(
                           "D_STRINGIFY should not expand nested macro"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, stringify_nested);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", stringify_nested);
     }
 
     // D_TOSTR should fully expand nested macros
@@ -528,7 +528,7 @@ bool d_tests_dmacro_stringify_vs_tostr(
                           "D_TOSTR should fully expand nested macros"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, tostr_nested);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", tostr_nested);
     }
 
     return all_assertions_passed;
@@ -573,7 +573,7 @@ bool d_tests_dmacro_stringify_edge_cases(
                           "operators should be preserved in string"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_operators);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_operators);
     }
 
     // test stringification with parentheses
@@ -585,7 +585,7 @@ bool d_tests_dmacro_stringify_edge_cases(
                           "parentheses should be preserved"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_parens);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_parens);
     }
 
     // test D_TOSTR with D_CONCAT result
@@ -598,7 +598,7 @@ bool d_tests_dmacro_stringify_edge_cases(
                           "D_TOSTR should stringify concatenation result"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_concat_result);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_concat_result);
     }
 
     // test comparison operators
@@ -610,7 +610,7 @@ bool d_tests_dmacro_stringify_edge_cases(
                           "comparison operator should be preserved"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, str_comparison);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", str_comparison);
     }
 
     return all_assertions_passed;
@@ -742,7 +742,8 @@ bool d_tests_dmacro_empty_macro(
                           "D_EMPTY should expand to empty string"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\" (length %zu)\n", D_INDENT, empty_str, strlen(empty_str));
+        (void)d_test_suite_note(_suite, "Got: \"%s\" (length %zu)",
+                                empty_str, strlen(empty_str));
     }
 
     // verify D_EMPTY does not affect surrounding code
@@ -824,7 +825,7 @@ bool d_tests_dmacro_defer_macro(
                           "D_DEFER should preserve the token"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, defer_str);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", defer_str);
     }
 
     // verify D_DEFER with D_EXPAND evaluates to the token
@@ -885,7 +886,7 @@ bool d_tests_dmacro_obstruct_macro(
                           "D_OBSTRUCT should preserve the token"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, obstruct_str);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", obstruct_str);
     }
 
     // verify D_OBSTRUCT eventually resolves with enough expansion
@@ -941,7 +942,7 @@ bool d_tests_dmacro_unpack_basic(
                           "D_UNPACK should pass through single arg"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, unpack_single);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", unpack_single);
     }
 
     // test D_UNPACK with multiple arguments via array initialization
@@ -969,7 +970,8 @@ bool d_tests_dmacro_unpack_basic(
                           "D_UNPACK should preserve individual values"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: %d, %d, %d\n", D_INDENT, arr_3[0], arr_3[1], arr_3[2]);
+        (void)d_test_suite_note(_suite, "Got: %d, %d, %d",
+                                arr_3[0], arr_3[1], arr_3[2]);
     }
 
     // test D_UNPACK with 4 arguments
@@ -1056,7 +1058,8 @@ bool d_tests_dmacro_unpack_nested(
                           "D_UNPACK should preserve inner parentheses"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: {%d, %d}\n", D_INDENT, nested_arr[0], nested_arr[1]);
+        (void)d_test_suite_note(_suite, "Got: {%d, %d}",
+                                nested_arr[0], nested_arr[1]);
     }
 
     // test D_UNPACK with expressions containing operators
@@ -1072,7 +1075,8 @@ bool d_tests_dmacro_unpack_nested(
                           "D_UNPACK should allow expression evaluation"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: {%d, %d}\n", D_INDENT, expr_arr[0], expr_arr[1]);
+        (void)d_test_suite_note(_suite, "Got: {%d, %d}",
+                                expr_arr[0], expr_arr[1]);
     }
 
     // test D_UNPACK with D_TEST_PARENTHESIZED macro
@@ -1087,7 +1091,7 @@ bool d_tests_dmacro_unpack_nested(
                           "parenthesized macro should stringify with parens"))
     {
         all_assertions_passed = false;
-        printf("%s    Got: \"%s\"\n", D_INDENT, from_macro);
+        (void)d_test_suite_note(_suite, "Got: \"%s\"", from_macro);
     }
 
     // test D_UNPACK in array initialization with computed values
