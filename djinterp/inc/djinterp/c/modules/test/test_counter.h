@@ -31,8 +31,8 @@ TABLE OF CONTENTS
     1.  reset and sum
 */
 
-#ifndef DJINTERP_C_TEST_TEST_COUNTER_H
-#define DJINTERP_C_TEST_TEST_COUNTER_H 1
+#ifndef DJINTERP_C_TEST_COUNTER_H
+#define DJINTERP_C_TEST_COUNTER_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -91,4 +91,4 @@ void d_test_counter_add(struct dj_test_counter*       _dest,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_TEST_TEST_COUNTER_H
+#endif  // DJINTERP_C_TEST_COUNTER_H

@@ -17,8 +17,8 @@
 *                                                            revised: 2026.09.29
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_HANDLER_H
-#define DJINTERP_C_TEST_TEST_HANDLER_H 1
+#ifndef DJINTERP_C_TEST_HANDLER_H
+#define DJINTERP_C_TEST_HANDLER_H 1
 
 // std
 #include <stdarg.h>
@@ -541,4 +541,4 @@ bool d_test_module_set_metadata_str(
                         0)
 
 
-#endif  // DJINTERP_C_TEST_TEST_HANDLER_H
+#endif  // DJINTERP_C_TEST_HANDLER_H

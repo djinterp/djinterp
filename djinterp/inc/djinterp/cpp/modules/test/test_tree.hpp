@@ -70,8 +70,8 @@ III.  CONVENIENCE ALIASES
       -------------------
 */
 
-#ifndef DJINTERP_TEST_TEST_TREE_HPP
-#define DJINTERP_TEST_TEST_TREE_HPP 1
+#ifndef DJINTERP_TEST_TREE_HPP
+#define DJINTERP_TEST_TREE_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
 // rule 5); its module's floor is C++11, but
@@ -596,4 +596,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_TEST_TEST_TREE_HPP
+#endif  // DJINTERP_TEST_TREE_HPP

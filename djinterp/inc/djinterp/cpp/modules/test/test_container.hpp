@@ -64,8 +64,8 @@ IV.   CONCEPTS
       --------
 */
 
-#ifndef DJINTERP_TEST_TEST_CONTAINER_HPP
-#define DJINTERP_TEST_TEST_CONTAINER_HPP 1
+#ifndef DJINTERP_TEST_CONTAINER_HPP
+#define DJINTERP_TEST_CONTAINER_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
@@ -312,4 +312,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_TEST_CONTAINER_HPP
+#endif  // DJINTERP_TEST_CONTAINER_HPP

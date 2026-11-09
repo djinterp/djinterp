@@ -22,8 +22,8 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_SESSION_H
-#define DJINTERP_C_TEST_TEST_SESSION_H 1
+#ifndef DJINTERP_C_TEST_SESSION_H
+#define DJINTERP_C_TEST_SESSION_H 1
 
 // std
 #include <stdarg.h>
@@ -470,4 +470,4 @@ void d_test_session_free(
 );
 
 
-#endif  // DJINTERP_C_TEST_TEST_SESSION_H
+#endif  // DJINTERP_C_TEST_SESSION_H

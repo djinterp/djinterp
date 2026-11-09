@@ -41,8 +41,8 @@ TABLE OF CONTENTS
     1.  The provider
 */
 
-#ifndef DJINTERP_TESTS_C_TEST_TEST_SUITE_TESTS_H
-#define DJINTERP_TESTS_C_TEST_TEST_SUITE_TESTS_H 1
+#ifndef DJINTERP_TESTS_C_TEST_SUITE_TESTS_H
+#define DJINTERP_TESTS_C_TEST_SUITE_TESTS_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -298,4 +298,4 @@ d_tests_test_suite_spec(void)
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_TESTS_C_TEST_TEST_SUITE_TESTS_H
+#endif  // DJINTERP_TESTS_C_TEST_SUITE_TESTS_H

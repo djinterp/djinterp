@@ -125,8 +125,8 @@ XV.   ENTRY POINTS                (run_module, run_suite)
       ---------------------------------------------------
 */
 
-#ifndef DJINTERP_TEST_TEST_DEFAULTS_HPP
-#define DJINTERP_TEST_TEST_DEFAULTS_HPP 1
+#ifndef DJINTERP_TEST_DEFAULTS_HPP
+#define DJINTERP_TEST_DEFAULTS_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
 // rule 5); its module's floor is C++11, but
@@ -2004,4 +2004,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_TEST_TEST_DEFAULTS_HPP
+#endif  // DJINTERP_TEST_DEFAULTS_HPP

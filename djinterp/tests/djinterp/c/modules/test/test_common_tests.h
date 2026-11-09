@@ -27,8 +27,8 @@ TABLE OF CONTENTS
     1.  The provider
 */
 
-#ifndef DJINTERP_TESTS_C_MODULES_TEST_TEST_COMMON_TESTS_H
-#define DJINTERP_TESTS_C_MODULES_TEST_TEST_COMMON_TESTS_H 1
+#ifndef DJINTERP_TESTS_C_TEST_COMMON_TESTS_H
+#define DJINTERP_TESTS_C_TEST_COMMON_TESTS_H 1
 
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/test/test_suite.h"   // D_TEST_*
@@ -140,4 +140,4 @@ d_tests_test_common_spec(void)
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_TESTS_C_MODULES_TEST_TEST_COMMON_TESTS_H
+#endif  // DJINTERP_TESTS_C_TEST_COMMON_TESTS_H

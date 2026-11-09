@@ -17,8 +17,8 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_STATS_H
-#define DJINTERP_C_TEST_TEST_STATS_H 1
+#ifndef DJINTERP_C_TEST_STATS_H
+#define DJINTERP_C_TEST_STATS_H 1
 
 // std
 #include <stdbool.h>
@@ -456,4 +456,4 @@ double d_test_stat_counter_assert_rate(
 );
 
 
-#endif  // DJINTERP_C_TEST_TEST_STATS_H
+#endif  // DJINTERP_C_TEST_STATS_H

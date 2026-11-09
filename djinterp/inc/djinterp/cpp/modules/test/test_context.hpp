@@ -54,8 +54,8 @@ II.   FOCUS BUILDERS             (at_run / at_module / at_unit / at_check)
       --------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_TEST_TEST_CONTEXT_HPP
-#define DJINTERP_TEST_TEST_CONTEXT_HPP 1
+#ifndef DJINTERP_TEST_CONTEXT_HPP
+#define DJINTERP_TEST_CONTEXT_HPP 1
 
 // std
 #include <cstddef>
@@ -197,4 +197,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_TEST_TEST_CONTEXT_HPP
+#endif  // DJINTERP_TEST_CONTEXT_HPP

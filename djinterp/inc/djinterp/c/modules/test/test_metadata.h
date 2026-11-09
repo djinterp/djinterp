@@ -70,8 +70,8 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_METADATA_H
-#define DJINTERP_C_TEST_TEST_METADATA_H 1
+#ifndef DJINTERP_C_TEST_METADATA_H
+#define DJINTERP_C_TEST_METADATA_H 1
 
 // std
 // c
@@ -290,4 +290,4 @@ struct dj_test_metadata;
 #endif  // D_INTERNAL_TEST_METADATA
 
 
-#endif  // DJINTERP_C_TEST_TEST_METADATA_H
+#endif  // DJINTERP_C_TEST_METADATA_H

@@ -41,8 +41,8 @@ I.    test_counter
       ------------
 */
 
-#ifndef DJINTERP_TEST_TEST_COUNTER_HPP
-#define DJINTERP_TEST_TEST_COUNTER_HPP 1
+#ifndef DJINTERP_TEST_COUNTER_HPP
+#define DJINTERP_TEST_COUNTER_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
 // rule 5); its module's floor is C++11, but core/util/counter/counter.hpp,
@@ -474,4 +474,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_TEST_TEST_COUNTER_HPP
+#endif  // DJINTERP_TEST_COUNTER_HPP

@@ -79,8 +79,8 @@ TABLE OF CONTENTS
          3.  D_TEST_NOTE
 */
 
-#ifndef DJINTERP_C_TEST_TEST_SUITE_H
-#define DJINTERP_C_TEST_TEST_SUITE_H 1
+#ifndef DJINTERP_C_TEST_SUITE_H
+#define DJINTERP_C_TEST_SUITE_H 1
 
 // std
 #include <stdarg.h>  // va_list
@@ -549,4 +549,4 @@ bool d_test_suite_str_equal(const char* _a,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_TEST_TEST_SUITE_H
+#endif  // DJINTERP_C_TEST_SUITE_H

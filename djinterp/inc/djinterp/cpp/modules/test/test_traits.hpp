@@ -98,8 +98,8 @@ VIII. CONCEPT LAYER  (C++20)
       ----------------------
 */
 
-#ifndef DJINTERP_TEST_TEST_TRAITS_HPP
-#define DJINTERP_TEST_TEST_TRAITS_HPP 1
+#ifndef DJINTERP_TEST_TRAITS_HPP
+#define DJINTERP_TEST_TRAITS_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -1381,4 +1381,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_TEST_TEST_TRAITS_HPP
+#endif  // DJINTERP_TEST_TRAITS_HPP

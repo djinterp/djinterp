@@ -82,8 +82,8 @@
 *                                                            revised: 2026.10.31
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_OBJECT_H
-#define DJINTERP_C_TEST_TEST_OBJECT_H 1
+#ifndef DJINTERP_C_TEST_OBJECT_H
+#define DJINTERP_C_TEST_OBJECT_H 1
 
 // std
 // c
@@ -331,4 +331,4 @@ struct dj_test_object d_test_make_interior(
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_TEST_TEST_OBJECT_H
+#endif  // DJINTERP_C_TEST_OBJECT_H

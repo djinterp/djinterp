@@ -133,8 +133,8 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_EVENT_H
-#define DJINTERP_C_TEST_TEST_EVENT_H 1
+#ifndef DJINTERP_C_TEST_EVENT_H
+#define DJINTERP_C_TEST_EVENT_H 1
 
 // std
 // c
@@ -805,4 +805,4 @@ const char* d_test_dispatch_result_name(
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_TEST_TEST_EVENT_H
+#endif  // DJINTERP_C_TEST_EVENT_H

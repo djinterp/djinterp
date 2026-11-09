@@ -20,8 +20,8 @@
 *                                                            revised: 2026.11.05
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_TREE_H
-#define DJINTERP_C_TEST_TEST_TREE_H 1
+#ifndef DJINTERP_C_TEST_TREE_H
+#define DJINTERP_C_TEST_TREE_H 1
 
 // std
 #include <stddef.h>
@@ -84,4 +84,4 @@ void d_test_tree_free(
 
 
 
-#endif  // DJINTERP_C_TEST_TEST_TREE_H
+#endif  // DJINTERP_C_TEST_TREE_H

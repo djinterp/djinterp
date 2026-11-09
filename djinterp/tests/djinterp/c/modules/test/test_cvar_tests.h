@@ -48,8 +48,8 @@ TABLE OF CONTENTS
     ------------------
 */
 
-#ifndef DJINTERP_TESTS_C_MODULES_TEST_TEST_CVAR_TESTS_H
-#define DJINTERP_TESTS_C_MODULES_TEST_TEST_CVAR_TESTS_H 1
+#ifndef DJINTERP_TESTS_C_TEST_CVAR_TESTS_H
+#define DJINTERP_TESTS_C_TEST_CVAR_TESTS_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -294,4 +294,4 @@ bool d_tests_cvar_default_all(struct dj_test_suite* _suite);
 bool d_tests_cvar_run_all(struct dj_test_suite* _suite);
 
 
-#endif  // DJINTERP_TESTS_C_MODULES_TEST_TEST_CVAR_TESTS_H
+#endif  // DJINTERP_TESTS_C_TEST_CVAR_TESTS_H

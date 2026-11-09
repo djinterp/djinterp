@@ -109,8 +109,8 @@ V.    CONVENIENCE MACROS
       ------------------
 */
 
-#ifndef DJINTERP_TEST_TEST_HANDLER_HPP
-#define DJINTERP_TEST_TEST_HANDLER_HPP 1
+#ifndef DJINTERP_TEST_HANDLER_HPP
+#define DJINTERP_TEST_HANDLER_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
 // rule 5). The owner's ruling: compile at every level first; port to C++98
@@ -960,4 +960,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_TEST_TEST_HANDLER_HPP
+#endif  // DJINTERP_TEST_HANDLER_HPP

@@ -10,8 +10,8 @@
 *                                                            revised: 2026.09.30
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_CLI_H
-#define DJINTERP_C_TEST_TEST_CLI_H 1
+#ifndef DJINTERP_C_TEST_CLI_H
+#define DJINTERP_C_TEST_CLI_H 1
 
 // std
 #include <stddef.h>
@@ -115,4 +115,4 @@ struct dj_test_cli_option
 
 
 
-#endif  // DJINTERP_C_TEST_TEST_CLI_H
+#endif  // DJINTERP_C_TEST_CLI_H

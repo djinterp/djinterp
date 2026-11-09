@@ -16,8 +16,8 @@
 *                                                            revised: 2026.11.07
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEST_TEST_ARG_H
-#define DJINTERP_C_TEST_TEST_ARG_H 1
+#ifndef DJINTERP_C_TEST_ARG_H
+#define DJINTERP_C_TEST_ARG_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -48,4 +48,4 @@ struct dj_test_arg_list
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_TEST_TEST_ARG_H
+#endif  // DJINTERP_C_TEST_ARG_H

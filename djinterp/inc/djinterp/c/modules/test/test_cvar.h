@@ -81,8 +81,8 @@ TABLE OF CONTENTS
          3.  D_TEST_REGISTRY_FOREACH_METADATA
 */
 
-#ifndef DJINTERP_C_TEST_TEST_CVAR_H
-#define DJINTERP_C_TEST_TEST_CVAR_H 1
+#ifndef DJINTERP_C_TEST_CVAR_H
+#define DJINTERP_C_TEST_CVAR_H 1
 
 // std
 #include <stddef.h>  // size_t, NULL
@@ -500,4 +500,4 @@ bool d_test_registry_is_required_row(const void* _row,
              var_name = NULL)
 
 
-#endif  // DJINTERP_C_TEST_TEST_CVAR_H
+#endif  // DJINTERP_C_TEST_CVAR_H

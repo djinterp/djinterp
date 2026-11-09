@@ -145,8 +145,8 @@ TABLE OF CONTENTS
     4.  Key lookup
 */
 
-#ifndef DJINTERP_C_TEST_TEST_OPTIONS_H
-#define DJINTERP_C_TEST_TEST_OPTIONS_H 1
+#ifndef DJINTERP_C_TEST_OPTIONS_H
+#define DJINTERP_C_TEST_OPTIONS_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -958,4 +958,4 @@ bool d_test_options_set_ptr(struct dj_test_options* _config,
 enum DTestConfigKey d_test_options_key_from_string(const char* _key);
 
 
-#endif  // DJINTERP_C_TEST_TEST_OPTIONS_H
+#endif  // DJINTERP_C_TEST_OPTIONS_H

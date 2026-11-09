@@ -121,8 +121,8 @@ V.    TEST PRINTER
       ------------
 */
 
-#ifndef DJINTERP_TEST_TEST_PRINTER_HPP
-#define DJINTERP_TEST_TEST_PRINTER_HPP 1
+#ifndef DJINTERP_TEST_PRINTER_HPP
+#define DJINTERP_TEST_PRINTER_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
 // rule 5); its module's floor is C++11, but it takes std::string_view (C++17)
@@ -1653,4 +1653,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_TEST_TEST_PRINTER_HPP
+#endif  // DJINTERP_TEST_PRINTER_HPP
