@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/cpp/util/output/output_packaging.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.27
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -80,6 +80,8 @@ IV.   OUTPUT SINKS            (output_sink / disk_output_sink /
 #include "../archive/archive.hpp"            // entry, entry_list, format_id, leaves
 #include "../compress/compress_options.hpp"   // compress_options
 #include "../archive/archive_options.hpp"    // archive_options
+#include "../../../config/cpp/util/output/cfg_output_packaging.h"
+                                             // D_INTERNAL_OUTPUT_*: the defaults
 
 
 // output_packaging is the C++17 configuration face over the C++98 facades;
@@ -226,12 +228,13 @@ struct output_config
     std::string       archive_name;
 
     // output_config
-    //   constructor: no packaging by default, with the neutral gzip / zip
-    // selections primed for when a caller flips pack to compress / archive.
+    //   constructor: the build's defaults, from cfg_output_packaging.h: no
+    // packaging, with gzip and zip primed for when a caller flips pack to
+    // compress or archive, unless the build chose otherwise.
     output_config()
-        : pack(pack_mode::none),
-          codec(codec_id_gzip),
-          format(format_id_zip),
+        : pack(static_cast<pack_mode>(D_INTERNAL_OUTPUT_PACK)),
+          codec(static_cast<DCodecId>(D_INTERNAL_OUTPUT_CODEC)),
+          format(static_cast<format_id>(D_INTERNAL_OUTPUT_FORMAT)),
           archive_name("archive")
     {
     }

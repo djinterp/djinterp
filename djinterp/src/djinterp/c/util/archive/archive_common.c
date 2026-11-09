@@ -45,7 +45,7 @@
 * path:      /src/djinterp/c/util/archive/archive_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -752,6 +752,12 @@ backend, so that C and C++ hand any backend byte-identical parameters and two
 builds with different libraries produce the same container.  Only knobs
 belonging to _format are resolved; the rest pass through untouched.
 
+  The entry-compression defaults -- store_only, level, and the ZIP and 7z
+methods -- come from cfg_archive.h's knobs (D_CFG_ARCHIVE_STORE_ONLY and its
+kin), so a build chooses what an unset knob means; a knob the caller set is
+never replaced.  store_only, once resolved, overrides the method of both ZIP
+and 7z, so "store" means stored in either container.
+
   *** The VALUES below are provisional pending an archive chapter in the .tex
   *** corpus, exactly as the compression default table is.  What is settled is
   *** that they are decided in one place and that both faces read them.
@@ -791,11 +797,11 @@ d_archive_options_resolve(
 
     if (work.level == D_ARCHIVE_KNOB_UNSET)
     {
-        work.level = D_COMPRESS_LEVEL_DEFAULT;
+        work.level = D_INTERNAL_ARCHIVE_LEVEL;
     }
     if (work.store_only == D_ARCHIVE_KNOB_UNSET)
     {
-        work.store_only = 0;
+        work.store_only = D_INTERNAL_ARCHIVE_STORE_ONLY;
     }
     if (work.preserve_permissions == D_ARCHIVE_KNOB_UNSET)
     {
@@ -812,11 +818,17 @@ d_archive_options_resolve(
         {
             if (work.zip.method == D_ARCHIVE_KNOB_UNSET)
             {
+#if ( D_INTERNAL_ARCHIVE_ZIP_METHOD < 0 )
                 // fall back to store when no DEFLATE provider exists, so a
                 // zero-dependency build still writes a valid, readable ZIP.
                 work.zip.method = d_codec_can_compress(D_CODEC_ID_DEFLATE)
                                 ? D_ZIP_METHOD_DEFLATE
                                 : D_ZIP_METHOD_STORE;
+#else
+                // the build's chosen method; an entry whose codec is missing
+                // is stored instead (d_internal_zip_entry_method)
+                work.zip.method = D_INTERNAL_ARCHIVE_ZIP_METHOD;
+#endif
             }
             if (work.store_only)
             {
@@ -865,7 +877,13 @@ d_archive_options_resolve(
         {
             if (work.sevenzip.method == D_ARCHIVE_KNOB_UNSET)
             {
-                work.sevenzip.method = D_SEVENZIP_METHOD_LZMA2;
+                work.sevenzip.method = D_INTERNAL_ARCHIVE_SEVENZIP_METHOD;
+            }
+
+            // stored means stored in 7z too: its copy method
+            if (work.store_only)
+            {
+                work.sevenzip.method = D_SEVENZIP_METHOD_COPY;
             }
             if (work.sevenzip.solid == D_ARCHIVE_KNOB_UNSET)
             {

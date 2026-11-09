@@ -3,8 +3,9 @@
 *
 *   Build-time configuration for the archive facade: which formats are compiled
 * in, whether the built-in writers are used in preference to a detected
-* library, and how much of a container's content is allowed to come from the
-* machine it was built on.
+* library, how much of a container's content is allowed to come from the
+* machine it was built on, and how its entries are compressed when a caller
+* does not say.
 *
 *   targets:  c/util/archive/archive_common.h -> D_INTERNAL_ARCHIVE_*
 *                 (archive_common.c reads them through it)
@@ -21,7 +22,7 @@
 * path:      /inc/djinterp/config/c/util/archive/cfg_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_UTIL_ARCHIVE_CFG_ARCHIVE_H
@@ -46,8 +47,10 @@ TABLE OF CONTENTS
       4.    Reproducibility              (D_CFG_ARCHIVE_REPRODUCIBLE, _EPOCH)
       5.    Safety                       (D_CFG_ARCHIVE_CHECK_ENTRY_NAMES)
       6.    Composition                  (D_CFG_ARCHIVE_TAR_GZ_STAGING)
-      7.    Validation of the knobs
-      8.    Derived values               (D_INTERNAL_ARCHIVE_*)
+      7.    Entry compression            (D_CFG_ARCHIVE_STORE_ONLY, _LEVEL,
+                                          _ZIP_METHOD, _SEVENZIP_METHOD)
+      8.    Validation of the knobs
+      9.    Derived values               (D_INTERNAL_ARCHIVE_*)
 */
 
 
@@ -187,7 +190,52 @@ TABLE OF CONTENTS
 #endif
 
 
-// --- 0.7  Validation of the knobs ---
+// --- 0.7  Entry compression ---
+//   The defaults a container's entries are written with when the caller leaves
+// the matching archive_options knob unset. A knob the caller sets always wins:
+// these choose only what "not said" means (the owner's ruling of 2026-11-09:
+// complete configurability when the user decides, sensible defaults when not).
+
+// D_CFG_ARCHIVE_STORE_ONLY
+//   brief: write every ZIP and 7z entry uncompressed (1), or let each format
+// compress its entries (0, the default).
+//   A stored entry's bytes are the file's own, so they can be read, diffed or
+// searched inside the container without a codec. A compressed one is smaller;
+// for text-like content such as an uncompressed PDF, much smaller. tar is never
+// compressed and a gzip stream always is, so neither format reads this knob.
+#ifndef D_CFG_ARCHIVE_STORE_ONLY
+#   define D_CFG_ARCHIVE_STORE_ONLY 0
+#endif
+
+// D_CFG_ARCHIVE_LEVEL
+//   brief: the container's compression effort on the generic 0-9 scale, or -1
+// (the default) for the codec's own default, D_CFG_COMPRESS_DEFAULT_LEVEL.
+//   The level reaches the codec inside the container too, unless that codec's
+// own level is set.
+#ifndef D_CFG_ARCHIVE_LEVEL
+#   define D_CFG_ARCHIVE_LEVEL -1
+#endif
+
+// D_CFG_ARCHIVE_ZIP_METHOD
+//   brief: the method a ZIP entry is written with, by its number in the ZIP
+// format: 0 store, 8 deflate, 12 bzip2, 14 lzma, 93 zstd, 95 xz; or -1 (the
+// default), which is deflate where a DEFLATE provider is built in and store
+// where none is.
+//   An entry whose method has no codec in the build is stored instead, one
+// entry at a time, so a method named here never makes a container unwritable.
+#ifndef D_CFG_ARCHIVE_ZIP_METHOD
+#   define D_CFG_ARCHIVE_ZIP_METHOD -1
+#endif
+
+// D_CFG_ARCHIVE_SEVENZIP_METHOD
+//   brief: the method a 7z container is written with: 0 LZMA2 (the default),
+// 1 LZMA, 2 bzip2, 3 deflate, 4 zstd, 5 copy (stored).
+#ifndef D_CFG_ARCHIVE_SEVENZIP_METHOD
+#   define D_CFG_ARCHIVE_SEVENZIP_METHOD 0
+#endif
+
+
+// --- 0.8  Validation of the knobs ---
 
 #if !D_CFG_IS_BOOL(D_CFG_ARCHIVE_ALL)
 #   error "D_CFG_ARCHIVE_ALL must be 0 or 1"
@@ -224,8 +272,29 @@ TABLE OF CONTENTS
 #   error "D_CFG_ARCHIVE_EPOCH must not precede the ZIP epoch (315532800)"
 #endif
 
+#if !D_CFG_IS_BOOL(D_CFG_ARCHIVE_STORE_ONLY)
+#   error "D_CFG_ARCHIVE_STORE_ONLY must be 0 or 1"
+#endif
+#if ( (D_CFG_NORM(D_CFG_ARCHIVE_LEVEL) < -1) ||                                \
+      (D_CFG_NORM(D_CFG_ARCHIVE_LEVEL) > 9) )
+#   error "D_CFG_ARCHIVE_LEVEL must be -1 or on the 0-9 generic scale"
+#endif
+#if ( (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != -1) &&                          \
+      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 0)  &&                          \
+      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 8)  &&                          \
+      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 12) &&                          \
+      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 14) &&                          \
+      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 93) &&                          \
+      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 95) )
+#   error "D_CFG_ARCHIVE_ZIP_METHOD must be -1, 0, 8, 12, 14, 93 or 95"
+#endif
+#if ( (D_CFG_NORM(D_CFG_ARCHIVE_SEVENZIP_METHOD) < 0) ||                       \
+      (D_CFG_NORM(D_CFG_ARCHIVE_SEVENZIP_METHOD) > 5) )
+#   error "D_CFG_ARCHIVE_SEVENZIP_METHOD must be 0 to 5"
+#endif
 
-// --- 0.8  Derived values (D_INTERNAL_*) ---
+
+// --- 0.9  Derived values (D_INTERNAL_*) ---
 
 // D_INTERNAL_ARCHIVE_CAN_WRITE_* / _CAN_READ_*
 //   brief: 1 when the format is both reachable in this build AND wanted. tar
@@ -309,6 +378,26 @@ TABLE OF CONTENTS
 #else
 #   define D_INTERNAL_ARCHIVE_TAR_GZ_STAGING 0
 #endif
+
+// D_INTERNAL_ARCHIVE_STORE_ONLY / _LEVEL / _ZIP_METHOD / _SEVENZIP_METHOD
+//   brief: the entry-compression defaults d_archive_options_resolve gives an
+// unset knob. _LEVEL resolves -1 to the codec cascade's default level; a
+// _ZIP_METHOD of -1 is resolved at run time, from whether DEFLATE can compress.
+#if D_CFG_IS_ON(D_CFG_ARCHIVE_STORE_ONLY)
+#   define D_INTERNAL_ARCHIVE_STORE_ONLY 1
+#else
+#   define D_INTERNAL_ARCHIVE_STORE_ONLY 0
+#endif
+
+#if ( D_CFG_NORM(D_CFG_ARCHIVE_LEVEL) < 0 )
+#   define D_INTERNAL_ARCHIVE_LEVEL D_INTERNAL_COMPRESS_DEFAULT_LEVEL
+#else
+#   define D_INTERNAL_ARCHIVE_LEVEL D_CFG_NORM(D_CFG_ARCHIVE_LEVEL)
+#endif
+
+#define D_INTERNAL_ARCHIVE_ZIP_METHOD      D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD)
+#define D_INTERNAL_ARCHIVE_SEVENZIP_METHOD                                     \
+    D_CFG_NORM(D_CFG_ARCHIVE_SEVENZIP_METHOD)
 
 
 #endif  // DJINTERP_CONFIG_C_UTIL_ARCHIVE_CFG_ARCHIVE_H
