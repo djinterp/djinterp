@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -113,6 +113,9 @@
 // options: the C environment source, then the C++ options
 #include "djinterp/config/c/option/cfg_option_env.h"
 #include "djinterp/config/cpp/option/cfg_option.h"
+// output packaging: the library's, then DTest's over it
+#include "djinterp/config/cpp/util/output/cfg_output_packaging.h"
+#include "djinterp/config/cpp/modules/test/cfg_test_options.h"
 // c/modules/test: the object and its parts (the printer comes later)
 #include "djinterp/config/c/modules/test/cfg_test_object.h"
 #include "djinterp/config/c/modules/test/cfg_test_metadata.h"

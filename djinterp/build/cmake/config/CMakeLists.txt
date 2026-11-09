@@ -139,6 +139,9 @@ add_library(djinterp_c_runtime STATIC
     # runner on DTest's report path needs them at link time
     "${DJINTERP_SRC_ROOT}/djinterp/c/util/ostream/ostream.c"
     "${DJINTERP_SRC_ROOT}/djinterp/c/text/ostream_format.c"
+    # the archive kernel the report runner packs through (d_archive_create_to_sink,
+    # d_archive_extract and their kin), which three runners failed to link without
+    "${DJINTERP_SRC_ROOT}/djinterp/c/util/archive/archive_common.c"
 )
 
 # ---------------------------------------------------------------------------

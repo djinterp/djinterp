@@ -4,12 +4,10 @@ inc/djinterp/c/modules/parse/parsers/bnf/parse_bnf_common.h	stdint.h
 inc/djinterp/c/modules/test/default/test.h	stdint.h
 inc/djinterp/c/modules/test/default/test_block.h	stdint.h
 inc/djinterp/c/modules/test/default/test_module.h	stdint.h
-inc/djinterp/c/modules/test/test_cvar.h	stdint.h
 inc/djinterp/c/modules/test/test_event.h	stdint.h
 inc/djinterp/c/modules/test/test_handler.h	stdint.h
 inc/djinterp/c/modules/test/test_metadata.h	stdint.h
 inc/djinterp/c/modules/test/test_object.h	stdint.h
-inc/djinterp/c/modules/test/test_options.h	stdint.h
 inc/djinterp/c/modules/test/test_printer.h	stdint.h
 inc/djinterp/c/modules/test/test_session.h	stdint.h
 inc/djinterp/c/modules/test/test_stats.h	stdint.h
