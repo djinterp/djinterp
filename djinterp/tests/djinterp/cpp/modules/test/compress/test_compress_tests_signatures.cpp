@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_tests_signatures.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./test_compress_tests.hpp"
@@ -15,7 +15,7 @@ NS_TESTING
 
 
 // the documented magics, exactly as the module spells them
-static const unsigned char tc_m_gzip[2]  = { 0x1Fu, 0x8Bu };
+static const unsigned char tc_m_gzip[3]  = { 0x1Fu, 0x8Bu, 0x08u };
 static const unsigned char tc_m_bzip2[3] = { 'B', 'Z', 'h' };
 static const unsigned char tc_m_xz[6]    =
     { 0xFDu, 0x37u, 0x7Au, 0x58u, 0x5Au, 0x00u };
@@ -25,24 +25,28 @@ static const unsigned char tc_m_lz4[4]   = { 0x04u, 0x22u, 0x4Du, 0x18u };
 
 /*
 tests_compress_gzip_magic
-  the two gzip identification bytes.
+  the three bytes that sign a gzip stream: the two identification bytes and
+the compression method, 08 for DEFLATE, the only one RFC 1952 defines (the
+owner's ruling of 2026-11-09).
   Tests the following:
-  - a buffer opening 1F 8B is accepted
+  - a buffer opening 1F 8B 08 is accepted
   - trailing content past the header is ignored, as documented
-  - a wrong byte at either position is rejected
-  - a buffer shorter than two bytes is rejected without reading past its end
+  - a wrong byte at any of the three positions is rejected, the method
+    included
+  - a buffer shorter than three bytes is rejected without reading past its
+    end, even when it opens 1F 8B
 */
 bool tests_compress_gzip_magic()
 {
-    D_TC_CHECK(dt::has_gzip_magic(tc_bytes(tc_m_gzip, 2)));
-    D_TC_CHECK(dt::has_gzip_magic(tc_prefix(tc_m_gzip, 2, 64)));
+    D_TC_CHECK(dt::has_gzip_magic(tc_bytes(tc_m_gzip, 3)));
+    D_TC_CHECK(dt::has_gzip_magic(tc_prefix(tc_m_gzip, 3, 64)));
 
     // every byte of the magic is checked
     const std::vector<dj::byte_blob> bad =
-        tc_corruptions(tc_prefix(tc_m_gzip, 2, 8), 2);
+        tc_corruptions(tc_prefix(tc_m_gzip, 3, 8), 3);
     std::size_t                        i = 0;
 
-    D_TC_CHECK(bad.size() == 2u);
+    D_TC_CHECK(bad.size() == 3u);
 
     for (i = 0; i < bad.size(); ++i)
     {
@@ -51,9 +55,9 @@ bool tests_compress_gzip_magic()
 
     // and the length guard
     const std::vector<dj::byte_blob> shortb =
-        tc_truncations(tc_bytes(tc_m_gzip, 2));
+        tc_truncations(tc_bytes(tc_m_gzip, 3));
 
-    D_TC_CHECK(shortb.size() == 2u);
+    D_TC_CHECK(shortb.size() == 3u);
 
     for (i = 0; i < shortb.size(); ++i)
     {
@@ -364,7 +368,7 @@ bool tests_compress_magic_predicates_reject_empty()
     D_TC_CHECK(!dt::has_lz4_frame_magic(one));
 
     // no predicate accepts another codec's header
-    const dj::byte_blob gz = tc_prefix(tc_m_gzip, 2, 8);
+    const dj::byte_blob gz = tc_prefix(tc_m_gzip, 3, 8);
 
     D_TC_CHECK(dt::has_gzip_magic(gz));
     D_TC_CHECK(!dt::has_bzip2_magic(gz));
@@ -392,7 +396,7 @@ tests_compress_expected_signature_dispatch
 */
 bool tests_compress_expected_signature_dispatch()
 {
-    const dj::byte_blob gz   = tc_prefix(tc_m_gzip, 2, 16);
+    const dj::byte_blob gz   = tc_prefix(tc_m_gzip, 3, 16);
     const dj::byte_blob zl   = tc_zlib_header();
     const dj::byte_blob bz   = tc_prefix(tc_m_bzip2, 3, 16);
     const dj::byte_blob xz   = tc_prefix(tc_m_xz, 6, 16);

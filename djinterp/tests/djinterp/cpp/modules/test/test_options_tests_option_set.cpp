@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_options_tests_option_set.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -111,16 +111,65 @@ bool tests_opt_defaults_formats()
 }
 
 // tests_opt_defaults_packaging
-//   unpacked, gzip codec, zip container, whole-run split; the option-bundle
-// accessors return stable references.
+//   what the build's packaging knobs give (cfg_test_options.h, falling back to
+// cfg_output_packaging.h): unpacked, gzip codec and zip container when no knob
+// is set; the container knob's gz and tar.gz land on the right enumerators;
+// the entry knobs reach archive_opts only when set; whole-run split; the
+// option-bundle accessors return stable references.
 bool tests_opt_defaults_packaging()
 {
     bool ok = true;
     dt::test_option_set o = dt::default_test_options();
 
-    ok = D_TO_CHECK(dt::pack(o)           == dt::DTestOutputPack::none)   && ok;
-    ok = D_TO_CHECK(dt::compressor(o)     == dt::test_compressor::gzip)    && ok;
-    ok = D_TO_CHECK(dt::archive_format(o) == dt::test_archive_format::zip) && ok;
+    // the knobs, as the constructor converts them
+    ok = D_TO_CHECK(dt::pack(o) ==
+                    static_cast<dt::DTestOutputPack>(
+                        D_INTERNAL_TEST_OUTPUT_PACK)) && ok;
+    ok = D_TO_CHECK(dt::compressor(o) ==
+                    static_cast<dt::test_compressor>(
+                        D_INTERNAL_TEST_OUTPUT_CODEC)) && ok;
+
+    // the container knob speaks dj_format_id, which orders gz and tar.gz the
+    // other way round from test_archive_format
+#if   ( D_CFG_NORM(D_CFG_TEST_OUTPUT_FORMAT) == 2 )
+    ok = D_TO_CHECK(dt::archive_format(o) ==
+                    dt::test_archive_format::gz) && ok;
+#elif ( D_CFG_NORM(D_CFG_TEST_OUTPUT_FORMAT) == 3 )
+    ok = D_TO_CHECK(dt::archive_format(o) ==
+                    dt::test_archive_format::tar_gz) && ok;
+#else
+    ok = D_TO_CHECK(dt::archive_format(o) ==
+                    static_cast<dt::test_archive_format>(
+                        D_CFG_NORM(D_CFG_TEST_OUTPUT_FORMAT))) && ok;
+#endif
+
+    // with no knob set: unpacked, gzip, zip
+#if ( (D_CFG_NORM(D_CFG_TEST_OUTPUT_PACK) == 0)  &&                           \
+      (D_CFG_NORM(D_CFG_TEST_OUTPUT_CODEC) == 3) &&                           \
+      (D_CFG_NORM(D_CFG_TEST_OUTPUT_FORMAT) == 0) )
+    ok = D_TO_CHECK(dt::pack(o) == dt::DTestOutputPack::none) && ok;
+    ok = D_TO_CHECK(dt::compressor(o) == dt::test_compressor::gzip) && ok;
+    ok = D_TO_CHECK(dt::archive_format(o) ==
+                    dt::test_archive_format::zip) && ok;
+#endif
+
+    // the entry knobs: set, they are archive_opts'; unset, archive_opts leaves
+    // its own knob unset for cfg_archive.h to fill
+#if ( D_INTERNAL_TEST_OUTPUT_STORE_ONLY >= 0 )
+    ok = D_TO_CHECK(dt::archive_opts(o).store_only ==
+                    D_INTERNAL_TEST_OUTPUT_STORE_ONLY) && ok;
+#else
+    ok = D_TO_CHECK(dt::archive_opts(o).store_only ==
+                    D_ARCHIVE_KNOB_UNSET) && ok;
+#endif
+#if ( D_INTERNAL_TEST_OUTPUT_LEVEL >= 0 )
+    ok = D_TO_CHECK(dt::archive_opts(o).level ==
+                    D_INTERNAL_TEST_OUTPUT_LEVEL) && ok;
+#else
+    ok = D_TO_CHECK(dt::archive_opts(o).level ==
+                    D_ARCHIVE_KNOB_UNSET) && ok;
+#endif
+
     ok = D_TO_CHECK(dt::split(o)          == dt::DTestOutputSplit::whole_run) && ok;
 
     // compress_opts / archive_opts: exercise the accessors (their contents are

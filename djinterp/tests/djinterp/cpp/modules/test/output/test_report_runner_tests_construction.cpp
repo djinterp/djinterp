@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_construction.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "test_report_runner_tests.hpp"
@@ -39,7 +39,7 @@ bool tests_report_runner_default_construction()
     D_RR_CHECK(dt::document(rb.options()) == dt::test_doc_type::text);
     D_RR_CHECK(dt::split(rb.options()) == dt::DTestOutputSplit::whole_run);
     D_RR_CHECK(dt::show(rb.options()) == dt::DTestShow::all);
-    D_RR_CHECK(dt::pack(rb.options()) == dt::DTestOutputPack::none);
+    D_RR_CHECK(dt::pack(rb.options()) == rr_default_pack());
     D_RR_CHECK(dt::output_path(rb.options()).empty());
 
     // an empty run is not a clean pass

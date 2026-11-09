@@ -696,6 +696,58 @@ call `set<>()`; new code writes `set<>()` or the member directly. The framework
 itself reads options through the free accessors (`document(o)`,
 `output_path(o)`, ...).
 
+### 9.1 Packaging the report
+
+With `D_TEST_REPORT_ENABLE_ARCHIVE` defined, `report_builder` packages the
+documents it renders as `pack` says. Without it, every document is written
+loose.
+
+- **`none`**: each document is written as it is, under its own name.
+- **`compress`**: each document is compressed on its own with `compressor`,
+  tuned by `compress_opts`. It is written where its loose file would have gone,
+  with the codec's suffix appended: `suite.pdf` becomes `suite.pdf.gz`. Under
+  `store` the name stays as it is.
+- **`archive`**: every document goes into one container in `archive_format`,
+  each entry under its own name. An explicit `output_file` names the
+  container; otherwise it is `report` plus the format's extension.
+
+A container's entries are stored or compressed as `archive_opts` says:
+`store_only` (1 stored, 0 compressed), `level`, and the method in `zip.method`
+or `sevenzip.method`. A stored PDF can be searched inside the container
+without a codec. A compressed one is much smaller, since DTest's PDFs are not
+compressed within.
+
+**Who decides.** The runtime option always wins. Where a runner leaves one
+alone, `default_test_options()` holds the build's knob, which falls back to
+the library's own knob, which falls back to the default below (the owner's
+ruling of 2026-11-09: complete configurability when the user decides,
+sensible defaults when not). A build that sets only the library's knobs
+packages DTest's reports the same way as everything else. One that sets
+DTest's packages the reports one way and everything else another.
+
+| Runtime option | DTest knob (`cfg_test_options.h`) | Library knob | Default |
+| --- | --- | --- | --- |
+| `pack` | `D_CFG_TEST_OUTPUT_PACK` | `D_CFG_OUTPUT_PACK` | `none` |
+| `compressor` | `D_CFG_TEST_OUTPUT_CODEC` | `D_CFG_OUTPUT_CODEC` | `gzip` |
+| `archive_format` | `D_CFG_TEST_OUTPUT_FORMAT` | `D_CFG_OUTPUT_FORMAT` | `zip` |
+| `archive_opts.store_only` | `D_CFG_TEST_OUTPUT_STORE_ONLY` | `D_CFG_ARCHIVE_STORE_ONLY` | compressed |
+| `archive_opts.level` | `D_CFG_TEST_OUTPUT_LEVEL` | `D_CFG_ARCHIVE_LEVEL` | the codec's default |
+| `archive_opts.zip.method` | | `D_CFG_ARCHIVE_ZIP_METHOD` | deflate where the build has it, else stored |
+| `archive_opts.sevenzip.method` | | `D_CFG_ARCHIVE_SEVENZIP_METHOD` | LZMA2 |
+
+The library's knobs live in `config/cpp/util/output/cfg_output_packaging.h`
+and `config/c/util/archive/cfg_archive.h`. Each knob is a number:
+- the codec is a `dj_codec_id` (0 store, 1 deflate, 2 zlib, 3 gzip, 4 bzip2,
+  5 xz, 6 zstd, 7 lz4, 8 brotli);
+- the container is a `dj_format_id` (0 zip, 1 tar, 2 gz, 3 tar.gz, 4 7z,
+  5 rar). `test_archive_format` orders gz and tar.gz the other way round, and
+  `cfg_test_options.h` converts;
+- DTest's two entry knobs take -1, the default, to leave `archive_opts` unset.
+
+A value out of range stops the build with an `#error` that names the knob.
+For example, `-DD_CFG_TEST_OUTPUT_STORE_ONLY=1` stores DTest's reports in
+their containers and leaves everything else compressed.
+
 ---
 
 ## 10. Framework module reference

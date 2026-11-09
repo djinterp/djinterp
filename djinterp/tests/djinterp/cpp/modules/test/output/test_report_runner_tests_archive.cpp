@@ -1,11 +1,15 @@
 /*******************************************************************************
 * djinterp [cpp/test]                       test_report_runner_tests_archive.cpp
 *
+* report_runner's suite, block "archive": the archive pack mode, which puts
+* every rendered document in one container, and how the container's entries
+* are named and written: stored, deflated, or as the build's knobs say.
+*
 *
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_archive.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "test_report_runner_tests.hpp"
@@ -25,7 +29,8 @@ tests_report_runner_archive_zip_bundles
   Tests the following:
   - archive mode writes the container instead of the loose PDF
   - the container is a real zip stream, carrying the local-file signature
-  - the document's bytes are inside it
+  - the document is inside it, whole, read back through the archive reader:
+    stored or compressed, as the build's defaults say
 */
 bool tests_report_runner_archive_zip_bundles()
 {
@@ -59,9 +64,12 @@ bool tests_report_runner_archive_zip_bundles()
     D_RR_CHECK(bytes[2] == '\x03');
     D_RR_CHECK(bytes[3] == '\x04');
 
-    // the stored writer leaves the document's bytes intact inside it
-    D_RR_CHECK(rr_contains(bytes, "%PDF-"));
-    D_RR_CHECK(rr_contains(bytes, "packed"));
+    // one entry, the whole PDF, whatever method it was written with
+    const ::djinterp::entry_list entries = rr_zip_entries(bytes);
+
+    D_RR_CHECK(entries.size() == 1u);
+    D_RR_CHECK(entries[0].data.compare(0, 5, "%PDF-") == 0);
+    D_RR_CHECK(rr_contains(entries[0].data, "packed"));
 
     rr_remove(zip);
 
@@ -162,7 +170,9 @@ tests_report_runner_archive_per_module_one_container
   packaging a per-module split.
   Tests the following:
   - N modules produce N documents but only ONE container
-  - every module's entry is inside that container
+  - every module's entry is inside that container, under exactly the name the
+    pattern gave it, with no index appended
+  - each entry is a whole PDF
   - no loose per-module file is left behind
 */
 bool tests_report_runner_archive_per_module_one_container()
@@ -204,13 +214,19 @@ bool tests_report_runner_archive_per_module_one_container()
 
     const std::string bytes = rr_read_file(zip);
 
-    // all three entries are inside
-    D_RR_CHECK(rr_contains(bytes, "dtest_rr_mm_alpha.pdf"));
-    D_RR_CHECK(rr_contains(bytes, "dtest_rr_mm_beta.pdf"));
-    D_RR_CHECK(rr_contains(bytes, "dtest_rr_mm_gamma.pdf"));
+    // all three entries are inside, in order, under their own names
+    const ::djinterp::entry_list entries = rr_zip_entries(bytes);
 
-    // three stored documents means three PDF headers in the stream
-    D_RR_CHECK(rr_count(bytes, "%PDF-") == 3u);
+    D_RR_CHECK(entries.size() == 3u);
+    D_RR_CHECK(entries[0].name == "dtest_rr_mm_alpha.pdf");
+    D_RR_CHECK(entries[1].name == "dtest_rr_mm_beta.pdf");
+    D_RR_CHECK(entries[2].name == "dtest_rr_mm_gamma.pdf");
+
+    // each one a whole PDF
+    for (std::size_t i = 0; i < entries.size(); ++i)
+    {
+        D_RR_CHECK(entries[i].data.compare(0, 5, "%PDF-") == 0);
+    }
 
     rr_remove(zip);
 
@@ -267,10 +283,12 @@ bool tests_report_runner_archive_rar_is_unavailable()
 tests_report_runner_archive_pack_none_stays_loose
   packaging opted out of.
   Tests the following:
-  - with packaging compiled in but the pack knob left at none, the PDF is
-    still written loose
+  - with packaging compiled in but the pack knob at none, the PDF is still
+    written loose
   - no container is produced
   - selecting an archive format alone does not enable packaging
+  The knob is set to none here rather than left at its default, which a
+  build's D_CFG_TEST_OUTPUT_PACK can change.
 */
 bool tests_report_runner_archive_pack_none_stays_loose()
 {
@@ -283,8 +301,9 @@ bool tests_report_runner_archive_pack_none_stays_loose()
 
     rb.set_console(false);
     rb.use_pdf(path);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
 
-    // a format is selected, but the pack knob is left at its default
+    // a format is selected, but the pack knob is left at none
     rr_set_archive_format(rb.options(), dt::test_archive_format::zip);
 
     D_RR_CHECK(dt::pack(rb.options()) == dt::DTestOutputPack::none);
@@ -302,6 +321,175 @@ bool tests_report_runner_archive_pack_none_stays_loose()
     D_RR_CHECK(bytes.compare(0, 5, "%PDF-") == 0);
 
     rr_remove(path);
+
+    return true;
+}
+
+/*
+tests_report_runner_archive_store_only_stores
+  the stored choice.
+  Tests the following:
+  - archive_opts.store_only writes every entry with method 0, stored
+  - so the PDF reads in the container's own bytes, without a codec
+  - and the entry reads back whole through the archive reader too
+*/
+bool tests_report_runner_archive_store_only_stores()
+{
+    const std::string zip = "dtest_rr_stored.zip";
+
+    rr_remove(zip);
+
+    dt::report_builder rb;
+
+    rb.set_console(false);
+    rb.use_pdf(zip);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::archive);
+    rr_set_archive_format(rb.options(), dt::test_archive_format::zip);
+    rr_set_entries(rb.options(), 1, -1);
+
+    rb.module("kept_as_is");
+    rr_seed_units(rb, 2, 0);
+    rb.finish();
+
+    D_RR_CHECK(rr_file_exists(zip));
+
+    const std::string      bytes   = rr_read_file(zip);
+    const std::vector<int> methods = rr_zip_methods(bytes);
+
+    // one entry, stored
+    D_RR_CHECK(methods.size() == 1u);
+    D_RR_CHECK(methods[0] == 0);
+
+    // the PDF is in the container's bytes as it is
+    D_RR_CHECK(rr_contains(bytes, "%PDF-"));
+    D_RR_CHECK(rr_contains(bytes, "kept_as_is"));
+
+    const ::djinterp::entry_list entries = rr_zip_entries(bytes);
+
+    D_RR_CHECK(entries.size() == 1u);
+    D_RR_CHECK(entries[0].data.compare(0, 5, "%PDF-") == 0);
+
+    rr_remove(zip);
+
+    return true;
+}
+
+/*
+tests_report_runner_archive_deflate_compresses
+  the compressed choice.
+  Tests the following:
+  - store_only off and the deflate method write every entry deflated, where
+    the build has a DEFLATE provider, and stored where it has none
+  - the entries read back whole through the archive reader
+  - a deflated container is smaller than the stored one of the same report
+*/
+bool tests_report_runner_archive_deflate_compresses()
+{
+    const std::string deflated = "dtest_rr_deflated.zip";
+    const std::string stored   = "dtest_rr_stored_twin.zip";
+    const bool        can_deflate =
+        (d_codec_can_compress(D_CODEC_ID_DEFLATE) != 0);
+
+    rr_remove(deflated);
+    rr_remove(stored);
+
+    // the same report twice, once each way
+    for (int pass = 0; pass < 2; ++pass)
+    {
+        dt::report_builder rb;
+
+        rb.set_console(false);
+        rb.use_pdf((pass == 0) ? deflated : stored);
+        rr_set_pack(rb.options(), dt::DTestOutputPack::archive);
+        rr_set_archive_format(rb.options(), dt::test_archive_format::zip);
+        rr_set_entries(rb.options(),
+                       pass,
+                       (pass == 0) ? 8 : -1);
+
+        rb.module("squeezed");
+        rr_seed_units(rb, 4, 1);
+        rb.finish();
+    }
+
+    D_RR_CHECK(rr_file_exists(deflated));
+    D_RR_CHECK(rr_file_exists(stored));
+
+    const std::string      bytes   = rr_read_file(deflated);
+    const std::vector<int> methods = rr_zip_methods(bytes);
+
+    // one entry, deflated where the build can
+    D_RR_CHECK(methods.size() == 1u);
+    D_RR_CHECK(methods[0] == (can_deflate ? 8 : 0));
+
+    // it reads back whole, and is the same document the stored twin holds
+    const ::djinterp::entry_list entries = rr_zip_entries(bytes);
+    const ::djinterp::entry_list twin    =
+        rr_zip_entries(rr_read_file(stored));
+
+    D_RR_CHECK(entries.size() == 1u);
+    D_RR_CHECK(twin.size() == 1u);
+    D_RR_CHECK(entries[0].data.compare(0, 5, "%PDF-") == 0);
+    D_RR_CHECK(rr_contains(entries[0].data, "squeezed"));
+    D_RR_CHECK(entries[0].data.size() == twin[0].data.size());
+
+    // deflating an uncompressed PDF makes the container smaller
+    if (can_deflate)
+    {
+        D_RR_CHECK(bytes.size() < rr_read_file(stored).size());
+    }
+
+    rr_remove(deflated);
+    rr_remove(stored);
+
+    return true;
+}
+
+/*
+tests_report_runner_archive_default_follows_build
+  the sensible default.
+  Tests the following:
+  - with archive_opts left as default_test_options() made it, every entry
+    takes the method the build's knobs give it: cfg_test_options.h's, then
+    cfg_archive.h's, which by default is deflate where the build can
+  - the entry reads back whole either way
+*/
+bool tests_report_runner_archive_default_follows_build()
+{
+    const std::string zip      = "dtest_rr_default.zip";
+    const int         expected = rr_default_zip_method();
+
+    rr_remove(zip);
+
+    dt::report_builder rb;
+
+    rb.set_console(false);
+    rb.use_pdf(zip);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::archive);
+    rr_set_archive_format(rb.options(), dt::test_archive_format::zip);
+
+    rb.module("defaulted");
+    rr_seed_units(rb, 1, 0);
+    rb.finish();
+
+    D_RR_CHECK(rr_file_exists(zip));
+
+    const std::string      bytes   = rr_read_file(zip);
+    const std::vector<int> methods = rr_zip_methods(bytes);
+
+    D_RR_CHECK(methods.size() == 1u);
+
+    // the method the knobs give, where this suite can work it out
+    if (expected >= 0)
+    {
+        D_RR_CHECK(methods[0] == expected);
+    }
+
+    const ::djinterp::entry_list entries = rr_zip_entries(bytes);
+
+    D_RR_CHECK(entries.size() == 1u);
+    D_RR_CHECK(entries[0].data.compare(0, 5, "%PDF-") == 0);
+
+    rr_remove(zip);
 
     return true;
 }

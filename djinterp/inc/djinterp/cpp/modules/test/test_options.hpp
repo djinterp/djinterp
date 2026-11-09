@@ -63,7 +63,7 @@
 * path:      /inc/djinterp/cpp/modules/test/test_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.19
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -130,6 +130,9 @@ TABLE OF CONTENTS
                                               //   document-format selector)
 #include "../../util/compress/compress_options.hpp"   // compress_options
 #include "../../util/archive/archive_options.hpp"    // archive_options
+#include "../../../config/cpp/modules/test/cfg_test_options.h"
+                                             // D_INTERNAL_TEST_OUTPUT_*: the
+                                             // packaging defaults
 #include "./test_common.hpp"                   // DTestTypeId, test_status
 
 
@@ -303,7 +306,8 @@ enum class DTestTribool
 // DTestOutputPack
 //   enum: what becomes of the report FILE once the run finishes.  `none` writes
 // it verbatim; `compress` runs it through a single codec; `archive` wraps it as
-// the sole entry of a container.  The default is `none`.
+// the sole entry of a container.  The default is `none`, or the build's
+// D_CFG_TEST_OUTPUT_PACK (cfg_test_options.h).
 enum class DTestOutputPack
 {
     none,
@@ -325,7 +329,8 @@ enum class DTestOutputSplit
 // test_compressor
 //   enum: the standalone codec applied when `pack` is `compress`.  `store` is a
 // passthrough; the rest each need their backend present at runtime.  The
-// framework default is `gzip`.  Fine per-codec tuning rides compress_opts.
+// framework default is `gzip`, or the build's D_CFG_TEST_OUTPUT_CODEC.  Fine
+// per-codec tuning rides compress_opts.
 enum class test_compressor
 {
     store,    // no compression (passthrough)
@@ -341,8 +346,10 @@ enum class test_compressor
 
 // test_archive_format
 //   enum: the container used when `pack` is `archive`.  Each needs its backend
-// at runtime; `rar` creation is tool-only.  The framework default is `zip`.
-// Container-level tuning rides archive_opts.
+// at runtime; `rar` creation is tool-only.  The framework default is `zip`, or
+// the build's D_CFG_TEST_OUTPUT_FORMAT.  Container-level tuning rides
+// archive_opts: store_only chooses stored or compressed entries, level the
+// effort, zip.method and sevenzip.method the method.
 enum class test_archive_format
 {
     zip,       // .zip
@@ -907,7 +914,9 @@ struct test_option_set
     // test_option_set
     //   constructor: the framework defaults - numbered, ordinal, untimed,
     // 80-column word-wrapped plain text to the console, showing all results,
-    // no failure cap, output UNPACKED.
+    // no failure cap, output UNPACKED.  The packaging slots take the build's
+    // defaults (cfg_test_options.h): with no knob set, unpacked, gzip and zip
+    // primed, and archive_opts left to the archive's own defaults.
     test_option_set()
         : number_tests(true),
           number_style(DTestNumberStyle::ordinal),
@@ -928,13 +937,26 @@ struct test_option_set
           format_module("{name}"),
           format_summary("{passed}/{total} passed, {failed} failed, "
                          "{skipped} skipped"),
-          pack(DTestOutputPack::none),
-          compressor(test_compressor::gzip),
-          archive_format(test_archive_format::zip),
+          pack(static_cast<DTestOutputPack>(D_INTERNAL_TEST_OUTPUT_PACK)),
+          compressor(
+              static_cast<test_compressor>(D_INTERNAL_TEST_OUTPUT_CODEC)),
+          archive_format(
+              static_cast<test_archive_format>(D_INTERNAL_TEST_OUTPUT_FORMAT)),
           split(DTestOutputSplit::whole_run),
           routes()
           // compress_opts / archive_opts default-construct (backend defaults)
-    {}
+    {
+        // a build that chose stored or compressed entries for DTest's
+        // container sets the knob; -1 leaves it to the archive's own default
+#if ( D_INTERNAL_TEST_OUTPUT_STORE_ONLY >= 0 )
+        archive_opts.store_only = D_INTERNAL_TEST_OUTPUT_STORE_ONLY;
+#endif
+
+        // likewise the container's effort
+#if ( D_INTERNAL_TEST_OUTPUT_LEVEL >= 0 )
+        archive_opts.level = D_INTERNAL_TEST_OUTPUT_LEVEL;
+#endif
+    }
 
     // get
     //   the member a key names.

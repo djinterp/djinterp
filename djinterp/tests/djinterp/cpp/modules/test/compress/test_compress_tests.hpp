@@ -50,7 +50,7 @@
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_tests.hpp
 * link(s):   TBA
 * author(s): DTest contributors                              created: 2026.07.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -502,8 +502,8 @@ dt::module_spec compress_spec()
                 "buffer too short to carry the header.",
                 {
                     { "tests_compress_gzip_magic",
-                      "the two gzip identification bytes are required, and "
-                      "trailing content is ignored",
+                      "the gzip signature's three bytes, 1F 8B 08, are "
+                      "required, and trailing content is ignored",
                       &tests_compress_gzip_magic },
                     { "tests_compress_zlib_magic_accepts_valid_header",
                       "a header with DEFLATE in the low nibble and a "

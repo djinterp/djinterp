@@ -25,6 +25,11 @@ djinterp_add_test_executable(test_report_runner_tests
         # reaches: internal::archive_create and internal::compress_buffer
         "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/compress/compress.cpp"
         "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/archive/archive.cpp"
+        # the C kernel the two facades are built on, and the stream its
+        # writers report through; djinterp_c_runtime does not carry them
+        "${DJINTERP_SRC_ROOT}/djinterp/c/util/archive/archive_common.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/util/ostream/ostream.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/text/ostream_format.c"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test/output"  # bare header-under-test
         "${_tests_dir}")                             # bare suite-header

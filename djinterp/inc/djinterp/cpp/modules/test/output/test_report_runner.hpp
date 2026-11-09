@@ -48,11 +48,12 @@
 * write_pdf_report() renders every document (whole_run -> 1, per_module -> N),
 * then, when `pack` is `archive`, bundles them into ONE container - the
 * `archive_format` (e.g. sevenzip -> .7z), tuned by `archive_opts`, written to
-* the `output_file` path - via the archive facade (archive.hpp) directly.
-* Rather than test_output_config.hpp's to_output_config() + a document_bundle
-* writer (a heavier dependency this lightweight builder still avoids), it drives
-* the facade's in-memory try_archive<> leaf, which matches the write-bytes-
-* verbatim model.  The `compress` pack mode is not routed yet.  Left undefined
+* the `output_file` path, through document_bundle and write_to_disk.  When
+* `pack` is `compress`, each document is written beside where it would have
+* gone, compressed with `compressor` (tuned by `compress_opts`) and named with
+* the codec's suffix: report.pdf becomes report.pdf.gz.  Whether a container's
+* entries are stored or compressed is `archive_opts.store_only`, and the
+* build's defaults for all of it are cfg_test_options.h's.  Left undefined
 * (the default), packaging is inert and the builder has NO archive dependency -
 * a console-only or single-PDF runner pays nothing for it.
 *
@@ -72,7 +73,7 @@
 * path:      /inc/djinterp/cpp/modules/test/output/test_report_runner.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.26
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -761,14 +762,14 @@ private:
     // against pdf_default_layout()).
     //
     //   The split x pack matrix (DTestOutputSplit doc in test_options.hpp):
-    //     whole_run + none    -> 1 loose PDF          (output_file, or "report")
-    //     per_module + none   -> N loose PDFs         ({module}.pdf each)
-    //     whole_run + archive -> 1 PDF in 1 container (output_file names it)
-    //     per_module + archive-> N PDFs in 1 container(output_file names it)
-    //   The `compress` pack mode is not routed here yet (it needs the codec
-    // facade); only `archive` is, since that is the .7z path.  With packaging
-    // NOT compiled in, `pack` is inert and bytes are written loose, exactly as
-    // before.
+    //     whole_run  + none     -> 1 loose PDF (output_file, or "report")
+    //     per_module + none     -> N loose PDFs ({module}.pdf each)
+    //     whole_run  + compress -> 1 compressed PDF (its name + the suffix)
+    //     per_module + compress -> N compressed PDFs (each name + the suffix)
+    //     whole_run  + archive  -> 1 PDF in 1 container (output_file names it)
+    //     per_module + archive  -> N PDFs in 1 container (output_file names it)
+    //   With packaging NOT compiled in, `pack` is inert and bytes are written
+    // loose, exactly as before.
     //
     // Return:
     //   the paths actually written (empty if nothing was written, e.g. every
@@ -830,6 +831,12 @@ private:
         if (pack(m_opts) == DTestOutputPack::archive)
         {
             return write_archived_report(docs);
+        }
+
+        // compress mode (opt-in): each document compressed, on its own
+        if (pack(m_opts) == DTestOutputPack::compress)
+        {
+            return write_compressed_report(docs);
         }
 #endif
 
@@ -923,6 +930,10 @@ private:
         // the container tuning the facade call used to pass directly
         _cfg.archive_opts = archive_opts(m_opts);
 
+        // each entry keeps the name it was given: without a policy, a bundle
+        // of several documents gets its index appended (report.pdf_0)
+        _cfg.naming = &kept_name;
+
         // An explicit output_file still wins; otherwise the container keeps the
         // name the config gives it -- "report" plus the format's extension,
         // which is exactly the fallback this method used to apply by hand.
@@ -950,6 +961,110 @@ private:
     // used to live here are gone: write_archived_report now defers to
     // document_bundle + write_to_disk, which own the format dispatch and the
     // extension mapping already.
+
+
+    // write_compressed_report
+    //   compresses every rendered document on its own with `compressor`, tuned
+    // by `compress_opts`, and writes each where its loose file would have gone,
+    // with the codec's suffix appended (`store` appends none).  Rendering and
+    // compressing happen in memory, through document_bundle and write(), as
+    // write_archived_report's do.
+    //
+    // Return:
+    //   the paths written, in order; empty when the codec is not built into
+    // this environment, compression failed, or the first file could not be
+    // written.  A run that stops part way returns the paths written before it
+    // stopped.
+    std::vector<std::string> write_compressed_report(
+        const std::vector<DPendingDoc>& _docs
+    )
+    {
+        std::vector<std::string>    written;
+        ::djinterp::document_bundle _bundle;
+
+        // each document under its own path, which the sink writes to as it is
+        for (std::size_t _i = 0; _i < _docs.size(); ++_i)
+        {
+            const ::djinterp::byte_blob _bytes = _docs[_i].bytes;
+
+            _bundle.add(_docs[_i].name,
+                        std::string(),
+                        [_bytes]() -> ::djinterp::byte_blob { return _bytes; });
+        }
+
+        ::djinterp::output_config _cfg =
+            to_output_config(pack(m_opts),
+                             compressor(m_opts),
+                             archive_format(m_opts));
+
+        _cfg.compress_opts = compress_opts(m_opts);
+        _cfg.naming        = &kept_name;
+
+        DRecordingSink _sink(written);
+
+        // a failure stops the run; what was written before it stays listed
+        (void)::djinterp::write(_bundle,
+                                _cfg,
+                                _sink);
+
+        return written;
+    }
+
+    // DRecordingSink
+    //   class: a disk sink that lists each path it wrote, so a run that stops
+    // part way still reports the files it left behind.
+    class DRecordingSink : public ::djinterp::output_sink
+    {
+    public:
+        explicit
+        DRecordingSink(
+            std::vector<std::string>& _written
+        )
+            : m_written(_written),
+              m_disk(::djinterp::disk_output_sink::path_fn())
+        {
+        }
+
+        // write_item
+        //   writes through the disk sink, listing the path when it succeeded.
+        bool write_item(
+            const std::string&           _name,
+            const ::djinterp::byte_blob& _bytes
+        ) override
+        {
+            const bool ok = m_disk.write_item(_name,
+                                              _bytes);
+
+            // listed only once it is on disk
+            if (ok)
+            {
+                m_written.push_back(_name);
+            }
+
+            return ok;
+        }
+
+    private:
+        std::vector<std::string>&    m_written;
+        ::djinterp::disk_output_sink m_disk;
+    };
+
+    // kept_name
+    //   the naming policy for a document the runner has already named: its
+    // name and extension as they are, whatever its index.
+    static
+    std::string kept_name(
+        const std::string& _name,
+        const std::string& _ext,
+        std::size_t        _index,
+        std::size_t        _total
+    )
+    {
+        (void)_index;
+        (void)_total;
+
+        return _name + _ext;
+    }
 
 
     // base_name_of

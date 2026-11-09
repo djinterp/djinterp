@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_options.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "test_report_runner_tests.hpp"
@@ -40,7 +40,7 @@ bool tests_report_runner_use_pdf_selects_document()
     // the split, show and packaging knobs keep their defaults
     D_RR_CHECK(dt::split(rb.options()) == dt::DTestOutputSplit::whole_run);
     D_RR_CHECK(dt::show(rb.options()) == dt::DTestShow::all);
-    D_RR_CHECK(dt::pack(rb.options()) == dt::DTestOutputPack::none);
+    D_RR_CHECK(dt::pack(rb.options()) == rr_default_pack());
 
     return true;
 }

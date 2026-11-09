@@ -59,7 +59,7 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests.hpp
 * link(s):   TBA
 * author(s): DTest contributors                              created: 2026.07.22
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -88,6 +88,9 @@ VII.  ARCHIVE          (test_report_runner_tests_archive.cpp)
 
 VIII. CONVENIENCE      (test_report_runner_tests_convenience.cpp)
       -----------------------------------------------------------
+
+IX.   COMPRESS         (test_report_runner_tests_compress.cpp)
+      --------------------------------------------------------
 */
 
 #ifndef DJINTERP_TESTS_TEST_REPORT_RUNNER_TESTS_
@@ -390,6 +393,16 @@ void rr_set_pack(
     return;
 }
 
+// rr_default_pack
+//   function: the pack mode a fresh option set starts with: none, unless the
+// build's D_CFG_TEST_OUTPUT_PACK, or the library's D_CFG_OUTPUT_PACK, chooses
+// another.
+inline
+dt::DTestOutputPack rr_default_pack()
+{
+    return static_cast<dt::DTestOutputPack>(D_INTERNAL_TEST_OUTPUT_PACK);
+}
+
 // rr_set_archive_format
 //   function: selects the archive container.
 inline
@@ -401,6 +414,148 @@ void rr_set_archive_format(
     _o.set<dt::test_option::archive_format>(_v);
     return;
 }
+
+// rr_set_compressor
+//   function: selects the codec compress mode uses.
+inline
+void rr_set_compressor(
+    dt::test_option_set& _o,
+    dt::test_compressor  _v
+)
+{
+    _o.set<dt::test_option::compressor>(_v);
+    return;
+}
+
+// rr_set_entries
+//   function: chooses how the container's entries are written: stored (1) or
+// compressed (0), and with which ZIP method (-1 leaves the method unset).
+inline
+void rr_set_entries(
+    dt::test_option_set& _o,
+    int                  _store_only,
+    int                  _zip_method
+)
+{
+    ::djinterp::archive_options a = dt::archive_opts(_o);
+
+    a.store_only = _store_only;
+
+    // the method, when one is asked for
+    if (_zip_method >= 0)
+    {
+        a.zip.method = _zip_method;
+    }
+
+    _o.set<dt::test_option::archive_opts>(a);
+
+    return;
+}
+
+
+// -- container and codec readers -------------------------------------------
+//
+//   The archive and compress facades come with D_TEST_REPORT_ENABLE_ARCHIVE,
+// so these read what the packaging arm wrote back through them, rather than
+// searching its raw bytes, which only works for stored entries.
+#if defined(D_TEST_REPORT_ENABLE_ARCHIVE)
+
+// rr_zip_entries
+//   function: the entries of the ZIP container _bytes, read back through the
+// archive facade; empty when it cannot be read.
+inline
+::djinterp::entry_list rr_zip_entries(
+    const std::string& _bytes
+)
+{
+    ::djinterp::entry_list out;
+
+    // an unreadable container lists nothing
+    if (::djinterp::try_extract< ::djinterp::formats::zip >(_bytes,
+                                                          out) !=
+        ::djinterp::status_ok)
+    {
+        out.clear();
+    }
+
+    return out;
+}
+
+// rr_zip_methods
+//   function: the compression method of every local file header in _bytes,
+// in order: 0 for a stored entry, 8 for a deflated one.
+inline
+std::vector<int> rr_zip_methods(
+    const std::string& _bytes
+)
+{
+    std::vector<int>  out;
+    const std::string signature("PK\x03\x04", 4);
+    std::size_t       at = _bytes.find(signature);
+
+    // each local header carries its method at offset 8, little-endian
+    while ( (at != std::string::npos) &&
+            (at + 10u <= _bytes.size()) )
+    {
+        const unsigned lo = static_cast<unsigned char>(_bytes[at + 8u]);
+        const unsigned hi = static_cast<unsigned char>(_bytes[at + 9u]);
+
+        out.push_back(static_cast<int>(lo | (hi << 8)));
+        at = _bytes.find(signature,
+                         at + 4u);
+    }
+
+    return out;
+}
+
+// rr_default_zip_method
+//   function: the method the build's defaults give the runner's ZIP entries
+// (cfg_test_options.h, then cfg_archive.h), or -1 where the knobs name a
+// method whose availability this suite does not work out.
+inline
+int rr_default_zip_method()
+{
+    const bool can_deflate = (d_codec_can_compress(D_CODEC_ID_DEFLATE) != 0);
+
+#if ( D_INTERNAL_TEST_OUTPUT_STORE_ONLY == 1 )
+    return 0;
+#elif ( (D_INTERNAL_TEST_OUTPUT_STORE_ONLY < 0) &&                            \
+        (D_INTERNAL_ARCHIVE_STORE_ONLY == 1) )
+    return 0;
+#elif ( D_INTERNAL_ARCHIVE_ZIP_METHOD < 0 )
+    return can_deflate ? 8 : 0;
+#elif ( D_INTERNAL_ARCHIVE_ZIP_METHOD == 0 )
+    return 0;
+#elif ( D_INTERNAL_ARCHIVE_ZIP_METHOD == 8 )
+    return can_deflate ? 8 : 0;
+#else
+    (void)can_deflate;
+
+    return -1;
+#endif
+}
+
+// rr_gunzip
+//   function: _bytes decompressed as a gzip stream; empty when it is not one.
+inline
+std::string rr_gunzip(
+    const std::string& _bytes
+)
+{
+    ::djinterp::byte_blob out;
+
+    // not a gzip stream, or no gzip codec here
+    if (::djinterp::try_decompress< ::djinterp::codecs::gzip >(_bytes,
+                                                             out) !=
+        ::djinterp::status_ok)
+    {
+        return std::string();
+    }
+
+    return out;
+}
+
+#endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 
 // -- sample predicates -----------------------------------------------------
@@ -564,6 +719,9 @@ bool tests_report_runner_archive_fallback_extension();
 bool tests_report_runner_archive_per_module_one_container();
 bool tests_report_runner_archive_rar_is_unavailable();
 bool tests_report_runner_archive_pack_none_stays_loose();
+bool tests_report_runner_archive_store_only_stores();
+bool tests_report_runner_archive_deflate_compresses();
+bool tests_report_runner_archive_default_follows_build();
 #endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 // VIII. CONVENIENCE   (test_report_runner_tests_convenience.cpp)
@@ -576,6 +734,13 @@ bool tests_report_runner_check_eq_evaluates_once();
 bool tests_report_runner_to_report_string_strings();
 bool tests_report_runner_to_report_string_bool();
 bool tests_report_runner_to_report_string_generic();
+
+// IX.   COMPRESS   (test_report_runner_tests_compress.cpp)
+#if defined(D_TEST_REPORT_ENABLE_ARCHIVE)
+bool tests_report_runner_compress_gzip_writes_suffix();
+bool tests_report_runner_compress_per_module_each();
+bool tests_report_runner_compress_store_is_loose();
+#endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 
 // -- (part 3) the spec provider - spec mode only ---------------------------
@@ -899,6 +1064,38 @@ dt::module_spec report_runner_spec()
                       "the none pack mode leaves the PDF loose even with "
                       "packaging compiled in",
                       &tests_report_runner_archive_pack_none_stays_loose },
+                    { "tests_report_runner_archive_store_only_stores",
+                      "store_only writes every entry stored, so the PDF "
+                      "reads in the container's own bytes",
+                      &tests_report_runner_archive_store_only_stores },
+                    { "tests_report_runner_archive_deflate_compresses",
+                      "the deflate method writes deflated entries that read "
+                      "back whole, and a smaller container than stored ones",
+                      &tests_report_runner_archive_deflate_compresses },
+                    { "tests_report_runner_archive_default_follows_build",
+                      "with archive_opts untouched, entries take the method "
+                      "the build's knobs give them",
+                      &tests_report_runner_archive_default_follows_build },
+                }
+            },
+            dt::block_spec{
+                "compress",
+                "The compress pack mode: each rendered document compressed "
+                "on its own, written where its loose file would have gone "
+                "with the codec's suffix, or as it is under store.",
+                {
+                    { "tests_report_runner_compress_gzip_writes_suffix",
+                      "gzip writes the document as name.pdf.gz, a gzip "
+                      "stream of the whole PDF, and no loose file",
+                      &tests_report_runner_compress_gzip_writes_suffix },
+                    { "tests_report_runner_compress_per_module_each",
+                      "per_module plus compress writes one compressed "
+                      "document per module, each under its own name",
+                      &tests_report_runner_compress_per_module_each },
+                    { "tests_report_runner_compress_store_is_loose",
+                      "the store codec writes the PDF as it is, under its "
+                      "own name",
+                      &tests_report_runner_compress_store_is_loose },
                 }
             },
 #endif  // D_TEST_REPORT_ENABLE_ARCHIVE

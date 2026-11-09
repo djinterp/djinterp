@@ -5,10 +5,15 @@
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_document.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "test_report_runner_tests.hpp"
+
+// The PDF tests here are about the loose document, so each sets the pack knob
+// to none itself: a build whose knobs package DTest's reports by default
+// (D_CFG_TEST_OUTPUT_PACK) still tests the loose path.  The archive and
+// compress blocks test the packaged ones.
 
 NS_DJINTERP
 NS_TESTING
@@ -76,6 +81,7 @@ bool tests_report_runner_pdf_whole_run_writes_one()
 
     rb.set_console(false);
     rb.use_pdf(path);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.set_split(dt::DTestOutputSplit::whole_run);
 
     rb.module("mod_alpha");
@@ -123,6 +129,7 @@ bool tests_report_runner_pdf_output_path_used()
     rb.set_console(false);
     rb.set_title("A Titled Run");
     rb.use_pdf(path);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.module("m");
     rr_seed_units(rb, 1, 0);
     rb.finish();
@@ -157,6 +164,7 @@ bool tests_report_runner_pdf_empty_path_falls_back()
 
     rb.set_console(false);
     rb.set_document(dt::test_doc_type::pdf);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.set_file_name_pattern("dtest_rr_fb_{module}.{ext}");
 
     D_RR_CHECK(dt::output_path(rb.options()).empty());
@@ -199,6 +207,7 @@ bool tests_report_runner_pdf_per_module_writes_each()
 
     rb.set_console(false);
     rb.set_document(dt::test_doc_type::pdf);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.set_split(dt::DTestOutputSplit::per_module);
     rb.set_file_name_pattern("dtest_rr_pm_{module}.{ext}");
     rb.set_title("Shared Cover");
@@ -253,6 +262,7 @@ bool tests_report_runner_pdf_per_module_ignores_output_path()
 
     rb.set_console(false);
     rb.use_pdf(slot);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.set_split(dt::DTestOutputSplit::per_module);
     rb.set_file_name_pattern("dtest_rr_ig_{module}.{ext}");
 
@@ -291,6 +301,7 @@ bool tests_report_runner_pdf_file_name_pattern()
 
     rb.set_console(false);
     rb.set_document(dt::test_doc_type::pdf);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.set_split(dt::DTestOutputSplit::per_module);
     rb.set_file_name_pattern("dtest_rr_pat_{module}_{index}.{ext}");
 
@@ -337,6 +348,7 @@ bool tests_report_runner_pdf_write_failure_reports()
     rb.set_file(cap.file());
     rb.set_console(false);
     rb.use_pdf(path);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.module("m");
     rr_seed_units(rb, 2, 0);
     rb.set_console(true);
@@ -363,6 +375,7 @@ bool tests_report_runner_pdf_write_failure_reports()
     rb2.set_file(cap2.file());
     rb2.set_console(false);
     rb2.use_pdf(path);
+    rr_set_pack(rb2.options(), dt::DTestOutputPack::none);
     rb2.set_show(dt::DTestShow::silent);
     rb2.module("m");
     rr_seed_units(rb2, 1, 0);
@@ -400,6 +413,7 @@ bool tests_report_runner_pdf_console_notes_path()
     rb.set_file(cap.file());
     rb.set_console(false);
     rb.set_document(dt::test_doc_type::pdf);
+    rr_set_pack(rb.options(), dt::DTestOutputPack::none);
     rb.set_split(dt::DTestOutputSplit::per_module);
     rb.set_file_name_pattern("dtest_rr_note_{module}.{ext}");
 
