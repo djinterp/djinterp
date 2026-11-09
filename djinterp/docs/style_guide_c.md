@@ -55,9 +55,11 @@ this guide; its output need not.
 ### Include Guards
 
 Every header carries an include guard derived mechanically from its path. The
-derivation has **no exceptions**: the guard is a function of the file's location
-and extension and nothing else. That is what makes a collision impossible rather
-than merely unlikely, and it is what lets tooling verify and repair guards.
+one step that looks past the path is the merge of repeated segments (ruling
+#71): it gives way where it would make two headers' guards equal, so a collision
+stays impossible rather than merely unlikely. `scripts/ci/check_style.py`
+derives every guard over the whole tree, so tooling can still verify and repair
+them.
 
 **Derivation**
 
@@ -69,17 +71,23 @@ than merely unlikely, and it is what lets tooling verify and repair guards.
 5.  Append `_H` for a `.h` file, `_HPP` for a `.hpp` file.
 
 Uppercase the result and collapse every run of non-alphanumeric characters to a
-single underscore. Do not merge repeated segments, do not drop segments, and do
-not abbreviate. A guard that looks redundant is still correct.
+single underscore. Then merge each run of words that repeats the run before it
+into one: `DJINTERP_C_TEST_TEST_COMMON_H` is `DJINTERP_C_TEST_COMMON_H`, and
+`DJINTERP_TEST_ARCHIVE_TEST_ARCHIVE_HPP` is `DJINTERP_TEST_ARCHIVE_HPP`. Where
+the merged guard would be another header's guard, merged or not, keep every
+segment: `c/text/symbol/emoji/emoji.h` keeps `..._SYMBOL_EMOJI_EMOJI_H`,
+because `c/text/symbol/emoji.h` is `..._SYMBOL_EMOJI_H`. Do not drop segments
+otherwise, and do not abbreviate.
 
 **re_std is the exception.** It includes nothing from djinterp and builds on
 its own, so its guards are derived from its own path: `RE_STD_`, then the
 file's path under `inc/re_std/` with its extension, uppercased, every run of
-non-alphanumeric characters collapsed to one underscore. `cstdint/cstdint.hpp`
-is `RE_STD_CSTDINT_CSTDINT_HPP`, the extensionless umbrella `cstdint/cstdint`
-is `RE_STD_CSTDINT_CSTDINT`, and `cstdint/dstdint.h` is
-`RE_STD_CSTDINT_DSTDINT_H`. Its macros are spelled `RE_STD_`, never `D_`, and
-its configuration is its own, `inc/re_std/config.hpp`.
+non-alphanumeric characters collapsed to one underscore, repeated segments
+merged as above. `cstdint/cstdint.hpp` is `RE_STD_CSTDINT_HPP`, the
+extensionless umbrella `cstdint/cstdint` is `RE_STD_CSTDINT`, and
+`cstdint/dstdint.h` is `RE_STD_CSTDINT_DSTDINT_H`. Its macros are spelled
+`RE_STD_`, never `D_`, and its configuration is its own,
+`inc/re_std/config.hpp`.
 
 **Subsystem table**
 
@@ -117,20 +125,24 @@ The namespace column applies to the C++ tree; C code has no namespaces.
 **Rules**
 
 -   No two headers may share a guard. Because the guard is derived from the
-    path, this cannot happen unless the derivation is broken.
+    path, and the merge gives way where it would make two equal, this cannot
+    happen unless the derivation is broken.
+-   A guard with every segment kept where the merge applies is still accepted
+    while the tree's headers move to the merged form; `check_style.py` reports
+    it as `M`, a warning, rather than `G`.
 -   `/core` contributing an empty prefix means no subdirectory of `/core` may
     share a name with a top-level subsystem. `/core/net/` would collide with
     `/net/`.
 -   The `#define` carries the value `1`.
 -   The closing `#endif` names the guard in a trailing comment.
 
-**Why there are no exceptions.** Shortening a guard by merging a repeated
-segment looks deterministic and safe. It is not: across this project it produces
-eight collisions, because an umbrella header and a same-named file inside its
-own subdirectory shorten to the same symbol — `net/curl.hpp` against
-`net/curl/curl.hpp`, `c/text/symbol/emoji.h` against
-`c/text/symbol/emoji/emoji.h`. The saving is 1.5 characters on average. Guards
-are read by the preprocessor, not for pleasure.
+**Why the merge gives way.** Merging a repeated segment alone is not safe: an
+umbrella header and a same-named file inside its own subdirectory shorten to
+the same symbol, `c/text/symbol/emoji.h` against `c/text/symbol/emoji/emoji.h`.
+Ruling #71 (2026-11-04) merges wherever that does not happen and keeps every
+segment where it does. The cost is that one header's guard can depend on
+whether another exists: adding a header can lengthen a neighbour's guard,
+which the checker then reports.
 
 ### Macro Names
 

@@ -89,9 +89,11 @@ this guide; its output need not.
 ### Include Guards
 
 Every header carries an include guard derived mechanically from its path. The
-derivation has **no exceptions**: the guard is a function of the file's location
-and extension and nothing else. That is what makes a collision impossible rather
-than merely unlikely, and it is what lets tooling verify and repair guards.
+one step that looks past the path is the merge of repeated segments (ruling
+#71): it gives way where it would make two headers' guards equal, so a collision
+stays impossible rather than merely unlikely. `scripts/ci/check_style.py`
+derives every guard over the whole tree, so tooling can still verify and repair
+them.
 
 **Derivation**, for a header under `inc/djinterp/`:
 
@@ -105,8 +107,13 @@ than merely unlikely, and it is what lets tooling verify and repair guards.
 5.  Append `_H` for a `.h` file, `_HPP` for a `.hpp` file.
 
 Uppercase the result and collapse every run of non-alphanumeric characters to a
-single underscore. Do not merge repeated segments, do not drop segments, and do
-not abbreviate. A guard that looks redundant is still correct.
+single underscore. Then merge each run of words that repeats the run before it
+into one: `DJINTERP_C_TEST_TEST_COMMON_H` is `DJINTERP_C_TEST_COMMON_H`, and
+`DJINTERP_TEST_ARCHIVE_TEST_ARCHIVE_HPP` is `DJINTERP_TEST_ARCHIVE_HPP`. Where
+the merged guard would be another header's guard, merged or not, keep every
+segment: `c/text/symbol/emoji/emoji.h` keeps `..._SYMBOL_EMOJI_EMOJI_H`,
+because `c/text/symbol/emoji.h` is `..._SYMBOL_EMOJI_H`. Do not drop segments
+otherwise, and do not abbreviate.
 
 | Header, under `inc/djinterp/`             | Guard                                         |
 |-------------------------------------------|-----------------------------------------------|
@@ -114,10 +121,10 @@ not abbreviate. A guard that looks redundant is still correct.
 | `cpp/djinterp.hpp`                        | `DJINTERP_CPP`                                |
 | `c/core/memory/dmemory.h`                 | `DJINTERP_C_MEMORY_DMEMORY_H`                 |
 | `c/modules/parse/charset.h`               | `DJINTERP_C_PARSE_CHARSET_H`                  |
-| `cpp/core/db/sqlite/sqlite_face.hpp`      | `DJINTERP_DB_SQLITE_SQLITE_FACE_HPP`          |
-| `cpp/modules/net/net.hpp`                 | `DJINTERP_NET_NET_HPP`                        |
+| `cpp/core/db/sqlite/sqlite_face.hpp`      | `DJINTERP_DB_SQLITE_FACE_HPP`                 |
+| `cpp/modules/net/net.hpp`                 | `DJINTERP_NET_HPP`                            |
 | `config/c/core/filesys/cfg_file_common.h` | `DJINTERP_CONFIG_C_FILESYS_CFG_FILE_COMMON_H` |
-| `env/env.h`                               | `DJINTERP_ENV_ENV_H`                          |
+| `env/env.h`                               | `DJINTERP_ENV_H`                              |
 | `tools/cli/c/cli.h`                       | `DJINTERP_TOOLS_CLI_C_CLI_H`                  |
 
 The two framework roots keep the short guards `DJINTERP` and `DJINTERP_CPP`.
@@ -126,9 +133,9 @@ The two framework roots keep the short guards `DJINTERP` and `DJINTERP_CPP`.
 its own, so its guards are derived from its own path: `RE_STD_`, then `C_`
 for a header under `inc/re_std/c/` and nothing for one under
 `inc/re_std/cpp/`, then the rest of its path with its extension, uppercased,
-every run of non-alphanumeric characters collapsed to one underscore.
-`cpp/cstdint/cstdint.hpp` is `RE_STD_CSTDINT_CSTDINT_HPP`, the extensionless
-umbrella `cpp/cstdint/cstdint` is `RE_STD_CSTDINT_CSTDINT`, and
+every run of non-alphanumeric characters collapsed to one underscore, repeated
+segments merged as above. `cpp/cstdint/cstdint.hpp` is `RE_STD_CSTDINT_HPP`,
+the extensionless umbrella `cpp/cstdint/cstdint` is `RE_STD_CSTDINT`, and
 `c/cstdint/dstdint.h` is `RE_STD_C_CSTDINT_DSTDINT_H`. Its macros are spelled
 `RE_STD_`, never `D_`, and its configuration is its own, `inc/re_std/config.h`
 and `config.hpp`.
@@ -173,19 +180,24 @@ except `re_std`, which stands on its own and is the top-level namespace
 **Rules**
 
 -   No two headers may share a guard. Because the guard is derived from the
-    path, this cannot happen unless the derivation is broken.
+    path, and the merge gives way where it would make two equal, this cannot
+    happen unless the derivation is broken.
+-   A guard with every segment kept where the merge applies is still accepted
+    while the tree's headers move to the merged form; `check_style.py` reports
+    it as `M`, a warning, rather than `G`.
 -   `core/` and `modules/` contributing nothing means no folder in a tree's
     `core/` may share a name with a module of the same tree: `c/core/net/`
     would collide with `c/modules/net/`.
 -   The `#define` carries the value `1`.
 -   The closing `#endif` names the guard in a trailing comment.
 
-**Why there are no exceptions.** Shortening a guard by merging a repeated
-segment looks deterministic and safe. It is not: across this project it produces
-eight collisions, because an umbrella header and a same-named file inside its
-own subdirectory shorten to the same symbol — `c/core/text/symbol/emoji.h`
-against `c/core/text/symbol/emoji/emoji.h`. The saving is 1.5 characters on
-average. Guards are read by the preprocessor, not for pleasure.
+**Why the merge gives way.** Merging a repeated segment alone is not safe: an
+umbrella header and a same-named file inside its own subdirectory shorten to
+the same symbol, `c/text/symbol/emoji.h` against `c/text/symbol/emoji/emoji.h`.
+Ruling #71 (2026-11-04) merges wherever that does not happen and keeps every
+segment where it does. The cost is that one header's guard can depend on
+whether another exists: adding a header can lengthen a neighbour's guard,
+which the checker then reports.
 
 ### Macro Names
 

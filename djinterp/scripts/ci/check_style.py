@@ -18,7 +18,10 @@
 #        (djinterp's headers: DJINTERP_, then C_ for the C tree and nothing for
 #        the C++ tree, CONFIG_ and C_ or CPP_ for config/, the folders without
 #        modules/, the stem, _H or _HPP; the roots DJINTERP and DJINTERP_CPP;
-#        re_std's: RE_STD_, C_ for its C tree, its path with the extension);
+#        re_std's: RE_STD_, C_ for its C tree, its path with the extension;
+#        then, by ruling #71, each repeated run of words merged, as
+#        DJINTERP_C_TEST_TEST_COMMON_H to DJINTERP_C_TEST_COMMON_H, unless
+#        that is another header's guard, merged or not, when all are kept);
 #        its #define carrying 1, and its #endif naming it
 #     R  an include of djinterp.h or djinterp.hpp whose comment is not
 #        "// framework root" (a source's own header says
@@ -28,6 +31,8 @@
 #        string may pass it)
 #     C  an #include without a trailing comment
 #     F  a function body over 100 lines (ruling cli a)
+#     M  an include guard with every segment kept where ruling #71 merges
+#        them: still accepted, while the tree's headers move
 #   Generated files (a banner or first lines that say so) are left out, as
 # the guides exempt them.
 #   Most files met the rules when the guides were written, and some do not
@@ -55,7 +60,7 @@
 # path:      /scripts/ci/check_style.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.05
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 import argparse
 import collections
@@ -69,7 +74,7 @@ TREE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))))
 EXTENSIONS = ('.h', '.c', '.hpp', '.cpp')
 ERRORS = 'TSUXBGR'
-WARNINGS = 'WCF'
+WARNINGS = 'WCFM'
 GENERATED = re.compile(r'(auto-?generated|generated (by|from|with)\b|'
                        r'do not (edit|modify))', re.I)
 RULE_OPEN = '/' + '*' * 79
@@ -87,9 +92,9 @@ def rel(path):
     return os.path.relpath(path, TREE).replace(os.sep, '/')
 
 
-def derive_guard(path):
-    """The include guard a header's path derives, or None where the path is
-    outside the trees the guides cover."""
+def path_guard(path):
+    """The include guard a header's path derives with every segment kept, or
+    None where the path is outside the trees the guides cover."""
     parts = path.split('/')
     stem, extension = os.path.splitext(parts[-1])
 
@@ -124,6 +129,68 @@ def derive_guard(path):
     suffix = extension[1:].upper()
     guard = '_'.join(out + folders + [stem, suffix])
     return re.sub(r'[^A-Za-z0-9]+', '_', guard).upper()
+
+
+def merge_repeats(guard):
+    """A guard with each run of words that repeats the run before it merged
+    into one (ruling #71): DJINTERP_C_TEST_TEST_COMMON_H is
+    DJINTERP_C_TEST_COMMON_H, and a run of two or three words merges the same
+    way."""
+    words = guard.split('_')
+    merged = True
+    while merged:
+        merged = False
+        for size in (3, 2, 1):
+            for start in range(len(words) - 2 * size + 1):
+                if (words[start:start + size] ==
+                        words[start + size:start + 2 * size]):
+                    del words[start + size:start + 2 * size]
+                    merged = True
+                    break
+            if merged:
+                break
+    return '_'.join(words)
+
+
+GUARDS = None
+
+
+def guard_index():
+    """Every header's guard in the tree, merged, with the headers that would
+    take it, and every guard with its segments kept: what decides whether a
+    merge collides. Built once, from inc/."""
+    global GUARDS
+    if GUARDS is None:
+        merged = collections.defaultdict(set)
+        kept = set()
+        for directory, _, entries in os.walk(os.path.join(TREE, 'inc')):
+            for entry in entries:
+                if not entry.endswith(('.h', '.hpp')):
+                    continue
+                path = rel(os.path.join(directory, entry))
+                full = path_guard(path)
+                if full:
+                    merged[merge_repeats(full)].add(path)
+                    kept.add(full)
+        GUARDS = (merged, kept)
+    return GUARDS
+
+
+def derive_guard(path):
+    """The include guard a header's path derives (ruling #71): path_guard's,
+    its repeated segments merged, unless the merged guard is another header's,
+    merged or not; then every segment is kept. None where path_guard has
+    none."""
+    full = path_guard(path)
+    if full is None:
+        return None
+    merged = merge_repeats(full)
+    if merged == full:
+        return full
+    takers, kept = guard_index()
+    if (takers.get(merged, set()) - {path}) or merged in kept:
+        return full
+    return merged
 
 
 def check_banner(path, lines, report):
@@ -203,7 +270,11 @@ def check_guard(path, lines, report):
         report('G', 1, 'no include guard (want %s)' % want)
         return
     number, guard = found
-    if guard != want:
+    full = path_guard(path)
+    if guard == full and full != want:
+        report('M', number, 'the guard is %s; ruling #71 merges it to %s' % (
+            guard, want))
+    elif guard != want:
         report('G', number, 'the guard is %s; its path derives %s' % (
             guard, want))
     following = lines[number] if number < len(lines) else ''
