@@ -22,7 +22,7 @@
 * path:      /tests/unintegrated/c/env/t_env_printer.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -335,14 +335,15 @@ d_tests_env_printer_selection(void)
 
     D_TESTS_ENV_PRINTER_CHECK(d_tests_env_printer_shows(
         "sections=build",
-        "build.type\nbuild.debug\n"));
+        "build.type\nbuild.debug\nbuild.ndebug\nbuild.detected\n"));
     D_TESTS_ENV_PRINTER_CHECK(d_tests_env_printer_shows(
         "sections=core; select=build",
-        "build.type\nbuild.debug\n"));
+        "build.type\nbuild.debug\nbuild.ndebug\nbuild.detected\n"));
     D_TESTS_ENV_PRINTER_CHECK(d_tests_env_printer_shows(
         "sections=build,architecture; select=-build.type",
         "architecture.name\narchitecture.bits\narchitecture.pointer_bits\n"
-        "architecture.endianness\nbuild.debug\n"));
+        "architecture.endianness\narchitecture.detected\n"
+        "build.debug\nbuild.ndebug\nbuild.detected\n"));
     D_TESTS_ENV_PRINTER_CHECK(d_tests_env_printer_shows(
         "sections=all; select=-*, +*.name, -os.*, +os.hosted",
         "compiler.name\nos.hosted\narchitecture.name\n"));

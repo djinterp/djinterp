@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/c/dtime.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -421,18 +421,20 @@ int d_timespec_get(
 /**
  * @brief Sleeps for a high-resolution interval (POSIX nanosleep equivalent).
  *
- * @note Windows sleeps at millisecond resolution, raising a nonzero sub-
- *       millisecond request to 1 ms. Where neither POSIX nanosleep nor
- *       Windows is available, it uses C11's thrd_sleep where threads exist;
- *       else POSIX sleep(), whole seconds rounded up, on a POSIX platform;
- *       else it fails with ENOSYS.
+ * @note Windows sleeps at millisecond resolution, rounding a request up to a
+ *       whole millisecond, and never sleeps less than asked. Where neither
+ *       POSIX nanosleep nor Windows is available, it uses C11's thrd_sleep
+ *       where threads exist; else POSIX sleep(), whole seconds rounded up, on
+ *       a POSIX platform; else it fails with ENOSYS.
  *
  * @param[in]  _req  the interval; tv_nsec must be in [0, 999999999].
- * @param[out] _rem  receives the unslept time if the sleep is cut short; may be
+ * @param[out] _rem  receives the unslept time if the sleep is cut short, and is
+ *                   untouched otherwise, on every platform, as POSIX's
+ *                   nanosleep leaves it (Windows never cuts one short); may be
  *                   `NULL`.
  * @return `0` on success, or `-1` with errno set: EINVAL for a `NULL` or out-
- *         of-range `_req`; EINTR when interrupted (nanosleep, thrd_sleep);
- *         ENOSYS where the platform cannot sleep.
+ *         of-range `_req`; EINTR when interrupted (nanosleep, thrd_sleep,
+ *         sleep); ENOSYS where the platform cannot sleep.
  */
 int d_nanosleep(
     const struct timespec* _req,

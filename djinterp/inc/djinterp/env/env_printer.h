@@ -73,7 +73,7 @@
 * path:      /inc/djinterp/env/env_printer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -784,7 +784,12 @@ const char* d_env_style_template(int32_t _style,
  * @return the report, constant, alive for the program's life.
  *
  * A table, not logic: its length is the number of properties env.h detects,
- * and splitting it would only scatter the list.
+ * and splitting it would only scatter the list. Where env derives a value
+ * from a macro the compiler or system defines, the entry for that macro
+ * stands beside it (`stdc_version`, `posix_version`, `posix_c_source`,
+ * `xopen_version`, `ndebug`), so a wrong detection shows its cause; and each
+ * section env can be told not to detect ends with `detected`, false when the
+ * build pre-defined the section's results (D_CFG_ENV_CUSTOM).
  */
 D_STATIC_INLINE const struct dj_env_report*
 d_env_report_here(void)
@@ -820,6 +825,9 @@ d_env_report_here(void)
         D_INTERNAL_ENV_PRINTER_BOOL("long_long",
                                     "long long",
                                     D_ENV_HAS_LONG_LONG),
+        D_INTERNAL_ENV_PRINTER_BOOL("detected",
+                                    "Detected",
+                                    D_CFG_ENV_LANG_ENABLED),
     };
     static const struct dj_env_entry compiler[] =
     {
@@ -857,6 +865,9 @@ d_env_report_here(void)
                                    "Patch",
                                    D_ENV_COMPILER_PATCHLEVEL),
 #endif  // D_ENV_COMPILER_PATCHLEVEL
+        D_INTERNAL_ENV_PRINTER_BOOL("detected",
+                                    "Detected",
+                                    D_CFG_ENV_COMPILER_ENABLED),
     };
     static const struct dj_env_entry os[] =
     {
@@ -890,6 +901,9 @@ d_env_report_here(void)
                                     "Hosted",
                                     __STDC_HOSTED__),
 #endif  // __STDC_HOSTED__
+        D_INTERNAL_ENV_PRINTER_BOOL("detected",
+                                    "Detected",
+                                    D_CFG_ENV_OS_ENABLED),
     };
     static const struct dj_env_entry arch[] =
     {
@@ -917,6 +931,9 @@ d_env_report_here(void)
                                         : ( (D_ENV_ARCH_IS_BIG_ENDIAN)
                                             ? "Big"
                                             : "Unknown" )),
+        D_INTERNAL_ENV_PRINTER_BOOL("detected",
+                                    "Detected",
+                                    D_CFG_ENV_ARCH_ENABLED),
     };
     static const struct dj_env_entry posix[] =
     {
@@ -925,6 +942,21 @@ d_env_report_here(void)
                                     "POSIX",
                                     D_ENV_POSIX_NAME),
 #endif  // D_ENV_POSIX_NAME
+#ifdef D_ENV_POSIX_VERSION
+        D_INTERNAL_ENV_PRINTER_INT("version",
+                                   "Version",
+                                   D_ENV_POSIX_VERSION),
+#endif  // D_ENV_POSIX_VERSION
+#ifdef _POSIX_VERSION
+        D_INTERNAL_ENV_PRINTER_INT("posix_version",
+                                   "_POSIX_VERSION",
+                                   _POSIX_VERSION),
+#endif  // _POSIX_VERSION
+#ifdef _POSIX_C_SOURCE
+        D_INTERNAL_ENV_PRINTER_INT("posix_c_source",
+                                   "_POSIX_C_SOURCE",
+                                   _POSIX_C_SOURCE),
+#endif  // _POSIX_C_SOURCE
         D_INTERNAL_ENV_PRINTER_BOOL("available",
                                     "Available",
                                     D_ENV_POSIX_IS_AVAILABLE),
@@ -933,6 +965,16 @@ d_env_report_here(void)
                                     "XSI",
                                     D_ENV_POSIX_XSI_NAME),
 #endif  // D_ENV_POSIX_XSI_NAME
+#ifdef D_ENV_POSIX_XSI_VERSION
+        D_INTERNAL_ENV_PRINTER_INT("xsi_version",
+                                   "XSI Version",
+                                   D_ENV_POSIX_XSI_VERSION),
+#endif  // D_ENV_POSIX_XSI_VERSION
+#ifdef _XOPEN_VERSION
+        D_INTERNAL_ENV_PRINTER_INT("xopen_version",
+                                   "_XOPEN_VERSION",
+                                   _XOPEN_VERSION),
+#endif  // _XOPEN_VERSION
         D_INTERNAL_ENV_PRINTER_BOOL("threads",
                                     "Threads",
                                     D_ENV_POSIX_FEATURE_THREADS),
@@ -942,6 +984,21 @@ d_env_report_here(void)
         D_INTERNAL_ENV_PRINTER_BOOL("sockets",
                                     "Sockets",
                                     D_ENV_POSIX_FEATURE_SOCKETS),
+        D_INTERNAL_ENV_PRINTER_BOOL("shared_memory",
+                                    "Shared Memory",
+                                    D_ENV_POSIX_FEATURE_SHARED_MEMORY),
+        D_INTERNAL_ENV_PRINTER_BOOL("semaphores",
+                                    "Semaphores",
+                                    D_ENV_POSIX_FEATURE_SEMAPHORES),
+        D_INTERNAL_ENV_PRINTER_BOOL("message_queues",
+                                    "Message Queues",
+                                    D_ENV_POSIX_FEATURE_MESSAGE_QUEUES),
+        D_INTERNAL_ENV_PRINTER_BOOL("memory_mapping",
+                                    "Memory Mapping",
+                                    D_ENV_POSIX_FEATURE_MEMORY_MAPPING),
+        D_INTERNAL_ENV_PRINTER_BOOL("detected",
+                                    "Detected",
+                                    D_CFG_ENV_POSIX_ENABLED),
     };
     static const struct dj_env_entry pp_limits[] =
     {
@@ -980,6 +1037,18 @@ d_env_report_here(void)
                                     "Debug",
                                     0),
 #endif  // D_ENV_BUILD_DEBUG
+#ifdef NDEBUG
+        D_INTERNAL_ENV_PRINTER_BOOL("ndebug",
+                                    "NDEBUG",
+                                    1),
+#else
+        D_INTERNAL_ENV_PRINTER_BOOL("ndebug",
+                                    "NDEBUG",
+                                    0),
+#endif  // NDEBUG
+        D_INTERNAL_ENV_PRINTER_BOOL("detected",
+                                    "Detected",
+                                    D_CFG_ENV_BUILD_ENABLED),
     };
     static const struct dj_env_entry c_runtime[] =
     {

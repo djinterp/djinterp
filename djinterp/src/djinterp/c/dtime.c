@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/dtime.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dtime.h"      // corresponding header
 // std
@@ -829,16 +829,27 @@ int d_nanosleep(
 
 /*
 d_nanosleep
-  Windows: Sleep has millisecond resolution, so the request is truncated to
-whole milliseconds, with a nonzero sub-millisecond request raised to 1 ms.
-When _rem is given, the performance counter measures the sleep, and the
-remainder is whatever part of the request it fell short of -- usually nothing.
+  Windows: Sleep has millisecond resolution, and a request below the system
+clock's can return early, so the performance counter measures the sleep and
+what the request is still owed is slept again, rounded up to a millisecond: a
+success means the whole interval passed, as POSIX's nanosleep promises. Sleep
+cannot be cut short, so _rem, which receives only what a cut-short sleep
+left, is never written (the owner's ruling of 2026-11-07). Without a counter
+it sleeps once.
 */
 int d_nanosleep(
     const struct timespec* _req,
     struct timespec*       _rem
 )
 {
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER start;
+    LARGE_INTEGER now;
+    int64_t       requested_ns;
+    int64_t       elapsed_ns;
+    int64_t       ticks;
+    DWORD         milliseconds;
+
     // parameter validation
     if (!_req)
     {
@@ -856,10 +867,12 @@ int d_nanosleep(
         return -1;
     }
 
-    // Windows implementation using Sleep
+    // a sleep here is never cut short, so nothing is left to report
+    (void)_rem;
+
     // convert to milliseconds (Sleep only has ms resolution)
-    DWORD milliseconds = (DWORD)((_req->tv_sec * D_TIME_MSEC_PER_SEC) +
-                                 (_req->tv_nsec / D_TIME_NSEC_PER_MSEC));
+    milliseconds = (DWORD)((_req->tv_sec * D_TIME_MSEC_PER_SEC) +
+                           (_req->tv_nsec / D_TIME_NSEC_PER_MSEC));
 
     // handle sub-millisecond requests
     if ( (milliseconds == 0) &&
@@ -869,40 +882,39 @@ int d_nanosleep(
         milliseconds = 1;
     }
 
-    LARGE_INTEGER frequency = {0};
-    LARGE_INTEGER start     = {0};
-    LARGE_INTEGER end       = {0};
+    requested_ns = ((int64_t)_req->tv_sec * D_TIME_NSEC_PER_SEC) +
+                   (int64_t)_req->tv_nsec;
 
-    if (_rem)
+    if ( (!QueryPerformanceFrequency(&frequency)) ||
+         (frequency.QuadPart <= 0)                ||
+         (!QueryPerformanceCounter(&start)) )
     {
-        QueryPerformanceFrequency(&frequency);
-        QueryPerformanceCounter(&start);
+        Sleep(milliseconds);
+
+        return 0;
     }
 
     Sleep(milliseconds);
 
-    if (_rem)
+    // sleep what the request is still owed, if Sleep returned early
+    for (;;)
     {
-        QueryPerformanceCounter(&end);
+        (void)QueryPerformanceCounter(&now);
 
-        const int64_t elapsed_ns   = ((end.QuadPart - start.QuadPart) *
-                                      D_TIME_NSEC_PER_SEC) /
-                                     frequency.QuadPart;
-        const int64_t requested_ns = (_req->tv_sec * D_TIME_NSEC_PER_SEC) +
-                                     _req->tv_nsec;
+        // whole seconds and the rest apart, so a long sleep cannot overflow
+        ticks      = now.QuadPart - start.QuadPart;
+        elapsed_ns = ( (ticks / frequency.QuadPart) * D_TIME_NSEC_PER_SEC ) +
+                     ( ( (ticks % frequency.QuadPart) * D_TIME_NSEC_PER_SEC ) /
+                       frequency.QuadPart );
 
-        if (elapsed_ns < requested_ns)
+        if (elapsed_ns >= requested_ns)
         {
-            const int64_t remaining = requested_ns - elapsed_ns;
+            break;
+        }
 
-            _rem->tv_sec  = (time_t)(remaining / D_TIME_NSEC_PER_SEC);
-            _rem->tv_nsec = (long)(remaining % D_TIME_NSEC_PER_SEC);
-        }
-        else
-        {
-            _rem->tv_sec  = 0;
-            _rem->tv_nsec = 0;
-        }
+        Sleep((DWORD)( ( (requested_ns - elapsed_ns) +
+                         (D_TIME_NSEC_PER_MSEC - 1) ) /
+                       D_TIME_NSEC_PER_MSEC ));
     }
 
     return 0;
@@ -957,7 +969,9 @@ int d_nanosleep(
 /*
 d_nanosleep
   Fallback on a POSIX platform without nanosleep: sleep(), with any
-fractional second rounded up to a whole one, and no remaining time reported.
+fractional second rounded up to a whole one. sleep() returns the whole
+seconds a signal left unslept: that is EINTR, with the seconds in _rem, which
+a sleep that completes leaves untouched, as nanosleep does.
 */
 int d_nanosleep(
     const struct timespec* _req,
@@ -982,6 +996,7 @@ int d_nanosleep(
     }
 
     unsigned int seconds = (unsigned int)_req->tv_sec;
+    unsigned int left;
 
     // round a fractional second up
     if (_req->tv_nsec > 0)
@@ -989,15 +1004,25 @@ int d_nanosleep(
         seconds += 1;
     }
 
-    if (seconds > 0)
+    if (seconds == 0)
     {
-        (void)sleep(seconds);
+        return 0;
     }
 
-    if (_rem)
+    left = sleep(seconds);
+
+    // a signal cut the sleep short
+    if (left != 0)
     {
-        _rem->tv_sec  = 0;
-        _rem->tv_nsec = 0;
+        if (_rem)
+        {
+            _rem->tv_sec  = (time_t)left;
+            _rem->tv_nsec = 0;
+        }
+
+        errno = EINTR;
+
+        return -1;
     }
 
     return 0;
