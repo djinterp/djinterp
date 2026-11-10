@@ -4,13 +4,13 @@
 # The repository: djinterp, which contains bitwisedom.
 #   DJINTERP_ROOT defaults to the containing repository, derived from this
 # file's own location, and is validated here rather than at first use.
-# uxoxo, which only the window needs, is build/cmake/config/ui's to find: the
-# window lives outside the djinterp tree.
+# What only the window needs is build/cmake/config/ui's to find: the window
+# lives outside the djinterp tree.
 #
 # path:      /build/cmake/config/djinterp/tools/bitwisedom/cmake/ProjectRoots.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 include_guard(GLOBAL)
 

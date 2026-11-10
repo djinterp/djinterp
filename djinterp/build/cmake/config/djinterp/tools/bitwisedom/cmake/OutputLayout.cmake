@@ -59,10 +59,11 @@ set(BITWISEDOM_BIN_DIR "${BITWISEDOM_ROOT}/bin/tools/bitwisedom"
     CACHE PATH "Destination for bitwisedom executables and libraries")
 
 # bitwisedom_output(<target>)
-#   Use target-specific properties, not global CMAKE_*_OUTPUT_DIRECTORY:
-# dependency projects such as uxoxo own their output layout. Multi-config
-# generators must be told each configuration's directory to avoid adding
-# /Release or /Debug after the requested directory.
+#   Use target-specific properties, not global CMAKE_*_OUTPUT_DIRECTORY: a
+# build that includes this one, and the projects it adds, own their output
+# layout. Multi-config generators must be told each configuration's
+# directory to avoid adding /Release or /Debug after the requested
+# directory.
 function(bitwisedom_output _target)
     set(_stem "${_target}-${BITWISEDOM_PLATFORM_TAG}")
     set_target_properties(${_target} PROPERTIES

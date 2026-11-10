@@ -15,7 +15,7 @@
 # path:      /build/cmake/config/djinterp/tools/bitwisedom/cmake/toolchains/mingw-w64-x86_64.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.23
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 set(CMAKE_SYSTEM_NAME      Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
@@ -31,7 +31,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 # pkg-config too looks in the sysroot only, or it hands back the build
-# machine's libraries (its GLFW, say) for a Windows target
+# machine's libraries (a window's, say) for a Windows target
 set(ENV{PKG_CONFIG_LIBDIR} "${CMAKE_FIND_ROOT_PATH}/lib/pkgconfig")
 set(ENV{PKG_CONFIG_PATH}   "")
 

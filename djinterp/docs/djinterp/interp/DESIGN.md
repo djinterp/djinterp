@@ -1,15 +1,64 @@
 # The djinterp interpreter and its command language: design
 
-Lane G, 2026-11-04. For agreement with lanes F (parse), E (options, the
-registry, desc) and H (dawk) by Friday 11-06, as the brief asks; the owner
-rules what they do not settle. Release numbers are the renumbered ones: 0.8
-on 11-30 carries the CLI preview with djins, 0.9 on 12-30 the interpreter
-and the language.
+Lane G, 2026-11-04, amended 2026-11-09. For agreement with lanes F
+(parse), E (options, the registry, desc) and H (dawk) by Friday 11-06, as
+the brief asks; the owner rules what they do not settle. Lane F agreed on
+11-05; section 0 says what that settled. Release numbers are the
+renumbered ones: 0.8 on 11-30 carries the CLI preview with djins, 0.9 on
+12-30 the interpreter and the language.
 
 Read with `inc/djinterp/cpp/modules/parse/grammar/djinterp.peg` (the
-normative grammar), `inc/djinterp/cpp/modules/parse/functional_cli.hpp`
-(the spine that runs a subset of it today), the cli registers' rulings
+normative grammar), `inc/djinterp/cpp/modules/interp/spine.hpp` (the spine
+that runs a subset of it today, parse's `functional_cli.hpp` until 11-09),
+`docs/djinterp/parse/expression_core_v2.md` (lane F's design, whose section
+17.2 is this note's other half), the cli registers' rulings
 (`docs/djinterp_decisions.md`, Part C) and `desc.txt`.
+
+
+## 0. Agreed since 11-04
+
+With lane F, on 11-05 (`G_to_F_2026-11-05.md` and F's reply; core v2's
+design, 17.2), checked on F's delivery of 11-06:
+
+- **Core v2 carries the command language.** F1 to F6 of section 8 are in
+  F's C core: non-associative comparisons refused at the second operator,
+  with a note at the first (`'==' cannot follow '<' without brackets`); the
+  command as a custom role on a word in operand position; tokens of the
+  interpreter's own classes, pulled from its source, which is told the
+  position and the mode; spans that `d_parse_expr_locate` turns into the
+  line and the column (in code points) that the kit's `d_cli_report_at`
+  takes; a term in a post-order arena; and the renderer. F7 is G's patch of
+  11-09 to `djinterp.peg` and its companions (section 4), which F takes in
+  week 3.
+- **A command's node.** `cmd(verb, arg1, ..., argN)`: the verb first, each
+  word a leaf of its token's class whose span is the word as written and
+  whose value indexes the interpreter's table of words with the quoting
+  taken out; a block an apply node in its place. `cmd` is an operator only
+  the role builds -- core v2 allows one -- defined as a flattening infix
+  spelled `""` at 90, so that the renderer writes `ls -l | grep x` back.
+- **Blocks.** A block, `{ Sequence }`, is read by core v2's sub-parse (F's
+  week 2) with `}` among the classes that end it. A raw block -- awk's -- is
+  read through a hook's own mode (core v2's F19): the hook takes `{` in the
+  parse's mode, the body in its own (a bit other than 1, the parse's), and
+  `}` in the parse's again. Core v2's stop option (F17) is the other way to
+  read a block's sequence; G chooses between them when blocks are built.
+- **G's own choices, from F's design.** `and` and `or` are built flattened,
+  as `|` and `;` are: the meaning is the same, short-circuit runs over the
+  list, and a long predicate stays shallow under the depth guard. The source
+  reads a newline as `;` in operator position and as nothing in operand
+  position, and drops a separator before a closing bracket, a closing brace
+  or the end (P1). The evaluator walks the arena with its own stack -- lazy
+  `and` and `or`, a pipeline that stops at its first failure -- so F5 needs
+  nothing past the term's layout; strict folds serve `describe` and
+  rendering.
+- **Not in the language:** an implied `and` between two predicates, and
+  `if ... then ... else`; F's design said both, and is corrected.
+- **The command language's table and suites** live in the interpreter's
+  module (`tests/djinterp/cpp/modules/interp/`); core v2's suite keeps its
+  own command-line-like cases.
+
+Lanes E and H have not answered this note yet; sections 6 and 7, and E1 to
+E6 and H1 to H3, stand as written until they do.
 
 
 ## 1. What is decided here
@@ -42,10 +91,14 @@ its whole-module docs in `docs/djinterp/interp/` (ruling rs c). Later its C
 core in `c/modules/interp/`, as parse has both.
 
 - `functional_cli.hpp` moves there as `interp/spine.hpp` (agreed with lane F
-  in the brief). Nothing includes it today, so the move breaks no unit. Its
-  namespace becomes `djinterp::interp`; `D_KEYWORD_CLI` and `NS_CLI`, which
-  only it uses, go with it. Its two variable templates take
-  `D_CONSTEXPR_INLINE_VAR`, as `cpp/cli` now does.
+  in the brief; done 11-09). Nothing includes it, so the move breaks no
+  unit. Its namespace becomes `djinterp::interp`, opened by
+  `D_KEYWORD_INTERP` and `NS_INTERP`, which the header defines until the
+  root's keyword list (`djinterp.h`) names them; `D_KEYWORD_CLI` is the
+  root's, and stays. Its two variable templates take
+  `D_CONSTEXPR_INLINE_VAR`, as `cpp/cli` now does. Its suite,
+  `tests/djinterp/cpp/modules/interp/spine_tests.cpp`, holds what it does
+  as it moved.
 - The program, `djinterp`, is a tool on the kit like bitwisedom and vparse:
   `src/djinterp/tools/djinterp/` for its `main` and its built-in djins, its
   CMake leaf in `build/cmake/config/djinterp/tools/djinterp/`. The doubled
@@ -141,6 +194,19 @@ proposals, to agree on Friday. Numbers are this note's.
 | P6 | `#` begins a comment anywhere. | `C#`, `http://h/p#frag` are cut. | A comment begins only where a token could: at the start of input or after a blank, as `sh` reads it. |
 | P7 | A string has no escape for its own quote, and quoted and bare parts do not join into one word, which the reader already does. | `"say \"hi\""`; `--name="a b"c`. | `sh`'s: single quotes literal; in double quotes `\"` and `\\`; a word is a run of bare and quoted parts. The reader and the grammar then agree. |
 | P8 | A command takes no expression as an argument, so a predicate cannot be handed to a command that applies it. | `ls \| where size > 100` parses as `ls \| ((where size) > 100)`: the comparison is the stage, and `where` never sees it. | A block operand, `{ Sequence }`, evaluated by the command that takes it, once per item or once, as it says: `ls \| where { size > 100 }`. It is also awk's `pattern { action }` shape (section 7). |
+
+**Amended 11-09, with the patch** (`G_2026.11.09_djinterp_grammar.patch`,
+for lane F). Reading the grammar again to write it changed two rows. P1:
+inside brackets a newline is read as it is outside, as `sh` reads it --
+`(a` newline `b)` is two commands -- rather than as a blank, since one rule
+is simpler and a pipeline or predicate already continues on the next line
+after its operator; a separator may end a sequence, inside brackets too.
+P6: the grammar already begins a comment only where a token could, and the
+reader has no comments at all; the one word a comment cut is a quoted part
+before `#` (`"x"#y`), which P7's joined words make whole, so P6 is a note in
+the grammar, not a change to a rule. The patch also makes `{` and `}`
+metacharacters, as `(` and `)` are, for P8. The patched grammar was run, as
+written, by a small PEG interpreter over 81 cases.
 
 **G-D3. Precedence stays as the PEG has it**: `|` binds looser than `and`
 and `or`, so `test -f x and test -r x | report` hands the predicate's answer
@@ -323,6 +389,9 @@ To lane F, for core v2's design and the grammar:
 - **F7.** P1 to P8 into `djinterp.peg` (and its ABNF and EBNF companions),
   as agreed; the command grammar in week 3 follows them.
 
+*11-09:* F1 to F6 are in F's delivery of 11-06 (section 0); F7 is G's
+patch of 11-09, for F to take in week 3.
+
 To lane E, for the registry (frozen 11-13) and desc:
 
 - **E1.** The registry's row type, and rows named `DJIN.KEY` with a djin's
@@ -362,7 +431,9 @@ To lane A:
 
 | When | What |
 |---|---|
-| Fri 11-06 | This note agreed or amended with F, E and H. |
+| Fri 11-06 | This note agreed or amended with F, E and H. *F agreed 11-05; E and H to come.* |
+| Mon 11-09 | The grammar patch for F; the spine moved to `interp`. |
+| Wed 11-11 | The djin records (6.2) and the program's `list` and `describe`, on a stand-in for E's registry. |
 | Fri 11-13 | E's registry and option pattern; F's core v2 code. The kit's options on E's pattern. |
 | Weeks 2 and 3 | The 0.8 preview (6.4): `list`, `describe`, `get`, `set`, a djin's commands run; the interpreter's skeleton on core v2 -- sequences and pipelines -- behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |

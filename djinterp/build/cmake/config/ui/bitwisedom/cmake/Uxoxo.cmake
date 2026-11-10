@@ -23,7 +23,7 @@
 # path:      /build/cmake/config/ui/bitwisedom/cmake/Uxoxo.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.23
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -103,7 +103,7 @@ if(NOT _bitwisedom_inset MATCHES
 endif()
 
 set(UXOXO_CXX_STANDARD ${BITWISEDOM_CXX_STANDARD} CACHE STRING
-    "C++ level for uxoxo: 17, 20 or 23")
+    "C++ level for uxoxo, bitwisedom's by default: 17, 20 or 23")
 set(UXOXO_BUILD_TESTS ${BITWISEDOM_BUILD_UXOXO_TESTS} CACHE BOOL
     "Build uxoxo's own tests" FORCE)
 

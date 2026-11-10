@@ -2,8 +2,9 @@
 # bitwisedom [bitwisedom]                                         CMakeLists.txt
 #
 # bitwisedom: a bitfield manager on djinterp -- the model and the command
-# line. The window is not built here: it is uxoxo's, and lives outside the
-# djinterp tree, in build/cmake/config/ui/bitwisedom, whose build includes this one.
+# line. The window is not built here: it lives outside the djinterp tree, in
+# build/cmake/config/ui/bitwisedom, whose build includes this one and brings
+# what the window is built on.
 #   The build is vparse's shape: the repository's root is a cache variable
 # (cmake/ProjectRoots.cmake), djinterp is consumed as headers, its C/C++
 # lexer and its command-line kit, compiled as C (cmake/Djinterp.cmake), and
@@ -29,7 +30,7 @@
 # path:      /build/cmake/config/djinterp/tools/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.24
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.21)
 
@@ -42,7 +43,8 @@ option(BITWISEDOM_BUILD_TESTS        "Build the tests"                  ON)
 option(BITWISEDOM_WARNINGS_AS_ERRORS "Treat warnings as errors"         OFF)
 
 # the version every part is built at -- the command line's, and the one the
-# window's module must match -- for build/cmake/config/ui, which includes this build
+# window's module must match -- for build/cmake/config/ui, which includes this
+# build
 set(BITWISEDOM_VERSION "${PROJECT_VERSION}" CACHE INTERNAL
     "bitwisedom's version, as the command line and its modules are built")
 

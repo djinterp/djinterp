@@ -8,16 +8,17 @@
 # them to the style guide's whole baseline: -Wall -Wextra -Wshadow
 # -Wcast-qual -Wconversion under -pedantic-errors and -Werror=undef, and
 # under Clang -Wreserved-identifier and -Wdocumentation besides. Every
-# dependency's headers -- djinterp's, uxoxo's, ImGui's, GLFW's -- are system
-# headers to these targets, and so not judged by their warnings.
+# dependency's headers -- djinterp's, and those a build that includes this one
+# adds -- are system headers to these targets, and so not judged by their
+# warnings.
 #   bitwisedom_apply_dependency_defaults() is for code this build compiles
 # without owning it: the level and the source character set, and, under cl,
 # the conforming preprocessor, since that code reads djinterp's headers too.
 #   LEVELS. bitwisedom's floor is C++17 -- the floor of the djinterp
-# headers it stands on, and of uxoxo's, which build/cmake/config/ui adds for the
-# window -- and BITWISEDOM_CXX_STANDARD picks 17, 20 or
-# 23, defaulting to 20. Below the floor every bitwisedom header is empty, as
-# djinterp's are below theirs.
+# headers it stands on -- and BITWISEDOM_CXX_STANDARD picks 17, 20 or 23,
+# defaulting to 20; the window's build gives what it adds the same level.
+# Below the floor every bitwisedom header is empty, as djinterp's are below
+# theirs.
 #   UNDER A CL-STYLE DRIVER (cl, clang-cl): /utf-8, because the trees are
 # UTF-8 without a byte-order mark; /Zc:__cplusplus and /Zc:preprocessor, as
 # vparse gives them; /permissive- and /EHsc; and /bigobj.
@@ -25,18 +26,18 @@
 # path:      /build/cmake/config/djinterp/tools/bitwisedom/cmake/CompilerSetup.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 include_guard(GLOBAL)
 
 set(BITWISEDOM_CXX_STANDARD 20 CACHE STRING
-    "C++ level for bitwisedom and uxoxo: 17, 20 or 23")
+    "C++ level for bitwisedom: 17, 20 or 23")
 set_property(CACHE BITWISEDOM_CXX_STANDARD PROPERTY STRINGS 17 20 23)
 
 if(NOT BITWISEDOM_CXX_STANDARD MATCHES "^(17|20|23)$")
     message(FATAL_ERROR
         "BITWISEDOM_CXX_STANDARD is '${BITWISEDOM_CXX_STANDARD}'; it must be "
-        "17, 20 or 23. bitwisedom's floor, and uxoxo's, is C++17.")
+        "17, 20 or 23. bitwisedom's floor is C++17.")
 endif()
 
 if(NOT "cxx_std_${BITWISEDOM_CXX_STANDARD}" IN_LIST CMAKE_CXX_COMPILE_FEATURES)

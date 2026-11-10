@@ -9,8 +9,8 @@
 # brought, and the tests would run the code of the overlay before -- and
 # fail on the section counts it changed. So each configure keeps a hash of
 # every source it watches -- bitwisedom's own and the kit's here, and in
-# build/cmake/config/ui the window's and uxoxo's with the Dear ImGui in it -- in
-# the build tree, and touches each whose content differs
+# build/cmake/config/ui the window's and what it is built on -- in the build
+# tree, and touches each whose content differs
 # from the hash the last configure kept: the build then sees it as new, and
 # compiles it, and what includes it, again. A build tree configured before
 # it kept any hashes, but configured all the same, has every source touched
@@ -25,7 +25,7 @@
 # path:      /build/cmake/config/djinterp/tools/bitwisedom/cmake/Freshness.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -46,7 +46,7 @@ function(bitwisedom_freshen _stamp)
              "${_root}/*.c" "${_root}/*.cpp" "${_root}/*.h"
              "${_root}/*.hpp" "${_root}/*.inc" "${_root}/*.inl")
 
-        # what no build compiles: ImGui's examples and documents
+        # what no build compiles: a watched project's examples and documents
         list(FILTER _found EXCLUDE REGEX "/(examples|docs|\\.git)/")
         list(APPEND _files ${_found})
     endforeach()
