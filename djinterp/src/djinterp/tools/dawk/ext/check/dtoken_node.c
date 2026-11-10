@@ -75,6 +75,45 @@
 // is asked what it counts as; a list has at most the alphabet's letters.
 #define D_INTERNAL_LIST_MAX 32
 
+// 1.1.6
+// D_INTERNAL_SCOPE_DEPTH_MAX
+//   constant: the most namespace macros one scope holds open at once that
+// are told apart; djinterp's deepest headers open four.
+#define D_INTERNAL_SCOPE_DEPTH_MAX 32
+
+// 1.1.7
+// D_INTERNAL_SCOPE_OPEN, D_INTERNAL_SCOPE_CLOSE, D_INTERNAL_SCOPE_MACROS
+//   constant: djinterp's namespace macros, for parse to read as a namespace's
+// opening and closing in C++.  c/djinterp_cpp.h defines D_NAMESPACE, NS_END
+// and the framework's own; a module defines its own beside its code, as
+// net_common.hpp does NS_NET, so a module that adds one adds it here too.
+// The list is djinterp's; a sheet setting can give another project its own
+// when one needs it (H18).
+static const char* const D_INTERNAL_SCOPE_OPEN[] =
+{
+    "D_NAMESPACE",
+    // c/djinterp_cpp.h
+    "NS_CONCEPTS",  "NS_CONTAINER", "NS_DATABASE",  "NS_DJINTERP",
+    "NS_ERROR",     "NS_EXCEPTION", "NS_INTERNAL",  "NS_MATH",
+    "NS_MESSAGE",   "NS_PARADIGM",  "NS_TEST",      "NS_TESTING",
+    "NS_TRAITS",    "NS_UI",
+    // the modules' and utilities' own
+    "NS_ARENA",     "NS_CLI",       "NS_CSS",       "NS_FIXTURES",
+    "NS_GIT",       "NS_MAP",       "NS_NET",       "NS_PARSE",
+    "NS_PARSEGEN",  "NS_VPARSE",    "NS_WEB",
+    NULL
+};
+static const char* const D_INTERNAL_SCOPE_CLOSE[] =
+{
+    "NS_END",
+    NULL
+};
+static const struct dj_syntax_options D_INTERNAL_SCOPE_MACROS =
+{
+    D_INTERNAL_SCOPE_OPEN,
+    D_INTERNAL_SCOPE_CLOSE
+};
+
 // 1.2    Types
 //------------------------------------------------------------------------------
 // 1.2.1
@@ -100,6 +139,8 @@ struct dj_internal_build
     uint32_t*                  head_of;     // per token: first item begun there
     uint32_t*                  next_start;  // per item: next begun at its token
     uint8_t*                   declarator;  // per token: a declared name
+    uint8_t*                   macro_lift;  // per item: the namespace macros
+                                            // around it that indent
 
     const struct dj_lex_dialect* dialect;    // the language being read
 
@@ -127,6 +168,22 @@ struct dj_internal_fn_facts
 //==============================================================================
 // 2.  SPELLING AND SHAPE
 //==============================================================================
+
+
+/**
+ * @brief Reports whether the build reads C++.
+ *
+ * @param[in] _build  the build.
+ * @return true when its dialect is C++'s, false for C and for none.
+ */
+static
+bool d_internal_is_cpp(
+    const struct dj_internal_build* _build
+)
+{
+    return ( (_build->dialect) &&
+             (strcmp(_build->dialect->language, "c++") == 0) );
+}
 
 
 /**
@@ -1300,8 +1357,9 @@ bool d_internal_down_a_case(
  *
  * @param[in] _build  the build.
  * @param[in] _k      an item's index.
- * @return true when the item is a `namespace` block whose first item opens a
- *         line further right than the block does; false otherwise.
+ * @return true when the item is a `namespace` block whose first item, past
+ *         any under a conditional the block is not under, opens a line
+ *         further right than the block does; false otherwise.
  */
 static
 bool d_internal_namespace_indents(
@@ -1318,12 +1376,13 @@ bool d_internal_namespace_indents(
         return false;
     }
 
-    // the first item recognized in the namespace's braces
     for (uint32_t at = _k + 1u; at < (uint32_t)_build->items.count; ++at)
     {
         const struct dj_syntax_item* const inner = &_build->items.items[at];
 
-        if (inner->scope == item->body)
+        // the first item at the namespace's own conditional depth
+        if ( (inner->scope == item->body) && (inner->parent == D_SYNTAX_NONE) &&
+             (inner->pp_total == item->pp_total) )
         {
             return ( ((_build->tokens[inner->first].flags &
                        D_TOKEN_FLAG_LINE_START) != 0u)            &&
@@ -1343,7 +1402,8 @@ bool d_internal_namespace_indents(
  * @param[in] _k      the item's index.
  * @return one for each block down a case (d_internal_down_a_case) that is the
  *         item or holds it, and one for each namespace around it that indents
- *         what it holds (d_internal_namespace_indents).
+ *         what it holds: a `namespace` block (d_internal_namespace_indents) or
+ *         a namespace macro (d_internal_macro_scopes).
  */
 static
 unsigned d_internal_lift(
@@ -1365,13 +1425,16 @@ unsigned d_internal_lift(
 
         lift += d_internal_down_a_case(_build, at) ? 1u : 0u;
 
-        // the namespace holding it, which is never the item itself
+        // the namespace holding it, which is never the item itself, and the
+        // namespace macros around it in its scope
         if ( (out != at) && (out != D_SYNTAX_NONE) &&
              (item->parent == D_SYNTAX_NONE) &&
              (d_internal_namespace_indents(_build, out)) )
         {
             ++lift;
         }
+
+        lift += (item->parent == D_SYNTAX_NONE) ? _build->macro_lift[at] : 0u;
 
         at = (out != at) ? out : D_SYNTAX_NONE;
     }
@@ -3121,12 +3184,10 @@ const char* d_internal_fn_returns(
 )
 {
     const struct dj_syntax_item* const item = &_build->items.items[_k];
-    const bool                        cpp  =
-        ( (_build->dialect) &&
-          (strcmp(_build->dialect->language, "c++") == 0) );
 
     if ( (d_internal_fn_no_return(_build, _k)) ||
-         ( (cpp) && (d_internal_fn_special(_build, _k)) ) )
+         ( (d_internal_is_cpp(_build)) &&
+           (d_internal_fn_special(_build, _k)) ) )
     {
         return "none";
     }
@@ -3548,6 +3609,113 @@ uint32_t d_internal_item_container(
 
 
 /**
+ * @brief Reports whether a namespace macro indents what it holds.
+ *
+ * As a `namespace` block does (d_internal_namespace_indents): its contents
+ * stand where its first item does.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      an `open` item's index.
+ * @return true when the item after it in its scope -- braceless bodies, and
+ *         items under a conditional the macro is not under, skipped -- is no
+ *         `close` and opens a line further right than the macro does; false
+ *         otherwise.
+ */
+static
+bool d_internal_macro_indents(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const items = _build->items.items;
+    const struct dj_token* const       macro =
+        &_build->tokens[items[_k].first];
+
+    for (uint32_t at = _k + 1u; at < (uint32_t)_build->items.count; ++at)
+    {
+        const struct dj_syntax_item* const inner = &items[at];
+        const struct dj_token* const       first =
+            &_build->tokens[inner->first];
+
+        if (inner->scope != items[_k].scope)
+        {
+            return false;
+        }
+
+        // an item under a conditional the macro is not under stands where
+        // the conditional puts it
+        if ( (inner->parent == D_SYNTAX_NONE) &&
+             (inner->pp_total == items[_k].pp_total) )
+        {
+            return ( !( (inner->kind == D_SYNTAX_ITEM_BLOCK) &&
+                        (inner->statement == D_SYNTAX_STMT_CLOSE) ) &&
+                     ((first->flags & D_TOKEN_FLAG_LINE_START) != 0u) &&
+                     (first->span.column > macro->span.column) );
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Counts, for every item, the namespace macros around it that indent.
+ *
+ * Parse reads `NS_DJINTERP` and `NS_END` as `open` and `close` items among
+ * the others of their scope, so a macro's contents are the items between
+ * it and its `close`. One forward pass keeps each scope's open macros on a
+ * stack, since a scope's items are recognized together. A `close` stands
+ * where its `open` does, outside what they hold.
+ *
+ * @param[in,out] _build  the build, its `macro_lift` allocated.
+ */
+static
+void d_internal_macro_scopes(
+    struct dj_internal_build* _build
+)
+{
+    uint8_t  indents[D_INTERNAL_SCOPE_DEPTH_MAX] = { 0u };
+    uint32_t depth                              = 0u;
+    uint32_t lift                               = 0u;
+    uint32_t scope                              = D_SYNTAX_NONE;
+
+    for (uint32_t k = 0u; k < (uint32_t)_build->items.count; ++k)
+    {
+        const struct dj_syntax_item* const item  = &_build->items.items[k];
+        const bool                         block =
+            ( (item->kind == D_SYNTAX_ITEM_BLOCK) &&
+              (item->parent == D_SYNTAX_NONE) );
+
+        // a new scope starts with nothing open
+        if ( (k == 0u) || (item->scope != scope) )
+        {
+            scope = item->scope;
+            depth = 0u;
+            lift  = 0u;
+        }
+
+        if ( (block) && (item->statement == D_SYNTAX_STMT_CLOSE) &&
+             (depth > 0u) )
+        {
+            lift -= indents[--depth];
+        }
+
+        _build->macro_lift[k] = (uint8_t)((lift < 255u) ? lift : 255u);
+
+        // past the deepest a stack keeps, an open macro indents nothing
+        if ( (block) && (item->statement == D_SYNTAX_STMT_OPEN) &&
+             (depth < D_INTERNAL_SCOPE_DEPTH_MAX) )
+        {
+            indents[depth] = d_internal_macro_indents(_build, k) ? 1u : 0u;
+            lift          += indents[depth++];
+        }
+    }
+
+    return;
+}
+
+
+/**
  * @brief Computes everything emission reads ahead of the token it is at.
  *
  * Brace depth, which a function's nesting reads across its whole body; the
@@ -3599,6 +3767,8 @@ void d_internal_prepare(
 
         *link = k;
     }
+
+    d_internal_macro_scopes(_build);
 
     return;
 }
@@ -3679,12 +3849,79 @@ void d_internal_release(
     free(_build->head_of);
     free(_build->next_start);
     free(_build->declarator);
+    free(_build->macro_lift);
     free(_build->cond_macro);
     free(_build->cond_kind);
     free(_build->cond_hash);
     free(_build->cond_else);
 
     return;
+}
+
+
+/**
+ * @brief Recognizes a grouped build's items.
+ *
+ * In C++, djinterp's namespace macros open and close namespaces as the
+ * keyword does, so parse is told their spellings (D_INTERNAL_SCOPE_MACROS).
+ *
+ * @param[in,out] _build  the build, lexed and grouped.
+ * @return true when the items were recognized, false if memory ran out.
+ */
+static
+bool d_internal_recognize(
+    struct dj_internal_build* _build
+)
+{
+    return d_syntax_items_build_with(_build->tokens,
+                                     _build->count,
+                                     &_build->groups,
+                                     _build->source->text,
+                                     (d_internal_is_cpp(_build))
+                                         ? &D_INTERNAL_SCOPE_MACROS
+                                         : NULL,
+                                     &_build->items);
+}
+
+
+/**
+ * @brief Allocates the arrays emission reads, per token and per item.
+ *
+ * @param[in,out] _build  the build, its items recognized.
+ * @return true when every array was allocated; false otherwise, the ones
+ *         that were left for d_internal_release.
+ */
+static
+bool d_internal_allocate(
+    struct dj_internal_build* _build
+)
+{
+    const size_t slots = _build->count + 1u;
+    const size_t items = _build->items.count + 1u;
+
+    _build->node_of    = malloc(slots * sizeof(uint32_t));
+    _build->depth      = malloc(slots * sizeof(uint32_t));
+    _build->head_of    = malloc(slots * sizeof(uint32_t));
+    _build->declarator = malloc(slots * sizeof(uint8_t));
+    _build->item_node  = malloc(items * sizeof(uint32_t));
+    _build->next_start = malloc(items * sizeof(uint32_t));
+    _build->macro_lift = malloc(items * sizeof(uint8_t));
+    _build->cond_macro = malloc(slots * sizeof(uint32_t));
+    _build->cond_kind  = malloc(slots * sizeof(uint8_t));
+    _build->cond_hash  = malloc(slots * sizeof(uint32_t));
+    _build->cond_else  = malloc(slots * sizeof(uint8_t));
+
+    return ( (_build->node_of)    &&
+             (_build->depth)      &&
+             (_build->head_of)    &&
+             (_build->declarator) &&
+             (_build->item_node)  &&
+             (_build->next_start) &&
+             (_build->macro_lift) &&
+             (_build->cond_macro) &&
+             (_build->cond_kind)  &&
+             (_build->cond_hash)  &&
+             (_build->cond_else) );
 }
 
 
@@ -3761,43 +3998,10 @@ uint32_t d_token_node_build(
                               build.groups.unopened +
                               build.groups.mismatched;
 
-    // the items are recognized once the grouping exists
-    if (!d_syntax_items_build(build.tokens,
-                              build.count,
-                              &build.groups,
-                              source->text,
-                              &build.items))
-    {
-        d_internal_release(&build);
-
-        return D_DSS_NO_INDEX;
-    }
-
-    const size_t slots = build.count + 1u;
-    const size_t items = build.items.count + 1u;
-
-    build.node_of    = malloc(slots * sizeof(uint32_t));
-    build.depth      = malloc(slots * sizeof(uint32_t));
-    build.head_of    = malloc(slots * sizeof(uint32_t));
-    build.declarator = malloc(slots * sizeof(uint8_t));
-    build.item_node  = malloc(items * sizeof(uint32_t));
-    build.next_start = malloc(items * sizeof(uint32_t));
-    build.cond_macro = malloc(slots * sizeof(uint32_t));
-    build.cond_kind  = malloc(slots * sizeof(uint8_t));
-    build.cond_hash  = malloc(slots * sizeof(uint32_t));
-    build.cond_else  = malloc(slots * sizeof(uint8_t));
-
-    // any array missing ends the build
-    if ( (!build.node_of)    ||
-         (!build.depth)      ||
-         (!build.head_of)    ||
-         (!build.declarator) ||
-         (!build.item_node)  ||
-         (!build.next_start) ||
-         (!build.cond_macro) ||
-         (!build.cond_kind)  ||
-         (!build.cond_hash)  ||
-         (!build.cond_else) )
+    // the items are recognized once the grouping exists, and emission's
+    // arrays sized from both
+    if ( (!d_internal_recognize(&build)) ||
+         (!d_internal_allocate(&build)) )
     {
         d_internal_release(&build);
 

@@ -48,10 +48,15 @@ text:not([generated]) > line:is([wide], [zero-width], [control]) {
 }
 
 #  The limit is "a target rather than an absolute": indivisible text --
-#  a long path, URL or string literal -- may run past it, and deciding
-#  that needs to know which token crosses column 80.  Until a fact says
-#  so, every long line is reported, as a warning rather than an error.
-text:not([generated]) > line[length>80] {
+#  a long path, URL or string literal -- may run past it.  An #include
+#  is the case a line's facts can decide: `directive-length` measures it
+#  to the end of its header's name, and `summary` holds the comment after
+#  it.  Its line may run long when the path alone passes the limit, or
+#  when the comment is the guide's own fixed `// corresponding header`;
+#  a summary in the author's words can be shortened, so it is measured
+#  as any line.  Every other long line is reported, as a warning rather
+#  than an error.
+text:not([generated]) > line[length>80]:not([directive-length>80]):not([summary="// corresponding header"]) {
     violation: "a line should not exceed 80 characters";
     severity:  warn;
 }

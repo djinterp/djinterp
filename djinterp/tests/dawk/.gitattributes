@@ -1,0 +1,10 @@
+# tests/dawk/.gitattributes -- the line ends dawk's tests depend on (A5).
+#
+# The fixtures are kept, and checked out, in LF on every system: text.dss
+# reports a CRLF line end, so a fixture checked out in CRLF fails for that
+# alone.  text_bad.c holds CRLF on purpose, since it is the case text.dss
+# reports, and git keeps its bytes as they are.  The scripts are LF too,
+# since sh refuses a carriage return at a line's end.
+fixtures/** text eol=lf
+fixtures/text/text_bad.c -text
+*.sh text eol=lf
