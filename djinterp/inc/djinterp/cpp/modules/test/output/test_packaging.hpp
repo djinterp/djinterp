@@ -6,7 +6,7 @@
 *
 *   WHAT IT REPLACES.  Three paths did render -> name -> compress/archive ->
 * sink:
-*     DDocumentBundle + output_packaging   the designed one, reached only from
+*     document_bundle + output_packaging   the designed one, reached only from
 *                                          the now-deleted test_output.hpp
 *     test_pack.hpp                        an enum -> tag hop straight into the
 *                                          compress / archive facades
@@ -27,12 +27,12 @@
 * keeps it correct when either side gains a member.
 *
 *   ONE ENUM DID collapse: the document format.  test_doc_type, doc_format and
-* DDocumentFormat are now one type, so that arm of the old bridge is gone
+* document_format are now one type, so that arm of the old bridge is gone
 * entirely.  What remains here is only the packaging axis.
 *
 *   PORTABILITY:
 *   C++17 (output_packaging's floor -- output_config carries a std::function
-* naming policy); self-suppresses below it, as DDocumentBundle does.
+* naming policy); self-suppresses below it, as document_bundle does.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_packaging.hpp
@@ -72,9 +72,9 @@ III.  emit_report               (bundle a run's documents and write them)
                                             // pack_mode, output_config, sinks,
                                             // DCodecId / format_id, suffixes
 #include "../../../util/document/document_bundle.hpp"
-                                            // DDocumentBundle, write_to_disk
+                                            // document_bundle, write_to_disk
 #include "../../../util/document/document_format.hpp"
-                                            // DDocumentFormat, format_extension
+                                            // document_format, format_extension
 #include "../test_options.hpp"              // the typed test_* packaging enums
 #include "./test_report.hpp"                // test_report
 
@@ -164,7 +164,7 @@ D_NODISCARD inline format_id to_format_id(
 
 // to_output_config
 //   function: the four packaging knobs lowered into the single decision
-// DDocumentBundle::write consumes.  Taken as explicit values rather than as an
+// document_bundle::write consumes.  Taken as explicit values rather than as an
 // option_set so this header does not have to know the accessor spellings -- a
 // caller reads them from its own options and passes them through.
 D_NODISCARD inline output_config to_output_config(
@@ -205,12 +205,12 @@ using DReportDocumentProducer = std::function<byte_blob()>;
 // render_table_model_to_string or a document_template render for the string
 // formats.  Keeping them out of this header is what stops the packaging layer
 // depending on the PDF engine.
-D_NODISCARD inline DDocumentBundle bundle_report(
+D_NODISCARD inline document_bundle bundle_report(
     const std::string&                                                       _base_name,
-    const std::vector<std::pair<DDocumentFormat, DReportDocumentProducer> >& _documents
+    const std::vector<std::pair<document_format, DReportDocumentProducer> >& _documents
 )
 {
-    DDocumentBundle _bundle;
+    document_bundle _bundle;
 
     for (std::size_t _i = 0; _i < _documents.size(); ++_i)
     {
@@ -230,14 +230,14 @@ D_NODISCARD inline DDocumentBundle bundle_report(
 // a sink abstraction they did not have.
 D_NODISCARD inline bool emit_report_to_disk(
     const std::string&                                                       _base_name,
-    const std::vector<std::pair<DDocumentFormat, DReportDocumentProducer> >& _documents,
+    const std::vector<std::pair<document_format, DReportDocumentProducer> >& _documents,
     DTestOutputPack                                                          _pack,
     test_compressor                                                          _codec,
     test_archive_format                                                      _format,
     disk_output_sink::path_fn                                                _path
 )
 {
-    const DDocumentBundle _bundle = bundle_report(_base_name, _documents);
+    const document_bundle _bundle = bundle_report(_base_name, _documents);
 
     const output_config _cfg =
         to_output_config(_pack, _codec, _format, _base_name);
@@ -253,14 +253,14 @@ D_NODISCARD inline bool emit_report_to_disk(
 // ships the report somewhere other than a file wants.
 D_NODISCARD inline bool emit_report_to_buffer(
     const std::string&                                                       _base_name,
-    const std::vector<std::pair<DDocumentFormat, DReportDocumentProducer> >& _documents,
+    const std::vector<std::pair<document_format, DReportDocumentProducer> >& _documents,
     DTestOutputPack                                                          _pack,
     test_compressor                                                          _codec,
     test_archive_format                                                      _format,
     byte_blob&                                                               _out
 )
 {
-    const DDocumentBundle _bundle = bundle_report(_base_name, _documents);
+    const document_bundle _bundle = bundle_report(_base_name, _documents);
 
     const output_config _cfg =
         to_output_config(_pack, _codec, _format, _base_name);

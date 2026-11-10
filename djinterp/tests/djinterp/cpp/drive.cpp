@@ -17,20 +17,20 @@ int main()
 {
     using namespace djinterp;
 
-    DDocumentTable t;
+    document_table t;
     t.set_caption("Results");
-    t.add_column("Test",   DTextAlignment::left);
-    t.add_column("Result", DTextAlignment::center);
-    t.add_column("ms",     DTextAlignment::right);
+    t.add_column("Test",   text_alignment::left);
+    t.add_column("Result", text_alignment::center);
+    t.add_column("ms",     text_alignment::right);
     t.add_row({"parses <a|b>", "PASS", "12"});
     t.add_row({"handles \"quotes\" & *stars*", "FAIL", "3"});
 
-    const DDocumentFormat fmts[] = { DDocumentFormat::text,
-                                     DDocumentFormat::markdown,
-                                     DDocumentFormat::xml,
-                                     DDocumentFormat::html };
+    const document_format fmts[] = { document_format::text,
+                                     document_format::markdown,
+                                     document_format::xml,
+                                     document_format::html };
 
-    for (DDocumentFormat f : fmts)
+    for (document_format f : fmts)
     {
         std::cout << "########## " << format_name(f)
                   << " (" << format_extension(f) << ")\n"
@@ -38,7 +38,7 @@ int main()
     }
 
     std::cout << "pdf dialect valid? "
-              << (make_document_dialect(DDocumentFormat::pdf).valid() ? "yes"
+              << (make_document_dialect(document_format::pdf).valid() ? "yes"
                                                                      : "no")
               << "\n";
     return 0;

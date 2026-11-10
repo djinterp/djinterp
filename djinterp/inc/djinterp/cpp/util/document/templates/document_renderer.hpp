@@ -4,21 +4,21 @@
 *   The DIALECT BOUNDARY of the document-template subframework.  A document
 * template (table, title page, table of contents, update section) is a pure
 * CONTENT model; it names blocks and hints and knows nothing of text vs PDF vs
-* HTML.  A DDocumentRenderer is the other half: a per-dialect back end that
+* HTML.  A document_renderer is the other half: a per-dialect back end that
 * turns those semantic calls into bytes.  Templates drive a renderer; a renderer
 * realises them.  Swap the renderer, change the dialect -- the template is
 * untouched.
 *
 *   A SEMANTIC SINK, NOT A TREE.  The protocol is imperative (begin_table /
 * table_column / begin_row / cell / end_row / end_table, heading, paragraph,
-* rule, ...), exactly as pdf_template's flow surface and DDocumentWriter's tree
+* rule, ...), exactly as pdf_template's flow surface and document_writer's tree
 * surface are imperative.  No intermediate document object is materialised: a
 * template streams events, the renderer places them.  This is a COLD assembly
 * path (a whole document is built once, then serialised), so -- like DPdfBackend
 * -- the renderer is a genuine runtime plug-in and a virtual base is the right
 * tool, not compile-time dispatch.
 *
-*   HINTS ARE ADVISORY.  Every call carries a DDocAttributes bag; a renderer
+*   HINTS ARE ADVISORY.  Every call carries a doc_attributes bag; a renderer
 * reads the keys it understands (`align`, `style`, `font`, `color`, `width`,
 * ...) and IGNORES the rest.  A `.txt` renderer never consults `font`; an HTML
 * or PDF renderer does.  That is the whole of "dialect-agnostic": the template
@@ -31,7 +31,7 @@
 * tables until it overrides them).  A richer back end overrides only what it
 * improves.  DPlainDocumentRenderer (Section II) is the reference realisation:
 * the plain-text / console dialect, complete with a monospace table engine, and
-* the thing that makes a DDocumentTable demonstrable out of the box.
+* the thing that makes a document_table demonstrable out of the box.
 *
 *   PORTABILITY:
 *   C++11 baseline (std::string / std::vector + a virtual base); no third-party
@@ -47,7 +47,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocumentRenderer            (the abstract semantic sink)
+I.    document_renderer            (the abstract semantic sink)
       ---------------------------------------------------------
 
 II.   DPlainDocumentRenderer      (the plain-text reference realisation)
@@ -70,7 +70,7 @@ II.   DPlainDocumentRenderer      (the plain-text reference realisation)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
-#include "./document_attributes.hpp"    // DDocAttributes, attr_*, DTextAlignment
+#include "./document_attributes.hpp"    // doc_attributes, attr_*, text_alignment
 #include "../../output/output_stream.hpp"  // DOutputStream: write_to
 
 
@@ -78,23 +78,23 @@ NS_DJINTERP
 
 
 // ===========================================================================
-// I.   DDocumentRenderer
+// I.   document_renderer
 // ===========================================================================
 
-// DDocumentRenderer
+// document_renderer
 //   class: the abstract per-dialect back end a document template renders into.
 // A template calls the semantic methods (heading / paragraph / the table
 // group / ...); a concrete renderer turns them into a document in one format.
 // Every method but `write_line` has a default (a funnel to write_line, or a
 // no-op), so a back end may implement as little as the one primitive.  Each
-// call carries a DDocAttributes hint bag the renderer honours or ignores.
-class DDocumentRenderer
+// call carries a doc_attributes hint bag the renderer honours or ignores.
+class document_renderer
 {
 public:
-    // ~DDocumentRenderer
-    //   destructor: virtual, for deletion through a DDocumentRenderer*.
+    // ~document_renderer
+    //   destructor: virtual, for deletion through a document_renderer*.
     virtual
-    ~DDocumentRenderer() = default;
+    ~document_renderer() = default;
 
     // -- document frame ------------------------------------------------------
 
@@ -102,7 +102,7 @@ public:
     //   open and close the whole document.  A streaming dialect writes a
     // preamble / epilogue here (an HTML <head>, a PDF first page); a plain one
     // needs neither, so the defaults are no-ops.
-    virtual void begin_document(const DDocAttributes&) {}
+    virtual void begin_document(const doc_attributes&) {}
     virtual void end_document() {}
 
     // -- blocks --------------------------------------------------------------
@@ -114,7 +114,7 @@ public:
     heading(
         std::size_t        /*_level*/,
         const std::string& _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         write_line(_text, _attrs);
@@ -127,7 +127,7 @@ public:
     virtual
     void paragraph(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         write_line(_text, _attrs);
@@ -141,7 +141,7 @@ public:
     void key_value(
         const std::string&    _key,
         const std::string&    _value,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         write_line(_key + ": " + _value, _attrs);
@@ -151,12 +151,12 @@ public:
 
     // rule
     //   a horizontal separator.  Default: nothing (a dialect draws its own).
-    virtual void rule(const DDocAttributes&) {}
+    virtual void rule(const doc_attributes&) {}
 
     // vertical_space
     //   blank vertical space of _amount (points, or a dialect's own unit).
     // Default: nothing.
-    virtual void vertical_space(double /*_amount*/, const DDocAttributes&) {}
+    virtual void vertical_space(double /*_amount*/, const doc_attributes&) {}
 
     // page_break
     //   force subsequent content onto a new page.  Default: nothing (a
@@ -168,12 +168,12 @@ public:
     // begin_list / list_item / end_list
     //   an (optionally ordered) list; nest by opening another list inside an
     // item's scope.  Default item: one line; default open/close: nothing.
-    virtual void begin_list(bool /*_ordered*/, const DDocAttributes&) {}
+    virtual void begin_list(bool /*_ordered*/, const doc_attributes&) {}
 
     virtual
     void list_item(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         write_line(_text, _attrs);
@@ -190,10 +190,10 @@ public:
     // are declared once, up front; rows carry data only.  Defaults are no-ops,
     // so a dialect without a table notion drops the table cleanly.
 
-    virtual void begin_table(const DDocAttributes&) {}
-    virtual void table_column(const std::string& /*_header*/, const DDocAttributes&) {}
-    virtual void begin_row(const DDocAttributes&) {}
-    virtual void cell(const std::string& /*_text*/, const DDocAttributes&) {}
+    virtual void begin_table(const doc_attributes&) {}
+    virtual void table_column(const std::string& /*_header*/, const doc_attributes&) {}
+    virtual void begin_row(const doc_attributes&) {}
+    virtual void cell(const std::string& /*_text*/, const doc_attributes&) {}
     virtual void end_row() {}
     virtual void end_table() {}
 
@@ -205,7 +205,7 @@ protected:
     virtual
     void write_line(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) = 0;
 };
 
@@ -215,8 +215,8 @@ protected:
 // ===========================================================================
 
 // DPlainDocumentRenderer
-//   class: the plain-text / console realisation of DDocumentRenderer -- the
-// reference dialect, and the one that makes a DDocumentTable renderable with
+//   class: the plain-text / console realisation of document_renderer -- the
+// reference dialect, and the one that makes a document_table renderable with
 // no other back end present.  It accumulates a byte buffer: headings gain an
 // underline, lists indent by depth, a rule is a run of dashes, a page break is
 // a form feed, and tables are laid out as aligned monospace columns (widths
@@ -224,7 +224,7 @@ protected:
 // its `align`).  Presentation hints with no plain-text meaning -- `font`,
 // `color`, `style` -- are ignored, as the design intends.
 class DPlainDocumentRenderer
-    : public DDocumentRenderer
+    : public document_renderer
 {
 public:
     // -- public type aliases -------------------------------------------------
@@ -282,7 +282,7 @@ public:
     heading(
         std::size_t           _level,
         const std::string&    _text,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         // separate a heading from preceding content
@@ -307,7 +307,7 @@ public:
     }
 
     void rule(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         size_type _w = parse_size(attr_or(_attrs, doc_attr_width, std::string()));
@@ -327,7 +327,7 @@ public:
     void
     vertical_space(
         double                /*_amount*/,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         // a plain blank line: the magnitude is meaningless in monospace
@@ -347,7 +347,7 @@ public:
     void
     begin_list(
         bool                  _ordered,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         m_ordered.push_back(_ordered);
@@ -359,7 +359,7 @@ public:
     void
     list_item(
         const std::string&    _text,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         const size_type _depth = m_ordered.size();
@@ -404,7 +404,7 @@ public:
 
     void
     begin_table(
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         clear_table();
@@ -414,11 +414,11 @@ public:
 
     void table_column(
         const std::string&    _header,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         m_headers.push_back(_header);
-        m_aligns.push_back(attr_align(_attrs, DTextAlignment::left));
+        m_aligns.push_back(attr_align(_attrs, text_alignment::left));
         m_hints.push_back(
             parse_size(attr_or(_attrs, doc_attr_width, std::string())));
 
@@ -427,7 +427,7 @@ public:
 
     void
     begin_row(
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         m_row.clear();
@@ -438,7 +438,7 @@ public:
     void
     cell(
         const std::string&    _text,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         m_row.push_back(_text);
@@ -505,7 +505,7 @@ protected:
     void
     write_line(
         const std::string&    _text,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         m_out += _text;
@@ -603,8 +603,8 @@ private:
 
             const std::string    _text  =
                 (_c < _cells.size()) ? _cells[_c] : std::string();
-            const DTextAlignment _align =
-                (_c < m_aligns.size()) ? m_aligns[_c] : DTextAlignment::left;
+            const text_alignment _align =
+                (_c < m_aligns.size()) ? m_aligns[_c] : text_alignment::left;
 
             _line += pad_cell(_text, _widths[_c], _align);
         }
@@ -646,7 +646,7 @@ private:
     D_NODISCARD static std::string pad_cell(
         const std::string& _text,
         size_type          _width,
-        DTextAlignment     _align
+        text_alignment     _align
     )
     {
         const size_type _len = display_width(_text);
@@ -659,12 +659,12 @@ private:
 
         const size_type _pad = _width - _len;
 
-        if (_align == DTextAlignment::right)
+        if (_align == text_alignment::right)
         {
             return std::string(_pad, ' ') + _text;
         }
 
-        if (_align == DTextAlignment::center)
+        if (_align == text_alignment::center)
         {
             const size_type _left = _pad / size_type(2);
 
@@ -723,7 +723,7 @@ private:
     std::vector<size_type>                m_counter;   // list-nesting: item no.
 
     std::vector<std::string>              m_headers;   // table: column headers
-    std::vector<DTextAlignment>           m_aligns;    // table: column aligns
+    std::vector<text_alignment>           m_aligns;    // table: column aligns
     std::vector<size_type>                m_hints;     // table: column width hints
     std::vector<std::vector<std::string>> m_rows;      // table: buffered rows
     std::vector<std::string>              m_row;       // table: row in progress

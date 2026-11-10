@@ -67,8 +67,8 @@ int main()
               << " | headers conform: "
               << (m.metadata().conforms_to(m) ? "yes":"no") << "\n\n";
 
-    for (DDocumentFormat f : { DDocumentFormat::text,
-                               DDocumentFormat::html })
+    for (document_format f : { document_format::text,
+                               document_format::html })
     {
         std::cout << "########## " << format_name(f) << " (defaults)\n"
                   << render_table_model_to_string(m, f) << "\n";
@@ -76,8 +76,8 @@ int main()
 
     // the `rows` header policy, monospace
     DPlainDocumentRenderer pr;
-    DTableRenderOptions o = table_render_defaults(DDocumentFormat::text);
-    o.header_levels = DHeaderLevelPolicy::rows;
+    table_render_options o = table_render_defaults(document_format::text);
+    o.header_levels = header_level_policy::rows;
     render_table_model(m, pr, o);
     std::cout << "########## text (header_level_policy::rows)\n" << pr.str();
     return 0;

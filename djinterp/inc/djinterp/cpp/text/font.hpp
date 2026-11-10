@@ -8,7 +8,7 @@
 * assumption about the underlying technology (FreeType, DirectWrite,
 * CoreText, fontconfig, bitmap atlases, terminal SGR, SVG, ...).
 *
-*   The core type `DFont<Feat, ColorType>` is a compile-time
+*   The core type `font<Feat, ColorType>` is a compile-time
 * configurable data aggregate.  Capabilities that not every platform
 * supports - underline, strikethrough, color, small caps, variable-
 * font axes, OpenType feature tags - are gated behind feature-flag
@@ -32,7 +32,7 @@
 *     - touch the filesystem, GDI, FreeType, or any platform API
 *     - prescribe a rendering pipeline
 *
-*   Backends map `DFont<>` onto their native representation; the
+*   Backends map `font<>` onto their native representation; the
 * font_traits module provides structural detection so adapters can
 * branch with `if constexpr (has_underline_v<F>)`.
 *
@@ -49,12 +49,12 @@ TABLE OF CONTENTS
 1.    feature flags (DFontFeat)
       -------------------------
 
-2.    core enums (DFontWeight,
+2.    core enums (font_weight,
       ------------------------
 
       DFontSlant,
 
-      DFontStretch,
+      font_stretch,
 
       DFontSpacing,
 
@@ -75,7 +75,7 @@ TABLE OF CONTENTS
 7.    EBO mixins
       ----------
 
-8.    DFont<Feat, ColorType> struct
+8.    font<Feat, ColorType> struct
       ------------------------------
 
 9.    free functions (fn_set_*,
@@ -123,7 +123,7 @@ NS_DJINTERP
 // =============================================================================
 //  1.  FONT FEATURE FLAGS
 // =============================================================================
-//   Each flag gates a data member or mixin in `DFont<Feat>`. A flag
+//   Each flag gates a data member or mixin in `font<Feat>`.  A flag
 // costs nothing when disabled (empty base optimization folds the
 // corresponding mixin into the outer type).
 //
@@ -212,12 +212,12 @@ bool has_ff(
 //  2.  CORE ENUMS
 // =============================================================================
 
-// DFontWeight
+// font_weight
 //   enum: symbolic weight names with numeric values matching the OS/2
 // usWeightClass scale and the CSS font-weight keywords.  A custom
 // numeric weight is carried in `font::weight_numeric`, which adapters
 // should prefer when nonzero.
-enum class DFontWeight : re_std::uint16_t
+enum class font_weight : re_std::uint16_t
 {
     thin        = 100,
     extra_light = 200,
@@ -242,10 +242,10 @@ enum class DFontSlant : re_std::uint8_t
     oblique
 };
 
-// DFontStretch
+// font_stretch
 //   enum: horizontal-scale axis, matching the OS/2 usWidthClass range.
 // Only carried when ff_stretch is enabled.
-enum class DFontStretch : re_std::uint8_t
+enum class font_stretch : re_std::uint8_t
 {
     ultra_condensed = 1,
     extra_condensed = 2,
@@ -290,7 +290,7 @@ enum class DFontSizeUnit : re_std::uint8_t
 
 // DFontColor
 //   struct: a legacy 8-bit RGBA color, retained so existing
-// `DFont<F, DFontColor>` instantiations keep compiling.  The font's
+// `font<F, DFontColor>` instantiations keep compiling.  The font's
 // default color type is now the native djinterp::rgb; prefer that (or
 // djinterp::rgba for alpha).  Kept here as a self-contained option.
 struct DFontColor
@@ -315,29 +315,29 @@ struct DFontColor
 //  4.  OPENTYPE FEATURE TAGS
 // =============================================================================
 
-// DOpentypeTag
+// opentype_tag
 //   type: 4-character OpenType feature tag packed into a uint32.
 // Use `ot_tag("liga")` at compile time; adapters unpack for their
 // native API (hb_tag_t, DWRITE_FONT_FEATURE_TAG, CTFontFeatureTag).
-using DOpentypeTag = re_std::uint32_t;
+using opentype_tag = re_std::uint32_t;
 
 // ot_tag
-//   function: packs a 4-character string into an DOpentypeTag.
+//   function: packs a 4-character string into an opentype_tag.
 // `_s` must be exactly 4 ASCII bytes; shorter strings are padded
 // with space (0x20) in OpenType convention.
 constexpr
-DOpentypeTag ot_tag(
+opentype_tag ot_tag(
     const char _s[5]
 ) noexcept
 {
     // big-endian packing, matching the on-disk OpenType format
-    return ( (static_cast<DOpentypeTag>(
+    return ( (static_cast<opentype_tag>(
                 static_cast<unsigned char>(_s[0])) << 24)
-           | (static_cast<DOpentypeTag>(
+           | (static_cast<opentype_tag>(
                 static_cast<unsigned char>(_s[1])) << 16)
-           | (static_cast<DOpentypeTag>(
+           | (static_cast<opentype_tag>(
                 static_cast<unsigned char>(_s[2])) <<  8)
-           | (static_cast<DOpentypeTag>(
+           | (static_cast<opentype_tag>(
                 static_cast<unsigned char>(_s[3]))) );
 }
 
@@ -348,7 +348,7 @@ DOpentypeTag ot_tag(
 // feature; nonzero enables or selects a variant.
 struct DOpentypeFeature
 {
-    DOpentypeTag     tag    = 0;
+    opentype_tag     tag    = 0;
     re_std::uint32_t value  = 1;
 };
 
@@ -364,7 +364,7 @@ struct DOpentypeFeature
 // registered custom axes.
 struct DVariableAxis
 {
-    DOpentypeTag  tag   = 0;
+    opentype_tag  tag   = 0;
     float         value = 0.0f;
 };
 
@@ -505,7 +505,7 @@ namespace font_mixin {
     template <>
     struct DStretchData<true>
     {
-        DFontStretch stretch = DFontStretch::normal;
+        font_stretch stretch = font_stretch::normal;
     };
 
     template <bool Enable>
@@ -601,7 +601,7 @@ namespace font_mixin {
 //  8.  FONT
 // =============================================================================
 
-// DFont
+// font
 //   struct: framework-agnostic font descriptor.  Carries symbolic
 // identity plus any compile-time-enabled axes, decorations, or
 // backend hints.
@@ -618,14 +618,14 @@ namespace font_mixin {
 //     style_name        std::string         e.g. "Bold Italic"
 //     size              float               numeric size
 //     size_unit         DFontSizeUnit      size interpretation
-//     weight            DFontWeight         symbolic weight
+//     weight            font_weight         symbolic weight
 //     weight_numeric    re_std::uint16_t    0 => use `weight` enum;
 //                                             nonzero wins
 //     slant             DFontSlant          upright / italic / oblique
 
 template <unsigned Feat       = ff_none,
           typename ColorType = rgb>
-struct DFont
+struct font
     : font_mixin::DUnderlineData         <has_ff(Feat, ff_underline)>
     , font_mixin::DStrikethroughData     <has_ff(Feat, ff_strikethrough)>
     , font_mixin::DOverlineData          <has_ff(Feat, ff_overline)>
@@ -672,7 +672,7 @@ struct DFont
     std::string       style_name;
     float             size            = 10.0f;
     DFontSizeUnit    size_unit       = DFontSizeUnit::points;
-    DFontWeight       weight          = DFontWeight::normal;
+    font_weight       weight          = font_weight::normal;
     re_std::uint16_t  weight_numeric  = 0;
     DFontSlant        slant           = DFontSlant::upright;
 
@@ -684,15 +684,15 @@ struct DFont
     }
 
     // -- construction -------------------------------------------------
-    DFont() = default;
+    font() = default;
 
-    explicit DFont(
+    explicit font(
             std::string _family
         )
             : family(std::move(_family))
         {}
 
-    DFont(
+    font(
             std::string  _family,
             float        _size
         )
@@ -700,10 +700,10 @@ struct DFont
               size(_size)
         {}
 
-    DFont(
+    font(
             std::string  _family,
             float        _size,
-            DFontWeight  _weight,
+            font_weight  _weight,
             DFontSlant   _slant = DFontSlant::upright
         )
             : family(std::move(_family)),
@@ -725,7 +725,7 @@ struct DFont
 // fn_set_family
 template <unsigned F, typename C>
 void fn_set_family(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     std::string _family
 )
 {
@@ -737,7 +737,7 @@ void fn_set_family(
 // fn_set_style_name
 template <unsigned F, typename C>
 void fn_set_style_name(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     std::string _style
 )
 {
@@ -749,7 +749,7 @@ void fn_set_style_name(
 // fn_set_size
 template <unsigned F, typename C>
 void fn_set_size(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     float       _size
 )
 {
@@ -761,7 +761,7 @@ void fn_set_size(
 // fn_set_size_unit
 template <unsigned F, typename C>
 void fn_set_size_unit(
-    DFont<F, C>&   _fn,
+    font<F, C>&   _fn,
     DFontSizeUnit _unit
 )
 {
@@ -774,8 +774,8 @@ void fn_set_size_unit(
 //   sets the symbolic weight and clears any numeric override.
 template <unsigned F, typename C>
 void fn_set_weight(
-    DFont<F, C>& _fn,
-    DFontWeight _w
+    font<F, C>& _fn,
+    font_weight _w
 )
 {
     _fn.weight         = _w;
@@ -789,7 +789,7 @@ void fn_set_weight(
 // the symbolic `weight` field takes effect again.
 template <unsigned F, typename C>
 void fn_set_weight_numeric(
-    DFont<F, C>&      _fn,
+    font<F, C>&      _fn,
     re_std::uint16_t _w
 )
 {
@@ -803,7 +803,7 @@ void fn_set_weight_numeric(
 // weight_numeric when nonzero, else the numeric of `weight`.
 template <unsigned F, typename C>
 re_std::uint16_t fn_effective_weight(
-    const DFont<F, C>& _fn
+    const font<F, C>& _fn
 ) noexcept
 {
     if (_fn.weight_numeric != 0)
@@ -817,7 +817,7 @@ re_std::uint16_t fn_effective_weight(
 // fn_set_slant
 template <unsigned F, typename C>
 void fn_set_slant(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     DFontSlant  _s
 )
 {
@@ -831,11 +831,11 @@ void fn_set_slant(
 // when off.  Clears any numeric override so the change takes effect.
 template <unsigned F, typename C>
 void fn_set_bold(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
-    _fn.weight         = _on ? DFontWeight::bold : DFontWeight::normal;
+    _fn.weight         = _on ? font_weight::bold : font_weight::normal;
     _fn.weight_numeric = 0;
 
     return;
@@ -844,18 +844,18 @@ void fn_set_bold(
 // fn_is_bold
 template <unsigned F, typename C>
 bool fn_is_bold(
-    const DFont<F, C>& _fn
+    const font<F, C>& _fn
 ) noexcept
 {
     return (fn_effective_weight(_fn) >= static_cast<re_std::uint16_t>(
-        DFontWeight::semi_bold));
+        font_weight::semi_bold));
 }
 
 // fn_set_italic
 //   convenience: sets slant to italic when `_on`, upright when off.
 template <unsigned F, typename C>
 void fn_set_italic(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -867,7 +867,7 @@ void fn_set_italic(
 // fn_is_italic
 template <unsigned F, typename C>
 bool fn_is_italic(
-    const DFont<F, C>& _fn
+    const font<F, C>& _fn
 ) noexcept
 {
     return ( (_fn.slant == DFontSlant::italic) ||
@@ -883,7 +883,7 @@ bool fn_is_italic(
 
 template <unsigned F, typename C>
 void fn_set_underline(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -897,7 +897,7 @@ void fn_set_underline(
 
 template <unsigned F, typename C>
 void fn_set_strikethrough(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -911,7 +911,7 @@ void fn_set_strikethrough(
 
 template <unsigned F, typename C>
 void fn_set_overline(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -930,7 +930,7 @@ void fn_set_overline(
 
 template <unsigned F, typename C>
 void fn_set_small_caps(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -944,7 +944,7 @@ void fn_set_small_caps(
 
 template <unsigned F, typename C>
 void fn_set_all_caps(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -958,7 +958,7 @@ void fn_set_all_caps(
 
 template <unsigned F, typename C>
 void fn_set_subscript(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -972,7 +972,7 @@ void fn_set_subscript(
 
 template <unsigned F, typename C>
 void fn_set_superscript(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     bool        _on
 )
 {
@@ -991,7 +991,7 @@ void fn_set_superscript(
 
 template <unsigned F, typename C>
 void fn_set_letter_spacing(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     float       _ems
 )
 {
@@ -1005,7 +1005,7 @@ void fn_set_letter_spacing(
 
 template <unsigned F, typename C>
 void fn_set_line_height(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     float       _multiplier
 )
 {
@@ -1024,8 +1024,8 @@ void fn_set_line_height(
 
 template <unsigned F, typename C>
 void fn_set_stretch(
-    DFont<F, C>&  _fn,
-    DFontStretch _s
+    font<F, C>&  _fn,
+    font_stretch _s
 )
 {
     static_assert(has_ff(F, ff_stretch),
@@ -1038,7 +1038,7 @@ void fn_set_stretch(
 
 template <unsigned F, typename C>
 void fn_set_spacing(
-    DFont<F, C>&  _fn,
+    font<F, C>&  _fn,
     DFontSpacing _s
 )
 {
@@ -1057,7 +1057,7 @@ void fn_set_spacing(
 
 template <unsigned F, typename C>
 void fn_set_foreground(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     C           _color
 )
 {
@@ -1071,7 +1071,7 @@ void fn_set_foreground(
 
 template <unsigned F, typename C>
 void fn_set_background(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     C           _color
 )
 {
@@ -1086,7 +1086,7 @@ void fn_set_background(
 
 template <unsigned F, typename C>
 void fn_clear_background(
-    DFont<F, C>& _fn
+    font<F, C>& _fn
 )
 {
     static_assert(has_ff(F, ff_background),
@@ -1107,8 +1107,8 @@ void fn_clear_background(
 // disables the feature (idiomatic for booleans like `liga`).
 template <unsigned F, typename C>
 void fn_set_opentype_feature(
-    DFont<F, C>&      _fn,
-    DOpentypeTag     _tag,
+    font<F, C>&      _fn,
+    opentype_tag     _tag,
     re_std::uint32_t _value = 1
 )
 {
@@ -1133,8 +1133,8 @@ void fn_set_opentype_feature(
 // fn_remove_opentype_feature
 template <unsigned F, typename C>
 bool fn_remove_opentype_feature(
-    DFont<F, C>&  _fn,
-    DOpentypeTag _tag
+    font<F, C>&  _fn,
+    opentype_tag _tag
 )
 {
     static_assert(has_ff(F, ff_opentype_features),
@@ -1159,8 +1159,8 @@ bool fn_remove_opentype_feature(
 //   returns the current value for `_tag`, or 0 if unset.
 template <unsigned F, typename C>
 re_std::uint32_t fn_get_opentype_feature(
-    const DFont<F, C>& _fn,
-    DOpentypeTag      _tag
+    const font<F, C>& _fn,
+    opentype_tag      _tag
 )
 {
     static_assert(has_ff(F, ff_opentype_features),
@@ -1185,8 +1185,8 @@ re_std::uint32_t fn_get_opentype_feature(
 // fn_set_variable_axis
 template <unsigned F, typename C>
 void fn_set_variable_axis(
-    DFont<F, C>&  _fn,
-    DOpentypeTag _tag,
+    font<F, C>&  _fn,
+    opentype_tag _tag,
     float        _value
 )
 {
@@ -1213,8 +1213,8 @@ void fn_set_variable_axis(
 // when the axis is not set.
 template <unsigned F, typename C>
 float fn_get_variable_axis(
-    const DFont<F, C>& _fn,
-    DOpentypeTag      _tag,
+    const font<F, C>& _fn,
+    opentype_tag      _tag,
     float             _default = 0.0f
 )
 {
@@ -1239,7 +1239,7 @@ float fn_get_variable_axis(
 
 template <unsigned F, typename C>
 void fn_set_script(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     std::string _script,
     std::string _language = std::string()
 )
@@ -1260,7 +1260,7 @@ void fn_set_script(
 
 template <unsigned F, typename C>
 void fn_set_file_path(
-    DFont<F, C>& _fn,
+    font<F, C>& _fn,
     std::string _path,
     int         _face_index = 0
 )

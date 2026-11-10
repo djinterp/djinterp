@@ -48,7 +48,7 @@
 * write_pdf_report() renders every document (whole_run -> 1, per_module -> N),
 * then, when `pack` is `archive`, bundles them into ONE container - the
 * `archive_format` (e.g. sevenzip -> .7z), tuned by `archive_opts`, written to
-* the `output_file` path, through DDocumentBundle and write_to_disk.  When
+* the `output_file` path, through document_bundle and write_to_disk.  When
 * `pack` is `compress`, each document is written beside where it would have
 * gone, compressed with `compressor` (tuned by `compress_opts`) and named with
 * the codec's suffix: report.pdf becomes report.pdf.gz.  Whether a container's
@@ -117,7 +117,7 @@ II.   FREE-FUNCTION CONVENIENCE
 #include "../../../djinterp.hpp"
 #include "../../../container/buffer/byte_buffer.hpp"
 #include "../../../util/document/document_bundle.hpp"
-                                        // DDocumentBundle, output_config,
+                                        // document_bundle, output_config,
                                         //   write_to_disk -- the packaging
                                         //   engine this runner defers to
 #include "./test_packaging.hpp"          // to_output_config
@@ -128,7 +128,7 @@ II.   FREE-FUNCTION CONVENIENCE
 #include "./test_report_pdf.hpp"      // render_report_pdf_bytes_table -- the
                                        //   banded/ruled PDF face, now composed
                                        //   via test_report_document + the
-                                       //   canvas-backed DDocumentRenderer
+                                       //   canvas-backed document_renderer
 
 // Output packaging is OPT-IN: define D_TEST_REPORT_ENABLE_ARCHIVE before
 // including this header to pull in the archive facade and have write_pdf_report()
@@ -136,7 +136,7 @@ II.   FREE-FUNCTION CONVENIENCE
 // Left undefined (the default), the builder compiles exactly as before, with no
 // dependency on the archive backend - so a console-only or single-PDF runner
 // pays nothing for a feature it does not use.  See PDF RENDERING in the header
-// banner: the archive path.  The DDocumentBundle route now exists as
+// banner: the archive path.  The document_bundle route now exists as
 // test_packaging.hpp (emit_report_to_disk / _to_buffer), which adds a naming
 // policy, both pack modes and a sink abstraction; prefer it for new work.  The
 // direct facade calls below remain for the per-format capability checks; every
@@ -906,12 +906,12 @@ private:
         std::vector<std::string> written;
 
         // Bundle the already-rendered documents under the names computed above.
-        // DDocumentBundle::add takes an EXPLICIT name, so this runner's
+        // document_bundle::add takes an EXPLICIT name, so this runner's
         // pattern-driven naming (module name, index, title) survives.  Going
         // through test_packaging's bundle_report instead would re-derive every
         // name from one base name plus the format extension, collapsing the
         // per-module documents onto a single name.
-        ::djinterp::DDocumentBundle _bundle;
+        ::djinterp::document_bundle _bundle;
 
         for (std::size_t _i = 0; _i < _docs.size(); ++_i)
         {
@@ -959,7 +959,7 @@ private:
     }
     // NOTE: the hand-rolled try_build_archive / archive_extension helpers that
     // used to live here are gone: write_archived_report now defers to
-    // DDocumentBundle + write_to_disk, which own the format dispatch and the
+    // document_bundle + write_to_disk, which own the format dispatch and the
     // extension mapping already.
 
 
@@ -967,7 +967,7 @@ private:
     //   compresses every rendered document on its own with `compressor`, tuned
     // by `compress_opts`, and writes each where its loose file would have gone,
     // with the codec's suffix appended (`store` appends none).  Rendering and
-    // compressing happen in memory, through DDocumentBundle and write(), as
+    // compressing happen in memory, through document_bundle and write(), as
     // write_archived_report's do.
     //
     // Return:
@@ -980,7 +980,7 @@ private:
     )
     {
         std::vector<std::string>    written;
-        ::djinterp::DDocumentBundle _bundle;
+        ::djinterp::document_bundle _bundle;
 
         // each document under its own path, which the sink writes to as it is
         for (std::size_t _i = 0; _i < _docs.size(); ++_i)

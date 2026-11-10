@@ -3,23 +3,23 @@
 *
 *   Templated HTML element / document facades and the bundled default
 * backend. The facades inherit from their XML counterparts so that
-* memory layout is identical -- `DHtmlElement<Backend>` adds NO
-* members beyond `DXmlNode<Backend>`, and `DHtmlDocument<Backend>`
-* adds only an `DHtmlVersion` byte and a `std::string` doctype to
-* `DXmlDocument<Backend>`. All HTML-specific behaviour (DOCTYPE
+* memory layout is identical -- `html_element<Backend>` adds NO
+* members beyond `xml_node<Backend>`, and `html_document<Backend>`
+* adds only an `html_version` byte and a `std::string` doctype to
+* `xml_document<Backend>`. All HTML-specific behaviour (DOCTYPE
 * emission, void-element shorthand, class/id helpers, head/body
 * shortcuts) lives in methods and free functions; never in storage.
 *
 *   ZERO OVERHEAD INVARIANT:
-*   sizeof(DHtmlElement<B>) == sizeof(DXmlNode<B>) for every backend B.
+*   sizeof(html_element<B>) == sizeof(xml_node<B>) for every backend B.
 *   The HTML methods are non-virtual and resolve at compile time.
 *
 *   DEFAULT BACKEND REUSE:
-*   `DHtmlDefaultBackend` reuses XML's `internal::DDefaultNode` and
-*   `internal::DDefaultDocument` types verbatim. The backend exposes
-*   BOTH `backend_tag = DXmlDefaultBackendTag` (so XML traits classify
+*   `html_default_backend` reuses XML's `internal::default_node` and
+*   `internal::default_document` types verbatim. The backend exposes
+*   BOTH `backend_tag = xml_default_backend_tag` (so XML traits classify
 *   it as a complete XML backend) AND
-*   `DHtmlBackendTag = DHtmlDefaultBackendTag` (so HTML traits
+*   `html_backend_tag = html_default_backend_tag` (so HTML traits
 *   classify it as a complete HTML backend).
 *
 *
@@ -35,10 +35,10 @@ TABLE OF CONTENTS
 I.    HTML DEFAULT BACKEND
       --------------------
 
-II.   DHtmlElement<Backend>
+II.   html_element<Backend>
       ----------------------
 
-III.  DHtmlDocument<Backend>
+III.  html_document<Backend>
       -----------------------
 
 IV.   FREE HELPERS / FACTORIES
@@ -63,7 +63,7 @@ IV.   FREE HELPERS / FACTORIES
 // djinterp
 #include "../../djinterp.hpp"     // framework root
 #include "../xml/xml_template.hpp"   // the XML node / document templates
-#include "./html.hpp"                // DHtmlDefaultBackendTag, the HTML
+#include "./html.hpp"                // html_default_backend_tag, the HTML
                                      // vocabulary and backend traits
 
 
@@ -76,38 +76,38 @@ namespace html {
 ///                I.   HTML DEFAULT BACKEND                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DHtmlDefaultBackend
+// html_default_backend
 //   struct: bundled in-memory backend for the HTML facades.
 // Reuses the XML default backend's storage types verbatim --
-// `internal::DDefaultNode` and `internal::DDefaultDocument` are
+// `internal::default_node` and `internal::default_document` are
 // already perfect for HTML's tag/attribute/child/text shape, so
 // no parallel storage hierarchy is needed. Exposes BOTH the XML
 // backend tag (for XML-trait classification) and the HTML backend
 // tag (for HTML-trait classification) so the same type satisfies
 // both protocols simultaneously.
-struct DHtmlDefaultBackend
+struct html_default_backend
 {
     // backend_tag
     //   type: XML backend identifier; lets `is_xml_backend` classify
     // this type as a complete XML backend.
-    using backend_tag      = DXmlDefaultBackendTag;
+    using backend_tag      = xml_default_backend_tag;
 
-    // DHtmlBackendTag
+    // html_backend_tag
     //   type: HTML backend identifier; lets `is_html_backend`
     // classify this type as a complete HTML backend.
-    using html_backend_tag = DHtmlDefaultBackendTag;
+    using html_backend_tag = html_default_backend_tag;
 
     // node_type
     //   type: storage type for nodes -- shared with XML.
-    using node_type        = internal::DDefaultNode;
+    using node_type        = internal::default_node;
 
     // attribute_type
     //   type: storage type for attributes -- shared with XML.
-    using attribute_type   = DXmlAttribute;
+    using attribute_type   = xml_attribute;
 
     // document_type
     //   type: storage type for documents -- shared with XML.
-    using document_type    = internal::DDefaultDocument;
+    using document_type    = internal::default_document;
 
     // element_type
     //   type: alias for node_type. Satisfies the
@@ -128,7 +128,7 @@ struct DHtmlDefaultBackend
     // root <html> element with empty <head> and <body> children so
     // callers can immediately start populating either subtree. The
     // returned object is the raw storage document, NOT the
-    // `DHtmlDocument` facade -- use `make_html5_document()` (free
+    // `html_document` facade -- use `make_html5_document()` (free
     // function below) if you want a wrapped, version-stamped
     // document.
     static
@@ -136,22 +136,22 @@ struct DHtmlDefaultBackend
     {
         document_type   doc;
         doc.version    = "1.0";
-        doc.encoding   = xml_encoding_name(DXmlEncoding::utf_8);
-        doc.standalone = DXmlStandalone::unspecified;
+        doc.encoding   = xml_encoding_name(xml_encoding::utf_8);
+        doc.standalone = xml_standalone::unspecified;
 
         // Build <html><head/><body/></html> skeleton.
         std::unique_ptr<node_type> html_root_node(new node_type);
-        html_root_node->kind = DXmlNodeKind::element;
+        html_root_node->kind = xml_node_kind::element;
         html_root_node->name = tags::html_root;
 
         std::unique_ptr<node_type> head_node(new node_type);
-        head_node->kind   = DXmlNodeKind::element;
+        head_node->kind   = xml_node_kind::element;
         head_node->name   = tags::head;
         head_node->parent = html_root_node.get();
         html_root_node->children.push_back(std::move(head_node));
 
         std::unique_ptr<node_type> body_node(new node_type);
-        body_node->kind   = DXmlNodeKind::element;
+        body_node->kind   = xml_node_kind::element;
         body_node->name   = tags::body;
         body_node->parent = html_root_node.get();
         html_root_node->children.push_back(std::move(body_node));
@@ -163,23 +163,23 @@ struct DHtmlDefaultBackend
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   DHtmlElement<Backend>                             ///
+///                II.   html_element<Backend>                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DHtmlElement
-//   class: thin facade over `DXmlNode<Backend>` adding HTML
+// html_element
+//   class: thin facade over `xml_node<Backend>` adding HTML
 // semantics (kind enum, class-list manipulation, id accessors,
-// void/block/inline queries). Inherits from `DXmlNode<Backend>`
-// so memory layout is unchanged -- `sizeof(DHtmlElement<B>) ==
-// sizeof(DXmlNode<B>)`.
+// void/block/inline queries). Inherits from `xml_node<Backend>`
+// so memory layout is unchanged -- `sizeof(html_element<B>) ==
+// sizeof(xml_node<B>)`.
 template<typename Backend>
-class DHtmlElement
-:   public DXmlNode<Backend>
+class html_element
+:   public xml_node<Backend>
 {
 public:
     // base_type
     //   type: alias for the underlying XML node facade.
-    using base_type      = DXmlNode<Backend>;
+    using base_type      = xml_node<Backend>;
 
     // node_type
     //   type: backend storage node type, inherited from base.
@@ -192,28 +192,28 @@ public:
 
     /// constructors
 
-    // DHtmlElement (default)
+    // html_element (default)
     //   ctor: constructs a null element wrapping a null backend node.
     D_CONSTEXPR
-    DHtmlElement(
+    html_element(
     )
     :   base_type()
     {}
 
-    // DHtmlElement (from raw node pointer)
+    // html_element (from raw node pointer)
     //   ctor: wraps the given backend node. Does not take ownership.
     explicit
-    DHtmlElement(
+    html_element(
         node_type* _node
     )
     :   base_type(_node)
     {}
 
-    // DHtmlElement (from DXmlNode)
-    //   ctor: re-wraps an existing DXmlNode as an DHtmlElement.
+    // html_element (from xml_node)
+    //   ctor: re-wraps an existing xml_node as an html_element.
     // Zero-cost since the layout is identical.
     explicit
-    DHtmlElement(
+    html_element(
         const base_type& _node
     )
     :   base_type(_node)
@@ -223,15 +223,15 @@ public:
     /// HTML kind queries
 
     // html_kind
-    //   function: returns the `DHtmlElementKind` discriminator
+    //   function: returns the `html_element_kind` discriminator
     // for this element by looking up its tag name. Returns
-    // `DHtmlElementKind::unknown` for non-elements or for tags
+    // `html_element_kind::unknown` for non-elements or for tags
     // that fall outside the standard HTML5 registry.
-    DHtmlElementKind html_kind() const
+    html_element_kind html_kind() const
     {
         if (!this->valid())
         {
-            return DHtmlElementKind::unknown;
+            return html_element_kind::unknown;
         }
         return html_kind_from_name(this->name().c_str());
     }
@@ -239,7 +239,7 @@ public:
     // get_html_kind
     //   function: getter-form alias for html_kind(). Provided so
     // the type satisfies `has_get_html_kind_method` as well.
-    DHtmlElementKind get_html_kind() const
+    html_element_kind get_html_kind() const
     {
         return this->html_kind();
     }
@@ -281,16 +281,16 @@ public:
     // get_id
     //   function: returns the `id` attribute value, or the empty
     // string if absent.
-    DXmlString get_id() const
+    xml_string_t get_id() const
     {
         const attribute_type* a = this->find_attribute(attrs::id);
-        return (a != nullptr) ? a->value : DXmlString();
+        return (a != nullptr) ? a->value : xml_string_t();
     }
 
     // set_id
     //   function: sets the `id` attribute.
     void set_id(
-        const DXmlString& _id
+        const xml_string_t& _id
     )
     {
         this->set_attribute(attrs::id, _id);
@@ -302,16 +302,16 @@ public:
     // class_list
     //   function: returns the `class` attribute split into
     // individual class names.
-    std::vector<DXmlString> class_list() const
+    std::vector<xml_string_t> class_list() const
     {
-        std::vector<DXmlString>     out;
+        std::vector<xml_string_t>   out;
         const attribute_type*       a = this->find_attribute(attrs::class_);
         if (a == nullptr)
         {
             return out;
         }
 
-        const DXmlString&       v = a->value;
+        const xml_string_t&     v = a->value;
         std::size_t             i = 0;
         const std::size_t       n = v.size();
         while (i < n)
@@ -341,10 +341,10 @@ public:
     //   function: true if `_class` appears in this element's
     // class-list.
     bool has_class(
-        const DXmlString& _class
+        const xml_string_t& _class
     ) const
     {
-        const std::vector<DXmlString> cs = this->class_list();
+        const std::vector<xml_string_t> cs = this->class_list();
         for (std::size_t i = 0; i < cs.size(); ++i)
         {
             if (cs[i] == _class)
@@ -359,7 +359,7 @@ public:
     //   function: appends `_class` to the class-list if not
     // already present.
     void add_class(
-        const DXmlString& _class
+        const xml_string_t& _class
     )
     {
         if (this->has_class(_class))
@@ -367,8 +367,8 @@ public:
             return;
         }
         const attribute_type*   a = this->find_attribute(attrs::class_);
-        DXmlString              joined = (a != nullptr) ? a->value
-                                                        : DXmlString();
+        xml_string_t            joined = (a != nullptr) ? a->value
+                                                        : xml_string_t();
         if (!joined.empty())
         {
             joined += ' ';
@@ -380,11 +380,11 @@ public:
     // remove_class
     //   function: removes `_class` from the class-list.
     void remove_class(
-        const DXmlString& _class
+        const xml_string_t& _class
     )
     {
-        const std::vector<DXmlString>   cs = this->class_list();
-        DXmlString                      joined;
+        const std::vector<xml_string_t> cs = this->class_list();
+        xml_string_t                    joined;
         for (std::size_t i = 0; i < cs.size(); ++i)
         {
             if (cs[i] == _class)
@@ -414,7 +414,7 @@ NS_INTERNAL
     inline
     void html_escape_text_helper(
         std::ostream&       _out,
-        const DXmlString&   _in
+        const xml_string_t& _in
     )
     {
         const std::size_t   n = _in.size();
@@ -438,7 +438,7 @@ NS_INTERNAL
     inline
     void html_escape_attr_helper(
         std::ostream&       _out,
-        const DXmlString&   _in
+        const xml_string_t& _in
     )
     {
         const std::size_t   n = _in.size();
@@ -463,7 +463,7 @@ NS_INTERNAL
     inline
     void html_emit_node_helper(
         std::ostream&       _out,
-        const DDefaultNode& _node,
+        const default_node& _node,
         bool                _xhtml,
         std::size_t         _depth,
         const char*         _indent
@@ -475,18 +475,18 @@ NS_INTERNAL
             _out << _indent;
         }
 
-        if (_node.kind == ::djinterp::DXmlNodeKind::text)
+        if (_node.kind == ::djinterp::xml_node_kind::text)
         {
             html_escape_text_helper(_out, _node.text);
             _out << '\n';
             return;
         }
-        if (_node.kind == ::djinterp::DXmlNodeKind::comment)
+        if (_node.kind == ::djinterp::xml_node_kind::comment)
         {
             _out << "<!--" << _node.text << "-->\n";
             return;
         }
-        if (_node.kind != ::djinterp::DXmlNodeKind::element)
+        if (_node.kind != ::djinterp::xml_node_kind::element)
         {
             // unsupported / unknown -- skip silently.
             return;
@@ -496,7 +496,7 @@ NS_INTERNAL
         _out << '<' << _node.name;
         for (std::size_t i = 0; i < _node.attributes.size(); ++i)
         {
-            const ::djinterp::DXmlAttribute& a = _node.attributes[i];
+            const ::djinterp::xml_attribute& a = _node.attributes[i];
             _out << ' ' << a.name << "=\"";
             html_escape_attr_helper(_out, a.value);
             _out << '"';
@@ -584,21 +584,21 @@ namespace html {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   DHtmlDocument<Backend>                           ///
+///                III.   html_document<Backend>                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DHtmlDocument
-//   class: facade over `DXmlDocument<Backend>` adding HTML
+// html_document
+//   class: facade over `xml_document<Backend>` adding HTML
 // document semantics (DOCTYPE declaration, version stamping,
 // head/body/title shortcuts, HTML-aware emission).
 template<typename Backend>
-class DHtmlDocument
-:   public DXmlDocument<Backend>
+class html_document
+:   public xml_document<Backend>
 {
 public:
     // base_type
     //   type: alias for the underlying XML document facade.
-    using base_type     = DXmlDocument<Backend>;
+    using base_type     = xml_document<Backend>;
 
     // backend_type
     //   type: alias for the backend.
@@ -614,44 +614,44 @@ public:
 
     // element_facade
     //   type: HTML facade returned by head_element / body_element.
-    using element_facade = DHtmlElement<Backend>;
+    using element_facade = html_element<Backend>;
 
 
     /// constructors
 
-    // DHtmlDocument (default)
+    // html_document (default)
     //   ctor: constructs an empty HTML5 document with an empty
     // root <html> tree.
-    DHtmlDocument(
+    html_document(
     )
     :   base_type(),
-        m_version(html::DHtmlVersion::html5),
+        m_version(html::html_version::html5),
         m_doctype(D_HTML_DEFAULT_DOCTYPE)
     {}
 
-    // DHtmlDocument (from version)
+    // html_document (from version)
     //   ctor: constructs an empty document targeting `_v`.
     explicit
-    DHtmlDocument(
-        html::DHtmlVersion _v
+    html_document(
+        html::html_version _v
     )
     :   base_type(),
         m_version(_v),
         m_doctype(html_doctype_string(_v))
     {}
 
-    // DHtmlDocument (from existing storage doc)
+    // html_document (from existing storage doc)
     //   ctor: wraps an already-built backend storage document.
     explicit
-    DHtmlDocument(
+    html_document(
         document_type&&    _doc,
-        html::DHtmlVersion _v = html::DHtmlVersion::html5
+        html::html_version _v = html::html_version::html5
     )
     :   base_type(),
         m_version(_v),
         m_doctype(html_doctype_string(_v))
     {
-        // The base DXmlDocument holds m_doc by value; route the move
+        // The base xml_document holds m_doc by value; route the move
         // through its public set_root if available, otherwise via
         // direct backend access.
         // Default backend storage path:
@@ -663,10 +663,10 @@ public:
 
     /// version / doctype accessors
 
-    // DHtmlVersion
+    // html_version
     //   function: returns the document's target HTML / XHTML
     // version.
-    enum DHtmlVersion
+    enum html_version
     html_version() const
     {
         return m_version;
@@ -677,7 +677,7 @@ public:
     // doctype string accordingly.
     void
     set_html_version(
-        enum DHtmlVersion   _v
+        enum html_version   _v
     )
     {
         m_version = _v;
@@ -687,14 +687,14 @@ public:
     // doctype
     //   function: returns the DOCTYPE declaration that will be
     // emitted at the top of the document.
-    const DXmlString& doctype() const
+    const xml_string_t& doctype() const
     {
         return m_doctype;
     }
 
     // get_doctype
     //   function: getter-form alias for doctype().
-    const DXmlString& get_doctype() const
+    const xml_string_t& get_doctype() const
     {
         return m_doctype;
     }
@@ -704,11 +704,11 @@ public:
     // to `custom` so the override is preserved on subsequent
     // emissions.
     void set_doctype(
-        const DXmlString& _doctype
+        const xml_string_t& _doctype
     )
     {
         m_doctype = _doctype;
-        m_version = html::DHtmlVersion::custom;
+        m_version = html::html_version::custom;
     }
 
 
@@ -761,12 +761,12 @@ public:
     // title
     //   function: returns the contents of the `<title>` element
     // inside `<head>`, or the empty string if absent.
-    DXmlString title() const
+    xml_string_t title() const
     {
         element_facade  head = this->head_element();
         if (!head.valid())
         {
-            return DXmlString();
+            return xml_string_t();
         }
         node_type*  head_node = head.backend_handle();
         for (std::size_t i = 0; i < head_node->children.size(); ++i)
@@ -777,14 +777,14 @@ public:
                 return c->text;
             }
         }
-        return DXmlString();
+        return xml_string_t();
     }
 
     // set_title
     //   function: sets the document's <title>. Creates the <head>
     // and <title> elements as necessary.
     void set_title(
-        const DXmlString& _title
+        const xml_string_t& _title
     )
     {
         node_type*  root = const_cast<node_type*>(
@@ -808,7 +808,7 @@ public:
         if (head_node == nullptr)
         {
             std::unique_ptr<node_type> nh(new node_type);
-            nh->kind   = ::djinterp::DXmlNodeKind::element;
+            nh->kind   = ::djinterp::xml_node_kind::element;
             nh->name   = tags::head;
             nh->parent = root;
             head_node  = nh.get();
@@ -829,7 +829,7 @@ public:
         if (title_node == nullptr)
         {
             std::unique_ptr<node_type> nt(new node_type);
-            nt->kind   = ::djinterp::DXmlNodeKind::element;
+            nt->kind   = ::djinterp::xml_node_kind::element;
             nt->name   = tags::title;
             nt->parent = head_node;
             title_node = nt.get();
@@ -870,7 +870,7 @@ public:
     // write
     //   function: convenience overload that returns the serialised
     // document as a string.
-    DXmlString write() const
+    xml_string_t write() const
     {
         std::ostringstream  oss;
         this->write(oss);
@@ -882,7 +882,7 @@ protected:
     // root_element_node
     //   function: returns a raw pointer to the document's root
     // backend node. For the default backend this is just the
-    // `unique_ptr<DDefaultNode>` payload of the storage doc.
+    // `unique_ptr<default_node>` payload of the storage doc.
     // Subclasses / specialisations targeting third-party backends
     // should override this in a partial specialisation. The
     // default implementation handles the bundled backend.
@@ -896,11 +896,11 @@ protected:
 private:
     // m_version
     //   field: target HTML / XHTML version.
-    enum DHtmlVersion   m_version;
+    enum html_version   m_version;
 
     // m_doctype
     //   field: cached DOCTYPE declaration string.
-    DXmlString        m_doctype;
+    xml_string_t        m_doctype;
 };
 
 
@@ -914,18 +914,18 @@ private:
 // is non-empty, also inserts a `<title>` element under `<head>`.
 template<typename Backend>
 inline
-DHtmlDocument<Backend> make_html5_document(
-    const DXmlString& _title = DXmlString()
+html_document<Backend> make_html5_document(
+    const xml_string_t& _title = xml_string_t()
 )
 {
-    DHtmlDocument<Backend>     doc(DHtmlVersion::html5);
+    html_document<Backend>     doc(html_version::html5);
 
     // The default ctor leaves the underlying storage document with
     // a null root; bootstrap a skeleton via the backend factory.
     using doc_t = typename Backend::document_type;
     doc_t skeleton = Backend::make_html_document();
-    doc = DHtmlDocument<Backend>(std::move(skeleton),
-                                  DHtmlVersion::html5);
+    doc = html_document<Backend>(std::move(skeleton),
+                                  html_version::html5);
 
     if (!_title.empty())
     {
@@ -941,14 +941,14 @@ DHtmlDocument<Backend> make_html5_document(
 // emission flags and DOCTYPE differ.
 template<typename Backend>
 inline
-DHtmlDocument<Backend> make_xhtml_document(
-    DHtmlVersion        _v = DHtmlVersion::xhtml1_strict,
-    const DXmlString&   _title = DXmlString()
+html_document<Backend> make_xhtml_document(
+    html_version        _v = html_version::xhtml1_strict,
+    const xml_string_t& _title = xml_string_t()
 )
 {
     using doc_t = typename Backend::document_type;
     doc_t skeleton = Backend::make_html_document();
-    DHtmlDocument<Backend>     doc(std::move(skeleton), _v);
+    html_document<Backend>     doc(std::move(skeleton), _v);
     if (!_title.empty())
     {
         doc.set_title(_title);
@@ -959,23 +959,23 @@ DHtmlDocument<Backend> make_xhtml_document(
 
 // make_div
 //   function: returns a new freestanding `<div>` element wrapped
-// in an `DHtmlElement` facade. The backend storage node is
+// in an `html_element` facade. The backend storage node is
 // allocated via `new`; ownership transfers to whichever parent
 // later adopts it via `add_child` (when using the default
 // backend, that path moves the unique_ptr in).
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_div(
-    const DXmlString& _id = DXmlString(),
-    const DXmlString& _class = DXmlString()
+html_element<Backend> make_div(
+    const xml_string_t& _id = xml_string_t(),
+    const xml_string_t& _class = xml_string_t()
 )
 {
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::div_;
 
-    DHtmlElement<Backend>  e(n);
+    html_element<Backend>  e(n);
     if (!_id.empty())
     {
         e.set_id(_id);
@@ -992,18 +992,18 @@ DHtmlElement<Backend> make_div(
 //   function: returns a new freestanding `<span>` element.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_span(
-    const DXmlString& _text = DXmlString(),
-    const DXmlString& _class = DXmlString()
+html_element<Backend> make_span(
+    const xml_string_t& _text = xml_string_t(),
+    const xml_string_t& _class = xml_string_t()
 )
 {
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::span_;
     n->text   = _text;
 
-    DHtmlElement<Backend>  e(n);
+    html_element<Backend>  e(n);
     if (!_class.empty())
     {
         e.add_class(_class);
@@ -1017,18 +1017,18 @@ DHtmlElement<Backend> make_span(
 // given `href` and inner text.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_anchor(
-    const DXmlString& _href,
-    const DXmlString& _text
+html_element<Backend> make_anchor(
+    const xml_string_t& _href,
+    const xml_string_t& _text
 )
 {
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::a;
     n->text   = _text;
 
-    DHtmlElement<Backend>  e(n);
+    html_element<Backend>  e(n);
     e.set_attribute(attrs::href, _href);
     return e;
 }
@@ -1038,17 +1038,17 @@ DHtmlElement<Backend> make_anchor(
 //   function: returns a new freestanding `<img>` (void) element.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_image(
-    const DXmlString& _src,
-    const DXmlString& _alt = DXmlString()
+html_element<Backend> make_image(
+    const xml_string_t& _src,
+    const xml_string_t& _alt = xml_string_t()
 )
 {
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::img;
 
-    DHtmlElement<Backend>  e(n);
+    html_element<Backend>  e(n);
     e.set_attribute(attrs::src, _src);
     if (!_alt.empty())
     {
@@ -1063,16 +1063,16 @@ DHtmlElement<Backend> make_image(
 // given inner text.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_paragraph(
-    const DXmlString& _text = DXmlString()
+html_element<Backend> make_paragraph(
+    const xml_string_t& _text = xml_string_t()
 )
 {
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::p;
     n->text   = _text;
-    return DHtmlElement<Backend>(n);
+    return html_element<Backend>(n);
 }
 
 
@@ -1081,9 +1081,9 @@ DHtmlElement<Backend> make_paragraph(
 // must be in [1,6]; values outside that range default to h1.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_heading(
+html_element<Backend> make_heading(
     int                 _level,
-    const DXmlString&   _text = DXmlString()
+    const xml_string_t& _text = xml_string_t()
 )
 {
     const char* tag = (_level == 2) ? tags::h2
@@ -1095,10 +1095,10 @@ DHtmlElement<Backend> make_heading(
 
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tag;
     n->text   = _text;
-    return DHtmlElement<Backend>(n);
+    return html_element<Backend>(n);
 }
 
 
@@ -1108,15 +1108,15 @@ DHtmlElement<Backend> make_heading(
 // builders that walk an element-kind enum.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_element_by_kind(
-    DHtmlElementKind _kind
+html_element<Backend> make_element_by_kind(
+    html_element_kind _kind
 )
 {
     using node_t = typename Backend::node_type;
     node_t* n = new node_t;
-    n->kind   = ::djinterp::DXmlNodeKind::element;
+    n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = name_from_html_kind(_kind);
-    return DHtmlElement<Backend>(n);
+    return html_element<Backend>(n);
 }
 
 

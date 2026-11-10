@@ -16,7 +16,7 @@
 // sits in the function BODY, which is not instantiated in an unevaluated
 // context, so no detection idiom can observe it.  The observable consequence
 // of a missing flag is therefore the missing MEMBER, and that is what
-// section 10's traits pin down (has_font_underline_v<DFont<ff_none>> is
+// section 10's traits pin down (has_font_underline_v<font<ff_none>> is
 // false).  Here we test the positive side: with the flag on, each setter
 // does exactly what it says and nothing else.
 
@@ -56,7 +56,7 @@ bool tests_fn_set_underline()
     // the core is untouched throughout
     D_FT_CHECK(f.family == "Inter");
     D_FT_CHECK_NEAR(f.size, 12.0f);
-    D_FT_CHECK(f.weight == DFontWeight::normal);
+    D_FT_CHECK(f.weight == font_weight::normal);
 
     return true;
 }
@@ -451,18 +451,18 @@ tests_fn_set_stretch
 */
 bool tests_fn_set_stretch()
 {
-    const DFontStretch classes[] =
+    const font_stretch classes[] =
     {
-        DFontStretch::ultra_condensed, DFontStretch::extra_condensed,
-        DFontStretch::condensed,       DFontStretch::semi_condensed,
-        DFontStretch::normal,          DFontStretch::semi_expanded,
-        DFontStretch::expanded,        DFontStretch::extra_expanded,
-        DFontStretch::ultra_expanded
+        font_stretch::ultra_condensed, font_stretch::extra_condensed,
+        font_stretch::condensed,       font_stretch::semi_condensed,
+        font_stretch::normal,          font_stretch::semi_expanded,
+        font_stretch::expanded,        font_stretch::extra_expanded,
+        font_stretch::ultra_expanded
     };
 
     axes_font f;
 
-    D_FT_CHECK(f.stretch == DFontStretch::normal);
+    D_FT_CHECK(f.stretch == font_stretch::normal);
 
     // every width class round-trips
     for (std::size_t i = 0; i < 9u; ++i)
@@ -472,9 +472,9 @@ bool tests_fn_set_stretch()
         D_FT_CHECK(f.stretch == classes[i]);
     }
 
-    fn_set_stretch(f, DFontStretch::normal);
+    fn_set_stretch(f, font_stretch::normal);
 
-    D_FT_CHECK(f.stretch == DFontStretch::normal);
+    D_FT_CHECK(f.stretch == font_stretch::normal);
 
     // the spacing axis beside it never moved
     D_FT_CHECK(f.spacing == DFontSpacing::any);
@@ -514,7 +514,7 @@ bool tests_fn_set_spacing()
     D_FT_CHECK(f.spacing == DFontSpacing::any);
 
     // the stretch axis beside it never moved
-    D_FT_CHECK(f.stretch == DFontStretch::normal);
+    D_FT_CHECK(f.stretch == font_stretch::normal);
 
     return true;
 }
@@ -528,7 +528,7 @@ tests_fn_set_foreground
 */
 bool tests_fn_set_foreground()
 {
-    DFont<ff_color | ff_background, probe_color> f;
+    font<ff_color | ff_background, probe_color> f;
 
     const probe_color fresh {};
 
@@ -566,7 +566,7 @@ DFontColor and a type font.hpp has never seen.
 */
 bool tests_fn_set_foreground_with_a_custom_color_type()
 {
-    DFont<ff_color, wide_color> wide;
+    font<ff_color, wide_color> wide;
 
     wide_color w {};
     w.channel[0] = 0.25;
@@ -579,7 +579,7 @@ bool tests_fn_set_foreground_with_a_custom_color_type()
     D_FT_CHECK(wide.foreground.channel[7] == 0.75);
 
     // the legacy color type, still supported
-    DFont<ff_color, DFontColor> legacy;
+    font<ff_color, DFontColor> legacy;
 
     const DFontColor amber { 255u, 191u, 0u, 255u };
 
@@ -604,7 +604,7 @@ flag beside the color, and the reason has_font_background is a conjunction.
 */
 bool tests_fn_set_background_enables_it()
 {
-    DFont<ff_color | ff_background, probe_color> f;
+    font<ff_color | ff_background, probe_color> f;
 
     D_FT_CHECK(!f.background_enabled);
 
@@ -726,7 +726,7 @@ the bug this test exists to catch.
 */
 bool tests_fn_foreground_and_background_are_independent()
 {
-    DFont<ff_color | ff_background, probe_color> f;
+    font<ff_color | ff_background, probe_color> f;
 
     const probe_color white { 255u, 255u, 255u };
     const probe_color black { 0u,   0u,   0u   };
@@ -763,8 +763,8 @@ tests_fn_color_ops_leave_the_core_alone
 */
 bool tests_fn_color_ops_leave_the_core_alone()
 {
-    DFont<ff_color | ff_background, probe_color> f("Inter", 12.0f,
-                                                  DFontWeight::semi_bold,
+    font<ff_color | ff_background, probe_color> f("Inter", 12.0f,
+                                                  font_weight::semi_bold,
                                                   DFontSlant::italic);
 
     fn_set_style_name(f, "Semibold Italic");
@@ -779,7 +779,7 @@ bool tests_fn_color_ops_leave_the_core_alone()
     D_FT_CHECK(f.style_name     == "Semibold Italic");
     D_FT_CHECK_NEAR(f.size, 12.0f);
     D_FT_CHECK(f.size_unit      == DFontSizeUnit::pixels);
-    D_FT_CHECK(f.weight         == DFontWeight::semi_bold);
+    D_FT_CHECK(f.weight         == font_weight::semi_bold);
     D_FT_CHECK(f.weight_numeric == 640u);
     D_FT_CHECK(f.slant          == DFontSlant::italic);
 

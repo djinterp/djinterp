@@ -9,7 +9,7 @@
 * that do not vary by format -- tree traversal, indentation, the output
 * destination, and the rendering options -- live here once, while the
 * parts that DO vary by format -- escaping rules and the empty-element
-* convention -- are supplied by a `Policy` (default `DXmlPrintPolicy`).
+* convention -- are supplied by a `Policy` (default `xml_print_policy`).
 *
 *   GENERIC OVER THE NODE PROTOCOL:
 *   The printer never names a concrete node class. Every read goes through
@@ -24,23 +24,23 @@
 *   DESTINATION:
 *   The sink is a template parameter whose only requirement is to be
 * callable as `sink(const char*, std::size_t)`. writer.hpp provides three
-* -- `DStringSink` (append into an `DXmlString`), `DStreamSink` (write
+* -- `string_sink` (append into an `xml_string_t`), `stream_sink` (write
 * into a `std::ostream`) and `output_stream_sink` (write into any output
 * stream) -- so file, console, string, and in-memory buffer destinations are
 * all just different sinks, not different printers. Any callable with that
 * signature (including a functional-style consumer) works directly.
 *   Those three write through an output stream (cpp/util/output), which
 * keeps a failed write: a sink returns nothing, so its ok() is where a
-* failure shows. `DFilePrinter` writes through one it opens, and its
+* failure shows. `file_printer` writes through one it opens, and its
 * print(), close() and print_document_to_file() report whether the whole
 * document reached the file.
 *
 *   OPTIONS:
-*   Rendering options are a small typed struct (`DPrintOptions`: indent
+*   Rendering options are a small typed struct (`print_options`: indent
 * string, newline, pretty flag) rather than a type-erased key/value bag,
 * because the printer's own knobs are fixed and benefit from being
 * checked and inlined. A dynamic option set (DKvPair / option_set) can
-* populate a `DPrintOptions` at the boundary if open-ended configuration
+* populate a `print_options` at the boundary if open-ended configuration
 * is wanted.
 *
 *   Requires C++17 (`if constexpr`); self-suppresses below it.
@@ -57,12 +57,12 @@ TABLE OF CONTENTS
 =================
 I.    PRINT OPTIONS
       -------------
-      a. DPrintOptions
+      a. print_options
 
 II.   OUTPUT SINKS
       ------------
-      a. DStringSink
-      b. DStreamSink
+      a. string_sink
+      b. stream_sink
 
 III.  PROTOCOL ACCESS (internal)
       --------------------------
@@ -73,14 +73,14 @@ III.  PROTOCOL ACCESS (internal)
 
 IV.   PRINT POLICY
       ------------
-      a. DElementForm
-      b. DXmlPrintPolicy
-      c.    DBoxedPrintPolicy
+      a. element_form
+      b. xml_print_policy
+      c.    boxed_print_policy
             d. box_policy, xml_policy
 
 V.    DOCUMENT PRINTER
       ----------------
-      a. DDocumentPrinter<Sink, Policy>
+      a. document_printer<Sink, Policy>
 
 VI.   CONVENIENCE FUNCTIONS
       ---------------------
@@ -90,7 +90,7 @@ VI.   CONVENIENCE FUNCTIONS
 
 VII.  FILE PRINTER
       ------------
-      a. DFilePrinter
+      a. file_printer
       b. print_document_to_file
 */
 
@@ -105,17 +105,17 @@ VII.  FILE PRINTER
 
 // std
 #include <cstddef>      // std::size_t
-#include <memory>       // std::shared_ptr: DBoxedPrintPolicy
+#include <memory>       // std::shared_ptr: boxed_print_policy
 #include <ostream>      // std::ostream
 #include <string>       // std::string, std::char_traits
 #include <type_traits>  // std::enable_if, std::is_same
 // djinterp
 #include "../djinterp.hpp"                   // framework root
-#include "./writer.hpp"                      // the sinks: DStringSink,
-                                             // DStreamSink, output_stream_sink
+#include "./writer.hpp"                      // the sinks: string_sink,
+                                             // stream_sink, output_stream_sink
 #include "./xml/xml.hpp"                     // node protocol traits,
-                                             // DXmlNodeKind
-#include "../util/output/output_stream.hpp"  // DOutputStream: DFilePrinter
+                                             // xml_node_kind
+#include "../util/output/output_stream.hpp"  // DOutputStream: file_printer
 
 
 // `if constexpr` is the spine of the accessor dispatch; below C++17 this
@@ -130,20 +130,20 @@ NS_DJINTERP
 ///                  I.   PRINT OPTIONS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DPrintOptions
+// print_options
 //   struct: the format-agnostic rendering knobs. `indent` is the string
 // emitted once per nesting level, `newline` is the line terminator, and
 // `pretty` gates both -- when false the document is emitted compactly on a
 // single line and `indent` / `newline` are ignored.
-struct DPrintOptions
+struct print_options
 {
-    DXmlString indent;     // per-level indent string
-    DXmlString   newline;    // line terminator
+    xml_string_t indent;     // per-level indent string
+    xml_string_t newline;    // line terminator
     bool         pretty;     // indent + line breaks when true
 
-    // DPrintOptions (default)
+    // print_options (default)
     //   constructor: two-space indent, LF newline, pretty-printing on.
-    DPrintOptions()
+    print_options()
         : indent(D_XML_DEFAULT_INDENT),
           newline("\n"),
           pretty(true)
@@ -155,7 +155,7 @@ struct DPrintOptions
 ///                  II.   OUTPUT SINKS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-//   The output sinks (`DStringSink`, `DStreamSink`, `output_stream_sink`) live
+//   The output sinks (`string_sink`, `stream_sink`, `output_stream_sink`) live
 // in `writer.hpp` -- the generic IO foundation this header includes -- because
 // a sink is an IO concept, not a printing-a-document concept. They remain in
 // the `djinterp` namespace, so existing references (e.g. in `node_to_string`
@@ -171,21 +171,21 @@ struct DPrintOptions
 //   These helpers read the node protocol uniformly, hiding the short-form
 // vs getter-form naming split behind compile-time dispatch. Each is valid
 // only when the corresponding accessor exists; callers guard with the same
-// traits (or with the node-level contract enforced by DDocumentPrinter).
+// traits (or with the node-level contract enforced by document_printer).
 
 NS_INTERNAL
 
     // to_string_value
     //   function: coerces whatever an accessor returns (a string, a
     // string_view, a const char*, a reference to any of these) into an
-    // owned DXmlString for emission or escaping.
+    // owned xml_string_t for emission or escaping.
     template<typename Source>
     inline
-    DXmlString to_string_value(
+    xml_string_t to_string_value(
         const Source& _source
     )
     {
-        return DXmlString(_source);
+        return xml_string_t(_source);
     }
 
 
@@ -193,7 +193,7 @@ NS_INTERNAL
     //   function: the node's name via name() or get_name().
     template<typename Node>
     inline
-    DXmlString read_name(
+    xml_string_t read_name(
         const Node& _node
     )
     {
@@ -212,7 +212,7 @@ NS_INTERNAL
     //   function: the node's text content via text() or get_text().
     template<typename Node>
     inline
-    DXmlString read_text(
+    xml_string_t read_text(
         const Node& _node
     )
     {
@@ -229,21 +229,21 @@ NS_INTERNAL
 
     // read_kind
     //   function: the node's kind via kind() or node_type(), normalised to
-    // DXmlNodeKind. Backends whose discriminator is a distinct enum are
-    // assumed numerically compatible with DXmlNodeKind.
+    // xml_node_kind. Backends whose discriminator is a distinct enum are
+    // assumed numerically compatible with xml_node_kind.
     template<typename Node>
     inline
-    DXmlNodeKind read_kind(
+    xml_node_kind read_kind(
         const Node& _node
     )
     {
         if constexpr (has_kind_method<Node>::value)
         {
-            return static_cast<DXmlNodeKind>(_node.kind());
+            return static_cast<xml_node_kind>(_node.kind());
         }
         else
         {
-            return static_cast<DXmlNodeKind>(_node.node_type());
+            return static_cast<xml_node_kind>(_node.node_type());
         }
     }
 
@@ -291,7 +291,7 @@ NS_INTERNAL
     //   function: an attribute's name via name() or get_name().
     template<typename Attribute>
     inline
-    DXmlString read_attribute_name(
+    xml_string_t read_attribute_name(
         const Attribute& _attribute
     )
     {
@@ -310,7 +310,7 @@ NS_INTERNAL
     //   function: an attribute's value via value() or get_value().
     template<typename Attribute>
     inline
-    DXmlString read_attribute_value(
+    xml_string_t read_attribute_value(
         const Attribute& _attribute
     )
     {
@@ -331,14 +331,14 @@ NS_END  // internal
 ///                  IV.   PRINT POLICY                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DElementForm
+// element_form
 //   enum: how an element is closed -- the one place markup dialects diverge.
 //     paired       <name>...</name>   (or <name></name> when empty)
 //     self_closing <name/>            (XML empty elements)
 //     voidlike     <name>             (HTML void elements: no content, no
 //                                       closing tag, and no trailing slash)
 // A policy returns one of these from `form_of`; the printer renders to match.
-enum class DElementForm
+enum class element_form
 {
     paired,
     self_closing,
@@ -348,31 +348,31 @@ enum class DElementForm
 
 //   A PRINT POLICY supplies the three things a markup dialect varies:
 // `escape_text` and `escape_attribute` (string -> escaped string) and
-// `form_of(name, is_empty) -> DElementForm`. Methods may be static or
+// `form_of(name, is_empty) -> element_form`. Methods may be static or
 // instance (they are called on an instance). A policy can be a TYPE chosen at
-// compile time (zero cost, inlined) or, via `DBoxedPrintPolicy` below, a
+// compile time (zero cost, inlined) or, via `boxed_print_policy` below, a
 // VALUE chosen at runtime -- both satisfy the same contract and plug into the
-// same `DDocumentPrinter`.
+// same `document_printer`.
 
 
-// DXmlPrintPolicy
+// xml_print_policy
 //   struct: the default format policy -- XML serialisation rules. Supplies
 // text and attribute escaping and the empty-element convention. Methods
 // are stateless and callable on an instance, so a custom policy may use
 // either static or non-static members. Swap this parameter to retarget the
 // printer at another markup dialect (e.g. an HTML policy with void-element
 // rules).
-struct DXmlPrintPolicy
+struct xml_print_policy
 {
     // escape_text
     //   function: escapes the three characters that are significant in XML
     // character data: &, <, and >.
     static
-    DXmlString escape_text(
-        const DXmlString& _in
+    xml_string_t escape_text(
+        const xml_string_t& _in
     )
     {
-        DXmlString _out;
+        xml_string_t _out;
         _out.reserve(_in.size());
 
         for (char _c : _in)
@@ -394,11 +394,11 @@ struct DXmlPrintPolicy
     //   function: escapes character data plus the double quote, for values
     // emitted inside double-quoted attributes.
     static
-    DXmlString escape_attribute(
-        const DXmlString& _in
+    xml_string_t escape_attribute(
+        const xml_string_t& _in
     )
     {
-        DXmlString _out;
+        xml_string_t _out;
         _out.reserve(_in.size());
 
         for (char _c : _in)
@@ -420,56 +420,56 @@ struct DXmlPrintPolicy
     // form_of
     //   function: how to close an element. In XML an empty element self-closes
     // (`<tag/>`) and a non-empty one is paired; the name is irrelevant.
-    static DElementForm
+    static element_form
     form_of(
-        const DXmlString&   /*_name*/,
+        const xml_string_t& /*_name*/,
         bool                _is_empty
     )
     {
-        return _is_empty ? DElementForm::self_closing
-                         : DElementForm::paired;
+        return _is_empty ? element_form::self_closing
+                         : element_form::paired;
     }
 };
 
 
-// DBoxedPrintPolicy
+// boxed_print_policy
 //   class: a type-erased print policy -- the RUNTIME face of the contract.
 // It holds any concrete policy behind a small interface and forwards
 // `escape_text` / `escape_attribute` / `form_of` through it, so the format
 // can be chosen as a value at runtime. Because it satisfies the same contract
-// as a concrete policy, `DDocumentPrinter<Sink, DBoxedPrintPolicy>` and
+// as a concrete policy, `document_printer<Sink, boxed_print_policy>` and
 // `render` accept it unchanged -- the only difference from a compile-time
 // policy is one indirection per call. Uses the same shared concept/model
 // erasure as `DBoxedConsumer` / `DBoxedAccumulator`.
-class DBoxedPrintPolicy
+class boxed_print_policy
 {
 public:
     template<typename Policy,
              typename = typename std::enable_if<
-                 !std::is_same<clean_t<Policy>, DBoxedPrintPolicy>::value>::type>
-    DBoxedPrintPolicy(
+                 !std::is_same<clean_t<Policy>, boxed_print_policy>::value>::type>
+    boxed_print_policy(
         Policy _policy
     )
         : m_self(std::make_shared<model_t<clean_t<Policy>>>(
               static_cast<Policy&&>(_policy)))
     {}
 
-    D_NODISCARD DXmlString escape_text(
-        const DXmlString& _in
+    D_NODISCARD xml_string_t escape_text(
+        const xml_string_t& _in
     ) const
     {
         return m_self->escape_text(_in);
     }
 
-    D_NODISCARD DXmlString escape_attribute(
-        const DXmlString& _in
+    D_NODISCARD xml_string_t escape_attribute(
+        const xml_string_t& _in
     ) const
     {
         return m_self->escape_attribute(_in);
     }
 
-    D_NODISCARD DElementForm form_of(
-        const DXmlString&   _name,
+    D_NODISCARD element_form form_of(
+        const xml_string_t& _name,
         bool                _is_empty
     ) const
     {
@@ -484,16 +484,16 @@ private:
         ~concept_t() = default;
 
         virtual
-        DXmlString escape_text(
-            const DXmlString&
+        xml_string_t escape_text(
+            const xml_string_t&
         ) const = 0;
         virtual
-        DXmlString escape_attribute(
-            const DXmlString&
+        xml_string_t escape_attribute(
+            const xml_string_t&
         ) const = 0;
         virtual
-        DElementForm form_of(
-            const DXmlString&,
+        element_form form_of(
+            const xml_string_t&,
             bool
         ) const = 0;
     };
@@ -508,22 +508,22 @@ private:
             : m_policy(static_cast<Policy&&>(_policy))
         {}
 
-        DXmlString escape_text(
-            const DXmlString& _in
+        xml_string_t escape_text(
+            const xml_string_t& _in
         ) const override
         {
             return m_policy.escape_text(_in);
         }
 
-        DXmlString escape_attribute(
-            const DXmlString& _in
+        xml_string_t escape_attribute(
+            const xml_string_t& _in
         ) const override
         {
             return m_policy.escape_attribute(_in);
         }
 
-        DElementForm form_of(
-            const DXmlString&   _name,
+        element_form form_of(
+            const xml_string_t& _name,
             bool                _is_empty
         ) const override
         {
@@ -538,21 +538,21 @@ private:
 
 
 // box_policy
-//   function: wrap any concrete policy as a `DBoxedPrintPolicy`.
+//   function: wrap any concrete policy as a `boxed_print_policy`.
 template<typename Policy>
-D_NODISCARD inline DBoxedPrintPolicy box_policy(
+D_NODISCARD inline boxed_print_policy box_policy(
     Policy _policy
 )
 {
-    return DBoxedPrintPolicy(static_cast<Policy&&>(_policy));
+    return boxed_print_policy(static_cast<Policy&&>(_policy));
 }
 
 
 // xml_policy
 //   function: the XML policy as a runtime value.
-D_NODISCARD inline DBoxedPrintPolicy xml_policy()
+D_NODISCARD inline boxed_print_policy xml_policy()
 {
-    return DBoxedPrintPolicy(DXmlPrintPolicy{});
+    return boxed_print_policy(xml_print_policy{});
 }
 
 
@@ -560,23 +560,23 @@ D_NODISCARD inline DBoxedPrintPolicy xml_policy()
 ///                  V.   DOCUMENT PRINTER                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DDocumentPrinter
+// document_printer
 //   class: the protocol-generic printer. `Sink` is any callable
 // `(const char*, std::size_t)`; `Policy` supplies the format-specific
 // escaping and empty-element rules. Construct with a sink (and optionally
 // options and a policy), then call `print` / `operator()` with any node
 // that satisfies the node protocol.
 template<typename Sink,
-         typename Policy = DXmlPrintPolicy>
-class DDocumentPrinter
+         typename Policy = xml_print_policy>
+class document_printer
 {
 public:
     using sink_type   = Sink;
     using policy_type = Policy;
 
-    // DDocumentPrinter (sink)
+    // document_printer (sink)
     //   constructor: bind a sink; default options and policy.
-    explicit DDocumentPrinter(
+    explicit document_printer(
         Sink _sink
     )
         : m_sink(static_cast<Sink&&>(_sink))
@@ -584,26 +584,26 @@ public:
         , m_policy()
     {}
 
-    // DDocumentPrinter (sink, options)
+    // document_printer (sink, options)
     //   constructor: bind a sink and rendering options.
-    DDocumentPrinter(
+    document_printer(
         Sink          _sink,
-        DPrintOptions _options
+        print_options _options
     )
         : m_sink(static_cast<Sink&&>(_sink))
-        , m_options(static_cast<DPrintOptions&&>(_options))
+        , m_options(static_cast<print_options&&>(_options))
         , m_policy()
     {}
 
-    // DDocumentPrinter (sink, options, policy)
+    // document_printer (sink, options, policy)
     //   constructor: bind a sink, options, and an explicit policy instance.
-    DDocumentPrinter(
+    document_printer(
         Sink          _sink,
-        DPrintOptions _options,
+        print_options _options,
         Policy        _policy
     )
         : m_sink(static_cast<Sink&&>(_sink))
-        , m_options(static_cast<DPrintOptions&&>(_options))
+        , m_options(static_cast<print_options&&>(_options))
         , m_policy(static_cast<Policy&&>(_policy))
     {}
 
@@ -617,12 +617,12 @@ public:
     {
         static_assert(
             is_xml_node<Node>::value,
-            "DDocumentPrinter::print requires a type satisfying the XML node "
+            "document_printer::print requires a type satisfying the XML node "
             "protocol (a name accessor and child traversal).");
         static_assert(
             ( has_children_method<Node>::value ||
               has_get_children_method<Node>::value ),
-            "DDocumentPrinter::print requires an iterable child accessor "
+            "document_printer::print requires an iterable child accessor "
             "(children() or get_children()).");
 
         m_print(_node, 0);
@@ -654,7 +654,7 @@ public:
 
     // options
     //   function: the bound rendering options (mutable, for reuse).
-    D_NODISCARD DPrintOptions&
+    D_NODISCARD print_options&
     options()
     {
         return m_options;
@@ -674,10 +674,10 @@ private:
     }
 
     // m_put (string)
-    //   function: emit an DXmlString to the sink.
+    //   function: emit an xml_string_t to the sink.
     void
     m_put(
-        const DXmlString& _string
+        const xml_string_t& _string
     )
     {
         m_sink(_string.data(), _string.size());
@@ -689,7 +689,7 @@ private:
     //   function: emit `_depth` indent strings, when pretty-printing.
     void
     m_indent(
-        DXmlSize _depth
+        xml_size_t _depth
     )
     {
         if (!m_options.pretty)
@@ -697,7 +697,7 @@ private:
             return;
         }
 
-        for (DXmlSize _i = 0; _i < _depth; ++_i)
+        for (xml_size_t _i = 0; _i < _depth; ++_i)
         {
             m_put(m_options.indent);
         }
@@ -724,14 +724,14 @@ private:
     void
     m_print(
         const Node& _node,
-        DXmlSize   _depth
+        xml_size_t   _depth
     )
     {
-        const DXmlNodeKind _kind = m_kind_of(_node);
+        const xml_node_kind _kind = m_kind_of(_node);
 
         switch (_kind)
         {
-            case DXmlNodeKind::text:
+            case xml_node_kind::text:
             {
                 m_indent(_depth);
                 if constexpr (has_text_method<Node>::value ||
@@ -743,7 +743,7 @@ private:
                 break;
             }
 
-            case DXmlNodeKind::comment:
+            case xml_node_kind::comment:
             {
                 m_indent(_depth);
                 m_put("<!--");
@@ -757,7 +757,7 @@ private:
                 break;
             }
 
-            case DXmlNodeKind::cdata_section:
+            case xml_node_kind::cdata_section:
             {
                 m_indent(_depth);
                 m_put("<![CDATA[");
@@ -771,7 +771,7 @@ private:
                 break;
             }
 
-            case DXmlNodeKind::element:
+            case xml_node_kind::element:
             default:
             {
                 m_print_element(_node, _depth);
@@ -789,10 +789,10 @@ private:
     void
     m_print_element(
         const Node& _node,
-        DXmlSize   _depth
+        xml_size_t   _depth
     )
     {
-        const DXmlString _name = internal::read_name(_node);
+        const xml_string_t _name = internal::read_name(_node);
 
         m_indent(_depth);
         m_put("<");
@@ -806,7 +806,7 @@ private:
         const bool _has_children =
             ( m_begin(_children) != m_end(_children) );
 
-        DXmlString   _text;
+        xml_string_t _text;
         bool         _has_text = false;
         if constexpr (has_text_method<Node>::value ||
                       has_get_text_method<Node>::value)
@@ -819,9 +819,9 @@ private:
         }
 
         const bool         _empty = !_has_children && !_has_text;
-        const DElementForm _form  = m_policy.form_of(_name, _empty);
+        const element_form _form  = m_policy.form_of(_name, _empty);
 
-        if (_form == DElementForm::voidlike)
+        if (_form == element_form::voidlike)
         {
             // void element (HTML <br>, <img>, ...): open tag only -- no
             // content and no closing tag. Any stray children/text are dropped.
@@ -833,7 +833,7 @@ private:
 
         if (_empty)
         {
-            if (_form == DElementForm::self_closing)
+            if (_form == element_form::self_closing)
             {
                 m_put("/>");
             }
@@ -895,7 +895,7 @@ private:
                 using attribute_type = clean_t<decltype(_attribute)>;
                 static_assert(
                     is_xml_attribute<attribute_type>::value,
-                    "DDocumentPrinter: the attribute type yielded by the node "
+                    "document_printer: the attribute type yielded by the node "
                     "must expose a name and a value accessor.");
 
                 m_put(" ");
@@ -914,7 +914,7 @@ private:
     //   function: the node's kind, defaulting to `element` when the node
     // exposes no kind accessor (the minimum protocol omits it).
     template<typename Node>
-    static DXmlNodeKind
+    static xml_node_kind
     m_kind_of(
         const Node& _node
     )
@@ -926,7 +926,7 @@ private:
         }
         else
         {
-            return DXmlNodeKind::element;
+            return xml_node_kind::element;
         }
     }
 
@@ -958,7 +958,7 @@ private:
     }
 
     Sink          m_sink;
-    DPrintOptions m_options;
+    print_options m_options;
     Policy        m_policy;
 };
 
@@ -969,19 +969,19 @@ private:
 
 // print_node
 //   function: print `_node` to `_sink` with `_options`, constructing a
-// throwaway printer. The default policy (DXmlPrintPolicy) is used.
+// throwaway printer. The default policy (xml_print_policy) is used.
 template<typename Sink,
          typename Node>
 inline
 void print_node(
     Sink          _sink,
     const Node&   _node,
-    DPrintOptions _options = DPrintOptions()
+    print_options _options = print_options()
 )
 {
-    DDocumentPrinter<Sink> _printer(
+    document_printer<Sink> _printer(
         static_cast<Sink&&>(_sink),
-        static_cast<DPrintOptions&&>(_options));
+        static_cast<print_options&&>(_options));
     _printer.print(_node);
 
     return;
@@ -989,18 +989,18 @@ void print_node(
 
 
 // node_to_string
-//   function: serialise `_node` to a freshly allocated DXmlString with
+//   function: serialise `_node` to a freshly allocated xml_string_t with
 // the default policy.
 template<typename Node>
-D_NODISCARD inline DXmlString node_to_string(
+D_NODISCARD inline xml_string_t node_to_string(
     const Node&   _node,
-    DPrintOptions _options = DPrintOptions()
+    print_options _options = print_options()
 )
 {
-    DXmlString _out;
-    DDocumentPrinter<DStringSink> _printer(
-        DStringSink(_out),
-        static_cast<DPrintOptions&&>(_options));
+    xml_string_t _out;
+    document_printer<string_sink> _printer(
+        string_sink(_out),
+        static_cast<print_options&&>(_options));
     _printer.print(_node);
 
     return _out;
@@ -1010,20 +1010,20 @@ D_NODISCARD inline DXmlString node_to_string(
 // render
 //   function: serialise `_node` to a string with an explicit policy. The
 // policy may be a concrete type (compile-time, zero cost) or a
-// `DBoxedPrintPolicy` (runtime-chosen) -- the same call covers both. This is
+// `boxed_print_policy` (runtime-chosen) -- the same call covers both. This is
 // the seam where compile-time and runtime format selection meet.
 template<typename Node,
          typename Policy>
-D_NODISCARD inline DXmlString render(
+D_NODISCARD inline xml_string_t render(
     const Node&   _node,
     Policy        _policy,
-    DPrintOptions _options = DPrintOptions()
+    print_options _options = print_options()
 )
 {
-    DXmlString _out;
-    DDocumentPrinter<DStringSink, Policy> _printer(
-        DStringSink(_out),
-        static_cast<DPrintOptions&&>(_options),
+    xml_string_t _out;
+    document_printer<string_sink, Policy> _printer(
+        string_sink(_out),
+        static_cast<print_options&&>(_options),
         static_cast<Policy&&>(_policy));
     _printer.print(_node);
 
@@ -1035,19 +1035,19 @@ D_NODISCARD inline DXmlString render(
 ///                  VII.   FILE PRINTER                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DFilePrinter
+// file_printer
 //   class: a byte sink targeting a file, with a convenience to print a whole
 // document into it. As a sink it is text-agnostic -- `operator()(const char*,
 // std::size_t)` writes raw bytes -- so it composes with anything that writes
 // to a sink. `print(node)` serialises a document to the file via
-// `DDocumentPrinter`. The file is opened in binary mode through an output
+// `document_printer`. The file is opened in binary mode through an output
 // stream (c/filesys underneath), which keeps the first failure -- a file that
 // would not open, a write that did not land -- so good(), print() and close()
 // all report it; close() also reports the last flush, as fclose does.
-class DFilePrinter
+class file_printer
 {
 public:
-    explicit DFilePrinter(
+    explicit file_printer(
         const std::string& _path
     ) D_NOEXCEPT
         : m_stream()
@@ -1071,12 +1071,12 @@ public:
     template<typename Node>
     bool print(
         const Node&   _node,
-        DPrintOptions _options = DPrintOptions()
+        print_options _options = print_options()
     )
     {
-        DDocumentPrinter<output_stream_sink> _printer(
+        document_printer<output_stream_sink> _printer(
             output_stream_sink(m_stream),
-            static_cast<DPrintOptions&&>(_options));
+            static_cast<print_options&&>(_options));
         _printer.print(_node);
 
         return m_stream.is_valid();
@@ -1115,13 +1115,13 @@ inline
 bool print_document_to_file(
     const std::string& _path,
     const Node&        _node,
-    DPrintOptions      _options = DPrintOptions()
+    print_options      _options = print_options()
 )
 {
-    DFilePrinter _printer(_path);
+    file_printer _printer(_path);
 
     const bool printed =
-        _printer.print(_node, static_cast<DPrintOptions&&>(_options));
+        _printer.print(_node, static_cast<print_options&&>(_options));
 
     return _printer.close() && printed;
 }

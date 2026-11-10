@@ -17,7 +17,7 @@
 * never drags a serialiser into a translation unit that only configures one.
 *
 *   THE SINGLE SELECTOR:
-*   `DDocumentFormat` supersedes the per-layer duplicates that grew alongside
+*   `document_format` supersedes the per-layer duplicates that grew alongside
 * it -- DTest's `doc_format` (test_output.hpp) and `test_doc_type`
 * (test_options.hpp) are now aliases of it.  Those spelled overlapping subsets
 * with diverging enumerator names (`txt` vs `text`) and needed a hand-written
@@ -33,8 +33,8 @@
 * WHOLE (pdf included) is what lets it be the single options selector across
 * all outputs.
 *
-*   Custom user formats are `DDocument<user_policy>` / a bespoke
-* DDocumentRenderer and intentionally never appear here -- the enum names only
+*   Custom user formats are `document<user_policy>` / a bespoke
+* document_renderer and intentionally never appear here -- the enum names only
 * what the framework ships.
 *
 *   PORTABILITY:
@@ -50,7 +50,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocumentFormat                (the selector enum)
+I.    document_format                (the selector enum)
       --------------------------------------------------
 
 II.   SPELLINGS                      (format_name / format_extension /
@@ -85,12 +85,12 @@ NS_DJINTERP
 ///                  I.   DOCUMENT FORMAT                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DDocumentFormat
+// document_format
 //   enum: the closed catalogue of the framework's built-in document formats,
 // used as the selector value by every layer that emits a document (the options
 // subframework, the emit layer, the renderer factory).  Custom user formats are
-// `DDocument<user_policy>` and intentionally never listed here.
-enum class DDocumentFormat
+// `document<user_policy>` and intentionally never listed here.
+enum class document_format
 {
     html,
     markdown,
@@ -111,18 +111,18 @@ enum class DDocumentFormat
 // logging, and round-tripping a selector to/from text.  Round-trips through
 // format_from_name.
 D_NODISCARD inline const char* format_name(
-    DDocumentFormat _format
+    document_format _format
 ) D_NOEXCEPT
 {
     switch (_format)
     {
-        case DDocumentFormat::html:     { return "html";     }
-        case DDocumentFormat::markdown: { return "markdown"; }
-        case DDocumentFormat::pdf:      { return "pdf";      }
-        case DDocumentFormat::tex:      { return "tex";      }
-        case DDocumentFormat::text:     { return "text";     }
-        case DDocumentFormat::wiki:     { return "wiki";     }
-        case DDocumentFormat::xml:      { return "xml";      }
+        case document_format::html:     { return "html";     }
+        case document_format::markdown: { return "markdown"; }
+        case document_format::pdf:      { return "pdf";      }
+        case document_format::tex:      { return "tex";      }
+        case document_format::text:     { return "text";     }
+        case document_format::wiki:     { return "wiki";     }
+        case document_format::xml:      { return "xml";      }
     }
 
     return "text";
@@ -138,18 +138,18 @@ D_NODISCARD inline const char* format_name(
 // (format_id) names an archive CONTAINER; the two are an overload set on
 // distinct scoped enums, so a call is never ambiguous.
 D_NODISCARD inline const char* format_extension(
-    DDocumentFormat _format
+    document_format _format
 ) D_NOEXCEPT
 {
     switch (_format)
     {
-        case DDocumentFormat::html:     { return ".html"; }
-        case DDocumentFormat::markdown: { return ".md";   }
-        case DDocumentFormat::pdf:      { return ".pdf";  }
-        case DDocumentFormat::tex:      { return ".tex";  }
-        case DDocumentFormat::text:     { return ".txt";  }
-        case DDocumentFormat::wiki:     { return ".wiki"; }
-        case DDocumentFormat::xml:      { return ".xml";  }
+        case document_format::html:     { return ".html"; }
+        case document_format::markdown: { return ".md";   }
+        case document_format::pdf:      { return ".pdf";  }
+        case document_format::tex:      { return ".tex";  }
+        case document_format::text:     { return ".txt";  }
+        case document_format::wiki:     { return ".wiki"; }
+        case document_format::xml:      { return ".xml";  }
     }
 
     return ".txt";
@@ -162,25 +162,25 @@ D_NODISCARD inline const char* format_extension(
 // file or command line is likely to carry ("txt", "md", "latex", "htm").
 // Matching is exact and case-sensitive: a boundary that normalises case does
 // so before calling.
-D_NODISCARD inline DDocumentFormat format_from_name(
+D_NODISCARD inline document_format format_from_name(
     const std::string& _token,
-    DDocumentFormat    _fallback = DDocumentFormat::text
+    document_format    _fallback = document_format::text
 )
 {
     // canonical spellings first -- the round-trip of format_name
-    if (_token == "html")     { return DDocumentFormat::html;     }
-    if (_token == "markdown") { return DDocumentFormat::markdown; }
-    if (_token == "pdf")      { return DDocumentFormat::pdf;      }
-    if (_token == "tex")      { return DDocumentFormat::tex;      }
-    if (_token == "text")     { return DDocumentFormat::text;     }
-    if (_token == "wiki")     { return DDocumentFormat::wiki;     }
-    if (_token == "xml")      { return DDocumentFormat::xml;      }
+    if (_token == "html")     { return document_format::html;     }
+    if (_token == "markdown") { return document_format::markdown; }
+    if (_token == "pdf")      { return document_format::pdf;      }
+    if (_token == "tex")      { return document_format::tex;      }
+    if (_token == "text")     { return document_format::text;     }
+    if (_token == "wiki")     { return document_format::wiki;     }
+    if (_token == "xml")      { return document_format::xml;      }
 
     // accepted aliases -- what a human writes in a config
-    if (_token == "txt")      { return DDocumentFormat::text;     }
-    if (_token == "md")       { return DDocumentFormat::markdown; }
-    if (_token == "htm")      { return DDocumentFormat::html;     }
-    if (_token == "latex")    { return DDocumentFormat::tex;      }
+    if (_token == "txt")      { return document_format::text;     }
+    if (_token == "md")       { return document_format::markdown; }
+    if (_token == "htm")      { return document_format::html;     }
+    if (_token == "latex")    { return document_format::tex;      }
 
     return _fallback;
 }
@@ -196,11 +196,11 @@ D_NODISCARD inline DDocumentFormat format_from_name(
 // This is the predicate that selects an escaping renderer / sink over a plain
 // one; a caller that only asks "do I escape?" asks here.
 D_NODISCARD inline bool format_is_markup(
-    DDocumentFormat _format
+    document_format _format
 ) D_NOEXCEPT
 {
-    return ( (_format == DDocumentFormat::xml) ||
-             (_format == DDocumentFormat::html) );
+    return ( (_format == document_format::xml) ||
+             (_format == document_format::html) );
 }
 
 
@@ -210,10 +210,10 @@ D_NODISCARD inline bool format_is_markup(
 // and is written to a sink verbatim; a caller that would otherwise treat bytes
 // as a string branches on this.
 D_NODISCARD inline bool format_is_binary(
-    DDocumentFormat _format
+    document_format _format
 ) D_NOEXCEPT
 {
-    return (_format == DDocumentFormat::pdf);
+    return (_format == document_format::pdf);
 }
 
 

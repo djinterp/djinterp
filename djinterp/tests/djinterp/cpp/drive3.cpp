@@ -72,10 +72,10 @@ int main()
                   { {"x",1}, {"y",1}, {"count",1} } };
     m.meta.rh = { { {"r0",1}, {"r1",1}, {"r2",1} } };
 
-    const DDocumentFormat fs[] = { DDocumentFormat::text,
-                                   DDocumentFormat::markdown,
-                                   DDocumentFormat::html };
-    for (DDocumentFormat f : fs)
+    const document_format fs[] = { document_format::text,
+                                   document_format::markdown,
+                                   document_format::html };
+    for (document_format f : fs)
     {
         std::cout << "########## " << format_name(f) << "\n"
                   << render_table_model_to_string(m, f) << "\n";

@@ -31,12 +31,12 @@ int main()
     m.units.push_back(u);
     rep.modules.push_back(m);
 
-    for (DDocumentFormat f : { DDocumentFormat::text,
-                               DDocumentFormat::markdown,
-                               DDocumentFormat::html })
+    for (document_format f : { document_format::text,
+                               document_format::markdown,
+                               document_format::html })
     {
-        DDocumentDialect d = make_document_dialect(f);
-        d.renderer().begin_document(DDocAttributes());
+        document_dialect d = make_document_dialect(f);
+        d.renderer().begin_document(doc_attributes());
         emit_run_summary(rep, d.renderer());
         emit_module_summary(rep.modules[0], d.renderer());
         bool bound = resolve_report_content(rep, content_key_unit(0, 0),

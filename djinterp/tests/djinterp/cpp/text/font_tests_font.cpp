@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  font_tests_font.cpp
-//   Section 8: DFont<_Feat, _ColorType> itself - the always-present core, the
+//   Section 8: font<_Feat, _ColorType> itself - the always-present core, the
 // seventeen static has_* gates, empty(), the constructor set, and value
 // semantics.
 
@@ -40,7 +40,7 @@ bool tests_font_default_member_values()
     D_FT_CHECK(f.style_name.empty());
     D_FT_CHECK_NEAR(f.size, 10.0f);
     D_FT_CHECK(f.size_unit      == DFontSizeUnit::points);
-    D_FT_CHECK(f.weight         == DFontWeight::normal);
+    D_FT_CHECK(f.weight         == font_weight::normal);
     D_FT_CHECK(f.weight_numeric == 0u);
     D_FT_CHECK(f.slant          == DFontSlant::upright);
 
@@ -50,7 +50,7 @@ bool tests_font_default_member_values()
     D_FT_CHECK(g.family.empty());
     D_FT_CHECK_NEAR(g.size, 10.0f);
     D_FT_CHECK(g.size_unit      == DFontSizeUnit::points);
-    D_FT_CHECK(g.weight         == DFontWeight::normal);
+    D_FT_CHECK(g.weight         == font_weight::normal);
     D_FT_CHECK(g.weight_numeric == 0u);
     D_FT_CHECK(g.slant          == DFontSlant::upright);
 
@@ -62,19 +62,19 @@ tests_font_default_color_type_is_rgb
   The default _ColorType is the native djinterp::rgb, NOT the legacy
 DFontColor that also lives in this header.
   Tests the following:
-  - DFont<>::color_type is rgb
-  - DFont<ff_color>::color_type is rgb as well (the default is independent of
+  - font<>::color_type is rgb
+  - font<ff_color>::color_type is rgb as well (the default is independent of
     the feature set)
   - DFontColor remains available as an explicit opt-in
 */
 bool tests_font_default_color_type_is_rgb()
 {
-    D_FT_CHECK((std::is_same<DFont<>::color_type, rgb>::value));
-    D_FT_CHECK((std::is_same<DFont<ff_color>::color_type, rgb>::value));
-    D_FT_CHECK((std::is_same<DFont<ff_all>::color_type, rgb>::value));
+    D_FT_CHECK((std::is_same<font<>::color_type, rgb>::value));
+    D_FT_CHECK((std::is_same<font<ff_color>::color_type, rgb>::value));
+    D_FT_CHECK((std::is_same<font<ff_all>::color_type, rgb>::value));
 
     // the legacy type still works when named
-    D_FT_CHECK((std::is_same<DFont<ff_color, DFontColor>::color_type,
+    D_FT_CHECK((std::is_same<font<ff_color, DFontColor>::color_type,
                              DFontColor>::value));
 
     // and rgb is not DFontColor - the default really did move
@@ -86,7 +86,7 @@ bool tests_font_default_color_type_is_rgb()
 /*
 tests_font_color_type_alias_follows_the_parameter
   Tests the following:
-  - DFont<F, C>::color_type is C for several C
+  - font<F, C>::color_type is C for several C
   - the alias is present even when NO color feature is enabled, which is
     what lets an adapter name the color type before deciding whether to use
     it
@@ -95,9 +95,9 @@ bool tests_font_color_type_alias_follows_the_parameter()
 {
     D_FT_CHECK((std::is_same<bare_font::color_type,  probe_color>::value));
     D_FT_CHECK((std::is_same<full_font::color_type,  probe_color>::value));
-    D_FT_CHECK((std::is_same<DFont<ff_color, wide_color>::color_type,
+    D_FT_CHECK((std::is_same<font<ff_color, wide_color>::color_type,
                              wide_color>::value));
-    D_FT_CHECK((std::is_same<DFont<ff_none, DFontColor>::color_type,
+    D_FT_CHECK((std::is_same<font<ff_none, DFontColor>::color_type,
                              DFontColor>::value));
 
     // present on a font with no color feature at all
@@ -111,7 +111,7 @@ bool tests_font_color_type_alias_follows_the_parameter()
 /*
 tests_font_features_constant_echoes_feat
   Tests the following:
-  - DFont<F>::features is exactly F, for the empty set, singletons, profiles,
+  - font<F>::features is exactly F, for the empty set, singletons, profiles,
     and the full set
   - `features` is a constant expression
 */
@@ -130,7 +130,7 @@ bool tests_font_features_constant_echoes_feat()
     D_FT_CHECK(full_font::features        == static_cast<unsigned>(ff_all));
 
     // a hand-rolled combination round-trips too
-    using combo = DFont<ff_underline | ff_color, probe_color>;
+    using combo = font<ff_underline | ff_color, probe_color>;
 
     D_FT_CHECK(combo::features == (ff_underline | ff_color));
 
@@ -321,7 +321,7 @@ bool tests_font_empty_tracks_the_family_only()
 
     f.size      = 72.0f;
     f.size_unit = DFontSizeUnit::pixels;
-    f.weight    = DFontWeight::black;
+    f.weight    = font_weight::black;
     f.slant     = DFontSlant::oblique;
     f.underline = true;
 
@@ -397,11 +397,11 @@ bool tests_font_empty_after_clearing_the_family()
 /*
 tests_font_family_ctor_is_explicit
   The one-argument constructor is `explicit`, so a bare string never becomes
-a font by accident - a function taking DFont<> cannot silently swallow
+a font by accident - a function taking font<> cannot silently swallow
 "Inter".
   Tests the following:
-  - DFont<> IS constructible from std::string
-  - DFont<> is NOT convertible from std::string (the explicit gate holds)
+  - font<> IS constructible from std::string
+  - font<> is NOT convertible from std::string (the explicit gate holds)
   - the constructed font carries the family and defaults everything else
 */
 bool tests_font_family_ctor_is_explicit()
@@ -418,7 +418,7 @@ bool tests_font_family_ctor_is_explicit()
     D_FT_CHECK(f.family == "Inter");
     D_FT_CHECK(f.style_name.empty());
     D_FT_CHECK_NEAR(f.size, 10.0f);
-    D_FT_CHECK(f.weight == DFontWeight::normal);
+    D_FT_CHECK(f.weight == font_weight::normal);
     D_FT_CHECK(f.slant  == DFontSlant::upright);
 
     return true;
@@ -437,7 +437,7 @@ bool tests_font_family_size_ctor()
     D_FT_CHECK(f.family == "Inter");
     D_FT_CHECK_NEAR(f.size, 14.0f);
     D_FT_CHECK(f.size_unit      == DFontSizeUnit::points);
-    D_FT_CHECK(f.weight         == DFontWeight::normal);
+    D_FT_CHECK(f.weight         == font_weight::normal);
     D_FT_CHECK(f.weight_numeric == 0u);
     D_FT_CHECK(f.slant          == DFontSlant::upright);
 
@@ -461,11 +461,11 @@ tests_font_family_size_weight_ctor
 */
 bool tests_font_family_size_weight_ctor()
 {
-    const bare_font f("Inter", 16.0f, DFontWeight::bold);
+    const bare_font f("Inter", 16.0f, font_weight::bold);
 
     D_FT_CHECK(f.family == "Inter");
     D_FT_CHECK_NEAR(f.size, 16.0f);
-    D_FT_CHECK(f.weight         == DFontWeight::bold);
+    D_FT_CHECK(f.weight         == font_weight::bold);
     D_FT_CHECK(f.weight_numeric == 0u);
     D_FT_CHECK(f.slant          == DFontSlant::upright);   // the default
 
@@ -484,17 +484,17 @@ tests_font_family_size_weight_slant_ctor
 */
 bool tests_font_family_size_weight_slant_ctor()
 {
-    const bare_font f("Inter", 18.0f, DFontWeight::light, DFontSlant::italic);
+    const bare_font f("Inter", 18.0f, font_weight::light, DFontSlant::italic);
 
     D_FT_CHECK(f.family == "Inter");
     D_FT_CHECK_NEAR(f.size, 18.0f);
-    D_FT_CHECK(f.weight == DFontWeight::light);
+    D_FT_CHECK(f.weight == font_weight::light);
     D_FT_CHECK(f.slant  == DFontSlant::italic);
     D_FT_CHECK(fn_is_italic(f));
     D_FT_CHECK(!fn_is_bold(f));
 
     // oblique is preserved as oblique
-    const bare_font o("Inter", 18.0f, DFontWeight::normal,
+    const bare_font o("Inter", 18.0f, font_weight::normal,
                       DFontSlant::oblique);
 
     D_FT_CHECK(o.slant == DFontSlant::oblique);
@@ -514,11 +514,11 @@ them do.
 */
 bool tests_font_ctors_leave_the_other_members_default()
 {
-    const full_font f("Inter", 12.0f, DFontWeight::bold, DFontSlant::italic);
+    const full_font f("Inter", 12.0f, font_weight::bold, DFontSlant::italic);
 
     // core: set
     D_FT_CHECK(f.family == "Inter");
-    D_FT_CHECK(f.weight == DFontWeight::bold);
+    D_FT_CHECK(f.weight == font_weight::bold);
 
     // everything else: untouched
     D_FT_CHECK(f.style_name.empty());
@@ -532,7 +532,7 @@ bool tests_font_ctors_leave_the_other_members_default()
     D_FT_CHECK(!f.superscript);
     D_FT_CHECK_NEAR(f.letter_spacing, 0.0f);
     D_FT_CHECK_NEAR(f.line_height,    0.0f);
-    D_FT_CHECK(f.stretch == DFontStretch::normal);
+    D_FT_CHECK(f.stretch == font_stretch::normal);
     D_FT_CHECK(f.spacing == DFontSpacing::any);
     D_FT_CHECK(f.foreground == probe_color {});
     D_FT_CHECK(f.background == probe_color {});
@@ -635,7 +635,7 @@ tests_font_move_preserves_the_value
 */
 bool tests_font_move_preserves_the_value()
 {
-    full_font source("Inter", 12.0f, DFontWeight::bold);
+    full_font source("Inter", 12.0f, font_weight::bold);
 
     fn_set_opentype_feature(source, ot_tag("liga"), 2u);
     fn_set_script(source, "cyrl", "ru");
@@ -645,7 +645,7 @@ bool tests_font_move_preserves_the_value()
 
     D_FT_CHECK(moved.family == "Inter");
     D_FT_CHECK_NEAR(moved.size, 12.0f);
-    D_FT_CHECK(moved.weight == DFontWeight::bold);
+    D_FT_CHECK(moved.weight == font_weight::bold);
     D_FT_CHECK(moved.opentype_features.size() == 1u);
     D_FT_CHECK(moved.opentype_features[0].value == 2u);
     D_FT_CHECK(moved.script_tag   == "cyrl");
@@ -686,7 +686,7 @@ bool tests_font_mixin_members_are_reachable()
     f.superscript       = true;
     f.letter_spacing    = 0.125f;
     f.line_height       = 1.5f;
-    f.stretch           = DFontStretch::condensed;
+    f.stretch           = font_stretch::condensed;
     f.spacing           = DFontSpacing::monospace;
     f.foreground        = probe_color { 1u, 2u, 3u };
     f.background        = probe_color { 4u, 5u, 6u };
@@ -712,7 +712,7 @@ bool tests_font_mixin_members_are_reachable()
     D_FT_CHECK(f.superscript);
     D_FT_CHECK_NEAR(f.letter_spacing, 0.125f);
     D_FT_CHECK_NEAR(f.line_height,    1.5f);
-    D_FT_CHECK(f.stretch == DFontStretch::condensed);
+    D_FT_CHECK(f.stretch == font_stretch::condensed);
     D_FT_CHECK(f.spacing == DFontSpacing::monospace);
     D_FT_CHECK(f.foreground == (probe_color { 1u, 2u, 3u }));
     D_FT_CHECK(f.background == (probe_color { 4u, 5u, 6u }));
@@ -732,7 +732,7 @@ bool tests_font_mixin_members_are_reachable()
 
 /*
 tests_font_distinct_feature_sets_are_distinct_types
-  DFont<F> and DFont<G> are different types whenever F != G, which is what
+  font<F> and font<G> are different types whenever F != G, which is what
 stops a terminal font being passed where a GUI font is expected.
   Tests the following:
   - fonts with different feature sets are different types
@@ -745,17 +745,17 @@ bool tests_font_distinct_feature_sets_are_distinct_types()
     D_FT_CHECK(!(std::is_same<bare_font, underline_font_t>::value));
     D_FT_CHECK(!(std::is_same<terminal_font, gui_basic_font>::value));
 
-    D_FT_CHECK(!(std::is_same<DFont<ff_color, probe_color>,
-                              DFont<ff_color, wide_color>>::value));
+    D_FT_CHECK(!(std::is_same<font<ff_color, probe_color>,
+                              font<ff_color, wide_color>>::value));
 
     // spelled differently, the same type
-    D_FT_CHECK((std::is_same<DFont<ff_all,     probe_color>,
-                             DFont<ff_gui_rich, probe_color>>::value));
+    D_FT_CHECK((std::is_same<font<ff_all,      probe_color>,
+                             font<ff_gui_rich, probe_color>>::value));
 
     // and an OR of the parts reproduces the aggregate exactly
     D_FT_CHECK((std::is_same<
-        DFont<ff_underline | ff_strikethrough | ff_overline, probe_color>,
-        DFont<ff_decorations, probe_color>>::value));
+        font<ff_underline | ff_strikethrough | ff_overline, probe_color>,
+        font<ff_decorations, probe_color>>::value));
 
     return true;
 }

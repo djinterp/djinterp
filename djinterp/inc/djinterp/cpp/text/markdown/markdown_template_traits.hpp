@@ -16,22 +16,22 @@
 *
 *   DETECTED PROTOCOLS:
 *
-*   DMarkdownBlock protocol:
+*   markdown_block protocol:
 *     A block exposes `block_kind()` (or `get_block_kind()`),
 *     iterable children, and -- for inline-holder blocks -- a way
 *     to access inline content.
 *
-*   DMarkdownInline protocol:
+*   markdown_inline protocol:
 *     An inline exposes `inline_kind()` (or `get_inline_kind()`)
 *     and, depending on kind, accessors for text / url / title /
 *     alt-text / etc.
 *
-*   DMarkdownDocument protocol:
+*   markdown_document protocol:
 *     A document exposes `flavor()` plus a root-blocks accessor
 *     and one or more `render_to_*` methods.
 *
 *   markdown_backend protocol:
-*     A type tagged with `DMarkdownBackendTag` (detected by
+*     A type tagged with `markdown_backend_tag` (detected by
 *     `is_markdown_backend` in `markdown.hpp`) plus the nested
 *     type aliases `block_type`, `inline_type`, `document_type`.
 *
@@ -560,7 +560,7 @@ struct has_any_render_method
 
 // has_flavor_method
 //   trait: true if `Type` exposes `flavor()` const returning
-// a `DMarkdownFlavor` enum value.
+// a `markdown_flavor` enum value.
 template<typename Type, typename = void>
 struct has_flavor_method : std::false_type {};
 template<typename Type>
@@ -670,10 +670,10 @@ struct is_markdown_document_loose
 ///                X.   CLASSIFICATION STRUCTS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownBlockClass
+// markdown_block_class
 //   struct: comprehensive classification of a block-shaped type.
 template<typename Type>
-struct DMarkdownBlockClass
+struct markdown_block_class
 {
     D_STATIC_CONSTEXPR bool is_block            =
         is_markdown_block<Type>::value;
@@ -702,11 +702,11 @@ struct DMarkdownBlockClass
 };
 
 
-// DMarkdownInlineClass
+// markdown_inline_class
 //   struct: comprehensive classification of an inline-shaped
 // type.
 template<typename Type>
-struct DMarkdownInlineClass
+struct markdown_inline_class
 {
     D_STATIC_CONSTEXPR bool is_inline           =
         is_markdown_inline<Type>::value;
@@ -725,11 +725,11 @@ struct DMarkdownInlineClass
 };
 
 
-// DMarkdownDocumentClass
+// markdown_document_class
 //   struct: comprehensive classification of a document-shaped
 // type.
 template<typename Type>
-struct DMarkdownDocumentClass
+struct markdown_document_class
 {
     D_STATIC_CONSTEXPR bool is_doc              =
         is_markdown_document<Type>::value;

@@ -7,7 +7,7 @@
 * author(s): TBA                                                    created: TBA
 *                                                            revised: 2026.09.21
 *******************************************************************************/
-// T3 verification harness — DDocumentBundle + output_packaging (assembly).
+// T3 verification harness — document_bundle + output_packaging (assembly).
 //
 // Proves the assembly half of the document-output stack against deterministic
 // stub backends (the real compression.hpp / archive.hpp dispatch leaves plug in
@@ -40,8 +40,8 @@
 
 
 using djinterp::byte_blob;
-using djinterp::DBundleItem;
-using djinterp::DDocumentBundle;
+using djinterp::bundle_item;
+using djinterp::document_bundle;
 using djinterp::output_config;
 using djinterp::output_sink;
 using djinterp::buffer_output_sink;
@@ -96,7 +96,7 @@ int main()
 {
     // 1. empty bundle: a successful no-op; nothing reaches the sink.
     {
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         byte_blob     _out;
 
@@ -110,7 +110,7 @@ int main()
     {
         int             _hits_a = 0;
         int             _hits_b = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -144,7 +144,7 @@ int main()
     {
         int             _ha = 0;
         int             _hb = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;   // pack == none by default
         DRecordingSink  _sink;
 
@@ -164,7 +164,7 @@ int main()
     // 3b. a single-document run gets no index suffix.
     {
         int             _h = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -181,7 +181,7 @@ int main()
     {
         int             _ha = 0;
         int             _hb = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -211,7 +211,7 @@ int main()
     // 4. compress mode: codec runs and the codec suffix is appended to the name.
     {
         int             _h = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -230,7 +230,7 @@ int main()
     // 5. compress failure aborts the write (lz4 is "unavailable" in the stub).
     {
         int             _h = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -248,7 +248,7 @@ int main()
     {
         int             _ha = 0;
         int             _hb = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -273,7 +273,7 @@ int main()
     // 7. archive failure aborts the write (rar is "unavailable" in the stub).
     {
         int             _h = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;
         DRecordingSink  _sink;
 
@@ -291,7 +291,7 @@ int main()
         int             _ha = 0;
         int             _hb = 0;
         int             _hc = 0;
-        DDocumentBundle _b;
+        document_bundle _b;
         output_config   _cfg;   // none mode
         byte_blob     _out;
 
@@ -308,7 +308,7 @@ int main()
 
     // 9. disk sink: exact bytes (NUL included) written to the policy's path.
     {
-        DDocumentBundle   _b;
+        document_bundle   _b;
         output_config     _cfg;   // none mode
         const std::string _path = "/tmp/djt3_disk.txt";
 
@@ -346,13 +346,13 @@ int main()
 
     // 10. fluent assembly: chained add() builds an ordered bundle.
     {
-        DDocumentBundle _b;
+        document_bundle _b;
 
         assert(_b.empty());
 
         _b.add("x", ".a", []() -> byte_blob { return "X"; })
           .add("y", ".b", []() -> byte_blob { return "Y"; })
-          .add(DBundleItem("z", ".c",
+          .add(bundle_item("z", ".c",
                            []() -> byte_blob { return "Z"; }));
 
         assert(!_b.empty());

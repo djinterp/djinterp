@@ -11,7 +11,7 @@
 *
 *   A LAYOUT IS AN ANNOTATED EXPRESSION.  The structure of a document is a tree
 * of structural operators over content-reference leaves -- exactly an
-* expression (expression.hpp).  Every node also carries a DDocAttributes bag:
+* expression (expression.hpp).  Every node also carries a doc_attributes bag:
 * its PARAMETERS (a section's title, a cover's author) and, after the
 * interpret passes, its COMPUTED data (assigned number, cross-reference
 * anchor).  Parameters are part of the layout spec, so they live IN the tree
@@ -19,9 +19,9 @@
 * lives OUTSIDE the tree and is resolved by name at render time (see
 * layout_interpret.hpp).  The annotated term is therefore
 *
-*     DLayout<OpId, Atom>      = expression<OpId, Atom>                  (bare)
-*     DLayoutDoc<OpId, Atom>  = annotated_expression<OpId, Atom, DDocAttributes>
-*                             = cofree<expr_layer<OpId, Atom, _>, DDocAttributes>
+*     layout<OpId, Atom>      = expression<OpId, Atom>                  (bare)
+*     layout_doc<OpId, Atom>  = annotated_expression<OpId, Atom, doc_attributes>
+*                             = cofree<expr_layer<OpId, Atom, _>, doc_attributes>
 *
 * and cofree.hpp makes it foldable by the universal cata, so every
 * pass over a layout is one `annotated_cata` with a different algebra.
@@ -34,10 +34,10 @@
 * foundation imposes neither; it only asks OpId be default-constructible,
 * copyable, and equality-comparable -- the same shape the expression term asks.
 *
-*   THE ATOM IS THE CONTENT BOUNDARY.  A leaf carries a DLayoutAtom: a body_ref
+*   THE ATOM IS THE CONTENT BOUNDARY.  A leaf carries a layout_atom: a body_ref
 * or meta_ref (a NAME resolved externally -- structure pointing at content it
 * does not embed) or a literal (inline text).  The term is generic in the atom
-* too (as expression is); DLayoutAtom is the batteries-included default.
+* too (as expression is); layout_atom is the batteries-included default.
 *
 *   Requires C++14+ (the higher-order deduction the expression / recursion
 * layer already uses); self-suppresses below it, mirroring template.hpp.
@@ -55,10 +55,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DLayoutAtom                        (the content-reference leaf)
+I.    layout_atom                        (the content-reference leaf)
       ---------------------------------------------------------------
 
-II.   TERM ALIASES                       (layout / DLayoutDoc)
+II.   TERM ALIASES                       (layout / layout_doc)
       --------------------------------------------------------
 
 III.  NODE BUILDERS                      (apply_node / make_leaf_node +
@@ -93,7 +93,7 @@ V.    FORGET / ANNOTATE                  (bridge to the bare expression term)
                                                     // expr_leaf/apply, annotated_expression
 #include "../../../modules/parse/expression/expression_ops.hpp"      // evaluate (for annotate)
 #include "../../../functional/cofree.hpp"              // annotated_cata + env-pair wiring
-#include "../templates/document_attributes.hpp"                // DDocAttributes
+#include "../templates/document_attributes.hpp"                // doc_attributes
 
 
 // The layout term leans on the expression / recursion / cofree layer, which is
@@ -106,10 +106,10 @@ NS_DJINTERP
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             I.    DLayoutAtom                                           ///
+///             I.    layout_atom                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DLayoutAtom
+// layout_atom
 //   struct: what a structure leaf carries -- the boundary between structure
 // (this module) and content (resolved elsewhere).  A body_ref / meta_ref names
 // content by KEY, resolved at render time so the tree never embeds it; a
@@ -117,10 +117,10 @@ NS_DJINTERP
 // the expression term asks of its atom.
 //
 // Usage:
-//   DLayoutAtom::body_ref("intro.body")   // resolved by the content resolver
-//   DLayoutAtom::meta_ref("author")       // resolved against the metadata bag
-//   DLayoutAtom::literal("-- fin --")     // inline text, verbatim
-struct DLayoutAtom
+//   layout_atom::body_ref("intro.body")   // resolved by the content resolver
+//   layout_atom::meta_ref("author")       // resolved against the metadata bag
+//   layout_atom::literal("-- fin --")     // inline text, verbatim
+struct layout_atom
 {
     // kind_t
     //   enum: which flavour of leaf this is.  Prefixed to avoid clashing with
@@ -136,9 +136,9 @@ struct DLayoutAtom
     std::string key;     // body_ref / meta_ref: the name
     std::string value;   // literal: the text
 
-    // DLayoutAtom (default)
+    // layout_atom (default)
     //   an empty literal -- the default a boxed expr_layer leaf needs.
-    DLayoutAtom()
+    layout_atom()
         : kind (kind_literal),
           key  (),
           value()
@@ -146,11 +146,11 @@ struct DLayoutAtom
 
     // body_ref
     //   factory: a leaf naming body content resolved externally by _key.
-    D_NODISCARD static DLayoutAtom body_ref(
+    D_NODISCARD static layout_atom body_ref(
         std::string _key
     )
     {
-        DLayoutAtom _a;
+        layout_atom _a;
         _a.kind = kind_body_ref;
         _a.key  = static_cast<std::string&&>(_key);
 
@@ -160,11 +160,11 @@ struct DLayoutAtom
     // meta_ref
     //   factory: a leaf naming a metadata field resolved against the metadata
     // bag by _key.
-    D_NODISCARD static DLayoutAtom meta_ref(
+    D_NODISCARD static layout_atom meta_ref(
         std::string _key
     )
     {
-        DLayoutAtom _a;
+        layout_atom _a;
         _a.kind = kind_meta_ref;
         _a.key  = static_cast<std::string&&>(_key);
 
@@ -173,11 +173,11 @@ struct DLayoutAtom
 
     // literal
     //   factory: a leaf carrying inline text _value emitted verbatim.
-    D_NODISCARD static DLayoutAtom literal(
+    D_NODISCARD static layout_atom literal(
         std::string _value
     )
     {
-        DLayoutAtom _a;
+        layout_atom _a;
         _a.kind  = kind_literal;
         _a.value = static_cast<std::string&&>(_value);
 
@@ -190,22 +190,22 @@ struct DLayoutAtom
 ///             II.   TERM ALIASES                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DLayout
+// layout
 //   alias: the BARE document-structure term over operator ids OpId and atoms
 // Atom -- a plain expression, with no per-node annotation.  The form
 // expression_ops.hpp's algebraic transforms act on (see forget / annotate).
 template<typename OpId,
-         typename Atom = DLayoutAtom>
-using DLayout = expression<OpId, Atom>;
+         typename Atom = layout_atom>
+using layout = expression<OpId, Atom>;
 
-// DLayoutDoc
+// layout_doc
 //   alias: the ANNOTATED document-structure term -- every node additionally
-// carries a DDocAttributes bag (its parameters, then its computed number /
+// carries a doc_attributes bag (its parameters, then its computed number /
 // anchor).  This is the canonical form the builders produce and the interpret
 // passes fold; cofree.hpp makes it cata-foldable.
 template<typename OpId,
-         typename Atom = DLayoutAtom>
-using DLayoutDoc = annotated_expression<OpId, Atom, DDocAttributes>;
+         typename Atom = layout_atom>
+using layout_doc = annotated_expression<OpId, Atom, doc_attributes>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -224,13 +224,13 @@ using DLayoutDoc = annotated_expression<OpId, Atom, DDocAttributes>;
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-DLayoutDoc<OpId, Atom> apply_node(
-    DDocAttributes                       _bag,
+layout_doc<OpId, Atom> apply_node(
+    doc_attributes                       _bag,
     const OpId&                          _op,
-    std::vector<DLayoutDoc<OpId, Atom> > _children
+    std::vector<layout_doc<OpId, Atom> > _children
 )
 {
-    using node_type  = DLayoutDoc<OpId, Atom>;
+    using node_type  = layout_doc<OpId, Atom>;
     using layer_type = typename node_type::layer_type;
 
     std::vector<std::shared_ptr<node_type> > _boxed;
@@ -254,12 +254,12 @@ DLayoutDoc<OpId, Atom> apply_node(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-DLayoutDoc<OpId, Atom> make_leaf_node(
-    DDocAttributes _bag,
+layout_doc<OpId, Atom> make_leaf_node(
+    doc_attributes _bag,
     const Atom&    _atom
 )
 {
-    using node_type  = DLayoutDoc<OpId, Atom>;
+    using node_type  = layout_doc<OpId, Atom>;
     using layer_type = typename node_type::layer_type;
 
     return node_type::make(
@@ -279,8 +279,8 @@ DLayoutDoc<OpId, Atom> make_leaf_node(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-const DDocAttributes& bag_of(
-    const DLayoutDoc<OpId, Atom>& _node
+const doc_attributes& bag_of(
+    const layout_doc<OpId, Atom>& _node
 )
 {
     return _node.head();
@@ -292,7 +292,7 @@ template<typename OpId,
          typename Atom>
 D_NODISCARD
 bool is_leaf(
-    const DLayoutDoc<OpId, Atom>& _node
+    const layout_doc<OpId, Atom>& _node
 )
 {
     return _node.unwrap().is_leaf();
@@ -304,7 +304,7 @@ template<typename OpId,
          typename Atom>
 D_NODISCARD
 const Atom& atom_of(
-    const DLayoutDoc<OpId, Atom>& _node
+    const layout_doc<OpId, Atom>& _node
 )
 {
     return _node.unwrap().atom();
@@ -316,7 +316,7 @@ template<typename OpId,
          typename Atom>
 D_NODISCARD
 const OpId& op_of(
-    const DLayoutDoc<OpId, Atom>& _node
+    const layout_doc<OpId, Atom>& _node
 )
 {
     return _node.unwrap().op();
@@ -327,8 +327,8 @@ const OpId& op_of(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-const std::vector<std::shared_ptr<DLayoutDoc<OpId, Atom> > >& children_of(
-    const DLayoutDoc<OpId, Atom>& _node
+const std::vector<std::shared_ptr<layout_doc<OpId, Atom> > >& children_of(
+    const layout_doc<OpId, Atom>& _node
 )
 {
     return _node.unwrap().children();
@@ -350,14 +350,14 @@ const std::vector<std::shared_ptr<DLayoutDoc<OpId, Atom> > >& children_of(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-DLayout<OpId, Atom> forget(
-    const DLayoutDoc<OpId, Atom>& _doc
+layout<OpId, Atom> forget(
+    const layout_doc<OpId, Atom>& _doc
 )
 {
-    return annotated_cata<DLayout<OpId, Atom> >(
-        [](const DDocAttributes&                                      /*_bag*/,
-           const expr_layer<OpId, Atom, DLayout<OpId, Atom> >&       _layer)
-            -> DLayout<OpId, Atom>
+    return annotated_cata<layout<OpId, Atom> >(
+        [](const doc_attributes&                                      /*_bag*/,
+           const expr_layer<OpId, Atom, layout<OpId, Atom> >&       _layer)
+            -> layout<OpId, Atom>
         {
             // a leaf keeps its atom; an application keeps its op and (folded)
             // children
@@ -373,7 +373,7 @@ DLayout<OpId, Atom> forget(
 
 // annotate
 //   function: lift a bare layout term into an annotated one, giving every node
-// the bag produced by _tag (a node-shape -> DDocAttributes).  Pass a tagger
+// the bag produced by _tag (a node-shape -> doc_attributes).  Pass a tagger
 // that returns an empty bag to re-enter the annotated world after a rewrite;
 // pass a richer one to seed params structurally.  A cata over the bare term
 // building make_leaf_node / apply_node.
@@ -381,22 +381,22 @@ template<typename OpId,
          typename Atom,
          typename Tagger>
 D_NODISCARD
-DLayoutDoc<OpId, Atom> annotate(
-    const DLayout<OpId, Atom>& _term,
+layout_doc<OpId, Atom> annotate(
+    const layout<OpId, Atom>& _term,
     Tagger                    _tag
 )
 {
-    return evaluate<DLayoutDoc<OpId, Atom> >(
+    return evaluate<layout_doc<OpId, Atom> >(
         _term,
         // on_leaf -- tag the atom, wrap as a leaf node
-        [_tag](const Atom& _atom) -> DLayoutDoc<OpId, Atom>
+        [_tag](const Atom& _atom) -> layout_doc<OpId, Atom>
         {
             return make_leaf_node<OpId, Atom>(_tag(_atom), _atom);
         },
         // on_apply -- tag the op, wrap the (already-annotated) children
         [_tag](const OpId&                                       _op,
-               const std::vector<DLayoutDoc<OpId, Atom> >&        _children)
-            -> DLayoutDoc<OpId, Atom>
+               const std::vector<layout_doc<OpId, Atom> >&        _children)
+            -> layout_doc<OpId, Atom>
         {
             return apply_node<OpId, Atom>(_tag(_op), _op, _children);
         });

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp]                                pdf_canvas_document_renderer.hpp
 *
-*   The SECOND PDF realisation of DDocumentRenderer -- the one backed by
+*   The SECOND PDF realisation of document_renderer -- the one backed by
 * DPdfCanvas rather than pdf_template.  It exists because the two PDF flow
 * engines are not interchangeable in the one place it matters most:
 *
@@ -22,7 +22,7 @@
 *   THIS IS A BRIDGE, NOT A MERGE.  The two engines duplicate a cursor, page
 * advancement, pagination and alignment between them, and that duplication is
 * real and worth removing.  Removing it is a change to the PDF layer; putting a
-* second DDocumentRenderer on the better-measured engine is not, and it makes
+* second document_renderer on the better-measured engine is not, and it makes
 * the redundancy concrete: after this header, both engines have exactly one
 * consumer apiece and the same interface in front of them, which is the position
 * from which a merge is a refactor rather than a rewrite.
@@ -43,7 +43,7 @@
 * the PDF engine.
 *
 *   PORTABILITY:
-*   C++11 baseline (matches DDocumentRenderer and DPdfCanvas).
+*   C++11 baseline (matches document_renderer and DPdfCanvas).
 *
 *
 * path:      /inc/djinterp/cpp/util/pdf/pdf_canvas_document_renderer.hpp
@@ -83,8 +83,8 @@ I.    DPdfCanvasDocumentRenderer (class)
 // djinterp
 #include "../../djinterp.hpp"                       // NS_*, D_NODISCARD
 #include "../document/templates/document_renderer.hpp"
-                                                    // DDocumentRenderer,
-                                                    // DDocAttributes, D_OVERRIDE
+                                                    // document_renderer,
+                                                    // doc_attributes, D_OVERRIDE
 #include "./pdf_canvas.hpp"                         // DPdfCanvas, canvas_style,
                                                     // DTableOptions
 
@@ -97,7 +97,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // DPdfCanvasDocumentRenderer
-//   class: the DPdfCanvas realisation of DDocumentRenderer.  A document
+//   class: the DPdfCanvas realisation of document_renderer.  A document
 // template (title_page, document_table, a layout term's lowering) renders into
 // it exactly as it renders into the plain or markup ones; the caller then asks
 // for the serialized bytes.
@@ -108,7 +108,7 @@ NS_DJINTERP
 //   _table.render(_r);
 //   const std::string _bytes = _r.to_bytes();
 class DPdfCanvasDocumentRenderer
-    : public DDocumentRenderer
+    : public document_renderer
 {
 public:
     // -- public type aliases -------------------------------------------------
@@ -117,7 +117,7 @@ public:
     using style_map  = std::map<std::string, canvas_style>;
     using row_type   = std::vector<std::string>;
     using grid_type  = std::vector<row_type>;
-    using attr_row   = std::vector<DDocAttributes>;
+    using attr_row   = std::vector<doc_attributes>;
     using attr_grid  = std::vector<attr_row>;
 
     // ------------------------------------------------------------------
@@ -213,7 +213,7 @@ public:
     void heading(
         size_type             _level,
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // the canvas sizes and spaces a heading by level itself; a style hint
@@ -233,7 +233,7 @@ public:
 
     void paragraph(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         flow_block(_text, _attrs);
@@ -244,7 +244,7 @@ public:
     void key_value(
         const std::string&    _key,
         const std::string&    _value,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         flow_block(_key + ": " + _value, _attrs);
@@ -253,7 +253,7 @@ public:
     }
 
     void rule(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         const canvas_style _style = resolve(_attrs);
@@ -266,7 +266,7 @@ public:
     void
     vertical_space(
         double                _amount,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         // a zero or negative request still yields a readable gap
@@ -291,7 +291,7 @@ public:
     void
     begin_list(
         bool                  _ordered,
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         ++m_list_depth;
@@ -304,7 +304,7 @@ public:
 
     void list_item(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         canvas_style _style = resolve(_attrs);
@@ -355,7 +355,7 @@ public:
 
     void
     begin_table(
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         clear_table();
@@ -365,7 +365,7 @@ public:
 
     void table_column(
         const std::string&    _header,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // the header row is the grid's first row, per the canvas's convention
@@ -384,7 +384,7 @@ public:
 
     void
     begin_row(
-        const DDocAttributes& /*_attrs*/
+        const doc_attributes& /*_attrs*/
     ) D_OVERRIDE
     {
         m_row.clear();
@@ -395,7 +395,7 @@ public:
 
     void cell(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // the hint bag rides alongside the text and is turned into a
@@ -508,7 +508,7 @@ protected:
     // only calls the defaults still lays out.
     void write_line(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         flow_block(_text, _attrs);
@@ -524,7 +524,7 @@ private:
     // suite band and a callout are all "a paragraph with a ground".
     void flow_block(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         const canvas_style _style = resolve(_attrs);
@@ -554,7 +554,7 @@ private:
     //   the body style, or a registered style the `style` hint names, refined
     // by whichever of align / color / size / font / bold / italic are present.
     D_NODISCARD canvas_style resolve(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) const
     {
         canvas_style _style = m_body;
@@ -605,7 +605,7 @@ private:
     // _base.  A `font` hint naming a family switches family; the flags then
     // pick the weight / slope variant within it.
     D_NODISCARD static DPdfBaseFont resolve_family(
-        const DDocAttributes& _attrs,
+        const doc_attributes& _attrs,
         DPdfBaseFont          _base
     )
     {
@@ -769,7 +769,7 @@ private:
             return _fmt;
         }
 
-        const DDocAttributes& _bag = m_attrs[_r][_c];
+        const doc_attributes& _bag = m_attrs[_r][_c];
 
         // a registered style name seeds colour / font / alignment
         const std::string _name = attr_or(_bag, doc_attr_style, std::string());

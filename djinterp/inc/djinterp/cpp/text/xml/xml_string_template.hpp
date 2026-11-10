@@ -1,24 +1,24 @@
 /*******************************************************************************
 * djinterp [cpp]                                         xml_string_template.hpp
 *
-*   XML facade over `DMarkupStringTemplate<EscapePolicy>`. Binds
-* `DXmlEscapePolicy` and re-exports the templating engine under
+*   XML facade over `markup_string_template<EscapePolicy>`. Binds
+* `xml_escape_policy` and re-exports the templating engine under
 * XML-flavoured names. All the actual parsing, rendering, partial
 * resolution, section iteration, and context machinery lives in
 * `markup_string_template.hpp`; this file is a thin subclass plus a
 * matching context subclass plus convenience aliases.
 *
 *   ZERO OVERHEAD:
-*   `DXmlStringTemplate` adds NO members beyond
-* `DMarkupStringTemplate<DXmlEscapePolicy>`, so memory layout is
+*   `xml_string_template` adds NO members beyond
+* `markup_string_template<xml_escape_policy>`, so memory layout is
 * identical and slicing is harmless. Constructors are inherited via
 * `using base::base`. The subclass exists for clean type names in
 * error messages and to leave room for XML-specific extensions
 * later.
 *
 *   USAGE:
-*     DXmlStringTemplate t("<msg>{name}</msg>");
-*     DXmlStringTemplateContext ctx;
+*     xml_string_template t("<msg>{name}</msg>");
+*     xml_string_template_context ctx;
 *     ctx.set("name", "<world>");
 *     std::string out = t.render(ctx);   // <msg>&lt;world&gt;</msg>
 *
@@ -51,34 +51,34 @@ NS_DJINTERP
 ///                XML STRING TEMPLATE FACADE                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DXmlStringTemplateContext
+// xml_string_template_context
 //   class: thin facade over
-// `DMarkupStringTemplateContext<DXmlEscapePolicy>`. Inherits
+// `markup_string_template_context<xml_escape_policy>`. Inherits
 // every constructor and method via `using base::base`; adds
 // nothing.
-class DXmlStringTemplateContext
-:   public DMarkupStringTemplateContext<DXmlEscapePolicy>
+class xml_string_template_context
+:   public markup_string_template_context<xml_escape_policy>
 {
 public:
     // base_type
     //   type: alias for the underlying template-context.
-    using base_type = DMarkupStringTemplateContext<DXmlEscapePolicy>;
+    using base_type = markup_string_template_context<xml_escape_policy>;
 
     using base_type::base_type;
 };
 
 
-// DXmlStringTemplate
+// xml_string_template
 //   class: thin facade over
-// `DMarkupStringTemplate<DXmlEscapePolicy>`. Inherits every
+// `markup_string_template<xml_escape_policy>`. Inherits every
 // constructor and method via `using base::base`; adds nothing.
-class DXmlStringTemplate
-:   public DMarkupStringTemplate<DXmlEscapePolicy>
+class xml_string_template
+:   public markup_string_template<xml_escape_policy>
 {
 public:
     // base_type
     //   type: alias for the underlying template engine.
-    using base_type = DMarkupStringTemplate<DXmlEscapePolicy>;
+    using base_type = markup_string_template<xml_escape_policy>;
 
     using base_type::base_type;
 };
@@ -92,20 +92,20 @@ public:
 // naming for syntax policies. The underlying types are the shared
 // `markup_string_template_syntax_*` structs from
 // `markup_string_template.hpp`; using either name is equivalent.
-using DXmlStringTemplateSyntaxDefault         =
-    DMarkupStringTemplateSyntaxDefault;
-using DXmlStringTemplateSyntaxHandlebars   =
-    DMarkupStringTemplateSyntaxHandlebars;
-using DXmlStringTemplateSyntaxErb          =
-    DMarkupStringTemplateSyntaxErb;
-using DXmlStringTemplateSyntaxDollar       =
-    DMarkupStringTemplateSyntaxDollar;
-using DXmlStringTemplateSyntaxSquare       =
-    DMarkupStringTemplateSyntaxSquare;
-using DXmlStringTemplateSyntaxCurlyDollar =
-    DMarkupStringTemplateSyntaxCurlyDollar;
-using DXmlStringTemplateSyntaxXmlPi       =
-    DMarkupStringTemplateSyntaxXmlPi;
+using xml_string_template_syntax_default      =
+    markup_string_template_syntax_default;
+using xml_string_template_syntax_handlebars   =
+    markup_string_template_syntax_handlebars;
+using xml_string_template_syntax_erb          =
+    markup_string_template_syntax_erb;
+using xml_string_template_syntax_dollar       =
+    markup_string_template_syntax_dollar;
+using xml_string_template_syntax_square       =
+    markup_string_template_syntax_square;
+using xml_string_template_syntax_curly_dollar =
+    markup_string_template_syntax_curly_dollar;
+using xml_string_template_syntax_xml_pi       =
+    markup_string_template_syntax_xml_pi;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,12 +117,12 @@ using DXmlStringTemplateSyntaxXmlPi       =
 // source text and a syntax-policy tag in a single expression.
 template<typename Syntax>
 inline
-DXmlStringTemplate make_xml_string_template(
+xml_string_template make_xml_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )
 {
-    return DXmlStringTemplate(_source, _syntax_tag);
+    return xml_string_template(_source, _syntax_tag);
 }
 
 
@@ -131,12 +131,12 @@ DXmlStringTemplate make_xml_string_template(
 // template, ready to be registered as a partial.
 template<typename Syntax>
 inline
-std::shared_ptr<DXmlStringTemplate> make_shared_xml_string_template(
+std::shared_ptr<xml_string_template> make_shared_xml_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )
 {
-    return std::make_shared<DXmlStringTemplate>(_source, _syntax_tag);
+    return std::make_shared<xml_string_template>(_source, _syntax_tag);
 }
 
 

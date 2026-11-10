@@ -26,11 +26,11 @@
 * structurally so any third-party AST can plug in.
 *
 *   FLAVOURS:
-*   The runtime `DMarkdownFlavor` enum identifies the document's
+*   The runtime `markdown_flavor` enum identifies the document's
 * target dialect (CommonMark, GitHub Flavored, GitLab, Pandoc,
 * MultiMarkdown, kramdown, Markdown Extra). A full
 * compile-time-policy `markdown_dialect<Flag>` template, mirroring
-* `DHtmlDialect`, is a likely follow-on.
+* `html_dialect`, is a likely follow-on.
 *
 *
 * path:      /inc/djinterp/cpp/text/markdown/markdown.hpp
@@ -104,16 +104,16 @@ NS_DJINTERP
 namespace markdown {
 
 
-// DMarkdownString
+// markdown_string_t
 //   type: alias for the string type used throughout the
 // markdown module. `std::string` matches the rest of the
 // framework.
-using DMarkdownString = std::string;
+using markdown_string_t = std::string;
 
 
-// DMarkdownSize
+// markdown_size_t
 //   type: alias for the size type used for counts and indices.
-using DMarkdownSize   = std::size_t;
+using markdown_size_t   = std::size_t;
 
 
 // D_MARKDOWN_DEFAULT_INDENT
@@ -151,11 +151,11 @@ using DMarkdownSize   = std::size_t;
 ///                II.   FLAVOUR & RENDER TARGET ENUMS                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownFlavor
+// markdown_flavor
 //   enum: identifies the document's target markdown dialect.
 // Drives which extensions (tables, strikethrough, task lists,
 // footnotes, math, etc.) are parsed and rendered.
-enum class DMarkdownFlavor : re_std::uint8_t
+enum class markdown_flavor : re_std::uint8_t
 {
     commonmark,         // CommonMark 0.30 baseline
     github,             // GitHub Flavored Markdown (GFM)
@@ -170,11 +170,11 @@ enum class DMarkdownFlavor : re_std::uint8_t
 };
 
 
-// DMarkdownRenderTarget
+// markdown_render_target
 //   enum: identifies an output format for document rendering.
 // Documents expose `render_to_*` methods per target; backends
 // implement whichever they support.
-enum class DMarkdownRenderTarget : re_std::uint8_t
+enum class markdown_render_target : re_std::uint8_t
 {
     markdown,           // round-trip to markdown source
     html,               // HTML4 / HTML5 fragment
@@ -192,12 +192,12 @@ enum class DMarkdownRenderTarget : re_std::uint8_t
 ///                III.   BLOCK KIND ENUM                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownBlockKind
+// markdown_block_kind
 //   enum: discriminator for every standard markdown block-level
 // element. Backed by `re_std::uint8_t`. The `unknown` value is
 // used for elements not in this list (custom directives,
 // flavour-specific extensions not yet modelled).
-enum class DMarkdownBlockKind : re_std::uint8_t
+enum class markdown_block_kind : re_std::uint8_t
 {
     // document root
     document,
@@ -258,10 +258,10 @@ enum class DMarkdownBlockKind : re_std::uint8_t
 ///                IV.   INLINE KIND ENUM                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownInlineKind
+// markdown_inline_kind
 //   enum: discriminator for every standard markdown
 // inline-level element. Backed by `re_std::uint8_t`.
-enum class DMarkdownInlineKind : re_std::uint8_t
+enum class markdown_inline_kind : re_std::uint8_t
 {
     // text
     text,                       // plain text run
@@ -311,10 +311,10 @@ enum class DMarkdownInlineKind : re_std::uint8_t
 ///                V.   BLOCK CATEGORY CLASSIFICATION                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownBlockCategory
+// markdown_block_category
 //   enum: bitmask describing the categorical properties of a
 // block. Backed by `unsigned`.
-enum DMarkdownBlockCategory : unsigned
+enum markdown_block_category : unsigned
 {
     mbc_none           = 0u,
     mbc_leaf           = 1u <<  0,  // contains only inlines / text
@@ -338,10 +338,10 @@ enum DMarkdownBlockCategory : unsigned
 //   function: returns the category bitmask for a block kind.
 D_CONSTEXPR_INLINE
 unsigned markdown_category_for_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
-    using K = DMarkdownBlockKind;
+    using K = markdown_block_kind;
     return (_k == K::document)        ? (mbc_container | mbc_block_holder)
 
          : ( (_k == K::heading_1) || (_k == K::heading_2) ||
@@ -409,7 +409,7 @@ unsigned markdown_category_for_block_kind(
 //   function: true if the block kind contains other blocks.
 D_CONSTEXPR_INLINE
 bool is_container_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_container) != 0u);
@@ -421,7 +421,7 @@ bool is_container_block_kind(
 // blocks; may contain inlines).
 D_CONSTEXPR_INLINE
 bool is_leaf_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_leaf) != 0u);
@@ -432,7 +432,7 @@ bool is_leaf_block_kind(
 //   function: true for heading_1 through heading_6.
 D_CONSTEXPR_INLINE
 bool is_heading_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_heading) != 0u);
@@ -444,7 +444,7 @@ bool is_heading_block_kind(
 // math blocks (which use code-style raw text).
 D_CONSTEXPR_INLINE
 bool is_code_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_code) != 0u);
@@ -456,7 +456,7 @@ bool is_code_block_kind(
 // list items; use is_list_item_block_kind for those).
 D_CONSTEXPR_INLINE
 bool is_list_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_list) != 0u);
@@ -467,7 +467,7 @@ bool is_list_block_kind(
 //   function: true for list_item and task_list_item.
 D_CONSTEXPR_INLINE
 bool is_list_item_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_list_item) != 0u);
@@ -478,7 +478,7 @@ bool is_list_item_block_kind(
 //   function: true for any table-model block.
 D_CONSTEXPR_INLINE
 bool is_table_block_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
     return ((markdown_category_for_block_kind(_k) & mbc_table) != 0u);
@@ -490,10 +490,10 @@ bool is_table_block_kind(
 // non-heading kinds.
 D_CONSTEXPR_INLINE
 int heading_level_from_kind(
-    DMarkdownBlockKind _k
+    markdown_block_kind _k
 )
 {
-    using K = DMarkdownBlockKind;
+    using K = markdown_block_kind;
     return (_k == K::heading_1) ? 1
          : (_k == K::heading_2) ? 2
          : (_k == K::heading_3) ? 3
@@ -508,11 +508,11 @@ int heading_level_from_kind(
 //   function: inverse of `heading_level_from_kind`. Levels
 // outside [1,6] return `unknown`.
 D_CONSTEXPR_INLINE
-DMarkdownBlockKind heading_kind_from_level(
+markdown_block_kind heading_kind_from_level(
     int _level
 )
 {
-    using K = DMarkdownBlockKind;
+    using K = markdown_block_kind;
     return (_level == 1) ? K::heading_1
          : (_level == 2) ? K::heading_2
          : (_level == 3) ? K::heading_3
@@ -527,10 +527,10 @@ DMarkdownBlockKind heading_kind_from_level(
 ///                VI.   INLINE CATEGORY CLASSIFICATION                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownInlineCategory
+// markdown_inline_category
 //   enum: bitmask describing the categorical properties of an
 // inline. Backed by `unsigned`.
-enum DMarkdownInlineCategory : unsigned
+enum markdown_inline_category : unsigned
 {
     mic_none           = 0u,
     mic_atomic         = 1u <<  0,  // no nested inlines
@@ -552,10 +552,10 @@ enum DMarkdownInlineCategory : unsigned
 //   function: returns the category bitmask for an inline kind.
 D_CONSTEXPR_INLINE
 unsigned markdown_category_for_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
-    using K = DMarkdownInlineKind;
+    using K = markdown_inline_kind;
     return (_k == K::text)               ? (mic_atomic)
          : (_k == K::soft_break)         ? (mic_atomic | mic_break)
          : (_k == K::hard_break)         ? (mic_atomic | mic_break)
@@ -596,7 +596,7 @@ unsigned markdown_category_for_inline_kind(
 //   function: true if the inline holds no nested inline children.
 D_CONSTEXPR_INLINE
 bool is_atomic_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
     return ((markdown_category_for_inline_kind(_k) & mic_atomic) != 0u);
@@ -607,7 +607,7 @@ bool is_atomic_inline_kind(
 //   function: true if the inline wraps other inlines.
 D_CONSTEXPR_INLINE
 bool is_container_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
     return ((markdown_category_for_inline_kind(_k) & mic_container) != 0u);
@@ -619,7 +619,7 @@ bool is_container_inline_kind(
 // strikethrough / highlight / sub / sup / underline).
 D_CONSTEXPR_INLINE
 bool is_emphasis_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
     return ( (markdown_category_for_inline_kind(_k)
@@ -631,7 +631,7 @@ bool is_emphasis_inline_kind(
 //   function: true for link / autolink / autolink_email.
 D_CONSTEXPR_INLINE
 bool is_link_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
     return ((markdown_category_for_inline_kind(_k) & mic_link) != 0u);
@@ -642,7 +642,7 @@ bool is_link_inline_kind(
 //   function: true for image only.
 D_CONSTEXPR_INLINE
 bool is_image_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
     return ((markdown_category_for_inline_kind(_k) & mic_image) != 0u);
@@ -653,7 +653,7 @@ bool is_image_inline_kind(
 //   function: true for soft_break, hard_break, hard_line_break.
 D_CONSTEXPR_INLINE
 bool is_break_inline_kind(
-    DMarkdownInlineKind _k
+    markdown_inline_kind _k
 )
 {
     return ((markdown_category_for_inline_kind(_k) & mic_break) != 0u);
@@ -664,9 +664,9 @@ bool is_break_inline_kind(
 ///                VII.   HEADING / LIST / CODE FENCE STYLE                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownHeadingStyle
+// markdown_heading_style
 //   enum: ATX (`# Heading`) vs Setext (`Heading\n=======`).
-enum class DMarkdownHeadingStyle : re_std::uint8_t
+enum class markdown_heading_style : re_std::uint8_t
 {
     atx,            // # H1, ## H2, ...
     atx_closed,     // # H1 #, ## H2 ##, ...
@@ -675,9 +675,9 @@ enum class DMarkdownHeadingStyle : re_std::uint8_t
 };
 
 
-// DMarkdownListStyle
+// markdown_list_style
 //   enum: which bullet character / numeral style to use.
-enum class DMarkdownListStyle : re_std::uint8_t
+enum class markdown_list_style : re_std::uint8_t
 {
     dash,           // -
     plus,           // +
@@ -687,9 +687,9 @@ enum class DMarkdownListStyle : re_std::uint8_t
 };
 
 
-// DMarkdownCodeFenceStyle
+// markdown_code_fence_style
 //   enum: backtick or tilde fences for fenced code blocks.
-enum class DMarkdownCodeFenceStyle : re_std::uint8_t
+enum class markdown_code_fence_style : re_std::uint8_t
 {
     backtick,       // ```
     tilde,          // ~~~
@@ -697,9 +697,9 @@ enum class DMarkdownCodeFenceStyle : re_std::uint8_t
 };
 
 
-// DMarkdownTableAlignment
+// markdown_table_alignment
 //   enum: per-column alignment for table cells.
-enum class DMarkdownTableAlignment : re_std::uint8_t
+enum class markdown_table_alignment : re_std::uint8_t
 {
     none,
     left,           // :---
@@ -712,40 +712,40 @@ enum class DMarkdownTableAlignment : re_std::uint8_t
 ///                VIII.   BACKEND TAG DISPATCH                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkdownBackendTag
+// markdown_backend_tag
 //   struct: empty base tag for all markdown backend tag types.
-struct DMarkdownBackendTag
+struct markdown_backend_tag
 {};
 
-// DMarkdownDefaultBackendTag
+// markdown_default_backend_tag
 //   struct: tag identifying the bundled in-memory backend.
-struct DMarkdownDefaultBackendTag : DMarkdownBackendTag
+struct markdown_default_backend_tag : markdown_backend_tag
 {};
 
-// DMarkdownCmarkBackendTag
+// markdown_cmark_backend_tag
 //   struct: tag identifying a libcmark-based adapter backend.
-struct DMarkdownCmarkBackendTag : DMarkdownBackendTag
+struct markdown_cmark_backend_tag : markdown_backend_tag
 {};
 
-// DMarkdownMd4cBackendTag
+// markdown_md4c_backend_tag
 //   struct: tag identifying an md4c-based adapter backend.
-struct DMarkdownMd4cBackendTag : DMarkdownBackendTag
+struct markdown_md4c_backend_tag : markdown_backend_tag
 {};
 
-// DMarkdownMaddyBackendTag
+// markdown_maddy_backend_tag
 //   struct: tag identifying a maddy-based adapter backend.
-struct DMarkdownMaddyBackendTag : DMarkdownBackendTag
+struct markdown_maddy_backend_tag : markdown_backend_tag
 {};
 
-// DMarkdownHoedownBackendTag
+// markdown_hoedown_backend_tag
 //   struct: tag identifying a hoedown-based adapter backend.
-struct DMarkdownHoedownBackendTag : DMarkdownBackendTag
+struct markdown_hoedown_backend_tag : markdown_backend_tag
 {};
 
-// DMarkdownMmarkBackendTag
+// markdown_mmark_backend_tag
 //   struct: tag identifying a mmark / cmark-gfm-based adapter
 // backend.
-struct DMarkdownMmarkBackendTag : DMarkdownBackendTag
+struct markdown_mmark_backend_tag : markdown_backend_tag
 {};
 
 
@@ -758,7 +758,7 @@ NS_INTERNAL
 
     // has_markdown_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
-    // `DMarkdownBackendTag` alias. Primary template (failure).
+    // `markdown_backend_tag` alias. Primary template (failure).
     template<typename Type,
              typename = void>
     struct has_markdown_backend_tag_helper
@@ -783,7 +783,7 @@ namespace markdown {
 
 // is_markdown_backend
 //   trait: true if `Type` has a nested
-// `DMarkdownBackendTag` type.
+// `markdown_backend_tag` type.
 template<typename    Type>
 struct is_markdown_backend
 {

@@ -3,12 +3,12 @@
 *
 *   The hint bag every document-template node carries.  A document template
 * (a table, a title page, a table of contents) is DIALECT-AGNOSTIC: it names
-* semantics and presentation HINTS, and a per-dialect DDocumentRenderer decides
+* semantics and presentation HINTS, and a per-dialect document_renderer decides
 * how (or whether) to realise each hint.  This header supplies the hint carrier
 * and the small shared vocabulary the templates and the renderers agree on.
 *
 *   THE CARRIER IS METADATA, NOT A NEW TYPE.  A node's hints are exactly a
-* COLLECTION OF KEY-VALUE PAIRS, so `DDocAttributes` is nothing more than a
+* COLLECTION OF KEY-VALUE PAIRS, so `doc_attributes` is nothing more than a
 * DContainerMetadata<std::string, std::string> -- the framework's open kv store,
 * reused wholesale (set / find / contains / iterate).  String values keep the
 * bag portable across every output dialect: a colour is "#2E7D32", a width is
@@ -22,12 +22,12 @@
 * configure a renderer once, at construction.  A document's per-node hints, by
 * contrast, vary at RUN TIME and per node, so the runtime kv store is the fit
 * here.  The two compose: a renderer may take an option_set for its fixed policy
-* and read DDocAttributes for per-node hints.
+* and read doc_attributes for per-node hints.
 *
 *   THE VOCABULARY (Section II) is a documented, OPEN set of key names.  It is a
 * convention, not a closed enum: a dialect-specific hint a renderer invents
 * (say "latex_env") is just another key the others ignore.  `align` is given a
-* first-class accessor because it maps onto the framework's DTextAlignment; the
+* first-class accessor because it maps onto the framework's text_alignment; the
 * rest are read as strings (or as flags) through the generic accessors.
 *
 *   PORTABILITY:
@@ -44,13 +44,13 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DDocAttributes                 (the hint bag: a DContainerMetadata alias)
+I.    doc_attributes                 (the hint bag: a DContainerMetadata alias)
       -------------------------------------------------------------------------
 
 II.   Standard hint keys             (the shared key vocabulary)
       ----------------------------------------------------------
 
-III.  Alignment interchange          (DTextAlignment <-> string)
+III.  Alignment interchange          (text_alignment <-> string)
       ----------------------------------------------------------
 
 IV.   Accessors                      (attr_has / attr_or / attr_flag / attr_align)
@@ -72,7 +72,7 @@ IV.   Accessors                      (attr_has / attr_or / attr_flag / attr_alig
 #include <utility>
 // djinterp
 #include "../../../djinterp.hpp"                       // NS_*, gates
-#include "../../../text/text_align.hpp"                // DTextAlignment
+#include "../../../text/text_align.hpp"                // text_alignment
 #include "../../../container/container_metadata.hpp"   // DContainerMetadata
 
 
@@ -80,14 +80,14 @@ NS_DJINTERP
 
 
 // ===========================================================================
-// I.   DDocAttributes
+// I.   doc_attributes
 // ===========================================================================
 
-// DDocAttributes
+// doc_attributes
 //   type: a document node's presentation-hint bag -- an open string -> string
 // key-value store (the framework's DContainerMetadata).  A template writes
 // hints into it; a renderer reads the keys it understands and ignores the rest.
-using DDocAttributes = DContainerMetadata<std::string, std::string>;
+using doc_attributes = DContainerMetadata<std::string, std::string>;
 
 
 // ===========================================================================
@@ -185,15 +185,15 @@ using DDocAttributes = DContainerMetadata<std::string, std::string>;
 //   function: the canonical token for an alignment, for writing into the
 // `align` hint.  The tokens round-trip through align_from_string.
 D_NODISCARD inline const char* align_to_string(
-    DTextAlignment _align
+    text_alignment _align
 ) D_NOEXCEPT
 {
     switch (_align)
     {
-        case DTextAlignment::left:    { return "left";    }
-        case DTextAlignment::center:  { return "center";  }
-        case DTextAlignment::right:   { return "right";   }
-        case DTextAlignment::justify: { return "justify"; }
+        case text_alignment::left:    { return "left";    }
+        case text_alignment::center:  { return "center";  }
+        case text_alignment::right:   { return "right";   }
+        case text_alignment::justify: { return "justify"; }
     }
 
     return "left";
@@ -203,9 +203,9 @@ D_NODISCARD inline const char* align_to_string(
 //   function: the alignment named by a token, or _fallback when the token is
 // empty or unrecognised.  Only the first character is significant (l/c/r/j),
 // so "centre" and "center" both read as center.
-D_NODISCARD inline DTextAlignment align_from_string(
+D_NODISCARD inline text_alignment align_from_string(
     const std::string& _token,
-    DTextAlignment     _fallback = DTextAlignment::left
+    text_alignment     _fallback = text_alignment::left
 )
 {
     // an empty token carries no opinion
@@ -216,10 +216,10 @@ D_NODISCARD inline DTextAlignment align_from_string(
 
     switch (_token[0])
     {
-        case 'l': case 'L': { return DTextAlignment::left;    }
-        case 'c': case 'C': { return DTextAlignment::center;  }
-        case 'r': case 'R': { return DTextAlignment::right;   }
-        case 'j': case 'J': { return DTextAlignment::justify; }
+        case 'l': case 'L': { return text_alignment::left;    }
+        case 'c': case 'C': { return text_alignment::center;  }
+        case 'r': case 'R': { return text_alignment::right;   }
+        case 'j': case 'J': { return text_alignment::justify; }
         default:            { return _fallback;               }
     }
 }
@@ -228,13 +228,13 @@ D_NODISCARD inline DTextAlignment align_from_string(
 // ===========================================================================
 // IV.  Accessors
 // ===========================================================================
-//   Thin readers over DDocAttributes so a renderer need not repeat the
-// find-or-default dance.  All are non-throwing (unlike DDocAttributes::at).
+//   Thin readers over doc_attributes so a renderer need not repeat the
+// find-or-default dance.  All are non-throwing (unlike doc_attributes::at).
 
 // attr_has
 //   function: whether _attrs binds _key at all.
 D_NODISCARD inline bool attr_has(
-    const DDocAttributes& _attrs,
+    const doc_attributes& _attrs,
     const std::string&    _key
 )
 {
@@ -244,7 +244,7 @@ D_NODISCARD inline bool attr_has(
 // attr_or
 //   function: the value bound to _key, or _fallback when _key is absent.
 D_NODISCARD inline std::string attr_or(
-    const DDocAttributes& _attrs,
+    const doc_attributes& _attrs,
     const std::string&    _key,
     const std::string&    _fallback = std::string()
 )
@@ -265,7 +265,7 @@ D_NODISCARD inline std::string attr_or(
 // (first character t/1/y/o, case-insensitive), _fallback when _key is absent,
 // false otherwise.
 D_NODISCARD inline bool attr_flag(
-    const DDocAttributes& _attrs,
+    const doc_attributes& _attrs,
     const std::string&    _key,
     bool                  _fallback = false
 )
@@ -293,11 +293,11 @@ D_NODISCARD inline bool attr_flag(
 }
 
 // attr_align
-//   function: the `align` hint as a DTextAlignment, or _fallback when the hint
+//   function: the `align` hint as a text_alignment, or _fallback when the hint
 // is absent.
-D_NODISCARD inline DTextAlignment attr_align(
-    const DDocAttributes& _attrs,
-    DTextAlignment        _fallback = DTextAlignment::left
+D_NODISCARD inline text_alignment attr_align(
+    const doc_attributes& _attrs,
+    text_alignment        _fallback = text_alignment::left
 )
 {
     const std::string* _p = _attrs.find(doc_attr_align);

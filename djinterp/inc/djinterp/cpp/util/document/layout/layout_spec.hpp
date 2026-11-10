@@ -4,14 +4,14 @@
 *   The DECLARATIVE construction surface -- a pure-data description of a document
 * lowered to the term by a free function, the idiom the test framework's
 * module_spec / block_spec use.  A spec is a plain aggregate tree written with
-* nested braces; `to_layout` lowers it to a DLayoutDoc.  No fluent chaining, no
+* nested braces; `to_layout` lowers it to a layout_doc.  No fluent chaining, no
 * interpretation -- just data, so a document literal reads like an outline.
 *
 *   HETEROGENEOUS CHILDREN, ONE NODE.  A section's children are a mix of
 * content, sub-sections, tables, breaks -- so the generic carrier is one
-* DSpecNode variant (leaf-or-branch), and a dialect's typed *_spec aggregates
+* spec_node variant (leaf-or-branch), and a dialect's typed *_spec aggregates
 * convert INTO it.  That conversion is what lets a braced child list hold
-* different construct specs at once (each converts to DSpecNode), exactly as
+* different construct specs at once (each converts to spec_node), exactly as
 * block_spec's list holds homogeneous entries -- generalised to a document's
 * heterogeneity.  The typed specs live in the dialect (they name constructs);
 * only the variant and the lowering are generic and live here.
@@ -45,7 +45,7 @@
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"    // NS_*, gates, D_NODISCARD
-#include "./layout.hpp"          // DLayoutDoc, apply_node, make_leaf_node
+#include "./layout.hpp"          // layout_doc, apply_node, make_leaf_node
 
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -54,25 +54,25 @@
 NS_DJINTERP
 
 
-// DSpecNode
+// spec_node
 //   struct: the generic data-literal carrier -- a leaf (an atom) or a branch
 // (an op applied to child spec_nodes), each with a params bag.  A dialect's
 // typed *_spec aggregates provide `operator spec_node()` so that a braced child
-// list of different construct specs is a vector<DSpecNode> (each element
+// list of different construct specs is a vector<spec_node> (each element
 // converts).  A plain aggregate; build it with the factories or brace-init.
 template<typename OpId,
-         typename Atom = DLayoutAtom>
-struct DSpecNode
+         typename Atom = layout_atom>
+struct spec_node
 {
     bool                       is_leaf;
     OpId                       op;        // branch: the construct
     Atom                       atom;      // leaf: the content reference
-    DDocAttributes             bag;       // params (branch) / hints (leaf)
-    std::vector<DSpecNode>     children;  // branch: sub-structure
+    doc_attributes             bag;       // params (branch) / hints (leaf)
+    std::vector<spec_node>     children;  // branch: sub-structure
 
-    // DSpecNode (default)
+    // spec_node (default)
     //   an empty leaf -- the aggregate default.
-    DSpecNode()
+    spec_node()
         : is_leaf (true),
           op      (),
           atom    (),
@@ -82,31 +82,31 @@ struct DSpecNode
 
     // branch
     //   factory: an application spec -- op _op over _children, params _bag.
-    D_NODISCARD static DSpecNode
+    D_NODISCARD static spec_node
     branch(
         const OpId&           _op,
-        DDocAttributes         _bag,
-        std::vector<DSpecNode> _children
+        doc_attributes         _bag,
+        std::vector<spec_node> _children
     )
     {
-        DSpecNode _n;
+        spec_node _n;
         _n.is_leaf  = false;
         _n.op       = _op;
         _n.bag      = _bag;
-        _n.children = static_cast<std::vector<DSpecNode>&&>(_children);
+        _n.children = static_cast<std::vector<spec_node>&&>(_children);
 
         return _n;
     }
 
     // leaf
     //   factory: a content-leaf spec carrying _atom (and optional hints _bag).
-    D_NODISCARD static DSpecNode
+    D_NODISCARD static spec_node
     leaf(
         const Atom&   _atom,
-        DDocAttributes _bag = DDocAttributes()
+        doc_attributes _bag = doc_attributes()
     )
     {
-        DSpecNode _n;
+        spec_node _n;
         _n.is_leaf = true;
         _n.atom    = _atom;
         _n.bag     = _bag;
@@ -124,8 +124,8 @@ struct DSpecNode
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-DLayoutDoc<OpId, Atom> to_layout(
-    const DSpecNode<OpId, Atom>& _spec
+layout_doc<OpId, Atom> to_layout(
+    const spec_node<OpId, Atom>& _spec
 )
 {
     // a content leaf
@@ -135,7 +135,7 @@ DLayoutDoc<OpId, Atom> to_layout(
     }
 
     // a branch: lower each child, then apply
-    std::vector<DLayoutDoc<OpId, Atom> > _children;
+    std::vector<layout_doc<OpId, Atom> > _children;
     _children.reserve(_spec.children.size());
 
     for (std::size_t _i = 0; _i < _spec.children.size(); ++_i)
@@ -146,7 +146,7 @@ DLayoutDoc<OpId, Atom> to_layout(
     return apply_node<OpId, Atom>(
         _spec.bag,
         _spec.op,
-        static_cast<std::vector<DLayoutDoc<OpId, Atom> >&&>(_children));
+        static_cast<std::vector<layout_doc<OpId, Atom> >&&>(_children));
 }
 
 

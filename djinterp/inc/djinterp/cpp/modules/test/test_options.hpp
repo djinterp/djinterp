@@ -126,7 +126,7 @@ TABLE OF CONTENTS
 #include "../../meta/fixed_string.hpp"       // fixed_string<> (authoring NTTP)
 #include "../../meta/carrier.hpp"            // val_t<>
 #include "../../option/option.hpp"           // option<>
-#include "../../util/document/document_format.hpp" // DDocumentFormat (the single
+#include "../../util/document/document_format.hpp" // document_format (the single
                                               //   document-format selector)
 #include "../../util/compress/compress_options.hpp"   // compress_options
 #include "../../util/archive/archive_options.hpp"    // archive_options
@@ -152,7 +152,7 @@ NS_TEST
 
 // test_doc_type
 //   type: the document format a report is rendered as -- an ALIAS of the
-// framework's single format selector, `DDocumentFormat`.  It was a DTest-local
+// framework's single format selector, `document_format`.  It was a DTest-local
 // enum spelling a subset of the same concept, which forced a hand-written
 // switch to bridge to the emit layer's `doc_format` and to output_packaging;
 // the alias retires the bridge and, with it, the mis-mapping bugs that come of
@@ -164,7 +164,7 @@ NS_TEST
 // so a runner that only ever selected PDF is untouched.  `markdown` / `tex` /
 // `wiki` are now selectable here for free -- the emit layer already renders
 // markdown, and simply had no way to be asked for it.
-using test_doc_type = ::djinterp::DDocumentFormat;
+using test_doc_type = ::djinterp::document_format;
 
 // DTestSink
 //   enum: a BITSET of output destinations - a report can be written to more

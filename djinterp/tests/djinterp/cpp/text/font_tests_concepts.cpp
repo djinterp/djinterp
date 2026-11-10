@@ -165,8 +165,8 @@ bool tests_concept_casing()
     D_FT_CHECK(!small_caps_font<bare_font>);
     D_FT_CHECK(!subscript_font<decorated_font_t>);
 
-    D_FT_CHECK(subscript_font<DFont<ff_subscript, probe_color>>);
-    D_FT_CHECK(!superscript_font<DFont<ff_subscript, probe_color>>);
+    D_FT_CHECK(subscript_font<font<ff_subscript, probe_color>>);
+    D_FT_CHECK(!superscript_font<font<ff_subscript, probe_color>>);
 
     return true;
 }
@@ -180,9 +180,9 @@ tests_concept_casing_font_is_a_disjunction
 bool tests_concept_casing_font_is_a_disjunction()
 {
     D_FT_CHECK(casing_font<small_caps_font_t>);
-    D_FT_CHECK(casing_font<DFont<ff_all_caps,   probe_color>>);
-    D_FT_CHECK(casing_font<DFont<ff_subscript,  probe_color>>);
-    D_FT_CHECK(casing_font<DFont<ff_superscript, probe_color>>);
+    D_FT_CHECK(casing_font<font<ff_all_caps,    probe_color>>);
+    D_FT_CHECK(casing_font<font<ff_subscript,   probe_color>>);
+    D_FT_CHECK(casing_font<font<ff_superscript, probe_color>>);
     D_FT_CHECK(casing_font<casing_font_t>);
     D_FT_CHECK(casing_font<full_font>);
 
@@ -548,7 +548,7 @@ that satisfies only one.
 bool tests_concept_conjunction_in_a_requires_clause()
 {
     // both: underline and a casing feature
-    using both = DFont<ff_underline | ff_small_caps, probe_color>;
+    using both = font<ff_underline | ff_small_caps, probe_color>;
 
     D_FT_CHECK(concept_conjunction_probe<both>());
     D_FT_CHECK(concept_conjunction_probe<full_font>());

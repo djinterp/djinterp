@@ -1,9 +1,9 @@
 /*******************************************************************************
 * djinterp [cpp]                                                pdf_template.hpp
 *
-*   A PDF-specialised DDocumentTemplate.  Everything a template IS -- an element
+*   A PDF-specialised document_template.  Everything a template IS -- an element
 * sequence, `{token}` interpolation, named styles, `repeat` over a bound
-* sequence, a document frame -- lives in DDocumentTemplate and is inherited
+* sequence, a document frame -- lives in document_template and is inherited
 * unchanged.  This header adds ONLY what is genuinely PDF-specific and cannot
 * live in the renderer-agnostic base:
 *
@@ -12,7 +12,7 @@
 *        DPdfCanvas property in the layout model (the canvas owns the cursor);
 *        the template holds the caller's choice and installs it on the canvas at
 *        render time.  This is the surface pdf_options re-targets.
-*     2. STYLE REALISATION.  DDocumentTemplate names styles ("heading", "footer");
+*     2. STYLE REALISATION.  document_template names styles ("heading", "footer");
 *        it does not know what they look like.  A PDF build binds each name to a
 *        canvas_style -- the one place that holds both the abstract name and its
 *        concrete PDF form, because canvas_style is a PDF type the base may not
@@ -28,10 +28,10 @@
 * engine: cursor, line advancement, pagination, a style REGISTRY, an element
 * list, and %key% substitution.  Layout, the cursor and the margin box are
 * DPdfCanvas's; the element list, style NAMING and token substitution are
-* DDocumentTemplate's; what is left here is the thin PDF face over both.  There
+* document_template's; what is left here is the thin PDF face over both.  There
 * is now one layout engine in the PDF layer, not two.
 *
-*   BUILDING ONE.  Use the inherited DDocumentTemplate surface -- tmpl_heading,
+*   BUILDING ONE.  Use the inherited document_template surface -- tmpl_heading,
 * tmpl_paragraph, tmpl_repeat, add(), frame() -- then bind styles and render:
 *
 *       pdf_template t;
@@ -41,12 +41,12 @@
 *       t.style("h1", canvas_style::heading(18))
 *        .style("kv", canvas_style::body(11));
 *
-*       DTemplateContext ctx;                 // values / sequences / slots
+*       template_context ctx;                 // values / sequences / slots
 *       ctx.values    = ...; ctx.sequences = ...;
 *       const std::string bytes = t.render_pdf(ctx);
 *
 *   PORTABILITY:
-*   C++11 baseline -- the floors of DDocumentTemplate and DPdfCanvas.  No
+*   C++11 baseline -- the floors of document_template and DPdfCanvas.  No
 * third-party dependency in this header; the PDF backend is chosen inside
 * DPdfCanvas as before.
 *
@@ -71,8 +71,8 @@
 #include <string>
 // djinterp
 #include "../../djinterp.hpp"                        // NS_*, D_NODISCARD, D_NOEXCEPT
-#include "../document/document_template.hpp"         // DDocumentTemplate, DTemplateContext,
-                                                     // DTemplateElement, render_template
+#include "../document/document_template.hpp"         // document_template, template_context,
+                                                     // template_element, render_template
 #include "./pdf_canvas.hpp"                          // DPdfPageSize, DPdfUnit, canvas_style,
                                                      // DPdfCanvas
 #include "./pdf_canvas_document_renderer.hpp"        // DPdfCanvasDocumentRenderer
@@ -86,12 +86,12 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // pdf_template
-//   class: a DDocumentTemplate whose output is a PDF.  Adds page geometry and
+//   class: a document_template whose output is a PDF.  Adds page geometry and
 // margins, the name -> canvas_style bindings, document metadata, and the
 // render-to-PDF entry points; inherits the whole templating surface (elements,
 // tokens, repeat, frame) from the base.
 class pdf_template
-    : public DDocumentTemplate
+    : public document_template
 {
 public:
 
@@ -103,7 +103,7 @@ public:
     // ------------------------------------------------------------------
 
     pdf_template()
-        : DDocumentTemplate(),
+        : document_template(),
           m_page(DPdfPageSize::letter()),
           m_margin_left(54.0),
           m_margin_right(54.0),
@@ -119,7 +119,7 @@ public:
     explicit pdf_template(
         const DPdfPageSize& _page
     )
-        : DDocumentTemplate(),
+        : document_template(),
           m_page(_page),
           m_margin_left(54.0),
           m_margin_right(54.0),
@@ -139,7 +139,7 @@ public:
     // page
     //   the page geometry the document is laid onto.  This, with margins(), is
     // what a pdf_options / pdf_config re-targets.  Chainable, to match the
-    // DDocumentTemplate builders.
+    // document_template builders.
     pdf_template& page(
         const DPdfPageSize& _page
     )
@@ -179,7 +179,7 @@ public:
     //   bind a style NAME (as emitted by the inherited elements' `style` hint)
     // to its concrete canvas_style.  A name left unbound falls back to the body
     // style in the renderer, so a producer may emit names a given build does
-    // not define -- the same tolerance DDocumentTemplate assumes.
+    // not define -- the same tolerance document_template assumes.
     pdf_template& style(
         const std::string&  _name,
         const canvas_style& _style
@@ -232,7 +232,7 @@ public:
     // page and margins; the base's render_template does begin_document(frame())
     // -> elements -> end_document.
     D_NODISCARD std::string render_pdf(
-        const DTemplateContext& _context
+        const template_context& _context
     ) const
     {
         DPdfCanvasDocumentRenderer _renderer(m_page);
@@ -247,7 +247,7 @@ public:
     // renderer's own success result.
     D_NODISCARD bool save_pdf(
         const std::string&      _path,
-        const DTemplateContext& _context
+        const template_context& _context
     ) const
     {
         DPdfCanvasDocumentRenderer _renderer(m_page);
@@ -264,7 +264,7 @@ public:
     // they are left untouched; styles and metadata are still applied.
     void render_into(
         DPdfCanvas&             _canvas,
-        const DTemplateContext& _context
+        const template_context& _context
     ) const
     {
         DPdfCanvasDocumentRenderer _renderer(_canvas);

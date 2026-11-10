@@ -15,9 +15,9 @@
 *     square:      "Hello [[name]]!"
 *     custom:      "Hello |START| name |END|!"
 *
-*   The engine is the SHARED CORE for both `DXmlStringTemplate` and
-* `DHtmlStringTemplate`. Those types are thin facades layered on top
-* of `DMarkupStringTemplate<EscapePolicy>` -- they bind a specific
+*   The engine is the SHARED CORE for both `xml_string_template` and
+* `html_string_template`. Those types are thin facades layered on top
+* of `markup_string_template<EscapePolicy>` -- they bind a specific
 * escape policy and inherit the rest. The split exists because the
 * only meaningful difference between XML and HTML interpolation is
 * the entity reference for the apostrophe (`&apos;` for XML,
@@ -34,9 +34,9 @@
 *     };
 *
 *   Three policies are provided here:
-*     - `DXmlEscapePolicy`   -- canonical XML entity references
-*     - `DHtmlEscapePolicy`  -- HTML-compatible entity references
-*     - `DNullEscapePolicy` -- no escaping (raw substitution)
+*     - `xml_escape_policy`  -- canonical XML entity references
+*     - `html_escape_policy` -- HTML-compatible entity references
+*     - `null_escape_policy` -- no escaping (raw substitution)
 *
 *   FEATURES:
 *   - variable interpolation        {name}
@@ -73,10 +73,10 @@ II.   ESCAPE POLICY STRUCTS
 III.  INTERNAL TOKEN TYPES & PARSE HELPERS
       ------------------------------------
 
-IV.   DMarkupStringTemplateContext<EscapePolicy>
+IV.   markup_string_template_context<EscapePolicy>
       ---------------------------------------------
 
-V.    DMarkupStringTemplate<EscapePolicy>
+V.    markup_string_template<EscapePolicy>
       -------------------------------------
 
 VI.   FREE HELPERS / FACTORIES
@@ -114,14 +114,14 @@ NS_DJINTERP
 ///                I.   SYNTAX POLICY STRUCTS                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkupStringTemplateSyntaxTag
+// markup_string_template_syntax_tag
 //   struct: empty base for all syntax policy tags. Lets traits
 // detect a syntax-policy type via inheritance.
-struct DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_tag
 {};
 
 
-// DMarkupStringTemplateSyntaxDefault
+// markup_string_template_syntax_default
 //   struct: bundled default delimiter set -- single curly braces.
 //   Variable    : {name}
 //   Raw var     : {&name}
@@ -129,8 +129,8 @@ struct DMarkupStringTemplateSyntaxTag
 //   Section open: {#section_name}
 //   Section end : {/section_name}
 //   Comment     : {!commented out}
-struct DMarkupStringTemplateSyntaxDefault
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_default
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "{";
     D_STATIC_CONSTEXPR const char*  close_tag            = "}";
@@ -142,10 +142,10 @@ struct DMarkupStringTemplateSyntaxDefault
 };
 
 
-// DMarkupStringTemplateSyntaxHandlebars
+// markup_string_template_syntax_handlebars
 //   struct: handlebars-style double-curly delimiters.
-struct DMarkupStringTemplateSyntaxHandlebars
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_handlebars
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "{{";
     D_STATIC_CONSTEXPR const char*  close_tag            = "}}";
@@ -157,10 +157,10 @@ struct DMarkupStringTemplateSyntaxHandlebars
 };
 
 
-// DMarkupStringTemplateSyntaxErb
+// markup_string_template_syntax_erb
 //   struct: ERB-style angle-percent delimiters.
-struct DMarkupStringTemplateSyntaxErb
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_erb
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "<%=";
     D_STATIC_CONSTEXPR const char*  close_tag            = "%>";
@@ -172,10 +172,10 @@ struct DMarkupStringTemplateSyntaxErb
 };
 
 
-// DMarkupStringTemplateSyntaxDollar
+// markup_string_template_syntax_dollar
 //   struct: dollar-delimited (open and close are the same).
-struct DMarkupStringTemplateSyntaxDollar
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_dollar
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "$";
     D_STATIC_CONSTEXPR const char*  close_tag            = "$";
@@ -187,10 +187,10 @@ struct DMarkupStringTemplateSyntaxDollar
 };
 
 
-// DMarkupStringTemplateSyntaxAngle
+// markup_string_template_syntax_angle
 //   struct: double-angle delimiters (avoids tag conflicts).
-struct DMarkupStringTemplateSyntaxAngle
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_angle
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "<<";
     D_STATIC_CONSTEXPR const char*  close_tag            = ">>";
@@ -202,10 +202,10 @@ struct DMarkupStringTemplateSyntaxAngle
 };
 
 
-// DMarkupStringTemplateSyntaxSquare
+// markup_string_template_syntax_square
 //   struct: double-square delimiters.
-struct DMarkupStringTemplateSyntaxSquare
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_square
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "[[";
     D_STATIC_CONSTEXPR const char*  close_tag            = "]]";
@@ -217,10 +217,10 @@ struct DMarkupStringTemplateSyntaxSquare
 };
 
 
-// DMarkupStringTemplateSyntaxPhp
+// markup_string_template_syntax_php
 //   struct: PHP-style short-tag delimiters.
-struct DMarkupStringTemplateSyntaxPhp
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_php
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "<?=";
     D_STATIC_CONSTEXPR const char*  close_tag            = "?>";
@@ -232,11 +232,11 @@ struct DMarkupStringTemplateSyntaxPhp
 };
 
 
-// DMarkupStringTemplateSyntaxCurlyDollar
+// markup_string_template_syntax_curly_dollar
 //   struct: shell-style `${name}` delimiters. Convenient when
 // the source contains literal `{` / `}` but `${...}` is rare.
-struct DMarkupStringTemplateSyntaxCurlyDollar
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_curly_dollar
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "${";
     D_STATIC_CONSTEXPR const char*  close_tag            = "}";
@@ -248,13 +248,13 @@ struct DMarkupStringTemplateSyntaxCurlyDollar
 };
 
 
-// DMarkupStringTemplateSyntaxXmlPi
+// markup_string_template_syntax_xml_pi
 //   struct: XML-processing-instruction-style delimiters --
 // `<?tpl name ?>`. The templated source remains valid XML even
 // before substitution (PIs are syntactically legal anywhere
 // text content is), so half-rendered templates still parse.
-struct DMarkupStringTemplateSyntaxXmlPi
-:   DMarkupStringTemplateSyntaxTag
+struct markup_string_template_syntax_xml_pi
+:   markup_string_template_syntax_tag
 {
     D_STATIC_CONSTEXPR const char*  open_tag             = "<?tpl";
     D_STATIC_CONSTEXPR const char*  close_tag            = "?>";
@@ -270,19 +270,19 @@ struct DMarkupStringTemplateSyntaxXmlPi
 ///                II.   ESCAPE POLICY STRUCTS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkupEscapePolicyTag
+// markup_escape_policy_tag
 //   struct: empty base for all escape policy tags. Lets traits
 // detect an escape-policy type via inheritance.
-struct DMarkupEscapePolicyTag
+struct markup_escape_policy_tag
 {};
 
 
-// DXmlEscapePolicy
+// xml_escape_policy
 //   struct: escape policy producing the five XML-canonical
 // entity references:
 //   &amp; &lt; &gt; &quot; &apos;
-struct DXmlEscapePolicy
-:   DMarkupEscapePolicyTag
+struct xml_escape_policy
+:   markup_escape_policy_tag
 {
     static
     void escape(
@@ -308,14 +308,14 @@ struct DXmlEscapePolicy
 };
 
 
-// DHtmlEscapePolicy
+// html_escape_policy
 //   struct: escape policy producing HTML-compatible entity
-// references. Matches `DXmlEscapePolicy` exactly except that
+// references. Matches `xml_escape_policy` exactly except that
 // the apostrophe becomes `&#39;` (a numeric character
 // reference) rather than `&apos;`, since `&apos;` is undefined
 // in HTML4 / pre-HTML5 documents.
-struct DHtmlEscapePolicy
-:   DMarkupEscapePolicyTag
+struct html_escape_policy
+:   markup_escape_policy_tag
 {
     static
     void escape(
@@ -341,13 +341,13 @@ struct DHtmlEscapePolicy
 };
 
 
-// DNullEscapePolicy
+// null_escape_policy
 //   struct: escape policy that performs no escaping. Useful
 // for non-markup content (config files, code generation, plain
 // text emails) where variable values should pass through
 // verbatim.
-struct DNullEscapePolicy
-:   DMarkupEscapePolicyTag
+struct null_escape_policy
+:   markup_escape_policy_tag
 {
     static
     void escape(
@@ -366,9 +366,9 @@ struct DNullEscapePolicy
 
 NS_INTERNAL
 
-    // DMarkupStringTemplateTokenKind
+    // markup_string_template_token_kind
     //   enum: discriminator for parsed template tokens.
-    enum class DMarkupStringTemplateTokenKind : re_std::uint8_t
+    enum class markup_string_template_token_kind : re_std::uint8_t
     {
         literal,            // plain text emitted verbatim
         variable_escaped,   // {name} -- escaped on output
@@ -379,15 +379,15 @@ NS_INTERNAL
     };
 
 
-    // DMarkupStringTemplateToken
+    // markup_string_template_token
     //   struct: a single parsed token. For sections, `children`
     // holds the body; for everything else `children` is empty.
-    struct DMarkupStringTemplateToken
+    struct markup_string_template_token
     {
-        DMarkupStringTemplateTokenKind           kind =
-            DMarkupStringTemplateTokenKind::literal;
+        markup_string_template_token_kind           kind =
+            markup_string_template_token_kind::literal;
         std::string                                 text;
-        std::vector<DMarkupStringTemplateToken>     children;
+        std::vector<markup_string_template_token>   children;
     };
 
 
@@ -440,14 +440,14 @@ NS_END  // internal
 
 // (forward declaration -- defined below)
 template<typename EscapePolicy>
-class DMarkupStringTemplate;
+class markup_string_template;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.   DMarkupStringTemplateContext                     ///
+///                IV.   markup_string_template_context                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkupStringTemplateContext
+// markup_string_template_context
 //   class: variable bindings, list bindings, and (optional)
 // per-context partial overrides for a single render call.
 // Contexts are value types; create child contexts for nested
@@ -457,12 +457,12 @@ class DMarkupStringTemplate;
 // holds shared pointers to templates with that same policy --
 // templates with different escape policies are distinct types.
 template<typename EscapePolicy>
-class DMarkupStringTemplateContext
+class markup_string_template_context
 {
 public:
     // template_t
     //   type: the template type the partial map holds.
-    using template_t    = DMarkupStringTemplate<EscapePolicy>;
+    using template_t    = markup_string_template<EscapePolicy>;
 
     // partial_ptr_t
     //   type: shared-ownership handle for a partial template.
@@ -476,7 +476,7 @@ public:
     //   type: list bindings -- each list entry is a child context
     // used when rendering a section that names this list.
     using list_map_t    = std::map<std::string,
-                                   std::vector<DMarkupStringTemplateContext>>;
+                                   std::vector<markup_string_template_context>>;
 
     // partial_map_t
     //   type: per-context partial overrides. Resolved BEFORE the
@@ -567,7 +567,7 @@ public:
     // once per entry.
     void set_list(
         const std::string&                                 _key,
-        const std::vector<DMarkupStringTemplateContext>&   _items
+        const std::vector<markup_string_template_context>& _items
     )
     {
         m_lists[_key] = _items;
@@ -578,7 +578,7 @@ public:
     // bound at `_key`, creating the list if absent.
     void append_to_list(
         const std::string&                    _key,
-        const DMarkupStringTemplateContext&   _item
+        const markup_string_template_context& _item
     )
     {
         m_lists[_key].push_back(_item);
@@ -596,7 +596,7 @@ public:
     // get_list
     //   function: returns the list bound at `_key`. Returns an
     // empty vector reference if absent.
-    const std::vector<DMarkupStringTemplateContext>& get_list(
+    const std::vector<markup_string_template_context>& get_list(
         const std::string& _key
     ) const
     {
@@ -653,9 +653,9 @@ private:
     //   function: holds the canonical empty-list return for
     // `get_list` on a missing key.
     static
-    const std::vector<DMarkupStringTemplateContext>& s_empty_list()
+    const std::vector<markup_string_template_context>& s_empty_list()
     {
-        static const std::vector<DMarkupStringTemplateContext> e;
+        static const std::vector<markup_string_template_context> e;
         return e;
     }
 
@@ -685,10 +685,10 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   DMarkupStringTemplate                              ///
+///                V.   markup_string_template                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DMarkupStringTemplate
+// markup_string_template
 //   class: a parsed string template. Owns its source string,
 // its delimiter configuration, and (optionally) a registry of
 // named partial sub-templates. Renders to a `std::string` (or
@@ -697,8 +697,8 @@ private:
 //
 // Parameterised on `EscapePolicy` -- the only behavioural
 // knob between formats. The bundled policies are
-// `DXmlEscapePolicy`, `DHtmlEscapePolicy`, and
-// `DNullEscapePolicy`; user code can supply any struct with a
+// `xml_escape_policy`, `html_escape_policy`, and
+// `null_escape_policy`; user code can supply any struct with a
 // matching `static void escape(std::ostream&, const std::string&)`
 // signature.
 //
@@ -708,7 +708,7 @@ private:
 // angle-style) can sit in the same container without type
 // erasure, provided they share the escape policy.
 template<typename EscapePolicy>
-class DMarkupStringTemplate
+class markup_string_template
 {
 public:
     // escape_policy_t
@@ -717,11 +717,11 @@ public:
 
     // context_t
     //   type: alias for the matching context type.
-    using context_t       = DMarkupStringTemplateContext<EscapePolicy>;
+    using context_t       = markup_string_template_context<EscapePolicy>;
 
     // partial_ptr_t
     //   type: shared-ownership handle for a partial template.
-    using partial_ptr_t   = std::shared_ptr<DMarkupStringTemplate>;
+    using partial_ptr_t   = std::shared_ptr<markup_string_template>;
 
     // partial_map_t
     //   type: name -> partial registry.
@@ -730,43 +730,43 @@ public:
 
     /// constructors
 
-    // DMarkupStringTemplate (default)
+    // markup_string_template (default)
     //   ctor: empty source, default-syntax delimiters.
-    DMarkupStringTemplate()
-    :   m_open_tag(DMarkupStringTemplateSyntaxDefault::open_tag),
-        m_close_tag(DMarkupStringTemplateSyntaxDefault::close_tag),
-        m_raw_marker(DMarkupStringTemplateSyntaxDefault::raw_marker),
+    markup_string_template()
+    :   m_open_tag(markup_string_template_syntax_default::open_tag),
+        m_close_tag(markup_string_template_syntax_default::close_tag),
+        m_raw_marker(markup_string_template_syntax_default::raw_marker),
         m_partial_marker(
-            DMarkupStringTemplateSyntaxDefault::partial_marker),
+            markup_string_template_syntax_default::partial_marker),
         m_section_open_marker(
-            DMarkupStringTemplateSyntaxDefault::section_open_marker),
+            markup_string_template_syntax_default::section_open_marker),
         m_section_close_marker(
-            DMarkupStringTemplateSyntaxDefault::section_close_marker),
+            markup_string_template_syntax_default::section_close_marker),
         m_comment_marker(
-            DMarkupStringTemplateSyntaxDefault::comment_marker),
+            markup_string_template_syntax_default::comment_marker),
         m_source(),
         m_partials(),
         m_tokens(),
         m_dirty(true)
     {}
 
-    // DMarkupStringTemplate (from source, default syntax)
+    // markup_string_template (from source, default syntax)
     //   ctor: takes source text; uses default delimiters.
     explicit
-    DMarkupStringTemplate(
+    markup_string_template(
         const std::string&  _source
     )
-    :   DMarkupStringTemplate()
+    :   markup_string_template()
     {
         m_source = _source;
     }
 
-    // DMarkupStringTemplate (from source + syntax policy)
+    // markup_string_template (from source + syntax policy)
     //   ctor: takes source text and a syntax policy struct.
     // The policy's `D_STATIC_CONSTEXPR const char*` constants
     // are copied into the instance's runtime delimiter strings.
     template<typename Syntax>
-    DMarkupStringTemplate(
+    markup_string_template(
         const std::string&  _source,
         Syntax              /*syntax_tag*/
     )
@@ -783,15 +783,15 @@ public:
         m_dirty(true)
     {}
 
-    // DMarkupStringTemplate (from source + explicit delimiters)
+    // markup_string_template (from source + explicit delimiters)
     //   ctor: takes source text and explicit open/close
     // delimiter strings. All other markers stay at default.
-    DMarkupStringTemplate(
+    markup_string_template(
         const std::string&  _source,
         const std::string&  _open_tag,
         const std::string&  _close_tag
     )
-    :   DMarkupStringTemplate()
+    :   markup_string_template()
     {
         m_source    = _source;
         m_open_tag  = _open_tag;
@@ -872,11 +872,11 @@ public:
     // new shared handle).
     void add_partial(
         const std::string&            _name,
-        const DMarkupStringTemplate&  _partial
+        const markup_string_template& _partial
     )
     {
         m_partials[_name] =
-            std::make_shared<DMarkupStringTemplate>(_partial);
+            std::make_shared<markup_string_template>(_partial);
     }
 
     // remove_partial
@@ -952,8 +952,8 @@ private:
         else
         {
             // no interpolation -- entire source is one literal.
-            internal::DMarkupStringTemplateToken    t;
-            t.kind = internal::DMarkupStringTemplateTokenKind::literal;
+            internal::markup_string_template_token  t;
+            t.kind = internal::markup_string_template_token_kind::literal;
             t.text = m_source;
             m_tokens.push_back(std::move(t));
         }
@@ -966,12 +966,12 @@ private:
     // matching `_section_terminator`. On match it consumes the
     // close directive and returns. `_pos` is updated by
     // reference so callers can pick up where parsing stopped.
-    std::vector<internal::DMarkupStringTemplateToken> parse_token_list(
+    std::vector<internal::markup_string_template_token> parse_token_list(
         std::size_t&       _pos,
         const std::string& _section_terminator
     ) const
     {
-        std::vector<internal::DMarkupStringTemplateToken>     out;
+        std::vector<internal::markup_string_template_token>     out;
         const std::size_t   n = m_source.size();
 
         while (_pos < n)
@@ -1039,8 +1039,8 @@ private:
                 std::string name =
                     internal::markup_string_template_trim_helper(
                         directive.substr(m_section_open_marker.size()));
-                internal::DMarkupStringTemplateToken  t;
-                t.kind = internal::DMarkupStringTemplateTokenKind::section;
+                internal::markup_string_template_token  t;
+                t.kind = internal::markup_string_template_token_kind::section;
                 t.text = name;
                 _pos   = after_close;
                 t.children = this->parse_token_list(_pos, name);
@@ -1053,9 +1053,9 @@ private:
                  internal::markup_string_template_starts_with_helper(
                     directive, m_partial_marker) )
             {
-                internal::DMarkupStringTemplateToken  t;
+                internal::markup_string_template_token  t;
                 t.kind =
-                    internal::DMarkupStringTemplateTokenKind::partial_include;
+                    internal::markup_string_template_token_kind::partial_include;
                 t.text = internal::markup_string_template_trim_helper(
                     directive.substr(m_partial_marker.size()));
                 out.push_back(std::move(t));
@@ -1068,8 +1068,8 @@ private:
                  internal::markup_string_template_starts_with_helper(
                     directive, m_comment_marker) )
             {
-                internal::DMarkupStringTemplateToken  t;
-                t.kind = internal::DMarkupStringTemplateTokenKind::comment;
+                internal::markup_string_template_token  t;
+                t.kind = internal::markup_string_template_token_kind::comment;
                 // text intentionally discarded
                 out.push_back(std::move(t));
                 _pos = after_close;
@@ -1081,9 +1081,9 @@ private:
                  internal::markup_string_template_starts_with_helper(
                     directive, m_raw_marker) )
             {
-                internal::DMarkupStringTemplateToken  t;
+                internal::markup_string_template_token  t;
                 t.kind =
-                    internal::DMarkupStringTemplateTokenKind::variable_raw;
+                    internal::markup_string_template_token_kind::variable_raw;
                 t.text = internal::markup_string_template_trim_helper(
                     directive.substr(m_raw_marker.size()));
                 out.push_back(std::move(t));
@@ -1092,9 +1092,9 @@ private:
             }
 
             // default: escaped variable.
-            internal::DMarkupStringTemplateToken  t;
+            internal::markup_string_template_token  t;
             t.kind =
-                internal::DMarkupStringTemplateTokenKind::variable_escaped;
+                internal::markup_string_template_token_kind::variable_escaped;
             t.text = directive;
             out.push_back(std::move(t));
             _pos = after_close;
@@ -1108,7 +1108,7 @@ private:
     // preceding token if it is also a literal (keeps the token
     // stream compact).
     void push_literal(
-        std::vector<internal::DMarkupStringTemplateToken>&   _out,
+        std::vector<internal::markup_string_template_token>& _out,
         const std::string&                                   _text
     ) const
     {
@@ -1118,13 +1118,13 @@ private:
         }
         if ( (!_out.empty()) &&
              (_out.back().kind ==
-                internal::DMarkupStringTemplateTokenKind::literal) )
+                internal::markup_string_template_token_kind::literal) )
         {
             _out.back().text += _text;
             return;
         }
-        internal::DMarkupStringTemplateToken  t;
-        t.kind = internal::DMarkupStringTemplateTokenKind::literal;
+        internal::markup_string_template_token  t;
+        t.kind = internal::markup_string_template_token_kind::literal;
         t.text = _text;
         _out.push_back(std::move(t));
     }
@@ -1138,7 +1138,7 @@ private:
     // partials.
     void render_token_list_to(
         std::ostream&                                              _out,
-        const std::vector<internal::DMarkupStringTemplateToken>&   _tokens,
+        const std::vector<internal::markup_string_template_token>& _tokens,
         const context_t&                                           _ctx
     ) const
     {
@@ -1153,11 +1153,11 @@ private:
     // is delegated to `EscapePolicy::escape`.
     void render_token_to(
         std::ostream&                                 _out,
-        const internal::DMarkupStringTemplateToken&   _tok,
+        const internal::markup_string_template_token& _tok,
         const context_t&                              _ctx
     ) const
     {
-        using kind_t = internal::DMarkupStringTemplateTokenKind;
+        using kind_t = internal::markup_string_template_token_kind;
 
         switch (_tok.kind)
         {
@@ -1233,7 +1233,7 @@ private:
     // render nothing.
     void render_section_to(
         std::ostream&                                 _out,
-        const internal::DMarkupStringTemplateToken&   _tok,
+        const internal::markup_string_template_token& _tok,
         const context_t&                              _ctx
     ) const
     {
@@ -1283,7 +1283,7 @@ private:
     //   field: cached parsed token tree. Mutable because the
     // cache is rebuilt lazily on the first render after any
     // public-state change.
-    mutable std::vector<internal::DMarkupStringTemplateToken>     m_tokens;
+    mutable std::vector<internal::markup_string_template_token>     m_tokens;
 
     // m_dirty
     //   field: true if m_tokens needs re-parsing before next
@@ -1304,12 +1304,12 @@ private:
 template<typename EscapePolicy,
          typename Syntax>
 inline
-DMarkupStringTemplate<EscapePolicy> make_markup_string_template(
+markup_string_template<EscapePolicy> make_markup_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )
 {
-    return DMarkupStringTemplate<EscapePolicy>(_source, _syntax_tag);
+    return markup_string_template<EscapePolicy>(_source, _syntax_tag);
 }
 
 
@@ -1319,12 +1319,12 @@ DMarkupStringTemplate<EscapePolicy> make_markup_string_template(
 template<typename EscapePolicy,
          typename Syntax>
 inline
-std::shared_ptr<DMarkupStringTemplate<EscapePolicy>> make_shared_markup_string_template(
+std::shared_ptr<markup_string_template<EscapePolicy>> make_shared_markup_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )
 {
-    return std::make_shared<DMarkupStringTemplate<EscapePolicy>>(
+    return std::make_shared<markup_string_template<EscapePolicy>>(
         _source, _syntax_tag);
 }
 

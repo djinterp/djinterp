@@ -280,7 +280,7 @@ concept full_less_stylesheet =
 
 // less_backend_type
 //   concept: satisfied by any type tagged with
-// `DLessBackendTag`.
+// `less_backend_tag`.
 template<typename Type>
 concept less_backend_type =
     is_less_backend<Type>::value;

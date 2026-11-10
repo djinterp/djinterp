@@ -47,8 +47,8 @@ int main()
     r.register_style("verdict.error", err);
     r.set_zebra(pdf_color::from_rgb255(244, 245, 248));
 
-    r.begin_document(DDocAttributes());
-    r.heading(1, rep.title, DDocAttributes());
+    r.begin_document(doc_attributes());
+    r.heading(1, rep.title, doc_attributes());
     resolve_report_content(rep, content_key_unit(0, 0), r);
     r.end_document();
 

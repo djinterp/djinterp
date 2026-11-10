@@ -565,11 +565,11 @@ struct is_less_stylesheet_loose
 ///                XI.   CLASSIFICATION STRUCTS                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DLessRuleClass
+// less_rule_class
 //   struct: comprehensive classification of a Less-rule-shaped
 // type.
 template<typename Type>
-struct DLessRuleClass
+struct less_rule_class
 {
     D_STATIC_CONSTEXPR bool is_less_rule_  = is_less_rule<Type>::value;
     D_STATIC_CONSTEXPR bool is_css_rule_   =
@@ -604,11 +604,11 @@ struct DLessRuleClass
 };
 
 
-// DLessStylesheetClass
+// less_stylesheet_class
 //   struct: comprehensive classification of a Less-stylesheet-
 // shaped type.
 template<typename Type>
-struct DLessStylesheetClass
+struct less_stylesheet_class
 {
     D_STATIC_CONSTEXPR bool is_less_sheet  = is_less_stylesheet<Type>::value;
     D_STATIC_CONSTEXPR bool is_css_sheet   =

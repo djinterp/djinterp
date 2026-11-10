@@ -1,20 +1,20 @@
 /*******************************************************************************
 * djinterp [cpp]                                                    document.hpp
 *
-*   A fluent facade over the build side (`DDocumentWriter`) and the print
-* side (`DDocumentPrinter`): one object you build a tree into and then
+*   A fluent facade over the build side (`document_writer`) and the print
+* side (`document_printer`): one object you build a tree into and then
 * serialise, with the format carried as a policy. The façade adds ergonomics
 * only -- it runs once, before the serialisation loop -- so it costs nothing
 * per element.
 *   ONE FAÇADE, BOTH EXPRESSIBILITIES:
-*   `DDocument<Policy>` is generic over the policy, so the SAME façade serves
+*   `document<Policy>` is generic over the policy, so the SAME façade serves
 * both selection modes:
-*     compile-time   using DXmlDocument  = DDocument<DXmlPrintPolicy>;
-*                    using DHtmlDocument = DDocument<DHtmlPrintPolicy>;
+*     compile-time   using xml_document  = document<xml_print_policy>;
+*                    using html_document = document<html_print_policy>;
 *       -- the policy is a type, fully inlined, zero cost.
-*     runtime        DDocument<DBoxedPrintPolicy> doc( html_policy() );
+*     runtime        document<boxed_print_policy> doc( html_policy() );
 *       -- the policy is a value chosen at runtime (XML vs HTML from a config
-*          string, say), dispatched through `DBoxedPrintPolicy`.
+*          string, say), dispatched through `boxed_print_policy`.
 * Building the tree is identical either way; the format lives entirely in the
 * policy at serialisation time.
 *
@@ -41,8 +41,8 @@ TABLE OF CONTENTS
 1.  DOCUMENT FACADE
     ---------------
     1.  The facade
-         1.  DDocument<Policy>
-         2.  DXmlDocument
+         1.  document<Policy>
+         2.  xml_document
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_HPP
@@ -59,10 +59,10 @@ TABLE OF CONTENTS
 #include <string>   // std::string
 // djinterp
 #include "../../djinterp.hpp"               // framework root
-#include "../../text/printer.hpp"           // DDocumentPrinter, render,
+#include "../../text/printer.hpp"           // document_printer, render,
                                             // policies, the sinks
 #include "../output/output_stream.hpp"      // DOutputStream
-#include "./document_writer.hpp"            // DDocumentWriter, cursor
+#include "./document_writer.hpp"            // document_writer, cursor
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -79,27 +79,27 @@ NS_DJINTERP
 // 1.1    The facade
 //------------------------------------------------------------------------------
 // 1.1.1
-// DDocument
+// document
 //   class: build-and-serialise in one handle. Build the tree through
-// `root(...)` and cursors exactly as with `DDocumentWriter`; configure
+// `root(...)` and cursors exactly as with `document_writer`; configure
 // rendering fluently (`pretty`, `indent`, `set_options`); then emit with
 // `to_string` / `to_stream` / `to_file`. The policy is held as a member, so
-// `DDocument<some_concrete_policy>` is a compile-time choice and
-// `DDocument<DBoxedPrintPolicy>` (constructed with a runtime policy value) is
+// `document<some_concrete_policy>` is a compile-time choice and
+// `document<boxed_print_policy>` (constructed with a runtime policy value) is
 // a runtime choice.
-template<typename Policy = DXmlPrintPolicy>
-class DDocument
+template<typename Policy = xml_print_policy>
+class document
 {
 public:
     // document ()
     //   constructor: default -- available when `Policy` is default-
     // constructible (the compile-time / concrete-policy case).
-    DDocument() = default;
+    document() = default;
 
     // document (policy)
     //   constructor: supply the policy value. Required for a boxed/runtime
     // policy, which has no default.
-    explicit DDocument(
+    explicit document(
         Policy _policy
     )
         : m_policy(static_cast<Policy&&>(_policy))
@@ -108,16 +108,16 @@ public:
     // -- build ---------------------------------------------------------------
 
     // root -- create the root element and return a cursor at it (once).
-    DCursor
+    cursor
     root(
-        DXmlString _name
+        xml_string_t _name
     )
     {
-        return m_writer.root(static_cast<DXmlString&&>(_name));
+        return m_writer.root(static_cast<xml_string_t&&>(_name));
     }
 
     // at -- a cursor at a previously saved stable index.
-    D_NODISCARD DCursor
+    D_NODISCARD cursor
     at(
         dj_index _index
     )
@@ -127,7 +127,7 @@ public:
 
     // -- configure (fluent) --------------------------------------------------
 
-    DDocument&
+    document&
     pretty(
         bool _pretty
     )
@@ -137,22 +137,22 @@ public:
         return *this;
     }
 
-    DDocument&
+    document&
     indent(
-        DXmlString _indent
+        xml_string_t _indent
     )
     {
-        m_options.indent = static_cast<DXmlString&&>(_indent);
+        m_options.indent = static_cast<xml_string_t&&>(_indent);
 
         return *this;
     }
 
-    DDocument&
+    document&
     set_options(
-        DPrintOptions _options
+        print_options _options
     )
     {
-        m_options = static_cast<DPrintOptions&&>(_options);
+        m_options = static_cast<print_options&&>(_options);
 
         return *this;
     }
@@ -160,7 +160,7 @@ public:
     // -- serialise -----------------------------------------------------------
 
     // to_string -- render the document to a fresh string.
-    D_NODISCARD DXmlString
+    D_NODISCARD xml_string_t
     to_string() const
     {
         return render(m_writer.document(), m_policy, m_options);
@@ -173,8 +173,8 @@ public:
         std::ostream& _stream
     ) const
     {
-        DDocumentPrinter<DStreamSink, Policy> _printer(
-            DStreamSink(_stream), m_options, m_policy);
+        document_printer<stream_sink, Policy> _printer(
+            stream_sink(_stream), m_options, m_policy);
         _printer.print(m_writer.document());
 
         return _printer.sink().ok();
@@ -188,7 +188,7 @@ public:
         DOutputStream& _stream
     ) const
     {
-        DDocumentPrinter<output_stream_sink, Policy> _printer(
+        document_printer<output_stream_sink, Policy> _printer(
             output_stream_sink(_stream), m_options, m_policy);
         _printer.print(m_writer.document());
 
@@ -213,29 +213,29 @@ public:
 
     // -- access --------------------------------------------------------------
 
-    D_NODISCARD const DDocumentWriter&
+    D_NODISCARD const document_writer&
     writer() const
     {
         return m_writer;
     }
 
-    D_NODISCARD const DPrintOptions&
+    D_NODISCARD const print_options&
     options() const
     {
         return m_options;
     }
 
 private:
-    DDocumentWriter m_writer;
-    DPrintOptions   m_options;
+    document_writer m_writer;
+    print_options   m_options;
     Policy          m_policy;
 };
 
 
 // 1.1.2
-// DXmlDocument
+// xml_document
 //   type: the fluent façade fixed to XML serialisation (compile-time policy).
-using DXmlDocument = DDocument<DXmlPrintPolicy>;
+using xml_document = document<xml_print_policy>;
 
 
 NS_END  // djinterp

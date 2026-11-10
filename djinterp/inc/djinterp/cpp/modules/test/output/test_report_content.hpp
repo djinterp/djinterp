@@ -5,10 +5,10 @@
 * named by the report's layout term resolves to.  The layout term
 * (test_layout.hpp) carries only STRUCTURE -- a cover, a toc, a section per
 * module, a section per unit -- and names its content by key.  This header binds
-* those keys to render_actions that drive a DDocumentRenderer, and it is the only
+* those keys to render_actions that drive a document_renderer, and it is the only
 * place in the render path that knows what a report_check looks like.
 *
-*   WHY IT IS ITS OWN HEADER.  Everything here is plain DDocumentRenderer calls
+*   WHY IT IS ITS OWN HEADER.  Everything here is plain document_renderer calls
 * over the report model: no expression term, no cofree, no interpreter.  That
 * makes it independently compilable and independently testable, which the
 * structural half is not -- and it is where all the DTest-specific detail lives,
@@ -34,14 +34,14 @@
 *   graceful hole (the interpreter's contract), not a crash -- so a term that
 *   names content this header does not supply still renders.
 *
-*   ASSERTION TABLES go through the DDocumentRenderer table protocol, so one
+*   ASSERTION TABLES go through the document_renderer table protocol, so one
 * emission serves monospace, Markdown, XML, HTML and PDF.  The `style` hint each
 * RESULT cell carries is what a PDF or HTML dialect turns into a coloured
 * verdict; a plain one drops it.  This single emission is what replaced both the
 * monospace-block table arm and the hand-painted ruled one.
 *
 *   PORTABILITY:
-*   C++11 baseline (DDocumentRenderer's floor); no dependency on the expression
+*   C++11 baseline (document_renderer's floor); no dependency on the expression
 * or interpreter layers.
 *
 *
@@ -84,9 +84,9 @@ IV.   BINDING                     (report_binds_content /
 // djinterp
 #include "../../../djinterp.hpp"                  // NS_*, D_NODISCARD, gates
 #include "../../../util/document/templates/document_renderer.hpp"
-                                                    // DDocumentRenderer
+                                                    // document_renderer
 #include "../../../util/document/templates/document_attributes.hpp"
-                                                    // DDocAttributes, doc_attr_*
+                                                    // doc_attributes, doc_attr_*
 #include "./test_report.hpp"                        // test_report + the model
 
 
@@ -195,11 +195,11 @@ D_NODISCARD inline std::string tally_text(
 inline
 void emit_unit_table(
     const report_unit& _unit,
-    DDocumentRenderer& _renderer
+    document_renderer& _renderer
 )
 {
-    DDocAttributes _centre;
-    DDocAttributes _right;
+    doc_attributes _centre;
+    doc_attributes _right;
 
     _centre.set(doc_attr_align, std::string("center"));
     _right.set(doc_attr_align, std::string("right"));
@@ -208,29 +208,29 @@ void emit_unit_table(
     // unit no sibling node for it, so it rides here
     if (!_unit.description.empty())
     {
-        _renderer.paragraph(_unit.description, DDocAttributes());
+        _renderer.paragraph(_unit.description, doc_attributes());
     }
 
-    _renderer.begin_table(DDocAttributes());
+    _renderer.begin_table(doc_attributes());
 
     _renderer.table_column(std::string("RESULT"),    _centre);
     _renderer.table_column(std::string("#"),         _right);
-    _renderer.table_column(std::string("ASSERTION"), DDocAttributes());
-    _renderer.table_column(std::string("EXPECTED"),  DDocAttributes());
-    _renderer.table_column(std::string("ACTUAL"),    DDocAttributes());
+    _renderer.table_column(std::string("ASSERTION"), doc_attributes());
+    _renderer.table_column(std::string("EXPECTED"),  doc_attributes());
+    _renderer.table_column(std::string("ACTUAL"),    doc_attributes());
 
     for (std::size_t _i = 0; _i < _unit.checks.size(); ++_i)
     {
         const report_check& _check = _unit.checks[_i];
 
-        DDocAttributes _result_attrs;
+        doc_attributes _result_attrs;
 
         // the status chip carries its style name; a plain dialect drops it
         _result_attrs.set(doc_attr_style,
                           std::string(status_style(_check.status)));
         _result_attrs.set(doc_attr_align, std::string("center"));
 
-        _renderer.begin_row(DDocAttributes());
+        _renderer.begin_row(doc_attributes());
 
         _renderer.cell(std::string(status_text(_check.status)), _result_attrs);
         _renderer.cell(std::to_string(_i + std::size_t(1)), _right);
@@ -238,10 +238,10 @@ void emit_unit_table(
         // an assertion with no recorded expression shows its description
         _renderer.cell(_check.expression.empty() ? _check.description
                                                  : _check.expression,
-                       DDocAttributes());
+                       doc_attributes());
 
-        _renderer.cell(_check.expected, DDocAttributes());
-        _renderer.cell(_check.actual,   DDocAttributes());
+        _renderer.cell(_check.expected, doc_attributes());
+        _renderer.cell(_check.actual,   doc_attributes());
 
         _renderer.end_row();
     }
@@ -257,25 +257,25 @@ void emit_unit_table(
 inline
 void emit_module_summary(
     const report_module& _module,
-    DDocumentRenderer&   _renderer
+    document_renderer&   _renderer
 )
 {
     // a module's description is prose above its figures, when it has one
     if (!_module.description.empty())
     {
-        _renderer.paragraph(_module.description, DDocAttributes());
+        _renderer.paragraph(_module.description, doc_attributes());
     }
 
     _renderer.key_value(
         std::string("Tests"),
         std::to_string(_module.units.size()),
-        DDocAttributes());
+        doc_attributes());
 
     _renderer.key_value(
         std::string("Assertions"),
         tally_text(static_cast<std::size_t>(_module.passed_checks()),
                    static_cast<std::size_t>(_module.total_checks())),
-        DDocAttributes());
+        doc_attributes());
 
     return;
 }
@@ -287,7 +287,7 @@ void emit_module_summary(
 inline
 void emit_run_summary(
     const test_report& _report,
-    DDocumentRenderer& _renderer
+    document_renderer& _renderer
 )
 {
     const std::size_t _total  =
@@ -297,18 +297,18 @@ void emit_run_summary(
 
     if (!_report.description.empty())
     {
-        _renderer.paragraph(_report.description, DDocAttributes());
+        _renderer.paragraph(_report.description, doc_attributes());
     }
 
     _renderer.key_value(std::string("Modules"),
                         std::to_string(_report.modules.size()),
-                        DDocAttributes());
+                        doc_attributes());
 
     _renderer.key_value(std::string("Assertions"),
                         tally_text(_passed, _total),
-                        DDocAttributes());
+                        doc_attributes());
 
-    DDocAttributes _verdict_attrs;
+    doc_attributes _verdict_attrs;
 
     // the overall verdict wears the same style vocabulary as a check's chip
     _verdict_attrs.set(
@@ -323,7 +323,7 @@ void emit_run_summary(
 
     if (!_report.notes.empty())
     {
-        _renderer.paragraph(_report.notes, DDocAttributes());
+        _renderer.paragraph(_report.notes, doc_attributes());
     }
 
     return;
@@ -381,7 +381,7 @@ D_NODISCARD inline bool report_binds_content(
 D_NODISCARD inline bool resolve_report_content(
     const test_report& _report,
     const std::string& _key,
-    DDocumentRenderer& _renderer
+    document_renderer& _renderer
 )
 {
     // the whole-run block

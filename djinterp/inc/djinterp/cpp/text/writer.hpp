@@ -6,28 +6,28 @@
 * or any concrete value type -- the functors are parameterised on a
 * transform and a destination, so the same machinery serves text, binary,
 * or structured output. The document- and file-specific layers
-* (DDocumentPrinter / node_printer, file_writer, DDocumentWriter + cursors)
+* (document_printer / node_printer, file_writer, document_writer + cursors)
 * build ON this header; this header depends on nothing but the standard
 * library.
 *
 *   THE TWO FUNCTORS:
 *
-*   DPrinter<Fn> -- a PURE transformation `In -> Out`. It takes its input
+*   printer<Fn> -- a PURE transformation `In -> Out`. It takes its input
 *     by const reference and returns a freshly produced output; it never
 *     mutates the input. Printers compose: `p.then(g)` yields a printer
 *     that applies `p` and then `g`. This is the reusable, configurable
 *     "render this value to that representation" object -- the generalised
 *     form of DTextTemplate's `interpolate`.
 *
-*   DWriter<Sink, Printer> -- an EFFECTFUL builder. It owns a destination
+*   writer<Sink, Printer> -- an EFFECTFUL builder. It owns a destination
 *     (a sink) and a printer, and `write(x)` renders `x` through the printer
 *     and appends the result to the sink, leaving `x` unchanged. A writer is
 *     therefore "a printer plus somewhere to put the result"; the two ideas
 *     are one mechanism, not two.
 *
 *   SINKS:
-*   A sink is any callable `(const char*, std::size_t)`. `DStringSink`
-*   appends into a std::string; `DStreamSink` writes into a std::ostream;
+*   A sink is any callable `(const char*, std::size_t)`. `string_sink`
+*   appends into a std::string; `stream_sink` writes into a std::ostream;
 *   `output_stream_sink` writes into any output stream (cpp/util/output): the
 *   console, a file, a dj_string, a caller's array, several at once; a user
 *   lambda or a functional-style consumer works directly. File, console,
@@ -62,17 +62,17 @@ TABLE OF CONTENTS
 1.  OUTPUT SINKS
     ------------
     1.  Sinks over a stream
-         1.  DStringSink
-         2.  DStreamSink
+         1.  string_sink
+         2.  stream_sink
          3.  output_stream_sink
 2.  PRINTER FUNCTOR
     ---------------
     1.  Transforms (internal)
-         1.  DIdentityFn
-         2.  DToStringFn
-         3.  DComposeFn
+         1.  identity_fn
+         2.  to_string_fn
+         3.  compose_fn
     2.  The printer
-         1.  DPrinter<Fn>
+         1.  printer<Fn>
          2.  make_printer
          3.  id_printer
          4.  print
@@ -80,10 +80,10 @@ TABLE OF CONTENTS
     --------------
     1.  The writer
          1.  sink_has_ok (internal)
-         2.  DWriter<Sink, Printer>
+         2.  writer<Sink, Printer>
          3.  make_writer
     2.  Writers with a destination
-         1.  DStringWriter
+         1.  string_writer
          2.  stream_writer
          3.  output_writer
 */
@@ -129,15 +129,15 @@ NS_DJINTERP
 // 1.1    Sinks over a stream
 //------------------------------------------------------------------------------
 // 1.1.1
-// DStringSink
+// string_sink
 //   class: a sink that appends written bytes to a std::string, through an
 // output stream it owns, so a failed append (std::bad_alloc) ends the stream
 // rather than throwing through the writer. The target must outlive the sink.
 // Movable, not copyable, as the stream is.
-class DStringSink
+class string_sink
 {
 public:
-    explicit DStringSink(
+    explicit string_sink(
         std::string& _out
     ) D_NOEXCEPT
         : m_stream()
@@ -145,8 +145,8 @@ public:
         (void)attach_std_string(m_stream, _out);
     }
 
-    DStringSink(DStringSink&&)            = default;
-    DStringSink& operator=(DStringSink&&) = default;
+    string_sink(string_sink&&)            = default;
+    string_sink& operator=(string_sink&&) = default;
 
     // the sink face: append the bytes
     void operator()(
@@ -176,15 +176,15 @@ private:
 };
 
 // 1.1.2
-// DStreamSink
+// stream_sink
 //   class: a sink that writes bytes to a std::ostream (std::cout, an ofstream,
 // an ostringstream) through an output stream it owns, so a std::ostream gone
 // bad, or one that throws, ends the stream and shows in ok(). The std::ostream
 // must outlive the sink. Movable, not copyable.
-class DStreamSink
+class stream_sink
 {
 public:
-    explicit DStreamSink(
+    explicit stream_sink(
         std::ostream& _out
     ) D_NOEXCEPT
         : m_stream()
@@ -192,8 +192,8 @@ public:
         (void)attach_std_ostream(m_stream, _out);
     }
 
-    DStreamSink(DStreamSink&&)            = default;
-    DStreamSink& operator=(DStreamSink&&) = default;
+    stream_sink(stream_sink&&)            = default;
+    stream_sink& operator=(stream_sink&&) = default;
 
     // the sink face: write the bytes
     void operator()(
@@ -240,12 +240,12 @@ typedef DOutputStreamSink output_stream_sink;
 NS_INTERNAL
 
     // 2.1.1
-    // DIdentityFn
+    // identity_fn
     //   function object: returns its input unchanged. Use as a printer's
     // transform when inputs are already in the destination's byte form
     // (a std::string, string_view, or other `.data()`/`.size()` range);
     // it is zero-copy but does NOT accept bare string literals.
-    struct DIdentityFn
+    struct identity_fn
     {
         template<typename In>
         const In& operator()(
@@ -258,13 +258,13 @@ NS_INTERNAL
 
 
     // 2.1.2
-    // DToStringFn
+    // to_string_fn
     //   function object: coerces an input to an owned std::string -- the
     // writers' default transform, so string literals, `const char*`,
     // std::string, and (C++17) std::string_view all write without the
     // caller supplying a printer. Non-string inputs do not compile here,
     // which correctly forces an explicit printer for them.
-    struct DToStringFn
+    struct to_string_fn
     {
         template<typename In>
         std::string operator()(
@@ -277,13 +277,13 @@ NS_INTERNAL
 
 
     // 2.1.3
-    // DComposeFn
+    // compose_fn
     //   function object: the composition g . f -- applies `f` then `g`.
     // Produced by `printer::then`; kept as a named type (not a lambda) so a
     // printer's function member is a stable, nameable type.
     template<typename F,
              typename G>
-    struct DComposeFn
+    struct compose_fn
     {
         F f;
         G g;
@@ -302,12 +302,12 @@ NS_END  // internal
 // 2.2    The printer
 //------------------------------------------------------------------------------
 // 2.2.1
-// DPrinter
+// printer
 //   class: a pure transformation `In -> Out`, wrapped as a composable
 // functor. Applying a printer never mutates its input (the input is taken
 // by const reference). `Fn` is the underlying transform.
 template<typename Fn>
-class DPrinter
+class printer
 {
 public:
     using function_type = Fn;
@@ -316,11 +316,11 @@ public:
     //   constructor: default -- usable when `Fn` is default-constructible
     // (the identity / to-string transforms used as writer defaults). For a
     // lambda-based `Fn` this is simply not available, which is harmless.
-    DPrinter() = default;
+    printer() = default;
 
     // printer (fn)
     //   constructor: bind the underlying transform.
-    explicit DPrinter(
+    explicit printer(
         Fn _fn
     )
         : m_fn(static_cast<Fn&&>(_fn))
@@ -345,8 +345,8 @@ public:
         Next _next
     ) const
     {
-        return DPrinter<internal::DComposeFn<Fn, Next>>(
-            internal::DComposeFn<Fn, Next>{
+        return printer<internal::compose_fn<Fn, Next>>(
+            internal::compose_fn<Fn, Next>{
                 m_fn, static_cast<Next&&>(_next) });
     }
 
@@ -367,11 +367,11 @@ private:
 //   function: build a printer from any callable, deducing and decaying the
 // stored transform type.
 template<typename Fn>
-D_NODISCARD DPrinter<typename std::decay<Fn>::type> make_printer(
+D_NODISCARD printer<typename std::decay<Fn>::type> make_printer(
     Fn&& _fn
 )
 {
-    return DPrinter<typename std::decay<Fn>::type>(
+    return printer<typename std::decay<Fn>::type>(
         static_cast<Fn&&>(_fn));
 }
 
@@ -379,9 +379,9 @@ D_NODISCARD DPrinter<typename std::decay<Fn>::type> make_printer(
 // 2.2.3
 // id_printer
 //   function: the identity printer -- returns its input unchanged.
-D_NODISCARD inline DPrinter<internal::DIdentityFn> id_printer()
+D_NODISCARD inline printer<internal::identity_fn> id_printer()
 {
-    return DPrinter<internal::DIdentityFn>(internal::DIdentityFn{});
+    return printer<internal::identity_fn>(internal::identity_fn{});
 }
 
 
@@ -452,7 +452,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // 3.1.2
-// DWriter
+// writer
 //   class: an effectful builder over a sink. `write(x)` renders `x` through
 // the bound printer and appends the result to the sink, leaving `x`
 // unchanged. `Sink` is any callable `(const char*, std::size_t)`;
@@ -461,8 +461,8 @@ NS_END  // internal
 // `const char*`, and std::string all write without a custom printer).
 // Returns `*this` so writes chain.
 template<typename Sink,
-         typename Printer = DPrinter<internal::DToStringFn>>
-class DWriter
+         typename Printer = printer<internal::to_string_fn>>
+class writer
 {
 public:
     using sink_type    = Sink;
@@ -470,7 +470,7 @@ public:
 
     // writer (sink)
     //   constructor: bind a sink; default to-string printer (text inputs).
-    explicit DWriter(
+    explicit writer(
         Sink _sink
     )
         : m_sink(static_cast<Sink&&>(_sink))
@@ -479,7 +479,7 @@ public:
 
     // writer (sink, printer)
     //   constructor: bind a sink and a value-rendering printer.
-    DWriter(
+    writer(
         Sink     _sink,
         Printer _printer
     )
@@ -491,7 +491,7 @@ public:
     //   function: render `_value` and append it to the sink; `_value` is
     // not modified.
     template<typename In>
-    DWriter&
+    writer&
     write(
         const In& _value
     )
@@ -505,7 +505,7 @@ public:
     // operator()
     //   function: the call face of a writer; forwards to write.
     template<typename In>
-    DWriter&
+    writer&
     operator()(
         const In& _value
     )
@@ -546,22 +546,22 @@ private:
 //   function: build a writer from a sink (and optional printer), decaying
 // the stored sink type.
 template<typename Sink>
-D_NODISCARD DWriter<typename std::decay<Sink>::type> make_writer(
+D_NODISCARD writer<typename std::decay<Sink>::type> make_writer(
     Sink&& _sink
 )
 {
-    return DWriter<typename std::decay<Sink>::type>(
+    return writer<typename std::decay<Sink>::type>(
         static_cast<Sink&&>(_sink));
 }
 
 template<typename Sink,
          typename Printer>
-D_NODISCARD DWriter<typename std::decay<Sink>::type, Printer> make_writer(
+D_NODISCARD writer<typename std::decay<Sink>::type, Printer> make_writer(
     Sink&&  _sink,
     Printer _printer
 )
 {
-    return DWriter<typename std::decay<Sink>::type, Printer>(
+    return writer<typename std::decay<Sink>::type, Printer>(
         static_cast<Sink&&>(_sink), static_cast<Printer&&>(_printer));
 }
 
@@ -569,26 +569,26 @@ D_NODISCARD DWriter<typename std::decay<Sink>::type, Printer> make_writer(
 // 3.2    Writers with a destination
 //------------------------------------------------------------------------------
 // 3.2.1
-// DStringWriter
+// string_writer
 //   class: a writer that OWNS its output buffer (a std::string) and exposes
 // it. Convenient when the destination is an in-memory string rather than an
 // external sink. Renders inputs through `Printer` (to-string by default).
-template<typename Printer = DPrinter<internal::DToStringFn>>
-class DStringWriter
+template<typename Printer = printer<internal::to_string_fn>>
+class string_writer
 {
 public:
     using printer_type = Printer;
 
-    // DStringWriter ()
+    // string_writer ()
     //   constructor: empty buffer; default to-string printer.
-    DStringWriter()
+    string_writer()
         : m_buffer()
         , m_printer()
     {}
 
-    // DStringWriter (printer)
+    // string_writer (printer)
     //   constructor: empty buffer; explicit value-rendering printer.
-    explicit DStringWriter(
+    explicit string_writer(
         Printer _printer
     )
         : m_buffer()
@@ -598,7 +598,7 @@ public:
     // write
     //   function: render `_value` and append it to the owned buffer.
     template<typename In>
-    DStringWriter&
+    string_writer&
     write(
         const In& _value
     )
@@ -610,7 +610,7 @@ public:
     }
 
     template<typename In>
-    DStringWriter&
+    string_writer&
     operator()(
         const In& _value
     )
@@ -641,25 +641,25 @@ private:
 // 3.2.2
 // stream_writer
 //   function: a writer bound to a std::ostream destination. The returned
-// writer holds a `DStreamSink`; the stream must outlive it, and the writer's
+// writer holds a `stream_sink`; the stream must outlive it, and the writer's
 // ok() says whether every write reached it.
-template<typename Printer = DPrinter<internal::DToStringFn>>
-D_NODISCARD DWriter<DStreamSink, Printer>
+template<typename Printer = printer<internal::to_string_fn>>
+D_NODISCARD writer<stream_sink, Printer>
 stream_writer(
     std::ostream& _stream
 )
 {
-    return DWriter<DStreamSink, Printer>(DStreamSink(_stream));
+    return writer<stream_sink, Printer>(stream_sink(_stream));
 }
 
 template<typename Printer>
-D_NODISCARD DWriter<DStreamSink, Printer> stream_writer(
+D_NODISCARD writer<stream_sink, Printer> stream_writer(
     std::ostream& _stream,
     Printer       _printer
 )
 {
-    return DWriter<DStreamSink, Printer>(
-        DStreamSink(_stream), static_cast<Printer&&>(_printer));
+    return writer<stream_sink, Printer>(
+        stream_sink(_stream), static_cast<Printer&&>(_printer));
 }
 
 // 3.2.3
@@ -668,22 +668,22 @@ D_NODISCARD DWriter<DStreamSink, Printer> stream_writer(
 // file, a dj_string, a caller's array, several at once. The returned writer
 // holds an `output_stream_sink`; the stream must outlive it, and keeps any
 // failure.
-template<typename Printer = DPrinter<internal::DToStringFn>>
-D_NODISCARD DWriter<output_stream_sink, Printer>
+template<typename Printer = printer<internal::to_string_fn>>
+D_NODISCARD writer<output_stream_sink, Printer>
 output_writer(
     DOutputStream& _stream
 )
 {
-    return DWriter<output_stream_sink, Printer>(output_stream_sink(_stream));
+    return writer<output_stream_sink, Printer>(output_stream_sink(_stream));
 }
 
 template<typename Printer>
-D_NODISCARD DWriter<output_stream_sink, Printer> output_writer(
+D_NODISCARD writer<output_stream_sink, Printer> output_writer(
     DOutputStream& _stream,
     Printer        _printer
 )
 {
-    return DWriter<output_stream_sink, Printer>(
+    return writer<output_stream_sink, Printer>(
         output_stream_sink(_stream), static_cast<Printer&&>(_printer));
 }
 

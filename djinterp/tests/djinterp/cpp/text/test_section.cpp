@@ -9,18 +9,18 @@
 *******************************************************************************/
 // T1 verification harness.
 //
-//   Proves the section / DBindingEnv architectural point:
+//   Proves the section / binding_env architectural point:
 //     for every iteration i, the FRAGMENTS produced by a body that reads the
 //     env only through env.source_for(ctx) / env.project(key, ctx) are
 //     IDENTICAL across formats; the only difference is PLACEMENT.
 //
 //   Two formats are exercised:
 //     - tree target:  a minimal labelled-tree sink mirroring the surface a
-//                     DDocumentWriter cursor exposes (open_child / text).
+//                     document_writer cursor exposes (open_child / text).
 //     - flow target:  a minimal flow-element sink mirroring the surface a
 //                     pdf_template exposes (add_text / add_vspace /
 //                     add_page_break).
-//   Real DDocumentWriter / pdf_template plug in unchanged - this harness
+//   Real document_writer / pdf_template plug in unchanged - this harness
 //   uses stand-ins so the section kernel can be verified in ISOLATION,
 //   without dragging in the xml/pdf stacks (those are intact in the project
 //   tree; the section header depends on neither).
@@ -85,7 +85,7 @@ struct test_context
 
 
 // ===========================================================================
-// tree target stand-in (matches DDocumentWriter cursor's open_child/text)
+// tree target stand-in (matches document_writer cursor's open_child/text)
 // ===========================================================================
 
 struct tree_node
@@ -97,7 +97,7 @@ struct tree_node
 
 
 // tree_cursor
-//   minimal stand-in for DDocumentWriter's cursor: open_child appends a
+//   minimal stand-in for document_writer's cursor: open_child appends a
 // labelled child and returns a cursor focused on it; text sets the focused
 // node's text; chainable.
 class tree_cursor
@@ -204,15 +204,15 @@ private:
 // the env (one env; the same bindings drive every format)
 // ===========================================================================
 
-using djinterp::DBindingEnv;
-using djinterp::DSection;
+using djinterp::binding_env;
+using djinterp::section;
 using djinterp::make_section;
 
 
 static
-DBindingEnv<test_context> make_dtest_env()
+binding_env<test_context> make_dtest_env()
 {
-    DBindingEnv<test_context> _env;
+    binding_env<test_context> _env;
 
     _env.bind("title",
               [](const test_context& _c) -> std::string
@@ -259,7 +259,7 @@ DBindingEnv<test_context> make_dtest_env()
 // ===========================================================================
 
 static
-DSection<test_context> make_per_module_section()
+section<test_context> make_per_module_section()
 {
     return make_section<test_context>(
         // count
@@ -281,7 +281,7 @@ DSection<test_context> make_per_module_section()
 
 
 static
-DSection<test_context> make_per_unit_section()
+section<test_context> make_per_unit_section()
 {
     return make_section<test_context>(
         // count
@@ -380,7 +380,7 @@ struct iteration_record
 // Both the tree body and the flow body MUST agree with this record.
 static
 iteration_record record_for(
-    const DBindingEnv<test_context>& _env,
+    const binding_env<test_context>& _env,
     const test_context&              _module_ctx
 )
 {
@@ -392,13 +392,13 @@ iteration_record record_for(
     // walk units under this module via a per-unit section, collecting the
     // unit_name projections -- this exercises a *nested* section using the
     // SAME env (just a deeper focus).
-    const DSection<test_context> _per_unit = make_per_unit_section();
+    const section<test_context> _per_unit = make_per_unit_section();
 
     std::string _csv;
 
     _per_unit.for_each(
         _env, _module_ctx, _csv,
-        [](const DBindingEnv<test_context>& _e,
+        [](const binding_env<test_context>& _e,
            const test_context&              _unit_ctx,
            std::string&                     _acc)
         {
@@ -427,7 +427,7 @@ struct tree_collector
 
 static
 void tree_body(
-    const DBindingEnv<test_context>& _env,
+    const binding_env<test_context>& _env,
     const test_context&              _module_ctx,
     tree_collector&                  _target
 )
@@ -441,13 +441,13 @@ void tree_body(
         .text(_env.project("module_description", _module_ctx));
 
     // nested section: one <unit> child per unit, named via the same env
-    const DSection<test_context> _per_unit = make_per_unit_section();
+    const section<test_context> _per_unit = make_per_unit_section();
 
     tree_cursor _units = _mod.open_child("units");
 
     _per_unit.for_each(
         _env, _module_ctx, _units,
-        [](const DBindingEnv<test_context>& _e,
+        [](const binding_env<test_context>& _e,
            const test_context&              _unit_ctx,
            tree_cursor&                     _u_head)
         {
@@ -471,7 +471,7 @@ struct flow_collector
 
 static
 void flow_body(
-    const DBindingEnv<test_context>& _env,
+    const binding_env<test_context>& _env,
     const test_context&              _module_ctx,
     flow_collector&                  _target
 )
@@ -479,7 +479,7 @@ void flow_body(
     // PLACEMENT (flow): a band of lines, separated from the next band by
     // vspace; a page break at the boundary.
     //   The fragments come from env.source_for(_module_ctx) via the same
-    // {key} placeholders any DTextTemplate would scan -- the seam DBindingEnv
+    // {key} placeholders any DTextTemplate would scan -- the seam binding_env
     // is designed around.
     auto _src = _env.source_for(_module_ctx);
 
@@ -487,11 +487,11 @@ void flow_body(
     _target.flow->add_text(interpolate("{module_description}", _src));
 
     // nested section: one line per unit (same env, deeper focus)
-    const DSection<test_context> _per_unit = make_per_unit_section();
+    const section<test_context> _per_unit = make_per_unit_section();
 
     _per_unit.for_each(
         _env, _module_ctx, *_target.flow,
-        [](const DBindingEnv<test_context>& _e,
+        [](const binding_env<test_context>& _e,
            const test_context&              _unit_ctx,
            flow_doc&                        _fl)
         {
@@ -617,8 +617,8 @@ int main()
     test_context          _here;
     _here.run = &_run;
 
-    const DBindingEnv<test_context>     _env = make_dtest_env();
-    const DSection<test_context>        _per_module = make_per_module_section();
+    const binding_env<test_context>     _env = make_dtest_env();
+    const section<test_context>         _per_module = make_per_module_section();
 
     // ---- tree rendering ----
     tree_node       _tree_root;
@@ -639,7 +639,7 @@ int main()
     _per_module.for_each(_env, _here, _fc, flow_body);
 
     // ---- the invariant: per-iteration fragments must match ----
-    //   This is the architectural point of the section / DBindingEnv design.
+    //   This is the architectural point of the section / binding_env design.
     //   If this assertion ever fails, the binding seam has been broken.
     assert(_tc.per_iter.size() == _fc.per_iter.size());
 

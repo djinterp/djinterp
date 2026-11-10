@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp]                                    markup_document_renderer.hpp
 *
-*   The XML / HTML realisation of DDocumentRenderer -- the angle-bracket half of
+*   The XML / HTML realisation of document_renderer -- the angle-bracket half of
 * the dialect set.  Where DPlainDocumentRenderer turns the semantic calls into
 * aligned monospace and pdf_document_renderer turns them into a pdf_template
 * flow, this one turns them into well-formed markup: a heading becomes an <h2>
@@ -14,14 +14,14 @@
 * through the escape policy first.  That is the same contract the emit layer's
 * escaping_sink held, lifted to the renderer so a caller can no longer get it
 * wrong by picking the plain sink for a markup layout.  The policies themselves
-* are DMarkupStringTemplate's (DXmlEscapePolicy / DHtmlEscapePolicy), reused
+* are markup_string_template's (xml_escape_policy / html_escape_policy), reused
 * whole -- this header adds no escaping of its own.
 *
 *   ONE CLASS, TWO DIALECTS.  XML and HTML differ in their element vocabulary
 * and in how presentation is spelled (a class + inline CSS versus plain
 * attributes), not in their structure -- so the difference is DATA, a
-* DMarkupProfile, and not a second class.  The escape policy picks the default
-* profile through DMarkupProfileFor<>; pass a profile explicitly to retarget
+* markup_profile, and not a second class.  The escape policy picks the default
+* profile through markup_profile_for<>; pass a profile explicitly to retarget
 * the renderer at a third angle-bracket dialect (DocBook, TEI, a house schema)
 * without touching this file.
 *
@@ -41,7 +41,7 @@
 * is dropped, per the subframework's rule.
 *
 *   PORTABILITY:
-*   C++11 baseline (matches DDocumentRenderer).  The escape policies write to a
+*   C++11 baseline (matches document_renderer).  The escape policies write to a
 * std::ostream, so a value is escaped through a std::ostringstream -- once per
 * value, on the cold assembly path, exactly as the emit layer's sink did.
 *
@@ -55,19 +55,19 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    DMarkupProfile               (the dialect's vocabulary as data)
+I.    markup_profile               (the dialect's vocabulary as data)
       ---------------------------------------------------------------
 
-II.   PROFILE SELECTION            (DMarkupProfileFor<Policy>)
+II.   PROFILE SELECTION            (markup_profile_for<Policy>)
       ----------------------------------------------------------
 
-III.  DMarkupDocumentRenderer     (the streaming renderer)
+III.  markup_document_renderer     (the streaming renderer)
       -----------------------------------------------------
 
-IV.   ALIASES                      (DXmlDocumentRenderer /
+IV.   ALIASES                      (xml_document_renderer /
       -----------------------------------------------------
 
-      DHtmlDocumentRenderer)
+      html_document_renderer)
 */
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_MARKUP_DOCUMENT_RENDERER_HPP
@@ -89,12 +89,12 @@ IV.   ALIASES                      (DXmlDocumentRenderer /
 // djinterp
 #include "../../../djinterp.hpp"                    // NS_*, D_NODISCARD,
                                                     // D_NOEXCEPT
-#include "./document_attributes.hpp"                // DDocAttributes, attr_*,
-                                                    // DTextAlignment
-#include "./document_renderer.hpp"                  // DDocumentRenderer,
+#include "./document_attributes.hpp"                // doc_attributes, attr_*,
+                                                    // text_alignment
+#include "./document_renderer.hpp"                  // document_renderer,
                                                     // D_OVERRIDE
-#include "../../../text/markup_string_template.hpp" // DXmlEscapePolicy,
-                                                    // DHtmlEscapePolicy
+#include "../../../text/markup_string_template.hpp" // xml_escape_policy,
+                                                    // html_escape_policy
 #include "../../output/output_stream.hpp"           // DOutputStream:
                                                     // write_to
 
@@ -103,10 +103,10 @@ NS_DJINTERP
 
 
 // ===========================================================================
-// I.   DMarkupProfile
+// I.   markup_profile
 // ===========================================================================
 
-// DMarkupProfile
+// markup_profile
 //   struct: an angle-bracket dialect expressed as data -- which element spells
 // each semantic block, and how a presentation hint is written.  The renderer
 // reads it and names no element of its own, so retargeting at a new schema is
@@ -115,7 +115,7 @@ NS_DJINTERP
 //   An empty element name means "this dialect has no element for that block";
 // the renderer then falls back (a headingless dialect emits a paragraph) or
 // drops it, never emitting `<>`.
-struct DMarkupProfile
+struct markup_profile
 {
     // -- document frame ------------------------------------------------------
 
@@ -194,10 +194,10 @@ struct DMarkupProfile
     // an unrecognised hint has no CSS meaning.
     std::vector<std::string> extra_attribute_keys;
 
-    // DMarkupProfile (default)
+    // markup_profile (default)
     //   an XML-shaped profile: a declaration, a `document` root, generic
     // element names, attribute-spelled hints.
-    DMarkupProfile()
+    markup_profile()
         : emit_xml_declaration  (true),
           emit_html_shell       (false),
           root_element           ("document"),
@@ -245,10 +245,10 @@ struct DMarkupProfile
 // xml_markup_profile
 //   function: the generic XML profile -- a declaration, a `document` root,
 // semantic element names, and attribute-spelled hints so the bag round-trips.
-D_NODISCARD inline DMarkupProfile xml_markup_profile()
+D_NODISCARD inline markup_profile xml_markup_profile()
 {
     // the default-constructed profile IS the XML one
-    return DMarkupProfile();
+    return markup_profile();
 }
 
 
@@ -256,9 +256,9 @@ D_NODISCARD inline DMarkupProfile xml_markup_profile()
 //   function: the HTML profile -- a full document shell, the h1..h6 heading
 // family, real <table>/<thead>/<tr>/<td>, and hints spelled as a class plus
 // inline CSS.
-D_NODISCARD inline DMarkupProfile html_markup_profile()
+D_NODISCARD inline markup_profile html_markup_profile()
 {
-    DMarkupProfile _p;
+    markup_profile _p;
 
     _p.emit_xml_declaration   = false;
     _p.emit_html_shell        = true;
@@ -292,27 +292,27 @@ D_NODISCARD inline DMarkupProfile html_markup_profile()
 // II.  PROFILE SELECTION
 // ===========================================================================
 
-// DMarkupProfileFor
+// markup_profile_for
 //   trait: the default profile paired with an escape policy, so the renderer
 // aliases need no second parameter.  The primary template answers XML (the
 // conservative choice for an unknown angle-bracket policy); the HTML policy
 // specialises it.  A third dialect either specialises this or passes its
 // profile to the constructor.
 template<typename Policy>
-struct DMarkupProfileFor
+struct markup_profile_for
 {
-    D_NODISCARD static DMarkupProfile get()
+    D_NODISCARD static markup_profile get()
     {
         return xml_markup_profile();
     }
 };
 
-// DMarkupProfileFor<DHtmlEscapePolicy>
+// markup_profile_for<html_escape_policy>
 //   trait: the HTML policy selects the HTML profile.
 template<>
-struct DMarkupProfileFor<DHtmlEscapePolicy>
+struct markup_profile_for<html_escape_policy>
 {
-    D_NODISCARD static DMarkupProfile get()
+    D_NODISCARD static markup_profile get()
     {
         return html_markup_profile();
     }
@@ -320,22 +320,22 @@ struct DMarkupProfileFor<DHtmlEscapePolicy>
 
 
 // ===========================================================================
-// III. DMarkupDocumentRenderer
+// III. markup_document_renderer
 // ===========================================================================
 
-// DMarkupDocumentRenderer
-//   class: the streaming XML / HTML realisation of DDocumentRenderer.  It
+// markup_document_renderer
+//   class: the streaming XML / HTML realisation of document_renderer.  It
 // accumulates a byte buffer of well-formed markup, escaping every value it is
 // handed through Policy and emitting every element name from its profile
 // verbatim.  Structure nests as the calls nest; nothing is buffered.
 //
 // Usage:
-//   DHtmlDocumentRenderer _r;
+//   html_document_renderer _r;
 //   _table.render(_r);
 //   const std::string& _bytes = _r.str();
 template<typename Policy>
-class DMarkupDocumentRenderer
-    : public DDocumentRenderer
+class markup_document_renderer
+    : public document_renderer
 {
 public:
     // -- public type aliases -------------------------------------------------
@@ -345,11 +345,11 @@ public:
 
     // -- construction --------------------------------------------------------
 
-    // DMarkupDocumentRenderer
-    //   builds with the profile DMarkupProfileFor<Policy> selects.
-    DMarkupDocumentRenderer()
+    // markup_document_renderer
+    //   builds with the profile markup_profile_for<Policy> selects.
+    markup_document_renderer()
         : m_out(),
-          m_profile(DMarkupProfileFor<Policy>::get()),
+          m_profile(markup_profile_for<Policy>::get()),
           m_depth(size_type(0)),
           m_lists(),
           m_item_open(),
@@ -362,10 +362,10 @@ public:
           m_open_shell(false)
     {}
 
-    // DMarkupDocumentRenderer (profile)
+    // markup_document_renderer (profile)
     //   builds against an explicit profile -- the retargeting constructor.
-    explicit DMarkupDocumentRenderer(
-        DMarkupProfile _profile
+    explicit markup_document_renderer(
+        markup_profile _profile
     )
         : m_out(),
           m_profile(std::move(_profile)),
@@ -403,7 +403,7 @@ public:
 
     // profile
     //   the dialect vocabulary in force.
-    D_NODISCARD const DMarkupProfile& profile() const D_NOEXCEPT
+    D_NODISCARD const markup_profile& profile() const D_NOEXCEPT
     {
         return m_profile;
     }
@@ -430,7 +430,7 @@ public:
     // -- document frame ------------------------------------------------------
 
     void begin_document(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // an XML dialect leads with its declaration
@@ -491,7 +491,7 @@ public:
     void heading(
         size_type             _level,
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // an empty heading_element selects the h1..h6 family, clamped
@@ -512,7 +512,7 @@ public:
         }
 
         // a named heading element carries the level as an attribute instead
-        DDocAttributes _with_level = _attrs;
+        doc_attributes _with_level = _attrs;
 
         _with_level.set("level", std::to_string(_level));
 
@@ -523,7 +523,7 @@ public:
 
     void paragraph(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         block_element(m_profile.paragraph_element, _text, _attrs);
@@ -534,7 +534,7 @@ public:
     void key_value(
         const std::string&    _key,
         const std::string&    _value,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // no pair element: degrade to one "key: value" paragraph
@@ -565,7 +565,7 @@ public:
     }
 
     void rule(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         void_element(m_profile.rule_element, _attrs, true);
@@ -575,7 +575,7 @@ public:
 
     void vertical_space(
         double                _amount,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // nothing to spell: a dialect with no space element drops it
@@ -584,7 +584,7 @@ public:
             return;
         }
 
-        DDocAttributes _with_amount = _attrs;
+        doc_attributes _with_amount = _attrs;
 
         // HTML spends the amount as a CSS height; XML keeps it as data
         if (m_profile.use_css_style)
@@ -605,7 +605,7 @@ public:
 
     void page_break() D_OVERRIDE
     {
-        DDocAttributes _attrs;
+        doc_attributes _attrs;
 
         // nothing to spell: a continuous dialect drops the break
         if (m_profile.page_break_element.empty())
@@ -628,13 +628,13 @@ public:
 
     void begin_list(
         bool                  _ordered,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         const std::string& _tag = _ordered ? m_profile.list_ordered_element
                                            : m_profile.list_unordered_element;
 
-        DDocAttributes _with_order = _attrs;
+        doc_attributes _with_order = _attrs;
 
         // one shared element for both kinds needs the distinction as data
         if (m_profile.list_ordered_element ==
@@ -656,7 +656,7 @@ public:
 
     void list_item(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // an item outside any list still renders, as a paragraph
@@ -708,7 +708,7 @@ public:
     // -- tables --------------------------------------------------------------
 
     void begin_table(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         m_col_aligns.clear();
@@ -723,7 +723,7 @@ public:
 
     void table_column(
         const std::string&    _header,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // remember the column's alignment so its cells inherit it
@@ -735,10 +735,10 @@ public:
         {
             if (!m_profile.table_head_element.empty())
             {
-                open_element(m_profile.table_head_element, DDocAttributes());
+                open_element(m_profile.table_head_element, doc_attributes());
             }
 
-            open_element(m_profile.row_element, DDocAttributes());
+            open_element(m_profile.row_element, doc_attributes());
 
             m_in_head = true;
         }
@@ -749,7 +749,7 @@ public:
     }
 
     void begin_row(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         // the first data row closes the header grouping behind it
@@ -759,7 +759,7 @@ public:
         {
             if (!m_profile.table_body_element.empty())
             {
-                open_element(m_profile.table_body_element, DDocAttributes());
+                open_element(m_profile.table_body_element, doc_attributes());
             }
 
             m_in_body = true;
@@ -774,10 +774,10 @@ public:
 
     void cell(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
-        DDocAttributes _merged = _attrs;
+        doc_attributes _merged = _attrs;
 
         // a cell with no alignment of its own inherits its column's
         if ( (!attr_has(_attrs, doc_attr_align)) &&
@@ -831,7 +831,7 @@ protected:
     // that only ever calls the defaults still produces valid markup.
     void write_line(
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) D_OVERRIDE
     {
         block_element(m_profile.paragraph_element, _text, _attrs);
@@ -884,7 +884,7 @@ private:
     //   `<name attrs...>` with the hints realised per the profile.
     D_NODISCARD std::string open_tag(
         const std::string&    _name,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) const
     {
         return "<" + _name + attribute_text(_attrs) + ">";
@@ -962,7 +962,7 @@ private:
     //   emit an opening tag on its own line and descend one level.
     void open_element(
         const std::string&    _name,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         // an unnamed element is a dialect saying "I have none"
@@ -1027,7 +1027,7 @@ private:
     void block_element(
         const std::string&    _name,
         const std::string&    _text,
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     )
     {
         // a dialect with no element for this block drops it rather than
@@ -1056,7 +1056,7 @@ private:
     // document).  _is_void_tag says which of the last two applies.
     void void_element(
         const std::string&    _name,
-        const DDocAttributes& _attrs,
+        const doc_attributes& _attrs,
         bool                  _is_void_tag
     )
     {
@@ -1121,7 +1121,7 @@ private:
     // hint becomes `class="..."`; otherwise every hint becomes an attribute of
     // its own name.  Values are always escaped.
     D_NODISCARD std::string attribute_text(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) const
     {
         if (m_profile.use_css_style)
@@ -1137,13 +1137,13 @@ private:
     // round-trips through the markup unchanged.
     //
     //   The standard vocabulary is spelled by NAME rather than by walking the
-    // bag, so this header depends only on DDocAttributes' documented lookup
+    // bag, so this header depends only on doc_attributes' documented lookup
     // surface (find / contains) and not on its iterator's value shape.  A
     // dialect-specific key a producer invents is emitted by listing it in the
     // profile's extra_attribute_keys -- the open vocabulary stays open, the
     // dependency stays narrow.
     D_NODISCARD std::string plain_attribute_text(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) const
     {
         std::string _out;
@@ -1177,7 +1177,7 @@ private:
     // does not, so an absent hint costs nothing and emits nothing.
     void append_attribute(
         std::string&          _out,
-        const DDocAttributes& _attrs,
+        const doc_attributes& _attrs,
         const std::string&    _key
     ) const
     {
@@ -1235,7 +1235,7 @@ private:
     // locator) become their real HTML attributes.  A hint with no CSS or HTML
     // spelling is dropped.
     D_NODISCARD std::string css_attribute_text(
-        const DDocAttributes& _attrs
+        const doc_attributes& _attrs
     ) const
     {
         std::string _out;
@@ -1390,7 +1390,7 @@ private:
     // -- state ---------------------------------------------------------------
 
     std::string               m_out;
-    DMarkupProfile            m_profile;
+    markup_profile            m_profile;
     size_type                 m_depth;
     std::vector<std::string>  m_lists;       // open list elements, innermost last
     std::vector<bool>         m_item_open;   // per level: an item in flight?
@@ -1409,15 +1409,15 @@ private:
 // IV.  ALIASES
 // ===========================================================================
 
-// DXmlDocumentRenderer
+// xml_document_renderer
 //   type: the XML dialect -- entity-escaped values, semantic element names,
 // hints spelled as attributes so a bag round-trips.
-using DXmlDocumentRenderer = DMarkupDocumentRenderer<DXmlEscapePolicy>;
+using xml_document_renderer = markup_document_renderer<xml_escape_policy>;
 
-// DHtmlDocumentRenderer
+// html_document_renderer
 //   type: the HTML dialect -- a full document shell, h1..h6, real tables, and
 // hints spelled as a class plus inline CSS.
-using DHtmlDocumentRenderer = DMarkupDocumentRenderer<DHtmlEscapePolicy>;
+using html_document_renderer = markup_document_renderer<html_escape_policy>;
 
 
 NS_END  // djinterp

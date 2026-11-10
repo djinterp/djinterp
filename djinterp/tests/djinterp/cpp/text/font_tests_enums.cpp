@@ -8,7 +8,7 @@
 *                                                            revised: 2026.09.21
 *******************************************************************************/
 // djinterp [test]  font_tests_enums.cpp
-//   Section 2: DFontWeight, DFontSlant, DFontStretch, DFontSpacing,
+//   Section 2: font_weight, DFontSlant, font_stretch, DFontSpacing,
 // DFontSizeUnit.  These enums are wire values - they mirror OS/2
 // usWeightClass and usWidthClass - so their numbers are a contract with
 // every backend, not an internal detail.
@@ -23,17 +23,17 @@ NS_TESTING
 /*
 tests_font_weight_underlying_type
   Tests the following:
-  - DFontWeight is backed by std::uint16_t (it must hold 950)
+  - font_weight is backed by std::uint16_t (it must hold 950)
   - it is a scoped enum
 */
 bool tests_font_weight_underlying_type()
 {
-    static_assert(std::is_same<std::underlying_type<DFontWeight>::type,
+    static_assert(std::is_same<std::underlying_type<font_weight>::type,
                                std::uint16_t>::value,
-                  "DFontWeight must be backed by uint16_t");
+                  "font_weight must be backed by uint16_t");
 
-    D_FT_CHECK(std::is_enum<DFontWeight>::value);
-    D_FT_CHECK(!std::is_convertible<DFontWeight, int>::value);
+    D_FT_CHECK(std::is_enum<font_weight>::value);
+    D_FT_CHECK(!std::is_convertible<font_weight, int>::value);
 
     return true;
 }
@@ -48,16 +48,16 @@ casts the enum straight through.
 */
 bool tests_font_weight_values()
 {
-    D_FT_CHECK(weight_of(DFontWeight::thin)        == 100u);
-    D_FT_CHECK(weight_of(DFontWeight::extra_light) == 200u);
-    D_FT_CHECK(weight_of(DFontWeight::light)       == 300u);
-    D_FT_CHECK(weight_of(DFontWeight::normal)      == 400u);
-    D_FT_CHECK(weight_of(DFontWeight::medium)      == 500u);
-    D_FT_CHECK(weight_of(DFontWeight::semi_bold)   == 600u);
-    D_FT_CHECK(weight_of(DFontWeight::bold)        == 700u);
-    D_FT_CHECK(weight_of(DFontWeight::extra_bold)  == 800u);
-    D_FT_CHECK(weight_of(DFontWeight::black)       == 900u);
-    D_FT_CHECK(weight_of(DFontWeight::extra_black) == 950u);
+    D_FT_CHECK(weight_of(font_weight::thin)        == 100u);
+    D_FT_CHECK(weight_of(font_weight::extra_light) == 200u);
+    D_FT_CHECK(weight_of(font_weight::light)       == 300u);
+    D_FT_CHECK(weight_of(font_weight::normal)      == 400u);
+    D_FT_CHECK(weight_of(font_weight::medium)      == 500u);
+    D_FT_CHECK(weight_of(font_weight::semi_bold)   == 600u);
+    D_FT_CHECK(weight_of(font_weight::bold)        == 700u);
+    D_FT_CHECK(weight_of(font_weight::extra_bold)  == 800u);
+    D_FT_CHECK(weight_of(font_weight::black)       == 900u);
+    D_FT_CHECK(weight_of(font_weight::extra_black) == 950u);
 
     return true;
 }
@@ -74,11 +74,11 @@ bool tests_font_weight_is_monotonic()
 {
     const std::uint16_t scale[] =
     {
-        weight_of(DFontWeight::thin),        weight_of(DFontWeight::extra_light),
-        weight_of(DFontWeight::light),       weight_of(DFontWeight::normal),
-        weight_of(DFontWeight::medium),      weight_of(DFontWeight::semi_bold),
-        weight_of(DFontWeight::bold),        weight_of(DFontWeight::extra_bold),
-        weight_of(DFontWeight::black),       weight_of(DFontWeight::extra_black)
+        weight_of(font_weight::thin),        weight_of(font_weight::extra_light),
+        weight_of(font_weight::light),       weight_of(font_weight::normal),
+        weight_of(font_weight::medium),      weight_of(font_weight::semi_bold),
+        weight_of(font_weight::bold),        weight_of(font_weight::extra_bold),
+        weight_of(font_weight::black),       weight_of(font_weight::extra_black)
     };
 
     const std::size_t count = sizeof(scale) / sizeof(scale[0]);
@@ -91,10 +91,10 @@ bool tests_font_weight_is_monotonic()
         D_FT_CHECK(scale[i] > scale[i - 1u]);
     }
 
-    D_FT_CHECK(weight_of(DFontWeight::normal) <
-               weight_of(DFontWeight::semi_bold));
-    D_FT_CHECK(weight_of(DFontWeight::semi_bold) <
-               weight_of(DFontWeight::bold));
+    D_FT_CHECK(weight_of(font_weight::normal) <
+               weight_of(font_weight::semi_bold));
+    D_FT_CHECK(weight_of(font_weight::semi_bold) <
+               weight_of(font_weight::bold));
 
     return true;
 }
@@ -139,15 +139,15 @@ bool tests_font_slant_values()
 /*
 tests_font_stretch_underlying_type
   Tests the following:
-  - DFontStretch is backed by std::uint8_t
+  - font_stretch is backed by std::uint8_t
 */
 bool tests_font_stretch_underlying_type()
 {
-    static_assert(std::is_same<std::underlying_type<DFontStretch>::type,
+    static_assert(std::is_same<std::underlying_type<font_stretch>::type,
                                std::uint8_t>::value,
-                  "DFontStretch must be backed by uint8_t");
+                  "font_stretch must be backed by uint8_t");
 
-    D_FT_CHECK(!std::is_convertible<DFontStretch, int>::value);
+    D_FT_CHECK(!std::is_convertible<font_stretch, int>::value);
 
     return true;
 }
@@ -155,7 +155,7 @@ bool tests_font_stretch_underlying_type()
 /*
 tests_font_stretch_values
   The OS/2 usWidthClass range starts at 1, NOT 0 - so a zero-initialised
-DFontStretch would be an invalid width class.  That is precisely why the
+font_stretch would be an invalid width class.  That is precisely why the
 mixin default-initialises it to `normal` rather than leaving it {}.
   Tests the following:
   - ultra_condensed..ultra_expanded are 1..9
@@ -163,18 +163,18 @@ mixin default-initialises it to `normal` rather than leaving it {}.
 */
 bool tests_font_stretch_values()
 {
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::ultra_condensed) == 1u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::extra_condensed) == 2u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::condensed)       == 3u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::semi_condensed)  == 4u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::normal)          == 5u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::semi_expanded)   == 6u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::expanded)        == 7u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::extra_expanded)  == 8u);
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::ultra_expanded)  == 9u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::ultra_condensed) == 1u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::extra_condensed) == 2u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::condensed)       == 3u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::semi_condensed)  == 4u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::normal)          == 5u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::semi_expanded)   == 6u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::expanded)        == 7u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::extra_expanded)  == 8u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::ultra_expanded)  == 9u);
 
     // 1-based: zero is not a width class
-    D_FT_CHECK(static_cast<std::uint8_t>(DFontStretch::ultra_condensed) != 0u);
+    D_FT_CHECK(static_cast<std::uint8_t>(font_stretch::ultra_condensed) != 0u);
 
     return true;
 }
@@ -189,25 +189,25 @@ tests_font_stretch_normal_is_the_midpoint
 bool tests_font_stretch_normal_is_the_midpoint()
 {
     const std::uint8_t lo  = static_cast<std::uint8_t>(
-        DFontStretch::ultra_condensed);
-    const std::uint8_t mid = static_cast<std::uint8_t>(DFontStretch::normal);
+        font_stretch::ultra_condensed);
+    const std::uint8_t mid = static_cast<std::uint8_t>(font_stretch::normal);
     const std::uint8_t hi  = static_cast<std::uint8_t>(
-        DFontStretch::ultra_expanded);
+        font_stretch::ultra_expanded);
 
     D_FT_CHECK((static_cast<unsigned>(lo) + static_cast<unsigned>(hi)) ==
                (2u * static_cast<unsigned>(mid)));
 
     const std::uint8_t scale[] =
     {
-        static_cast<std::uint8_t>(DFontStretch::ultra_condensed),
-        static_cast<std::uint8_t>(DFontStretch::extra_condensed),
-        static_cast<std::uint8_t>(DFontStretch::condensed),
-        static_cast<std::uint8_t>(DFontStretch::semi_condensed),
-        static_cast<std::uint8_t>(DFontStretch::normal),
-        static_cast<std::uint8_t>(DFontStretch::semi_expanded),
-        static_cast<std::uint8_t>(DFontStretch::expanded),
-        static_cast<std::uint8_t>(DFontStretch::extra_expanded),
-        static_cast<std::uint8_t>(DFontStretch::ultra_expanded)
+        static_cast<std::uint8_t>(font_stretch::ultra_condensed),
+        static_cast<std::uint8_t>(font_stretch::extra_condensed),
+        static_cast<std::uint8_t>(font_stretch::condensed),
+        static_cast<std::uint8_t>(font_stretch::semi_condensed),
+        static_cast<std::uint8_t>(font_stretch::normal),
+        static_cast<std::uint8_t>(font_stretch::semi_expanded),
+        static_cast<std::uint8_t>(font_stretch::expanded),
+        static_cast<std::uint8_t>(font_stretch::extra_expanded),
+        static_cast<std::uint8_t>(font_stretch::ultra_expanded)
     };
 
     // strictly increasing
@@ -278,7 +278,7 @@ default label, so a new unit added here without a case would be a silently
 unconverted value.
   Tests the following:
   - points / pixels / em / percent / device_units are 0..4
-  - points == 0, matching DFont<>'s size_unit default
+  - points == 0, matching font<>'s size_unit default
   - all five are pairwise distinct
 */
 bool tests_font_size_unit_values()
@@ -311,21 +311,21 @@ bool tests_font_size_unit_values()
 /*
 tests_enums_are_scoped
   All five are `enum class`, so none of them decays to an integer.  That is
-what stops a caller passing a raw 700 where a DFontWeight belongs.
+what stops a caller passing a raw 700 where a font_weight belongs.
   Tests the following:
   - none of the five converts implicitly to int
   - each is still explicitly castable to its underlying type
 */
 bool tests_enums_are_scoped()
 {
-    D_FT_CHECK(!std::is_convertible<DFontWeight,    int>::value);
+    D_FT_CHECK(!std::is_convertible<font_weight,    int>::value);
     D_FT_CHECK(!std::is_convertible<DFontSlant,     int>::value);
-    D_FT_CHECK(!std::is_convertible<DFontStretch,   int>::value);
+    D_FT_CHECK(!std::is_convertible<font_stretch,   int>::value);
     D_FT_CHECK(!std::is_convertible<DFontSpacing,   int>::value);
     D_FT_CHECK(!std::is_convertible<DFontSizeUnit, int>::value);
 
     // but the explicit cast is always available (adapters need it)
-    D_FT_CHECK(static_cast<int>(DFontWeight::bold) == 700);
+    D_FT_CHECK(static_cast<int>(font_weight::bold) == 700);
     D_FT_CHECK(static_cast<int>(DFontSlant::oblique) == 2);
 
     // DFontFeat, by contrast, is deliberately UNSCOPED
@@ -338,9 +338,9 @@ bool tests_enums_are_scoped()
 tests_enum_defaults_match_the_model
   The enum values a default-constructed font actually lands on.
   Tests the following:
-  - DFont<>::weight defaults to normal (400)
-  - DFont<>::slant defaults to upright
-  - DFont<>::size_unit defaults to points
+  - font<>::weight defaults to normal (400)
+  - font<>::slant defaults to upright
+  - font<>::size_unit defaults to points
   - the stretch mixin defaults to normal (5), NOT to a zero width class
   - the spacing mixin defaults to any (0)
 */
@@ -348,13 +348,13 @@ bool tests_enum_defaults_match_the_model()
 {
     const bare_font base;
 
-    D_FT_CHECK(base.weight    == DFontWeight::normal);
+    D_FT_CHECK(base.weight    == font_weight::normal);
     D_FT_CHECK(base.slant     == DFontSlant::upright);
     D_FT_CHECK(base.size_unit == DFontSizeUnit::points);
 
     const axes_font ax;
 
-    D_FT_CHECK(ax.stretch == DFontStretch::normal);
+    D_FT_CHECK(ax.stretch == font_stretch::normal);
     D_FT_CHECK(ax.spacing == DFontSpacing::any);
 
     // the stretch default is a VALID width class; zero-init would not be

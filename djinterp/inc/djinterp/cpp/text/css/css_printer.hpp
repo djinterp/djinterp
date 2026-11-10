@@ -2,23 +2,23 @@
 * djinterp [cpp]                                                 css_printer.hpp
 *
 *   Sink-based output for CSS stylesheets - the CSS analogue of
-* pdf_printer / DDocumentPrinter.  A DCssPrinter<Sink> routes a
+* pdf_printer / document_printer.  A css_printer<Sink> routes a
 * stylesheet's rendered CSS to any sink (a callable taking
 * `(const char*, std::size_t)`), so stylesheet output flows through
 * the same sink abstraction as the rest of the framework.  The
 * stylesheet owns the render_to_css / render_to_minified_css /
 * render_to_scss methods; this header only forwards their bytes.
 *
-*   The DCssRenderMode selector chooses which render method a printer
+*   The css_render_mode selector chooses which render method a printer
 * invokes (pretty / minified / scss), so the same sink path serves all
 * three output flavours.
 *
 *   USAGE:
-*     css::DCssStylesheet<css::DCssDefaultBackend> sheet;
+*     css::css_stylesheet<css::css_default_backend> sheet;
 *     // ... build rules ...
 *     std::string out = css::css_to_string(sheet);                 // pretty
 *     std::string min = css::css_to_string(sheet,
-*                           css::DCssRenderMode::minified);         // minified
+*                           css::css_render_mode::minified);        // minified
 *     css::save_css_to_file("site.css", sheet);                     // to disk
 *     css::css_to_stream(std::cout, sheet);                         // to a stream
 *
@@ -35,7 +35,7 @@ TABLE OF CONTENTS
 I.    RENDER MODE
       -----------
 
-II.   DCssPrinter<Sink>          (generic sink)
+II.   css_printer<Sink>          (generic sink)
       ------------------------------------------
 
 III.  STRING / STREAM HELPERS
@@ -56,7 +56,7 @@ IV.   FILE PRINTER
 
 // djinterp
 #include "../../djinterp.hpp"
-#include "./css.hpp"            // DCssString, has_render_to_css_method, ...
+#include "./css.hpp"            // css_string_t, has_render_to_css_method, ...
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -80,9 +80,9 @@ namespace css {
 ///                I.   RENDER MODE                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssRenderMode
+// css_render_mode
 //   enum: selects which stylesheet render method a printer invokes.
-enum class DCssRenderMode : re_std::uint8_t
+enum class css_render_mode : re_std::uint8_t
 {
     pretty,     // render_to_css           (formatted)
     minified,   // render_to_minified_css  (whitespace-stripped)
@@ -98,16 +98,16 @@ namespace internal {
 // supplies all three).
 template <typename Sheet>
 inline
-DCssString css_render(
+css_string_t css_render(
     const Sheet&    _sheet,
-    DCssRenderMode  _mode
+    css_render_mode _mode
 )
 {
     switch (_mode)
     {
-        case DCssRenderMode::minified:  return _sheet.render_to_minified_css();
-        case DCssRenderMode::scss:      return _sheet.render_to_scss();
-        case DCssRenderMode::pretty:
+        case css_render_mode::minified: return _sheet.render_to_minified_css();
+        case css_render_mode::scss:     return _sheet.render_to_scss();
+        case css_render_mode::pretty:
         default:                        return _sheet.render_to_css();
     }
 }
@@ -116,21 +116,21 @@ DCssString css_render(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   DCssPrinter<Sink>                                 ///
+///                II.   css_printer<Sink>                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssPrinter
+// css_printer
 //   class: writes a stylesheet's rendered CSS to a sink.  Sink is
 // any callable invocable as `sink(const char*, std::size_t)` (the
 // same sink shape used across the framework's writers).
 template <typename Sink>
-class DCssPrinter
+class css_printer
 {
 public:
     explicit
-    DCssPrinter(
+    css_printer(
         Sink                _sink,
-        DCssRenderMode      _mode = DCssRenderMode::pretty
+        css_render_mode     _mode = css_render_mode::pretty
     )
     :   m_sink(std::move(_sink)),
         m_mode(_mode)
@@ -145,18 +145,18 @@ public:
     {
         static_assert(
             has_render_to_css_method<clean_t<Sheet>>::value,
-            "DCssPrinter::print requires a stylesheet exposing render_to_css().");
+            "css_printer::print requires a stylesheet exposing render_to_css().");
 
-        const DCssString out = internal::css_render(_sheet, m_mode);
+        const css_string_t out = internal::css_render(_sheet, m_mode);
         m_sink(out.data(), out.size());
     }
 
-    DCssRenderMode  mode() const            { return m_mode; }
-    void            set_mode(DCssRenderMode _m) { m_mode = _m; }
+    css_render_mode mode() const            { return m_mode; }
+    void            set_mode(css_render_mode _m) { m_mode = _m; }
 
 private:
     Sink            m_sink;
-    DCssRenderMode  m_mode;
+    css_render_mode m_mode;
 };
 
 
@@ -164,12 +164,12 @@ private:
 //   function: factory that deduces the sink type.
 template <typename Sink>
 inline
-DCssPrinter<Sink> make_css_printer(
+css_printer<Sink> make_css_printer(
     Sink            _sink,
-    DCssRenderMode  _mode = DCssRenderMode::pretty
+    css_render_mode _mode = css_render_mode::pretty
 )
 {
-    return DCssPrinter<Sink>(std::move(_sink), _mode);
+    return css_printer<Sink>(std::move(_sink), _mode);
 }
 
 
@@ -180,9 +180,9 @@ DCssPrinter<Sink> make_css_printer(
 // css_to_string
 //   function: returns the rendered CSS for _sheet in the given mode.
 template <typename Sheet>
-D_NODISCARD inline DCssString css_to_string(
+D_NODISCARD inline css_string_t css_to_string(
     const Sheet&    _sheet,
-    DCssRenderMode  _mode = DCssRenderMode::pretty
+    css_render_mode _mode = css_render_mode::pretty
 )
 {
     static_assert(
@@ -200,14 +200,14 @@ inline
 void css_to_stream(
     std::ostream&   _os,
     const Sheet&    _sheet,
-    DCssRenderMode  _mode = DCssRenderMode::pretty
+    css_render_mode _mode = css_render_mode::pretty
 )
 {
     static_assert(
         has_render_to_css_method<clean_t<Sheet>>::value,
         "css_to_stream requires a stylesheet exposing render_to_css().");
 
-    const DCssString out = internal::css_render(_sheet, _mode);
+    const css_string_t out = internal::css_render(_sheet, _mode);
     _os.write(out.data(), static_cast<std::streamsize>(out.size()));
 }
 
@@ -216,17 +216,17 @@ void css_to_stream(
 ///                IV.   FILE PRINTER                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssFilePrinter
+// css_file_printer
 //   class: a sink that writes rendered CSS to a file.  Usable both as
 // a standalone printer (`print(sheet)`) and as a raw byte sink
 // (`operator()`), mirroring pdf_file_printer.
-class DCssFilePrinter
+class css_file_printer
 {
 public:
     explicit
-    DCssFilePrinter(
+    css_file_printer(
         const std::string&  _path,
-        DCssRenderMode      _mode = DCssRenderMode::pretty
+        css_render_mode     _mode = css_render_mode::pretty
     )
     :   m_file(_path.c_str(), std::ios::out | std::ios::binary),
         m_mode(_mode)
@@ -249,9 +249,9 @@ public:
     {
         static_assert(
             has_render_to_css_method<clean_t<Sheet>>::value,
-            "DCssFilePrinter::print requires render_to_css().");
+            "css_file_printer::print requires render_to_css().");
 
-        const DCssString out = internal::css_render(_sheet, m_mode);
+        const css_string_t out = internal::css_render(_sheet, m_mode);
         m_file.write(out.data(), static_cast<std::streamsize>(out.size()));
     }
 
@@ -259,7 +259,7 @@ public:
 
 private:
     std::ofstream   m_file;
-    DCssRenderMode  m_mode;
+    css_render_mode m_mode;
 };
 
 
@@ -271,10 +271,10 @@ inline
 bool save_css_to_file(
     const std::string& _path,
     const Sheet&       _sheet,
-    DCssRenderMode     _mode = DCssRenderMode::pretty
+    css_render_mode    _mode = css_render_mode::pretty
 )
 {
-    DCssFilePrinter p(_path, _mode);
+    css_file_printer p(_path, _mode);
 
     p.print(_sheet);
 

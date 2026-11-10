@@ -2,10 +2,10 @@
 * djinterp [cpp]                                                layout_build.hpp
 *
 *   The PROCEDURAL construction surface -- a stateful cursor that assembles a
-* DLayoutDoc through imperative open / close / leaf calls, the counterpart to
+* layout_doc through imperative open / close / leaf calls, the counterpart to
 * the functional combinator surface.  The framework strives for a functional
 * AND a procedural idiom throughout; this is the procedural half for documents,
-* and it mirrors the cursor style DDocumentWriter already uses.
+* and it mirrors the cursor style document_writer already uses.
 *
 *   A TREE FROM A STACK.  The cursor holds a stack of open frames; the bottom is
 * the root container.  `open` pushes a frame, `close` pops it and attaches the
@@ -44,7 +44,7 @@
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"    // NS_*, gates, D_NODISCARD
-#include "./layout.hpp"          // DLayoutDoc, apply_node, make_leaf_node
+#include "./layout.hpp"          // layout_doc, apply_node, make_leaf_node
 
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -53,32 +53,32 @@
 NS_DJINTERP
 
 
-// DLayoutCursor
-//   class: a stateful builder for a DLayoutDoc.  Open a construct, add its
+// layout_cursor
+//   class: a stateful builder for a layout_doc.  Open a construct, add its
 // content and sub-constructs, close it; build the finished document.  A stack
 // of frames turns the imperative call sequence into the annotated tree; the
 // bottom frame is the root container, and each close folds a frame into its
 // parent's children.
 //
 // Usage (generic; a dialect adds named wrappers over open/leaf/close):
-//   DLayoutCursor<DReportOp> _doc(DReportOp::body);
-//   _doc.open(DReportOp::section, section_bag("Intro"))
-//         .leaf(DLayoutAtom::body_ref("intro.body"))
+//   layout_cursor<report_op> _doc(report_op::body);
+//   _doc.open(report_op::section, section_bag("Intro"))
+//         .leaf(layout_atom::body_ref("intro.body"))
 //       .close();
-//   DLayoutDoc<DReportOp> _term = _doc.build();
+//   layout_doc<report_op> _term = _doc.build();
 template<typename OpId,
-         typename Atom = DLayoutAtom>
-class DLayoutCursor
+         typename Atom = layout_atom>
+class layout_cursor
 {
 public:
-    using node_type = DLayoutDoc<OpId, Atom>;
+    using node_type = layout_doc<OpId, Atom>;
 
-    // DLayoutCursor
+    // layout_cursor
     //   opens the root container (the bottom frame) with op _root_op and the
     // optional bag _root_bag; everything added accrues to it until build.
-    explicit DLayoutCursor(
+    explicit layout_cursor(
         const OpId&   _root_op,
-        DDocAttributes _root_bag = DDocAttributes()
+        doc_attributes _root_bag = doc_attributes()
     )
         : m_stack()
     {
@@ -88,10 +88,10 @@ public:
     // open
     //   push a new construct frame; subsequent content nests inside it until
     // the matching close.
-    DLayoutCursor&
+    layout_cursor&
     open(
         const OpId&   _op,
-        DDocAttributes _bag = DDocAttributes()
+        doc_attributes _bag = doc_attributes()
     )
     {
         m_stack.push_back(frame{ _op, _bag, {} });
@@ -103,7 +103,7 @@ public:
     //   finish the current construct and attach it to its parent's children.
     // A close with only the root open is a no-op (there is no parent to attach
     // to); build handles the root.
-    DLayoutCursor&
+    layout_cursor&
     close()
     {
         if (m_stack.size() <= 1)
@@ -125,10 +125,10 @@ public:
 
     // leaf
     //   append a content leaf (an atom) to the current construct.
-    DLayoutCursor&
+    layout_cursor&
     leaf(
         const Atom&   _atom,
-        DDocAttributes _bag = DDocAttributes()
+        doc_attributes _bag = doc_attributes()
     )
     {
         m_stack.back().children.push_back(
@@ -140,7 +140,7 @@ public:
     // child
     //   append an already-built subtree (from another surface, say) to the
     // current construct -- the surfaces compose.
-    DLayoutCursor&
+    layout_cursor&
     child(
         node_type _node
     )
@@ -188,7 +188,7 @@ private:
     struct frame
     {
         OpId                   op;
-        DDocAttributes         bag;
+        doc_attributes         bag;
         std::vector<node_type> children;
     };
 

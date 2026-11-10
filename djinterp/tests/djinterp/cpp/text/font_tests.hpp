@@ -8,18 +8,18 @@
 *
 *   The suite is deliberately built on TWO kinds of subject:
 *
-*     - DFont<_Feat, _ColorType> itself, instantiated across the whole
+*     - font<_Feat, _ColorType> itself, instantiated across the whole
 *       feature lattice (ff_none, singletons, aggregates, the platform
 *       profiles, ff_all), which exercises the mixins, the free functions,
 *       and the static has_* constants.
 *
-*     - DUCK-TYPED probe structs that never derive from DFont<> at all.
+*     - DUCK-TYPED probe structs that never derive from font<> at all.
 *       The traits in section 10 are STRUCTURAL - they detect members, not
 *       inheritance - and the only way to prove that is to feed them types
 *       that font.hpp has never heard of.  The probes are also how the
 *       conjunctions (has_font_background, has_font_script_hint) and the
 *       disjunctions (has_font_decorations, has_font_backend_handles) are
-*       pinned down: a DFont<> can never present HALF of a mixin, so a
+*       pinned down: a font<> can never present HALF of a mixin, so a
 *       hand-built half-mixin is the only witness.
 *
 *   The color mixins are exercised through probe_color / wide_color rather
@@ -103,10 +103,10 @@ bool approx_eq(
 }
 
 // weight_of
-//   function: the numeric value behind a symbolic DFontWeight.
+//   function: the numeric value behind a symbolic font_weight.
 constexpr
 std::uint16_t weight_of(
-    DFontWeight _w
+    font_weight _w
 ) noexcept
 {
     return static_cast<std::uint16_t>(_w);
@@ -161,30 +161,30 @@ struct wide_color
 //  4.  FONT ALIASES  (the feature lattice under test)
 // =============================================================================
 
-using bare_font        = DFont<ff_none,             probe_color>;
-using underline_font_t = DFont<ff_underline,        probe_color>;
-using strike_font      = DFont<ff_strikethrough,    probe_color>;
-using overline_font_t  = DFont<ff_overline,         probe_color>;
-using decorated_font_t = DFont<ff_decorations,      probe_color>;
-using small_caps_font_t= DFont<ff_small_caps,       probe_color>;
-using casing_font_t    = DFont<ff_casing,           probe_color>;
-using letter_font      = DFont<ff_letter_spacing,   probe_color>;
-using line_font        = DFont<ff_line_height,      probe_color>;
-using metrics_font     = DFont<ff_metrics,          probe_color>;
-using stretch_font_t   = DFont<ff_stretch,          probe_color>;
-using spacing_font_t   = DFont<ff_spacing,          probe_color>;
-using axes_font        = DFont<ff_axes,             probe_color>;
-using color_font       = DFont<ff_color,            probe_color>;
-using background_font  = DFont<ff_background,       probe_color>;
-using opentype_font    = DFont<ff_opentype_features, probe_color>;
-using variable_font_t  = DFont<ff_variable_axes,    probe_color>;
-using script_font      = DFont<ff_script_hint,      probe_color>;
-using backend_font     = DFont<ff_backend_handles,  probe_color>;
-using terminal_font    = DFont<ff_terminal_basic,   probe_color>;
-using gui_basic_font   = DFont<ff_gui_basic,        probe_color>;
-using gui_std_font     = DFont<ff_gui_standard,     probe_color>;
-using gui_rich_font    = DFont<ff_gui_rich,         probe_color>;
-using full_font        = DFont<ff_all,              probe_color>;
+using bare_font        = font<ff_none,              probe_color>;
+using underline_font_t = font<ff_underline,         probe_color>;
+using strike_font      = font<ff_strikethrough,     probe_color>;
+using overline_font_t  = font<ff_overline,          probe_color>;
+using decorated_font_t = font<ff_decorations,       probe_color>;
+using small_caps_font_t= font<ff_small_caps,        probe_color>;
+using casing_font_t    = font<ff_casing,            probe_color>;
+using letter_font      = font<ff_letter_spacing,    probe_color>;
+using line_font        = font<ff_line_height,       probe_color>;
+using metrics_font     = font<ff_metrics,           probe_color>;
+using stretch_font_t   = font<ff_stretch,           probe_color>;
+using spacing_font_t   = font<ff_spacing,           probe_color>;
+using axes_font        = font<ff_axes,              probe_color>;
+using color_font       = font<ff_color,             probe_color>;
+using background_font  = font<ff_background,        probe_color>;
+using opentype_font    = font<ff_opentype_features, probe_color>;
+using variable_font_t  = font<ff_variable_axes,     probe_color>;
+using script_font      = font<ff_script_hint,       probe_color>;
+using backend_font     = font<ff_backend_handles,   probe_color>;
+using terminal_font    = font<ff_terminal_basic,    probe_color>;
+using gui_basic_font   = font<ff_gui_basic,         probe_color>;
+using gui_std_font     = font<ff_gui_standard,      probe_color>;
+using gui_rich_font    = font<ff_gui_rich,          probe_color>;
+using full_font        = font<ff_all,               probe_color>;
 
 // minimal_rich_font
 //   type: the SMALLEST feature set that still satisfies is_font_rich - one
@@ -193,7 +193,7 @@ using full_font        = DFont<ff_all,              probe_color>;
 // no script hint, and no backend handles, which is the point: is_font_rich
 // is built from disjunctions, so the rich gate does NOT imply ff_gui_rich.
 using minimal_rich_font =
-    DFont<ff_underline | ff_small_caps | ff_line_height
+    font<ff_underline | ff_small_caps | ff_line_height
        | ff_color | ff_opentype_features, probe_color>;
 
 
@@ -203,12 +203,12 @@ using minimal_rich_font =
 
 // duck_font
 //   struct: the minimal font-like profile (family + size + weight + slant)
-// with no relationship to DFont<> whatsoever.
+// with no relationship to font<> whatsoever.
 struct duck_font
 {
     std::string  family;
     float        size   = 12.0f;
-    DFontWeight  weight = DFontWeight::normal;
+    font_weight  weight = font_weight::normal;
     DFontSlant   slant  = DFontSlant::upright;
 };
 
@@ -218,14 +218,14 @@ struct duck_font
 struct duck_no_family
 {
     float        size   = 12.0f;
-    DFontWeight  weight = DFontWeight::normal;
+    font_weight  weight = font_weight::normal;
     DFontSlant   slant  = DFontSlant::upright;
 };
 
 struct duck_no_size
 {
     std::string  family;
-    DFontWeight  weight = DFontWeight::normal;
+    font_weight  weight = font_weight::normal;
     DFontSlant   slant  = DFontSlant::upright;
 };
 
@@ -240,17 +240,17 @@ struct duck_no_slant
 {
     std::string  family;
     float        size   = 12.0f;
-    DFontWeight  weight = DFontWeight::normal;
+    font_weight  weight = font_weight::normal;
 };
 
 // duck_terminal
 //   struct: font-like PLUS a foreground - the structural shape a terminal
-// adapter accepts, reached without touching DFont<>.
+// adapter accepts, reached without touching font<>.
 struct duck_terminal
 {
     std::string  family;
     float        size   = 12.0f;
-    DFontWeight  weight = DFontWeight::normal;
+    font_weight  weight = font_weight::normal;
     DFontSlant   slant  = DFontSlant::upright;
     probe_color  foreground {};
 };
@@ -316,7 +316,7 @@ struct duck_script_paired
 // duck_file_path_only
 //   struct: ONE of the three backend handles.  has_font_backend_handles is
 // a disjunction, so this must satisfy it while has_font_postscript_name and
-// has_font_native_handle both stay false - something no DFont<> can witness,
+// has_font_native_handle both stay false - something no font<> can witness,
 // since its handles all arrive together in one mixin.
 struct duck_file_path_only
 {
@@ -343,14 +343,14 @@ struct duck_not_a_font
 // =============================================================================
 
 // static_flags_agree
-//   function: true when every DFont<_F>::has_* constant agrees with
+//   function: true when every font<_F>::has_* constant agrees with
 // has_ff(_F, ...).  One expression covering all seventeen gates, so a new
 // feature that forgets its constant is caught by every config in the sweep.
 template<unsigned _Feat>
 constexpr
 bool static_flags_agree() noexcept
 {
-    using f = DFont<_Feat, probe_color>;
+    using f = font<_Feat, probe_color>;
 
     return ( (f::features              == _Feat)                              &&
              (f::has_underline         == has_ff(_Feat, ff_underline))        &&
@@ -380,7 +380,7 @@ template<unsigned _Feat>
 constexpr
 bool traits_track_the_flags() noexcept
 {
-    using f = DFont<_Feat, probe_color>;
+    using f = font<_Feat, probe_color>;
 
     return ( (has_font_underline_v<f>         == has_ff(_Feat, ff_underline))     &&
              (has_font_strikethrough_v<f>     == has_ff(_Feat, ff_strikethrough)) &&
@@ -660,7 +660,7 @@ bool tests_has_ff_with_the_ff_none_bit_is_always_false();
 bool tests_has_ff_on_aggregates();
 bool tests_has_ff_is_constexpr_and_noexcept();
 
-// 2. core enums  (DFontWeight, DFontSlant, DFontStretch, DFontSpacing,
+// 2. core enums  (font_weight, DFontSlant, font_stretch, DFontSpacing,
 //                 DFontSizeUnit)
 bool tests_font_weight_underlying_type();
 bool tests_font_weight_values();

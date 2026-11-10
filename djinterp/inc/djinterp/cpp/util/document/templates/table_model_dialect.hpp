@@ -32,8 +32,8 @@
 #include <string>
 // djinterp
 #include "../../../djinterp.hpp"        // NS_*, D_NODISCARD
-#include "../document_format.hpp"       // DDocumentFormat
-#include "./document_dialect.hpp"       // DDocumentDialect, make_document_dialect
+#include "../document_format.hpp"       // document_format
+#include "./document_dialect.hpp"       // document_dialect, make_document_dialect
 #include "./table_model_render.hpp"     // render_table_model, table_render_*
 
 
@@ -49,11 +49,11 @@ NS_DJINTERP
 template<typename Model>
 D_NODISCARD inline std::string render_table_model_to_string(
     const Model&          _model,
-    DDocumentFormat       _format,
-    const DDocAttributes& _frame = DDocAttributes()
+    document_format       _format,
+    const doc_attributes& _frame = doc_attributes()
 )
 {
-    DDocumentDialect _dialect = make_document_dialect(_format);
+    document_dialect _dialect = make_document_dialect(_format);
 
     // an unserved format renders to nothing, not to a wrong dialect
     if (!_dialect.valid())

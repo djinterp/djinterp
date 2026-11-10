@@ -39,10 +39,10 @@ int main()
     r.register_style("verdict.pass", pass_style);
     r.register_style("verdict.fail", fail_style);
 
-    r.begin_document(DDocAttributes());
-    r.heading(1, rep.title, DDocAttributes());
+    r.begin_document(doc_attributes());
+    r.heading(1, rep.title, doc_attributes());
     emit_run_summary(rep, r);
-    r.rule(DDocAttributes());
+    r.rule(doc_attributes());
     emit_module_summary(rep.modules[0], r);
     resolve_report_content(rep, content_key_unit(0, 0), r);
     r.end_document();

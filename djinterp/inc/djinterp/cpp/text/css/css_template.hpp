@@ -11,17 +11,17 @@
 *
 *   STORAGE MODEL:
 *   For the default backend, a single underlying storage type
-* (`internal::DCssDefaultNode`) carries both rule and declaration
+* (`internal::css_default_node`) carries both rule and declaration
 * state plus optional selector / property / value fields. Rules have
-* `kind = DCssRuleKind::*` and may hold child nodes; declarations
+* `kind = css_rule_kind::*` and may hold child nodes; declarations
 * live as child nodes whose own kind tags them as declarations.
 * Real backends (libcss, katana-parser, stylo) are free to use
 * distinct types -- the trait layer detects them structurally.
 *
 *   FACADES:
-*   - `DCssDeclaration<Backend>` wraps `Backend::declaration_type`
-*   - `DCssRule<Backend>`        wraps `Backend::rule_type`
-*   - `DCssStylesheet<Backend>`  holds a `Backend::stylesheet_type`
+*   - `css_declaration<Backend>` wraps `Backend::declaration_type`
+*   - `css_rule<Backend>`        wraps `Backend::rule_type`
+*   - `css_stylesheet<Backend>`  holds a `Backend::stylesheet_type`
 *     by value and exposes the render targets.
 *
 *   ZERO OVERHEAD:
@@ -30,7 +30,7 @@
 * members beyond that pointer.
 *
 *   RENDERING:
-*   `DCssStylesheet` exposes:
+*   `css_stylesheet` exposes:
 *     - render_to_css           (formatted output)
 *     - render_to_minified_css  (whitespace-stripped output)
 *     - render_to_scss          (SCSS-flavoured output with native
@@ -49,19 +49,19 @@ TABLE OF CONTENTS
 I.    DEFAULT BACKEND STORAGE
       -----------------------
 
-II.   DCssDeclaration<Backend>
+II.   css_declaration<Backend>
       -------------------------
 
-III.  DCssRule<Backend>
+III.  css_rule<Backend>
       ------------------
 
 IV.   INTERNAL EMISSION HELPERS
       -------------------------
 
-V.    DCssStylesheet<Backend>
+V.    css_stylesheet<Backend>
       ------------------------
 
-VI.   DCssDefaultBackend
+VI.   css_default_backend
       -------------------
 
 VII.  FREE HELPERS / FACTORIES
@@ -102,29 +102,29 @@ namespace css {
 }   // namespace css
 NS_INTERNAL
 
-    // DCssDefaultNode
+    // css_default_node
     //   struct: bundled in-memory storage type used by the
     // default backend for stylesheets, rules, and declarations.
     // Carries the rule-kind discriminator plus the union of all
     // fields every standard kind needs. Nodes can hold child
     // nodes (other rules or declarations). A single struct keeps
     // the default backend simple and inspectable.
-    struct DCssDefaultNode
+    struct css_default_node
     {
         // discriminator
-        ::djinterp::css::DCssRuleKind          rule_kind =
-            ::djinterp::css::DCssRuleKind::unknown;
-        ::djinterp::css::DCssAtRuleKind       at_rule_kind =
-            ::djinterp::css::DCssAtRuleKind::unknown;
+        ::djinterp::css::css_rule_kind          rule_kind =
+            ::djinterp::css::css_rule_kind::unknown;
+        ::djinterp::css::css_at_rule_kind       at_rule_kind =
+            ::djinterp::css::css_at_rule_kind::unknown;
 
         // declaration fields (when rule_kind == declaration_block
         // or when node represents a declaration entry)
         std::string                             property;
         std::string                             value;
-        ::djinterp::css::DCssImportance         importance =
-            ::djinterp::css::DCssImportance::normal;
-        ::djinterp::css::DCssOrigin             origin =
-            ::djinterp::css::DCssOrigin::author;
+        ::djinterp::css::css_importance         importance =
+            ::djinterp::css::css_importance::normal;
+        ::djinterp::css::css_origin             origin =
+            ::djinterp::css::css_origin::author;
 
         // style-rule fields
         std::string                             selector;       // joined selector list
@@ -138,21 +138,21 @@ NS_INTERNAL
         std::string                             comment_text;
 
         // tree
-        std::vector<std::unique_ptr<DCssDefaultNode>>       children;
-        DCssDefaultNode*                                    parent = nullptr;
+        std::vector<std::unique_ptr<css_default_node>>      children;
+        css_default_node*                                   parent = nullptr;
     };
 
 
-    // DCssDefaultStylesheet
+    // css_default_stylesheet
     //   struct: bundled in-memory storage type for stylesheets.
     // Holds the root rule list plus stylesheet-level metadata.
-    struct DCssDefaultStylesheet
+    struct css_default_stylesheet
     {
-        ::djinterp::css::DCssLevel              level =
-            ::djinterp::css::DCssLevel::css_3;
-        ::djinterp::css::DCssSyntaxMode        syntax_mode =
-            ::djinterp::css::DCssSyntaxMode::css;
-        std::unique_ptr<DCssDefaultNode>       root;
+        ::djinterp::css::css_level              level =
+            ::djinterp::css::css_level::css_3;
+        ::djinterp::css::css_syntax_mode        syntax_mode =
+            ::djinterp::css::css_syntax_mode::css;
+        std::unique_ptr<css_default_node>       root;
     };
 
 NS_END  // internal
@@ -160,15 +160,15 @@ namespace css {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   DCssDeclaration<Backend>                          ///
+///                II.   css_declaration<Backend>                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssDeclaration
+// css_declaration
 //   class: thin facade over a backend declaration storage node.
 // Holds only a raw pointer to the node; does not own the
 // storage.
 template<typename Backend>
-class DCssDeclaration
+class css_declaration
 {
 public:
     // node_type
@@ -178,12 +178,12 @@ public:
 
     /// constructors
 
-    DCssDeclaration()
+    css_declaration()
     :   m_node(nullptr)
     {}
 
     explicit
-    DCssDeclaration(
+    css_declaration(
         node_type*  _node
     )
     :   m_node(_node)
@@ -200,14 +200,14 @@ public:
 
     // property
     //   function: returns this declaration's property name.
-    const DCssString& property() const
+    const css_string_t& property() const
     {
         return (m_node != nullptr) ? m_node->property : s_empty();
     }
 
     // get_property
     //   function: getter-form alias.
-    const DCssString& get_property() const
+    const css_string_t& get_property() const
     {
         return this->property();
     }
@@ -215,7 +215,7 @@ public:
     // set_property
     //   function: replaces the property name.
     void set_property(
-        const DCssString& _name
+        const css_string_t& _name
     )
     {
         if (m_node != nullptr)
@@ -231,21 +231,21 @@ public:
     //   function: returns this declaration's value (as a single
     // joined string -- the default backend does not split
     // tokens).
-    const DCssString& value() const
+    const css_string_t& value() const
     {
         return (m_node != nullptr) ? m_node->value : s_empty();
     }
 
     // get_value
     //   function: getter-form alias.
-    const DCssString& get_value() const
+    const css_string_t& get_value() const
     {
         return this->value();
     }
 
     // set_value
     void set_value(
-        const DCssString& _value
+        const css_string_t& _value
     )
     {
         if (m_node != nullptr)
@@ -258,16 +258,16 @@ public:
     /// importance / origin
 
     // importance
-    DCssImportance importance() const
+    css_importance importance() const
     {
         return (m_node != nullptr) ? m_node->importance
-                                   : DCssImportance::normal;
+                                   : css_importance::normal;
     }
 
     // is_important
     bool is_important() const
     {
-        return ( this->importance() == DCssImportance::important );
+        return ( this->importance() == css_importance::important );
     }
 
     // set_important
@@ -278,15 +278,15 @@ public:
         if (m_node != nullptr)
         {
             m_node->importance = _important
-                ? DCssImportance::important
-                : DCssImportance::normal;
+                ? css_importance::important
+                : css_importance::normal;
         }
     }
 
     // origin
-    DCssOrigin origin() const
+    css_origin origin() const
     {
-        return (m_node != nullptr) ? m_node->origin : DCssOrigin::author;
+        return (m_node != nullptr) ? m_node->origin : css_origin::author;
     }
 
     // is_custom_property
@@ -300,9 +300,9 @@ public:
 
 private:
     static
-    const DCssString& s_empty()
+    const css_string_t& s_empty()
     {
-        static const DCssString e;
+        static const css_string_t e;
         return e;
     }
 
@@ -312,26 +312,26 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   DCssRule<Backend>                                ///
+///                III.   css_rule<Backend>                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssRule
+// css_rule
 //   class: thin facade over a backend rule storage node.
 template<typename Backend>
-class DCssRule
+class css_rule
 {
 public:
     using node_type             = typename Backend::rule_type;
     using declaration_node_type = typename Backend::declaration_type;
-    using declaration_facade    = DCssDeclaration<Backend>;
+    using declaration_facade    = css_declaration<Backend>;
 
 
-    DCssRule()
+    css_rule()
     :   m_node(nullptr)
     {}
 
     explicit
-    DCssRule(
+    css_rule(
         node_type*  _node
     )
     :   m_node(_node)
@@ -347,14 +347,14 @@ public:
     /// kind
 
     // rule_kind
-    DCssRuleKind rule_kind() const
+    css_rule_kind rule_kind() const
     {
         return (m_node != nullptr) ? m_node->rule_kind
-                                   : DCssRuleKind::unknown;
+                                   : css_rule_kind::unknown;
     }
 
     // get_rule_kind
-    DCssRuleKind get_rule_kind() const
+    css_rule_kind get_rule_kind() const
     {
         return this->rule_kind();
     }
@@ -362,14 +362,14 @@ public:
     // at_rule_kind
     //   function: returns the at-rule subkind (only meaningful
     // when this rule is an at-rule).
-    DCssAtRuleKind at_rule_kind() const
+    css_at_rule_kind at_rule_kind() const
     {
         return (m_node != nullptr) ? m_node->at_rule_kind
-                                   : DCssAtRuleKind::unknown;
+                                   : css_at_rule_kind::unknown;
     }
 
     // get_at_rule_kind
-    DCssAtRuleKind get_at_rule_kind() const
+    css_at_rule_kind get_at_rule_kind() const
     {
         return this->at_rule_kind();
     }
@@ -380,24 +380,24 @@ public:
     bool is_descriptor()   const { return is_descriptor_rule_kind(this->rule_kind()); }
     bool is_nestable()     const { return is_nestable_rule_kind(this->rule_kind()); }
     bool is_keyframes()    const { return is_keyframes_rule_kind(this->rule_kind()); }
-    bool is_style_rule()   const { return (this->rule_kind() == DCssRuleKind::style_rule); }
-    bool is_comment()      const { return (this->rule_kind() == DCssRuleKind::comment); }
+    bool is_style_rule()   const { return (this->rule_kind() == css_rule_kind::style_rule); }
+    bool is_comment()      const { return (this->rule_kind() == css_rule_kind::comment); }
 
 
     /// selector access (style rules)
 
-    const DCssString& selector() const
+    const css_string_t& selector() const
     {
         return (m_node != nullptr) ? m_node->selector : s_empty();
     }
 
-    const DCssString& get_selector() const
+    const css_string_t& get_selector() const
     {
         return this->selector();
     }
 
     void set_selector(
-        const DCssString& _sel
+        const css_string_t& _sel
     )
     {
         if (m_node != nullptr)
@@ -406,7 +406,7 @@ public:
         }
     }
 
-    const std::vector<DCssString>& selectors() const
+    const std::vector<css_string_t>& selectors() const
     {
         return (m_node != nullptr) ? m_node->selectors : s_empty_vec();
     }
@@ -414,18 +414,18 @@ public:
 
     /// at-rule access
 
-    const DCssString& at_keyword() const
+    const css_string_t& at_keyword() const
     {
         return (m_node != nullptr) ? m_node->at_keyword : s_empty();
     }
 
-    const DCssString& get_at_keyword() const
+    const css_string_t& get_at_keyword() const
     {
         return this->at_keyword();
     }
 
     void set_at_keyword(
-        const DCssString& _kw
+        const css_string_t& _kw
     )
     {
         if (m_node != nullptr)
@@ -435,18 +435,18 @@ public:
         }
     }
 
-    const DCssString& prelude() const
+    const css_string_t& prelude() const
     {
         return (m_node != nullptr) ? m_node->prelude : s_empty();
     }
 
-    const DCssString& get_prelude() const
+    const css_string_t& get_prelude() const
     {
         return this->prelude();
     }
 
     void set_prelude(
-        const DCssString& _prelude
+        const css_string_t& _prelude
     )
     {
         if (m_node != nullptr)
@@ -470,7 +470,7 @@ public:
         {
             const node_type*    c = m_node->children[i].get();
             if ( (c != nullptr) &&
-                 (c->rule_kind == DCssRuleKind::declaration_block) )
+                 (c->rule_kind == css_rule_kind::declaration_block) )
             {
                 ++count;
             }
@@ -492,7 +492,7 @@ public:
         {
             node_type*  c = m_node->children[i].get();
             if ( (c != nullptr) &&
-                 (c->rule_kind == DCssRuleKind::declaration_block) )
+                 (c->rule_kind == css_rule_kind::declaration_block) )
             {
                 if (seen == _index)
                 {
@@ -508,7 +508,7 @@ public:
     //   function: returns the first declaration with property
     // name `_name`, or a null facade if absent.
     declaration_facade find_declaration(
-        const DCssString& _name
+        const css_string_t& _name
     ) const
     {
         if (m_node == nullptr)
@@ -519,7 +519,7 @@ public:
         {
             node_type*  c = m_node->children[i].get();
             if ( (c != nullptr) &&
-                 (c->rule_kind == DCssRuleKind::declaration_block) &&
+                 (c->rule_kind == css_rule_kind::declaration_block) &&
                  (c->property == _name) )
             {
                 return declaration_facade(c);
@@ -532,8 +532,8 @@ public:
     //   function: appends a declaration to this rule's
     // declaration block. Returns a facade for the new entry.
     declaration_facade add_declaration(
-        const DCssString& _property,
-        const DCssString&   _value,
+        const css_string_t& _property,
+        const css_string_t& _value,
         bool                _important = false
     )
     {
@@ -542,12 +542,12 @@ public:
             return declaration_facade();
         }
         std::unique_ptr<node_type>  d(new node_type);
-        d->rule_kind  = DCssRuleKind::declaration_block;
+        d->rule_kind  = css_rule_kind::declaration_block;
         d->property   = _property;
         d->value      = _value;
         d->importance = _important
-            ? DCssImportance::important
-            : DCssImportance::normal;
+            ? css_importance::important
+            : css_importance::normal;
         d->parent     = m_node;
         node_type* raw = d.get();
         m_node->children.push_back(std::move(d));
@@ -558,7 +558,7 @@ public:
     //   function: removes the first declaration with property
     // name `_name`. Returns true if a declaration was removed.
     bool remove_declaration(
-        const DCssString& _name
+        const css_string_t& _name
     )
     {
         if (m_node == nullptr)
@@ -571,7 +571,7 @@ public:
         {
             node_type*  c = it->get();
             if ( (c != nullptr) &&
-                 (c->rule_kind == DCssRuleKind::declaration_block) &&
+                 (c->rule_kind == css_rule_kind::declaration_block) &&
                  (c->property == _name) )
             {
                 m_node->children.erase(it);
@@ -585,8 +585,8 @@ public:
     //   function: convenience -- finds the named declaration
     // and updates its value, or adds it if absent.
     void set_property(
-        const DCssString& _name,
-        const DCssString&   _value,
+        const css_string_t& _name,
+        const css_string_t& _value,
         bool                _important = false
     )
     {
@@ -629,7 +629,7 @@ public:
     // outline-color, ...) from any native color model.
     template <typename Color>
     void set_color_property(
-        const DCssString&   _property,
+        const css_string_t& _property,
         const Color&        _c
     )
     {
@@ -637,10 +637,10 @@ public:
     }
 
     // set_font
-    //   sets the `font` shorthand from a native djinterp::DFont.
+    //   sets the `font` shorthand from a native djinterp::font.
     template <unsigned Feat, typename ColorT>
     void set_font(
-        const ::djinterp::DFont<Feat, ColorT>& _f
+        const ::djinterp::font<Feat, ColorT>& _f
     )
     {
         this->set_property(props::font, to_css_font(_f));
@@ -648,10 +648,10 @@ public:
 
     // set_font_longhand
     //   sets font-family / font-size / font-weight / font-style as
-    // four separate declarations from a native djinterp::DFont.
+    // four separate declarations from a native djinterp::font.
     template <unsigned Feat, typename ColorT>
     void set_font_longhand(
-        const ::djinterp::DFont<Feat, ColorT>& _f
+        const ::djinterp::font<Feat, ColorT>& _f
     )
     {
         this->set_property(props::font_family, to_css_font_family(_f));
@@ -677,7 +677,7 @@ public:
         {
             const node_type*    c = m_node->children[i].get();
             if ( (c != nullptr) &&
-                 (c->rule_kind != DCssRuleKind::declaration_block) )
+                 (c->rule_kind != css_rule_kind::declaration_block) )
             {
                 ++count;
             }
@@ -688,62 +688,62 @@ public:
     // rule_at
     //   function: returns the nested rule at index `_index`,
     // skipping declaration entries.
-    DCssRule<Backend> rule_at(
+    css_rule<Backend> rule_at(
         std::size_t _index
     ) const
     {
         if (m_node == nullptr)
         {
-            return DCssRule<Backend>();
+            return css_rule<Backend>();
         }
         std::size_t seen = 0;
         for (std::size_t i = 0; i < m_node->children.size(); ++i)
         {
             node_type*  c = m_node->children[i].get();
             if ( (c != nullptr) &&
-                 (c->rule_kind != DCssRuleKind::declaration_block) )
+                 (c->rule_kind != css_rule_kind::declaration_block) )
             {
                 if (seen == _index)
                 {
-                    return DCssRule<Backend>(c);
+                    return css_rule<Backend>(c);
                 }
                 ++seen;
             }
         }
-        return DCssRule<Backend>();
+        return css_rule<Backend>();
     }
 
     // add_rule
     //   function: appends a fresh rule of the given kind.
-    DCssRule<Backend> add_rule(
-        DCssRuleKind _kind = DCssRuleKind::style_rule
+    css_rule<Backend> add_rule(
+        css_rule_kind _kind = css_rule_kind::style_rule
     )
     {
         if (m_node == nullptr)
         {
-            return DCssRule<Backend>();
+            return css_rule<Backend>();
         }
         std::unique_ptr<node_type>  r(new node_type);
         r->rule_kind = _kind;
         r->parent    = m_node;
         node_type* raw = r.get();
         m_node->children.push_back(std::move(r));
-        return DCssRule<Backend>(raw);
+        return css_rule<Backend>(raw);
     }
 
 
 private:
     static
-    const DCssString& s_empty()
+    const css_string_t& s_empty()
     {
-        static const DCssString e;
+        static const css_string_t e;
         return e;
     }
 
     static
-    const std::vector<DCssString>& s_empty_vec()
+    const std::vector<css_string_t>& s_empty_vec()
     {
-        static const std::vector<DCssString> e;
+        static const std::vector<css_string_t> e;
         return e;
     }
 
@@ -783,7 +783,7 @@ NS_INTERNAL
     inline
     void css_emit_declaration_helper(
         std::ostream&           _out,
-        const DCssDefaultNode&  _decl,
+        const css_default_node& _decl,
         bool                    _minified
     )
     {
@@ -793,7 +793,7 @@ NS_INTERNAL
             _out << ' ';
         }
         _out << _decl.value;
-        if (_decl.importance == ::djinterp::css::DCssImportance::important)
+        if (_decl.importance == ::djinterp::css::css_importance::important)
         {
             _out << (_minified ? "!important" : " !important");
         }
@@ -809,7 +809,7 @@ NS_INTERNAL
     inline
     void css_emit_rule_body_helper(
         std::ostream&           _out,
-        const DCssDefaultNode&  _node,
+        const css_default_node& _node,
         bool                    _minified,
         std::size_t             _depth,
         const char*             _indent,
@@ -817,14 +817,14 @@ NS_INTERNAL
         bool                    _scss_nesting
     )
     {
-        using K = ::djinterp::css::DCssRuleKind;
+        using K = ::djinterp::css::css_rule_kind;
 
         _out << (_minified ? "{" : "{")
              << (_minified ? "" : _newline);
 
         for (std::size_t i = 0; i < _node.children.size(); ++i)
         {
-            const DCssDefaultNode* c = _node.children[i].get();
+            const css_default_node* c = _node.children[i].get();
             if (c == nullptr)
             {
                 continue;
@@ -918,7 +918,7 @@ NS_INTERNAL
     inline
     void css_emit_rule_helper(
         std::ostream&           _out,
-        const DCssDefaultNode&  _node,
+        const css_default_node& _node,
         bool                    _minified,
         std::size_t             _depth,
         const char*             _indent,
@@ -926,7 +926,7 @@ NS_INTERNAL
         bool                    _scss_nesting
     )
     {
-        using K = ::djinterp::css::DCssRuleKind;
+        using K = ::djinterp::css::css_rule_kind;
 
         if (_node.rule_kind == K::comment)
         {
@@ -999,7 +999,7 @@ NS_INTERNAL
     inline
     void css_emit_stylesheet_helper(
         std::ostream&           _out,
-        const DCssDefaultNode&  _root,
+        const css_default_node& _root,
         bool                    _minified,
         const char*             _indent,
         const char*             _newline,
@@ -1008,7 +1008,7 @@ NS_INTERNAL
     {
         for (std::size_t i = 0; i < _root.children.size(); ++i)
         {
-            const DCssDefaultNode* c = _root.children[i].get();
+            const css_default_node* c = _root.children[i].get();
             if (c == nullptr)
             {
                 continue;
@@ -1023,41 +1023,41 @@ namespace css {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   DCssStylesheet<Backend>                            ///
+///                V.   css_stylesheet<Backend>                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssStylesheet
+// css_stylesheet
 //   class: facade over the backend's storage stylesheet type
 // plus level / syntax-mode metadata. Owns the storage by value
 // and exposes the render targets.
 template<typename Backend>
-class DCssStylesheet
+class css_stylesheet
 {
 public:
     using backend_type    = Backend;
     using stylesheet_type = typename Backend::stylesheet_type;
     using rule_node_type  = typename Backend::rule_type;
-    using rule_facade     = DCssRule<Backend>;
+    using rule_facade     = css_rule<Backend>;
 
 
     /// constructors
 
-    DCssStylesheet()
+    css_stylesheet()
     :   m_sheet(Backend::make_stylesheet())
     {}
 
     explicit
-    DCssStylesheet(
-        DCssLevel   _level
+    css_stylesheet(
+        css_level   _level
     )
     :   m_sheet(Backend::make_stylesheet())
     {
         m_sheet.level = _level;
     }
 
-    DCssStylesheet(
-        DCssLevel           _level,
-        DCssSyntaxMode      _syntax
+    css_stylesheet(
+        css_level           _level,
+        css_syntax_mode     _syntax
     )
     :   m_sheet(Backend::make_stylesheet())
     {
@@ -1066,7 +1066,7 @@ public:
     }
 
     explicit
-    DCssStylesheet(
+    css_stylesheet(
         stylesheet_type&&   _sheet
     )
     :   m_sheet(std::move(_sheet))
@@ -1075,35 +1075,35 @@ public:
 
     /// metadata
 
-    DCssLevel level() const
+    css_level level() const
     {
         return m_sheet.level;
     }
 
-    DCssLevel get_level() const
+    css_level get_level() const
     {
         return m_sheet.level;
     }
 
     void set_level(
-        DCssLevel _level
+        css_level _level
     )
     {
         m_sheet.level = _level;
     }
 
-    DCssSyntaxMode syntax_mode() const
+    css_syntax_mode syntax_mode() const
     {
         return m_sheet.syntax_mode;
     }
 
-    DCssSyntaxMode get_syntax_mode() const
+    css_syntax_mode get_syntax_mode() const
     {
         return m_sheet.syntax_mode;
     }
 
     void set_syntax_mode(
-        DCssSyntaxMode _mode
+        css_syntax_mode _mode
     )
     {
         m_sheet.syntax_mode = _mode;
@@ -1153,7 +1153,7 @@ public:
     //   function: appends a new style rule with the given
     // selector and returns a facade for it.
     rule_facade add_style_rule(
-        const DCssString& _selector
+        const css_string_t& _selector
     )
     {
         if (!m_sheet.root)
@@ -1161,7 +1161,7 @@ public:
             return rule_facade();
         }
         std::unique_ptr<rule_node_type> r(new rule_node_type);
-        r->rule_kind = DCssRuleKind::style_rule;
+        r->rule_kind = css_rule_kind::style_rule;
         r->selector  = _selector;
         r->parent    = m_sheet.root.get();
         rule_node_type* raw = r.get();
@@ -1173,8 +1173,8 @@ public:
     //   function: appends a new at-rule with the given
     // keyword and prelude.
     rule_facade add_at_rule(
-        const DCssString& _keyword,
-        const DCssString& _prelude = DCssString()
+        const css_string_t& _keyword,
+        const css_string_t& _prelude = css_string_t()
     )
     {
         if (!m_sheet.root)
@@ -1206,8 +1206,8 @@ public:
             return;
         }
         const bool  scss_nesting =
-            ( m_sheet.syntax_mode == DCssSyntaxMode::scss ||
-              m_sheet.syntax_mode == DCssSyntaxMode::css_nesting );
+            ( m_sheet.syntax_mode == css_syntax_mode::scss ||
+              m_sheet.syntax_mode == css_syntax_mode::css_nesting );
         ::djinterp::internal::css_emit_stylesheet_helper(
             _out, *m_sheet.root,
             /*minified*/ false,
@@ -1216,7 +1216,7 @@ public:
             scss_nesting);
     }
 
-    DCssString render_to_css() const
+    css_string_t render_to_css() const
     {
         std::ostringstream  oss;
         this->render_to_css(oss);
@@ -1236,8 +1236,8 @@ public:
             return;
         }
         const bool  scss_nesting =
-            ( m_sheet.syntax_mode == DCssSyntaxMode::scss ||
-              m_sheet.syntax_mode == DCssSyntaxMode::css_nesting );
+            ( m_sheet.syntax_mode == css_syntax_mode::scss ||
+              m_sheet.syntax_mode == css_syntax_mode::css_nesting );
         ::djinterp::internal::css_emit_stylesheet_helper(
             _out, *m_sheet.root,
             /*minified*/ true,
@@ -1245,7 +1245,7 @@ public:
             scss_nesting);
     }
 
-    DCssString render_to_minified_css() const
+    css_string_t render_to_minified_css() const
     {
         std::ostringstream  oss;
         this->render_to_minified_css(oss);
@@ -1276,7 +1276,7 @@ public:
             /*scss_nesting*/ true);
     }
 
-    DCssString render_to_scss() const
+    css_string_t render_to_scss() const
     {
         std::ostringstream  oss;
         this->render_to_scss(oss);
@@ -1292,20 +1292,20 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VI.   DCssDefaultBackend                                ///
+///                VI.   css_default_backend                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DCssDefaultBackend
+// css_default_backend
 //   struct: bundled in-memory backend for the CSS facades.
 // Uses a single underlying storage type for stylesheets,
 // rules, and declarations.
-struct DCssDefaultBackend
+struct css_default_backend
 {
-    using css_backend_tag = ::djinterp::css::DCssDefaultBackendTag;
+    using css_backend_tag = ::djinterp::css::css_default_backend_tag;
 
-    using rule_type        = ::djinterp::internal::DCssDefaultNode;
-    using declaration_type = ::djinterp::internal::DCssDefaultNode;
-    using stylesheet_type  = ::djinterp::internal::DCssDefaultStylesheet;
+    using rule_type        = ::djinterp::internal::css_default_node;
+    using declaration_type = ::djinterp::internal::css_default_node;
+    using stylesheet_type  = ::djinterp::internal::css_default_stylesheet;
 
     // make_stylesheet
     //   function: factory for a fresh empty stylesheet with a
@@ -1314,10 +1314,10 @@ struct DCssDefaultBackend
     stylesheet_type make_stylesheet()
     {
         stylesheet_type     s;
-        s.level       = DCssLevel::css_3;
-        s.syntax_mode = DCssSyntaxMode::css;
+        s.level       = css_level::css_3;
+        s.syntax_mode = css_syntax_mode::css;
         std::unique_ptr<rule_type>  root(new rule_type);
-        root->rule_kind = DCssRuleKind::stylesheet;
+        root->rule_kind = css_rule_kind::stylesheet;
         s.root          = std::move(root);
         return s;
     }
@@ -1333,12 +1333,12 @@ struct DCssDefaultBackend
 // facade for the given backend.
 template<typename Backend>
 inline
-DCssStylesheet<Backend> make_stylesheet(
-    DCssLevel       _level = DCssLevel::css_3,
-    DCssSyntaxMode  _syntax = DCssSyntaxMode::css
+css_stylesheet<Backend> make_stylesheet(
+    css_level       _level = css_level::css_3,
+    css_syntax_mode _syntax = css_syntax_mode::css
 )
 {
-    return DCssStylesheet<Backend>(_level, _syntax);
+    return css_stylesheet<Backend>(_level, _syntax);
 }
 
 
@@ -1347,15 +1347,15 @@ DCssStylesheet<Backend> make_stylesheet(
 // given selector.
 template<typename Backend>
 inline
-DCssRule<Backend> make_style_rule(
-    const DCssString& _selector
+css_rule<Backend> make_style_rule(
+    const css_string_t& _selector
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind = DCssRuleKind::style_rule;
+    n->rule_kind = css_rule_kind::style_rule;
     n->selector  = _selector;
-    return DCssRule<Backend>(n);
+    return css_rule<Backend>(n);
 }
 
 
@@ -1364,9 +1364,9 @@ DCssRule<Backend> make_style_rule(
 // given keyword and prelude.
 template<typename Backend>
 inline
-DCssRule<Backend> make_at_rule(
-    const DCssString& _keyword,
-    const DCssString& _prelude = DCssString()
+css_rule<Backend> make_at_rule(
+    const css_string_t& _keyword,
+    const css_string_t& _prelude = css_string_t()
 )
 {
     using node_t = typename Backend::rule_type;
@@ -1375,7 +1375,7 @@ DCssRule<Backend> make_at_rule(
     n->rule_kind    = rule_kind_from_at_rule_kind(n->at_rule_kind);
     n->at_keyword   = _keyword;
     n->prelude      = _prelude;
-    return DCssRule<Backend>(n);
+    return css_rule<Backend>(n);
 }
 
 
@@ -1384,8 +1384,8 @@ DCssRule<Backend> make_at_rule(
 // _query)`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_media_rule(
-    const DCssString& _query
+css_rule<Backend> make_media_rule(
+    const css_string_t& _query
 )
 {
     return make_at_rule<Backend>(at_rules::media, _query);
@@ -1396,8 +1396,8 @@ DCssRule<Backend> make_media_rule(
 //   function: convenience for `@supports`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_supports_rule(
-    const DCssString& _condition
+css_rule<Backend> make_supports_rule(
+    const css_string_t& _condition
 )
 {
     return make_at_rule<Backend>(at_rules::supports, _condition);
@@ -1408,8 +1408,8 @@ DCssRule<Backend> make_supports_rule(
 //   function: convenience for `@keyframes <name>`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_keyframes_rule(
-    const DCssString& _name
+css_rule<Backend> make_keyframes_rule(
+    const css_string_t& _name
 )
 {
     return make_at_rule<Backend>(at_rules::keyframes, _name);
@@ -1420,7 +1420,7 @@ DCssRule<Backend> make_keyframes_rule(
 //   function: convenience for `@font-face`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_font_face_rule()
+css_rule<Backend> make_font_face_rule()
 {
     return make_at_rule<Backend>(at_rules::font_face);
 }
@@ -1430,8 +1430,8 @@ DCssRule<Backend> make_font_face_rule()
 //   function: convenience for `@import url(...)`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_import_rule(
-    const DCssString& _url
+css_rule<Backend> make_import_rule(
+    const css_string_t& _url
 )
 {
     return make_at_rule<Backend>(at_rules::import_, _url);
@@ -1442,11 +1442,11 @@ DCssRule<Backend> make_import_rule(
 //   function: convenience for `@charset "encoding"`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_charset_rule(
-    const DCssString& _encoding
+css_rule<Backend> make_charset_rule(
+    const css_string_t& _encoding
 )
 {
-    DCssString    quoted;
+    css_string_t    quoted;
     quoted.reserve(_encoding.size() + 2);
     quoted.push_back('"');
     quoted.append(_encoding);
@@ -1459,15 +1459,15 @@ DCssRule<Backend> make_charset_rule(
 //   function: returns a new freestanding comment rule.
 template<typename Backend>
 inline
-DCssRule<Backend> make_comment(
-    const DCssString& _text
+css_rule<Backend> make_comment(
+    const css_string_t& _text
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind    = DCssRuleKind::comment;
+    n->rule_kind    = css_rule_kind::comment;
     n->comment_text = _text;
-    return DCssRule<Backend>(n);
+    return css_rule<Backend>(n);
 }
 
 

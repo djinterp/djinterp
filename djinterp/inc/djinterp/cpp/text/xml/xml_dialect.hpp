@@ -9,8 +9,8 @@
 * `static D_CONSTEXPR` functions whose values fold at compile time
 * when the template is instantiated -- zero runtime cost.
 *
-*   The enum `DXmlDialectFlag` is the canonical, greppable list of
-* every recognized XML profile. The template `DXmlDialect<Flag>`
+*   The enum `xml_dialect_flag` is the canonical, greppable list of
+* every recognized XML profile. The template `xml_dialect<Flag>`
 * derives every behavioural property from that single parameter via
 * internal switch expressions (for the small properties) and
 * delegations to free helpers in `internal::` (for the larger
@@ -23,9 +23,9 @@
 *
 *   EXTENSIBILITY:
 *   Third parties wanting a custom dialect can either use the
-* `DXmlDialectFlag::custom` flag (and intercept it in the helpers),
+* `xml_dialect_flag::custom` flag (and intercept it in the helpers),
 * OR define their own struct exposing the same `D_STATIC_CONSTEXPR`
-* surface and pass it wherever an `DXmlDialect<Flag>` would be
+* surface and pass it wherever an `xml_dialect<Flag>` would be
 * accepted. The trait `is_xml_dialect<Type>` recognizes both forms.
 *
 *
@@ -47,7 +47,7 @@ II.   INTERNAL CLASSIFICATION HELPERS
 III.  INTERNAL VALIDATION HELPERS
       ---------------------------
 
-IV.   DXmlDialect<Flag>
+IV.   xml_dialect<Flag>
       ------------------
 
 V.    CONVENIENCE ALIASES
@@ -82,12 +82,12 @@ NS_DJINTERP
 ///                I.   XML DIALECT FLAG                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DXmlDialectFlag
+// xml_dialect_flag
 //   enum: enumerates every recognized XML profile / dialect.
 // Backed by `re_std::uint8_t`. Adding a new dialect means appending
 // a value here and updating the small set of internal helpers
 // below; no new specialization or source file is needed.
-enum class DXmlDialectFlag : re_std::uint8_t
+enum class xml_dialect_flag : re_std::uint8_t
 {
     xml_1_0,                    // standard XML 1.0
     xml_1_1,                    // XML 1.1 (relaxed character rules)
@@ -116,12 +116,12 @@ NS_INTERNAL
     // it avoids drift between them.
     D_CONSTEXPR_INLINE
     bool is_canonical_xml_dialect_helper(
-        DXmlDialectFlag _flag
+        xml_dialect_flag _flag
     )
     {
-        return ( (_flag == DXmlDialectFlag::canonical_1_0)            ||
-                 (_flag == DXmlDialectFlag::canonical_1_1)            ||
-                 (_flag == DXmlDialectFlag::canonical_exclusive_1_0)  );
+        return ( (_flag == xml_dialect_flag::canonical_1_0)           ||
+                 (_flag == xml_dialect_flag::canonical_1_1)           ||
+                 (_flag == xml_dialect_flag::canonical_exclusive_1_0) );
     }
 
 
@@ -130,10 +130,10 @@ NS_INTERNAL
     // declaration (`<?xml version="X.Y" ?>`) for a given dialect.
     D_CONSTEXPR_INLINE
     const char* xml_dialect_default_xml_version_helper(
-        DXmlDialectFlag _flag
+        xml_dialect_flag _flag
     )
     {
-        return (_flag == DXmlDialectFlag::xml_1_1)
+        return (_flag == xml_dialect_flag::xml_1_1)
                 ? "1.1"
              :    "1.0";
     }
@@ -144,12 +144,12 @@ NS_INTERNAL
     // dialect. C14N mandates UTF-8; everything else defaults to
     // UTF-8 too but allows override at runtime.
     D_CONSTEXPR_INLINE
-    DXmlEncoding xml_dialect_default_encoding_helper(
-        DXmlDialectFlag _flag
+    xml_encoding xml_dialect_default_encoding_helper(
+        xml_dialect_flag _flag
     )
     {
         (void)_flag;
-        return DXmlEncoding::utf_8;
+        return xml_encoding::utf_8;
     }
 
 
@@ -159,16 +159,16 @@ NS_INTERNAL
     // empty string for dialects with no fixed namespace.
     D_CONSTEXPR_INLINE
     const char* xml_dialect_default_namespace_uri_helper(
-        DXmlDialectFlag _flag
+        xml_dialect_flag _flag
     )
     {
-        return (_flag == DXmlDialectFlag::svg)
+        return (_flag == xml_dialect_flag::svg)
                 ? "http://www.w3.org/2000/svg"
-             : (_flag == DXmlDialectFlag::xslt)
+             : (_flag == xml_dialect_flag::xslt)
                 ? "http://www.w3.org/1999/XSL/Transform"
-             : (_flag == DXmlDialectFlag::xhtml_compatible)
+             : (_flag == xml_dialect_flag::xhtml_compatible)
                 ? "http://www.w3.org/1999/xhtml"
-             : (_flag == DXmlDialectFlag::soap_envelope)
+             : (_flag == xml_dialect_flag::soap_envelope)
                 ? "http://www.w3.org/2003/05/soap-envelope"
              :    "";
     }
@@ -217,7 +217,7 @@ NS_INTERNAL
     // recursively to keep stack usage bounded for large names.
     D_CONSTEXPR_INLINE
     bool xml_dialect_is_valid_element_name_helper(
-        DXmlDialectFlag  _flag,
+        xml_dialect_flag _flag,
         const char*      _name
     )
     {
@@ -259,7 +259,7 @@ NS_INTERNAL
     // xml:* reserved prefixes) layer on additional rules.
     D_CONSTEXPR_INLINE
     bool xml_dialect_is_valid_attribute_name_helper(
-        DXmlDialectFlag  _flag,
+        xml_dialect_flag _flag,
         const char*      _name
     )
     {
@@ -270,17 +270,17 @@ NS_END  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.   DXmlDialect<Flag>                                 ///
+///                IV.   xml_dialect<Flag>                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// DXmlDialect
+// xml_dialect
 //   struct: compile-time policy capturing the rules of an XML
 // dialect / profile. Every property is `D_STATIC_CONSTEXPR`;
 // instantiating this template for a specific flag produces a
 // type whose properties fold to constants at compile time.
 // Use the convenience aliases below for the common dialects.
-template<DXmlDialectFlag    Flag>
-struct DXmlDialect
+template<xml_dialect_flag    Flag>
+struct xml_dialect
 {
     /// identity
 
@@ -288,7 +288,7 @@ struct DXmlDialect
     //   constant: the dialect flag this instantiation represents.
     // Lets callers pattern-match at compile time via if-constexpr
     // or static_assert.
-    D_STATIC_CONSTEXPR DXmlDialectFlag flag = Flag;
+    D_STATIC_CONSTEXPR xml_dialect_flag flag = Flag;
 
 
     /// version & encoding
@@ -305,7 +305,7 @@ struct DXmlDialect
     // default_encoding
     //   function: returns the default encoding for this dialect.
     static D_CONSTEXPR
-    DXmlEncoding default_encoding()
+    xml_encoding default_encoding()
     {
         return internal::xml_dialect_default_encoding_helper(Flag);
     }
@@ -358,7 +358,7 @@ struct DXmlDialect
     // requires this; pure XML is case-sensitive but does not
     // mandate a particular case.
     D_STATIC_CONSTEXPR bool require_lowercase_tags = (
-        (Flag == DXmlDialectFlag::xhtml_compatible)
+        (Flag == xml_dialect_flag::xhtml_compatible)
     );
 
     // emit_bom
@@ -393,8 +393,8 @@ struct DXmlDialect
     //   constant: whether xmlns attributes are required on
     // namespaced elements.
     D_STATIC_CONSTEXPR bool emit_namespace_declarations = (
-           (Flag != DXmlDialectFlag::custom)
-        && (Flag != DXmlDialectFlag::unspecified)
+           (Flag != xml_dialect_flag::custom)
+        && (Flag != xml_dialect_flag::unspecified)
     );
 
 
@@ -405,7 +405,7 @@ struct DXmlDialect
     // is allowed (NEL line endings, expanded restricted-char
     // handling).
     D_STATIC_CONSTEXPR bool allow_xml_1_1_chars = (
-        (Flag == DXmlDialectFlag::xml_1_1)
+        (Flag == xml_dialect_flag::xml_1_1)
     );
 
     // allow_dtd_subset
@@ -457,16 +457,16 @@ struct DXmlDialect
 
 // canonical names for the standard dialects. Use these where
 // readability matters; both forms are interchangeable since
-// every alias is just `DXmlDialect<...>`.
-using DXmlDialect1_0                 = DXmlDialect<DXmlDialectFlag::xml_1_0>;
-using DXmlDialect1_1                 = DXmlDialect<DXmlDialectFlag::xml_1_1>;
-using DXmlDialectCanonical1_0        = DXmlDialect<DXmlDialectFlag::canonical_1_0>;
-using DXmlDialectCanonical1_1        = DXmlDialect<DXmlDialectFlag::canonical_1_1>;
-using DXmlDialectCanonicalExcl1_0    = DXmlDialect<DXmlDialectFlag::canonical_exclusive_1_0>;
-using DXmlDialectSoap                = DXmlDialect<DXmlDialectFlag::soap_envelope>;
-using DXmlDialectXhtml               = DXmlDialect<DXmlDialectFlag::xhtml_compatible>;
-using DXmlDialectSvg                 = DXmlDialect<DXmlDialectFlag::svg>;
-using DXmlDialectXslt                = DXmlDialect<DXmlDialectFlag::xslt>;
+// every alias is just `xml_dialect<...>`.
+using xml_dialect_1_0                = xml_dialect<xml_dialect_flag::xml_1_0>;
+using xml_dialect_1_1                = xml_dialect<xml_dialect_flag::xml_1_1>;
+using xml_dialect_canonical_1_0      = xml_dialect<xml_dialect_flag::canonical_1_0>;
+using xml_dialect_canonical_1_1      = xml_dialect<xml_dialect_flag::canonical_1_1>;
+using xml_dialect_canonical_excl_1_0 = xml_dialect<xml_dialect_flag::canonical_exclusive_1_0>;
+using xml_dialect_soap               = xml_dialect<xml_dialect_flag::soap_envelope>;
+using xml_dialect_xhtml              = xml_dialect<xml_dialect_flag::xhtml_compatible>;
+using xml_dialect_svg                = xml_dialect<xml_dialect_flag::svg>;
+using xml_dialect_xslt               = xml_dialect<xml_dialect_flag::xslt>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -477,7 +477,7 @@ NS_INTERNAL
 
     // has_xml_dialect_flag_helper
     //   trait: SFINAE detector for `Type::flag` of type
-    // `DXmlDialectFlag`. Primary template (failure case).
+    // `xml_dialect_flag`. Primary template (failure case).
     template<typename Type,
              typename = void>
     struct has_xml_dialect_flag_helper
@@ -487,14 +487,14 @@ NS_INTERNAL
 
     // has_xml_dialect_flag_helper (specialization)
     //   trait: success case when `Type::flag` exists and is of
-    // type `DXmlDialectFlag`.
+    // type `xml_dialect_flag`.
     template<typename Type>
     struct has_xml_dialect_flag_helper<
         Type,
         typename std::enable_if<
             std::is_same<
                 clean_t<decltype(Type::flag)>,
-                DXmlDialectFlag
+                xml_dialect_flag
             >::value
         >::type
     >
@@ -507,8 +507,8 @@ NS_END  // internal
 
 // is_xml_dialect
 //   trait: true if `Type` exposes the XML dialect surface --
-// specifically a `flag` member of type `DXmlDialectFlag`.
-// Detects both `DXmlDialect<Flag>` instantiations and
+// specifically a `flag` member of type `xml_dialect_flag`.
+// Detects both `xml_dialect<Flag>` instantiations and
 // third-party policy structs that follow the same convention.
 template<typename    Type>
 struct is_xml_dialect
