@@ -47,15 +47,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_macros_member.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
+NS_TESTING
 namespace
 {
 
@@ -298,78 +297,78 @@ static_assert(std::is_same<typename value_type_or_long<DContainerLike>::type,
 // VI.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_macros_member(
-    test_handler& _test_handler
-)
+bool type_traits_tests_macros_member()
 {
+    bool verdict = true;
+
     // ---- HAS_METHOD ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_push_back<DContainerLike>::value == true,
         "D_TYPE_TRAIT_HAS_METHOD: positive case");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_push_back<has_value_type_no_methods>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD: value_type but no method -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_push_back<DBareClass>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD: bare class -> false");
 
     // ---- HAS_METHOD_ARGS (single arg) ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_erase_int<DContainerLike>::value == true,
         "D_TYPE_TRAIT_HAS_METHOD_ARGS: erase(int) present");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_erase_int<DBareClass>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD_ARGS: bare class -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_erase_unrelated<DContainerLike>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD_ARGS: incompatible arg type -> false");
 
     // ---- HAS_TYPE ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_value_type_alias<DContainerLike>::value == true,
         "D_TYPE_TRAIT_HAS_TYPE: value_type present");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_value_type_alias<DBareClass>::value == false,
         "D_TYPE_TRAIT_HAS_TYPE: nothing -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_size_type_alias<DContainerLike>::value == true,
         "D_TYPE_TRAIT_HAS_TYPE: size_type present");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_size_type_alias<has_value_type_no_methods>::value == false,
         "D_TYPE_TRAIT_HAS_TYPE: size_type absent (only value_type) -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_element_t_alias<DContainerLike>::value == true,
         "D_TYPE_TRAIT_HAS_TYPE: element_t alternate name present");
 
     // ---- HAS_STATIC_MEMBER ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_magic_static<DContainerLike>::value == true,
         "D_TYPE_TRAIT_HAS_STATIC_MEMBER: present");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_magic_static<DBareClass>::value == false,
         "D_TYPE_TRAIT_HAS_STATIC_MEMBER: absent");
 
     // ---- MEMBER_TYPE_OR ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename value_type_or_void<DContainerLike>::type, int>::value,
         "D_TYPE_TRAIT_MEMBER_TYPE_OR: value_type present -> extracted");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename value_type_or_void<DBareClass>::type, void>::value,
         "D_TYPE_TRAIT_MEMBER_TYPE_OR: value_type absent -> fall-back (void)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename value_type_or_void<const DContainerLike&>::type,
                      int>::value,
         "D_TYPE_TRAIT_MEMBER_TYPE_OR: const-ref probe strips cv/ref");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<value_type_or_void_t<DContainerLike>, int>::value,
         "D_TYPE_TRAIT_MEMBER_TYPE_OR: _t alias yields extracted type");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename value_type_or_long<DBareClass>::type, long>::value,
         "D_TYPE_TRAIT_MEMBER_TYPE_OR: distinct fall-back honored (long)");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

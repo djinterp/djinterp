@@ -9,8 +9,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/compose_tests_partial.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -20,10 +20,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
@@ -49,15 +45,14 @@ compose_tests_partial
   - argument order is preserved (a - b - c semantics survive binding)
   - constexpr evaluation (C++14+)
 */
-void compose_tests_partial(
-    test_handler& _handler
-)
+bool compose_tests_partial()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // bind the trailing argument of a binary callable
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "partial_back binds the last argument of a binary callable",
         [&]()
@@ -65,22 +60,19 @@ void compose_tests_partial(
             // partial_back(DSubtractTwo, 3)(10) = DSubtractTwo(10, 3) = 7
             auto sub3 = ::djinterp::partial_back(DSubtractTwo(), 3);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (sub3(10) == 7),
                 "partial_back(subtract_two, 3)(10) == 7");
 
             // the bound value is the SECOND operand, not the first:
             // confirm we did not compute 3 - 10.
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (sub3(10) != -7),
                 "bound value is appended, not prepended");
         });
 
     // bind the trailing argument of a ternary callable
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "partial_back binds the last argument of a ternary callable",
         [&]()
@@ -89,33 +81,29 @@ void compose_tests_partial(
             //   = DSubtractThree(10, 2, 1) = 10 - 2 - 1 = 7
             auto sub = ::djinterp::partial_back(DSubtractThree(), 1);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (sub(10, 2) == 7),
                 "partial_back(subtract_three, 1)(10, 2) == 7");
 
             // call-site argument order is preserved
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (sub(2, 10) == -9),
                 "partial_back(subtract_three, 1)(2, 10) == -9");
         });
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "partial_back evaluates in a constexpr context",
         [&]()
         {
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (k_constexpr_partial == 7),
                 "constexpr partial_back == 7");
         });
 #endif
 
-    return;
+    return verdict;
 }
 
 

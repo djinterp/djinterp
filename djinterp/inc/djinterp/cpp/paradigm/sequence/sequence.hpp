@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/cpp/paradigm/sequence/sequence.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.10
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_PARADIGM_SEQUENCE_SEQUENCE_HPP
@@ -44,16 +44,40 @@
 // std
 #include <cstddef>
 #include <initializer_list>
+#include <iterator>
 #include <type_traits>
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"  // conjunction
+#include "../../meta/type_traits.hpp"  // conjunction, void_t
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // fixed-width integers
 
 
 NS_DJINTERP
+
+NS_INTERNAL
+
+    // is_sequence_source_iterator
+    //   trait: true when Iterator is an iterator (std::iterator_traits names
+    // its category) whose dereference converts to Type -- what sequence's
+    // iterator-pair constructor reads. Two elements (two std::strings, two
+    // ints) are not such a pair, so they go to the variadic constructor.
+    template<typename Iterator,
+             typename Type,
+             typename = void>
+    struct is_sequence_source_iterator : std::false_type
+    {};
+
+    template<typename Iterator,
+             typename Type>
+    struct is_sequence_source_iterator<Iterator, Type, void_t<
+        typename std::iterator_traits<Iterator>::iterator_category,
+        decltype(*std::declval<Iterator&>())>>
+        : std::is_convertible<decltype(*std::declval<Iterator&>()), Type>
+    {};
+
+NS_END  // internal
 
 
 // ================================================================
@@ -119,8 +143,15 @@ public:
     {}
 
     // sequence (iterator pair)
-    //   constructs a sequence from a range [_begin, _end).
-    template<typename Iterator>
+    //   constructs a sequence from a range [_begin, _end). Viable only for
+    // an iterator whose elements convert to Type: unconstrained, it was
+    // the better match for any two arguments of one type, so two
+    // std::strings reached std::vector's range constructor and did not
+    // compile, and two ints would have been read as a range.
+    template<typename Iterator,
+             typename = typename std::enable_if<
+                 internal::is_sequence_source_iterator<Iterator,
+                                                       Type>::value>::type>
     sequence(
         Iterator _begin,
         Iterator _end
@@ -323,6 +354,19 @@ public:
         const sequence& _other
     )
     {
+        // a range into m_data itself breaks std::vector::insert's
+        // precondition: a reallocating insert moves the very elements it
+        // reads, so the appended half came back moved-from. Appending a
+        // sequence to itself copies it first.
+        if (&_other == this)
+        {
+            const std::vector<Type> copy(m_data);
+
+            m_data.insert(m_data.end(), copy.begin(), copy.end());
+
+            return;
+        }
+
         m_data.insert(
             m_data.end(),
             _other.m_data.begin(),

@@ -17,7 +17,7 @@
 # a combined build.  The globs below are prefix-scoped so this target pulls only
 # its own section TUs.
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/container/structure")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/meta")
 
 file(GLOB _sources CONFIGURE_DEPENDS
     "${_tests_dir}/hierarchical_tests_*.cpp")
@@ -28,5 +28,5 @@ djinterp_add_test_executable(hierarchical_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/hierarchical_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/core/container/structure"  # header under test
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/meta"  # header under test
         "${_tests_dir}")                                          # suite header

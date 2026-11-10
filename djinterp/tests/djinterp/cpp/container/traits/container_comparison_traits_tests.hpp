@@ -59,7 +59,7 @@
 *                                   container_comparison_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -98,12 +98,27 @@ III.  TEST DECLARATIONS
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_comparison_traits.hpp"   // the header under test
 #include "djinterp/cpp/modules/test/test_traits.hpp"     // the trait-testing toolkit
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // the trait-testing toolkit, by name.  The traits under test need no
@@ -511,7 +526,7 @@ struct DCompileConstSeq : DConstSeq
 //   struct: declares static (in-object) siting.
 struct static_seq : DRuntimeSeq
 {
-    static constexpr storage_duration storage_duration_category =
+    static constexpr storage_duration::value storage_duration_category =
         storage_duration::static_storage;
 };
 
@@ -519,7 +534,7 @@ struct static_seq : DRuntimeSeq
 //   struct: declares dynamic (allocated) siting.
 struct dynamic_seq : DRuntimeSeq
 {
-    static constexpr storage_duration storage_duration_category =
+    static constexpr storage_duration::value storage_duration_category =
         storage_duration::dynamic_storage;
 };
 
@@ -529,7 +544,7 @@ struct dynamic_seq : DRuntimeSeq
 // because the axis is an equivalence and does not order its own points.
 struct DHybridSeq : DRuntimeSeq
 {
-    static constexpr storage_duration storage_duration_category =
+    static constexpr storage_duration::value storage_duration_category =
         storage_duration::hybrid_storage;
 };
 
@@ -559,6 +574,8 @@ using std_vec_vec   = std::vector<std::vector<int>>;
 using fn_type    = int(int);
 using arr_type   = int[3];
 using lref_type  = int&;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -623,6 +640,243 @@ bool tests_stdlib_content_rungs();
 bool tests_stdlib_sequences();
 bool tests_stdlib_associative();
 bool tests_stdlib_refinement();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_comparison_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_comparison_traits_spec()
+{
+    return dt::module_spec{
+        "container_comparison_traits",
+        "The comparison of two container TYPES: the content hierarchy, the "
+        "discipline strength order, the three realization preorders, the "
+        "product refinement they fold into - and the order-theoretic laws "
+        "that fold has to obey",
+        {
+            dt::block_spec{
+                "relations",
+                "Comparison relations",
+                {
+                    { "tests_order_relation_enum",
+                      "The order_relation enum itself",
+                      &tests_order_relation_enum },
+                    { "tests_order_relation_name",
+                      "order_relation_name - the stable spelling",
+                      &tests_order_relation_name },
+                    { "tests_order_relation_meet_table",
+                      "order_relation_meet - ALL SIXTEEN CELLS",
+                      &tests_order_relation_meet_table },
+                    { "tests_order_relation_meet_laws",
+                      "The meet is not merely a table - it is an algebraic "
+                      "operation, and the refinement folds four axes through "
+                      "it in a fixed left-nested order: meet( meet( "
+                      "meet(discipline, lifetime), iterability ), storage ) "
+                      "If the meet were not ASSOCIATIVE and COMMUTATIVE, that "
+                      "order would matter, and the answer would depend on "
+                      "which axis the author happened to write first",
+                      &tests_order_relation_meet_laws },
+                }
+            },
+            dt::block_spec{
+                "content",
+                "Content: the native level lambda",
+                {
+                    { "tests_content_level_enum",
+                      "checks std::is_enum<content_level>::value",
+                      &tests_content_level_enum },
+                    { "tests_content_level_name",
+                      "content_level_name - the stable spelling",
+                      &tests_content_level_name },
+                    { "tests_content_level_rank",
+                      "content_level_rank - fineness as an integer",
+                      &tests_content_level_rank },
+                    { "tests_content_level_coarser",
+                      "content_level_coarser - the rung at which two types "
+                      "compare",
+                      &tests_content_level_coarser },
+                    { "tests_native_content_level_rungs",
+                      "native_content_level_of - the rung at which a type "
+                      "NATIVELY compares",
+                      &tests_native_content_level_rungs },
+                    { "tests_native_content_level_precedence",
+                      "THE PRECEDENCE RULE",
+                      &tests_native_content_level_precedence },
+                    { "tests_native_content_level_value_companion",
+                      "native_content_level_of_v",
+                      &tests_native_content_level_value_companion },
+                }
+            },
+            dt::block_spec{
+                "discipline",
+                "Discipline: the overlay strength order",
+                {
+                    { "tests_discipline_equivalent",
+                      "discipline_relation - mutual subsumption is "
+                      "discipline-EQUALITY",
+                      &tests_discipline_equivalent },
+                    { "tests_discipline_ordered",
+                      "discipline_relation - `greater` is the LEFT more "
+                      "restrictive: it wears every restriction the right "
+                      "does, and more",
+                      &tests_discipline_ordered },
+                    { "tests_discipline_incomparable",
+                      "discipline_relation - `incomparable` is a genuine "
+                      "mismatch: each type wears a restriction the other does "
+                      "not, so neither overlay contains the other",
+                      &tests_discipline_incomparable },
+                    { "tests_discipline_non_container",
+                      "THE FINDING",
+                      &tests_discipline_non_container },
+                }
+            },
+            dt::block_spec{
+                "realization",
+                "Realization preorders",
+                {
+                    { "tests_lifetime_relation",
+                      "lifetime_relation - staticity, as a TWO-POINT total "
+                      "order with the compile-time stage the stronger",
+                      &tests_lifetime_relation },
+                    { "tests_lifetime_is_total",
+                      "lifetime_relation is a TOTAL order on two points - it "
+                      "can never be incomparable",
+                      &tests_lifetime_is_total },
+                    { "tests_iterability_bottom",
+                      "DIterabilityRelation - the BOTTOM of the lattice: "
+                      "not-iterable",
+                      &tests_iterability_bottom },
+                    { "tests_iterability_lattice",
+                      "DIterabilityRelation - the four iterable kinds, as the "
+                      "PRODUCT of two bits: compile-reachable  x  "
+                      "non-const-reachable const          non-const runtime "
+                      "stage        (F, F)  DConstSeq       (F, T)  "
+                      "DRuntimeSeq compile stage        (T, F)  compile_const "
+                      "  (T, T)  DCompileSeq",
+                      &tests_iterability_lattice },
+                    { "tests_iterability_mixed_kinds",
+                      "THE REASON THE AXIS IS A LATTICE",
+                      &tests_iterability_mixed_kinds },
+                    { "tests_storage_relation",
+                      "storage_relation - an EQUIVALENCE axis",
+                      &tests_storage_relation },
+                    { "tests_storage_inert",
+                      "THE FINDING",
+                      &tests_storage_inert },
+                }
+            },
+            dt::block_spec{
+                "profile",
+                "The comparison profile",
+                {
+                    { "tests_profile_members",
+                      "DComparisonProfile - the eight members it exposes",
+                      &tests_profile_members },
+                    { "tests_profile_agrees_with_axes",
+                      "The profile must be a faithful restatement of its axes "
+                      "- a convenience that can disagree with what it "
+                      "summarizes is worse than no convenience",
+                      &tests_profile_agrees_with_axes },
+                    { "tests_refinement_composition",
+                      "refinement_of - the product over the four "
+                      "type-decidable axes",
+                      &tests_refinement_composition },
+                    { "tests_refinement_non_container",
+                      "THE FINDING, ESCAPING",
+                      &tests_refinement_non_container },
+                    { "tests_realization_equal",
+                      "realization_equal - true iff the refinement is "
+                      "`equivalent`: the two types agree on discipline and on "
+                      "every realization axis",
+                      &tests_realization_equal },
+                    { "tests_realization_comparable",
+                      "realization_comparable - true iff the two are ORDERED "
+                      "(or equal) on the refinement: not incomparable",
+                      &tests_realization_comparable },
+                    { "tests_profile_value_companions",
+                      "The `_v` companions of section V",
+                      &tests_profile_value_companions },
+                }
+            },
+            dt::block_spec{
+                "laws",
+                "The order-theoretic laws",
+                {
+                    { "tests_law_reflexivity",
+                      "REFLEXIVITY",
+                      &tests_law_reflexivity },
+                    { "tests_law_direction",
+                      "THE DIRECTION CONTRACT",
+                      &tests_law_direction },
+                    { "tests_law_transitivity",
+                      "TRANSITIVITY",
+                      &tests_law_transitivity },
+                    { "tests_law_content_excluded",
+                      "CONTENT IS NOT IN THE REFINEMENT - and that is "
+                      "deliberate",
+                      &tests_law_content_excluded },
+                    { "tests_axis_coupling",
+                      "THE AXES ARE NOT INDEPENDENT, and the product order "
+                      "assumes they are",
+                      &tests_axis_coupling },
+                }
+            },
+            dt::block_spec{
+                "robustness",
+                "Robustness  (cv-ref, hostile types, completeness, trait "
+                "shape)",
+                {
+                    { "tests_cvref_axes",
+                      "Every axis must answer identically for T, const T, "
+                      "volatile T, const volatile T, T&, const T&, T&& and "
+                      "const T&& - on BOTH operands",
+                      &tests_cvref_axes },
+                    { "tests_cvref_profile",
+                      "DComparisonProfile cleans BOTH operands - it declares "
+                      "`using L = clean_t<_Left>` and `using R = "
+                      "clean_t<_Right>` and passes those to every axis",
+                      &tests_cvref_profile },
+                    { "tests_hostile_types",
+                      "Every trait must survive every adversarial shape - "
+                      "void, function types, arrays, references, member "
+                      "pointers, enums, and the class-type adversaries - and "
+                      "must REPORT rather than DIAGNOSE",
+                      &tests_hostile_types },
+                    { "tests_incomplete_type",
+                      "THE COMPLETENESS BOUNDARY",
+                      &tests_incomplete_type },
+                    { "tests_trait_shape",
+                      "Is each trait well-shaped?",
+                      &tests_trait_shape },
+                }
+            },
+            dt::block_spec{
+                "stdlib",
+                "Standard library",
+                {
+                    { "tests_stdlib_content_rungs",
+                      "Where the standard library sits on the content "
+                      "hierarchy",
+                      &tests_stdlib_content_rungs },
+                    { "tests_stdlib_sequences",
+                      "The standard sequences against each other",
+                      &tests_stdlib_sequences },
+                    { "tests_stdlib_associative",
+                      "The associative containers",
+                      &tests_stdlib_associative },
+                    { "tests_stdlib_refinement",
+                      "The whole module, on the standard library, as a caller "
+                      "would read it",
+                      &tests_stdlib_refinement },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

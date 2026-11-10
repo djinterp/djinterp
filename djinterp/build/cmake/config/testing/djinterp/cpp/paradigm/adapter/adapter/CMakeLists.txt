@@ -8,7 +8,7 @@
 # forms resolve.  The helper supplies inc/ and the output dir automatically.
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/paradigm/adapter")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/adapter/adapter")
 
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/adapter_tests_*.cpp")
 list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
@@ -18,5 +18,5 @@ djinterp_add_test_executable(adapter_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/adapter_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/paradigm/adapter"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/adapter"
         "${_tests_dir}")

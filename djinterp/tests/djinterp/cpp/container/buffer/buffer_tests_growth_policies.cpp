@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_growth_policies.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -20,9 +20,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_fixed_growth_policy
   Covers the fixed_growth_policy struct.
@@ -35,10 +33,10 @@ tests_fixed_growth_policy
     by contract)
   - compute() is noexcept and usable in a constexpr context
 */
-void tests_fixed_growth_policy(
-    test_handler& _handler
-)
+bool tests_fixed_growth_policy()
 {
+    bool ok = true;
+
     using policy = fixed_growth_policy;
 
     // --- constants ---
@@ -50,41 +48,34 @@ void tests_fixed_growth_policy(
         policy::can_grow == false,
         "fixed_growth_policy::can_grow must be false.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::strategy == buffer_growth_strategy::none,
         "fixed_growth_policy::strategy == buffer_growth_strategy::none");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::can_grow == false,
         "fixed_growth_policy::can_grow == false");
 
     // --- compute(): _required is ignored ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 0) == 0,
         "fixed: compute(0, 0) == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 1000) == 0,
         "fixed: compute(0, 1000) == 0  "
         "(required ignored when current is 0)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(128, 64) == 128,
         "fixed: compute(128, 64) == 128");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(128, 128) == 128,
         "fixed: compute(128, 128) == 128");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(128, 1024) == 128,
         "fixed: compute(128, 1024) == 128  (required ignored)");
 
@@ -97,12 +88,13 @@ void tests_fixed_growth_policy(
         "fixed_growth_policy::compute must be constexpr-evaluable "
         "and return current unchanged.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         k_cx == 64,
         "fixed: compute is constexpr-evaluable");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -121,10 +113,10 @@ tests_linear_growth_policy
   - the static_assert on _Increment > 0 is implicitly verified by
     successful instantiation with non-zero increments
 */
-void tests_linear_growth_policy(
-    test_handler& _handler
-)
+bool tests_linear_growth_policy()
 {
+    bool ok = true;
+
     using default_policy = DLinearGrowthPolicy<>;
     using small_policy   = DLinearGrowthPolicy<16>;
     using one_policy     = DLinearGrowthPolicy<1>;
@@ -147,74 +139,61 @@ void tests_linear_growth_policy(
         one_policy::increment == 1,
         "linear_growth_policy<1>::increment must be 1.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::strategy == buffer_growth_strategy::linear,
         "linear: strategy == ::linear");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::can_grow == true,
         "linear: can_grow == true");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::increment == 4096,
         "linear: default increment == 4096");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::increment == 16,
         "linear<16>::increment == 16");
 
     // --- compute(): no growth path (current >= required) ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(32, 0) == 32,
         "linear<16>: compute(32, 0) == 32  (no growth needed)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(32, 16) == 32,
         "linear<16>: compute(32, 16) == 32  (no growth needed)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(32, 32) == 32,
         "linear<16>: compute(32, 32) == 32  (boundary, no growth)");
 
     // --- compute(): single-step growth ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(32, 33) == 48,
         "linear<16>: compute(32, 33) == 48  (one increment)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 16) == 16,
         "linear<16>: compute(0, 16) == 16  (one increment from zero)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 1) == 16,
         "linear<16>: compute(0, 1) == 16  (rounds up to one increment)");
 
     // --- compute(): multi-step growth ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 100) == 112,
         "linear<16>: compute(0, 100) == 112  (seven increments)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(32, 100) == 112,
         "linear<16>: compute(32, 100) == 112  (five increments above 32)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         one_policy::compute(0, 5) == 5,
         "linear<1>: compute(0, 5) == 5  (five increments of one)");
 
@@ -226,12 +205,13 @@ void tests_linear_growth_policy(
         k_cx == 64,
         "linear<16>::compute(0, 50) should be 64 at compile time.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         k_cx == 64,
         "linear<16>: compute is constexpr-evaluable");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -250,10 +230,10 @@ tests_exponential_growth_policy
   - compute() requires multiple doublings for large required values
   - compute() is constexpr-evaluable
 */
-void tests_exponential_growth_policy(
-    test_handler& _handler
-)
+bool tests_exponential_growth_policy()
 {
+    bool ok = true;
+
     using policy = exponential_growth_policy;
 
     // --- constants ---
@@ -268,76 +248,63 @@ void tests_exponential_growth_policy(
         policy::min_capacity == 64,
         "exponential_growth_policy::min_capacity must be 64.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::strategy == buffer_growth_strategy::exponential,
         "exponential: strategy == ::exponential");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::can_grow == true,
         "exponential: can_grow == true");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::min_capacity == 64,
         "exponential: min_capacity == 64");
 
     // --- compute(): bootstrap from zero uses min_capacity ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 0) == 64,
         "exponential: compute(0, 0) == 64  "
         "(zero current bootstraps to min_capacity even when "
         "required is zero, because loop terminates immediately)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 1) == 64,
         "exponential: compute(0, 1) == 64  (bootstrap to min)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 64) == 64,
         "exponential: compute(0, 64) == 64  (bootstrap exact match)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 65) == 128,
         "exponential: compute(0, 65) == 128  (bootstrap then one doubling)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(0, 1000) == 1024,
         "exponential: compute(0, 1000) == 1024  "
         "(bootstrap + four doublings: 64->128->256->512->1024)");
 
     // --- compute(): doubling from non-zero current ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(16, 17) == 32,
         "exponential: compute(16, 17) == 32  (one doubling)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(8, 100) == 128,
         "exponential: compute(8, 100) == 128  "
         "(8->16->32->64->128, four doublings)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(1, 1) == 1,
         "exponential: compute(1, 1) == 1  (current already sufficient)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(128, 50) == 128,
         "exponential: compute(128, 50) == 128  (current already sufficient)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::compute(128, 128) == 128,
         "exponential: compute(128, 128) == 128  (exact boundary)");
 
@@ -349,12 +316,13 @@ void tests_exponential_growth_policy(
         k_cx == 256,
         "exponential::compute(0, 200) should be 256 at compile time.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         k_cx == 256,
         "exponential: compute is constexpr-evaluable");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -375,10 +343,10 @@ tests_page_growth_policy
     is stateless across calls)
   - compute() is constexpr-evaluable
 */
-void tests_page_growth_policy(
-    test_handler& _handler
-)
+bool tests_page_growth_policy()
 {
+    bool ok = true;
+
     using default_policy = DPageGrowthPolicy<>;
     using small_policy   = DPageGrowthPolicy<16>;
     using tiny_policy    = DPageGrowthPolicy<2>;
@@ -398,116 +366,96 @@ void tests_page_growth_policy(
         small_policy::page_size == 16,
         "page_growth_policy<16>::page_size must be 16.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::strategy == buffer_growth_strategy::page_aligned,
         "page: strategy == ::page_aligned");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::can_grow == true,
         "page: can_grow == true");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::page_size == 4096,
         "page: default page_size == 4096");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::page_size == 16,
         "page<16>::page_size == 16");
 
     // --- compute(): zero required ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 0) == 0,
         "page<16>: compute(0, 0) == 0  (zero required => zero)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(999, 0) == 0,
         "page<16>: compute(999, 0) == 0  (current is ignored)");
 
     // --- compute(): boundary (exact page multiple) ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 16) == 16,
         "page<16>: compute(0, 16) == 16  (exact one-page boundary)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 32) == 32,
         "page<16>: compute(0, 32) == 32  (exact two-page boundary)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 64) == 64,
         "page<16>: compute(0, 64) == 64  (exact four-page boundary)");
 
     // --- compute(): rounding up ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 1) == 16,
         "page<16>: compute(0, 1) == 16  (rounds up to one page)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 15) == 16,
         "page<16>: compute(0, 15) == 16  (rounds up to one page)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 17) == 32,
         "page<16>: compute(0, 17) == 32  (rounds up to two pages)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(0, 33) == 48,
         "page<16>: compute(0, 33) == 48  (rounds up to three pages)");
 
     // --- compute(): current is unused ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         small_policy::compute(1024, 17) == 32,
         "page<16>: compute(1024, 17) == 32  "
         "(current is documented as ignored)");
 
     // --- compute(): tiny page size still works (minimum power of two) ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         tiny_policy::compute(0, 3) == 4,
         "page<2>: compute(0, 3) == 4");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         tiny_policy::compute(0, 7) == 8,
         "page<2>: compute(0, 7) == 8");
 
     // --- compute(): default 4096-byte page ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::compute(0, 1) == 4096,
         "page<>: compute(0, 1) == 4096");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::compute(0, 4096) == 4096,
         "page<>: compute(0, 4096) == 4096");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::compute(0, 4097) == 8192,
         "page<>: compute(0, 4097) == 8192");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         default_policy::compute(0, 12345) == 16384,
         "page<>: compute(0, 12345) == 16384");
 
@@ -519,14 +467,15 @@ void tests_page_growth_policy(
         k_cx == 32,
         "page<16>::compute(0, 17) should be 32 at compile time.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         k_cx == 32,
         "page<16>: compute is constexpr-evaluable");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

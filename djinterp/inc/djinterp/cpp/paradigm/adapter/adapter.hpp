@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/cpp/paradigm/adapter/adapter.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.09
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -997,7 +997,7 @@ public:
         Args&&... _args
     )
     {
-        return invoke_impl(std::index_sequence_for<Args...>{},
+        return invoke_impl(re_std::index_sequence_for<Args...>{},
                            std::forward<Args>(_args)...);
     }
 

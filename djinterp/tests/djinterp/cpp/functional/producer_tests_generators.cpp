@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/producer_tests_generators.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.02
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -47,10 +47,10 @@ test_producer_generators
   - from_container drains a container in order, and an empty container
     yields nothing
 */
-void test_producer_generators(
-    test::test_handler& _h
-)
+bool test_producer_generators()
 {
+    bool verdict = true;
+
 
     // ---- iterate: 1, 2, 3, 4, 5 (seed 1, step +1), bounded to 5 ----
     {
@@ -59,7 +59,7 @@ void test_producer_generators(
         want.push_back(1); want.push_back(2); want.push_back(3);
         want.push_back(4); want.push_back(5);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- unfold: countdown 5,4,3,2,1 then exhaust ----
@@ -70,7 +70,7 @@ void test_producer_generators(
         want.push_back(5); want.push_back(4); want.push_back(3);
         want.push_back(2); want.push_back(1);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- unfold with an initial state that exhausts immediately ----
@@ -78,7 +78,7 @@ void test_producer_generators(
         auto p = unfold<int>(0, DUnfoldCountdown());
         std::vector<int> got = p.collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- range ascending [1, 5) ----
@@ -88,7 +88,7 @@ void test_producer_generators(
         want.push_back(1); want.push_back(2);
         want.push_back(3); want.push_back(4);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- range with explicit step of 2: 0,2,4,6,8 ----
@@ -98,7 +98,7 @@ void test_producer_generators(
         want.push_back(0); want.push_back(2); want.push_back(4);
         want.push_back(6); want.push_back(8);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- range descending with negative step: 5,4,3,2,1 ----
@@ -108,33 +108,33 @@ void test_producer_generators(
         want.push_back(5); want.push_back(4); want.push_back(3);
         want.push_back(2); want.push_back(1);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- empty range: start == end ----
     {
         std::vector<int> got = range(3, 3).collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- zero step: immediate exhaustion (no infinite loop) ----
     {
         std::vector<int> got = range(0, 10, 0).collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- direction can never close the gap (positive step, start>end) ----
     {
         std::vector<int> got = range(10, 0, 1).collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- iota matches range default step ----
     {
-        D_TEST_CHECK(_h, iota(2, 6).collect() == range(2, 6).collect());
+        D_PRODUCER_CHECK(iota(2, 6).collect() == range(2, 6).collect());
     }
 
     // ---- repeat (bounded): five 9s ----
@@ -142,7 +142,7 @@ void test_producer_generators(
         std::vector<int> got = take_n(repeat(9), 5).collect();
         std::vector<int> want(5, 9);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- repeat_n: exactly three 4s ----
@@ -150,14 +150,14 @@ void test_producer_generators(
         std::vector<int> got = repeat_n(4, 3).collect();
         std::vector<int> want(3, 4);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- repeat_n(v, 0): nothing ----
     {
         std::vector<int> got = repeat_n(4, 0).collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- cycle: wrap [1,2,3] for 7 pulls -> 1,2,3,1,2,3,1 ----
@@ -171,7 +171,7 @@ void test_producer_generators(
         want.push_back(1); want.push_back(2); want.push_back(3);
         want.push_back(1);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- cycle of an empty container exhausts immediately ----
@@ -179,7 +179,7 @@ void test_producer_generators(
         std::vector<int> empty_src;
         std::vector<int> got = take_n(cycle(empty_src), 5).collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- generate: counting source 0..4 (bounded) ----
@@ -189,7 +189,7 @@ void test_producer_generators(
         want.push_back(0); want.push_back(1); want.push_back(2);
         want.push_back(3); want.push_back(4);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- generate: constant source ----
@@ -198,30 +198,30 @@ void test_producer_generators(
             take_n(generate(DConstantSource(8)), 3).collect();
         std::vector<int> want(3, 8);
 
-        D_TEST_CHECK(_h, got == want);
+        D_PRODUCER_CHECK(got == want);
     }
 
     // ---- empty<T> yields nothing ----
     {
         std::vector<int> got = empty<int>().collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- single emits exactly one value ----
     {
         std::vector<int> got = single(123).collect();
 
-        D_TEST_CHECK(_h, got.size() == 1);
-        D_TEST_CHECK(_h, (got.size() == 1 && got[0] == 123));
+        D_PRODUCER_CHECK(got.size() == 1);
+        D_PRODUCER_CHECK((got.size() == 1 && got[0] == 123));
     }
 
     // ---- single with a string element type ----
     {
         std::vector<std::string> got = single(std::string("x")).collect();
 
-        D_TEST_CHECK(_h, got.size() == 1);
-        D_TEST_CHECK(_h, (got.size() == 1 && got[0] == "x"));
+        D_PRODUCER_CHECK(got.size() == 1);
+        D_PRODUCER_CHECK((got.size() == 1 && got[0] == "x"));
     }
 
     // ---- from_container drains in order ----
@@ -231,7 +231,7 @@ void test_producer_generators(
 
         std::vector<int> got = from_container(src).collect();
 
-        D_TEST_CHECK(_h, got == src);
+        D_PRODUCER_CHECK(got == src);
     }
 
     // ---- from_container of an empty container yields nothing ----
@@ -239,7 +239,7 @@ void test_producer_generators(
         std::vector<int> empty_src;
         std::vector<int> got = from_container(empty_src).collect();
 
-        D_TEST_CHECK(_h, got.empty());
+        D_PRODUCER_CHECK(got.empty());
     }
 
     // ---- iterate threading a pair state (fibonacci firsts) ----
@@ -260,19 +260,19 @@ void test_producer_generators(
             take_n(fibs, 6).collect();
 
         // firsts: 0,1,1,2,3,5
-        D_TEST_CHECK(_h, pairs.size() == 6);
+        D_PRODUCER_CHECK(pairs.size() == 6);
         if (pairs.size() == 6)
         {
-            D_TEST_CHECK(_h, pairs[0].first == 0);
-            D_TEST_CHECK(_h, pairs[1].first == 1);
-            D_TEST_CHECK(_h, pairs[2].first == 1);
-            D_TEST_CHECK(_h, pairs[3].first == 2);
-            D_TEST_CHECK(_h, pairs[4].first == 3);
-            D_TEST_CHECK(_h, pairs[5].first == 5);
+            D_PRODUCER_CHECK(pairs[0].first == 0);
+            D_PRODUCER_CHECK(pairs[1].first == 1);
+            D_PRODUCER_CHECK(pairs[2].first == 1);
+            D_PRODUCER_CHECK(pairs[3].first == 2);
+            D_PRODUCER_CHECK(pairs[4].first == 3);
+            D_PRODUCER_CHECK(pairs[5].first == 5);
         }
     }
 
-    return;
+    return verdict;
 }
 
 

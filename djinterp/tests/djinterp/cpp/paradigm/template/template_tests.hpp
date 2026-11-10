@@ -34,7 +34,7 @@
 * path:      /tests/djinterp/cpp/paradigm/template/template_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_TEMPLATE_TESTS_
@@ -48,6 +48,10 @@
 #include "../../../../../inc/djinterp/cpp/paradigm/template/template.hpp"                       // the header under test (bare form)
 #include "djinterp/cpp/modules/test/test_defaults.hpp"    // module_spec, run_module
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING

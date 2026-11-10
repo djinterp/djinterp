@@ -14,8 +14,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/result_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -105,69 +105,69 @@ static_assert(!result_error_mapper_for<DFnDouble, std::string>,
 #endif
 
 
-void test_traits(
-    test::test_handler& _h
-)
+bool test_traits()
 {
+    bool verdict = true;
+
     // ---- is_result ----
-    test::record_assertion(_h, is_result<ri>::value,
+    record_assertion(verdict, is_result<ri>::value,
         "trait: is_result true for result<int,string>");
-    test::record_assertion(_h, is_result<const ri&>::value,
+    record_assertion(verdict, is_result<const ri&>::value,
         "trait: is_result strips cv/ref before matching");
-    test::record_assertion(_h, !is_result<int>::value,
+    record_assertion(verdict, !is_result<int>::value,
         "trait: is_result false for a plain value type");
 
     // ---- extractors ----
-    test::record_assertion(_h,
+    record_assertion(verdict,
         std::is_same<result_value_type_t<ri>, int>::value,
         "trait: result_value_type_t yields the success type");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         std::is_same<result_error_type_t<ri>, std::string>::value,
         "trait: result_error_type_t yields the error type");
 
     // ---- mappers ----
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_result_value_mapper<DFnDouble, int>::value,
         "trait: is_result_value_mapper true for an int->int callable");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         !is_result_value_mapper<DFnStringOnly, int>::value,
         "trait: is_result_value_mapper false when not callable with int");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_result_error_mapper<DFnErrLen, std::string>::value,
         "trait: is_result_error_mapper true for a string->size_t callable");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         !is_result_error_mapper<DFnDouble, std::string>::value,
         "trait: is_result_error_mapper false when not callable with string");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_result_v<ri> && !is_result_v<int>,
         "trait: is_result_v matches the struct form");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_result_value_mapper_v<DFnDouble, int> &&
         !is_result_value_mapper_v<DFnStringOnly, int>,
         "trait: is_result_value_mapper_v matches the struct form");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_result_error_mapper_v<DFnErrLen, std::string> &&
         !is_result_error_mapper_v<DFnDouble, std::string>,
         "trait: is_result_error_mapper_v matches the struct form");
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    test::record_assertion(_h,
+    record_assertion(verdict,
         result_type<ri> && !result_type<int>,
         "trait: result_type concept matches is_result");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         result_value_mapper_for<DFnDouble, int> &&
         !result_value_mapper_for<DFnStringOnly, int>,
         "trait: result_value_mapper_for concept matches the trait");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         result_error_mapper_for<DFnErrLen, std::string> &&
         !result_error_mapper_for<DFnDouble, std::string>,
         "trait: result_error_mapper_for concept matches the trait");
 #endif
 
-    return;
+    return verdict;
 }
 
 

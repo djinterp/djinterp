@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/meta/type_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.09
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_META_TYPE_TRAITS_HPP
@@ -1335,12 +1335,15 @@ D_TYPE_TRAIT_TRUE(has_variadic_constructor,
 // is_allocator
 //   trait: determines if a type satisfies the Allocator requirements by
 // checking for value_type, allocate(), and deallocate() members.
+//   The members are the allocator's own. Asked through
+// std::allocator_traits, as they were, the probe passed an rvalue where
+// allocate takes an lvalue (so no allocator qualified) and
+// std::allocator_traits<int> was a hard error rather than a "no".
 D_TYPE_TRAIT_TRUE(is_allocator,
-    typename std::allocator_traits<Type>::value_type,
-    decltype(std::allocator_traits<Type>::allocate(
-        std::declval<Type>(), std::size_t{})),
-    decltype(std::allocator_traits<Type>::deallocate(
-        std::declval<Type>(), nullptr, std::size_t{})))
+    typename Type::value_type,
+    decltype(std::declval<Type&>().allocate(std::size_t{})),
+    decltype(std::declval<Type&>().deallocate(
+        std::declval<Type&>().allocate(std::size_t{}), std::size_t{})))
 
 // -------------------------------------------------------------------------
 // is_bounded
@@ -1529,9 +1532,11 @@ template<typename>
 struct is_template_with_args : std::false_type
 {};
 
+//   One argument at least: Type<Args...> would match Type<> as well.
 template<template<typename...> class Type,
-         typename...                     Args>
-struct is_template_with_args<Type<Args...>> : std::true_type
+         typename                        First,
+         typename...                     Rest>
+struct is_template_with_args<Type<First, Rest...>> : std::true_type
 {};
 
 // is_template_with_args_v

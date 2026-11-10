@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_logical.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -44,61 +44,59 @@ namespace {
 }  // unnamed namespace
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_logical(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_logical()
 {
+    bool verdict = true;
+
     // -------------------------------------------------------------------
     // all_of -- conjunction
     // -------------------------------------------------------------------
     //   Empty pack folds to true (the identity element of &&).
 
-    DT_CONCEPT    ((all_of<>));                              // empty -> true
-    DT_CONCEPT    ((all_of<DTT>));
-    DT_CONCEPT    ((all_of<DTT, DTT>));
-    DT_CONCEPT    ((all_of<DTT, DTT, DTT>));
-    DT_NOT_CONCEPT((all_of<DTF>));
-    DT_NOT_CONCEPT((all_of<DTT, DTF>));
-    DT_NOT_CONCEPT((all_of<DTF, DTT>));
-    DT_NOT_CONCEPT((all_of<DTF, DTF>));
-    DT_NOT_CONCEPT((all_of<DTT, DTT, DTF>));
+    DT_CONCEPT    ((AllOf<>));                              // empty -> true
+    DT_CONCEPT    ((AllOf<DTT>));
+    DT_CONCEPT    ((AllOf<DTT, DTT>));
+    DT_CONCEPT    ((AllOf<DTT, DTT, DTT>));
+    DT_NOT_CONCEPT((AllOf<DTF>));
+    DT_NOT_CONCEPT((AllOf<DTT, DTF>));
+    DT_NOT_CONCEPT((AllOf<DTF, DTT>));
+    DT_NOT_CONCEPT((AllOf<DTF, DTF>));
+    DT_NOT_CONCEPT((AllOf<DTT, DTT, DTF>));
 
     // -------------------------------------------------------------------
     // any_of -- disjunction
     // -------------------------------------------------------------------
     //   Empty pack folds to false (the identity element of ||).
 
-    DT_NOT_CONCEPT((any_of<>));                              // empty -> false
-    DT_CONCEPT    ((any_of<DTT>));
-    DT_CONCEPT    ((any_of<DTT, DTF>));
-    DT_CONCEPT    ((any_of<DTF, DTT>));
-    DT_CONCEPT    ((any_of<DTF, DTF, DTT>));
-    DT_NOT_CONCEPT((any_of<DTF>));
-    DT_NOT_CONCEPT((any_of<DTF, DTF>));
-    DT_NOT_CONCEPT((any_of<DTF, DTF, DTF>));
+    DT_NOT_CONCEPT((AnyOf<>));                              // empty -> false
+    DT_CONCEPT    ((AnyOf<DTT>));
+    DT_CONCEPT    ((AnyOf<DTT, DTF>));
+    DT_CONCEPT    ((AnyOf<DTF, DTT>));
+    DT_CONCEPT    ((AnyOf<DTF, DTF, DTT>));
+    DT_NOT_CONCEPT((AnyOf<DTF>));
+    DT_NOT_CONCEPT((AnyOf<DTF, DTF>));
+    DT_NOT_CONCEPT((AnyOf<DTF, DTF, DTF>));
 
     // -------------------------------------------------------------------
     // none_of -- negation of any_of
     // -------------------------------------------------------------------
 
-    DT_CONCEPT    ((none_of<>));                             // empty -> true
-    DT_CONCEPT    ((none_of<DTF>));
-    DT_CONCEPT    ((none_of<DTF, DTF>));
-    DT_CONCEPT    ((none_of<DTF, DTF, DTF>));
-    DT_NOT_CONCEPT((none_of<DTT>));
-    DT_NOT_CONCEPT((none_of<DTT, DTF>));
-    DT_NOT_CONCEPT((none_of<DTF, DTT>));
+    DT_CONCEPT    ((NoneOf<>));                             // empty -> true
+    DT_CONCEPT    ((NoneOf<DTF>));
+    DT_CONCEPT    ((NoneOf<DTF, DTF>));
+    DT_CONCEPT    ((NoneOf<DTF, DTF, DTF>));
+    DT_NOT_CONCEPT((NoneOf<DTT>));
+    DT_NOT_CONCEPT((NoneOf<DTT, DTF>));
+    DT_NOT_CONCEPT((NoneOf<DTF, DTT>));
 
     //   structural invariant: any_of and none_of are negations.
     // The outer parens shield the inner template-arg commas from the
     // preprocessor (same pattern as the multi-arg DT_CONCEPT calls
     // above).
-    DT_CONCEPT    ((any_of<DTT, DTF>  != none_of<DTT, DTF>));
-    DT_CONCEPT    ((any_of<DTF, DTF>  != none_of<DTF, DTF>));
+    DT_CONCEPT    ((AnyOf<DTT, DTF>  != NoneOf<DTT, DTF>));
+    DT_CONCEPT    ((AnyOf<DTF, DTF>  != NoneOf<DTF, DTF>));
 
     // -------------------------------------------------------------------
     // exactly_one_of -- "one-hot": exactly one predicate true
@@ -177,9 +175,9 @@ void concepts_tests_logical(
     DT_CONCEPT    ((exactly_one_of<DTT, DTT>      == xor_of<DTT, DTT>));
     DT_CONCEPT    ((exactly_one_of<DTF, DTF>      == xor_of<DTF, DTF>));
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/encode_tests_leaves.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "encode_tests.hpp"
@@ -48,20 +48,20 @@ tests_encode_unsigned_integrals
 */
 bool tests_encode_unsigned_integrals()
 {
-    D_EN_CHECK((encode(static_cast<std::uint8_t>(0x00)) == byte_string{ 0x00 }));
-    D_EN_CHECK((encode(static_cast<std::uint8_t>(0xFF)) == byte_string{ 0xFF }));
+    D_EN_CHECK((encode(static_cast<re_std::uint8_t>(0x00)) == byte_string{ 0x00 }));
+    D_EN_CHECK((encode(static_cast<re_std::uint8_t>(0xFF)) == byte_string{ 0xFF }));
 
-    D_EN_CHECK((encode(static_cast<std::uint16_t>(0x1234))
+    D_EN_CHECK((encode(static_cast<re_std::uint16_t>(0x1234))
                 == byte_string{ 0x12, 0x34 }));
 
-    D_EN_CHECK((encode(static_cast<std::uint32_t>(0xDEADBEEF))
+    D_EN_CHECK((encode(static_cast<re_std::uint32_t>(0xDEADBEEF))
                 == byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }));
 
-    D_EN_CHECK((encode(static_cast<std::uint64_t>(0x0102030405060708ull))
+    D_EN_CHECK((encode(static_cast<re_std::uint64_t>(0x0102030405060708ull))
                 == byte_string{ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 }));
 
     // maximal 64-bit value is eight 0xFF bytes
-    D_EN_CHECK((encode(static_cast<std::uint64_t>(0xFFFFFFFFFFFFFFFFull))
+    D_EN_CHECK((encode(static_cast<re_std::uint64_t>(0xFFFFFFFFFFFFFFFFull))
                 == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
 
     return true;
@@ -79,21 +79,21 @@ tests_encode_signed_integrals
 */
 bool tests_encode_signed_integrals()
 {
-    D_EN_CHECK((encode(static_cast<std::int8_t>(-128)) == byte_string{ 0x80 }));
-    D_EN_CHECK((encode(static_cast<std::int8_t>(127))  == byte_string{ 0x7F }));
-    D_EN_CHECK((encode(static_cast<std::int8_t>(-1))   == byte_string{ 0xFF }));
+    D_EN_CHECK((encode(static_cast<re_std::int8_t>(-128)) == byte_string{ 0x80 }));
+    D_EN_CHECK((encode(static_cast<re_std::int8_t>(127))  == byte_string{ 0x7F }));
+    D_EN_CHECK((encode(static_cast<re_std::int8_t>(-1))   == byte_string{ 0xFF }));
 
-    D_EN_CHECK((encode(static_cast<std::int16_t>(-2))
+    D_EN_CHECK((encode(static_cast<re_std::int16_t>(-2))
                 == byte_string{ 0xFF, 0xFE }));
 
-    D_EN_CHECK((encode(static_cast<std::int32_t>(-2147483647 - 1))
+    D_EN_CHECK((encode(static_cast<re_std::int32_t>(-2147483647 - 1))
                 == byte_string{ 0x80, 0x00, 0x00, 0x00 }));
 
-    D_EN_CHECK((encode(static_cast<std::int64_t>(-1))
+    D_EN_CHECK((encode(static_cast<re_std::int64_t>(-1))
                 == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
 
     // a positive value shares the unsigned encoding
-    D_EN_CHECK((encode(static_cast<std::int16_t>(0x1234))
+    D_EN_CHECK((encode(static_cast<re_std::int16_t>(0x1234))
                 == byte_string{ 0x12, 0x34 }));
 
     return true;
@@ -214,13 +214,13 @@ tests_encode_writer_accumulation
 bool tests_encode_writer_accumulation()
 {
     byte_string _buf;
-    encode_into(_buf, static_cast<std::uint16_t>(0x1234));
+    encode_into(_buf, static_cast<re_std::uint16_t>(0x1234));
     encode_into(_buf, true);
-    encode_into(_buf, static_cast<std::int8_t>(-1));
+    encode_into(_buf, static_cast<re_std::int8_t>(-1));
     D_EN_CHECK((_buf == byte_string{ 0x12, 0x34, 0x01, 0xFF }));
 
     DRecordingSink _s;
-    encode_into(_s, static_cast<std::uint8_t>(0xAA));
+    encode_into(_s, static_cast<re_std::uint8_t>(0xAA));
     encode_into(_s, DEncCustomLeaf{});
     D_EN_CHECK((_s.data == byte_string{ 0xAA, 0xAB, 0xCD, 0xEF }));
 

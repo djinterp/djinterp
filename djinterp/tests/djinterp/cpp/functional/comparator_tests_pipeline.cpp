@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/comparator_tests_pipeline.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "comparator_tests.hpp"
@@ -31,10 +31,10 @@ bool test_pipeline_then_adapter()
     record a = { 5, 1 };
     record b = { 5, 2 };
 
-    bool piped = ( comparators::by_key(get_rank())
-                   | comparators::then(comparators::by_key(get_id())) )(a, b);
-    bool direct = comparators::then(comparators::by_key(get_rank()),
-                                    comparators::by_key(get_id()))(a, b);
+    bool piped = ( djinterp::by_key(get_rank())
+                   | djinterp::then(djinterp::by_key(get_id())) )(a, b);
+    bool direct = djinterp::then(djinterp::by_key(get_rank()),
+                                    djinterp::by_key(get_id()))(a, b);
 
     D_INTERNAL_CMP_CHECK(piped == true);
     D_INTERNAL_CMP_CHECK(piped == direct);
@@ -56,10 +56,10 @@ bool test_pipeline_reversed_adapter()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     D_INTERNAL_CMP_CHECK(
-        ( comparators::natural<int>() | comparators::reversed() )(2, 1)
+        ( djinterp::natural<int>() | djinterp::reversed() )(2, 1)
         == true);
     D_INTERNAL_CMP_CHECK(
-        ( comparators::natural<int>() | comparators::reversed() )(1, 2)
+        ( djinterp::natural<int>() | djinterp::reversed() )(1, 2)
         == false);
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -77,8 +77,8 @@ test_pipeline_reversed_adapter_equiv
 bool test_pipeline_reversed_adapter_equiv()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    bool piped  = ( comparators::natural<int>() | comparators::reversed() )(3, 7);
-    bool direct = comparators::reversed(comparators::natural<int>())(3, 7);
+    bool piped  = ( djinterp::natural<int>() | djinterp::reversed() )(3, 7);
+    bool direct = djinterp::reversed(djinterp::natural<int>())(3, 7);
 
     D_INTERNAL_CMP_CHECK(piped == direct);
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -106,13 +106,13 @@ bool test_pipeline_combined_adapters()
 
     // descending rank: c (rank 9) precedes a (rank 5).
     D_INTERNAL_CMP_CHECK(
-        ( comparators::by_key(get_rank()) | comparators::reversed()
-          | comparators::then(comparators::by_key(get_id())) )(c, a) == true);
+        ( djinterp::by_key(get_rank()) | djinterp::reversed()
+          | djinterp::then(djinterp::by_key(get_id())) )(c, a) == true);
 
     // equal rank -> tie-break ascending id: a (id 1) precedes b (id 2).
     D_INTERNAL_CMP_CHECK(
-        ( comparators::by_key(get_rank()) | comparators::reversed()
-          | comparators::then(comparators::by_key(get_id())) )(a, b) == true);
+        ( djinterp::by_key(get_rank()) | djinterp::reversed()
+          | djinterp::then(djinterp::by_key(get_id())) )(a, b) == true);
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
     return true;
@@ -130,8 +130,8 @@ test_pipeline_raw_callable_lhs
 bool test_pipeline_raw_callable_lhs()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    D_INTERNAL_CMP_CHECK(( asc_int() | comparators::reversed() )(2, 1) == true);
-    D_INTERNAL_CMP_CHECK(( asc_int() | comparators::reversed() )(1, 2) == false);
+    D_INTERNAL_CMP_CHECK(( asc_int() | djinterp::reversed() )(2, 1) == true);
+    D_INTERNAL_CMP_CHECK(( asc_int() | djinterp::reversed() )(1, 2) == false);
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
     return true;

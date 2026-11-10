@@ -34,16 +34,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_logical.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 // =========================================================================
 // I.   bool_constant  (compile-time)
 // =========================================================================
@@ -205,89 +203,89 @@ static_assert(D_NEGATION<std::true_type>::value ==
 // VI.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_logical(
-    test_handler& _test_handler
-)
+bool type_traits_tests_logical()
 {
+    bool verdict = true;
+
     // ---- bool_constant ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<bool_constant<true>, std::true_type>::value,
         "bool_constant<true> == std::true_type");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<bool_constant<false>, std::false_type>::value,
         "bool_constant<false> == std::false_type");
 
     // ---- conjunction ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         conjunction<>::value == true,
         "conjunction<> -> true (empty)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         conjunction<std::true_type>::value == true,
         "conjunction<true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         conjunction<std::true_type, std::true_type, std::true_type>::value == true,
         "conjunction<all true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         conjunction<std::true_type, std::false_type, std::true_type>::value == false,
         "conjunction<any false>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         conjunction<std::is_integral<int>, std::is_integral<char>>::value == true,
         "conjunction<is_integral<int>, is_integral<char>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         conjunction<std::is_integral<int>, std::is_pointer<int>>::value == false,
         "conjunction<is_integral<int>, is_pointer<int>>");
 
     // ---- disjunction ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         disjunction<>::value == false,
         "disjunction<> -> false (empty)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         disjunction<std::true_type>::value == true,
         "disjunction<true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         disjunction<std::false_type, std::false_type, std::false_type>::value == false,
         "disjunction<all false>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         disjunction<std::false_type, std::true_type, std::false_type>::value == true,
         "disjunction<any true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         disjunction<std::is_pointer<int>, std::is_integral<int>>::value == true,
         "disjunction<is_pointer<int>, is_integral<int>>");
 
     // ---- negation ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         negation<std::true_type>::value  == false,
         "negation<true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         negation<std::false_type>::value == true,
         "negation<false>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         negation<negation<std::true_type>>::value == true,
         "negation<negation<true>> (double)");
 
     // ---- D_CONJUNCTION / D_DISJUNCTION / D_NEGATION ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         D_CONJUNCTION<std::true_type, std::true_type>::value == true,
         "D_CONJUNCTION<true, true> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         D_CONJUNCTION<std::true_type, std::false_type>::value == false,
         "D_CONJUNCTION<true, false> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         D_DISJUNCTION<std::false_type, std::true_type>::value == true,
         "D_DISJUNCTION<false, true> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         D_DISJUNCTION<std::false_type, std::false_type>::value == false,
         "D_DISJUNCTION<false, false> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         D_NEGATION<std::true_type>::value == false,
         "D_NEGATION<true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         D_NEGATION<std::false_type>::value == true,
         "D_NEGATION<false>");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

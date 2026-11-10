@@ -38,7 +38,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_filter_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.15
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_FILTER_TRAITS_TESTS_
@@ -58,7 +58,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_filter_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // NS_TESTING / D_KEYWORD_TESTING may not be defined by the core headers; mirror
@@ -89,8 +97,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -220,6 +238,8 @@ struct DIterableNoValue
     const int*  begin() const noexcept { return m_buf; }
     const int*  end()   const noexcept { return m_buf + 4; }
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -252,6 +272,121 @@ bool tests_filter_result_type();
 // -- VI.  Combined classification + variable-template companions --
 bool tests_container_filter_class();
 bool tests_filter_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_filter_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_filter_traits_spec()
+{
+    return dt::module_spec{
+        "container_filter_traits",
+        "whether a container may be FILTERED - reduced to the sub-container "
+        "of elements satisfying a...",
+        {
+            dt::block_spec{
+                "capability",
+                "Capability",
+                {
+                    { "tests_is_filter_source",
+                      "checks (is_filter_source<std::vector<int>>::value)",
+                      &tests_is_filter_source },
+                    { "tests_is_container_filterable",
+                      "checks "
+                      "(is_container_filterable<std::vector<int>>::value)",
+                      &tests_is_container_filterable },
+                    { "tests_is_filter_input_only",
+                      "checks "
+                      "(is_filter_input_only<std::forward_list<int>>::value)",
+                      &tests_is_filter_input_only },
+                    { "tests_has_native_filter",
+                      "checks (has_native_filter<DNativeFilterable>::value)",
+                      &tests_has_native_filter },
+                }
+            },
+            dt::block_spec{
+                "strategy",
+                "Strategy",
+                {
+                    { "tests_filter_strategy_name",
+                      "checks "
+                      "(cf_cstr_eq(filter_strategy_name(DFilterStrategy::native), "
+                      "\"native\"))",
+                      &tests_filter_strategy_name },
+                    { "tests_container_filter_strategy",
+                      "checks "
+                      "(DContainerFilterStrategy<DNativeFilterable>::value == "
+                      "DFilterStrat",
+                      &tests_container_filter_strategy },
+                }
+            },
+            dt::block_spec{
+                "stage",
+                "Stage",
+                {
+                    { "tests_filter_stage_name",
+                      "checks "
+                      "(cf_cstr_eq(filter_stage_name(DFilterStage::none), "
+                      "\"none\"))",
+                      &tests_filter_stage_name },
+                    { "tests_filter_stage_of",
+                      "checks (filter_stage_of<std::array<int, 4>>::value == "
+                      "DFilterStage::compil",
+                      &tests_filter_stage_of },
+                }
+            },
+            dt::block_spec{
+                "preservation",
+                "Preservation",
+                {
+                    { "tests_filter_preserves_order",
+                      "checks "
+                      "(filter_preserves_order<std::vector<int>>::value)",
+                      &tests_filter_preserves_order },
+                    { "tests_filter_preserves_sortedness",
+                      "checks (filter_preserves_sortedness<DSortedSeq>::value)",
+                      &tests_filter_preserves_sortedness },
+                    { "tests_filter_preserves_uniqueness",
+                      "checks "
+                      "(filter_preserves_uniqueness<std::set<int>>::value)",
+                      &tests_filter_preserves_uniqueness },
+                    { "tests_filter_preserves_capacity_bounds",
+                      "checks "
+                      "(filter_preserves_capacity_ceiling<std::vector<int>>::value)",
+                      &tests_filter_preserves_capacity_bounds },
+                }
+            },
+            dt::block_spec{
+                "result_type",
+                "Result type",
+                {
+                    { "tests_filter_result_type",
+                      "checks "
+                      "(std::is_same<filter_result_type_t<std::vector<int>>, "
+                      "std::vector<i",
+                      &tests_filter_result_type },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_container_filter_class",
+                      "checks (C::is_filterable)",
+                      &tests_container_filter_class },
+                    { "tests_filter_variable_templates",
+                      "checks (is_filter_source_v<std::vector<int>> == "
+                      "is_filter_source<std::vect",
+                      &tests_filter_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

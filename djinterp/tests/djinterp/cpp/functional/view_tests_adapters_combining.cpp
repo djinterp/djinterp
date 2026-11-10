@@ -14,8 +14,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_adapters_combining.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -29,10 +29,10 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_enumerate(
-    test::test_handler& _h
-)
+bool test_enumerate()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 10, 20, 30 };
 
     using pair_t = std::pair<std::size_t, int>;
@@ -40,24 +40,24 @@ void test_enumerate(
                                      pair_t(1, 20),
                                      pair_t(2, 30) };
 
-    test::record_assertion(_h,
-        (data | views::enumerate() | to_vector()) == expected,
+    record_assertion(verdict,
+        (data | djinterp::enumerate() | to_vector()) == expected,
         "enumerate: pairs each element with its index");
 
     // empty input -> empty
     std::vector<int> none;
-    test::record_assertion(_h,
-        (none | views::enumerate() | count()) == 0u,
+    record_assertion(verdict,
+        (none | djinterp::enumerate() | count()) == 0u,
         "enumerate: empty input yields nothing");
 
-    return;
+    return verdict;
 }
 
 
-void test_zip(
-    test::test_handler& _h
-)
+bool test_zip()
 {
+    bool verdict = true;
+
     std::vector<int>  a = { 1, 2, 3 };
     std::vector<char> b = { 'x', 'y' };   // deliberately shorter
 
@@ -68,73 +68,73 @@ void test_zip(
     std::vector<pair_t> expected = { pair_t(1, 'x'), pair_t(2, 'y') };
 
     // stops at the shorter of the two
-    test::record_assertion(_h,
-        (va | views::zip(vb) | to_vector()) == expected,
+    record_assertion(verdict,
+        (va | djinterp::zip(vb) | to_vector()) == expected,
         "zip: pairs in lockstep and stops at the shorter view");
 
     // zipping against an empty view -> empty
     std::vector<char>           none;
     DRefView<std::vector<char>> vnone(none);
-    test::record_assertion(_h,
-        (va | views::zip(vnone) | count()) == 0u,
+    record_assertion(verdict,
+        (va | djinterp::zip(vnone) | count()) == 0u,
         "zip: an empty operand yields nothing");
 
-    return;
+    return verdict;
 }
 
 
-void test_concat(
-    test::test_handler& _h
-)
+bool test_concat()
 {
+    bool verdict = true;
+
     std::vector<int> a = { 1, 2 };
     std::vector<int> b = { 3, 4, 5 };
 
     DRefView<std::vector<int>> va(a);
     DRefView<std::vector<int>> vb(b);
 
-    test::record_assertion(_h,
-        (va | views::concat(vb) | to_vector())
+    record_assertion(verdict,
+        (va | djinterp::concat(vb) | to_vector())
             == std::vector<int>({ 1, 2, 3, 4, 5 }),
         "concat: yields all of the first view then all of the second");
 
     // concat with an empty second view
     std::vector<int>           none;
     DRefView<std::vector<int>> vnone(none);
-    test::record_assertion(_h,
-        (va | views::concat(vnone) | to_vector())
+    record_assertion(verdict,
+        (va | djinterp::concat(vnone) | to_vector())
             == std::vector<int>({ 1, 2 }),
         "concat: appending an empty view changes nothing");
 
-    return;
+    return verdict;
 }
 
 
-void test_reverse(
-    test::test_handler& _h
-)
+bool test_reverse()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 4, 5 };
 
-    test::record_assertion(_h,
-        (data | views::reverse() | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::reverse() | to_vector())
             == std::vector<int>({ 5, 4, 3, 2, 1 }),
         "reverse: yields elements in reverse order");
 
     // single element reverses to itself
     std::vector<int> one = { 42 };
-    test::record_assertion(_h,
-        (one | views::reverse() | to_vector()) == std::vector<int>({ 42 }),
+    record_assertion(verdict,
+        (one | djinterp::reverse() | to_vector()) == std::vector<int>({ 42 }),
         "reverse: a single element is its own reverse");
 
-    return;
+    return verdict;
 }
 
 
-void test_chunk(
-    test::test_handler& _h
-)
+bool test_chunk()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 4, 5 };
 
     using chunk_t = std::vector<int>;
@@ -143,39 +143,39 @@ void test_chunk(
                                       chunk_t({ 5 }) };
 
     // groups of 2; the final group is short
-    test::record_assertion(_h,
-        (data | views::chunk(2) | to_vector()) == expected,
+    record_assertion(verdict,
+        (data | djinterp::chunk(2) | to_vector()) == expected,
         "chunk: groups into fixed-size vectors, last group short");
 
     // chunk size larger than input -> a single full-input group
     std::vector<chunk_t> one_group = { chunk_t({ 1, 2, 3, 4, 5 }) };
-    test::record_assertion(_h,
-        (data | views::chunk(99) | to_vector()) == one_group,
+    record_assertion(verdict,
+        (data | djinterp::chunk(99) | to_vector()) == one_group,
         "chunk: a size beyond the input yields one group");
 
-    return;
+    return verdict;
 }
 
 
-void test_stride(
-    test::test_handler& _h
-)
+bool test_stride()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 4, 5, 6 };
 
     // every 2nd element, starting at the first
-    test::record_assertion(_h,
-        (data | views::stride(2) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::stride(2) | to_vector())
             == std::vector<int>({ 1, 3, 5 }),
         "stride: yields every n-th element from the first");
 
     // stride of 1 -> unchanged
-    test::record_assertion(_h,
-        (data | views::stride(1) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::stride(1) | to_vector())
             == std::vector<int>({ 1, 2, 3, 4, 5, 6 }),
         "stride: a stride of 1 yields every element");
 
-    return;
+    return verdict;
 }
 
 

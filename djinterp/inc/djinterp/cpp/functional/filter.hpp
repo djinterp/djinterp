@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/cpp/functional/filter.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -1347,6 +1347,18 @@ DTypedFilter<Type, internal::DTypedIdentity<Type> > make_typed_filter()
 // (push_back / insert), and an optional native .filter() method. The
 // composite is_filterable aggregates these.
 //
+//   This section answers only the filter's own questions. The general ones
+// have one owner each, outside the functional module: is_iterable is
+// container/iterator/iterator_traits.hpp's (C++17 and up), has_value_type
+// is meta/member_types.hpp's, and has_push_back / has_insert are
+// container/traits/container_traits.hpp's. This section used to define all
+// of them itself, with has_begin, has_end, has_size and has_empty besides;
+// once the namespaces were flattened into djinterp, no unit could include it
+// beside container_traits.hpp or iterator_traits.hpp. The composite below
+// detects iteration and its two insertions privately, in internal, so the
+// header keeps its C++11 floor and pulls in no container header for them.
+// (changed 2026-11-09)
+//
 //   The detection idiom underneath -- is_detected, detected_or_t, nonesuch --
 // is core/meta/type_traits.hpp's. (This header used to keep its own copy in
 // djinterp::internal, as accumulator.hpp did, on the belief that identical
@@ -1355,15 +1367,23 @@ DTypedFilter<Type, internal::DTypedIdentity<Type> > make_typed_filter()
 
 NS_INTERNAL
 
-    // begin_expression
-    //   trait: expression alias for begin() detection.
+    // begin_expression / end_expression
+    //   trait: expression aliases for std::begin / std::end on an lvalue,
+    // the iteration is_filterable reads.
     template<typename Type>
     using begin_expression = decltype(std::begin(std::declval<Type&>()));
 
-    // end_expression
-    //   trait: expression alias for end() detection.
     template<typename Type>
     using end_expression = decltype(std::end(std::declval<Type&>()));
+
+    // is_filter_iterable
+    //   trait: true when std::begin and std::end both apply to a Type lvalue.
+    template<typename Type>
+    struct is_filter_iterable
+        : std::integral_constant<bool,
+              ( is_detected<begin_expression, Type>::value &&
+                is_detected<end_expression, Type>::value )>
+    {};
 
     // value_type_expr
     //   trait: expression alias for nested value_type detection.
@@ -1378,83 +1398,12 @@ NS_INTERNAL
             std::declval<typename Type::value_type>()));
 
     // insert_expression
-    //   trait: expression alias for insert() detection.
+    //   trait: expression alias for insert(iterator, value) detection.
     template<typename Type>
     using insert_expression = decltype(
         std::declval<Type&>().insert(
             std::declval<Type&>().end(),
             std::declval<typename Type::value_type>()));
-
-    // size_expression
-    //   trait: expression alias for size() detection.
-    template<typename Type>
-    using size_expression = decltype(std::declval<const Type&>().size());
-
-    // empty_expression
-    //   trait: expression alias for empty() detection.
-    template<typename Type>
-    using empty_expression = decltype(std::declval<const Type&>().empty());
-
-NS_END  // internal
-
-// has_begin
-//   trait: detects whether std::begin(Type&) is well-formed.
-template<typename Type>
-struct has_begin
-{
-    static D_CONSTEXPR bool value =
-        is_detected<internal::begin_expression, Type>::value;
-};
-
-// has_end
-//   trait: detects whether std::end(Type&) is well-formed.
-template<typename Type>
-struct has_end
-{
-    static D_CONSTEXPR bool value =
-        is_detected<internal::end_expression, Type>::value;
-};
-
-
-// has_push_back
-//   trait: detects whether Type has a push_back(value_type) member.
-template<typename Type>
-struct has_push_back
-{
-    static D_CONSTEXPR bool value =
-        is_detected<internal::push_back_expression, Type>::value;
-};
-
-// has_insert
-//   trait: detects whether Type has an insert(iterator, value_type)
-// member.
-template<typename Type>
-struct has_insert
-{
-    static D_CONSTEXPR bool value =
-        is_detected<internal::insert_expression, Type>::value;
-};
-
-// has_size
-//   trait: detects whether Type has a size() const member.
-template<typename Type>
-struct has_size
-{
-    static D_CONSTEXPR bool value =
-        is_detected<internal::size_expression, Type>::value;
-};
-
-// has_empty
-//   trait: detects whether Type has an empty() const member.
-template<typename Type>
-struct has_empty
-{
-    static D_CONSTEXPR bool value =
-        is_detected<internal::empty_expression, Type>::value;
-};
-
-
-NS_INTERNAL
 
     // filter_method_expr
     //   trait: expression alias detecting a .filter() member that accepts a
@@ -1475,17 +1424,6 @@ struct has_filter_method
         is_detected<internal::filter_method_expr, Type>::value;
 };
 
-// is_iterable
-//   trait: true when Type supports range-based iteration via std::begin
-// and std::end.
-template<typename Type>
-struct is_iterable
-{
-    static D_CONSTEXPR bool value =
-        ( has_begin<Type>::value &&
-          has_end<Type>::value );
-};
-
 // is_output_capable
 //   trait: true when Type supports at least one insertion method
 // (push_back or iterator-based insert), enabling construction of a filtered
@@ -1494,8 +1432,8 @@ template<typename Type>
 struct is_output_capable
 {
     static D_CONSTEXPR bool value =
-        ( has_push_back<Type>::value ||
-          has_insert<Type>::value );
+        ( is_detected<internal::push_back_expression, Type>::value ||
+          is_detected<internal::insert_expression, Type>::value );
 };
 
 // is_filterable
@@ -1510,8 +1448,8 @@ private:
 
 public:
     static D_CONSTEXPR bool value =
-        ( is_iterable<clean_type>::value    &&
-          has_value_type<clean_type>::value &&
+        ( internal::is_filter_iterable<clean_type>::value &&
+          has_value_type<clean_type>::value               &&
           is_output_capable<clean_type>::value );
 };
 
@@ -1636,11 +1574,6 @@ public:
 //   constant: shorthand for is_filterable<Type>::value.
 template<typename Type>
 static D_CONSTEXPR bool is_filterable_v = is_filterable<Type>::value;
-
-// is_iterable_v
-//   constant: shorthand for is_iterable<Type>::value.
-template<typename Type>
-static D_CONSTEXPR bool is_iterable_v = is_iterable<Type>::value;
 
 // has_filter_method_v
 //   constant: shorthand for has_filter_method<Type>::value.

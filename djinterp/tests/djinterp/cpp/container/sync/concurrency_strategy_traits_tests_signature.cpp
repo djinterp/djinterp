@@ -1,10 +1,21 @@
-/******************************************************************************
-* djinterp [test]           concurrency_strategy_traits_tests_signature.cpp
+/*******************************************************************************
+* djinterp [test]                concurrency_strategy_traits_tests_signature.cpp
 *
 *   Section VI - the strategy -> signature table, the convenience projections,
 * and the progress-grade shorthands.  The seven tag fixtures select the seven
 * rows cleanly.  Defines the "signature" block.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests_signature.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+
+// FLOOR, FOR NOW: below C++17, concurrency_strategy_traits.hpp's floor,
+// this unit is empty, as that header is.
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #include "concurrency_strategy_traits_tests.hpp"
 
@@ -189,3 +200,5 @@ bool tests_signature_shorthands()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

@@ -8,7 +8,7 @@
 * path:      /inc/djinterp/c/container/map/enum_map_entry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.11.27
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_MAP_ENUM_MAP_ENTRY_H
@@ -96,19 +96,23 @@ struct dj_enum_map_entry
     D_KEY_VALUE_EQ(_e1, _e2)
 
 // D_ENUM_MAP_SENTINEL_KEY
-//   constant: legacy alias for D_KEY_VALUE_SENTINEL_KEY.
+//   constant: the key that ends a static array of enum entries: INT32_MIN,
+// the least value an entry's int32_t key holds. map.h's generic
+// D_KEY_VALUE_SENTINEL_KEY, INT64_MIN, does not fit that key: stored there it
+// became 0, a valid enumerator, and no entry ever compared equal to it.
 #define D_ENUM_MAP_SENTINEL_KEY \
-    D_KEY_VALUE_SENTINEL_KEY
+    INT32_MIN
 
 // D_ENUM_ENTRY_SENTINEL
-//   macro: legacy alias for D_KEY_VALUE_SENTINEL.
+//   macro: creates the entry that ends a static array of enum entries: the
+// sentinel key and a NULL value.
 #define D_ENUM_ENTRY_SENTINEL \
-    D_KEY_VALUE_SENTINEL
+    D_KEY_VALUE_T(D_ENUM_MAP_SENTINEL_KEY, int32_t, NULL, void*)
 
 // D_ENUM_ENTRY_IS_SENTINEL
-//   macro: legacy alias for D_KEY_VALUE_IS_SENTINEL.
+//   macro: evaluates to true if an enum entry is the sentinel, by its key.
 #define D_ENUM_ENTRY_IS_SENTINEL(_entry) \
-    D_KEY_VALUE_IS_SENTINEL(_entry)
+    ((_entry).key == D_ENUM_MAP_SENTINEL_KEY)
 
 
 #endif  // DJINTERP_C_CONTAINER_MAP_ENUM_MAP_ENTRY_H

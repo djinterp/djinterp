@@ -15,7 +15,7 @@
 #     runner            : ${CMAKE_CURRENT_SOURCE_DIR}/publisher_tests_runner.cpp
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/paradigm/pubsub")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/publisher")
 
 # every per-section translation unit for this component
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/publisher_tests_*.cpp")
@@ -31,5 +31,5 @@ djinterp_add_test_executable(publisher_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/publisher_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/core/paradigm/pubsub"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/publisher"
         "${_tests_dir}")

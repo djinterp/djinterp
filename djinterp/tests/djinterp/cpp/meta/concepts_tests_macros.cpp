@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_macros.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -64,14 +64,12 @@ namespace {
 }  // unnamed namespace
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_macros(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_macros()
 {
+    bool verdict = true;
+
     using fixtures::method_haver;
     using fixtures::method_lacker;
 
@@ -115,9 +113,9 @@ void concepts_tests_macros(
     DT_NOT_CONCEPT(has_missing_static<method_haver>);
     DT_NOT_CONCEPT(has_kStatic<int>);
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

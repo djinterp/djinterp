@@ -40,7 +40,7 @@
 *                                       write_only_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -79,11 +79,26 @@ VI.   Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/write_only_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -416,6 +431,8 @@ using DWoString = std::string;
 using DWoSet    = std::set<int>;
 using DWoMap    = std::map<int, int>;
 using DWoPair   = std::pair<int, int>;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -438,6 +455,86 @@ bool tests_write_only_lattice_exclusivity();
 bool tests_write_only_is_not_complement();
 bool tests_write_only_orthogonal_to_mutability();
 bool tests_write_only_tag_agreement();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// write_only_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+write_only_container_traits_spec()
+{
+    return dt::module_spec{
+        "write_only_container_traits",
+        "is_write_only_container, true iff a handle to the type grants "
+        "mutation but NOT observation of...",
+        {
+            dt::block_spec{
+                "predicate",
+                "A. The predicate",
+                {
+                    { "tests_is_write_only_container",
+                      "Verifies that the predicate selects the write_only "
+                      "capability and no other",
+                      &tests_is_write_only_container },
+                    { "tests_is_write_only_structural",
+                      "Verifies the structural route - a mutator present, "
+                      "every value observer absent",
+                      &tests_is_write_only_structural },
+                    { "tests_is_write_only_tagged",
+                      "Verifies the opt-in route - a stamped `capability` "
+                      "tag, which the baseline honours ahead of the structure",
+                      &tests_is_write_only_tagged },
+                    { "tests_is_write_only_std_types",
+                      "Verifies the predicate across the standard library, "
+                      "and records why it finds nothing there",
+                      &tests_is_write_only_std_types },
+                    { "tests_is_write_only_cv_ref",
+                      "Verifies that the predicate honours the clean_t "
+                      "contract",
+                      &tests_is_write_only_cv_ref },
+                    { "tests_is_write_only_companions",
+                      "Verifies the `_v` companion the trait_detect engine "
+                      "emits",
+                      &tests_is_write_only_companions },
+                }
+            },
+            dt::block_spec{
+                "lattice",
+                "B. Delegation, metadata, lattice and orthogonality",
+                {
+                    { "tests_write_only_delegates",
+                      "Verifies that the predicate is exactly the baseline's "
+                      "write_only verdict, and carries no second opinion",
+                      &tests_write_only_delegates },
+                    { "tests_write_only_metadata_exclusion",
+                      "Verifies the design decision this whole corner rests on",
+                      &tests_write_only_metadata_exclusion },
+                    { "tests_write_only_lattice_exclusivity",
+                      "Verifies that write_only names a corner distinct from "
+                      "the other three, and that no type satisfies two at once",
+                      &tests_write_only_lattice_exclusivity },
+                    { "tests_write_only_is_not_complement",
+                      "Verifies that write_only is NOT the negation of "
+                      "read_write, nor of read_only",
+                      &tests_write_only_is_not_complement },
+                    { "tests_write_only_orthogonal_to_mutability",
+                      "Verifies the header's ORTHOGONALITY claim: the "
+                      "capability describes the HANDLE, not the data behind it",
+                      &tests_write_only_orthogonal_to_mutability },
+                    { "tests_write_only_tag_agreement",
+                      "Verifies that the predicate and the baseline's tag "
+                      "re-emission name the same corner - so a type routed by "
+                      "access_tag_of and one tested by this predicate cannot "
+                      "disagree",
+                      &tests_write_only_tag_agreement },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

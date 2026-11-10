@@ -62,7 +62,7 @@
 * path:      /inc/djinterp/cpp/functional/functional_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.06
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -167,15 +167,17 @@ NS_END  // internal
 // overload whose call would be ill-formed drops out, as with
 // std::invoke_result. (call_result_t, in function_traits.hpp, is the form
 // that never fails and yields internal::call_nonesuch instead.)
+//   The `type` is inherited from the helper, which has one only for a
+// well-formed call. (It used to be declared here from the helper's, which
+// made naming callable_result of an ill-formed call a hard error, not the
+// soft failure this comment promises.)
 template<typename    Function,
          typename... Args>
 struct callable_result
-{
-    using type =
-        typename internal::DCallableResultHelper<void,
-                                                  Function,
-                                                  Args...>::type;
-};
+    : internal::DCallableResultHelper<void,
+                                      Function,
+                                      Args...>
+{};
 
 // callable_result_t
 //   type: convenience alias for callable_result<...>::type.
@@ -198,11 +200,12 @@ using callable_result_t = typename callable_result<Function, Args...>::type;
 // not a predicate. Each argument is probed as std::declval gives it, so Arg is
 // an rvalue and const Arg& a const lvalue; spell the reference a combinator
 // passes. A pointer to member is not called, so it is not a predicate.
+//   It derives from that trait, as is_callable derives from
+// is_invocable_with, and so is a std::integral_constant as it is.
 template<typename    Pred,
          typename... Args>
 struct is_predicate
-    : std::integral_constant<bool,
-                             is_invocable_r_with<bool, Pred, Args...>::value>
+    : is_invocable_r_with<bool, Pred, Args...>
 {};
 
 NS_INTERNAL

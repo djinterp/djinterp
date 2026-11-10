@@ -20,7 +20,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_defaults.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -28,9 +28,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_default_policy_aliases
   Covers the default_growth_policy and DDefaultCursorPolicy
@@ -49,10 +47,10 @@ tests_default_policy_aliases
   - a buffer instantiated with the defaults supports both write
     and read operations end-to-end
 */
-void tests_default_policy_aliases(
-    test_handler& _handler
-)
+bool tests_default_policy_aliases()
 {
+    bool ok = true;
+
     // --- identity: default_growth_policy == exponential_growth_policy ---
     {
         static_assert(
@@ -60,8 +58,7 @@ void tests_default_policy_aliases(
                          exponential_growth_policy>::value,
             "default_growth_policy must be exponential_growth_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<default_growth_policy,
                           exponential_growth_policy>::value),
             "default_growth_policy == exponential_growth_policy");
@@ -74,8 +71,7 @@ void tests_default_policy_aliases(
                          dual_cursor_policy>::value,
             "default_cursor_policy must be dual_cursor_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<DDefaultCursorPolicy,
                           dual_cursor_policy>::value),
             "default_cursor_policy == dual_cursor_policy");
@@ -83,33 +79,28 @@ void tests_default_policy_aliases(
 
     // --- constants exposed by the default growth policy ---
     {
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             default_growth_policy::strategy
                 == buffer_growth_strategy::exponential,
             "default_growth_policy::strategy == exponential");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             default_growth_policy::can_grow == true,
             "default_growth_policy::can_grow == true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             default_growth_policy::min_capacity == 64,
             "default_growth_policy::min_capacity == 64");
     }
 
     // --- constants exposed by the default cursor policy ---
     {
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             DDefaultCursorPolicy::model
                 == buffer_cursor_model::dual,
             "default_cursor_policy::model == dual");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             DDefaultCursorPolicy::has_read_cursor == true,
             "default_cursor_policy::has_read_cursor == true");
     }
@@ -124,8 +115,7 @@ void tests_default_policy_aliases(
             "default_growth_policy must agree with "
             "select_growth_policy_t<exponential>");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 default_growth_policy,
                 select_growth_policy_t<
@@ -143,8 +133,7 @@ void tests_default_policy_aliases(
             "default_cursor_policy must agree with "
             "select_cursor_policy_t<dual>");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 DDefaultCursorPolicy,
                 select_cursor_policy_t<
@@ -164,56 +153,50 @@ void tests_default_policy_aliases(
 
         std::size_t n_w = b.write(src, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n_w == 16,
             "defaults: write of 16 bytes through grow returns 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() >= 16,
             "defaults: post-grow capacity satisfies the request");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 16,
             "defaults: write_position advances to 16");
 
         // The read surface is only available because the cursor
         // policy is dual; failing to compile here would mean the
         // default cursor policy lost has_read_cursor == true.
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 16,
             "defaults: readable() reports 16 unconsumed bytes");
 
         char        out[16];
         std::size_t n_r = b.read(out, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n_r == 16,
             "defaults: read returns 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(out, src, 16) == 0,
             "defaults: round-trip payload matches byte-for-byte");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 16,
             "defaults: read_position advances to 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 0,
             "defaults: readable() reports 0 after full consumption");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

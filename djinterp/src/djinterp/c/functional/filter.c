@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/functional/filter.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.06
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/filter.h"
 
@@ -883,6 +883,33 @@ bool d_filter_chain_add(
 }
 
 /*
+d_internal_filter_chain_adopt
+  Adds an operation a constructor just made, and frees its shell either
+way: after a successful add the chain holds its contents (d_filter_chain_add's
+note); after a failed one they are freed here. A NULL operation (its
+allocation failed) adds nothing.
+*/
+static
+bool d_internal_filter_chain_adopt(
+    struct dj_filter_chain*     _chain,
+    struct dj_filter_operation* _op
+)
+{
+    bool added;
+
+    added = d_filter_chain_add(_chain, _op);
+
+    if (!added)
+    {
+        d_filter_operation_free(_op);
+    }
+
+    free(_op);
+
+    return added;
+}
+
+/*
 d_filter_chain_add_take_first
   Convenience function to add a take-first operation to a chain.
 
@@ -897,7 +924,7 @@ bool d_filter_chain_add_take_first(
     size_t                  _n
 )
 {
-    return d_filter_chain_add(_chain, d_filter_take_first(_n));
+    return d_internal_filter_chain_adopt(_chain, d_filter_take_first(_n));
 }
 
 /*
@@ -915,7 +942,7 @@ bool d_filter_chain_add_take_last(
     size_t                  _n
 )
 {
-    return d_filter_chain_add(_chain, d_filter_take_last(_n));
+    return d_internal_filter_chain_adopt(_chain, d_filter_take_last(_n));
 }
 
 /*
@@ -933,7 +960,7 @@ bool d_filter_chain_add_skip_first(
     size_t                  _n
 )
 {
-    return d_filter_chain_add(_chain, d_filter_skip_first(_n));
+    return d_internal_filter_chain_adopt(_chain, d_filter_skip_first(_n));
 }
 
 /*
@@ -951,7 +978,7 @@ bool d_filter_chain_add_skip_last(
     size_t                  _n
 )
 {
-    return d_filter_chain_add(_chain, d_filter_skip_last(_n));
+    return d_internal_filter_chain_adopt(_chain, d_filter_skip_last(_n));
 }
 
 /*
@@ -971,7 +998,7 @@ bool d_filter_chain_add_range(
     size_t                  _end
 )
 {
-    return d_filter_chain_add(_chain, d_filter_range(_start, _end));
+    return d_internal_filter_chain_adopt(_chain, d_filter_range(_start, _end));
 }
 
 /*
@@ -989,7 +1016,7 @@ bool d_filter_chain_add_where(
     fn_predicate            _test
 )
 {
-    return d_filter_chain_add(_chain, d_filter_where(_test));
+    return d_internal_filter_chain_adopt(_chain, d_filter_where(_test));
 }
 
 /*
@@ -1009,7 +1036,9 @@ bool d_filter_chain_add_where_context(
     void*                   _context
 )
 {
-    return d_filter_chain_add(_chain, d_filter_where_context(_test, _context));
+    return d_internal_filter_chain_adopt(_chain,
+                                         d_filter_where_context(_test,
+                                                                _context));
 }
 
 /*
@@ -1324,10 +1353,394 @@ void d_filter_chain_free(
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
+d_internal_filter_empty
+  An empty result: a block of one element, so that a caller tells it from
+failure by its pointer, and a count of 0.
+
+Parameter(s):
+  _element_size: the size in bytes of each element.
+  _out_count:    receives 0.
+Return:
+  The block, or NULL if it cannot be allocated.
+*/
+static void*
+d_internal_filter_empty(
+    size_t  _element_size,
+    size_t* _out_count
+)
+{
+    *_out_count = 0;
+
+    return malloc(_element_size);
+}
+
+/*
+d_internal_filter_span
+  Copies the _n elements of _input from index _start on, which the caller
+has bounded by the input's count.
+
+Parameter(s):
+  _input:        the source array.
+  _start:        the first element copied.
+  _n:            the number of elements copied.
+  _element_size: the size in bytes of each element.
+  _out_count:    receives _n on success.
+Return:
+  The copy, or NULL if its size does not fit in a size_t or it cannot be
+allocated.
+*/
+static void*
+d_internal_filter_span(
+    const void* _input,
+    size_t      _start,
+    size_t      _n,
+    size_t      _element_size,
+    size_t*     _out_count
+)
+{
+    void* output;
+
+    output = d_internal_filter_alloc_n(_n, _element_size);
+
+    if (output)
+    {
+        memcpy(output,
+               (const char*)_input + (_start * _element_size),
+               _n * _element_size);
+        *_out_count = _n;
+    }
+
+    return output;
+}
+
+/*
+d_internal_filter_stride
+  Copies the elements of _input at _start, _start + _step, ... before _end.
+They are counted and walked by their number, so a step near SIZE_MAX can
+wrap neither the count nor the index; a step of 0 is 1, as d_filter_slice
+makes it.
+
+Parameter(s):
+  _input:        the source array.
+  _start:        the first index.
+  _end:          the exclusive end, which the caller has clamped to the
+                 input's count.
+  _step:         the distance between the indices copied.
+  _element_size: the size in bytes of each element.
+  _out_count:    receives the number copied, on success.
+Return:
+  The copy, or NULL if its size does not fit in a size_t or it cannot be
+allocated.
+*/
+static void*
+d_internal_filter_stride(
+    const void* _input,
+    size_t      _start,
+    size_t      _end,
+    size_t      _step,
+    size_t      _element_size,
+    size_t*     _out_count
+)
+{
+    void*  output;
+    size_t count;
+    size_t k;
+
+    if (_step == 0)
+    {
+        _step = 1;
+    }
+
+    count  = (_start < _end) ? (((_end - _start - 1) / _step) + 1) : 0;
+    output = d_internal_filter_alloc_n(count, _element_size);
+
+    if (!output)
+    {
+        return NULL;
+    }
+
+    for (k = 0; k < count; k++)
+    {
+        memcpy((char*)output + (k * _element_size),
+               (const char*)_input
+               + ((_start + (k * _step)) * _element_size),
+               _element_size);
+    }
+
+    *_out_count = count;
+
+    return output;
+}
+
+/*
+d_internal_filter_where
+  Copies the elements of _input that _op's predicate accepts, or, for
+D_FILTER_OP_WHERE_NOT, rejects.
+
+Parameter(s):
+  _op:           a WHERE or WHERE_NOT operation.
+  _input:        the source array.
+  _count:        the number of elements in the input.
+  _element_size: the size in bytes of each element.
+  _out_count:    receives the number copied, on success.
+Return:
+  The copy, or NULL if the operation has no predicate, or room for _count
+elements does not fit in a size_t or cannot be allocated.
+*/
+static void*
+d_internal_filter_where(
+    const struct dj_filter_operation* _op,
+    const void*                       _input,
+    size_t                            _count,
+    size_t                            _element_size,
+    size_t*                           _out_count
+)
+{
+    const char* in_bytes = (const char*)_input;
+    char*       out_bytes;
+    size_t      kept;
+    size_t      i;
+
+    if (!_op->params.test)
+    {
+        return NULL;
+    }
+
+    out_bytes = (char*)d_internal_filter_alloc_n(_count, _element_size);
+
+    if (!out_bytes)
+    {
+        return NULL;
+    }
+
+    kept = 0;
+
+    for (i = 0; i < _count; i++)
+    {
+        const void* element = in_bytes + (i * _element_size);
+        bool        matches;
+
+        matches = _op->params.test(element, _op->params.context);
+
+        if (_op->type == D_FILTER_OP_WHERE_NOT)
+        {
+            matches = !matches;
+        }
+
+        if (matches)
+        {
+            memcpy(out_bytes + (kept * _element_size),
+                   element,
+                   _element_size);
+            kept++;
+        }
+    }
+
+    *_out_count = kept;
+
+    return out_bytes;
+}
+
+/*
+d_internal_filter_indices
+  Copies the elements of _input at _op's indices: the one index d_filter_at
+records in params.start, or d_filter_at_indices' list. An index past the
+input is skipped.
+
+Parameter(s):
+  _op:           an INDICES operation.
+  _input:        the source array.
+  _count:        the number of elements in the input.
+  _element_size: the size in bytes of each element.
+  _out_count:    receives the number copied, on success.
+Return:
+  The copy, or NULL if its size does not fit in a size_t or it cannot be
+allocated.
+*/
+static void*
+d_internal_filter_indices(
+    const struct dj_filter_operation* _op,
+    const void*                       _input,
+    size_t                            _count,
+    size_t                            _element_size,
+    size_t*                           _out_count
+)
+{
+    const char* in_bytes = (const char*)_input;
+    char*       out_bytes;
+    size_t      kept;
+    size_t      i;
+
+    // a single index (from d_filter_at)
+    if ( (_op->params.indices == NULL) &&
+         (_op->params.count == 1) )
+    {
+        if (_op->params.start >= _count)
+        {
+            return d_internal_filter_empty(_element_size, _out_count);
+        }
+
+        return d_internal_filter_span(_input, _op->params.start, 1,
+                                      _element_size, _out_count);
+    }
+
+    // a list of indices (from d_filter_at_indices)
+    if ( (!_op->params.indices) ||
+         (_op->params.indices_count == 0) )
+    {
+        return d_internal_filter_empty(_element_size, _out_count);
+    }
+
+    out_bytes = (char*)d_internal_filter_alloc_n(_op->params.indices_count,
+                                                 _element_size);
+
+    if (!out_bytes)
+    {
+        return NULL;
+    }
+
+    kept = 0;
+
+    for (i = 0; i < _op->params.indices_count; i++)
+    {
+        size_t idx = _op->params.indices[i];
+
+        if (idx < _count)
+        {
+            memcpy(out_bytes + (kept * _element_size),
+                   in_bytes + (idx * _element_size),
+                   _element_size);
+            kept++;
+        }
+    }
+
+    *_out_count = kept;
+
+    return out_bytes;
+}
+
+/*
+d_internal_filter_reverse
+  Copies _input in reverse order.
+
+Parameter(s):
+  _input:        the source array.
+  _count:        the number of elements in the input.
+  _element_size: the size in bytes of each element.
+  _out_count:    receives _count on success.
+Return:
+  The copy, or NULL if its size does not fit in a size_t or it cannot be
+allocated.
+*/
+static void*
+d_internal_filter_reverse(
+    const void* _input,
+    size_t      _count,
+    size_t      _element_size,
+    size_t*     _out_count
+)
+{
+    const char* in_bytes = (const char*)_input;
+    char*       out_bytes;
+    size_t      i;
+
+    out_bytes = (char*)d_internal_filter_alloc_n(_count, _element_size);
+
+    if (!out_bytes)
+    {
+        return NULL;
+    }
+
+    for (i = 0; i < _count; i++)
+    {
+        memcpy(out_bytes + (i * _element_size),
+               in_bytes + ((_count - 1 - i) * _element_size),
+               _element_size);
+    }
+
+    *_out_count = _count;
+
+    return out_bytes;
+}
+
+/*
+d_internal_filter_distinct
+  Copies the elements of _input that no earlier element equals, by _op's
+comparator.
+
+Parameter(s):
+  _op:           a DISTINCT operation.
+  _input:        the source array.
+  _count:        the number of elements in the input.
+  _element_size: the size in bytes of each element.
+  _out_count:    receives the number copied, on success.
+Return:
+  The copy, or NULL if the operation has no comparator, or room for _count
+elements does not fit in a size_t or cannot be allocated.
+*/
+static void*
+d_internal_filter_distinct(
+    const struct dj_filter_operation* _op,
+    const void*                       _input,
+    size_t                            _count,
+    size_t                            _element_size,
+    size_t*                           _out_count
+)
+{
+    const char* in_bytes = (const char*)_input;
+    char*       out_bytes;
+    size_t      kept;
+    size_t      i;
+    size_t      j;
+
+    if (!_op->params.comparator)
+    {
+        return NULL;
+    }
+
+    out_bytes = (char*)d_internal_filter_alloc_n(_count, _element_size);
+
+    if (!out_bytes)
+    {
+        return NULL;
+    }
+
+    kept = 0;
+
+    for (i = 0; i < _count; i++)
+    {
+        const void* element = in_bytes + (i * _element_size);
+
+        // a match among the kept elements makes it a duplicate
+        for (j = 0; j < kept; j++)
+        {
+            if (_op->params.comparator(element,
+                                       out_bytes + (j * _element_size),
+                                       _op->params.context) == 0)
+            {
+                break;
+            }
+        }
+
+        if (j == kept)
+        {
+            memcpy(out_bytes + (kept * _element_size),
+                   element,
+                   _element_size);
+            kept++;
+        }
+    }
+
+    *_out_count = kept;
+
+    return out_bytes;
+}
+
+/*
 d_filter_apply_operation_internal
   Internal implementation for applying a single filter operation to an
-input array. Handles all operation types. Allocates and returns a new
-array containing the result.
+input array. Handles all operation types, each through one of the helpers
+above. Allocates and returns a new array containing the result.
 
 Parameter(s):
   _op:           the filter operation to apply.
@@ -1337,7 +1750,8 @@ Parameter(s):
   _out_count:    output parameter for the result count.
 Return:
   A pointer to a newly allocated array containing the filtered result,
-or NULL on failure. Caller is responsible for freeing the result.
+or NULL on failure. Caller is responsible for freeing the result. An empty
+result is a block of one element with *_out_count 0.
 */
 static
 void* d_filter_apply_operation_internal(
@@ -1348,14 +1762,8 @@ void* d_filter_apply_operation_internal(
     size_t*                           _out_count
 )
 {
-    void*       output;
-    size_t      i;
-    size_t      actual_count;
-    size_t      start;
-    size_t      end;
-    size_t      n;
-    const char* in_bytes;
-    char*       out_bytes;
+    size_t n;
+    size_t end;
 
     if ( (!_op)              ||
          (!_input)           ||
@@ -1365,417 +1773,90 @@ void* d_filter_apply_operation_internal(
         return NULL;
     }
 
-    in_bytes    = (const char*)_input;
     *_out_count = 0;
 
     switch (_op->type)
     {
     case D_FILTER_OP_TAKE_FIRST:
     case D_FILTER_OP_HEAD:
-        n = (_op->params.count < _count)
-            ? _op->params.count
-            : _count;
-        output = d_internal_filter_alloc_n(n, _element_size);
+        n = (_op->params.count < _count) ? _op->params.count : _count;
 
-        if (output)
-        {
-            memcpy(output, _input, n * _element_size);
-            *_out_count = n;
-        }
-
-        return output;
+        return d_internal_filter_span(_input, 0, n,
+                                      _element_size, _out_count);
 
     case D_FILTER_OP_TAKE_LAST:
     case D_FILTER_OP_TAIL:
-        n = (_op->params.count < _count)
-            ? _op->params.count
-            : _count;
-        output = d_internal_filter_alloc_n(n, _element_size);
+        n = (_op->params.count < _count) ? _op->params.count : _count;
 
-        if (output)
-        {
-            start = _count - n;
-            memcpy(output,
-                   in_bytes + (start * _element_size),
-                   n * _element_size);
-            *_out_count = n;
-        }
-
-        return output;
+        return d_internal_filter_span(_input, _count - n, n,
+                                      _element_size, _out_count);
 
     case D_FILTER_OP_SKIP_FIRST:
     case D_FILTER_OP_REST:
-        n = (_op->type == D_FILTER_OP_REST)
-            ? 1
-            : _op->params.count;
+        n = (_op->type == D_FILTER_OP_REST) ? 1 : _op->params.count;
 
-        if (n >= _count)
-        {
-            // skip all -> empty result
-            output = malloc(_element_size);
-            *_out_count = 0;
-
-            return output;
-        }
-
-        actual_count = _count - n;
-        output       = d_internal_filter_alloc_n(actual_count, _element_size);
-
-        if (output)
-        {
-            memcpy(output,
-                   in_bytes + (n * _element_size),
-                   actual_count * _element_size);
-            *_out_count = actual_count;
-        }
-
-        return output;
+        return (n >= _count)
+            ? d_internal_filter_empty(_element_size, _out_count)
+            : d_internal_filter_span(_input, n, _count - n,
+                                     _element_size, _out_count);
 
     case D_FILTER_OP_SKIP_LAST:
     case D_FILTER_OP_INIT:
-        n = (_op->type == D_FILTER_OP_INIT)
-            ? 1
-            : _op->params.count;
+        n = (_op->type == D_FILTER_OP_INIT) ? 1 : _op->params.count;
 
-        if (n >= _count)
-        {
-            output = malloc(_element_size);
-            *_out_count = 0;
-
-            return output;
-        }
-
-        actual_count = _count - n;
-        output       = d_internal_filter_alloc_n(actual_count, _element_size);
-
-        if (output)
-        {
-            memcpy(output, _input, actual_count * _element_size);
-            *_out_count = actual_count;
-        }
-
-        return output;
+        return (n >= _count)
+            ? d_internal_filter_empty(_element_size, _out_count)
+            : d_internal_filter_span(_input, 0, _count - n,
+                                     _element_size, _out_count);
 
     case D_FILTER_OP_TAKE_NTH:
-        n = _op->params.step;
-
-        if (n == 0)
-        {
-            n = 1;
-        }
-
-        // count elements
-        actual_count = 0;
-
-        for (i = 0; i < _count; i += n)
-        {
-            actual_count++;
-        }
-
-        output = d_internal_filter_alloc_n(actual_count, _element_size);
-
-        if (!output)
-        {
-            return NULL;
-        }
-
-        out_bytes    = (char*)output;
-        actual_count = 0;
-
-        for (i = 0; i < _count; i += n)
-        {
-            memcpy(out_bytes + (actual_count * _element_size),
-                   in_bytes + (i * _element_size),
-                   _element_size);
-            actual_count++;
-        }
-
-        *_out_count = actual_count;
-
-        return output;
+        return d_internal_filter_stride(_input, 0, _count,
+                                        _op->params.step,
+                                        _element_size, _out_count);
 
     case D_FILTER_OP_RANGE:
-        start = _op->params.start;
-        end   = _op->params.end;
+    case D_FILTER_OP_SLICE:
+        end = (_op->params.end < _count) ? _op->params.end : _count;
 
-        if (start >= _count)
+        if (_op->params.start >= _count)
         {
-            output = malloc(_element_size);
-            *_out_count = 0;
-
-            return output;
+            return d_internal_filter_empty(_element_size, _out_count);
         }
 
-        if (end > _count)
+        // a range is a slice of step 1, and empty where it starts at its end
+        if (_op->type == D_FILTER_OP_SLICE)
         {
-            end = _count;
+            return d_internal_filter_stride(_input, _op->params.start, end,
+                                            _op->params.step,
+                                            _element_size, _out_count);
         }
 
-        if (start >= end)
-        {
-            output = malloc(_element_size);
-            *_out_count = 0;
-
-            return output;
-        }
-
-        n      = end - start;
-        output = d_internal_filter_alloc_n(n, _element_size);
-
-        if (output)
-        {
-            memcpy(output,
-                   in_bytes + (start * _element_size),
-                   n * _element_size);
-            *_out_count = n;
-        }
-
-        return output;
+        return (_op->params.start >= end)
+            ? d_internal_filter_empty(_element_size, _out_count)
+            : d_internal_filter_span(_input, _op->params.start,
+                                     end - _op->params.start,
+                                     _element_size, _out_count);
 
     case D_FILTER_OP_WHERE:
     case D_FILTER_OP_WHERE_NOT:
-        // predicate must be set
-        if (!_op->params.test)
-        {
-            return NULL;
-        }
-
-        output = d_internal_filter_alloc_n(_count, _element_size);
-
-        if (!output)
-        {
-            return NULL;
-        }
-
-        out_bytes    = (char*)output;
-        actual_count = 0;
-
-        for (i = 0; i < _count; i++)
-        {
-            const void* element;
-            bool        matches;
-
-            element = in_bytes + (i * _element_size);
-            matches = _op->params.test(element,
-                                       _op->params.context);
-
-            if (_op->type == D_FILTER_OP_WHERE_NOT)
-            {
-                matches = !matches;
-            }
-
-            if (matches)
-            {
-                memcpy(out_bytes + (actual_count * _element_size),
-                       element,
-                       _element_size);
-                actual_count++;
-            }
-        }
-
-        *_out_count = actual_count;
-
-        return output;
+        return d_internal_filter_where(_op, _input, _count,
+                                       _element_size, _out_count);
 
     case D_FILTER_OP_INDICES:
-        // single index (from d_filter_at)
-        if ( (_op->params.indices == NULL) &&
-             (_op->params.count == 1) )
-        {
-            if (_op->params.start >= _count)
-            {
-                output = malloc(_element_size);
-                *_out_count = 0;
-
-                return output;
-            }
-
-            output = malloc(_element_size);
-
-            if (output)
-            {
-                memcpy(output,
-                       in_bytes
-                       + (_op->params.start * _element_size),
-                       _element_size);
-                *_out_count = 1;
-            }
-
-            return output;
-        }
-
-        // multi-index (from d_filter_at_indices)
-        if ( (!_op->params.indices)        ||
-             (_op->params.indices_count == 0) )
-        {
-            output = malloc(_element_size);
-            *_out_count = 0;
-
-            return output;
-        }
-
-        output = d_internal_filter_alloc_n(_op->params.indices_count,
-                                           _element_size);
-
-        if (!output)
-        {
-            return NULL;
-        }
-
-        out_bytes    = (char*)output;
-        actual_count = 0;
-
-        for (i = 0; i < _op->params.indices_count; i++)
-        {
-            size_t idx = _op->params.indices[i];
-
-            if (idx < _count)
-            {
-                memcpy(out_bytes
-                       + (actual_count * _element_size),
-                       in_bytes + (idx * _element_size),
-                       _element_size);
-                actual_count++;
-            }
-        }
-
-        *_out_count = actual_count;
-
-        return output;
+        return d_internal_filter_indices(_op, _input, _count,
+                                         _element_size, _out_count);
 
     case D_FILTER_OP_REVERSE:
-        output = d_internal_filter_alloc_n(_count, _element_size);
-
-        if (!output)
-        {
-            return NULL;
-        }
-
-        out_bytes = (char*)output;
-
-        for (i = 0; i < _count; i++)
-        {
-            memcpy(out_bytes + (i * _element_size),
-                   in_bytes
-                   + ((_count - 1 - i) * _element_size),
-                   _element_size);
-        }
-
-        *_out_count = _count;
-
-        return output;
-
-    case D_FILTER_OP_SLICE:
-        start = _op->params.start;
-        end   = _op->params.end;
-        n     = _op->params.step;
-
-        if (start >= _count)
-        {
-            output = malloc(_element_size);
-            *_out_count = 0;
-
-            return output;
-        }
-
-        if (end > _count)
-        {
-            end = _count;
-        }
-
-        // count elements in the slice
-        actual_count = 0;
-
-        for (i = start; i < end; i += n)
-        {
-            actual_count++;
-        }
-
-        output = d_internal_filter_alloc_n(actual_count, _element_size);
-
-        if (!output)
-        {
-            return NULL;
-        }
-
-        out_bytes    = (char*)output;
-        actual_count = 0;
-
-        for (i = start; i < end; i += n)
-        {
-            memcpy(out_bytes + (actual_count * _element_size),
-                   in_bytes + (i * _element_size),
-                   _element_size);
-            actual_count++;
-        }
-
-        *_out_count = actual_count;
-
-        return output;
+        return d_internal_filter_reverse(_input, _count,
+                                         _element_size, _out_count);
 
     case D_FILTER_OP_DISTINCT:
-        if (!_op->params.comparator)
-        {
-            return NULL;
-        }
-
-        output = d_internal_filter_alloc_n(_count, _element_size);
-
-        if (!output)
-        {
-            return NULL;
-        }
-
-        out_bytes    = (char*)output;
-        actual_count = 0;
-
-        for (i = 0; i < _count; i++)
-        {
-            const void* element;
-            bool        is_duplicate;
-            size_t      j;
-
-            element      = in_bytes + (i * _element_size);
-            is_duplicate = false;
-
-            for (j = 0; j < actual_count; j++)
-            {
-                if (_op->params.comparator(
-                        element,
-                        out_bytes + (j * _element_size),
-                        _op->params.context) == 0)
-                {
-                    is_duplicate = true;
-
-                    break;
-                }
-            }
-
-            if (!is_duplicate)
-            {
-                memcpy(out_bytes
-                       + (actual_count * _element_size),
-                       element,
-                       _element_size);
-                actual_count++;
-            }
-        }
-
-        *_out_count = actual_count;
-
-        return output;
+        return d_internal_filter_distinct(_op, _input, _count,
+                                          _element_size, _out_count);
 
     case D_FILTER_OP_NONE:
-        // no-op: copy input unchanged
-        output = d_internal_filter_alloc_n(_count, _element_size);
-
-        if (output)
-        {
-            memcpy(output, _input, _count * _element_size);
-            *_out_count = _count;
-        }
-
-        return output;
+        return d_internal_filter_span(_input, 0, _count,
+                                      _element_size, _out_count);
 
     default:
 
@@ -2436,6 +2517,238 @@ void d_filter_difference_free(
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
+d_internal_filter_chain_ok
+  Whether a chain's result is one a set operation can use: it exists, and
+succeeded or came out empty.
+
+Parameter(s):
+  _result: a result of d_filter_apply_chain, or NULL.
+Return:
+  true if the result can be used, false otherwise.
+*/
+static bool
+d_internal_filter_chain_ok(
+    const struct dj_filter_result* _result
+)
+{
+    return ( (_result) &&
+             ( (_result->status == D_FILTER_RESULT_SUCCESS) ||
+               (_result->status == D_FILTER_RESULT_EMPTY) ) );
+}
+
+/*
+d_internal_filter_drop
+  Frees a chain's result and its elements; NULL is ignored.
+
+Parameter(s):
+  _result: the result, or NULL.
+Return:
+  none.
+*/
+static void
+d_internal_filter_drop(
+    struct dj_filter_result* _result
+)
+{
+    d_filter_result_free(_result);
+    free(_result);
+
+    return;
+}
+
+/*
+d_internal_filter_mark
+  Marks, in _included, the first unmarked input element equal byte for byte
+to each element of _found.
+
+Parameter(s):
+  _found:        a sub-filter's result.
+  _included:     one flag per input element.
+  _input:        the input the sub-filter was applied to.
+  _count:        the number of elements in the input.
+  _element_size: the size in bytes of each element.
+Return:
+  none.
+*/
+static void
+d_internal_filter_mark(
+    const struct dj_filter_result* _found,
+    bool*                          _included,
+    const void*                    _input,
+    size_t                         _count,
+    size_t                         _element_size
+)
+{
+    const char* in_bytes  = (const char*)_input;
+    const char* res_bytes = (const char*)_found->elements;
+    size_t      j;
+    size_t      k;
+
+    for (j = 0; j < _found->count; j++)
+    {
+        for (k = 0; k < _count; k++)
+        {
+            if ( (!_included[k]) &&
+                 (memcmp(res_bytes + (j * _element_size),
+                         in_bytes + (k * _element_size),
+                         _element_size) == 0) )
+            {
+                _included[k] = true;
+
+                break;
+            }
+        }
+    }
+
+    return;
+}
+
+/*
+d_internal_filter_gather
+  Fills _result with the input elements _included marks, in input order:
+EMPTY with a one-element block where none is marked, NO_MEMORY where the
+copy cannot be made, SUCCESS otherwise.
+
+Parameter(s):
+  _result:       the result to fill.
+  _included:     one flag per input element.
+  _input:        the input.
+  _count:        the number of elements in the input.
+  _element_size: the size in bytes of each element.
+Return:
+  none.
+*/
+static void
+d_internal_filter_gather(
+    struct dj_filter_result* _result,
+    const bool*              _included,
+    const void*              _input,
+    size_t                   _count,
+    size_t                   _element_size
+)
+{
+    const char* in_bytes = (const char*)_input;
+    char*       out_bytes;
+    size_t      out_count;
+    size_t      i;
+
+    out_count = 0;
+
+    for (i = 0; i < _count; i++)
+    {
+        out_count += (_included[i]) ? 1u : 0u;
+    }
+
+    if (out_count == 0)
+    {
+        _result->status   = D_FILTER_RESULT_EMPTY;
+        _result->elements = malloc(_element_size);
+
+        return;
+    }
+
+    out_bytes = (char*)d_internal_filter_alloc_n(out_count, _element_size);
+
+    if (!out_bytes)
+    {
+        _result->status = D_FILTER_RESULT_NO_MEMORY;
+
+        return;
+    }
+
+    out_count = 0;
+
+    for (i = 0; i < _count; i++)
+    {
+        if (_included[i])
+        {
+            memcpy(out_bytes + (out_count * _element_size),
+                   in_bytes + (i * _element_size),
+                   _element_size);
+            out_count++;
+        }
+    }
+
+    _result->elements = out_bytes;
+    _result->count    = out_count;
+    _result->status   = D_FILTER_RESULT_SUCCESS;
+
+    return;
+}
+
+/*
+d_internal_filter_subtract
+  Fills _result with the elements of _include that no element of _exclude
+equals byte for byte, in order: EMPTY where none is left, NO_MEMORY where
+the copy cannot be made, SUCCESS otherwise.
+
+Parameter(s):
+  _result:       the result to fill.
+  _include:      the include chain's result.
+  _exclude:      the exclude chain's result.
+  _element_size: the size in bytes of each element.
+Return:
+  none.
+*/
+static void
+d_internal_filter_subtract(
+    struct dj_filter_result*       _result,
+    const struct dj_filter_result* _include,
+    const struct dj_filter_result* _exclude,
+    size_t                         _element_size
+)
+{
+    const char* inc_bytes = (const char*)_include->elements;
+    const char* exc_bytes = (const char*)_exclude->elements;
+    char*       out_bytes;
+    size_t      out_count;
+    size_t      i;
+    size_t      j;
+
+    out_bytes = (char*)d_internal_filter_alloc_n(_include->count,
+                                                 _element_size);
+
+    if (!out_bytes)
+    {
+        _result->status = D_FILTER_RESULT_NO_MEMORY;
+
+        return;
+    }
+
+    out_count = 0;
+
+    for (i = 0; i < _include->count; i++)
+    {
+        // a match in the exclude result removes the element
+        for (j = 0; j < _exclude->count; j++)
+        {
+            if (memcmp(inc_bytes + (i * _element_size),
+                       exc_bytes + (j * _element_size),
+                       _element_size) == 0)
+            {
+                break;
+            }
+        }
+
+        if (j == _exclude->count)
+        {
+            memcpy(out_bytes + (out_count * _element_size),
+                   inc_bytes + (i * _element_size),
+                   _element_size);
+            out_count++;
+        }
+    }
+
+    _result->elements = out_bytes;
+    _result->count    = out_count;
+    _result->status   = (out_count == 0)
+                        ? D_FILTER_RESULT_EMPTY
+                        : D_FILTER_RESULT_SUCCESS;
+
+    return;
+}
+
+/*
 d_filter_apply_union
   Applies a union combinator, returning elements matching any filter.
 Uses byte comparison to map sub-filter results back to original input
@@ -2460,14 +2773,8 @@ struct dj_filter_result* d_filter_apply_union(
 {
     struct dj_filter_result* result;
     struct dj_filter_result* sub_result;
-    bool*                   included;
-    size_t                  i;
-    size_t                  j;
-    size_t                  k;
-    size_t                  out_count;
-    char*                   out_bytes;
-    const char*             in_bytes;
-    const char*             res_bytes;
+    bool*                    included;
+    size_t                   i;
 
     result = malloc(sizeof(struct dj_filter_result));
 
@@ -2496,100 +2803,29 @@ struct dj_filter_result* d_filter_apply_union(
         return result;
     }
 
-    in_bytes = (const char*)_input;
-
     // for each sub-filter, apply and mark matching indices
     for (i = 0; i < _union->count; i++)
     {
-        sub_result = d_filter_apply_chain(
-                         _union->filters[i],
-                         _input, _count, _element_size);
+        sub_result = d_filter_apply_chain(_union->filters[i],
+                                          _input, _count, _element_size);
 
         // a sub-filter that failed leaves the union unknown, so the
         // failure is the result, as in d_filter_apply_intersection
-        if ( (!sub_result) ||
-             (sub_result->status != D_FILTER_RESULT_SUCCESS &&
-              sub_result->status != D_FILTER_RESULT_EMPTY) )
+        if (!d_internal_filter_chain_ok(sub_result))
         {
-            d_filter_result_free(sub_result);
-            free(sub_result);
+            d_internal_filter_drop(sub_result);
             free(included);
             result->status = D_FILTER_RESULT_ERROR;
 
             return result;
         }
 
-        // match result elements back to input by byte comparison
-        res_bytes = (const char*)sub_result->elements;
-
-        for (j = 0; j < sub_result->count; j++)
-        {
-            for (k = 0; k < _count; k++)
-            {
-                if ( (!included[k]) &&
-                     (memcmp(
-                          res_bytes + (j * _element_size),
-                          in_bytes + (k * _element_size),
-                          _element_size) == 0) )
-                {
-                    included[k] = true;
-
-                    break;
-                }
-            }
-        }
-
-        d_filter_result_free(sub_result);
-        free(sub_result);
+        d_internal_filter_mark(sub_result, included,
+                               _input, _count, _element_size);
+        d_internal_filter_drop(sub_result);
     }
 
-    // count and build result
-    out_count = 0;
-
-    for (i = 0; i < _count; i++)
-    {
-        if (included[i])
-        {
-            out_count++;
-        }
-    }
-
-    if (out_count == 0)
-    {
-        free(included);
-        result->status = D_FILTER_RESULT_EMPTY;
-        result->elements = malloc(_element_size);
-
-        return result;
-    }
-
-    result->elements = d_internal_filter_alloc_n(out_count, _element_size);
-
-    if (!result->elements)
-    {
-        free(included);
-        result->status = D_FILTER_RESULT_NO_MEMORY;
-
-        return result;
-    }
-
-    out_bytes = (char*)result->elements;
-    out_count = 0;
-
-    for (i = 0; i < _count; i++)
-    {
-        if (included[i])
-        {
-            memcpy(out_bytes + (out_count * _element_size),
-                   in_bytes + (i * _element_size),
-                   _element_size);
-            out_count++;
-        }
-    }
-
-    result->count  = out_count;
-    result->status = D_FILTER_RESULT_SUCCESS;
-
+    d_internal_filter_gather(result, included, _input, _count, _element_size);
     free(included);
 
     return result;
@@ -2723,16 +2959,9 @@ struct dj_filter_result* d_filter_apply_difference(
     size_t                             _element_size
 )
 {
-    struct dj_filter_result*  result;
+    struct dj_filter_result* result;
     struct dj_filter_result* include_result;
     struct dj_filter_result* exclude_result;
-    size_t                  i;
-    size_t                  j;
-    size_t                  out_count;
-    char*                   out_bytes;
-    const char*             inc_bytes;
-    const char*             exc_bytes;
-    bool                    excluded;
 
     result = malloc(sizeof(struct dj_filter_result));
 
@@ -2758,12 +2987,9 @@ struct dj_filter_result* d_filter_apply_difference(
                                           _count,
                                           _element_size);
 
-    if ( (!include_result) ||
-         ((include_result->status != D_FILTER_RESULT_SUCCESS) &&
-          (include_result->status != D_FILTER_RESULT_EMPTY)) )
+    if (!d_internal_filter_chain_ok(include_result))
     {
-        d_filter_result_free(include_result);
-        free(include_result);
+        d_internal_filter_drop(include_result);
         result->status = D_FILTER_RESULT_ERROR;
 
         return result;
@@ -2774,8 +3000,7 @@ struct dj_filter_result* d_filter_apply_difference(
         result->status   = D_FILTER_RESULT_EMPTY;
         result->elements = include_result->elements;
         include_result->elements = NULL;
-        d_filter_result_free(include_result);
-        free(include_result);
+        d_internal_filter_drop(include_result);
 
         return result;
     }
@@ -2786,76 +3011,22 @@ struct dj_filter_result* d_filter_apply_difference(
                                           _count,
                                           _element_size);
 
-    if ( (!exclude_result) ||
-         ((exclude_result->status != D_FILTER_RESULT_SUCCESS) &&
-          (exclude_result->status != D_FILTER_RESULT_EMPTY)) )
+    // A minus a set that could not be computed is not A: the failure is
+    // the result, as when the include chain fails
+    if (!d_internal_filter_chain_ok(exclude_result))
     {
-        // A minus a set that could not be computed is not A: the failure
-        // is the result, as when the include chain fails
-        d_filter_result_free(exclude_result);
-        free(exclude_result);
-        d_filter_result_free(include_result);
-        free(include_result);
+        d_internal_filter_drop(exclude_result);
+        d_internal_filter_drop(include_result);
         result->status = D_FILTER_RESULT_ERROR;
 
         return result;
     }
 
     // subtract: keep include elements not in exclude
-    result->elements = d_internal_filter_alloc_n(include_result->count,
-                                                 _element_size);
-
-    if (!result->elements)
-    {
-        d_filter_result_free(include_result);
-        free(include_result);
-        d_filter_result_free(exclude_result);
-        free(exclude_result);
-        result->status = D_FILTER_RESULT_NO_MEMORY;
-
-        return result;
-    }
-
-    out_bytes = (char*)result->elements;
-    inc_bytes = (const char*)include_result->elements;
-    exc_bytes = (const char*)exclude_result->elements;
-    out_count = 0;
-
-    for (i = 0; i < include_result->count; i++)
-    {
-        excluded = false;
-
-        for (j = 0; j < exclude_result->count; j++)
-        {
-            if (memcmp(inc_bytes + (i * _element_size),
-                       exc_bytes + (j * _element_size),
-                       _element_size) == 0)
-            {
-                excluded = true;
-
-                break;
-            }
-        }
-
-        if (!excluded)
-        {
-            memcpy(out_bytes + (out_count * _element_size),
-                   inc_bytes + (i * _element_size),
-                   _element_size);
-
-            out_count++;
-        }
-    }
-
-    d_filter_result_free(include_result);
-    free(include_result);
-    d_filter_result_free(exclude_result);
-    free(exclude_result);
-
-    result->count  = out_count;
-    result->status = (out_count == 0)
-                     ? D_FILTER_RESULT_EMPTY
-                     : D_FILTER_RESULT_SUCCESS;
+    d_internal_filter_subtract(result, include_result, exclude_result,
+                               _element_size);
+    d_internal_filter_drop(include_result);
+    d_internal_filter_drop(exclude_result);
 
     return result;
 }
@@ -3638,9 +3809,7 @@ struct dj_filter_chain* d_filter_chain_from_string(
 
             if (op)
             {
-                d_filter_chain_add(chain, op);
-
-                free(op);
+                (void)d_internal_filter_chain_adopt(chain, op);
             }
         }
 
@@ -4097,13 +4266,18 @@ struct dj_filter_builder* d_filter_builder_add_op_internal(
     struct dj_filter_operation* _op
 )
 {
+    //   the operation is the builder's to dispose of: a builder already in
+    // error, or a missing one, adds nothing
     if ( (!_builder) ||
          (_builder->error_code != 0) )
     {
+        d_filter_operation_free(_op);
+        free(_op);
+
         return _builder;
     }
 
-    if (!d_filter_chain_add(_builder->chain, _op))
+    if (!d_internal_filter_chain_adopt(_builder->chain, _op))
     {
         _builder->error_code = -1;
     }

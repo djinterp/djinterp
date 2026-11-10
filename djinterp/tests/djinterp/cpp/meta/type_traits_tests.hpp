@@ -6,32 +6,21 @@
 *   Public surface:
 *     - `type_traits_spec()` -- the whole suite as one module_spec (plain
 *       data: a block of `{ name, descriptor, bool() }` unit tests, one per
-*       section).  This is what the spec-based runner hands to run_module
-*       (test_defaults.hpp), which lowers it into the six-kind test tree AND
-*       projects it onto the console report and an optional PDF.  Each unit
-*       test's `bool()` is a thin adapter (type_traits_detail::run_section)
-*       over the corresponding per-section worker.
-*     - per-section `void(test_handler&)` WORKERS, declared here and defined
-*       in the .cpp files.  Each records many assertions but represents one
-*       aggregate unit test; the spec adapter surfaces its pass/fail.
-*     - a `type_traits_tests_all` aggregate driver (the legacy whole-suite
-*       flow: one handler, sequential worker calls, AND-folded verdict),
-*       compiled out under DTEST_SPEC_MODE since the spec-based runner does
-*       not need it.
+*       section), in spec mode only. The runner hands it to run_module
+*       (test_defaults.hpp), which runs it and reports it, on the console
+*       and in a PDF.
+*     - per-section `bool()` WORKERS, declared here and defined in the .cpp
+*       files. Each records many checks on a local verdict and returns it:
+*       one aggregate unit test.
 *     - a small library of helper types used across multiple sections so
-*       each individual .cpp can stay focused on the trait under test.
+*       each individual .cpp can stay focused on the trait under test
+*       (normal mode only).
 *
 *   DTEST_SPEC_MODE:
-*   A runner that consumes the suite as data defines DTEST_SPEC_MODE before
-* including this header (mirroring the other DTest suites).  In that mode
-* the legacy aggregate driver is dropped and type_traits_spec() is the
-* entry point.  The section .cpp files are compiled WITHOUT the macro and
-* supply the worker definitions the spec's function pointers resolve to.
-*
-*   Per-section .cpp files implement the work in `void(test_handler&)`
-* worker functions; they record their assertions directly via
-* record_assertion().  `apply_options_to_handler` remains as the hook for
-* the day the handler grows an option-application API.
+*   The runner defines DTEST_SPEC_MODE before including this header
+* (mirroring the other DTest suites); type_traits_spec() is its entry
+* point. The section .cpp files are compiled WITHOUT the macro and supply
+* the worker definitions the spec's function pointers resolve to.
 *
 *   Section coverage map (see the individual .cpp files for detail):
 *
@@ -56,7 +45,7 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_TYPE_TRAITS_TESTS_
@@ -64,6 +53,7 @@
 
 
 // std
+#include <cstdio>
 #include <array>
 #include <cstddef>
 #include <initializer_list>
@@ -74,18 +64,111 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include <djinterp/cpp/djinterp.hpp>
-#include <djinterp/cpp/modules/test/test_handler.hpp>
-#include <djinterp/cpp/modules/test/test_options.hpp>
-#include <djinterp/cpp/modules/test/test_defaults.hpp>
-#include <djinterp/cpp/meta/type_traits.hpp>
-#include <djinterp/cpp/meta/dtuple.hpp>
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/meta/type_traits.hpp"
+#include "../../../../inc/djinterp/cpp/meta/dtuple.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
-NS_TEST
+NS_TESTING
 
-using namespace djinterp::test;
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
+
+// record_assertion
+//   function: one check of a converted body: on failure it prints what was
+// expected and clears the body's verdict.  (The bodies used DTest's retired
+// handler API, record_assertion(handler, condition, what).)
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s\n", _what);
+        _ok = false;
+    }
+
+    return;
+}
+
+
+// record_assertion (with detail)
+//   function: the five-argument form the bodies also used: the detail and
+// the extra text are printed with a failure.
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what,
+    const char* _detail,
+    const char* _extra = nullptr
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s (%s%s%s)\n",
+                    _what,
+                    _detail ? _detail : "",
+                    _extra ? "; " : "",
+                    _extra ? _extra : "");
+        _ok = false;
+    }
+
+    return;
+}
+
+// DUnitTestTally
+//   struct: kept for the converted bodies' run_unit_test calls; a body's
+// verdict is its bool now, so the tally holds nothing.
+struct DUnitTestTally
+{
+};
+
+// run_unit_test
+//   function: runs one named unit inside a converted body, and prints its
+// name when it was the unit that first failed.
+template<typename Fn>
+void run_unit_test(
+    bool&           _ok,
+    DUnitTestTally& _tally,
+    const char*     _name,
+    Fn              _unit
+)
+{
+    const bool before = _ok;
+
+    (void)_tally;
+    _unit();
+
+    if ( (before) &&
+         (!_ok) )
+    {
+        std::printf("    [FAIL] %s\n", _name);
+    }
+
+    return;
+}
+
+// D_TYPE_TRAITS_CHECK
+//   macro: one check of a converted body, its text the message.
+#define D_TYPE_TRAITS_CHECK(...) \
+    record_assertion(verdict, (__VA_ARGS__), #__VA_ARGS__)
+
 
 // =========================================================================
 // I.   SHARED HELPER TYPES
@@ -246,151 +329,44 @@ enum unscoped_enum_t
 }  // namespace type_traits_test_types
 
 
-// =========================================================================
-// II.  OPTION FORWARDING HOOK
-// =========================================================================
-
-// apply_options_to_handler
-//   helper: forwards an arbitrary pack of caller-supplied options
-// into `_handler` before a section runs.  Each option is expected
-// to be a recognized DTest option tag (see is_valid_test_option
-// in test_concepts.hpp); the handler is expected to consume them
-// in pack order.
-//
-//   Current state: the body is a sink expression that consumes
-// every element of the pack with zero side effects.  This keeps
-// the public per-section signature stable today while leaving a
-// single, well-named extension point for the day test_handler
-// grows an `apply_option(_Opt&&)` (or analogous) hook.  When that
-// hook lands, replace the sink with the per-element forward and
-// every per-section wrapper picks it up automatically.
-//
-//   The function template is well-formed on an empty pack
-// (`sizeof...(_Options) == 0`) and on any combination of
-// option-tag types, so callers may pass zero or many options
-// without compile-time penalty.
-template<typename... _Options>
-inline
-void apply_options_to_handler(
-    test_handler& _handler,
-    _Options&&... _options
-)
-{
-    // sink the references so unused-parameter diagnostics stay
-    // quiet on every supported standard.  On an empty pack the
-    // initializer_list is empty and folds to a no-op; on a
-    // non-empty pack each element is comma-discarded.
-    (void)_handler;
-    (void)std::initializer_list<int>{
-        ((void)_options, 0)...
-    };
-
-    return;
-}
+#endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
 // =========================================================================
 // III. PER-SECTION WORKER DECLARATIONS  (defined in the .cpp files)
 // =========================================================================
 
-// Each worker has the uniform signature `void(test_handler&)` so a
-// single function-pointer type drives them all from the runner.  The
-// worker bodies record assertions directly via record_assertion(),
-// which updates DSessionResult counters on the handler.  Pass/fail is
-// derived from the counter delta around each call (see the runner and
-// type_traits_tests_all below) -- the workers do not return a verdict
-// and they do not take options.  Options apply suite-wide and are
-// consumed once by apply_options_to_handler() above.
+// Each worker is a `bool()` unit test: it records its section's checks on
+// a local verdict and returns it. The spec provider (section IV) lists them
+// for run_module.
 
-void type_traits_tests_detection(
-    test_handler& _test_handler
-);
-void type_traits_tests_macros_core(
-    test_handler& _test_handler
-);
-void type_traits_tests_macros_member(
-    test_handler& _test_handler
-);
-void type_traits_tests_macros_op(
-    test_handler& _test_handler
-);
-void type_traits_tests_macros_spec(
-    test_handler& _test_handler
-);
-void type_traits_tests_logical(
-    test_handler& _test_handler
-);
-void type_traits_tests_callable(
-    test_handler& _test_handler
-);
-void type_traits_tests_cpp20(
-    test_handler& _test_handler
-);
-void type_traits_tests_cpp23(
-    test_handler& _test_handler
-);
-void type_traits_tests_evaluate(
-    test_handler& _test_handler
-);
-void type_traits_tests_rules(
-    test_handler& _test_handler
-);
-void type_traits_tests_traits(
-    test_handler& _test_handler
-);
-void type_traits_tests_arity(
-    test_handler& _test_handler
-);
-void type_traits_tests_template(
-    test_handler& _test_handler
-);
-void type_traits_tests_tuple(
-    test_handler& _test_handler
-);
+bool type_traits_tests_detection();
+bool type_traits_tests_macros_core();
+bool type_traits_tests_macros_member();
+bool type_traits_tests_macros_op();
+bool type_traits_tests_macros_spec();
+bool type_traits_tests_logical();
+bool type_traits_tests_callable();
+bool type_traits_tests_cpp20();
+bool type_traits_tests_cpp23();
+bool type_traits_tests_evaluate();
+bool type_traits_tests_rules();
+bool type_traits_tests_traits();
+bool type_traits_tests_arity();
+bool type_traits_tests_template();
+bool type_traits_tests_tuple();
 
 
 // =========================================================================
 // IV.  MODULE SPEC  (the data view the spec-based runner consumes)
 // =========================================================================
-//   The framework's one-call runner (run_module in test_defaults.hpp) does
-// not drive `void(test_handler&)` workers directly -- it consumes a
-// module_spec: plain data describing a module as blocks of unit tests,
-// each unit test a `{ name, descriptor, bool() }` triple.  run_module
-// lowers that spec into the six-kind test tree AND projects it onto the
-// report / PDF, so authoring the suite once as data feeds both views.
-//
-//   Each per-section worker here is one aggregate unit test (it records
-// many assertions but reports a single pass/fail), which is exactly the
-// shape a test_spec wants.  The only impedance is the signature: the spec
-// needs `bool()`, the workers are `void(test_handler&)`.  run_section
-// bridges the two -- it runs one worker against a private handler and
-// returns whether that run added no failures or errors.  A function-pointer
-// non-type template parameter gives one distinct thunk per worker without
-// hand-writing fifteen wrappers.
-
-namespace type_traits_detail
-{
-
-// run_section
-//   adapter: presents one `void(test_handler&)` worker as a nullary
-// `bool()` predicate.  Runs the worker against a fresh DDefaultTestHandler
-// and returns true iff it recorded no new failures and no new errors.  The
-// worker still pushes its per-assertion leaves into that private handler,
-// so nothing about the section's own recording changes -- only the verdict
-// is surfaced, which is all a test_spec consumes.
-template<void (*_Worker)(test_handler&)>
-inline
-bool run_section()
-{
-    DDefaultTestHandler _handler;
-
-    _Worker(_handler);
-
-    return ( (_handler.failed() == 0) &&
-             (_handler.errors() == 0) );
-}
-
-}  // namespace type_traits_detail
+//   The framework's one-call runner (run_module in test_defaults.hpp)
+// consumes a module_spec: plain data describing a module as blocks of unit
+// tests, each a `{ name, descriptor, bool() }` triple. Each per-section
+// worker is one aggregate unit test. The provider exists in spec mode only;
+// the section .cpp files, built without DTEST_SPEC_MODE, define the
+// workers.
+#ifdef DTEST_SPEC_MODE
 
 
 // type_traits_spec
@@ -402,9 +378,9 @@ bool run_section()
 // section .cpp translation units supply the worker definitions the
 // function-pointer template arguments resolve to at link time.
 inline
-module_spec type_traits_spec()
+dt::module_spec type_traits_spec()
 {
-    module_spec _module;
+    dt::module_spec _module;
 
     _module.name       = "type_traits";
     _module.descriptor =
@@ -413,69 +389,69 @@ module_spec type_traits_spec()
         "portable standard-library traits (section I), and the djinterp "
         "custom trait surface (section III).";
 
-    block_spec _block;
+    dt::block_spec _block;
 
     _block.name       = "type_traits";
     _block.descriptor =
         "One unit test per semantic section; each aggregates its section's "
         "assertions into a single pass/fail verdict.";
 
-    _block.tests = std::vector<test_spec>{
+    _block.tests = std::vector<dt::test_spec>{
         { "detection",
           "0.2  detection idiom: nonesuch, detected_or/_t, is_detected[_v], "
           "is_detected_convertible, is_detected_exact",
-          &type_traits_detail::run_section<&type_traits_tests_detection> },
+          &type_traits_tests_detection },
         { "macros_core",
           "0.3  core macros: D_VOID_T, D_TYPE_TRAIT_TRUE[_AS/_FROM], "
           "D_TYPE_TRAIT_VALUE_BOOL, D_TYPE_TRAIT_TYPE_ALIAS",
-          &type_traits_detail::run_section<&type_traits_tests_macros_core> },
+          &type_traits_tests_macros_core },
         { "macros_member",
           "0.3  member macros: HAS_METHOD[_ARGS], HAS_TYPE, "
           "HAS_STATIC_MEMBER, MEMBER_TYPE_OR",
-          &type_traits_detail::run_section<&type_traits_tests_macros_member> },
+          &type_traits_tests_macros_member },
         { "macros_op",
           "0.3  operator macros: HAS_BINARY_OP, HAS_UNARY_OP, and the "
           "legacy HAS_METHOD_OF_TYPE family",
-          &type_traits_detail::run_section<&type_traits_tests_macros_op> },
+          &type_traits_tests_macros_op },
         { "macros_spec",
           "0.3  specialization macros: IS_SPECIALIZATION_OF[_AS]",
-          &type_traits_detail::run_section<&type_traits_tests_macros_spec> },
+          &type_traits_tests_macros_spec },
         { "logical",
           "I.1 + II  bool_constant, conjunction, disjunction, negation, "
           "D_CONJUNCTION / D_DISJUNCTION / D_NEGATION",
-          &type_traits_detail::run_section<&type_traits_tests_logical> },
+          &type_traits_tests_logical },
         { "callable",
           "I.2  invoke_result, is_invocable[_r], is_nothrow_invocable[_r]",
-          &type_traits_detail::run_section<&type_traits_tests_callable> },
+          &type_traits_tests_callable },
         { "cpp20",
           "I.3  is_bounded_array, is_unbounded_array, remove_cvref, "
           "type_identity",
-          &type_traits_detail::run_section<&type_traits_tests_cpp20> },
+          &type_traits_tests_cpp20 },
         { "cpp23",
           "I.4  is_scoped_enum",
-          &type_traits_detail::run_section<&type_traits_tests_cpp23> },
+          &type_traits_tests_cpp23 },
         { "evaluate",
           "III  evaluate_types_for_trait, are_all_nonvoid, "
           "exclusive_disjunction",
-          &type_traits_detail::run_section<&type_traits_tests_evaluate> },
+          &type_traits_tests_evaluate },
         { "rules",
           "III  follows_rule_of_five / _three / _zero",
-          &type_traits_detail::run_section<&type_traits_tests_rules> },
+          &type_traits_tests_rules },
         { "traits",
           "III  has_max_size, has_nested_template_type, "
           "has_variadic_constructor, is_allocator, is_bounded, is_nonvoid, "
           "is_sized, is_valid_size_type",
-          &type_traits_detail::run_section<&type_traits_tests_traits> },
+          &type_traits_tests_traits },
         { "arity",
           "III  is_zero, is_nonzero, is_single_arg, is_single_type_arg",
-          &type_traits_detail::run_section<&type_traits_tests_arity> },
+          &type_traits_tests_arity },
         { "template",
           "III  is_template, is_template_with_args, "
           "is_template_parameter_base_of",
-          &type_traits_detail::run_section<&type_traits_tests_template> },
+          &type_traits_tests_template },
         { "tuple",
           "III  first_arg, is_tuple, is_single_tuple_arg, to_tuple",
-          &type_traits_detail::run_section<&type_traits_tests_tuple> }
+          &type_traits_tests_tuple }
     };
 
     _module.blocks.push_back(_block);
@@ -484,65 +460,10 @@ module_spec type_traits_spec()
 }
 
 
-// =========================================================================
-// V.   AGGREGATE DRIVER  (legacy whole-suite void() flow)
-// =========================================================================
-//   Runs every per-section worker in declared order against the
-// supplied handler, applying any caller-supplied options to the
-// handler once up front (the options apply to the suite as a
-// whole, not to a single section).  Returns `true` iff no worker
-// recorded any new failures or errors on the handler -- the
-// workers themselves return `void`, so the verdict comes from
-// the counter delta around the run.  Every section is run even
-// after an earlier failure -- short-circuit logic would mask
-// later-section regressions in the same run.
-//
-//   Retained for callers that still drive the suite the old way (one
-// handler, sequential worker calls).  It is the "fixtures" the spec-mode
-// runner does not need, so it is compiled out when DTEST_SPEC_MODE is
-// defined -- the runner consumes type_traits_spec() instead.
-#ifndef DTEST_SPEC_MODE
-
-template<typename... _Options>
-inline
-bool type_traits_tests_all(
-    test_handler& _handler,
-    _Options&&... _options
-)
-{
-    std::size_t _failed_before;
-    std::size_t _errors_before;
-
-    apply_options_to_handler(_handler,
-                             std::forward<_Options>(_options)...);
-
-    _failed_before = _handler.failed();
-    _errors_before = _handler.errors();
-
-    type_traits_tests_detection     (_handler);
-    type_traits_tests_macros_core   (_handler);
-    type_traits_tests_macros_member (_handler);
-    type_traits_tests_macros_op     (_handler);
-    type_traits_tests_macros_spec   (_handler);
-    type_traits_tests_logical       (_handler);
-    type_traits_tests_callable      (_handler);
-    type_traits_tests_cpp20         (_handler);
-    type_traits_tests_cpp23         (_handler);
-    type_traits_tests_evaluate      (_handler);
-    type_traits_tests_rules         (_handler);
-    type_traits_tests_traits        (_handler);
-    type_traits_tests_arity         (_handler);
-    type_traits_tests_template      (_handler);
-    type_traits_tests_tuple         (_handler);
-
-    return ( (_handler.failed() == _failed_before) &&
-             (_handler.errors() == _errors_before) );
-}
-
-#endif  // !DTEST_SPEC_MODE
+#endif  // DTEST_SPEC_MODE
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp
 
 

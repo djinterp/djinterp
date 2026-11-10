@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_event_bus.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : mediator_tests_event_bus.cpp
 //   The type-indexed publish/subscribe event bus (section IV): subscription
@@ -26,16 +26,16 @@ NS_TESTING
 
 /*
 tests_subscription_token_type
-  Verifies the subscription_token alias.
+  Verifies the subscription_id alias.
   Tests the following:
-  - subscription_token is std::size_t
+  - subscription_id is std::size_t
 */
 bool tests_subscription_token_type()
 {
-    static_assert(std::is_same<subscription_token, std::size_t>::value,
-                  "subscription_token is std::size_t");
+    static_assert(std::is_same<subscription_id, std::size_t>::value,
+                  "subscription_id is std::size_t");
 
-    return std::is_same<subscription_token, std::size_t>::value;
+    return std::is_same<subscription_id, std::size_t>::value;
 }
 
 /*
@@ -127,7 +127,7 @@ bool tests_event_bus_unsubscribe()
     int       a = 0;
     int       b = 0;
 
-    subscription_token tok = bus.subscribe<ping>([&](const ping&) { ++a; });
+    subscription_id tok = bus.subscribe<ping>([&](const ping&) { ++a; });
     bus.subscribe<ping>([&](const ping&) { ++b; });
 
     bus.unsubscribe(tok);
@@ -180,9 +180,9 @@ bool tests_event_bus_publish_lvalue()
 
 /*
 tests_event_bus_notify
-  Verifies notify() dispatches a pre-wrapped compat::any by its stored type id.
+  Verifies notify() dispatches a pre-wrapped re_std::any by its stored type id.
   Tests the following:
-  - a ping wrapped in compat::any is delivered to the ping handler
+  - a ping wrapped in re_std::any is delivered to the ping handler
 */
 bool tests_event_bus_notify()
 {
@@ -191,7 +191,7 @@ bool tests_event_bus_notify()
 
     bus.subscribe<ping>([&](const ping& _e) { seen = _e.n; });
 
-    compat::any wrapped(ping{ 55 });
+    re_std::any wrapped(ping{ 55 });
     bus.notify(wrapped);
 
     return (seen == 55);
@@ -211,10 +211,10 @@ bool tests_event_bus_notify_type_gated()
 
     bus.subscribe<ping>([&](const ping&) { ++pings; });
 
-    bus.notify(compat::any(pong{ 1 }));     // wrong type: no fire
+    bus.notify(re_std::any(pong{ 1 }));     // wrong type: no fire
     bool ok = (pings == 0);
 
-    bus.notify(compat::any(ping{ 1 }));     // right type: fire
+    bus.notify(re_std::any(ping{ 1 }));     // right type: fire
     ok = ok && (pings == 1);
 
     return ok;

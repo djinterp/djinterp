@@ -38,7 +38,7 @@
 * path:      /tests/djinterp/cpp/container/traits/hierarchical_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_HIERARCHICAL_CONTAINER_TRAITS_TESTS_
@@ -56,7 +56,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/core/container/structure)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/hierarchical_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 #ifndef D_KEYWORD_TESTING
@@ -83,8 +91,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -184,6 +202,8 @@ struct node_handle_box
 using vec1 = std::vector<int>;
 using vec2 = std::vector<std::vector<int>>;
 using vec3 = std::vector<std::vector<std::vector<int>>>;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -211,6 +231,96 @@ bool tests_structure_kind_of();
 // -- V.   Aggregate snapshot + variable-template companions --
 bool tests_hierarchical_container_class();
 bool tests_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// hierarchical_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+hierarchical_container_traits_spec()
+{
+    return dt::module_spec{
+        "hierarchical_container_traits",
+        "SFINAE structural traits for the HIERARCHICAL side of the structure "
+        "axis - whether a container NESTS",
+        {
+            dt::block_spec{
+                "signals",
+                "Signals",
+                {
+                    { "tests_is_container_shape",
+                      "checks (is_container_shape<std::vector<int>>::value)",
+                      &tests_is_container_shape },
+                    { "tests_has_node_summand",
+                      "checks (has_node_summand<node_box>::value)",
+                      &tests_has_node_summand },
+                    { "tests_has_structure_category",
+                      "checks (has_structure_category<tagged_flat_str>::value)",
+                      &tests_has_structure_category },
+                }
+            },
+            dt::block_spec{
+                "depth",
+                "Depth",
+                {
+                    { "tests_container_depth",
+                      "checks (container_depth<vec1>::value == 1)",
+                      &tests_container_depth },
+                    { "tests_container_depth_maxdepth_cap",
+                      "checks (container_depth<vec3, 32>::value == 3)",
+                      &tests_container_depth_maxdepth_cap },
+                    { "tests_max_depth_of",
+                      "checks (max_depth_of<vec1>::value == 1)",
+                      &tests_max_depth_of },
+                }
+            },
+            dt::block_spec{
+                "verdict",
+                "Verdict",
+                {
+                    { "tests_is_hierarchical_container",
+                      "checks (is_hierarchical_container<vec2>::value)",
+                      &tests_is_hierarchical_container },
+                    { "tests_is_depth_bounded_container",
+                      "checks (is_depth_bounded_container<vec2, 2>::value)",
+                      &tests_is_depth_bounded_container },
+                }
+            },
+            dt::block_spec{
+                "kind",
+                "Kind",
+                {
+                    { "tests_structure_kind_name",
+                      "checks "
+                      "(hc_cstr_eq(structure_kind_name(DStructureKind::non_container), "
+                      "\"no",
+                      &tests_structure_kind_name },
+                    { "tests_structure_kind_of",
+                      "checks (structure_kind_of<int>::value == "
+                      "DStructureKind::non_container)",
+                      &tests_structure_kind_of },
+                }
+            },
+            dt::block_spec{
+                "aggregate",
+                "Aggregate",
+                {
+                    { "tests_hierarchical_container_class",
+                      "checks (!C::node_summand && !C::has_structure_tag && "
+                      "C::is_container)",
+                      &tests_hierarchical_container_class },
+                    { "tests_variable_templates",
+                      "checks (is_container_shape_v<std::vector<int>> == "
+                      "is_container_shape<std::",
+                      &tests_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

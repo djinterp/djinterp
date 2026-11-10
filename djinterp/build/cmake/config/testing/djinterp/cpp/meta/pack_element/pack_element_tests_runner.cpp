@@ -1,61 +1,44 @@
+/*******************************************************************************
+* djinterp [test]                                  pack_element_tests_runner.cpp
+*
+*   The runner for pack_element.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
+*
+*
+* path:      /build/cmake/config/testing/djinterp/cpp/meta/pack_element/pack_element_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
+
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "pack_element_tests.hpp"
+#include "pack_element_tests.hpp"  // via INCLUDES (tests dir)
 
-namespace
+
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
-        if (ok) { ++g_passed; } else { ++g_failed; }
-    }
+    dt::test_option_set opts = dt::default_test_options();
 
-    void section(
-        const char* _title
-    )
-    {
-        std::printf("\n--- %s ---\n", _title);
-    }
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("pack_element_tests.pdf"));
+
+    return dt::run_module(
+        tt::pack_element_spec(),
+        "pack_element.hpp unit tests",
+        "direct positional access into a typename parameter pack, without "
+        "routing through std::tuple",
+        opts);
 }
-
-// D_PE_RUN
-//   macro: runs one suite function by name.  The PE letters are unique to
-// this suite so co-compiled suites never collide on the macro name.
-#define D_PE_RUN(_fn)   run(#_fn, &::djinterp::testing::_fn)
-
-int main()
-{
-    std::printf("pack_element.hpp unit tests\n");
-
-    section("I.   indexing");
-    D_PE_RUN(tests_pack_element_base_case);
-    D_PE_RUN(tests_pack_element_recursion);
-    D_PE_RUN(tests_pack_element_trait_shape);
-
-    section("II.  the pack_element_t alias");
-    D_PE_RUN(tests_pack_element_alias_equivalence);
-    D_PE_RUN(tests_pack_element_alias_arity);
-
-    section("III. element fidelity");
-    D_PE_RUN(tests_pack_element_type_preservation);
-    D_PE_RUN(tests_pack_element_hostile_pack);
-    D_PE_RUN(tests_pack_element_duplicates);
-
-    section("IV.  bounds and the guard");
-    D_PE_RUN(tests_pack_element_arity_contract);
-    D_PE_RUN(tests_pack_element_guarded_access);
-    D_PE_RUN(tests_pack_element_depth);
-
-    std::printf("\npassed: %d   failed: %d\n", g_passed, g_failed);
-    return (g_failed == 0) ? 0 : 1;
-}
-
-#undef D_PE_RUN

@@ -34,28 +34,123 @@
 * path:      /tests/djinterp/cpp/functional/predicate_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_PREDICATE_TESTS_
 #define DJINTERP_FUNCTIONAL_PREDICATE_TESTS_ 1
 
 // std
+#include <cstdio>
 #include <cstddef>
 // djinterp
 #include <djinterp/cpp/djinterp.hpp>
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/functional/predicate.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 // DTest framework (run_session model: handler + record_assertion + session).
 // Same include convention as the example suites (view_tests.hpp, ...); adjust
 // the prefix if this header sits elsewhere relative to the test framework.
-#include "../../../../inc/djinterp/cpp/modules/test/test_common.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_handler.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_runner.hpp"
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
+
+// record_assertion
+//   function: one check of a converted body: on failure it prints what was
+// expected and clears the body's verdict.  (The bodies used DTest's retired
+// handler API, record_assertion(handler, condition, what).)
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s\n", _what);
+        _ok = false;
+    }
+
+    return;
+}
+
+// record_assertion (with detail)
+//   function: the five-argument form the bodies also used: the detail and
+// the extra text are printed with a failure.
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what,
+    const char* _detail,
+    const char* _extra = nullptr
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s (%s%s%s)\n",
+                    _what,
+                    _detail ? _detail : "",
+                    _extra ? "; " : "",
+                    _extra ? _extra : "");
+        _ok = false;
+    }
+
+    return;
+}
+
+
+// DUnitTestTally
+//   struct: kept for the converted bodies' run_unit_test calls; a body's
+// verdict is its bool now, so the tally holds nothing.
+struct DUnitTestTally
+{
+};
+
+// run_unit_test
+//   function: runs one named unit inside a converted body, and prints its
+// name when it was the unit that first failed.
+template<typename Fn>
+void run_unit_test(
+    bool&           _ok,
+    DUnitTestTally& _tally,
+    const char*     _name,
+    Fn              _unit
+)
+{
+    const bool before = _ok;
+
+    (void)_tally;
+    _unit();
+
+    if ( (before) &&
+         (!_ok) )
+    {
+        std::printf("    [FAIL] %s\n", _name);
+    }
+
+    return;
+}
+
+// D_PREDICATE_CHECK
+//   macro: one check of a converted body, its text the message.
+#define D_PREDICATE_CHECK(...) \
+    record_assertion(verdict, (__VA_ARGS__), #__VA_ARGS__)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -246,6 +341,8 @@ struct DReturnsVoidPredicate
         return;
     }
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -256,45 +353,102 @@ struct DReturnsVoidPredicate
 // roll up through the runner exactly like every other run_session module.
 
 // and / or / xor combinators + factories
-void test_predicate_binary(
-    test::test_handler&
-);
+bool test_predicate_binary();
 
 // not combinator + factory
-void test_predicate_not(
-    test::test_handler&
-);
+bool test_predicate_not();
 
 // nand / nor combinators + factories
-void test_predicate_nand_nor(
-    test::test_handler&
-);
+bool test_predicate_nand_nor();
 
 // all_of / any_of / none_of variadic folds (C++11+)
-void test_predicate_variadic(
-    test::test_handler&
-);
+bool test_predicate_variadic();
 
 // structural is_predicate_* / is_predicate_combinator traits (C++11+)
-void test_predicate_traits(
-    test::test_handler&
-);
+bool test_predicate_traits();
 
 // behavioral is_predicate trait + C++20 concepts (C++11+)
-void test_predicate_behavioral(
-    test::test_handler&
-);
+bool test_predicate_behavioral();
 
 
 // predicate_module_info / predicate_module_run_all
 //   The run_session wiring: module_info carries the module identity and
 // predicate_module_run_all schedules every section against the shared engine.
 // Both are DEFINED in predicate_tests_runner.cpp.
-extern const test::test_module_info predicate_module_info;
 
-void predicate_module_run_all(
-    test::test_runner_ctx&
-);
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// predicate_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+predicate_spec()
+{
+    return dt::module_spec{
+        "predicate",
+        "predicate.hpp",
+        {
+            dt::block_spec{
+                "binary",
+                "Binary",
+                {
+                    { "test_predicate_binary",
+                      "Tests the and / or / xor combinators and their "
+                      "factories",
+                      &test_predicate_binary },
+                }
+            },
+            dt::block_spec{
+                "not",
+                "Not",
+                {
+                    { "test_predicate_not",
+                      "Tests the not combinator and its factory",
+                      &test_predicate_not },
+                }
+            },
+            dt::block_spec{
+                "nand_nor",
+                "Nand nor",
+                {
+                    { "test_predicate_nand_nor",
+                      "Tests the nand / nor combinators and their factories",
+                      &test_predicate_nand_nor },
+                }
+            },
+            dt::block_spec{
+                "variadic",
+                "Variadic",
+                {
+                    { "test_predicate_variadic",
+                      "Tests all_of / any_of / none_of",
+                      &test_predicate_variadic },
+                }
+            },
+            dt::block_spec{
+                "traits",
+                "Traits",
+                {
+                    { "test_predicate_traits",
+                      "Tests the structural detection traits",
+                      &test_predicate_traits },
+                }
+            },
+            dt::block_spec{
+                "behavioral",
+                "Behavioral",
+                {
+                    { "test_predicate_behavioral",
+                      "Tests the behavioral is_predicate trait and the C++20 "
+                      "concepts",
+                      &test_predicate_behavioral },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

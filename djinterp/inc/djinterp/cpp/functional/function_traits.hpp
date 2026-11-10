@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/functional/function_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -426,38 +426,34 @@ using call_result_t =
 // is_invocable_with
 //   trait: true when a const-lvalue Fn can be called on Args. The "_with"
 // suffix avoids any clash with a std::is_invocable-style name and signals
-// that the argument types are supplied explicitly.
+// that the argument types are supplied explicitly. A std::integral_constant,
+// as the standard traits are: value, value_type, type and the conversion to
+// bool, and a value that may be bound to a reference before C++17.
 template<typename Fn,
          typename... Args>
 struct is_invocable_with
-{
-    static D_CONSTEXPR bool value =
-        !std::is_same<call_result_t<Fn, Args...>,
-                      internal::call_nonesuch>::value;
-};
+    : std::integral_constant<bool,
+                             !std::is_same<call_result_t<Fn, Args...>,
+                                           internal::call_nonesuch>::value>
+{};
 
 
 // is_invocable_r_with
 //   trait: true when a const-lvalue Fn can be called on Args AND the
 // result is convertible to Return. A void Return matches any successful
 // call (mirroring the standard is_invocable_r treatment of void).
+//   A std::integral_constant, as is_invocable_with is.
 template<typename Return,
          typename Fn,
          typename... Args>
 struct is_invocable_r_with
-{
-private:
-    using result_t = call_result_t<Fn, Args...>;
-
-    static D_CONSTEXPR bool callable =
-        !std::is_same<result_t, internal::call_nonesuch>::value;
-
-public:
-    static D_CONSTEXPR bool value =
-        ( callable &&
-          ( std::is_void<Return>::value ||
-            std::is_convertible<result_t, Return>::value ) );
-};
+    : std::integral_constant<bool,
+          ( (!std::is_same<call_result_t<Fn, Args...>,
+                           internal::call_nonesuch>::value) &&
+            ( (std::is_void<Return>::value) ||
+              (std::is_convertible<call_result_t<Fn, Args...>,
+                                   Return>::value) ) )>
+{};
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES

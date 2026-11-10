@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/container/tree/file/file_tree.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.22
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/container/tree/file/file_tree.h"
 #include "../../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
@@ -1034,6 +1034,115 @@ struct dj_file_tree* d_file_tree_new_with_separator(
 
 
 /*
+d_file_tree_internal_scan_node
+  The node for one directory entry that the scan does not descend into: a
+directory; a symlink, with its target where it can be read and fits, or
+"?"; or a file or other entry, with its size, mode and modification time
+where they can be read.
+
+Parameter(s):
+  _entry:      the directory entry.
+  _child_path: its full path.
+Return:
+  The new node, or NULL if it cannot be allocated.
+*/
+static struct dj_file_tree_node*
+d_file_tree_internal_scan_node(
+    const struct dj_dirent64_t* _entry,
+    const char*                 _child_path
+)
+{
+    struct dj_file_tree_node* node;
+    struct dj_stat64_t        st;
+    char                      target_buf[D_FILE_PATH_MAX];
+
+    if (_entry->d_type == DT_DIR)
+    {
+        return d_file_tree_node_new_dir(_entry->d_name);
+    }
+
+    if (_entry->d_type == DT_LNK)
+    {
+        target_buf[0] = '\0';
+#if D_FILE_LINK_IS_AVAILABLE
+        {
+            const ssize_t link_len = d_file_readlink(_child_path,
+                                                     target_buf,
+                                                     D_FILE_PATH_MAX);
+
+            // keep the target only when it fit, and terminate it -- one
+            // that filled the buffer may have been cut short, and is not
+            // kept
+            if ( (link_len > 0) &&
+                 (link_len < (ssize_t)D_FILE_PATH_MAX) )
+            {
+                target_buf[link_len] = '\0';
+            }
+            else
+            {
+                target_buf[0] = '\0';
+            }
+        }
+#endif
+
+        return d_file_tree_node_new_symlink(_entry->d_name,
+                                            target_buf[0] ? target_buf
+                                                          : "?");
+    }
+
+    // regular file or other type, with its metadata where it can be read
+    node = d_file_tree_node_new_file(_entry->d_name);
+
+    if ( (node) &&
+         (d_file_stat64(_child_path, &st) == 0) )
+    {
+        node->file_size = st.st_size;
+        node->mode      = st.st_mode;
+        node->mtime     = st.st_modified;
+    }
+
+    return node;
+}
+
+/*
+d_file_tree_internal_graft
+  Scans the subdirectory at _child_path recursively and adds its tree's
+root, with everything under it, to _tree's root. A subdirectory that
+cannot be scanned is left out.
+
+Parameter(s):
+  _tree:       the tree being built.
+  _child_path: the subdirectory's full path.
+Return:
+  none.
+*/
+static void
+d_file_tree_internal_graft(
+    struct dj_file_tree* _tree,
+    const char*          _child_path
+)
+{
+    struct dj_file_tree* subtree;
+
+    subtree = d_file_tree_new_from_path(_child_path, true);
+
+    if (!subtree)
+    {
+        return;
+    }
+
+    d_file_tree_internal_dir_add_child(_tree->root, subtree->root);
+    _tree->size += subtree->size;
+
+    // detach root from subtree so free does not destroy it
+    subtree->root = NULL;
+    subtree->size = 0;
+    d_file_tree_free(subtree);
+
+    return;
+}
+
+/*
 d_file_tree_new_from_path
   Creates a file tree by scanning an actual filesystem directory. When
 _recursive is true, descends into all subdirectories.
@@ -1052,11 +1161,10 @@ struct dj_file_tree* d_file_tree_new_from_path(
     struct dj_file_tree*      tree;
     struct dj_dir_t*          dir;
     struct dj_dirent64_t*     entry;
-    char                     child_path[D_FILE_PATH_MAX];
-    char                     name_buf[D_FILE_NAME_MAX];
-    const char*              root_name;
+    char                      child_path[D_FILE_PATH_MAX];
+    char                      name_buf[D_FILE_NAME_MAX];
+    const char*               root_name;
     struct dj_file_tree_node* child_node;
-    struct dj_file_tree*      subtree;
 
     if (!_filesystem_path)
     {
@@ -1071,8 +1179,8 @@ struct dj_file_tree* d_file_tree_new_from_path(
 
     // extract the directory's own name for the tree root
     root_name = d_path_basename(_filesystem_path,
-                           name_buf,
-                           sizeof(name_buf));
+                                name_buf,
+                                sizeof(name_buf));
 
     if ( (!root_name) ||
          (root_name[0] == '\0') )
@@ -1089,6 +1197,7 @@ struct dj_file_tree* d_file_tree_new_from_path(
     }
 
     dir = d_dir_open(_filesystem_path);
+
     if (!dir)
     {
         d_file_tree_free(tree);
@@ -1096,14 +1205,12 @@ struct dj_file_tree* d_file_tree_new_from_path(
         return NULL;
     }
 
-    entry = d_dir_read64(dir);
-    while (entry)
+    for (entry = d_dir_read64(dir); entry; entry = d_dir_read64(dir))
     {
         // skip . and ..
         if ( (strcmp(entry->d_name, ".") == 0) ||
              (strcmp(entry->d_name, "..") == 0) )
         {
-            entry = d_dir_read64(dir);
             continue;
         }
 
@@ -1114,93 +1221,24 @@ struct dj_file_tree* d_file_tree_new_from_path(
                               _filesystem_path,
                               entry->d_name))
         {
-            entry = d_dir_read64(dir);
             continue;
         }
 
         if ( (entry->d_type == DT_DIR) &&
              (_recursive) )
         {
-            // recursively scan subdirectory
-            subtree = d_file_tree_new_from_path(child_path, true);
-            if (subtree)
-            {
-                d_file_tree_internal_dir_add_child(tree->root,
-                                                   subtree->root);
-                tree->size += subtree->size;
+            d_file_tree_internal_graft(tree, child_path);
 
-                // detach root from subtree so free does not destroy it
-                subtree->root = NULL;
-                subtree->size = 0;
-                d_file_tree_free(subtree);
-            }
+            continue;
         }
-        else if (entry->d_type == DT_DIR)
+
+        child_node = d_file_tree_internal_scan_node(entry, child_path);
+
+        if (child_node)
         {
-            child_node = d_file_tree_node_new_dir(entry->d_name);
-            if (child_node)
-            {
-                d_file_tree_internal_dir_add_child(tree->root,
-                                                   child_node);
-                tree->size++;
-            }
+            d_file_tree_internal_dir_add_child(tree->root, child_node);
+            tree->size++;
         }
-        else if (entry->d_type == DT_LNK)
-        {
-            // read symlink target
-            char target_buf[D_FILE_PATH_MAX];
-
-            target_buf[0] = '\0';
-#if D_FILE_LINK_IS_AVAILABLE
-            const ssize_t link_len = d_file_readlink(child_path,
-                                                     target_buf,
-                                                     D_FILE_PATH_MAX);
-
-            // keep the target only when it fit, and terminate it -- one that
-            // filled the buffer may have been cut short, and is not kept
-            if ( (link_len > 0) &&
-                 (link_len < (ssize_t)D_FILE_PATH_MAX) )
-            {
-                target_buf[link_len] = '\0';
-            }
-            else
-            {
-                target_buf[0] = '\0';
-            }
-#endif
-
-            child_node = d_file_tree_node_new_symlink(
-                             entry->d_name,
-                             target_buf[0] ? target_buf : "?");
-            if (child_node)
-            {
-                d_file_tree_internal_dir_add_child(tree->root,
-                                                   child_node);
-                tree->size++;
-            }
-        }
-        else
-        {
-            // regular file or other type
-            child_node = d_file_tree_node_new_file(entry->d_name);
-            if (child_node)
-            {
-                // populate file metadata
-                struct dj_stat64_t st;
-                if (d_file_stat64(child_path, &st) == 0)
-                {
-                    child_node->file_size = st.st_size;
-                    child_node->mode      = st.st_mode;
-                    child_node->mtime     = st.st_modified;
-                }
-
-                d_file_tree_internal_dir_add_child(tree->root,
-                                                   child_node);
-                tree->size++;
-            }
-        }
-
-        entry = d_dir_read64(dir);
     }
 
     d_dir_close(dir);

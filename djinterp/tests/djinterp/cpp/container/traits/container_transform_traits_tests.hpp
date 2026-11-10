@@ -34,7 +34,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_transform_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRANSFORM_TRAITS_TESTS_
@@ -55,7 +55,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_transform_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 #ifndef D_KEYWORD_TESTING
@@ -82,8 +90,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -147,6 +165,8 @@ struct Box
 template<typename _First, typename _Second>
 struct DPairBox
 {};
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -179,6 +199,121 @@ bool tests_transform_result_type();
 // -- VI.  Combined classification + variable-template companions --
 bool tests_container_transform_class();
 bool tests_transform_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_transform_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_transform_traits_spec()
+{
+    return dt::module_spec{
+        "container_transform_traits",
+        "whether a container may be TRANSFORMED - rewritten position by "
+        "position by a map on its element...",
+        {
+            dt::block_spec{
+                "capability",
+                "Capability",
+                {
+                    { "tests_is_transform_source",
+                      "checks (is_transform_source<std::vector<int>>::value)",
+                      &tests_is_transform_source },
+                    { "tests_is_container_transformable",
+                      "checks "
+                      "(is_container_transformable<std::vector<int>>::value)",
+                      &tests_is_container_transformable },
+                    { "tests_is_transform_input_only",
+                      "checks "
+                      "(is_transform_input_only<std::forward_list<int>>::value)",
+                      &tests_is_transform_input_only },
+                    { "tests_has_native_transform",
+                      "checks (has_native_transform<DNativeBox>::value)",
+                      &tests_has_native_transform },
+                }
+            },
+            dt::block_spec{
+                "strategy",
+                "Strategy",
+                {
+                    { "tests_transform_strategy_name",
+                      "checks "
+                      "(tx_cstr_eq(transform_strategy_name(DTransformStrategy::native), "
+                      "\"n",
+                      &tests_transform_strategy_name },
+                    { "tests_container_transform_strategy",
+                      "checks (DContainerTransformStrategy<DNativeBox>::value "
+                      "== DTransformStrate",
+                      &tests_container_transform_strategy },
+                }
+            },
+            dt::block_spec{
+                "stage",
+                "Stage",
+                {
+                    { "tests_transform_stage_name",
+                      "checks "
+                      "(tx_cstr_eq(transform_stage_name(DTransformStage::none), "
+                      "\"none\"))",
+                      &tests_transform_stage_name },
+                    { "tests_transform_stage_of",
+                      "checks (transform_stage_of<std::array<int, 4>>::value "
+                      "== DTransformStage::",
+                      &tests_transform_stage_of },
+                }
+            },
+            dt::block_spec{
+                "preservation",
+                "Preservation",
+                {
+                    { "tests_transform_preserves_order",
+                      "checks "
+                      "(transform_preserves_order<std::vector<int>>::value)",
+                      &tests_transform_preserves_order },
+                    { "tests_transform_preserves_size_and_capacity",
+                      "checks "
+                      "(transform_preserves_size<std::vector<int>>::value)",
+                      &tests_transform_preserves_size_and_capacity },
+                    { "tests_transform_preserves_sortedness_and_uniqueness",
+                      "checks "
+                      "(!transform_preserves_sortedness<std::set<int>>::value)",
+                      &tests_transform_preserves_sortedness_and_uniqueness },
+                }
+            },
+            dt::block_spec{
+                "result",
+                "Result",
+                {
+                    { "tests_rebind_element",
+                      "checks (std::is_same<rebind_element_t<Box<int>, "
+                      "double>, Box<double>>::val",
+                      &tests_rebind_element },
+                    { "tests_transform_result_type",
+                      "checks (std::is_same<transform_result_type_t<Box<int>, "
+                      "double>, Box<double",
+                      &tests_transform_result_type },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_container_transform_class",
+                      "checks (C::is_transformable && C::is_source && "
+                      "!C::is_input_only && !C::ha",
+                      &tests_container_transform_class },
+                    { "tests_transform_variable_templates",
+                      "checks (is_transform_source_v<std::vector<int>> == "
+                      "is_transform_source<std",
+                      &tests_transform_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

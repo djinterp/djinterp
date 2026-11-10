@@ -20,7 +20,7 @@
 # here.  The filter is defensive - the runner is not in the globbed directory,
 # but the glob must never pick up a second main().
 
-set(_override_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm")
+set(_override_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/meta")
 
 file(GLOB _override_sources CONFIGURE_DEPENDS
     "${_override_tests_dir}/override_tests_*.cpp")
@@ -32,7 +32,7 @@ djinterp_add_test_executable(override_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/override_tests_runner.cpp"
         ${_override_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/meta"
         "${_override_tests_dir}")
 
 unset(_override_sources)

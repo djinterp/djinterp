@@ -28,7 +28,7 @@
 *     - adaptor         an underlying_container_type           -> underlying (not fundamental)
 *   Plus detection-only fixtures: DIntervalsBogus (size/depth/multiplicity_interval
 * aliases that are NOT valid math intervals), DMultAccessors (multiplicity_min/max),
-* hier (hierarchical accessors + node/depth types), and pusher (a push_ member).
+* hier (hierarchical accessors + node/depth types), and pusher (a push_back member).
 *
 *   NOTE (intervals).  math/interval/interval.hpp is not available in this test
 * environment, so the POSITIVE has_valid_*_interval branch (a genuine math
@@ -39,7 +39,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_TESTS_
@@ -63,7 +63,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 #ifndef D_KEYWORD_TESTING
@@ -89,8 +97,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -181,12 +199,15 @@ struct DHier
     std::size_t min_depth() const { return 0; }
 };
 
-// a push_ member (the umbrella's mutation probe)
+// a push_back member and nothing else of a container (the umbrella's
+// mutation probe)
 struct pusher
 {
     using value_type = int;
-    void push_(int) {}
+    void push_back(int) {}
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -235,6 +256,164 @@ bool tests_interval_extraction();
 // -- XVI. Combined classification + variable-template companions --
 bool tests_container_class();
 bool tests_container_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_traits_spec()
+{
+    return dt::module_spec{
+        "container_traits",
+        "djinterp container compile-time classification traits SFINAE-based "
+        "detection and classification...",
+        {
+            dt::block_spec{
+                "method_detection",
+                "Method detection",
+                {
+                    { "tests_size_capacity_detection",
+                      "checks (has_data_method<std::vector<int>>::value)",
+                      &tests_size_capacity_detection },
+                    { "tests_type_member_detection",
+                      "checks (has_key_compare<std::set<int>>::value)",
+                      &tests_type_member_detection },
+                    { "tests_hierarchical_detection",
+                      "checks (has_parent_accessor<DHier>::value)",
+                      &tests_hierarchical_detection },
+                    { "tests_mutation_detection",
+                      "checks (has_push_back<pusher>::value)",
+                      &tests_mutation_detection },
+                    { "tests_iteration_detection",
+                      "checks (has_begin_accessor<std::vector<int>>::value)",
+                      &tests_iteration_detection },
+                    { "tests_invariant_detection",
+                      "checks (has_unique_accessor<std::list<int>>::value)",
+                      &tests_invariant_detection },
+                }
+            },
+            dt::block_spec{
+                "constexpr_traits",
+                "Constexpr traits",
+                {
+                    { "tests_constexpr_size_traits",
+                      "checks (has_constexpr_size<DEmptyCt>::value)",
+                      &tests_constexpr_size_traits },
+                    { "tests_size_shape_traits",
+                      "checks (has_fixed_size<std::array<int, 4>>::value)",
+                      &tests_size_shape_traits },
+                    { "tests_interval_validity",
+                      "checks "
+                      "(!has_valid_size_interval<DIntervalsBogus>::value)",
+                      &tests_interval_validity },
+                }
+            },
+            dt::block_spec{
+                "array",
+                "Array",
+                {
+                    { "tests_array_detection",
+                      "checks (is_c_array<int[4]>::value)",
+                      &tests_array_detection },
+                }
+            },
+            dt::block_spec{
+                "lifetime",
+                "Lifetime",
+                {
+                    { "tests_lifetime_classification",
+                      "checks (is_compile_time_container<DEmptyCt>::value)",
+                      &tests_lifetime_classification },
+                }
+            },
+            dt::block_spec{
+                "bounds",
+                "Bounds",
+                {
+                    { "tests_is_lower_bounded",
+                      "checks (is_lower_bounded<DMin5>::value)",
+                      &tests_is_lower_bounded },
+                    { "tests_is_upper_bounded",
+                      "checks (is_upper_bounded<std::array<int, 4>>::value)",
+                      &tests_is_upper_bounded },
+                    { "tests_is_unbounded_and_interval_bounded",
+                      "checks (is_unbounded<DEmptyCt>::value)",
+                      &tests_is_unbounded_and_interval_bounded },
+                }
+            },
+            dt::block_spec{
+                "storage",
+                "Storage",
+                {
+                    { "tests_is_static_storage",
+                      "checks (is_static_storage_container<std::array<int, "
+                      "4>>::value)",
+                      &tests_is_static_storage },
+                    { "tests_is_dynamic_storage",
+                      "checks "
+                      "(is_dynamic_storage_container<std::vector<int>>::value)",
+                      &tests_is_dynamic_storage },
+                }
+            },
+            dt::block_spec{
+                "multiplicity",
+                "Multiplicity",
+                {
+                    { "tests_enforces_uniqueness",
+                      "checks (enforces_uniqueness<std::set<int>>::value)",
+                      &tests_enforces_uniqueness },
+                    { "tests_allows_duplicates",
+                      "checks (allows_duplicates<std::map<int, int>>::value)",
+                      &tests_allows_duplicates },
+                    { "tests_has_bounded_multiplicity",
+                      "checks "
+                      "(has_bounded_multiplicity<DMultAccessors>::value)",
+                      &tests_has_bounded_multiplicity },
+                }
+            },
+            dt::block_spec{
+                "underlying",
+                "Underlying",
+                {
+                    { "tests_is_underlying_container",
+                      "checks (is_underlying_container<DAdaptor>::value)",
+                      &tests_is_underlying_container },
+                    { "tests_is_fundamental_container",
+                      "checks (is_fundamental_container<std::array<int, "
+                      "4>>::value)",
+                      &tests_is_fundamental_container },
+                    { "tests_underlying_container_type_of",
+                      "checks "
+                      "(std::is_same<underlying_container_type_of_t<DAdaptor>, "
+                      "std::vector",
+                      &tests_underlying_container_type_of },
+                    { "tests_interval_extraction",
+                      "checks "
+                      "(std::is_same<size_interval_of_t<DIntervalsBogus>, "
+                      "void>::value)",
+                      &tests_interval_extraction },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_container_class",
+                      "checks (!C::is_compile_time)",
+                      &tests_container_class },
+                    { "tests_container_variable_templates",
+                      "checks (has_size_accessor_v<std::vector<int>> == "
+                      "has_size_accessor<std::ve",
+                      &tests_container_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

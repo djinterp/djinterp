@@ -56,7 +56,7 @@
 * path:      /tests/djinterp/cpp/meta/pack_element_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -88,12 +88,27 @@ V.    test declarations
 #include <type_traits>
 #include <utility>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/pack_element.hpp"                // the module under test
 #include "djinterp/cpp/modules/test/test_traits.hpp"   // hostile type zoo + quantifiers
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -425,6 +440,8 @@ using DPeElementOr =
                                   _Index,
                                   _Fallback,
                                   _Pack...>::type;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -449,6 +466,87 @@ bool tests_pack_element_duplicates();
 bool tests_pack_element_arity_contract();
 bool tests_pack_element_guarded_access();
 bool tests_pack_element_depth();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// pack_element_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+pack_element_spec()
+{
+    return dt::module_spec{
+        "pack_element",
+        "direct positional access into a typename parameter pack, without "
+        "routing through std::tuple",
+        {
+            dt::block_spec{
+                "indexing",
+                "Indexing",
+                {
+                    { "tests_pack_element_base_case",
+                      "The index-0 specialization",
+                      &tests_pack_element_base_case },
+                    { "tests_pack_element_recursion",
+                      "The primary template - one head peeled per step",
+                      &tests_pack_element_recursion },
+                    { "tests_pack_element_trait_shape",
+                      "pack_element AS A TYPE, independent of the answer it "
+                      "carries",
+                      &tests_pack_element_trait_shape },
+                }
+            },
+            dt::block_spec{
+                "alias",
+                "The pack_element_t alias",
+                {
+                    { "tests_pack_element_alias_equivalence",
+                      "pack_element_t against the struct it abbreviates",
+                      &tests_pack_element_alias_equivalence },
+                    { "tests_pack_element_alias_arity",
+                      "The two templates' SIGNATURES, and the asymmetry "
+                      "between them",
+                      &tests_pack_element_alias_arity },
+                }
+            },
+            dt::block_spec{
+                "types",
+                "Element fidelity",
+                {
+                    { "tests_pack_element_type_preservation",
+                      "Elements come back EXACTLY as they went in",
+                      &tests_pack_element_type_preservation },
+                    { "tests_pack_element_hostile_pack",
+                      "The whole adversarial type zoo as a single pack",
+                      &tests_pack_element_hostile_pack },
+                    { "tests_pack_element_duplicates",
+                      "Packs in which the same type appears more than once",
+                      &tests_pack_element_duplicates },
+                }
+            },
+            dt::block_spec{
+                "bounds",
+                "Bounds and the guard",
+                {
+                    { "tests_pack_element_arity_contract",
+                      "Where the out-of-range error lives, and which half of "
+                      "it is testable",
+                      &tests_pack_element_arity_contract },
+                    { "tests_pack_element_guarded_access",
+                      "The remedy the header prescribes for a caller that may "
+                      "pass a bad index",
+                      &tests_pack_element_guarded_access },
+                    { "tests_pack_element_depth",
+                      "Recursion depth as a parameter rather than a "
+                      "hand-written battery",
+                      &tests_pack_element_depth },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

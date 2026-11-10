@@ -10,7 +10,7 @@
 #              read_write_container/CMakeLists.txt
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/container/access")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/container")
 
 # the glob keys on the component stem, so the two sibling suites' translation
 # units in the same flat tests directory are never pulled into this executable
@@ -24,22 +24,5 @@ djinterp_add_test_executable(read_write_container_tests
         ${_sources}
     INCLUDES
         # bare header-under-test, and its sibling capability tag
-        "${DJINTERP_INC_ROOT}/djinterp/core/container/access"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/container"
         "${_tests_dir}")   # bare suite-header
-
-# D_TEST_REPORT_ENABLE_ARCHIVE is REQUIRED for the RUNNER, not for the section
-# translation units.  The runner includes test_defaults.hpp to reach
-# run_module, and test_defaults.hpp includes output/test_report_runner.hpp,
-# which spells `byte_buffer` in pending_doc::bytes and write_bytes_to_file's
-# parameter - a typedef reachable only through the archive include this macro
-# guards.  Without it the runner does not compile at C++17 or higher (eight
-# errors, verified).  This affects every DTest runner, not this suite alone.
-#
-#   CONSEQUENCE WORTH KNOWING: because the macro pulls the archive header in,
-# the target then needs the archive and compress implementation at LINK time,
-# even though the module under test is a header-only container overlay with
-# no connection to archiving.  If djinterp_add_test_executable already links
-# the core library this is free; if it does not, add that dependency here.
-target_compile_definitions(read_write_container_tests
-    PRIVATE
-        D_TEST_REPORT_ENABLE_ARCHIVE=1)

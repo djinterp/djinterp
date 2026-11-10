@@ -13,7 +13,7 @@
 #     runner            : ${CMAKE_CURRENT_SOURCE_DIR}/mediator_tests_runner.cpp
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/patterns/mediator")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/mediator")
 
 # every per-section translation unit for this component
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/mediator_tests_*.cpp")
@@ -29,5 +29,5 @@ djinterp_add_test_executable(mediator_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/mediator_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/patterns/mediator"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/mediator"
         "${_tests_dir}")

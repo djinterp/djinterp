@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/filter_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <cstddef>
@@ -85,8 +85,6 @@ static_assert( is_filter_result_v<result_t>,
                "is_filter_result_v agrees");
 static_assert( is_filterable_v<std::vector<int> >,
                "is_filterable_v agrees (folded trait)");
-static_assert( is_iterable_v<std::vector<int> >,
-               "is_iterable_v agrees (folded trait)");
 static_assert( !has_filter_method_v<std::vector<int> >,
                "has_filter_method_v agrees (folded trait)");
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -192,7 +190,6 @@ bool test_traits_value_aliases()
     D_INTERNAL_FLT_CHECK((is_filter_applicable_v<chain_t, int>));
     D_INTERNAL_FLT_CHECK((is_filter_result_v<result_t>));
     D_INTERNAL_FLT_CHECK((is_filterable_v<std::vector<int> >));
-    D_INTERNAL_FLT_CHECK((is_iterable_v<std::vector<int> >));
     D_INTERNAL_FLT_CHECK((!has_filter_method_v<std::vector<int> >));
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

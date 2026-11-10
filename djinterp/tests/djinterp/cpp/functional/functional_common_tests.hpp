@@ -35,7 +35,7 @@
 *                functional_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -66,10 +66,26 @@ IV.   CONCEPT FACES      (Callable, Predicate)
 #include <type_traits>
 #include <vector>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/functional/functional_common.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -276,6 +292,8 @@ template<typename _Type>
 int which_callable(_Type) { return 0; }
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -292,9 +310,9 @@ bool tests_is_callable_arity_spread();
 bool tests_is_callable_integral_constant();
 bool tests_is_callable_reuses_invocable_with();
 bool tests_callable_result_basic();
-bool tests_callable_result_nonesuch();
+bool tests_callable_result_absent();
 bool tests_callable_result_preserves_reference();
-bool tests_callable_result_is_alias();
+bool tests_callable_result_agrees();
 bool tests_reexports_function_traits();
 
 
@@ -336,6 +354,208 @@ bool tests_concept_requires_clause();
 bool tests_concept_overload_gating();
 bool tests_concept_callable_but_not_predicate();
 bool tests_concepts_gating();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// functional_common_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+functional_common_spec()
+{
+    return dt::module_spec{
+        "functional_common",
+        "is_callable, callable_result_t, and the const-lvalue contract",
+        {
+            dt::block_spec{
+                "callable",
+                "Callable",
+                {
+                    { "tests_is_callable_positive",
+                      "The ordinary callable shapes the combinators take are "
+                      "all recognised",
+                      &tests_is_callable_positive },
+                    { "tests_is_callable_negative",
+                      "Non-callables and wrong call shapes are rejected, "
+                      "cleanly (SFINAE, not a hard error)",
+                      &tests_is_callable_negative },
+                    { "tests_is_callable_const_lvalue",
+                      "The defining contract: the probe is a CONST-LVALUE "
+                      "call, so a callable that cannot be invoked on a const "
+                      "lvalue is not callable -- however happily it would "
+                      "answer a non-const call",
+                      &tests_is_callable_const_lvalue },
+                    { "tests_is_callable_templated_operator",
+                      "The trait probes an expression, so it succeeds on "
+                      "generic lambdas and other templated operator() "
+                      "callables -- the header's headline claim, and the "
+                      "shape a declared-signature probe would miss",
+                      &tests_is_callable_templated_operator },
+                    { "tests_is_callable_overload_set",
+                      "For an overload set the trait resolves against _Args, "
+                      "accepting exactly the arguments some overload takes",
+                      &tests_is_callable_overload_set },
+                    { "tests_is_callable_arg_categories",
+                      "_Args are probed exactly as written, so value category "
+                      "and constness matter",
+                      &tests_is_callable_arg_categories },
+                    { "tests_is_callable_arity_spread",
+                      "_Args is a pack, so the trait works at any arity",
+                      &tests_is_callable_arity_spread },
+                    { "tests_is_callable_integral_constant",
+                      "is_callable is a std::integral_constant, so it carries "
+                      "the whole bool-constant surface",
+                      &tests_is_callable_integral_constant },
+                    { "tests_is_callable_reuses_invocable_with",
+                      "is_callable is the functional-facing NAME for "
+                      "function_traits.hpp's is_invocable_with -- a thin "
+                      "reuse, not a reimplementation",
+                      &tests_is_callable_reuses_invocable_with },
+                    { "tests_callable_result_basic",
+                      "callable_result_t is the type the call yields",
+                      &tests_callable_result_basic },
+                    { "tests_callable_result_absent",
+                      "When the call is ill-formed callable_result has no "
+                      "type, a soft failure as with std::invoke_result; the "
+                      "call is made on an rvalue Function",
+                      &tests_callable_result_absent },
+                    { "tests_callable_result_preserves_reference",
+                      "The alias reports the call's DECLARED result type -- "
+                      "references are preserved, not decayed away",
+                      &tests_callable_result_preserves_reference },
+                    { "tests_callable_result_agrees",
+                      "callable_result_t names call_result_t's type on a "
+                      "well-formed call; on an ill-formed one only "
+                      "call_result_t names one (call_nonesuch)",
+                      &tests_callable_result_agrees },
+                    { "tests_reexports_function_traits",
+                      "The header re-exports function_traits.hpp, so a single "
+                      "include carries both the declared-shape introspection "
+                      "and this can-I-call-it vocabulary",
+                      &tests_reexports_function_traits },
+                }
+            },
+            dt::block_spec{
+                "predicate",
+                "Predicate",
+                {
+                    { "tests_is_predicate_positive",
+                      "The predicate shapes the combinators accept (filter, "
+                      "take_while, partition, ...) are recognised",
+                      &tests_is_predicate_positive },
+                    { "tests_is_predicate_negative",
+                      "A predicate must be BOTH callable and "
+                      "bool-convertible; failing either is not a predicate",
+                      &tests_is_predicate_negative },
+                    { "tests_is_predicate_convertible_results",
+                      "The requirement is convertibility to bool, not a bool "
+                      "result -- so the ordinary standard conversions qualify",
+                      &tests_is_predicate_convertible_results },
+                    { "tests_is_predicate_explicit_operator_bool",
+                      "The conversion must be IMPLICIT: a result whose "
+                      "operator bool is explicit is not convertible in the "
+                      "trait's sense, so such a callable is not a predicate "
+                      "-- even though `if (p(x))` would compile via "
+                      "contextual conversion",
+                      &tests_is_predicate_explicit_operator_bool },
+                    { "tests_is_predicate_const_lvalue",
+                      "is_predicate inherits the const-lvalue call contract "
+                      "from the call detection it is built on",
+                      &tests_is_predicate_const_lvalue },
+                    { "tests_is_predicate_arg_type",
+                      "A predicate is a predicate OVER an argument type -- "
+                      "the same callable can be a predicate for one _Arg and "
+                      "not for another",
+                      &tests_is_predicate_arg_type },
+                    { "tests_is_predicate_templated_operator",
+                      "Like is_callable, is_predicate probes an expression, "
+                      "so a templated operator() is a predicate at every "
+                      "argument type it accepts with a bool-convertible result",
+                      &tests_is_predicate_templated_operator },
+                    { "tests_is_predicate_single_argument",
+                      "is_predicate takes exactly one _Arg -- it is the "
+                      "one-argument, bool-convertible case, not a variadic "
+                      "trait",
+                      &tests_is_predicate_single_argument },
+                    { "tests_is_predicate_reuses_invocable_r_with",
+                      "is_predicate is defined as the bool case of "
+                      "function_traits.hpp's is_invocable_r_with -- a thin "
+                      "reuse, not a reimplementation",
+                      &tests_is_predicate_reuses_invocable_r_with },
+                    { "tests_is_predicate_integral_constant",
+                      "is_predicate carries the same bool-constant surface as "
+                      "is_callable",
+                      &tests_is_predicate_integral_constant },
+                }
+            },
+            dt::block_spec{
+                "aliases",
+                "Aliases",
+                {
+                    { "tests_is_callable_v_agrees",
+                      "is_callable_v is exactly is_callable<...>::value",
+                      &tests_is_callable_v_agrees },
+                    { "tests_is_predicate_v_agrees",
+                      "is_predicate_v is exactly is_predicate<...>::value",
+                      &tests_is_predicate_v_agrees },
+                    { "tests_aliases_are_constant_expressions",
+                      "The shorthands are constexpr bools, usable wherever a "
+                      "constant is required",
+                      &tests_aliases_are_constant_expressions },
+                    { "tests_is_callable_v_variadic",
+                      "is_callable_v carries the same argument pack as the "
+                      "trait",
+                      &tests_is_callable_v_variadic },
+                    { "tests_aliases_gating",
+                      "The shorthands exist exactly where the standard allows "
+                      "them: they are gated on variable templates (C++14+), "
+                      "and below that callers use the ::value forms, which "
+                      "are always present",
+                      &tests_aliases_gating },
+                }
+            },
+            dt::block_spec{
+                "concepts",
+                "Concepts",
+                {
+                    { "tests_concept_callable_mirrors_trait",
+                      "Callable is the concept face of is_callable -- the "
+                      "same answer, in concept syntax",
+                      &tests_concept_callable_mirrors_trait },
+                    { "tests_concept_predicate_mirrors_trait",
+                      "Predicate is the concept face of is_predicate",
+                      &tests_concept_predicate_mirrors_trait },
+                    { "tests_concept_constrained_parameter",
+                      "Predicate is usable as a CONSTRAINED TEMPLATE "
+                      "PARAMETER -- partially applied to its argument type, "
+                      "as the header's usage shows: template<Predicate<const "
+                      "int&> P>",
+                      &tests_concept_constrained_parameter },
+                    { "tests_concept_requires_clause",
+                      "Callable is usable in a REQUIRES-CLAUSE, as the "
+                      "header's usage shows: requires Callable<F, const T&>",
+                      &tests_concept_requires_clause },
+                    { "tests_concept_overload_gating",
+                      "The concepts really GATE overload resolution -- they "
+                      "are constraints, not just bools that happen to be true",
+                      &tests_concept_overload_gating },
+                    { "tests_concept_callable_but_not_predicate",
+                      "The two faces are distinct: every predicate is "
+                      "callable, but not every callable is a predicate -- "
+                      "Predicate is the strictly stronger constraint",
+                      &tests_concept_callable_but_not_predicate },
+                    { "tests_concepts_gating",
+                      "The concept faces exist exactly where the standard "
+                      "allows them: gated on concepts (C++20), with the "
+                      "traits as the always-present floor beneath",
+                      &tests_concepts_gating },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

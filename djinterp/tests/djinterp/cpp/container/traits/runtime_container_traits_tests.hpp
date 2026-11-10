@@ -40,7 +40,7 @@
 *                                          runtime_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -82,11 +82,26 @@ VI.   Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/runtime_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -157,7 +172,7 @@ static const int rt_lifetime_count = 4;
 //   function: the _i-th lifetime, in increasing bit order.  Out-of-range
 // indices clamp to none so a loop bug cannot read past the enum.
 inline
-lifetime rt_lifetime_at(
+lifetime::value rt_lifetime_at(
     int _i
 )
 {
@@ -175,7 +190,7 @@ lifetime rt_lifetime_at(
 //   function: compares a lifetime's spelling against an expected literal.
 inline
 bool rt_life_is(
-    lifetime    _life,
+    lifetime::value _life,
     const char* _expected
 )
 {
@@ -400,7 +415,7 @@ struct DRtConstexprSize
 // BOTTOM - and is_runtime_only, being exact equality, reads false.
 struct DRtCategoryCompileTime
 {
-    static constexpr lifetime lifetime_category = lifetime::compile_time;
+    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
 
     std::size_t size() const;
 };
@@ -411,7 +426,7 @@ struct DRtCategoryCompileTime
 // for a reason other than carrying the runtime bit.
 struct DRtCategoryCompileTimeSized
 {
-    static constexpr lifetime lifetime_category = lifetime::compile_time;
+    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
 
     constexpr std::size_t size() const { return 2; }
 };
@@ -420,7 +435,7 @@ struct DRtCategoryCompileTimeSized
 //   struct: opts in to the bottom lifetime directly.
 struct DRtCategoryNone
 {
-    static constexpr lifetime lifetime_category = lifetime::none;
+    static constexpr lifetime::value lifetime_category = lifetime::none;
 
     std::size_t size() const;
 };
@@ -430,7 +445,7 @@ struct DRtCategoryNone
 // same verdict a plain non-literal type reaches structurally.
 struct DRtCategoryRuntime
 {
-    static constexpr lifetime lifetime_category = lifetime::runtime;
+    static constexpr lifetime::value lifetime_category = lifetime::runtime;
 
     std::size_t size() const;
 };
@@ -452,6 +467,8 @@ using DRtList   = std::list<int>;
 using DRtSet    = std::set<int>;
 using DRtMap    = std::map<int, int>;
 using DRtPair   = std::pair<int, int>;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -484,6 +501,122 @@ bool tests_runtime_container_class_verdicts();
 bool tests_runtime_container_class_life();
 bool tests_runtime_container_class_agreement();
 bool tests_runtime_container_class_cv_ref();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// runtime_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+runtime_container_traits_spec()
+{
+    return dt::module_spec{
+        "runtime_container_traits",
+        "structural traits for the RUNTIME end of a container's Lifetime axis",
+        {
+            dt::block_spec{
+                "signals",
+                "Structural signals",
+                {
+                    { "tests_has_size_accessor_signal",
+                      "Verifies the \"is a container\" probe - any size() "
+                      "accessor, constexpr or not",
+                      &tests_has_size_accessor_signal },
+                    { "tests_has_allocator_alias",
+                      "Verifies the heap-storage alias probe",
+                      &tests_has_allocator_alias },
+                    { "tests_has_reserve_method_signal",
+                      "Verifies the growable-capacity probe",
+                      &tests_has_reserve_method_signal },
+                    { "tests_signals_are_independent",
+                      "Verifies that the three probes answer independently - "
+                      "none is derivable from the others, so each carries "
+                      "information the umbrellas above can use",
+                      &tests_signals_are_independent },
+                    { "tests_signals_std_types",
+                      "Verifies the signals across the standard library, "
+                      "where the three separate most clearly",
+                      &tests_signals_std_types },
+                    { "tests_signals_cv_ref",
+                      "Verifies that all three probes honour the clean_t "
+                      "contract the header's preamble claims for them",
+                      &tests_signals_cv_ref },
+                    { "tests_signals_companions",
+                      "Verifies the `_v` companions the trait_detect engine "
+                      "emits for each probe",
+                      &tests_signals_companions },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification umbrellas",
+                {
+                    { "tests_is_runtime_container",
+                      "Verifies the umbrella on carriers of each kind",
+                      &tests_is_runtime_container },
+                    { "tests_is_runtime_container_needs_shape",
+                      "Verifies the FIRST conjunct - that a runtime lifetime "
+                      "alone is not enough",
+                      &tests_is_runtime_container_needs_shape },
+                    { "tests_is_runtime_container_needs_runtime_only",
+                      "Verifies the SECOND conjunct - that a container shape "
+                      "alone is not enough",
+                      &tests_is_runtime_container_needs_runtime_only },
+                    { "tests_runtime_only_is_exact_equality",
+                      "checks rt_lifetime_at(i) == lifetime::runtime",
+                      &tests_runtime_only_is_exact_equality },
+                    { "tests_requires_runtime_storage",
+                      "Verifies the storage umbrella - a disjunction of the "
+                      "two heap signals",
+                      &tests_requires_runtime_storage },
+                    { "tests_requires_runtime_storage_is_independent",
+                      "Verifies that the second umbrella does NOT imply the "
+                      "first, contrary to what its documentation suggests",
+                      &tests_requires_runtime_storage_is_independent },
+                    { "tests_classification_std_types",
+                      "Verifies both umbrellas across the standard library",
+                      &tests_classification_std_types },
+                    { "tests_classification_cv_ref",
+                      "Verifies that both umbrellas honour the clean_t "
+                      "contract",
+                      &tests_classification_cv_ref },
+                    { "tests_classification_companions",
+                      "Verifies the `_v` companions, and pins a SHAPE "
+                      "DIVERGENCE between the two umbrellas and every "
+                      "comparable predicate in the codebase",
+                      &tests_classification_companions },
+                }
+            },
+            dt::block_spec{
+                "class",
+                "Aggregate snapshot",
+                {
+                    { "tests_runtime_container_class_signals",
+                      "Verifies the two members that restate structural probes",
+                      &tests_runtime_container_class_signals },
+                    { "tests_runtime_container_class_verdicts",
+                      "Verifies the two members that restate the umbrellas",
+                      &tests_runtime_container_class_verdicts },
+                    { "tests_runtime_container_class_life",
+                      "Verifies the one non-boolean member - the shared "
+                      "lifetime verdict itself",
+                      &tests_runtime_container_class_life },
+                    { "tests_runtime_container_class_agreement",
+                      "Verifies that the aggregate restates the standalone "
+                      "traits and does not shadow them - the property that "
+                      "makes it safe to read either one",
+                      &tests_runtime_container_class_agreement },
+                    { "tests_runtime_container_class_cv_ref",
+                      "Verifies that the aggregate honours the clean_t "
+                      "contract",
+                      &tests_runtime_container_class_cv_ref },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

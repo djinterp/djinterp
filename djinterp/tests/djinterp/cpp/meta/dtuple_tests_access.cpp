@@ -23,7 +23,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_access.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -92,37 +92,37 @@ static_assert(std::is_same<tuple_type_at_t<0, std::tuple<alpha, bravo>>, alpha>:
 // II.  RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_access_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_access_all()
 {
+    bool verdict = true;
+
     // ---- DTupleTypeAt (mirrored compile-time) ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<0, int>::type, int>::value,
         "tuple_type_at: index 0 of single-arg pack");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<0, int, char, float>::type, int>::value,
         "tuple_type_at: index 0 of multi-arg pack");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<1, int, char, float>::type, char>::value,
         "tuple_type_at: index 1 of multi-arg pack");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<2, int, char, float>::type, float>::value,
         "tuple_type_at: index 2 of multi-arg pack");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<0, std::tuple<int, char>>::type, int>::value,
         "tuple_type_at: tuple-shape index 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<1, std::tuple<int, char>>::type, char>::value,
         "tuple_type_at: tuple-shape index 1");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<4, int, char, float, double, long>::type, long>::value,
         "tuple_type_at: deep recursion (index 4)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleTypeAt<1, int, const char&, float*>::type,
                      const char&>::value,
         "tuple_type_at: preserves cv + ref qualifiers");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_type_at_t<2, int, char, float, double>, float>::value,
         "tuple_type_at_t: alias");
 
@@ -130,13 +130,13 @@ void dtuple_tests_access_all(
     {
         const std::tuple<int, char, double> t{42, 'q', 3.14};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (tuple_type_at_value<0>(t) == 42),
             "tuple_type_at_value: index 0 yields 42");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (tuple_type_at_value<1>(t) == 'q'),
             "tuple_type_at_value: index 1 yields 'q'");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (tuple_type_at_value<2>(t) == 3.14),
             "tuple_type_at_value: index 2 yields 3.14");
     }
@@ -145,7 +145,7 @@ void dtuple_tests_access_all(
     {
         const std::tuple<int> t_single{7};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (tuple_type_at_value<0>(t_single) == 7),
             "tuple_type_at_value: single-element tuple index 0");
     }
@@ -156,10 +156,10 @@ void dtuple_tests_access_all(
     {
         auto cat0 = tuple_concat();
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (std::tuple_size<decltype(cat0)>::value == 0),
             "tuple_concat: zero inputs -> empty tuple");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             std::is_same<decltype(cat0), std::tuple<>>::value,
             "tuple_concat: zero inputs -> std::tuple<>");
     }
@@ -169,10 +169,10 @@ void dtuple_tests_access_all(
         std::tuple<int, char> a{1, 'a'};
         auto cat1 = tuple_concat(a);
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             std::is_same<decltype(cat1), std::tuple<int, char>>::value,
             "tuple_concat: single input yields same tuple type");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((std::get<0>(cat1) == 1) && (std::get<1>(cat1) == 'a')),
             "tuple_concat: single input preserves values");
     }
@@ -183,10 +183,10 @@ void dtuple_tests_access_all(
         std::tuple<double>    b{2.5};
         auto cat2 = tuple_concat(a, b);
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             std::is_same<decltype(cat2), std::tuple<int, char, double>>::value,
             "tuple_concat: two inputs concatenated");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ( (std::get<0>(cat2) == 1)   &&
               (std::get<1>(cat2) == 'a') &&
               (std::get<2>(cat2) == 2.5) ),
@@ -200,10 +200,10 @@ void dtuple_tests_access_all(
         std::tuple<char> c{'z'};
         auto cat3 = tuple_concat(a, b, c);
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             std::is_same<decltype(cat3), std::tuple<int, char>>::value,
             "tuple_concat: empty tuple in the middle drops out");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((std::get<0>(cat3) == 1) && (std::get<1>(cat3) == 'z')),
             "tuple_concat: empty-in-middle preserves remaining values");
     }
@@ -213,15 +213,15 @@ void dtuple_tests_access_all(
         auto cat_rv = tuple_concat(std::tuple<int>{9},
                                    std::tuple<char>{'r'});
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             std::is_same<decltype(cat_rv), std::tuple<int, char>>::value,
             "tuple_concat: rvalue inputs forwarded");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((std::get<0>(cat_rv) == 9) && (std::get<1>(cat_rv) == 'r')),
             "tuple_concat: rvalue inputs preserve values");
     }
 
-    return;
+    return verdict;
 }
 
 

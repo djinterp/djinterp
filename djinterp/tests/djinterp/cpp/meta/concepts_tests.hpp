@@ -4,8 +4,8 @@
 *   Declarations for the DTest concepts test suite plus the shared helper
 * types and assertion macros used by every per-section translation unit.
 * Mirrors the layout of type_traits_tests.hpp: one function per semantic
-* section of concepts.hpp, all taking a single `test_handler&` parameter,
-* dispatched by the runner via reset_counters() / handler.result().
+* section of concepts.hpp, each a `bool()` unit test that the spec provider,
+* concepts_spec(), lists for run_module.
 *
 *   STRUCTURE:
 *     A.  Per-section test-function declarations (one per concepts.hpp
@@ -28,10 +28,10 @@
 *     framework's test report; the compile-time arm is the hard fence.
 *
 *   NAMING CONVENTION:
-*     Every per-section function takes its handler parameter as `_h`,
-*     because the DT_CONCEPT / DT_NOT_CONCEPT macros refer to that name
-*     unqualified.  Don't rename the parameter in the .cpp implementations
-*     or the macros will fail to compile.
+*     Every per-section function keeps its result in a local `verdict`,
+*     because the DT_CONCEPT / DT_NOT_CONCEPT macros record on that name
+*     unqualified.  Don't rename it in the .cpp implementations or the
+*     macros will fail to compile.
 *
 *   PORTABILITY:
 *   C++20 minimum (concepts).  The suite is conditionally compiled out
@@ -43,13 +43,14 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_META_CONCEPTS_TESTS_
 #define DJINTERP_TESTS_META_CONCEPTS_TESTS_ 1
 
 // std
+#include <cstdio>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -59,9 +60,109 @@
 #include <vector>
 // djinterp
 #include <djinterp/cpp/djinterp.hpp>
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/meta/concepts.hpp>
-#include <djinterp/cpp/modules/test/test_defaults.hpp>
-#include <djinterp/cpp/modules/test/test_handler.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
+NS_DJINTERP
+NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
+
+// record_assertion
+//   function: one check of a converted body: on failure it prints what was
+// expected and clears the body's verdict.  (The bodies used DTest's retired
+// handler API, record_assertion(handler, condition, what).)
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s\n", _what);
+        _ok = false;
+    }
+
+    return;
+}
+
+
+// record_assertion (with detail)
+//   function: the five-argument form the bodies also used: the detail and
+// the extra text are printed with a failure.
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what,
+    const char* _detail,
+    const char* _extra = nullptr
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s (%s%s%s)\n",
+                    _what,
+                    _detail ? _detail : "",
+                    _extra ? "; " : "",
+                    _extra ? _extra : "");
+        _ok = false;
+    }
+
+    return;
+}
+
+// DUnitTestTally
+//   struct: kept for the converted bodies' run_unit_test calls; a body's
+// verdict is its bool now, so the tally holds nothing.
+struct DUnitTestTally
+{
+};
+
+// run_unit_test
+//   function: runs one named unit inside a converted body, and prints its
+// name when it was the unit that first failed.
+template<typename Fn>
+void run_unit_test(
+    bool&           _ok,
+    DUnitTestTally& _tally,
+    const char*     _name,
+    Fn              _unit
+)
+{
+    const bool before = _ok;
+
+    (void)_tally;
+    _unit();
+
+    if ( (before) &&
+         (!_ok) )
+    {
+        std::printf("    [FAIL] %s\n", _name);
+    }
+
+    return;
+}
+
+// D_CONCEPTS_CHECK
+//   macro: one check of a converted body, its text the message.
+#define D_CONCEPTS_CHECK(...) \
+    record_assertion(verdict, (__VA_ARGS__), #__VA_ARGS__)
+
 
 
 // =============================================================================
@@ -70,104 +171,34 @@
 
 // DT_CONCEPT
 //   macro: assert `expr` (a constexpr bool, typically a concept evaluation)
-// is true at compile time AND record the assertion on the local `_h`
-// test_handler reference for the runtime report.
+// is true at compile time AND record it on the body's verdict for the
+// runtime report.
 #define DT_CONCEPT(expr)                                                      \
     do {                                                                      \
         static_assert((expr), "DT_CONCEPT failed: " #expr);                   \
-        ::djinterp::test::record_assertion(_h, (expr), #expr);                \
+        record_assertion(verdict, (expr), #expr);                             \
     } while (0)
 
 // DT_NOT_CONCEPT
 //   macro: assert `expr` (a constexpr bool, typically a concept evaluation)
-// is false at compile time AND record the assertion on the local `_h`
-// test_handler reference for the runtime report.
+// is false at compile time AND record it on the body's verdict for the
+// runtime report.
 #define DT_NOT_CONCEPT(expr)                                                  \
     do {                                                                      \
         static_assert(!(expr), "DT_NOT_CONCEPT failed: " #expr);              \
-        ::djinterp::test::record_assertion(_h, !(expr), "!(" #expr ")");      \
+        record_assertion(verdict, !(expr), "!(" #expr ")");                   \
     } while (0)
 
 
 
-// =============================================================================
-// B.   PER-SECTION TEST FUNCTION DECLARATIONS
-// =============================================================================
-// Order mirrors concepts.hpp:
-//   0 . macros        - D_CONCEPT_HAS_* family
-//   I . std_reexports - sections I.1 - I.4 standard library re-exports
-//  II . fundamental   - section II.1
-//  II . composite     - section II.2
-//  II . properties    - section II.3
-//  II . tuple         - section II.4
-//  II . rules         - section II.5 class-definition rule concepts
-//  II . container     - section II.6 container / allocator concepts
-//  II . templates     - section II.7 template concepts
-//  II . logical       - section II.8 logical concepts
-//  II . invocable     - section II.9 invocable concepts
-//  II . numeric       - section II.10 size / numeric concepts
-//  II . pack          - section II.11 parameter pack concepts
-
-bool concepts_tests_macros(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_std_reexports(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_fundamental(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_composite(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_properties(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_tuple(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_rules(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_container(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_templates(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_logical(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_invocable(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_numeric(
-    test_handler& _test_handler,
-    test_option _options...
-);
-bool concepts_tests_pack(
-    test_handler& _test_handler,
-    test_option _options...
-);
-
-
+namespace fixtures
+{
 
 // =============================================================================
 // C.   SHARED HELPER TYPES
 // =============================================================================
 // Fixture types used across multiple test sections.  Kept at namespace
-// scope inside djinterp::test::fixtures so each .cpp can pick what it
+// scope inside djinterp::testing::fixtures so each .cpp can pick what it
 // needs by `using` the names locally.  Comments above each helper say
 // which sections consume it.
 //
@@ -576,6 +607,107 @@ struct method_haver
 // templates section, so it doubles as a negative fixture there.
 struct method_lacker
 {};
+
+
+}  // namespace fixtures
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
+
+
+// =============================================================================
+// B.   PER-SECTION TEST FUNCTION DECLARATIONS
+// =============================================================================
+// Order mirrors concepts.hpp:
+//   0 . macros        - D_CONCEPT_HAS_* family
+//   I . std_reexports - sections I.1 - I.4 standard library re-exports
+//  II . fundamental   - section II.1
+//  II . composite     - section II.2
+//  II . properties    - section II.3
+//  II . tuple         - section II.4
+//  II . rules         - section II.5 class-definition rule concepts
+//  II . container     - section II.6 container / allocator concepts
+//  II . templates     - section II.7 template concepts
+//  II . logical       - section II.8 logical concepts
+//  II . invocable     - section II.9 invocable concepts
+//  II . numeric       - section II.10 size / numeric concepts
+//  II . pack          - section II.11 parameter pack concepts
+
+bool concepts_tests_macros();
+bool concepts_tests_std_reexports();
+bool concepts_tests_fundamental();
+bool concepts_tests_composite();
+bool concepts_tests_properties();
+bool concepts_tests_tuple();
+bool concepts_tests_rules();
+bool concepts_tests_container();
+bool concepts_tests_templates();
+bool concepts_tests_logical();
+bool concepts_tests_invocable();
+bool concepts_tests_numeric();
+bool concepts_tests_pack();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// concepts_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+concepts_spec()
+{
+    return dt::module_spec{
+        "concepts",
+        "concepts.hpp",
+        {
+            dt::block_spec{
+                "shared_helper_types",
+                "SHARED HELPER TYPES",
+                {
+                    { "concepts_tests_macros",
+                      "concepts macros",
+                      &concepts_tests_macros },
+                    { "concepts_tests_std_reexports",
+                      "concepts std reexports",
+                      &concepts_tests_std_reexports },
+                    { "concepts_tests_fundamental",
+                      "concepts fundamental",
+                      &concepts_tests_fundamental },
+                    { "concepts_tests_composite",
+                      "concepts composite",
+                      &concepts_tests_composite },
+                    { "concepts_tests_properties",
+                      "concepts properties",
+                      &concepts_tests_properties },
+                    { "concepts_tests_tuple",
+                      "concepts tuple",
+                      &concepts_tests_tuple },
+                    { "concepts_tests_rules",
+                      "concepts rules",
+                      &concepts_tests_rules },
+                    { "concepts_tests_container",
+                      "concepts container",
+                      &concepts_tests_container },
+                    { "concepts_tests_templates",
+                      "concepts templates",
+                      &concepts_tests_templates },
+                    { "concepts_tests_logical",
+                      "concepts logical",
+                      &concepts_tests_logical },
+                    { "concepts_tests_invocable",
+                      "concepts invocable",
+                      &concepts_tests_invocable },
+                    { "concepts_tests_numeric",
+                      "concepts numeric",
+                      &concepts_tests_numeric },
+                    { "concepts_tests_pack",
+                      "concepts pack",
+                      &concepts_tests_pack },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

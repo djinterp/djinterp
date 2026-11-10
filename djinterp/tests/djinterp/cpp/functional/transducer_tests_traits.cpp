@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/transducer_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -83,8 +83,8 @@ test_traits_is_transducer
 */
 bool test_traits_is_transducer()
 {
-    auto m    = transducers::map(square());
-    auto f    = transducers::filter(is_even());
+    auto m    = djinterp::map(square());
+    auto f    = djinterp::filter(is_even());
     auto comp = m | f;
 
     static_assert(is_transducer<decltype(m)>::value,
@@ -115,8 +115,8 @@ test_traits_transduces_reducer
 */
 bool test_traits_transduces_reducer()
 {
-    auto m    = transducers::map(square());
-    auto f    = transducers::filter(is_even());
+    auto m    = djinterp::map(square());
+    auto f    = djinterp::filter(is_even());
     auto comp = m | f;
 
     static_assert(transduces_reducer<decltype(m), DIntReducer>::value,
@@ -144,7 +144,7 @@ test_traits_result_type
 */
 bool test_traits_result_type()
 {
-    auto m = transducers::map(square());
+    auto m = djinterp::map(square());
     using produced = transducer_result_t<decltype(m), DIntReducer>;
 
     static_assert(
@@ -170,7 +170,7 @@ test_traits_value_aliases
 bool test_traits_value_aliases()
 {
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    auto m = transducers::map(square());
+    auto m = djinterp::map(square());
 
     static_assert(is_reducing_state_v<DReducingState<int> >,
         "is_reducing_state_v matches");
@@ -203,7 +203,7 @@ test_traits_concepts
 bool test_traits_concepts()
 {
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-    auto m = transducers::map(square());
+    auto m = djinterp::map(square());
 
     static_assert(reducing_state_c<DReducingState<int> >,
         "concept: reducing_state");

@@ -42,7 +42,7 @@
 *                                   container_copy_merge_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -93,11 +93,26 @@ VIII. Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_copy_merge_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -688,6 +703,8 @@ using DCmPairVector = std::vector<std::pair<int, int> >;
 // context - so is_copyable_container inherits a false positive.  Pinned in
 // tests_copy_capability_false_positive.
 using DCmUniqueVector = std::vector<std::unique_ptr<int> >;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -752,6 +769,246 @@ bool tests_merge_class_provisos();
 bool tests_merge_class_agreement();
 bool tests_merge_class_cv_ref();
 bool tests_traits_metafunction_shape();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_copy_merge_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_copy_merge_traits_spec()
+{
+    return dt::module_spec{
+        "container_copy_merge_traits",
+        "COPY and MERGE - two of the operations FOUNDED on comparison (the "
+        "spec, Operations founded on...",
+        {
+            dt::block_spec{
+                "prerequisites",
+                "Operand prerequisites",
+                {
+                    { "tests_merge_elements_compatible",
+                      "Verifies the element prerequisite on carriers of each "
+                      "kind",
+                      &tests_merge_elements_compatible },
+                    { "tests_merge_elements_needs_containers",
+                      "Verifies the two container conjuncts, which precede "
+                      "the element clause",
+                      &tests_merge_elements_needs_containers },
+                    { "tests_merge_elements_convertibility_is_either_way",
+                      "Verifies that the element clause admits a conversion "
+                      "in EITHER direction, not only left-to-right",
+                      &tests_merge_elements_convertibility_is_either_way },
+                    { "tests_merge_elements_cv_ref",
+                      "Verifies that the trait cleans BOTH of its operands",
+                      &tests_merge_elements_cv_ref },
+                    { "tests_merge_elements_companions",
+                      "Verifies the hand-written `_v` companion",
+                      &tests_merge_elements_companions },
+                }
+            },
+            dt::block_spec{
+                "copy",
+                "Copy",
+                {
+                    { "tests_is_copyable_container",
+                      "Verifies the copy capability on carriers of each kind",
+                      &tests_is_copyable_container },
+                    { "tests_copy_needs_both_conjuncts",
+                      "Verifies that neither half of the conjunction is "
+                      "redundant",
+                      &tests_copy_needs_both_conjuncts },
+                    { "tests_copy_capability_false_positive",
+                      "Records a limitation the trait INHERITS from "
+                      "std::is_copy_constructible",
+                      &tests_copy_capability_false_positive },
+                    { "tests_copy_preserves_all_axes",
+                      "Verifies the NOTE trait, and the boundary its shape "
+                      "invites getting wrong",
+                      &tests_copy_preserves_all_axes },
+                    { "tests_copy_cv_ref",
+                      "Verifies that both copy traits honour the clean_t "
+                      "contract",
+                      &tests_copy_cv_ref },
+                    { "tests_copy_companions",
+                      "Verifies the `_v` companions, which the trait_detect "
+                      "macro emits for both of these single-parameter traits",
+                      &tests_copy_companions },
+                }
+            },
+            dt::block_spec{
+                "discipline",
+                "Discipline signals",
+                {
+                    { "tests_discipline_signal_probes",
+                      "Verifies the three discipline probes in isolation, "
+                      "before any of them is combined into a verdict",
+                      &tests_discipline_signal_probes },
+                    { "tests_discipline_boundedness_probes",
+                      "Verifies the five boundedness probes the overflow "
+                      "proviso is built from",
+                      &tests_discipline_boundedness_probes },
+                    { "tests_merge_discipline_enum",
+                      "Verifies the discipline enum's shape",
+                      &tests_merge_discipline_enum },
+                    { "tests_merge_discipline_name",
+                      "Verifies the discipline spellings",
+                      &tests_merge_discipline_name },
+                    { "tests_discipline_family_predicates",
+                      "Verifies the three family predicates that group the "
+                      "six disciplines",
+                      &tests_discipline_family_predicates },
+                    { "tests_merge_discipline_of",
+                      "Verifies the per-operand verdict on the synthetic "
+                      "carriers, where each signal can be varied on its own",
+                      &tests_merge_discipline_of },
+                    { "tests_merge_discipline_of_std_types",
+                      "Verifies that the LOCAL signals agree with the "
+                      "standard containers, which is the header's stated "
+                      "justification for detecting them here rather than "
+                      "importing the overlay axis",
+                      &tests_merge_discipline_of_std_types },
+                    { "tests_discipline_pair_sequence_misread",
+                      "Records a MISCLASSIFICATION: a plain sequence whose "
+                      "elements happen to be pairs is read as a keyed "
+                      "discipline",
+                      &tests_discipline_pair_sequence_misread },
+                    { "tests_discipline_signal_order",
+                      "Verifies the ORDER in which the verdict consults its "
+                      "signals, independently of whether that order is the "
+                      "right one",
+                      &tests_discipline_signal_order },
+                    { "tests_merge_discipline_cv_ref",
+                      "Verifies that the verdict and its probes honour the "
+                      "clean_t contract",
+                      &tests_merge_discipline_cv_ref },
+                    { "tests_merge_discipline_companions",
+                      "Verifies the companions of the discipline verdict",
+                      &tests_merge_discipline_companions },
+                }
+            },
+            dt::block_spec{
+                "merge_kind",
+                "Merge kind",
+                {
+                    { "tests_merge_kind_enum",
+                      "Verifies the kind enum's shape",
+                      &tests_merge_kind_enum },
+                    { "tests_merge_kind_name",
+                      "Verifies the kind spellings",
+                      &tests_merge_kind_name },
+                    { "tests_enum_names_fall_through",
+                      "Records a boundary shared by both naming functions: "
+                      "each is a chain of equality tests ending in an "
+                      "UNGUARDED default, so a value outside the enum is "
+                      "silently given the last spelling rather than being "
+                      "reported as unknown",
+                      &tests_enum_names_fall_through },
+                    { "tests_merge_kind_from_disciplines",
+                      "Verifies the combining function on the pairs that "
+                      "matter, before the exhaustive walk below",
+                      &tests_merge_kind_from_disciplines },
+                    { "tests_merge_kind_from_disciplines_total",
+                      "Walks the ENTIRE 6x6 discipline grid and checks the "
+                      "function's structural properties, rather than sampling "
+                      "it",
+                      &tests_merge_kind_from_disciplines_total },
+                    { "tests_merge_kind_of",
+                      "Verifies the trait that feeds two detected disciplines "
+                      "to the function",
+                      &tests_merge_kind_of },
+                    { "tests_merge_kind_of_element_guard",
+                      "Verifies that the element guard is consulted BEFORE "
+                      "the disciplines, and that it can refuse a pair the "
+                      "disciplines would otherwise accept",
+                      &tests_merge_kind_of_element_guard },
+                    { "tests_merge_kind_of_std_types",
+                      "Verifies the kind across the standard containers, "
+                      "where the disciplines are the familiar ones",
+                      &tests_merge_kind_of_std_types },
+                    { "tests_is_mergeable",
+                      "Verifies the boolean face of the kind",
+                      &tests_is_mergeable },
+                    { "tests_merge_kind_cv_ref",
+                      "Verifies that the kind trait cleans BOTH of its "
+                      "operands",
+                      &tests_merge_kind_cv_ref },
+                    { "tests_merge_kind_companions",
+                      "Verifies the companions of the kind trait and of "
+                      "is_mergeable",
+                      &tests_merge_kind_companions },
+                }
+            },
+            dt::block_spec{
+                "provisos",
+                "Merge provisos",
+                {
+                    { "tests_merge_result_type",
+                      "Verifies the result-type alias",
+                      &tests_merge_result_type },
+                    { "tests_merge_has_key_conflict",
+                      "Verifies the key-conflict proviso",
+                      &tests_merge_has_key_conflict },
+                    { "tests_merge_has_key_conflict_needs_keyed_merge",
+                      "Verifies the FIRST conjunct - that the proviso is "
+                      "gated on the merge being keyed at all, not merely on a "
+                      "map being present",
+                      &tests_merge_has_key_conflict_needs_keyed_merge },
+                    { "tests_merge_may_overflow",
+                      "Verifies the capacity proviso on carriers of each kind",
+                      &tests_merge_may_overflow },
+                    { "tests_merge_may_overflow_routes",
+                      "Verifies each of the four boundedness routes "
+                      "separately, and the anti-signal that switches the "
+                      "fourth one off",
+                      &tests_merge_may_overflow_routes },
+                    { "tests_merge_may_overflow_is_left_biased",
+                      "Verifies that the proviso reads the RESULT type - the "
+                      "left operand - and not both operands",
+                      &tests_merge_may_overflow_is_left_biased },
+                    { "tests_provisos_cv_ref",
+                      "Verifies that all three provisos clean both of their "
+                      "operands",
+                      &tests_provisos_cv_ref },
+                    { "tests_provisos_companions",
+                      "Verifies the hand-written `_v` companions of the two "
+                      "boolean provisos",
+                      &tests_provisos_companions },
+                }
+            },
+            dt::block_spec{
+                "class",
+                "Aggregate snapshot",
+                {
+                    { "tests_merge_class_disciplines",
+                      "Verifies the two discipline members",
+                      &tests_merge_class_disciplines },
+                    { "tests_merge_class_kind",
+                      "Verifies the kind member and its spelling",
+                      &tests_merge_class_kind },
+                    { "tests_merge_class_provisos",
+                      "Verifies the four boolean members",
+                      &tests_merge_class_provisos },
+                    { "tests_merge_class_agreement",
+                      "Verifies that the aggregate restates the standalone "
+                      "traits and does not shadow them - the property that "
+                      "makes it safe to read either one",
+                      &tests_merge_class_agreement },
+                    { "tests_merge_class_cv_ref",
+                      "Verifies that the aggregate cleans both of its operands",
+                      &tests_merge_class_cv_ref },
+                    { "tests_traits_metafunction_shape",
+                      "Records which of this header's traits derive from "
+                      "std::integral_constant and which merely carry a "
+                      "`value` member",
+                      &tests_traits_metafunction_shape },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

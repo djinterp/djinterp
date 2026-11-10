@@ -14,8 +14,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/pipeline_tests_errors.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -33,51 +33,51 @@ NS_TESTING
 using pi = DFunctionPipeline<int>;
 
 
-void test_error_propagation(
-    test::test_handler& _h
-)
+bool test_error_propagation()
 {
+    bool verdict = true;
+
     const int code = 99;
 
     // map propagates the error and code into the new element type
     DFunctionPipeline<int> mapped = pi::error(code).map(DFnDouble{});
-    test::record_assertion(_h,
+    record_assertion(verdict,
         mapped.has_error() && mapped.error_code() == code,
         "error: map propagates the error and code");
 
     // filter propagates
     pi filtered = pi::error(code).filter(fn_is_even{});
-    test::record_assertion(_h,
+    record_assertion(verdict,
         filtered.has_error() && filtered.error_code() == code,
         "error: filter propagates the error");
 
     // take propagates
     pi taken = pi::error(code).take(3);
-    test::record_assertion(_h,
+    record_assertion(verdict,
         taken.has_error() && taken.error_code() == code,
         "error: take propagates the error");
 
     // reversed / sorted / distinct propagate
-    test::record_assertion(_h,
+    record_assertion(verdict,
         pi::error(code).reversed().has_error()
         && pi::error(code).sorted().has_error()
         && pi::error(code).distinct().has_error(),
         "error: reversed / sorted / distinct propagate the error");
 
     // fold returns the init unchanged
-    test::record_assertion(_h, pi::error(code).fold(5, DFnAdd{}) == 5,
+    record_assertion(verdict, pi::error(code).fold(5, DFnAdd{}) == 5,
         "error: fold returns the initial value");
 
     // for_each is a no-op and returns the same (errored) pipeline
     long sink = 0;
     pi errored = pi::error(code);
     const pi& same = errored.for_each(accumulate_into(&sink));
-    test::record_assertion(_h, sink == 0 && &same == &errored,
+    record_assertion(verdict, sink == 0 && &same == &errored,
         "error: for_each performs no work on an errored pipeline");
 
     // query short-circuits: any=false, all=false (NOT vacuously true),
     // none=true, count=0
-    test::record_assertion(_h,
+    record_assertion(verdict,
         pi::error(code).any(fn_is_even{}) == false
         && pi::error(code).all(fn_is_even{}) == false
         && pi::error(code).none(fn_is_even{}) == true
@@ -86,12 +86,12 @@ void test_error_propagation(
 
     // group_by yields an empty map
     std::map<int, std::vector<int>> g = pi::error(code).group_by(DFnParity{});
-    test::record_assertion(_h, g.empty(),
+    record_assertion(verdict, g.empty(),
         "error: group_by yields an empty map");
 
     // partition_pipe yields a pair of errored pipelines
     std::pair<pi, pi> parts = pi::error(code).partition_pipe(fn_is_even{});
-    test::record_assertion(_h,
+    record_assertion(verdict,
         parts.first.has_error() && parts.first.error_code() == code
         && parts.second.has_error() && parts.second.error_code() == code,
         "error: partition_pipe yields two errored pipelines");
@@ -100,11 +100,11 @@ void test_error_propagation(
     // errored operand's code
     DFunctionPipeline<int> zipped =
         pi::from({ 1, 2 }).zip_with(pi::error(code), DFnMul{});
-    test::record_assertion(_h,
+    record_assertion(verdict,
         zipped.has_error() && zipped.error_code() == code,
         "error: zip_with propagates an errored operand's code");
 
-    return;
+    return verdict;
 }
 
 

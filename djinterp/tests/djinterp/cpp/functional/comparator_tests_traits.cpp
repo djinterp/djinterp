@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/comparator_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "comparator_tests.hpp"
@@ -35,15 +35,15 @@ struct DNotCmp
 //   Concrete helper types produced by the factories. Naming them lets the
 // static_asserts below read as plain type predicates. decltype on a factory
 // call is well-formed in an unevaluated context on every C++11+ compiler.
-typedef decltype(comparators::natural<int>())                  natural_t;
-typedef decltype(comparators::by_key(get_rank()))              by_key_t;
-typedef decltype(comparators::reversed(comparators::natural<int>()))
+typedef decltype(djinterp::natural<int>())                  natural_t;
+typedef decltype(djinterp::by_key(get_rank()))              by_key_t;
+typedef decltype(djinterp::reversed(djinterp::natural<int>()))
                                                                reversed_t;
-typedef decltype(comparators::less_than(comparators::natural<int>(), 0))
+typedef decltype(djinterp::less_than(djinterp::natural<int>(), 0))
                                                                less_than_t;
-typedef decltype(comparators::greater_than(comparators::natural<int>(), 0))
+typedef decltype(djinterp::greater_than(djinterp::natural<int>(), 0))
                                                                greater_than_t;
-typedef decltype(comparators::equal_under(comparators::natural<int>()))
+typedef decltype(djinterp::equal_under(djinterp::natural<int>()))
                                                                equal_under_t;
 
 

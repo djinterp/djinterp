@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [testing]                  container_storage_traits_tests_signals.cpp
 *
-*   Section I - the two raw shape signals: has_static_storage_signal (a member
-* `extent` OR a std::tuple_size specialisation) and has_dynamic_storage_signal
+*   Section I - the two raw shape signals: has_static_storage_signal (a bounded
+* C array, a member `extent` OR a std::tuple_size specialisation) and has_dynamic_storage_signal
 * (an allocator_type OR a reserve()).  Each is a disjunction, so both disjuncts
 * are exercised in isolation: the static signal via tuple_size (array / pair /
 * tuple) and via extent (extent_only); the dynamic signal via an allocator
@@ -16,8 +16,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_storage_traits_tests_signals.cpp
 * link(s):   TBA
-* author(s): unit-test suite                                        created: TBA
-*                                                            revised: 2026.09.21
+* author(s): unit-test suite                                 created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -29,7 +29,8 @@ NS_TESTING
 
 
 // tests_has_static_storage_signal
-//   an inline compile-time-fixed aggregate: extent OR tuple_size.
+//   an inline compile-time-fixed aggregate: a bounded C array, extent OR
+// tuple_size.
 bool tests_has_static_storage_signal()
 {
     bool _stg_ok = true;
@@ -38,6 +39,12 @@ bool tests_has_static_storage_signal()
     D_STG_CHECK( (has_static_storage_signal<std::array<int, 4>>::value) );
     D_STG_CHECK( (has_static_storage_signal<std::pair<int, int>>::value) );
     D_STG_CHECK( (has_static_storage_signal<std::tuple<int, char>>::value) );
+    // bounded C array route, cv and references stripped; T[] has no footprint
+    D_STG_CHECK( (has_static_storage_signal<int[4]>::value) );
+    D_STG_CHECK( (has_static_storage_signal<const int (&)[4]>::value) );
+    D_STG_CHECK( (!has_static_storage_signal<int[]>::value) );
+    D_STG_CHECK( (storage_duration_of<int[4]>::value ==
+                  storage_duration::static_storage) );
     // extent route
     D_STG_CHECK( (has_static_storage_signal<extent_only>::value) );
     D_STG_CHECK( (has_static_storage_signal<DHybridShape>::value) );

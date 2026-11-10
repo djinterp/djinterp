@@ -4,7 +4,7 @@
 *   Section I - the structural member/alias detectors: size & capacity
 * accessors, comparator/hasher and interval type aliases, the hierarchical
 * protocol (node/depth types + parent/children/root/depth accessors), the
-* mutation surface (push_ / insert / erase / clear), the iteration surface
+* mutation surface (push_back / insert / erase / clear), the iteration surface
 * (begin/end/cbegin/cend/rbegin/rend), and the invariant probes (unique /
 * value_comp / key_comp / multiplicity accessors).
 *
@@ -19,8 +19,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_traits_tests_method_detection.cpp
 * link(s):   TBA
-* author(s): unit-test suite                                        created: TBA
-*                                                            revised: 2026.09.21
+* author(s): unit-test suite                                 created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -140,14 +140,17 @@ bool tests_hierarchical_detection()
 
 
 // tests_mutation_detection
-//   push_ / insert(hint,value) / erase(iterator) / clear.
+//   push_back / insert(hint,value) / erase(iterator) / clear.
 bool tests_mutation_detection()
 {
     bool _ct_ok = true;
 
-    // push_ : the custom pusher (no std container has this exact member)
-    D_CT_CHECK( (has_push_<pusher>::value) );
-    D_CT_CHECK( (!has_push_<std::vector<int>>::value) );
+    // push_back(value_type): the bare pusher, the sequences; not the
+    // associative or fixed-size ones
+    D_CT_CHECK( (has_push_back<pusher>::value) );
+    D_CT_CHECK( (has_push_back<std::vector<int>>::value) );
+    D_CT_CHECK( (!has_push_back<std::set<int>>::value) );
+    D_CT_CHECK( (!has_push_back<std::array<int, 4>>::value) );
 
     // hinted insert(const_iterator, value_type)
     D_CT_CHECK( (has_insert<std::vector<int>>::value) );

@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/read_write_container_traits_tests_capability_bits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "read_write_container_traits_tests.hpp"
@@ -87,36 +87,23 @@ bool tests_has_capability_bits_helper()
 
 /*
 tests_capability_tag_shapes
-  Verifies exactly which tag shapes the opt-in accepts, and documents the one
-  that cannot be tested at all.
+  Verifies exactly which tag shapes the opt-in accepts.
 
-  THE UNTESTABLE SHAPE.  A capability tag whose can_read / can_write are
-  NON-STATIC data members makes the header fail to compile.  The detection -
-  decltype of the id-expressions - is unevaluated and so succeeds for non-static
-  data members, selecting access_bits_impl's tagged specialisation; that
-  specialisation's initialisers are then EVALUATED, and reading a non-static
-  data member without an object is ill-formed.  The error is in the
-  specialisation's body rather than its immediate context, so substitution
-  failure cannot rescue it:
-
-      error: invalid use of non-static data member 'X::c::can_read'
-
-  It is raised by any use of access_capability_of, and so transitively by
-  is_read_write_container, access_tag_of, DAccessContainerClass, and the two
-  corner headers built on this one.  This is the one shape whose fixture would
-  break the build rather than fail an assertion, so the suite carries no such
-  fixture; the bound is described here instead.
-
-  A tag whose bits are STATIC MEMBER FUNCTIONS is accepted, and both bits read
-  TRUE - each function decays to a pointer, and a function pointer is never
-  null.  So a tag declaring can_read() / can_write() reports full read_write
-  capability whatever those functions would return, and the structural surface
-  is skipped.  GCC does diagnose this at the point of use with -Waddress
-  ("the address of ... will never be NULL"), so a build treating warnings as
-  errors would catch it; the classification itself reports nothing amiss.
+  Each bit must be a constant usable as a bool template argument. That one
+  requirement rejects, in substitution's immediate context, the two shapes
+  that used to misbehave (until 2026-11-09):
+  - bits that are STATIC MEMBER FUNCTIONS. Named by decltype they were
+    trusted, and each decayed to a pointer that is never null, so both bits
+    read true whatever the functions returned; under GCC's sanitizers that
+    comparison was not a constant expression, and the suite did not build.
+  - bits that are NON-STATIC data members. They were selected the same way
+    and then read without an object, a hard error in any unit that
+    classified the type, so the suite could carry no such fixture.
+  Both are now ignored like a missing bit, and the structural surface decides.
 
   Tests the following:
-  - the function-shaped tag, both bits asserted, carried through to read_write
+  - the function-shaped and the non-static tags, each ignored: the structure
+    decides
   - a tag with both bits FALSE, which is a working opt-out and reaches `none`
   - the three shapes that are correctly ignored, each falling back to structure
 */
@@ -124,19 +111,26 @@ bool tests_capability_tag_shapes()
 {
     bool ok = true;
 
-    // function-shaped bits: trusted, and both read true
+    // function-shaped bits: not constants, so no tag; the structure decides
     D_RW_CHECK(internal::has_capability_bits_helper<
-                   DRwTagFunctions>::value == true);
-    D_RW_CHECK(access_capability_of<DRwTagFunctions>::can_read  == true);
-    D_RW_CHECK(access_capability_of<DRwTagFunctions>::can_write == true);
+                   DRwTagFunctions>::value == false);
+    D_RW_CHECK(access_capability_of<DRwTagFunctions>::has_capability_tag
+                   == false);
     D_RW_CHECK(access_capability_of<DRwTagFunctions>::value
-                   == access_capability::read_write);
+                   == access_capability_from_bits(
+                          internal::has_read_surface<DRwTagFunctions>::value,
+                          internal::has_write_surface<
+                              DRwTagFunctions>::value));
+    D_RW_CHECK(access_capability_of<DRwTagFunctions>::can_write == false);
 
-    // ... though the type has no write surface at all
-    D_RW_CHECK(   ( internal::has_write_surface<DRwTagFunctions>::value
-                        == false )
-               && ( access_capability_of<DRwTagFunctions>::can_write
-                        == true ));
+    // non-static bits: no constant without an object, so no tag either
+    D_RW_CHECK(internal::has_capability_bits_helper<
+                   DRwTagNonStatic>::value == false);
+    D_RW_CHECK(access_capability_of<DRwTagNonStatic>::value
+                   == access_capability_from_bits(
+                          internal::has_read_surface<DRwTagNonStatic>::value,
+                          internal::has_write_surface<
+                              DRwTagNonStatic>::value));
 
     // both bits false: a working opt-out
     D_RW_CHECK(access_capability_of<DRwTagNoneBits>::can_read  == false);
@@ -319,11 +313,11 @@ bool tests_access_bits_precedence()
                           internal::has_write_surface<
                               DRwTagOverrides>::value));
 
-    // a tag asserting more than the structure supports is honoured too
+    // a tag that is no tag (function-shaped bits) overrides nothing
     D_RW_CHECK(   ( internal::has_write_surface<DRwTagFunctions>::value
                         == false )
                && ( access_capability_of<DRwTagFunctions>::can_write
-                        == true ));
+                        == false ));
 
     // and a tag denying everything is honoured over both surfaces
     D_RW_CHECK(   ( internal::has_read_surface<DRwTagNoneBits>::value

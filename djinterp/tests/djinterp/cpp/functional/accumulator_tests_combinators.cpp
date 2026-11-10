@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_combinators.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <string>
@@ -28,7 +28,7 @@ test_combinators_contramap
 bool test_combinators_contramap()
 {
     auto acc = contramap<std::string>(
-        sum<int>(),
+        accumulate_sum<int>(),
         [](const std::string& _s) { return static_cast<int>(_s.size()); });
 
     std::vector<std::string> words;
@@ -56,11 +56,11 @@ bool test_combinators_map_output()
     values.push_back(2);
     values.push_back(3);
 
-    auto doubled = map_output(sum<int>(), [](int _x) { return _x * 2; });
+    auto doubled = map_output(accumulate_sum<int>(), [](int _x) { return _x * 2; });
 
     D_INTERNAL_ACC_CHECK(doubled.run(values) == 12);
 
-    auto big = map_output(sum<int>(), [](int _x) { return _x > 5; });
+    auto big = map_output(accumulate_sum<int>(), [](int _x) { return _x > 5; });
 
     D_INTERNAL_ACC_CHECK(big.run(values) == true);
 
@@ -68,7 +68,7 @@ bool test_combinators_map_output()
     small.push_back(1);
     small.push_back(1);
 
-    auto big2 = map_output(sum<int>(), [](int _x) { return _x > 5; });
+    auto big2 = map_output(accumulate_sum<int>(), [](int _x) { return _x > 5; });
 
     D_INTERNAL_ACC_CHECK(big2.run(small) == false);
 
@@ -91,7 +91,7 @@ bool test_combinators_filtered()
     values.push_back(3);
     values.push_back(4);
 
-    D_INTERNAL_ACC_CHECK(filtered(sum<int>(), is_even()).run(values) == 6);
+    D_INTERNAL_ACC_CHECK(filtered(accumulate_sum<int>(), is_even()).run(values) == 6);
 
     return true;
 }
@@ -112,9 +112,9 @@ bool test_combinators_take()
     values.push_back(20);
     values.push_back(30);
 
-    D_INTERNAL_ACC_CHECK(take(sum<int>(), 2).run(values) == 30);
-    D_INTERNAL_ACC_CHECK(take(sum<int>(), 0).run(values) == 0);
-    D_INTERNAL_ACC_CHECK(take(sum<int>(), 10).run(values) == 60);
+    D_INTERNAL_ACC_CHECK(take(accumulate_sum<int>(), 2).run(values) == 30);
+    D_INTERNAL_ACC_CHECK(take(accumulate_sum<int>(), 0).run(values) == 0);
+    D_INTERNAL_ACC_CHECK(take(accumulate_sum<int>(), 10).run(values) == 60);
 
     return true;
 }
@@ -137,7 +137,7 @@ bool test_combinators_composition()
 
     // sum the evens (2 + 4 = 6), then add one -> 7
     auto pipeline = map_output(
-        filtered(sum<int>(), is_even()),
+        filtered(accumulate_sum<int>(), is_even()),
         [](int _x) { return _x + 1; });
 
     D_INTERNAL_ACC_CHECK(pipeline.run(values) == 7);

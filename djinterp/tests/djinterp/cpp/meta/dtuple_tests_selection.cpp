@@ -23,7 +23,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_selection.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -162,47 +162,47 @@ static_assert(std::is_same<type_select_t<DTypeCase<false, int>,
 // III. RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_selection_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_selection_all()
 {
+    bool verdict = true;
+
     // ---- DTypeCase ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTypeCase<true, int>::condition == true,
         "type_case<true, int>::condition is true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTypeCase<false, int>::condition == false,
         "type_case<false, int>::condition is false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTypeCase<false, char>::type, char>::value,
         "type_case::type is exposed regardless of condition");
 
     // ---- DTypeSelector ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTypeSelector<>::type, void>::value &&
           (DTypeSelector<>::matched == false) ),
         "type_selector<> -> void / false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTypeSelector<int>::type, void>::value &&
           (DTypeSelector<int>::matched == false) ),
         "type_selector<int> (primary, non-case) -> void / false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTypeSelector<DTypeCase<true, int>>::type, int>::value &&
           (DTypeSelector<DTypeCase<true, int>>::matched == true) ),
         "type_selector<true int> -> int / true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTypeSelector<DTypeCase<false, int>>::type, void>::value &&
           (DTypeSelector<DTypeCase<false, int>>::matched == false) ),
         "type_selector<false int> -> void / false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTypeSelector<DTypeCase<true, int>,
                                              DTypeCase<true, char>>::type, int>::value,
         "type_selector<true int, true char> -> int (first match)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTypeSelector<DTypeCase<false, int>,
                                              DTypeCase<true, char>>::type, char>::value,
         "type_selector<false int, true char> -> char");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTypeSelector<DTypeCase<false, int>,
                                                DTypeCase<false, char>,
                                                DTypeCase<false, float>>::type, void>::value &&
@@ -210,24 +210,24 @@ void dtuple_tests_selection_all(
                          DTypeCase<false, char>,
                          DTypeCase<false, float>>::matched == false) ),
         "type_selector<all false> -> void / false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTypeSelector<DTypeCase<false, int>,
                                              DTypeCase<false, char>,
                                              DTypeCase<false, float>,
                                              DTypeCase<true,  alpha>>::type, alpha>::value,
         "type_selector<f, f, f, t alpha> -> alpha (last match)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTypeSelector<DTypeCase<false, int>,
                                              DTypeCase<true,  bravo>,
                                              DTypeCase<true,  charlie>,
                                              DTypeCase<false, delta>>::type, bravo>::value,
         "type_selector<f, t bravo, t charlie, f> -> bravo (first true wins)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<type_select_t<DTypeCase<false, int>,
                                     DTypeCase<true,  char>>, char>::value,
         "type_select_t: alias consistent with ::type");
 
-    return;
+    return verdict;
 }
 
 

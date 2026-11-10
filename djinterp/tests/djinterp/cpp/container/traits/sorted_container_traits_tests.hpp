@@ -38,7 +38,7 @@
 *                                           sorted_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -85,11 +85,26 @@ VII.  Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/sorted_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -444,16 +459,30 @@ struct DSrtInvariantIntZero
 };
 
 // DSrtInvariantFunction
-//   struct: sorted_invariant is a static member FUNCTION.  decltype names it,
-// so the specialisation is selected; the cast then decays it to a function
-// pointer, which is never null - so the invariant reads as ASSERTED.  A member
-// accidentally given this name silently claims sortedness.
+//   struct: sorted_invariant is a static member FUNCTION. It is no constant,
+// so the invariant is ignored. (It used to be accepted, decaying to a
+// never-null pointer, so a member given this name by accident claimed
+// sortedness.)
 struct DSrtInvariantFunction
 {
     using value_type = int;
 
     static
     bool sorted_invariant();
+
+    const int* begin() const;
+    const int* end() const;
+};
+
+// DSrtInvariantNonStatic
+//   struct: sorted_invariant is a NON-STATIC data member. Without an object
+// it is no constant, so the invariant is ignored. (It used to select the
+// specialisation and then be read without an object: a hard error.)
+struct DSrtInvariantNonStatic
+{
+    using value_type = int;
+
+    bool sorted_invariant;
 
     const int* begin() const;
     const int* end() const;
@@ -502,6 +531,8 @@ using DSrtMap       = std::map<int, int>;            // monotone
 using DSrtUset      = std::unordered_set<int>;       // unordered
 using DSrtUmap      = std::unordered_map<int, int>;  // unordered
 using DSrtPair      = std::pair<int, int>;           // non_container
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -543,6 +574,165 @@ bool tests_sorted_container_class_kind();
 bool tests_sorted_container_class_predicates();
 bool tests_sorted_container_class_agreement();
 bool tests_sorted_container_class_cv_ref();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// sorted_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+sorted_container_traits_spec()
+{
+    return dt::module_spec{
+        "sorted_container_traits",
+        "the SORTEDNESS axis, container-side traits: does a container's TYPE "
+        "promise its elements are...",
+        {
+            dt::block_spec{
+                "signals",
+                "Sortedness signals",
+                {
+                    { "tests_has_key_compare_helper",
+                      "Verifies the comparator tell - a `key_compare` alias - "
+                      "which is what separates a tree-backed associative "
+                      "container from a hashed one",
+                      &tests_has_key_compare_helper },
+                    { "tests_has_interval_bounds_helper",
+                      "Verifies the interval tell - a lower_bound AND an "
+                      "upper_bound member - on the shapes it is meant for",
+                      &tests_has_interval_bounds_helper },
+                    { "tests_interval_bounds_shapes",
+                      "Verifies exactly WHICH declarations the interval probe "
+                      "accepts, since the answer is broader than the name "
+                      "suggests",
+                      &tests_interval_bounds_shapes },
+                    { "tests_sorted_invariant_helper",
+                      "Verifies the explicit opt-in - a `sorted_invariant` "
+                      "constant - which is the only signal in the header that "
+                      "is a VALUE read rather than a presence test",
+                      &tests_sorted_invariant_helper },
+                    { "tests_sorted_invariant_shapes",
+                      "Verifies which declarations the invariant probe "
+                      "accepts, and documents the one that cannot be tested "
+                      "at all",
+                      &tests_sorted_invariant_shapes },
+                    { "tests_signals_cv_ref",
+                      "Verifies that all three signal probes honour the "
+                      "clean_t contract",
+                      &tests_signals_cv_ref },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Sortedness classification",
+                {
+                    { "tests_sortedness_enum",
+                      "Verifies the enumeration itself",
+                      &tests_sortedness_enum },
+                    { "tests_sortedness_name",
+                      "Verifies the diagnostic spelling of each state",
+                      &tests_sortedness_name },
+                    { "tests_sortedness_of_cascade",
+                      "Verifies every branch of the classification, on a "
+                      "carrier for each of the five states",
+                      &tests_sortedness_of_cascade },
+                    { "tests_sortedness_of_precedence",
+                      "Verifies that the ORDER-axis test comes first, which "
+                      "decides which signal is even consulted",
+                      &tests_sortedness_of_precedence },
+                    { "tests_sortedness_of_std_types",
+                      "Verifies the state each standard container receives - "
+                      "where the classification meets real interfaces",
+                      &tests_sortedness_of_std_types },
+                    { "tests_sortedness_out_of_range",
+                      "Verifies what the spelling function does with a value "
+                      "that names no enumerator",
+                      &tests_sortedness_out_of_range },
+                    { "tests_sortedness_cv_ref",
+                      "Verifies that the classification honours the clean_t "
+                      "contract",
+                      &tests_sortedness_cv_ref },
+                    { "tests_sortedness_companions",
+                      "Verifies the `_t` alias and the `_v` companion",
+                      &tests_sortedness_companions },
+                }
+            },
+            dt::block_spec{
+                "predicates",
+                "Classification predicates",
+                {
+                    { "tests_is_sorted_container",
+                      "Verifies the strictest predicate: the type maintains "
+                      "its POSITIONS in comparator order",
+                      &tests_is_sorted_container },
+                    { "tests_is_unsorted_container",
+                      "Verifies the predicate naming the three container "
+                      "states that are not sorted",
+                      &tests_is_unsorted_container },
+                    { "tests_is_unsorted_not_complement",
+                      "Verifies that is_unsorted_container is NOT the "
+                      "negation of is_sorted_container, and that the "
+                      "difference is exactly the non_container state",
+                      &tests_is_unsorted_not_complement },
+                    { "tests_is_monotone_container",
+                      "Verifies the predicate naming the state a keyed "
+                      "container reaches when it carries a comparator",
+                      &tests_is_monotone_container },
+                    { "tests_admits_sorted_enumeration",
+                      "Verifies the union predicate, which is the one most "
+                      "dispatch sites actually want: may this container be "
+                      "walked front to back and relied upon to come out in "
+                      "comparator order?",
+                      &tests_admits_sorted_enumeration },
+                    { "tests_predicates_monotone_paradox",
+                      "Verifies the reading of this axis most likely to be "
+                      "misused",
+                      &tests_predicates_monotone_paradox },
+                    { "tests_predicates_partition",
+                      "Verifies the whole predicate table at once - for each "
+                      "of the five states, the exact tuple of four answers it "
+                      "produces",
+                      &tests_predicates_partition },
+                    { "tests_predicates_cv_ref",
+                      "Verifies that all four predicates honour the clean_t "
+                      "contract",
+                      &tests_predicates_cv_ref },
+                    { "tests_predicates_companions",
+                      "Verifies the `_v` companions of all four predicates",
+                      &tests_predicates_companions },
+                }
+            },
+            dt::block_spec{
+                "class",
+                "Aggregate snapshot",
+                {
+                    { "tests_sorted_container_class_signals",
+                      "Verifies the three raw-signal members, which report "
+                      "what the type DECLARED rather than what the axis "
+                      "concluded from it",
+                      &tests_sorted_container_class_signals },
+                    { "tests_sorted_container_class_kind",
+                      "Verifies the classification members",
+                      &tests_sorted_container_class_kind },
+                    { "tests_sorted_container_class_predicates",
+                      "Verifies the three derived-predicate members",
+                      &tests_sorted_container_class_predicates },
+                    { "tests_sorted_container_class_agreement",
+                      "Verifies that every member of the aggregate equals the "
+                      "standalone trait it reports, so the two spellings can "
+                      "never drift apart",
+                      &tests_sorted_container_class_agreement },
+                    { "tests_sorted_container_class_cv_ref",
+                      "Verifies that the aggregate honours the clean_t "
+                      "contract",
+                      &tests_sorted_container_class_cv_ref },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

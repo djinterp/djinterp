@@ -33,7 +33,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_counting.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -209,91 +209,91 @@ static_assert(std::is_same<tuple_consolidate_types_t<int, int, char>,
 // IV.  RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_counting_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_counting_all()
 {
+    bool verdict = true;
+
     // ---- tuple_count_type ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<int, std::tuple<>>::value == 0,
         "tuple_count_type: empty input -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<int, std::tuple<int>>::value == 1,
         "tuple_count_type: single matching element -> 1");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<char, std::tuple<int>>::value == 0,
         "tuple_count_type: single non-matching element -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<int, int, char, int>::value == 2,
         "tuple_count_type: pack-shape, two matches");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<int, std::tuple<int, char, int>>::value == 2,
         "tuple_count_type: tuple-shape, two matches");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<int, std::tuple<int, int, int, int, int>>::value == 5,
         "tuple_count_type: five matches");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_count_type<int, std::tuple<int, const int, int&>>::value == 1,
         "tuple_count_type: cv/ref variants are distinct types");
 
     // ---- DTupleCountAndRemove ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleCountAndRemove<int, std::tuple<>>::value == 0,
         "tuple_count_and_remove: empty input count -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleCountAndRemove<int, std::tuple<>>::type,
                      std::tuple<>>::value,
         "tuple_count_and_remove: empty input type -> empty");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleCountAndRemove<int, int, char, int>::value == 2,
         "tuple_count_and_remove: count is 2");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleCountAndRemove<int, int, char, int>::type,
                      std::tuple<char>>::value,
         "tuple_count_and_remove: remaining element is char");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleCountAndRemove<int,
                                                       char, int, char, int, float>::type,
                      std::tuple<char, char, float>>::value,
         "tuple_count_and_remove: preserves relative order of remainder");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleCountAndRemove<int, int, const int, int&>::value == 1,
         "tuple_count_and_remove: cv/ref distinct -> count 1");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_count_and_remove_t<int, std::tuple<int, char, int>>,
                      std::tuple<char>>::value,
         "tuple_count_and_remove_t: alias");
 
     // ---- tuple_consolidate_types ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_consolidate_types<>::type, std::tuple<>>::value,
         "tuple_consolidate_types: empty pack -> empty tuple");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_consolidate_types<int, char, float>::type,
                      std::tuple<int, char, float>>::value,
         "tuple_consolidate_types: all-unique stays untouched");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_consolidate_types<int, int>::type,
                      std::tuple<std::array<int, 2>>>::value,
         "tuple_consolidate_types: two equal types -> std::array<_, 2>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_consolidate_types<int, int, int>::type,
                      std::tuple<std::array<int, 3>>>::value,
         "tuple_consolidate_types: three equal types -> std::array<_, 3>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_consolidate_types<int, char, int, char, int>::type,
                      std::tuple<std::array<int, 3>, std::array<char, 2>>>::value,
         "tuple_consolidate_types: two groups consolidated");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_consolidate_types<float, int, int, char, int>::type,
                      std::tuple<float, std::array<int, 3>, char>>::value,
         "tuple_consolidate_types: order is first-appearance order");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_consolidate_types_t<int, int, char>,
                      std::tuple<std::array<int, 2>, char>>::value,
         "tuple_consolidate_types_t: alias");
 
-    return;
+    return verdict;
 }
 
 

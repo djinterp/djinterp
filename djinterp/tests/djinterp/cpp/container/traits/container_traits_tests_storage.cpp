@@ -16,8 +16,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_traits_tests_storage.cpp
 * link(s):   TBA
-* author(s): unit-test suite                                        created: TBA
-*                                                            revised: 2026.09.21
+* author(s): unit-test suite                                 created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -29,58 +29,58 @@ NS_TESTING
 
 
 // tests_is_static_storage
-//   arrays / fixed size / bounded-capacity-without-allocator.
+//   is_static_storage_container, as container_storage_traits.hpp classifies:
+// inline cells (a bounded C array, a member extent, a tuple_size), and no
+// allocator.  size(), max_size() and min_size() are not storage signals.
 bool tests_is_static_storage()
 {
     bool _ct_ok = true;
 
-    // arrays and the fixed / bounded-capacity fixtures
-    D_CT_CHECK( (is_static_storage<std::array<int, 4>>::value) );  // is_std_array
-    D_CT_CHECK( (is_static_storage<int[4]>::value) );              // is_c_array
-    D_CT_CHECK( (is_static_storage<DFixed4>::value) );              // has_fixed_size
-    D_CT_CHECK( (is_static_storage<DBoundedCap>::value) );         // bounded cap, no allocator
+    // inline aggregates
+    D_CT_CHECK( (is_static_storage_container<std::array<int, 4>>::value) );  // tuple_size
+    D_CT_CHECK( (is_static_storage_container<int[4]>::value) );              // bounded C array
 
-    // bounded capacity BUT an allocator -> NOT static
-    D_CT_CHECK( (!is_static_storage<DAllocBounded>::value) );
-    // no upper signal at all -> not static
-    D_CT_CHECK( (!is_static_storage<DMin5>::value) );
-    D_CT_CHECK( (!is_static_storage<DUnboundedHuge>::value) );
-    D_CT_CHECK( (!is_static_storage<DEmptyCt>::value) );
-    // allocator-backed / non-constexpr containers
-    D_CT_CHECK( (!is_static_storage<std::vector<int>>::value) );   // bounded cap but has allocator
-    D_CT_CHECK( (!is_static_storage<std::deque<int>>::value) );
-    D_CT_CHECK( (!is_static_storage<int>::value) );
+    // size shapes alone say nothing of siting
+    D_CT_CHECK( (!is_static_storage_container<DFixed4>::value) );
+    D_CT_CHECK( (!is_static_storage_container<DBoundedCap>::value) );
+    D_CT_CHECK( (!is_static_storage_container<DMin5>::value) );
+    D_CT_CHECK( (!is_static_storage_container<DUnboundedHuge>::value) );
+    D_CT_CHECK( (!is_static_storage_container<DEmptyCt>::value) );
+    // an allocator means out-of-line cells
+    D_CT_CHECK( (!is_static_storage_container<DAllocBounded>::value) );
+    D_CT_CHECK( (!is_static_storage_container<std::vector<int>>::value) );
+    D_CT_CHECK( (!is_static_storage_container<std::deque<int>>::value) );
+    D_CT_CHECK( (!is_static_storage_container<int>::value) );
 
     return _ct_ok;
 }
 
 
 // tests_is_dynamic_storage
-//   has size(), not static, and (allocator OR unbounded capacity).
+//   is_dynamic_storage_container: an allocator_type or a reserve(n) - cells
+// drawn from an acquired, out-of-line region.
 bool tests_is_dynamic_storage()
 {
     bool _ct_ok = true;
 
-    // allocator-backed / growable std containers
-    D_CT_CHECK( (is_dynamic_storage<std::vector<int>>::value) );
-    D_CT_CHECK( (is_dynamic_storage<std::deque<int>>::value) );
-    D_CT_CHECK( (is_dynamic_storage<std::set<int>>::value) );
-    D_CT_CHECK( (is_dynamic_storage<std::string>::value) );
-    // fixtures: allocator OR unbounded capacity, all with size()
-    D_CT_CHECK( (is_dynamic_storage<DAllocBounded>::value) );   // bounded cap + allocator
-    D_CT_CHECK( (is_dynamic_storage<DMin5>::value) );            // no bounded cap
-    D_CT_CHECK( (is_dynamic_storage<DUnboundedHuge>::value) );  // capacity unbounded
-    D_CT_CHECK( (is_dynamic_storage<DEmptyCt>::value) );        // compile-time AND dynamic
-    D_CT_CHECK( (is_dynamic_storage<DAdaptor>::value) );
+    // allocator-backed std containers, a forward_list among them
+    D_CT_CHECK( (is_dynamic_storage_container<std::vector<int>>::value) );
+    D_CT_CHECK( (is_dynamic_storage_container<std::deque<int>>::value) );
+    D_CT_CHECK( (is_dynamic_storage_container<std::set<int>>::value) );
+    D_CT_CHECK( (is_dynamic_storage_container<std::string>::value) );
+    D_CT_CHECK( (is_dynamic_storage_container<std::forward_list<int>>::value) );
+    // a fixture with an allocator alias
+    D_CT_CHECK( (is_dynamic_storage_container<DAllocBounded>::value) );
 
-    // static-storage types are not dynamic
-    D_CT_CHECK( (!is_dynamic_storage<std::array<int, 4>>::value) );
-    D_CT_CHECK( (!is_dynamic_storage<int[4]>::value) );
-    D_CT_CHECK( (!is_dynamic_storage<DFixed4>::value) );
-    D_CT_CHECK( (!is_dynamic_storage<DBoundedCap>::value) );
-    // no size() -> NEITHER static nor dynamic
-    D_CT_CHECK( (!is_dynamic_storage<std::forward_list<int>>::value) );
-    D_CT_CHECK( (!is_dynamic_storage<int>::value) );
+    // no allocator and no reserve: not dynamic, whatever its size shape
+    D_CT_CHECK( (!is_dynamic_storage_container<DMin5>::value) );
+    D_CT_CHECK( (!is_dynamic_storage_container<DUnboundedHuge>::value) );
+    D_CT_CHECK( (!is_dynamic_storage_container<DEmptyCt>::value) );
+    D_CT_CHECK( (!is_dynamic_storage_container<DAdaptor>::value) );
+    // inline aggregates are not dynamic
+    D_CT_CHECK( (!is_dynamic_storage_container<std::array<int, 4>>::value) );
+    D_CT_CHECK( (!is_dynamic_storage_container<int[4]>::value) );
+    D_CT_CHECK( (!is_dynamic_storage_container<int>::value) );
 
     return _ct_ok;
 }

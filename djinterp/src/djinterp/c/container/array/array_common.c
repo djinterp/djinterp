@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/container/array/array_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.13
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/array_common.h"
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
@@ -561,7 +561,8 @@ Parameter(s):
   _destination:  pointer to elements pointer to be initialized
   _count:        pointer to count variable to be set
   _element_size: the size, in bytes, of each individual element.
-  _source:       pointer to source array
+  _source:       the address of the source's elements pointer
+                 (&array->elements); the elements are read through it
   _source_count: total number of elements in the source array
   _start:        starting index (supports negative indexing)
 Return:
@@ -651,7 +652,8 @@ Parameter(s):
   _destination:  pointer to elements pointer to be initialized
   _count:        pointer to count variable to be set
   _element_size: the size, in bytes, of each individual element.
-  _source:       pointer to source array
+  _source:       the address of the source's elements pointer
+                 (&array->elements); the elements are read through it
   _source_count: total number of elements in the source array
 Return:
   A boolean value corresponding to either:
@@ -683,7 +685,8 @@ Parameter(s):
   _destination:  pointer to elements pointer to be initialized
   _count:        pointer to count variable to be set
   _element_size: the size, in bytes, of each individual element.
-  _source:       pointer to source array
+  _source:       the address of the source's elements pointer
+                 (&array->elements); the elements are read through it
   _source_count: total number of elements in the source array
   _start:        starting index (supports negative indexing)
   _end:          ending index (supports negative indexing)
@@ -719,7 +722,8 @@ Parameter(s):
   _destination:  pointer to elements pointer to be initialized
   _count:        pointer to count variable to be set
   _element_size: the size, in bytes, of each individual element.
-  _source:       pointer to source array
+  _source:       the address of the source's elements pointer
+                 (&array->elements); the elements are read through it
   _source_count: total number of elements in the source array
   _start:        starting index (supports negative indexing)
   _end:          ending index (supports negative indexing)

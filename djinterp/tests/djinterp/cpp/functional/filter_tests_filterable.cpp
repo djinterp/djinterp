@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/filter_tests_filterable.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -23,25 +23,47 @@ NS_TESTING
 
 // ---- compile-time assertions (the traits are a compile-time contract) ----
 
-// low-level member detection: std::vector exposes the full surface; int none.
-static_assert( has_begin<std::vector<int> >::value,         "vector has begin");
-static_assert( has_end<std::vector<int> >::value,           "vector has end");
-static_assert( has_value_type<std::vector<int> >::value,    "vector value_type");
-static_assert( has_push_back<std::vector<int> >::value,     "vector push_back");
-static_assert( has_insert<std::vector<int> >::value,        "vector insert");
-static_assert( has_size<std::vector<int> >::value,          "vector size");
-static_assert( has_empty<std::vector<int> >::value,         "vector empty");
-static_assert( has_iterator<std::vector<int> >::value,      "vector iterator");
-static_assert( has_const_iterator<std::vector<int> >::value,"vector const_it");
+// DPushBackOnly / DInsertOnly
+//   struct: fixtures offering one insertion each, so each of
+// is_output_capable's two detections is seen alone.
+struct DPushBackOnly
+{
+    typedef int value_type;
 
-static_assert( !has_begin<int>::value,        "int no begin");
-static_assert( !has_value_type<int>::value,   "int no value_type");
-static_assert( !has_push_back<int>::value,    "int no push_back");
-static_assert( !has_iterator<int>::value,     "int no iterator");
+    void push_back(int)
+    {
+        return;
+    }
+};
+
+struct DInsertOnly
+{
+    typedef int  value_type;
+    typedef int* iterator;
+
+    iterator end()
+    {
+        return nullptr;
+    }
+
+    iterator insert(iterator _at, int)
+    {
+        return _at;
+    }
+};
+
+// the members the composite reads: value_type (meta's has_value_type) and
+// either insertion; a scalar has none of them.
+static_assert( has_value_type<std::vector<int> >::value,  "vector value_type");
+static_assert( !has_value_type<int>::value,               "int no value_type");
+static_assert( is_output_capable<DPushBackOnly>::value,   "push_back alone");
+static_assert( is_output_capable<DInsertOnly>::value,     "insert alone");
+static_assert( !is_output_capable<int>::value,            "int no insertion");
 
 // std::array is iterable and has value_type, but has neither push_back nor
 // insert, so it is NOT output-capable and therefore NOT filterable.
-static_assert( is_iterable<std::array<int, 3> >::value,        "array iterable");
+static_assert( internal::is_filter_iterable<std::array<int, 3> >::value,
+               "array iterable");
 static_assert( has_value_type<std::array<int, 3> >::value,     "array value_type");
 static_assert( !is_output_capable<std::array<int, 3> >::value, "array !output");
 static_assert( !is_filterable<std::array<int, 3> >::value,     "array !filterable");
@@ -67,27 +89,21 @@ static_assert(
 
 /*
 test_filterable_member_detection
-  Exercises the low-level member detectors at run time.
+  Exercises the members the composite reads, at run time.
   Tests the following:
-  - a std::vector reports begin/end/value_type/push_back/insert/size/empty/
-    iterator/const_iterator; a scalar reports none of them
+  - std::vector has a value_type; a scalar has none
+  - push_back alone, and insert(iterator, value) alone, each make a type
+    output-capable; a scalar is not
+  (begin/end, size, empty, push_back and insert as general container questions
+  are the container traits' and are tested in their suites.)
 */
 bool test_filterable_member_detection()
 {
-    D_INTERNAL_FLT_CHECK((has_begin<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_end<std::vector<int> >::value));
     D_INTERNAL_FLT_CHECK((has_value_type<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_push_back<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_insert<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_size<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_empty<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_iterator<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((has_const_iterator<std::vector<int> >::value));
-
-    D_INTERNAL_FLT_CHECK((!has_begin<int>::value));
     D_INTERNAL_FLT_CHECK((!has_value_type<int>::value));
-    D_INTERNAL_FLT_CHECK((!has_push_back<int>::value));
-    D_INTERNAL_FLT_CHECK((!has_iterator<int>::value));
+    D_INTERNAL_FLT_CHECK((is_output_capable<DPushBackOnly>::value));
+    D_INTERNAL_FLT_CHECK((is_output_capable<DInsertOnly>::value));
+    D_INTERNAL_FLT_CHECK((!is_output_capable<int>::value));
 
     return true;
 }
@@ -95,16 +111,26 @@ bool test_filterable_member_detection()
 
 /*
 test_filterable_iterable
-  Exercises the is_iterable composite.
+  Exercises the iteration is_filterable reads (internal::is_filter_iterable;
+  the public is_iterable is container/iterator/iterator_traits.hpp's).
   Tests the following:
   - vector / list / array are iterable; int is not
+  - a type with value_type and push_back but no begin/end is not iterable,
+    and so not filterable
 */
 bool test_filterable_iterable()
 {
-    D_INTERNAL_FLT_CHECK((is_iterable<std::vector<int> >::value));
-    D_INTERNAL_FLT_CHECK((is_iterable<std::list<int> >::value));
-    D_INTERNAL_FLT_CHECK((is_iterable<std::array<int, 3> >::value));
-    D_INTERNAL_FLT_CHECK((!is_iterable<int>::value));
+    D_INTERNAL_FLT_CHECK(
+        (internal::is_filter_iterable<std::vector<int> >::value));
+    D_INTERNAL_FLT_CHECK(
+        (internal::is_filter_iterable<std::list<int> >::value));
+    D_INTERNAL_FLT_CHECK(
+        (internal::is_filter_iterable<std::array<int, 3> >::value));
+    D_INTERNAL_FLT_CHECK(
+        (!internal::is_filter_iterable<int>::value));
+    D_INTERNAL_FLT_CHECK(
+        (!internal::is_filter_iterable<DPushBackOnly>::value));
+    D_INTERNAL_FLT_CHECK((!is_filterable<DPushBackOnly>::value));
 
     return true;
 }

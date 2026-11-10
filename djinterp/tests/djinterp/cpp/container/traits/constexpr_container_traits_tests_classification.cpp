@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/constexpr_container_traits_tests_classification.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -109,13 +109,13 @@ bool tests_is_constexpr_negative()
 
 /*
 tests_is_constexpr_is_the_compile_time_bit
-  is_constexpr_container is defined as is_compile_time(container_lifetime<T>),
+  is_constexpr_container is defined as is_compile_time(container_lifetime_of<T>),
   and nothing else.
   Tests the following:
   - the biconditional holds across the whole fixture set
   - in particular it is TRUE for lifetime::compile_time as well as for
     lifetime::both - it is the BIT, not the value.  A rewrite to
-    `container_lifetime<T>::value == lifetime::both` would pass every test that
+    `container_lifetime_of<T>::value == lifetime::both` would pass every test that
     only uses ordinary literal types and would silently exclude every
     compile-time-only container
 */
@@ -126,7 +126,7 @@ bool tests_is_constexpr_is_the_compile_time_bit()
     #define D_CCT_IS_BIT(...)                                                 \
         D_CCT_CHECK(is_constexpr_container<__VA_ARGS__>::value ==             \
                     is_compile_time(                                          \
-                        container_lifetime<__VA_ARGS__>::value))
+                        container_lifetime_of<__VA_ARGS__>::value))
 
     D_CCT_IS_BIT(std::array<int, 3>);
     D_CCT_IS_BIT(std::vector<int>);
@@ -150,7 +150,7 @@ bool tests_is_constexpr_is_the_compile_time_bit()
     #undef D_CCT_IS_BIT
 
     // the bit, not the value: compile_time counts, and it is not `both`
-    D_CCT_CHECK(container_lifetime<life_compile_sized>::value !=
+    D_CCT_CHECK(container_lifetime_of<life_compile_sized>::value !=
                 lifetime::both);
     D_CCT_CHECK(is_constexpr_container<life_compile_sized>::value);
 

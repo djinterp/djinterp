@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_comparison_traits_tests_robustness.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -31,13 +31,13 @@ NS_TESTING
 // p_nested_type
 //   probe: does the instantiated trait carry a nested `type`?  Probed rather than
 // named, because naming a member that is not there is a hard error, not a false.
-D_TEST_TYPE_PROBE(p_nested_type, typename _Type::type)
+D_TEST_TYPE_PROBE(p_nested_type, typename Type::type)
 
 // p_bool_conv
 //   probe: is the instantiated trait convertible to bool?  The value traits in
 // this header must NOT be - see tests_trait_shape for why that is a feature.
 D_TEST_TYPE_PROBE(p_bool_conv,
-                  decltype(static_cast<bool>(std::declval<const _Type&>())))
+                  decltype(static_cast<bool>(std::declval<const Type&>())))
 
 // refines_runtime_seq / refined_by_runtime_seq
 //   traits: refinement_of with one operand pinned, so the toolkit can run its

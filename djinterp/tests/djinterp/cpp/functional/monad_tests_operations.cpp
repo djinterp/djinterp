@@ -10,8 +10,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/monad_tests_operations.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./monad_tests.hpp"
@@ -20,10 +20,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 /*
 monad_tests_operations
@@ -40,45 +36,40 @@ monad_tests_operations
   - left identity:  bind(unit(a), f) == f(a)
   - right identity: bind(m, unit) == m
 */
-void monad_tests_operations(
-    test_handler& _handler
-)
+bool monad_tests_operations()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // monad_unit
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_unit lifts a value into the named monad",
         [&]()
         {
             auto m = ::djinterp::monad_unit<DTestMaybe<int> >(5);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 5),
                 "monad_unit<test_maybe<int>>(5) is some(5)");
         });
 
     // monad_bind on some
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_bind applies the arrow on a some value",
         [&]()
         {
             auto m = ::djinterp::monad_bind(some(5), arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 6),
                 "bind(some(5), inc) is some(6)");
         });
 
     // monad_bind on none
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_bind short-circuits on a none value",
         [&]()
@@ -86,15 +77,13 @@ void monad_tests_operations(
             auto m = ::djinterp::monad_bind(DTestMaybe<int>::none(),
                                             arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "bind(none, inc) is none");
         });
 
     // monad_bind chains with a mid-chain failure
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_bind propagates a failure introduced mid-chain",
         [&]()
@@ -106,30 +95,26 @@ void monad_tests_operations(
                     DArrowToNone()),
                 arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "a none introduced mid-chain propagates to the end");
         });
 
     // monad_map on some
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_map applies the transform on a some value",
         [&]()
         {
             auto m = ::djinterp::monad_map(some(5), plain_double());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 10),
                 "map(some(5), double) is some(10)");
         });
 
     // monad_map on none
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_map short-circuits on a none value",
         [&]()
@@ -137,15 +122,13 @@ void monad_tests_operations(
             auto m = ::djinterp::monad_map(DTestMaybe<int>::none(),
                                            plain_double());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "map(none, double) is none");
         });
 
     // monad_map changes the inner type
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_map can change the inner type",
         [&]()
@@ -155,15 +138,13 @@ void monad_tests_operations(
             const bool type_ok =
                 std::is_same<decltype(m), DTestMaybe<std::string> >::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (type_ok && m.is_some() && m.value() == "42"),
                 "map(some(42), to_string) is some(\"42\") : test_maybe<string>");
         });
 
     // functor identity law: map(m, id) == m
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_map obeys the functor identity law",
         [&]()
@@ -175,15 +156,13 @@ void monad_tests_operations(
 
             auto m = ::djinterp::monad_map(some(9), identity());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m == some(9)),
                 "map(some(9), id) == some(9)");
         });
 
     // functor composition law: map(map(m, f), g) == map(m, g . f)
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_map obeys the functor composition law",
         [&]()
@@ -205,15 +184,13 @@ void monad_tests_operations(
                 ::djinterp::monad_map(some(4), add_one()), times_three());
             auto rhs = ::djinterp::monad_map(some(4), composed());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (lhs == rhs && lhs.value() == 15),
                 "map(map(m, f), g) == map(m, g.f)");
         });
 
     // monad_join: some(some(x))
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_join flattens a nested some",
         [&]()
@@ -222,15 +199,13 @@ void monad_tests_operations(
                 some(DTestMaybe<int>(9));
             auto m = ::djinterp::monad_join(nested);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 9),
                 "join(some(some(9))) is some(9)");
         });
 
     // monad_join: outer none
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_join keeps an outer none empty",
         [&]()
@@ -239,15 +214,13 @@ void monad_tests_operations(
                 DTestMaybe<DTestMaybe<int> >::none();
             auto m = ::djinterp::monad_join(outer_none);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "join(none) is none");
         });
 
     // monad_join: inner none
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_join propagates an inner none",
         [&]()
@@ -256,15 +229,13 @@ void monad_tests_operations(
                 some(DTestMaybe<int>::none());
             auto m = ::djinterp::monad_join(some_none);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "join(some(none)) is none");
         });
 
     // left identity law: bind(unit(a), f) == f(a)
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad obeys the left identity law",
         [&]()
@@ -273,15 +244,13 @@ void monad_tests_operations(
                 ::djinterp::monad_unit<DTestMaybe<int> >(5), arrow_inc());
             auto rhs = arrow_inc()(5);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (lhs == rhs),
                 "bind(unit(5), inc) == inc(5)");
         });
 
     // right identity law: bind(m, unit) == m
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad obeys the right identity law",
         [&]()
@@ -297,13 +266,12 @@ void monad_tests_operations(
             auto m   = some(5);
             auto lhs = ::djinterp::monad_bind(m, unit_arrow());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (lhs == m),
                 "bind(some(5), unit) == some(5)");
         });
 
-    return;
+    return verdict;
 }
 
 

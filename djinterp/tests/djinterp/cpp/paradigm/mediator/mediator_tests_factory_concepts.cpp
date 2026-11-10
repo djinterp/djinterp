@@ -4,14 +4,14 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_factory_concepts.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : mediator_tests_factory_concepts.cpp
 //   Two dialect-gated layers.  The convenience factories (section IX, C++14+):
 // make_event_bus, make_signal_hub, subscribe_many, unsubscribe_all — bodies
 // guarded by D_ENV_LANG_IS_CPP14_OR_HIGHER.  The concept-constrained interfaces
-// (section X, C++20+): mediator_for, colleague_of, handler_for,
+// (section X, C++20+): mediator_for, colleague_of, mediator_handler_for,
 // constrained_subscribe, constrained_connect — bodies guarded by
 // D_MEDIATOR_HAS_CONCEPTS.  Each guarded body reduces to a vacuous pass on a
 // dialect that lacks the feature, so every predicate is declared and defined at
@@ -41,11 +41,11 @@ namespace
     struct probe_colleague
     {
         void set_mediator(probe_med*) {}
-        void on_event(const compat::any&) {}
+        void on_event(const re_std::any&) {}
     };
 
-    // ping_handler / int_handler : callables used to drive handler_for both
-    // true and false.
+    // ping_handler / int_handler : callables used to drive
+    // mediator_handler_for both true and false.
     struct ping_handler
     {
         void operator()(const ping&) const {}
@@ -100,8 +100,8 @@ bool tests_make_signal_hub()
                   "make_signal_hub returns signal_hub");
 
     int seen = 0;
-    hub.connect(signal_id("chan"), [&](const compat::any& _e) { seen = _e.get<int>(); });
-    hub.emit("chan", compat::any(21));
+    hub.connect(signal_id("chan"), [&](const re_std::any& _e) { seen = _e.get<int>(); });
+    hub.emit("chan", re_std::any(21));
 
     return (seen == 21);
 #else
@@ -124,7 +124,7 @@ bool tests_subscribe_many()
     event_bus bus;
     int       total = 0;
 
-    std::vector<subscription_token> tokens =
+    std::vector<subscription_id> tokens =
         subscribe_many<ping>(
             bus,
             [&](const ping& _e) { total += _e.n; },
@@ -158,7 +158,7 @@ bool tests_unsubscribe_all()
     event_bus bus;
     int       total = 0;
 
-    std::vector<subscription_token> tokens =
+    std::vector<subscription_id> tokens =
         subscribe_many<ping>(
             bus,
             [&](const ping&) { ++total; },
@@ -231,7 +231,7 @@ bool tests_colleague_of()
 
 /*
 tests_handler_for
-  Verifies the handler_for concept (invocability with const _Event&).
+  Verifies the mediator_handler_for concept (invocability with const _Event&).
   Tests the following:
   - satisfied when the callable accepts the event type
   - not satisfied when the callable's parameter is incompatible
@@ -240,15 +240,18 @@ tests_handler_for
 bool tests_handler_for()
 {
 #if D_MEDIATOR_HAS_CONCEPTS
-    static_assert( handler_for<ping_handler, ping>, "ping handler for ping");
-    static_assert(!handler_for<int_handler, ping>,  "int handler not for ping");
-    static_assert(!handler_for<ping_handler, pong>, "ping handler not for pong");
+    static_assert( mediator_handler_for<ping_handler, ping>,
+                  "ping handler for ping");
+    static_assert(!mediator_handler_for<int_handler, ping>,
+                  "int handler not for ping");
+    static_assert(!mediator_handler_for<ping_handler, pong>,
+                  "ping handler not for pong");
 
     bool ok = true;
 
-    ok = ok && ( handler_for<ping_handler, ping>);
-    ok = ok && (!handler_for<int_handler, ping>);
-    ok = ok && (!handler_for<ping_handler, pong>);
+    ok = ok && ( mediator_handler_for<ping_handler, ping>);
+    ok = ok && (!mediator_handler_for<int_handler, ping>);
+    ok = ok && (!mediator_handler_for<ping_handler, pong>);
 
     return ok;
 #else
@@ -291,9 +294,9 @@ bool tests_constrained_connect()
     int        seen = 0;
 
     constrained_connect(hub, "chan",
-                        [&](const compat::any& _e) { seen = _e.get<int>(); });
+                        [&](const re_std::any& _e) { seen = _e.get<int>(); });
 
-    hub.emit("chan", compat::any(44));
+    hub.emit("chan", re_std::any(44));
 
     return (seen == 44);
 #else

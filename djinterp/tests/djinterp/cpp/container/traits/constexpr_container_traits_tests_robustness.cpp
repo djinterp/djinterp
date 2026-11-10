@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/constexpr_container_traits_tests_robustness.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -30,19 +30,19 @@ NS_TESTING
 
 // p_value_type
 //   probe: does the instantiated trait carry `value_type`?
-D_TEST_TYPE_PROBE(p_value_type, typename _Type::value_type)
+D_TEST_TYPE_PROBE(p_value_type, typename Type::value_type)
 
 // p_type
 //   probe: does it carry `type`?
-D_TEST_TYPE_PROBE(p_type, typename _Type::type)
+D_TEST_TYPE_PROBE(p_type, typename Type::type)
 
 // DPToBool
 //   probe: is it convertible to bool - does `if (is_foo<T>{})` compile?
-D_TEST_EXPR_PROBE(DPToBool, static_cast<bool>(std::declval<const _Type&>()))
+D_TEST_EXPR_PROBE(DPToBool, static_cast<bool>(std::declval<const Type&>()))
 
 // DPCall
 //   probe: is it callable - does `is_foo<T>{}()` compile?
-D_TEST_EXPR_PROBE(DPCall, std::declval<const _Type&>()())
+D_TEST_EXPR_PROBE(DPCall, std::declval<const Type&>()())
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,17 +167,17 @@ bool tests_cvref_verdicts()
 
     // the lifetime traits are VALUE traits, so they are checked by hand
     #define D_CCT_LIFE_CVREF(EXPECTED, ...)                                   \
-        D_CCT_CHECK(container_lifetime<__VA_ARGS__>::value == EXPECTED);      \
-        D_CCT_CHECK(container_lifetime<const __VA_ARGS__>::value ==           \
+        D_CCT_CHECK(container_lifetime_of<__VA_ARGS__>::value == EXPECTED);      \
+        D_CCT_CHECK(container_lifetime_of<const __VA_ARGS__>::value ==           \
                     EXPECTED);                                                \
-        D_CCT_CHECK(container_lifetime<volatile __VA_ARGS__>::value ==        \
+        D_CCT_CHECK(container_lifetime_of<volatile __VA_ARGS__>::value ==        \
                     EXPECTED);                                                \
-        D_CCT_CHECK(container_lifetime<const volatile __VA_ARGS__>::value ==  \
+        D_CCT_CHECK(container_lifetime_of<const volatile __VA_ARGS__>::value ==  \
                     EXPECTED);                                                \
-        D_CCT_CHECK(container_lifetime<__VA_ARGS__&>::value == EXPECTED);     \
-        D_CCT_CHECK(container_lifetime<const __VA_ARGS__&>::value ==          \
+        D_CCT_CHECK(container_lifetime_of<__VA_ARGS__&>::value == EXPECTED);     \
+        D_CCT_CHECK(container_lifetime_of<const __VA_ARGS__&>::value ==          \
                     EXPECTED);                                                \
-        D_CCT_CHECK(container_lifetime<__VA_ARGS__&&>::value == EXPECTED);    \
+        D_CCT_CHECK(container_lifetime_of<__VA_ARGS__&&>::value == EXPECTED);    \
         D_CCT_CHECK(DSizeLifetime<const __VA_ARGS__&>::value ==               \
                     DSizeLifetime<__VA_ARGS__>::value);                       \
         D_CCT_CHECK(DConstexprContainerClass<const __VA_ARGS__&>::life ==    \
@@ -278,11 +278,11 @@ bool tests_hostile_types_survived()
 
     // the value traits and the snapshot are not bool traits, so they are
     // instantiated by hand on the shapes most likely to break a probe
-    D_CCT_LIFE(lifetime::runtime, container_lifetime<void>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime<int(int)>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime<int[3]>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime<int (*)(int)>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime<std::nullptr_t>::value);
+    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<void>::value);
+    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<int(int)>::value);
+    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<int[3]>::value);
+    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<int (*)(int)>::value);
+    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<std::nullptr_t>::value);
 
     D_CCT_CHECK(!DConstexprContainerClass<void>::is_constexpr);
     D_CCT_CHECK(!DConstexprContainerClass<int(int)>::is_constexpr);
@@ -348,7 +348,7 @@ bool tests_incomplete_type()
     D_CCT_CHECK(!has_tuple_size<incomplete&&>::value);
     D_CCT_LIFE(lifetime::runtime, DSizeLifetime<const incomplete&>::value);
 
-    // container_lifetime<incomplete>, is_constexpr_container<incomplete>,
+    // container_lifetime_of<incomplete>, is_constexpr_container<incomplete>,
     // is_not_constexpr_container<incomplete> and
     // DConstexprContainerClass<incomplete> are all HARD ERRORS and cannot be
     // named here.  Uncomment any of them to reproduce:
@@ -438,10 +438,10 @@ bool tests_trait_shape()
     D_CCT_CHECK((::djinterp::is_detected<DPCall, verdict>::value));
 
     // the lifetime traits: value traits by design, and asymmetric about ::type
-    D_CCT_CHECK(!is_bool_trait<container_lifetime<std::array<int, 3>>>::value);
+    D_CCT_CHECK(!is_bool_trait<container_lifetime_of<std::array<int, 3>>>::value);
     D_CCT_CHECK(!is_bool_trait<DSizeLifetime<std::array<int, 3>>>::value);
     D_CCT_CHECK((::djinterp::is_detected<p_type,
-                                         container_lifetime<
+                                         container_lifetime_of<
                                              std::array<int, 3>>>::value));
     D_CCT_CHECK((!::djinterp::is_detected<p_type,
                                           DSizeLifetime<

@@ -7,8 +7,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/predicate_tests_binary.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -33,10 +33,10 @@ test_predicate_binary
   - bool-convertible (non-bool) predicate results are coerced correctly
   - combinators are nestable (a combinator used as an operand of another)
 */
-void test_predicate_binary(
-    test::test_handler& _h
-)
+bool test_predicate_binary()
 {
+    bool verdict = true;
+
 
     // ---- AND truth table (is_positive AND is_even over selected ints) ----
     {
@@ -45,10 +45,10 @@ void test_predicate_binary(
 
         internal::predicate_and_combinator<is_positive, is_even> a(pos, even);
 
-        D_TEST_CHECK(_h, a(4)  == true);   // pos && even
-        D_TEST_CHECK(_h, a(3)  == false);  // pos && !even
-        D_TEST_CHECK(_h, a(-2) == false);  // !pos && even
-        D_TEST_CHECK(_h, a(-3) == false);  // !pos && !even
+        D_PREDICATE_CHECK(a(4)  == true);   // pos && even
+        D_PREDICATE_CHECK(a(3)  == false);  // pos && !even
+        D_PREDICATE_CHECK(a(-2) == false);  // !pos && even
+        D_PREDICATE_CHECK(a(-3) == false);  // !pos && !even
     }
 
     // ---- OR truth table ----
@@ -58,10 +58,10 @@ void test_predicate_binary(
 
         internal::predicate_or_combinator<is_positive, is_even> o(pos, even);
 
-        D_TEST_CHECK(_h, o(4)  == true);   // pos || even
-        D_TEST_CHECK(_h, o(3)  == true);   // pos || !even
-        D_TEST_CHECK(_h, o(-2) == true);   // !pos || even
-        D_TEST_CHECK(_h, o(-3) == false);  // !pos || !even
+        D_PREDICATE_CHECK(o(4)  == true);   // pos || even
+        D_PREDICATE_CHECK(o(3)  == true);   // pos || !even
+        D_PREDICATE_CHECK(o(-2) == true);   // !pos || even
+        D_PREDICATE_CHECK(o(-3) == false);  // !pos || !even
     }
 
     // ---- XOR truth table ----
@@ -71,10 +71,10 @@ void test_predicate_binary(
 
         internal::predicate_xor_combinator<is_positive, is_even> x(pos, even);
 
-        D_TEST_CHECK(_h, x(4)  == false);  // pos == even  -> false
-        D_TEST_CHECK(_h, x(3)  == true);   // pos != even  -> true
-        D_TEST_CHECK(_h, x(-2) == true);   // !pos != even -> true
-        D_TEST_CHECK(_h, x(-3) == false);  // !pos == !even -> false
+        D_PREDICATE_CHECK(x(4)  == false);  // pos == even  -> false
+        D_PREDICATE_CHECK(x(3)  == true);   // pos != even  -> true
+        D_PREDICATE_CHECK(x(-2) == true);   // !pos != even -> true
+        D_PREDICATE_CHECK(x(-3) == false);  // !pos == !even -> false
     }
 
     // ---- factory functions produce equivalent results ----
@@ -82,12 +82,12 @@ void test_predicate_binary(
         is_positive pos;
         is_even     even;
 
-        D_TEST_CHECK(_h, predicate_and(pos, even)(4) == true);
-        D_TEST_CHECK(_h, predicate_and(pos, even)(3) == false);
-        D_TEST_CHECK(_h, predicate_or(pos, even)(-2) == true);
-        D_TEST_CHECK(_h, predicate_or(pos, even)(-3) == false);
-        D_TEST_CHECK(_h, predicate_xor(pos, even)(3) == true);
-        D_TEST_CHECK(_h, predicate_xor(pos, even)(4) == false);
+        D_PREDICATE_CHECK(predicate_and(pos, even)(4) == true);
+        D_PREDICATE_CHECK(predicate_and(pos, even)(3) == false);
+        D_PREDICATE_CHECK(predicate_or(pos, even)(-2) == true);
+        D_PREDICATE_CHECK(predicate_or(pos, even)(-3) == false);
+        D_PREDICATE_CHECK(predicate_xor(pos, even)(3) == true);
+        D_PREDICATE_CHECK(predicate_xor(pos, even)(4) == false);
     }
 
     // ---- arity-2 (binary relation) operator() overloads ----
@@ -96,17 +96,17 @@ void test_predicate_binary(
 
         // AND of two identical relations is just the relation
         internal::predicate_and_combinator<less_than, less_than> a2(lt, lt);
-        D_TEST_CHECK(_h, a2(1, 2) == true);
-        D_TEST_CHECK(_h, a2(2, 1) == false);
+        D_PREDICATE_CHECK(a2(1, 2) == true);
+        D_PREDICATE_CHECK(a2(2, 1) == false);
 
         internal::predicate_or_combinator<less_than, less_than> o2(lt, lt);
-        D_TEST_CHECK(_h, o2(1, 2) == true);
-        D_TEST_CHECK(_h, o2(2, 1) == false);
+        D_PREDICATE_CHECK(o2(1, 2) == true);
+        D_PREDICATE_CHECK(o2(2, 1) == false);
 
         internal::predicate_xor_combinator<less_than, less_than> x2(lt, lt);
         // identical relations -> equal verdicts -> XOR false
-        D_TEST_CHECK(_h, x2(1, 2) == false);
-        D_TEST_CHECK(_h, x2(2, 1) == false);
+        D_PREDICATE_CHECK(x2(1, 2) == false);
+        D_PREDICATE_CHECK(x2(2, 1) == false);
     }
 
     // ---- introspection accessors ----
@@ -117,10 +117,10 @@ void test_predicate_binary(
         internal::predicate_and_combinator<is_positive, is_even> a(pos, even);
 
         // first()/second() return the stored predicates; verify by invoking
-        D_TEST_CHECK(_h, a.first()(5)  == true);
-        D_TEST_CHECK(_h, a.first()(-5) == false);
-        D_TEST_CHECK(_h, a.second()(2) == true);
-        D_TEST_CHECK(_h, a.second()(3) == false);
+        D_PREDICATE_CHECK(a.first()(5)  == true);
+        D_PREDICATE_CHECK(a.first()(-5) == false);
+        D_PREDICATE_CHECK(a.second()(2) == true);
+        D_PREDICATE_CHECK(a.second()(3) == false);
     }
 
     // ---- bool-convertible (int-returning) predicate is coerced ----
@@ -132,9 +132,9 @@ void test_predicate_binary(
         internal::predicate_and_combinator<DReturnsIntPredicate, is_positive>
             a(ri, pos);
 
-        D_TEST_CHECK(_h, a(5)  == true);   // 5 -> true,  pos true
-        D_TEST_CHECK(_h, a(0)  == false);  // 0 -> false
-        D_TEST_CHECK(_h, a(-5) == false);  // -5 -> true(int), pos false
+        D_PREDICATE_CHECK(a(5)  == true);   // 5 -> true,  pos true
+        D_PREDICATE_CHECK(a(0)  == false);  // 0 -> false
+        D_PREDICATE_CHECK(a(-5) == false);  // -5 -> true(int), pos false
     }
 
     // ---- nesting: combinator as an operand of another combinator ----
@@ -150,9 +150,9 @@ void test_predicate_binary(
             internal::predicate_and_combinator<is_positive, is_even>,
             is_negative> outer(inner, neg);
 
-        D_TEST_CHECK(_h, outer(4)  == true);   // pos&&even
-        D_TEST_CHECK(_h, outer(-3) == true);   // neg
-        D_TEST_CHECK(_h, outer(3)  == false);  // !even, !neg
+        D_PREDICATE_CHECK(outer(4)  == true);   // pos&&even
+        D_PREDICATE_CHECK(outer(-3) == true);   // neg
+        D_PREDICATE_CHECK(outer(3)  == false);  // !even, !neg
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -169,9 +169,9 @@ void test_predicate_binary(
 
         bool result = a(0);
 
-        D_TEST_CHECK(_h, result == false);
-        D_TEST_CHECK(_h, left_calls  == 1);  // left evaluated
-        D_TEST_CHECK(_h, right_calls == 0);  // right short-circuited
+        D_PREDICATE_CHECK(result == false);
+        D_PREDICATE_CHECK(left_calls  == 1);  // left evaluated
+        D_PREDICATE_CHECK(right_calls == 0);  // right short-circuited
     }
 
     // ---- short-circuit: OR must not evaluate the second on true-left ----
@@ -187,9 +187,9 @@ void test_predicate_binary(
 
         bool result = o(0);
 
-        D_TEST_CHECK(_h, result == true);
-        D_TEST_CHECK(_h, left_calls  == 1);
-        D_TEST_CHECK(_h, right_calls == 0);  // short-circuited
+        D_PREDICATE_CHECK(result == true);
+        D_PREDICATE_CHECK(left_calls  == 1);
+        D_PREDICATE_CHECK(right_calls == 0);  // short-circuited
     }
 
     // ---- XOR evaluates BOTH operands (no short-circuit) ----
@@ -205,9 +205,9 @@ void test_predicate_binary(
 
         bool result = x(0);
 
-        D_TEST_CHECK(_h, result == false);   // true != true -> false
-        D_TEST_CHECK(_h, left_calls  == 1);
-        D_TEST_CHECK(_h, right_calls == 1);  // both evaluated
+        D_PREDICATE_CHECK(result == false);   // true != true -> false
+        D_PREDICATE_CHECK(left_calls  == 1);
+        D_PREDICATE_CHECK(right_calls == 1);  // both evaluated
     }
 
     // ---- AND that does reach the second operand evaluates it once ----
@@ -223,13 +223,13 @@ void test_predicate_binary(
 
         bool result = a(0);
 
-        D_TEST_CHECK(_h, result == true);
-        D_TEST_CHECK(_h, left_calls  == 1);
-        D_TEST_CHECK(_h, right_calls == 1);
+        D_PREDICATE_CHECK(result == true);
+        D_PREDICATE_CHECK(left_calls  == 1);
+        D_PREDICATE_CHECK(right_calls == 1);
     }
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return;
+    return verdict;
 }
 
 

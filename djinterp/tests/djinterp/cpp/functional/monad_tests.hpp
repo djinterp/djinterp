@@ -3,7 +3,7 @@
 *
 *   DTest declarations and shared helper types for the monad.hpp unit
 * test suite.  Each like-group semantic section of monad.hpp maps to a
-* single `void(test_handler&)` section function declared here and
+* single `bool()` section function declared here and
 * defined in its own .cpp translation unit:
 *
 *     section in monad.hpp              test .cpp file
@@ -37,27 +37,37 @@
 * path:      /tests/djinterp/cpp/functional/monad_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_MONAD_
 #define DJINTERP_TESTING_FUNCTIONAL_MONAD_ 1
 
 // std
+#include <cstdio>
 #include <string>
 #include <type_traits>
 #include <utility>
 // djinterp
 #include <djinterp/cpp/djinterp.hpp>
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/meta/type_traits.hpp>
 #include <djinterp/cpp/functional/monad.hpp>
-#include <djinterp/cpp/modules/test/test_common.hpp>
-#include <djinterp/cpp/modules/test/test_handler.hpp>
-#include <djinterp/cpp/modules/test/test_defaults.hpp>
-#include <djinterp/cpp/modules/test/test_runner.hpp>
+#include <djinterp/cpp/modules/test/test_traits.hpp>  // D_TEST_STATIC
+#endif
+#ifdef DTEST_SPEC_MODE
+#include <djinterp/cpp/modules/test/test_defaults.hpp>  // module_spec, run_module
+#endif
 
+
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   THE TEST MONAD                                       ///
@@ -154,6 +164,90 @@ DTestMaybe<typename std::decay<_Type>::type> some(
 
 
 NS_TESTING
+
+// record_assertion
+//   function: one check of a converted body: on failure it prints what was
+// expected and clears the body's verdict.  (The bodies used DTest's retired
+// handler API, record_assertion(handler, condition, what).)
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s\n", _what);
+        _ok = false;
+    }
+
+    return;
+}
+
+// record_assertion (with detail)
+//   function: the five-argument form the bodies also used: the detail and
+// the extra text are printed with a failure.
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what,
+    const char* _detail,
+    const char* _extra = nullptr
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s (%s%s%s)\n",
+                    _what,
+                    _detail ? _detail : "",
+                    _extra ? "; " : "",
+                    _extra ? _extra : "");
+        _ok = false;
+    }
+
+    return;
+}
+
+
+// DUnitTestTally
+//   struct: kept for the converted bodies' run_unit_test calls; a body's
+// verdict is its bool now, so the tally holds nothing.
+struct DUnitTestTally
+{
+};
+
+// run_unit_test
+//   function: runs one named unit inside a converted body, and prints its
+// name when it was the unit that first failed.
+template<typename Fn>
+void run_unit_test(
+    bool&           _ok,
+    DUnitTestTally& _tally,
+    const char*     _name,
+    Fn              _unit
+)
+{
+    const bool before = _ok;
+
+    (void)_tally;
+    _unit();
+
+    if ( (before) &&
+         (!_ok) )
+    {
+        std::printf("    [FAIL] %s\n", _name);
+    }
+
+    return;
+}
+
+// D_MONAD_CHECK
+//   macro: one check of a converted body, its text the message.
+#define D_MONAD_CHECK(...) \
+    record_assertion(verdict, (__VA_ARGS__), #__VA_ARGS__)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -340,47 +434,91 @@ struct monad_traits< ::djinterp::DTestMaybe<_Type> >
 };
 
 
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
+
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  SECTION FUNCTION DECLARATIONS                        ///
 ///////////////////////////////////////////////////////////////////////////////
-//   One section function per like-group semantic section of monad.hpp.
-// Each matches the framework's section signature
-// `void(test::test_handler&)`.
+//   One section function per like-group semantic section of monad.hpp, each
+// returning its verdict.
 
-void monad_tests_traits(
-    ::djinterp::test::test_handler& _handler
-);
-void monad_tests_protocol(
-    ::djinterp::test::test_handler& _handler
-);
-void monad_tests_operations(
-    ::djinterp::test::test_handler& _handler
-);
-void monad_tests_composition(
-    ::djinterp::test::test_handler& _handler
-);
-void monad_tests_pipeline(
-    ::djinterp::test::test_handler& _handler
-);
+bool monad_tests_traits();
+bool monad_tests_protocol();
+bool monad_tests_operations();
+bool monad_tests_composition();
+bool monad_tests_pipeline();
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                V.   MODULE WIRING                                        ///
-///////////////////////////////////////////////////////////////////////////////
-
-// monad_module_info
-//   constant: per-module identity bound at the in-output banner site.
-extern const ::djinterp::test::test_module_info monad_module_info;
-
-// monad_module_run_all
-//   function: schedules every monad.hpp test section against the
-// runner engine in document order.
-void monad_module_run_all(
-    ::djinterp::test::test_runner_ctx& _ctx
-);
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// monad_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+monad_spec()
+{
+    return dt::module_spec{
+        "monad",
+        "monad.hpp",
+        {
+            dt::block_spec{
+                "traits",
+                "Traits",
+                {
+                    { "monad_tests_traits",
+                      "Exercises monad.hpp Section 0 (predicate SFINAE traits "
+                      "+ concepts)",
+                      &monad_tests_traits },
+                }
+            },
+            dt::block_spec{
+                "protocol",
+                "Protocol",
+                {
+                    { "monad_tests_protocol",
+                      "Exercises monad.hpp Section I (is_monad, monad_traits)",
+                      &monad_tests_protocol },
+                }
+            },
+            dt::block_spec{
+                "operations",
+                "Operations",
+                {
+                    { "monad_tests_operations",
+                      "Exercises monad.hpp Section II core operations",
+                      &monad_tests_operations },
+                }
+            },
+            dt::block_spec{
+                "composition",
+                "Composition",
+                {
+                    { "monad_tests_composition",
+                      "Exercises monad.hpp Section II sequencing/composition",
+                      &monad_tests_composition },
+                }
+            },
+            dt::block_spec{
+                "pipeline",
+                "Pipeline",
+                {
+                    { "monad_tests_pipeline",
+                      "Exercises monad.hpp Sections III + IV (combinators, "
+                      "operator|)",
+                      &monad_tests_pipeline },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

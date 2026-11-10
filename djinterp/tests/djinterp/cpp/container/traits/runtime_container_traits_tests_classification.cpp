@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/runtime_container_traits_tests_classification.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "runtime_container_traits_tests.hpp"
@@ -62,19 +62,19 @@ bool tests_is_runtime_container()
     D_RT_CHECK(is_runtime_container<rt_vector>::value
                    == (    has_size_accessor_signal<rt_vector>::value
                         && is_runtime_only(
-                               container_lifetime<rt_vector>::value) ));
+                               container_lifetime_of<rt_vector>::value) ));
     D_RT_CHECK(is_runtime_container<rt_array>::value
                    == (    has_size_accessor_signal<rt_array>::value
                         && is_runtime_only(
-                               container_lifetime<rt_array>::value) ));
+                               container_lifetime_of<rt_array>::value) ));
     D_RT_CHECK(is_runtime_container<DRtPair>::value
                    == (    has_size_accessor_signal<DRtPair>::value
                         && is_runtime_only(
-                               container_lifetime<DRtPair>::value) ));
+                               container_lifetime_of<DRtPair>::value) ));
     D_RT_CHECK(is_runtime_container<DRtCategoryNone>::value
                    == (    has_size_accessor_signal<DRtCategoryNone>::value
                         && is_runtime_only(
-                               container_lifetime<
+                               container_lifetime_of<
                                    DRtCategoryNone>::value) ));
 
     return ok;
@@ -103,10 +103,10 @@ bool tests_is_runtime_container_needs_shape()
     bool ok = true;
 
     // the lifetime is present
-    D_RT_CHECK(is_runtime_only(container_lifetime<DRtNoSize>::value)
+    D_RT_CHECK(is_runtime_only(container_lifetime_of<DRtNoSize>::value)
                    == true);
-    D_RT_CHECK(is_runtime_only(container_lifetime<DRtPair>::value) == true);
-    D_RT_CHECK(is_runtime_only(container_lifetime<int>::value)     == true);
+    D_RT_CHECK(is_runtime_only(container_lifetime_of<DRtPair>::value) == true);
+    D_RT_CHECK(is_runtime_only(container_lifetime_of<int>::value)     == true);
 
     // ... but the shape is not, so the umbrella is false
     D_RT_CHECK(is_runtime_container<DRtNoSize>::value == false);
@@ -115,18 +115,18 @@ bool tests_is_runtime_container_needs_shape()
 
     // an unreachable size() fails the conjunct too
     D_RT_CHECK(   ( is_runtime_only(
-                        container_lifetime<DRtSizeNonconst>::value) == true )
+                        container_lifetime_of<DRtSizeNonconst>::value) == true )
                && ( is_runtime_container<DRtSizeNonconst>::value == false ));
     D_RT_CHECK(   ( is_runtime_only(
-                        container_lifetime<DRtSizePrivate>::value) == true )
+                        container_lifetime_of<DRtSizePrivate>::value) == true )
                && ( is_runtime_container<DRtSizePrivate>::value == false ));
 
     // the shape is what flips it
     D_RT_CHECK(   ( is_runtime_container<DRtNoSize>::value == false )
                && ( is_runtime_container<DRtShaped>::value  == true )
-               && ( is_runtime_only(container_lifetime<DRtNoSize>::value)
+               && ( is_runtime_only(container_lifetime_of<DRtNoSize>::value)
                         == is_runtime_only(
-                               container_lifetime<DRtShaped>::value) ));
+                               container_lifetime_of<DRtShaped>::value) ));
 
     return ok;
 }
@@ -153,21 +153,21 @@ bool tests_is_runtime_container_needs_runtime_only()
     D_RT_CHECK(has_size_accessor_signal<DRtConstexprSize>::value == true);
 
     // ... but the lifetime is not runtime-only, so the umbrella is false
-    D_RT_CHECK(container_lifetime<rt_array>::value == lifetime::both);
+    D_RT_CHECK(container_lifetime_of<rt_array>::value == lifetime::both);
     D_RT_CHECK(is_runtime_container<rt_array>::value == false);
-    D_RT_CHECK(container_lifetime<DRtConstexprSize>::value
+    D_RT_CHECK(container_lifetime_of<DRtConstexprSize>::value
                    == lifetime::both);
     D_RT_CHECK(is_runtime_container<DRtConstexprSize>::value == false);
 
     // a literal type with a plain size() is STILL runtime-only
     D_RT_STATIC_CHECK(std::is_trivially_destructible<DRtLiteralPlain>::value);
-    D_RT_CHECK(container_lifetime<DRtLiteralPlain>::value
+    D_RT_CHECK(container_lifetime_of<DRtLiteralPlain>::value
                    == lifetime::runtime);
     D_RT_CHECK(is_runtime_container<DRtLiteralPlain>::value == true);
 
     // ... and adding a constexpr size() to it is what changes the verdict
-    D_RT_CHECK(   ( container_lifetime<DRtLiteralPlain>::value
-                        != container_lifetime<DRtConstexprSize>::value )
+    D_RT_CHECK(   ( container_lifetime_of<DRtLiteralPlain>::value
+                        != container_lifetime_of<DRtConstexprSize>::value )
                && ( is_runtime_container<DRtLiteralPlain>::value
                         != is_runtime_container<DRtConstexprSize>::value ));
 
@@ -226,11 +226,11 @@ bool tests_runtime_only_is_exact_equality()
     D_RT_CHECK(runtime_only_count == 1);
 
     // a container-shaped carrier for each verdict
-    D_RT_CHECK(container_lifetime<DRtCategoryNone>::value == lifetime::none);
-    D_RT_CHECK(container_lifetime<DRtCategoryCompileTimeSized>::value
+    D_RT_CHECK(container_lifetime_of<DRtCategoryNone>::value == lifetime::none);
+    D_RT_CHECK(container_lifetime_of<DRtCategoryCompileTimeSized>::value
                    == lifetime::compile_time);
-    D_RT_CHECK(container_lifetime<DRtShaped>::value == lifetime::runtime);
-    D_RT_CHECK(container_lifetime<DRtConstexprSize>::value
+    D_RT_CHECK(container_lifetime_of<DRtShaped>::value == lifetime::runtime);
+    D_RT_CHECK(container_lifetime_of<DRtConstexprSize>::value
                    == lifetime::both);
 
     // ... each shaped, so only the lifetime differs
@@ -246,24 +246,24 @@ bool tests_runtime_only_is_exact_equality()
     D_RT_CHECK(is_runtime_container<DRtConstexprSize>::value == false);
 
     // the meet of compile_time and runtime is the bottom
-    D_RT_CHECK(container_lifetime<DRtCategoryCompileTime>::value
+    D_RT_CHECK(container_lifetime_of<DRtCategoryCompileTime>::value
                    == lifetime::none);
     D_RT_CHECK(is_runtime_container<DRtCategoryCompileTime>::value
                    == false);
 
     // failing for lack of the bit, versus failing for carrying an extra one
-    D_RT_CHECK(   ( is_runtime(container_lifetime<DRtCategoryNone>::value)
+    D_RT_CHECK(   ( is_runtime(container_lifetime_of<DRtCategoryNone>::value)
                         == false )
-               && ( is_runtime(container_lifetime<DRtConstexprSize>::value)
+               && ( is_runtime(container_lifetime_of<DRtConstexprSize>::value)
                         == true )
                && ( is_runtime_only(
-                        container_lifetime<DRtConstexprSize>::value)
+                        container_lifetime_of<DRtConstexprSize>::value)
                         == false ));
 
     // a bit test would disagree on `both`
     D_RT_CHECK(   ( is_runtime(lifetime::both)      == true )
                && ( is_runtime_only(lifetime::both) == false ));
-    D_RT_CHECK(rt_life_is(container_lifetime<rt_array>::value, "both"));
+    D_RT_CHECK(rt_life_is(container_lifetime_of<rt_array>::value, "both"));
 
     return ok;
 }
@@ -421,7 +421,7 @@ bool tests_classification_std_types()
 
     // the fixed array is the exception, and fails on the lifetime half
     D_RT_CHECK(   ( has_size_accessor_signal<rt_array>::value == true )
-               && ( is_runtime_only(container_lifetime<rt_array>::value)
+               && ( is_runtime_only(container_lifetime_of<rt_array>::value)
                         == false )
                && ( is_runtime_container<rt_array>::value == false ));
 
@@ -467,14 +467,14 @@ bool tests_classification_cv_ref()
     D_RT_CV_REF_AGREE(requires_runtime_storage, DRtShaped, false);
 
     // the shared verdict the umbrella reads
-    D_RT_CHECK(container_lifetime<const rt_vector>::value
-                   == container_lifetime<rt_vector>::value);
-    D_RT_CHECK(container_lifetime<volatile rt_vector>::value
-                   == container_lifetime<rt_vector>::value);
-    D_RT_CHECK(container_lifetime<const volatile rt_array&>::value
-                   == container_lifetime<rt_array>::value);
-    D_RT_CHECK(container_lifetime<rt_array&&>::value
-                   == container_lifetime<rt_array>::value);
+    D_RT_CHECK(container_lifetime_of<const rt_vector>::value
+                   == container_lifetime_of<rt_vector>::value);
+    D_RT_CHECK(container_lifetime_of<volatile rt_vector>::value
+                   == container_lifetime_of<rt_vector>::value);
+    D_RT_CHECK(container_lifetime_of<const volatile rt_array&>::value
+                   == container_lifetime_of<rt_array>::value);
+    D_RT_CHECK(container_lifetime_of<rt_array&&>::value
+                   == container_lifetime_of<rt_array>::value);
 
     return ok;
 }

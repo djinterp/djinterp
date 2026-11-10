@@ -38,17 +38,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_evaluate.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
-
-
+NS_TESTING
 // =========================================================================
 // I.   evaluate_types_for_trait  (compile-time)
 // =========================================================================
@@ -209,105 +206,105 @@ static_assert(exclusive_disjunction_v<std::false_type, std::false_type> == false
 // V.   RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_evaluate(
-    test_handler& _test_handler
-)
+bool type_traits_tests_evaluate()
 {
+    bool verdict = true;
+
     // ---- evaluate_types_for_trait ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         evaluate_types_for_trait<std::tuple<int, char, long>,
                                  std::is_integral>::value == true,
         "evaluate<conjunction>: all integral");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         evaluate_types_for_trait<std::tuple<int, char, float>,
                                  std::is_integral>::value == false,
         "evaluate<conjunction>: one non-integral -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         evaluate_types_for_trait<std::tuple<int, float>,
                                  std::is_integral,
                                  std::disjunction>::value == true,
         "evaluate<disjunction>: at least one integral -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         evaluate_types_for_trait<std::tuple<float, double>,
                                  std::is_integral,
                                  std::disjunction>::value == false,
         "evaluate<disjunction>: no integral -> false");
 
     // bug B1
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         evaluate_types_for_trait<std::tuple<int>, std::is_void>::value == true,
         "[BUG B1] single-elem tuple wrongly reports true (is_void on int)");
 
     // bug B3
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         evaluate_types_for_trait_v<std::tuple<int, float>,
                                     std::is_integral,
                                     std::disjunction> == false,
         "[BUG B3] _v alias hardcodes conjunction -> disagrees with struct form");
 
     // ---- are_all_nonvoid ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid<int>::value == true,
         "are_all_nonvoid<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid<int, char, double>::value == true,
         "are_all_nonvoid<int, char, double>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid<void>::value == true,
         "[BUG B4] are_all_nonvoid<void> wrongly true (single-arg spec missing negation)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid<void, int>::value == false,
         "are_all_nonvoid<void, int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid<int, void>::value == false,
         "are_all_nonvoid<int, void>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid<int, char, void, double>::value == false,
         "are_all_nonvoid<one void in middle>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid_v<int, char> == true,
         "are_all_nonvoid_v matches struct (true)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         are_all_nonvoid_v<int, void> == false,
         "are_all_nonvoid_v matches struct (false)");
 
     // ---- exclusive_disjunction ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<>::value == false,
         "exclusive_disjunction<> -> false (identity)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::true_type>::value == true,
         "exclusive_disjunction<true>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::false_type>::value == false,
         "exclusive_disjunction<false>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::true_type, std::false_type>::value == true,
         "exclusive_disjunction<T, F> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::true_type, std::true_type>::value == false,
         "exclusive_disjunction<T, T> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::false_type, std::false_type>::value == false,
         "exclusive_disjunction<F, F> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::true_type, std::false_type,
                               std::true_type>::value == true,
         "exclusive_disjunction<T, F, T> -> true (per implementation)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction<std::true_type, std::true_type,
                               std::true_type>::value == false,
         "exclusive_disjunction<T, T, T> -> false (B1!=B2 false)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction_v<std::true_type, std::false_type> == true,
         "exclusive_disjunction_v matches struct (true)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         exclusive_disjunction_v<std::false_type, std::false_type> == false,
         "exclusive_disjunction_v matches struct (false)");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

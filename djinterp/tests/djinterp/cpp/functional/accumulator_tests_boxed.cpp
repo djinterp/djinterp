@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_boxed.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <list>
@@ -32,7 +32,7 @@ bool test_boxed_run_container()
     values.push_back(2);
     values.push_back(3);
 
-    DBoxedAccumulator<int, int> boxed = box_accumulator(sum<int>());
+    DBoxedAccumulator<int, int> boxed = box_accumulator(accumulate_sum<int>());
 
     D_INTERNAL_ACC_CHECK(boxed.run(values) == 6);
 
@@ -49,7 +49,7 @@ test_boxed_step_finalize
 */
 bool test_boxed_step_finalize()
 {
-    DBoxedAccumulator<int, int> boxed = box_accumulator(sum<int>());
+    DBoxedAccumulator<int, int> boxed = box_accumulator(accumulate_sum<int>());
 
     boxed.step(5).step(7);
 
@@ -73,7 +73,7 @@ bool test_boxed_run_non_vector_container()
     values.push_back(8);
     values.push_back(15);
 
-    DBoxedAccumulator<int, int> boxed = box_accumulator(sum<int>());
+    DBoxedAccumulator<int, int> boxed = box_accumulator(accumulate_sum<int>());
 
     D_INTERNAL_ACC_CHECK(boxed.run(values) == 27);
 
@@ -100,7 +100,7 @@ bool test_boxed_factory_deduction()
 
     D_INTERNAL_ACC_CHECK(approx_eq(boxed_mean.run(values), 4.0));
 
-    DBoxedAccumulator<int, int> direct(sum<int>());
+    DBoxedAccumulator<int, int> direct(accumulate_sum<int>());
 
     D_INTERNAL_ACC_CHECK(direct.run(values) == 12);
 

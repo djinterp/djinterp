@@ -21,7 +21,7 @@
 * path:      /tests/djinterp/cpp/binary/encode_tests.hpp
 * link(s):   TBA
 * author(s): unit-test generator                             created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_BINARY_ENCODE_TESTS_
@@ -29,7 +29,8 @@
 
 // std
 #include <cstddef>
-#include <cstdint>
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
+#include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uintN_t, intN_t
 // djinterp
 #ifdef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
@@ -53,6 +54,10 @@
         }                                                                     \
     } while (0)
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
@@ -121,23 +126,23 @@ struct DEncPlain
 //   type: enumerations with FIXED underlying types, so their width and
 // signedness (and therefore their exact encoding) are portable and
 // deterministic across platforms.
-enum class DEncEnumU16 : std::uint16_t
+enum class DEncEnumU16 : re_std::uint16_t
 {
     value = 0x1234
 };
 
-enum class DEncEnumI32 : std::int32_t
+enum class DEncEnumI32 : re_std::int32_t
 {
     value = -123456
 };
 
-enum class DEncEnumI8 : std::int8_t
+enum class DEncEnumI8 : re_std::int8_t
 {
     neg = -2,
     pos = 5
 };
 
-enum DEncEnumUnscoped : std::uint8_t
+enum DEncEnumUnscoped : re_std::uint8_t
 {
     EU_A = 0x2A
 };

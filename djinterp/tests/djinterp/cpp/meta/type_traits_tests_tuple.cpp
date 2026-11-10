@@ -43,16 +43,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_tuple.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 // =========================================================================
 // I.   first_arg  (compile-time)
 // =========================================================================
@@ -253,134 +251,134 @@ static_assert(is_single_tuple_arg<int>::value == false &&
 // VI.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_tuple(
-    test_handler& _test_handler
-)
+bool type_traits_tests_tuple()
 {
+    bool verdict = true;
+
     // ---- first_arg ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename first_arg<int>::type, int>::value,
         "first_arg<int>::type == int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename first_arg<int, char>::type, int>::value,
         "first_arg<int, char>::type == int (head)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename first_arg<int, char, float>::type, int>::value,
         "first_arg<int, char, float>::type == int (head)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename first_arg<std::tuple<>, int>::type,
                      std::tuple<>>::value,
         "first_arg<tuple<>, int>::type == tuple<>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<first_arg_t<int, char>, int>::value,
         "first_arg_t<int, char> == int (alias)");
 
     // ---- is_tuple ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<std::tuple<>>::value == true,
         "is_tuple<std::tuple<>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<std::tuple<int>>::value == true,
         "is_tuple<std::tuple<int>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<std::tuple<int, char, float>>::value == true,
         "is_tuple<std::tuple<int, char, float>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<std::tuple<std::tuple<int>>>::value == true,
         "is_tuple<nested tuple>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<int>::value == false,
         "is_tuple<int> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<std::vector<int>>::value == false,
         "is_tuple<vector<int>> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<std::pair<int, char>>::value == false,
         "is_tuple<pair<int, char>> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_tuple<void>::value  == false &&
           is_tuple<int*>::value  == false &&
           is_tuple<int[5]>::value == false ),
         "is_tuple: non-class types -> false");
 
     // ---- is_single_tuple_arg ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<std::tuple<int>>::value == true,
         "is_single_tuple_arg<tuple<int>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<std::tuple<>>::value == true,
         "is_single_tuple_arg<tuple<>> (empty tuple)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<std::tuple<int, char>>::value == true,
         "is_single_tuple_arg<tuple<int, char>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<>::value == false,
         "is_single_tuple_arg<> -> false (empty pack)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<int>::value == false,
         "is_single_tuple_arg<int> -> false (not a tuple)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<std::tuple<int>, char>::value == false,
         "is_single_tuple_arg<tuple<int>, char> -> false (arity > 1)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_tuple_arg<int, char>::value == false,
         "is_single_tuple_arg<int, char> -> false");
 
     // ---- to_tuple ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<>, std::tuple<>>::value,
         "to_tuple_t<> == std::tuple<> (empty-pack specialization)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<int>, std::tuple<int>>::value,
         "to_tuple_t<int> == tuple<int> (wrap)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<std::tuple<int>>, std::tuple<int>>::value,
         "to_tuple_t<tuple<int>> == tuple<int> (pass-through)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<std::tuple<>>, std::tuple<>>::value,
         "to_tuple_t<tuple<>> == tuple<> (empty pass-through)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<std::tuple<int, char>>,
                      std::tuple<int, char>>::value,
         "to_tuple_t<tuple<int, char>> == tuple<int, char>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<int, char>, std::tuple<int, char>>::value,
         "to_tuple_t<int, char> == tuple<int, char> (multi-arg wrap)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<std::tuple<int>, char>,
                      std::tuple<std::tuple<int>, char>>::value,
         "to_tuple_t<tuple<int>, char> -- tuple+other wraps (NOT unwrapped)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<to_tuple_t<int>>, to_tuple_t<int>>::value,
         "to_tuple is idempotent (scalar)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<to_tuple_t<to_tuple_t<int, char>>,
                      to_tuple_t<int, char>>::value,
         "to_tuple is idempotent (pack)");
 
     // ---- cross-trait coherence ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<to_tuple_t<int>>::value == true,
         "to_tuple's output is always a std::tuple (scalar input)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<to_tuple_t<int, char, float>>::value == true,
         "to_tuple's output is always a std::tuple (pack input)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple<to_tuple_t<>>::value == true,
         "to_tuple's output is always a std::tuple (empty input)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_single_tuple_arg<std::tuple<int, char>>::value == true &&
           std::is_same<to_tuple_t<std::tuple<int, char>>,
                        std::tuple<int, char>>::value ),
         "single_tuple_arg true => to_tuple is pass-through");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_single_tuple_arg<int>::value == false &&
           std::is_same<to_tuple_t<int>, std::tuple<int>>::value ),
         "single_tuple_arg false (non-tuple) => to_tuple wraps");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

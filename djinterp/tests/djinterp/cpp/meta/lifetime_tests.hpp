@@ -65,7 +65,7 @@
 * path:      /tests/djinterp/cpp/meta/lifetime_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_LIFETIME_TESTS_
@@ -87,6 +87,10 @@
 #include "djinterp/cpp/modules/test/test_defaults.hpp"      // module_spec + run_module (spec)
 #endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
@@ -144,7 +148,7 @@ bool lifetime_check(
 //   struct: declares the compile-time-only lifetime.
 struct opt_ct
 {
-    static constexpr lifetime lifetime_category = lifetime::compile_time;
+    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
 };
 
 // opt_rt
@@ -152,14 +156,14 @@ struct opt_ct
 // tests that the opt-in overrides the is_literal_type default.
 struct opt_rt
 {
-    static constexpr lifetime lifetime_category = lifetime::runtime;
+    static constexpr lifetime::value lifetime_category = lifetime::runtime;
 };
 
 // opt_both
 //   struct: declares the both-stages lifetime.
 struct opt_both
 {
-    static constexpr lifetime lifetime_category = lifetime::both;
+    static constexpr lifetime::value lifetime_category = lifetime::both;
 };
 
 // opt_none
@@ -167,7 +171,7 @@ struct opt_both
 // that the opt-in wins even when it names the bottom value.
 struct opt_none
 {
-    static constexpr lifetime lifetime_category = lifetime::none;
+    static constexpr lifetime::value lifetime_category = lifetime::none;
 };
 
 
@@ -200,11 +204,11 @@ struct nonliteral
 //   function: the four lattice values in a fixed order, so the algebra tests
 // can iterate the whole lattice without restating the list.
 inline
-const lifetime* all_lifetimes(
+const lifetime::value* all_lifetimes(
     std::size_t& _count
 )
 {
-    static const lifetime values[4] =
+    static const lifetime::value values[4] =
     {
         lifetime::none,
         lifetime::compile_time,

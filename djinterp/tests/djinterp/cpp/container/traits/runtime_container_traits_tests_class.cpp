@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/runtime_container_traits_tests_class.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "runtime_container_traits_tests.hpp"
@@ -165,14 +165,14 @@ bool tests_runtime_container_class_life()
 
     // restating the shared verdict
     D_RT_CHECK(DRuntimeContainerClass<rt_vector>::life
-                   == container_lifetime<rt_vector>::value);
+                   == container_lifetime_of<rt_vector>::value);
     D_RT_CHECK(DRuntimeContainerClass<rt_array>::life
-                   == container_lifetime<rt_array>::value);
+                   == container_lifetime_of<rt_array>::value);
     D_RT_CHECK(DRuntimeContainerClass<DRtCategoryNone>::life
-                   == container_lifetime<DRtCategoryNone>::value);
+                   == container_lifetime_of<DRtCategoryNone>::value);
     D_RT_CHECK(DRuntimeContainerClass<
                    DRtCategoryCompileTimeSized>::life
-                   == container_lifetime<
+                   == container_lifetime_of<
                           DRtCategoryCompileTimeSized>::value);
 
     // a carrier for each of the four verdicts
@@ -249,14 +249,14 @@ bool tests_runtime_container_class_agreement()
 
     // spanning the lifetime verdicts
     D_RT_CHECK(DRuntimeContainerClass<DRtLiteralPlain>::life
-                   == container_lifetime<DRtLiteralPlain>::value);
+                   == container_lifetime_of<DRtLiteralPlain>::value);
     D_RT_CHECK(DRuntimeContainerClass<DRtConstexprSize>::life
-                   == container_lifetime<DRtConstexprSize>::value);
+                   == container_lifetime_of<DRtConstexprSize>::value);
     D_RT_CHECK(DRuntimeContainerClass<DRtCategoryCompileTime>::life
-                   == container_lifetime<
+                   == container_lifetime_of<
                           DRtCategoryCompileTime>::value);
     D_RT_CHECK(DRuntimeContainerClass<DRtCategoryRuntime>::life
-                   == container_lifetime<DRtCategoryRuntime>::value);
+                   == container_lifetime_of<DRtCategoryRuntime>::value);
 
     // where the two umbrellas disagree
     D_RT_CHECK(   ( DRuntimeContainerClass<

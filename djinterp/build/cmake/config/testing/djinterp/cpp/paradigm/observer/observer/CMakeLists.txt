@@ -14,7 +14,7 @@
 #     runner            : ${CMAKE_CURRENT_SOURCE_DIR}/observer_tests_runner.cpp
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/paradigm/pattern")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/observer")
 
 # every per-section translation unit for this component
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/observer_tests_*.cpp")
@@ -30,5 +30,5 @@ djinterp_add_test_executable(observer_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/observer_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/paradigm/pattern"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/observer"
         "${_tests_dir}")

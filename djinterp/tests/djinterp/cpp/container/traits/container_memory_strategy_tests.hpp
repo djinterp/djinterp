@@ -29,7 +29,7 @@
 *                                        container_memory_strategy_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_CONTAINER_MEMORY_STRATEGY_TESTS_
@@ -50,6 +50,10 @@
 #include <djinterp/cpp/container/traits/container_memory_strategy.hpp>
 #endif  // !DTEST_SPEC_MODE
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING

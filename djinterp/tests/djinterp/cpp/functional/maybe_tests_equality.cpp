@@ -16,8 +16,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/maybe_tests_equality.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -28,10 +28,10 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_equality(
-    test::test_handler& _h
-)
+bool test_equality()
 {
+    bool verdict = true;
+
     maybe<int> a(1);
     maybe<int> a2(1);
     maybe<int> b(2);
@@ -39,38 +39,38 @@ void test_equality(
     maybe<int> e2;
 
     // both present, equal values
-    test::record_assertion(_h, a == a2,
+    record_assertion(verdict, a == a2,
         "eq: equal present values compare equal");
 
     // both present, differing values
-    test::record_assertion(_h, !(a == b) && (a != b),
+    record_assertion(verdict, !(a == b) && (a != b),
         "eq: differing present values compare unequal");
 
     // both empty
-    test::record_assertion(_h, e1 == e2,
+    record_assertion(verdict, e1 == e2,
         "eq: two empties compare equal");
 
     // one present, one empty
-    test::record_assertion(_h, !(a == e1) && (a != e1),
+    record_assertion(verdict, !(a == e1) && (a != e1),
         "eq: present vs empty compare unequal");
 
     // operator!= mirrors operator== for the maybe/maybe overload
-    test::record_assertion(_h, !(a != a2) && (e1 != b),
+    record_assertion(verdict, !(a != a2) && (e1 != b),
         "eq: operator!= negates operator== for maybe/maybe");
 
     // nothing_t == maybe : true iff the maybe is empty
-    test::record_assertion(_h, (nothing_v == e1),
+    record_assertion(verdict, (nothing_v == e1),
         "eq: nothing_v == empty is true");
-    test::record_assertion(_h, !(nothing_v == a),
+    record_assertion(verdict, !(nothing_v == a),
         "eq: nothing_v == present is false");
 
     // maybe == nothing_t : hard-coded false (documented asymmetry)
-    test::record_assertion(_h, !(a == nothing_v),
+    record_assertion(verdict, !(a == nothing_v),
         "eq: present == nothing_v is false");
-    test::record_assertion(_h, !(e1 == nothing_v),
+    record_assertion(verdict, !(e1 == nothing_v),
         "eq: empty == nothing_v is false (asymmetric, as implemented)");
 
-    return;
+    return verdict;
 }
 
 

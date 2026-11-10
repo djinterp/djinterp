@@ -18,8 +18,10 @@
 *
 *   is_template_with_args<T>
 *     True iff T is a specialization of some template-of-typenames with
-*     ANY argument count (including zero -- variadic accepts empty).
-*     So both `std::tuple<>` and `std::tuple<int, char>` match.
+*     one or more arguments, as the header documents. So
+*     `std::tuple<int, char>` matches and `std::tuple<>` does not: the two
+*     traits partition the specializations. (The trait used to accept the
+*     empty form as well, and this suite pinned that.)
 *
 *   is_template_parameter_base_of<T>
 *     True iff T has a nested `value_type` AND is_base_of<value_type, T>.
@@ -31,15 +33,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_template.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
+NS_TESTING
 namespace
 {
 
@@ -104,16 +105,16 @@ static_assert(is_template<void>::value == false,
 // =========================================================================
 // II.  is_template_with_args  (compile-time)
 // =========================================================================
-//   Matches ANY specialization of a template-of-typenames, INCLUDING
-// the empty form (because the variadic `_Args...` accepts zero args).
+//   Matches a specialization of a template-of-typenames with one or more
+// arguments; the empty form is is_template's.
 
 // positive cases
 static_assert(is_template_with_args<std::tuple<int>>::value == true,
               "is_template_with_args<std::tuple<int>> -> true");
 static_assert(is_template_with_args<std::tuple<int, char, float>>::value == true,
               "is_template_with_args<std::tuple<3 args>> -> true");
-static_assert(is_template_with_args<std::tuple<>>::value == true,
-              "is_template_with_args<std::tuple<>> -> true (empty pack OK for variadic)");
+static_assert(is_template_with_args<std::tuple<>>::value == false,
+              "is_template_with_args<std::tuple<>> -> false (no arguments)");
 static_assert(is_template_with_args<std::vector<int>>::value == true,
               "is_template_with_args<std::vector<int>> -> true");
 static_assert(is_template_with_args<std::pair<int, double>>::value == true,
@@ -138,13 +139,13 @@ static_assert(is_template_with_args<int*>::value == false,
 // =========================================================================
 // III. is_template / is_template_with_args  cross-check
 // =========================================================================
-//   is_template_with_args is a superset of is_template (it accepts both
-// empty and non-empty), so for any T, is_template<T> -> is_template_with_args<T>.
+//   is_template (no arguments) and is_template_with_args (one or more)
+// partition the specializations: for any T at most one fires.
 
-// std::tuple<>: matches both
+// std::tuple<>: only is_template
 static_assert(is_template<std::tuple<>>::value == true &&
-              is_template_with_args<std::tuple<>>::value == true,
-              "Both fire on std::tuple<>");
+              is_template_with_args<std::tuple<>>::value == false,
+              "Only is_template fires on std::tuple<>");
 
 // std::tuple<int>: only is_template_with_args
 static_assert(is_template<std::tuple<int>>::value == false &&
@@ -190,81 +191,81 @@ static_assert(is_template_parameter_base_of<int>::value == false,
 // V.   RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_template(
-    test_handler& _test_handler
-)
+bool type_traits_tests_template()
 {
+    bool verdict = true;
+
     // ---- is_template ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template<std::tuple<>>::value == true,
         "is_template<std::tuple<>> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template<std::tuple<int>>::value == false,
         "is_template<std::tuple<int>> -> false (has args)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template<std::tuple<int, char>>::value == false,
         "is_template<std::tuple<int, char>> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template<int>::value == false,
         "is_template<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template<void>::value == false,
         "is_template<void>");
 
     // ---- is_template_with_args ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_with_args<std::tuple<int>>::value == true,
         "is_template_with_args<std::tuple<int>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_with_args<std::tuple<int, char, float>>::value == true,
         "is_template_with_args<std::tuple<3 args>>");
-    record_assertion(_test_handler,
-        is_template_with_args<std::tuple<>>::value == true,
-        "is_template_with_args<std::tuple<>> (variadic empty OK)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
+        is_template_with_args<std::tuple<>>::value == false,
+        "is_template_with_args<std::tuple<>> (no arguments)");
+    record_assertion(verdict,
         is_template_with_args<std::vector<int>>::value == true,
         "is_template_with_args<std::vector<int>>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_with_args<int>::value == false,
         "is_template_with_args<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_with_args<void>::value == false,
         "is_template_with_args<void>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_with_args<int*>::value == false,
         "is_template_with_args<int*>");
 
     // ---- cross-check ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_template<std::tuple<>>::value == true &&
-          is_template_with_args<std::tuple<>>::value == true ),
-        "Both traits fire on std::tuple<>");
-    record_assertion(_test_handler,
+          is_template_with_args<std::tuple<>>::value == false ),
+        "Only is_template fires on std::tuple<>");
+    record_assertion(verdict,
         ( is_template<std::tuple<int>>::value == false &&
           is_template_with_args<std::tuple<int>>::value == true ),
         "Only with_args fires on std::tuple<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_template<int>::value == false &&
           is_template_with_args<int>::value == false ),
         "Neither fires on int");
 
     // ---- is_template_parameter_base_of ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_parameter_base_of<derived_with_base_value_type>::value == true,
         "is_template_parameter_base_of: CRTP-style positive case");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_parameter_base_of<class_with_unrelated_value_type>::value == false,
         "is_template_parameter_base_of: vt unrelated -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_parameter_base_of<base_class_t>::value == false,
         "is_template_parameter_base_of: no value_type -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_template_parameter_base_of<int>::value == false,
         "is_template_parameter_base_of<int>");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

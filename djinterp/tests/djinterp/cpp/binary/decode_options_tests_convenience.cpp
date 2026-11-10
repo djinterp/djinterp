@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/decode_options_tests_convenience.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "decode_options_tests.hpp"
@@ -26,23 +26,23 @@ tests_decode_options_convenience
 bool tests_decode_options_convenience()
 {
     // whole-buffer decode, big-endian
-    D_DO_CHECK((decode_leaf<DSerialEndian::big, std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u));
+    D_DO_CHECK((decode_leaf<DSerialEndian::big, re_std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u));
     // whole-buffer decode, little-endian
-    D_DO_CHECK((decode_leaf<DSerialEndian::little, std::uint16_t>(byte_string{ 0x34, 0x12 }).value == 0x1234u));
+    D_DO_CHECK((decode_leaf<DSerialEndian::little, re_std::uint16_t>(byte_string{ 0x34, 0x12 }).value == 0x1234u));
 
     // leading leaf only - a trailing byte is left unread
-    DDecodeResult<std::uint8_t> _lead =
-        decode_leaf<DSerialEndian::big, std::uint8_t>(byte_string{ 0xAB, 0xCD });
+    DDecodeResult<re_std::uint8_t> _lead =
+        decode_leaf<DSerialEndian::big, re_std::uint8_t>(byte_string{ 0xAB, 0xCD });
     D_DO_CHECK(_lead.ok);
     D_DO_CHECK(_lead.value == 0xABu);
 
     // too short
-    D_DO_CHECK((!decode_leaf<DSerialEndian::little, std::uint32_t>(byte_string{ 0x01, 0x02 }).ok));
+    D_DO_CHECK((!decode_leaf<DSerialEndian::little, re_std::uint32_t>(byte_string{ 0x01, 0x02 }).ok));
 
     // the same two bytes decode to different values under the two orders
     const byte_string _b = { 0x12, 0x34 };
-    D_DO_CHECK(decode_leaf<DSerialEndian::big, std::uint16_t>(_b).value
-               != decode_leaf<DSerialEndian::little, std::uint16_t>(_b).value);
+    D_DO_CHECK(decode_leaf<DSerialEndian::big, re_std::uint16_t>(_b).value
+               != decode_leaf<DSerialEndian::little, re_std::uint16_t>(_b).value);
 
     return true;
 }

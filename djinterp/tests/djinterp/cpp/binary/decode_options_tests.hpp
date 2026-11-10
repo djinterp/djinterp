@@ -21,7 +21,7 @@
 * path:      /tests/djinterp/cpp/binary/decode_options_tests.hpp
 * link(s):   TBA
 * author(s): unit-test generator                             created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_BINARY_DECODE_OPTIONS_TESTS_
@@ -29,7 +29,8 @@
 
 // std
 #include <cstddef>
-#include <cstdint>
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
+#include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uintN_t, intN_t
 // djinterp
 #ifdef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
@@ -54,6 +55,10 @@
     } while (0)
 
 
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
 
@@ -69,13 +74,13 @@ NS_TESTING
 // - the fixture proves the option does not reach it, and drives the round trip.
 struct DDoLeaf
 {
-    std::uint32_t payload;
+    re_std::uint32_t payload;
 
     DDoLeaf()
         : payload(0)
     {}
 
-    explicit DDoLeaf(std::uint32_t _p)
+    explicit DDoLeaf(re_std::uint32_t _p)
         : payload(_p)
     {}
 
@@ -104,11 +109,11 @@ struct DDoLeaf
             return decode_failure<DDoLeaf>();
         }
 
-        const std::uint32_t _v =
-            ( static_cast<std::uint32_t>(_b[0]) << 24 )
-          | ( static_cast<std::uint32_t>(_b[1]) << 16 )
-          | ( static_cast<std::uint32_t>(_b[2]) <<  8 )
-          | ( static_cast<std::uint32_t>(_b[3]) <<  0 );
+        const re_std::uint32_t _v =
+            ( static_cast<re_std::uint32_t>(_b[0]) << 24 )
+          | ( static_cast<re_std::uint32_t>(_b[1]) << 16 )
+          | ( static_cast<re_std::uint32_t>(_b[2]) <<  8 )
+          | ( static_cast<re_std::uint32_t>(_b[3]) <<  0 );
 
         return decode_success(DDoLeaf(_v));
     }
@@ -117,12 +122,12 @@ struct DDoLeaf
 // DDoEnumU16 / DDoEnumI32
 //   type: enumerations with fixed underlying types, so their byte order under
 // each DSerialEndian is deterministic across platforms.
-enum class DDoEnumU16 : std::uint16_t
+enum class DDoEnumU16 : re_std::uint16_t
 {
     value = 0x1234
 };
 
-enum class DDoEnumI32 : std::int32_t
+enum class DDoEnumI32 : re_std::int32_t
 {
     value = -123456
 };

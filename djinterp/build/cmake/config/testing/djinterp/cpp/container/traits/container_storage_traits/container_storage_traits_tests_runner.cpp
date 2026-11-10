@@ -1,69 +1,44 @@
-/******************************************************************************
-* djinterp [testing]        container_storage_traits_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                      container_storage_traits_tests_runner.cpp
 *
-*   Entry point for the container_storage_traits.hpp suite.  Lives in the config
-* tree (next to its CMakeLists.txt), includes the test header, and calls every
-* tests_* function the section translation units define.  Linking this runner
-* with those sections produces the container_storage_traits_tests exe.
+*   The runner for container_storage_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
+*
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/container/traits/container_storage_traits/container_storage_traits_tests_runner.cpp
-* author(s): unit-test suite                               created: 2026.07.16
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
 
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "container_storage_traits_tests.hpp"
+#include "container_storage_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-namespace
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
-        if (ok) { ++g_passed; } else { ++g_failed; }
-    }
+    dt::test_option_set opts = dt::default_test_options();
+
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("container_storage_traits_tests.pdf"));
+
+    return dt::run_module(
+        tt::container_storage_traits_spec(),
+        "container_storage_traits.hpp unit tests",
+        "container-side classification on the STORAGE axis: given a container "
+        "type, is its storage STATIC...",
+        opts);
 }
-
-// unique letters per suite: STG = SToraGe traits
-#define D_STG_RUN(_fn)   run(#_fn, &::djinterp::testing::_fn)
-
-
-int main()
-{
-    std::printf("container_storage_traits.hpp unit tests\n");
-
-    // -- I.   Storage-shape signals --
-    D_STG_RUN(tests_has_static_storage_signal);
-    D_STG_RUN(tests_has_dynamic_storage_signal);
-
-    // -- II.  The container siting classifier --
-    D_STG_RUN(tests_storage_duration_of);
-    D_STG_RUN(tests_storage_duration_of_companions);
-
-    // -- III. Container siting predicates --
-    D_STG_RUN(tests_is_static_storage_container);
-    D_STG_RUN(tests_is_dynamic_storage_container);
-    D_STG_RUN(tests_is_hybrid_storage_container);
-    D_STG_RUN(tests_has_static_storage_component_container);
-    D_STG_RUN(tests_has_dynamic_storage_component_container);
-
-    // -- IV.  Cross-axis entailment --
-    D_STG_RUN(tests_static_storage_implies_constexpr_size);
-
-    // -- V.   Aggregate snapshot + variable-template companions --
-    D_STG_RUN(tests_container_storage_class);
-    D_STG_RUN(tests_storage_variable_templates);
-
-    std::printf("passed: %d   failed: %d\n", g_passed, g_failed);
-    return (g_failed == 0) ? 0 : 1;
-}
-
-#undef D_STG_RUN

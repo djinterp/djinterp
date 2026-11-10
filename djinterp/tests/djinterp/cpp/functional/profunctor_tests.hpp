@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/cpp/functional/profunctor_tests.hpp
 * link(s):   TBA
 * author(s): teer                                            created: 2026.07.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -62,11 +62,26 @@ IV.   INSTANCE (profn<F>)
 #include <utility>
 // djinterp
 // djinterp (module under test)
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/functional/profunctor.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -193,6 +208,8 @@ struct DFwdProbe
     int operator()(int&&) const       { return 2; }   // rvalue
     int operator()(const int&) const  { return 3; }   // const lvalue
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,6 +265,164 @@ bool tests_instance_is_specialized();
 bool tests_instance_generic_dispatch();
 
 
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// profunctor_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+profunctor_spec()
+{
+    return dt::module_spec{
+        "profunctor",
+        "construction, call forwarding, make_profn decay, constexpr",
+        {
+            dt::block_spec{
+                "arrow",
+                "Arrow",
+                {
+                    { "tests_profn_construct",
+                      "A profn wraps a callable and exposes it as the fn "
+                      "member",
+                      &tests_profn_construct },
+                    { "tests_profn_call",
+                      "operator() forwards to the wrapped callable, so a "
+                      "profn is used exactly like the function it wraps",
+                      &tests_profn_call },
+                    { "tests_make_profn_decay",
+                      "make_profn deduces and DECAYS the callable type, "
+                      "stripping references and cv-qualifiers",
+                      &tests_make_profn_decay },
+                    { "tests_profn_forwarding",
+                      "operator() perfectly forwards its argument, preserving "
+                      "its reference category",
+                      &tests_profn_forwarding },
+                    { "tests_profn_constexpr",
+                      "profn's constructor and call operator are usable in a "
+                      "constant expression",
+                      &tests_profn_constexpr },
+                    { "tests_profn_return_type",
+                      "The call operator's result type is exactly the wrapped "
+                      "callable's return type",
+                      &tests_profn_return_type },
+                }
+            },
+            dt::block_spec{
+                "protocol",
+                "Protocol",
+                {
+                    { "tests_is_profunctor_positive",
+                      "Both the canonical arrow and the second fixture "
+                      "instance are recognised",
+                      &tests_is_profunctor_positive },
+                    { "tests_is_profunctor_negative",
+                      "Non-profunctors are rejected -- including a bare "
+                      "callable, which is precisely why the arrow wrapper "
+                      "exists",
+                      &tests_is_profunctor_negative },
+                    { "tests_is_profunctor_cvref",
+                      "Detection strips cv-qualifiers and references before "
+                      "testing",
+                      &tests_is_profunctor_cvref },
+                    { "tests_is_profunctor_requires_marker",
+                      "Detection keys on the is_specialized marker, not on "
+                      "the mere presence of a profunctor_traits specialisation",
+                      &tests_is_profunctor_requires_marker },
+                    { "tests_profunctor_traits_members",
+                      "A specialisation exposes exactly the protocol surface",
+                      &tests_profunctor_traits_members },
+                    { "tests_profunctor_concept",
+                      "The Profunctor concept mirrors is_profunctor (C++20 "
+                      "only)",
+                      &tests_profunctor_concept },
+                    { "tests_internal_helpers",
+                      "The two named internal functors behave as specified, "
+                      "on several floors and in a constant expression",
+                      &tests_internal_helpers },
+                }
+            },
+            dt::block_spec{
+                "operations",
+                "Operations",
+                {
+                    { "tests_dimap_both_ends",
+                      "dimap pre-composes pre onto the input and "
+                      "post-composes post onto the output",
+                      &tests_dimap_both_ends },
+                    { "tests_dimap_type_change",
+                      "dimap can change BOTH parameters -- the input from A "
+                      "to A' and the output from B to B'",
+                      &tests_dimap_type_change },
+                    { "tests_lmap_input_only",
+                      "lmap adapts only the input (the contravariant map): "
+                      "pre : A' -> A, output untouched",
+                      &tests_lmap_input_only },
+                    { "tests_rmap_output_only",
+                      "rmap adapts only the output (the covariant map / the "
+                      "profunctor's fmap): post : B -> B', input untouched",
+                      &tests_rmap_output_only },
+                    { "tests_law_identity",
+                      "The identity law: adapting with identities changes "
+                      "nothing",
+                      &tests_law_identity },
+                    { "tests_law_composition",
+                      "The dimap composition law: dimap(dimap(p, pre1, "
+                      "post1), pre2, post2) equals dimap(p, pre1 ",
+                      &tests_law_composition },
+                    { "tests_rmap_covariant_composition",
+                      "rmap satisfies the functor composition law: "
+                      "rmap(rmap(p, post1), post2) == rmap(p, post2 ",
+                      &tests_rmap_covariant_composition },
+                    { "tests_lmap_contravariant_composition",
+                      "lmap composes contravariantly: lmap(lmap(p, pre1), "
+                      "pre2) == lmap(p, pre1 ",
+                      &tests_lmap_contravariant_composition },
+                    { "tests_dimap_equals_lmap_rmap",
+                      "dimap factors through lmap and rmap either way round",
+                      &tests_dimap_equals_lmap_rmap },
+                    { "tests_operations_constexpr",
+                      "dimap / lmap / rmap fold inside a constant expression, "
+                      "including when they change the input or output type",
+                      &tests_operations_constexpr },
+                }
+            },
+            dt::block_spec{
+                "instance",
+                "Instance",
+                {
+                    { "tests_instance_composition_order",
+                      "The profn instance's dimap builds exactly post ",
+                      &tests_instance_composition_order },
+                    { "tests_instance_returns_profn",
+                      "dimap composes a NEW arrow without unwrapping -- the "
+                      "result is again a profn",
+                      &tests_instance_returns_profn },
+                    { "tests_instance_composable",
+                      "A dimapped arrow is itself a profunctor, so the "
+                      "operations chain",
+                      &tests_instance_composable },
+                    { "tests_instance_preserves_original",
+                      "dimap builds a fresh arrow and leaves the original "
+                      "untouched (a profn holds its callable by value)",
+                      &tests_instance_preserves_original },
+                    { "tests_instance_is_specialized",
+                      "The instance carries the marker, through the explicit "
+                      "<T, void> form",
+                      &tests_instance_is_specialized },
+                    { "tests_instance_generic_dispatch",
+                      "The generic operations dispatch through "
+                      "profunctor_traits, so a SECOND, unrelated instance "
+                      "(DPfArrow) works identically -- and its results are "
+                      "its own carrier, not profn",
+                      &tests_instance_generic_dispatch },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
+
+
 NS_END  // testing
 
 
@@ -257,6 +432,7 @@ NS_END  // testing
 
 // profunctor_traits<DPfArrow<_Fn>>  -- the second instance: dimap composes a
 // fresh DPfArrow around post . fn . pre, exactly as profn does for itself.
+#ifndef DTEST_SPEC_MODE  // fixture instances - normal mode only
 template<typename _Fn>
 struct profunctor_traits<testing::DPfArrow<_Fn>, void>
 {
@@ -282,6 +458,7 @@ template<>
 struct profunctor_traits<testing::DPfNoMarker, void>
 {
 };
+#endif  // !DTEST_SPEC_MODE  (fixture instances)
 
 
 NS_END  // djinterp

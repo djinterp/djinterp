@@ -38,7 +38,7 @@
 * path:      /tests/djinterp/cpp/functional/recursion_tests.hpp
 * link(s):   TBA
 * author(s): teer                                            created: 2026.07.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -78,11 +78,26 @@ V.    HYLO
 #include <vector>
 // djinterp
 // djinterp (module under test; pulls functor.hpp + the meta closure)
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/functional/recursion.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -405,6 +420,8 @@ int tree_height_manual(
     const int _rh = tree_height_manual(_layer.right);
     return 1 + ((_lh > _rh) ? _lh : _rh);
 }
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -475,6 +492,199 @@ bool tests_hylo_base_case();
 bool tests_hylo_forms();
 
 
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// recursion_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+recursion_spec()
+{
+    return dt::module_spec{
+        "recursion",
+        "In / out / empty / layer_type / shared-layer semantics",
+        {
+            dt::block_spec{
+                "mu",
+                "Mu",
+                {
+                    { "tests_mu_default_empty",
+                      "A default-constructed mu holds no layer",
+                      &tests_mu_default_empty },
+                    { "tests_mu_in_nonempty",
+                      "In boxes a layer, yielding a non-empty value",
+                      &tests_mu_in_nonempty },
+                    { "tests_mu_out_returns_layer",
+                      "out() returns the boxed F-layer",
+                      &tests_mu_out_returns_layer },
+                    { "tests_mu_layer_type",
+                      "The layer_type alias is exactly F applied to the fixed "
+                      "point",
+                      &tests_mu_layer_type },
+                    { "tests_mu_sharing",
+                      "The layer sits behind a shared_ptr: copies share it, "
+                      "and In boxes a COPY of its argument (later mutation of "
+                      "the source layer does not leak in)",
+                      &tests_mu_sharing },
+                    { "tests_mu_nested_navigation",
+                      "A multi-layer value can be walked one layer at a time "
+                      "through out(), and the same works for a functor with "
+                      "two holes",
+                      &tests_mu_nested_navigation },
+                }
+            },
+            dt::block_spec{
+                "traits",
+                "Traits",
+                {
+                    { "tests_recursive_traits_mu",
+                      "The mu<F> fold-side instance is well-formed",
+                      &tests_recursive_traits_mu },
+                    { "tests_recursive_traits_project",
+                      "project peels exactly one layer, equal to out()",
+                      &tests_recursive_traits_project },
+                    { "tests_corecursive_traits_mu",
+                      "The mu<F> build-side instance is well-formed",
+                      &tests_corecursive_traits_mu },
+                    { "tests_corecursive_traits_embed",
+                      "embed builds exactly one layer, invertible by out()",
+                      &tests_corecursive_traits_embed },
+                    { "tests_traits_roundtrip",
+                      "project and embed are mutual inverses on one layer",
+                      &tests_traits_roundtrip },
+                    { "tests_is_recursive",
+                      "is_recursive recognises fold-side carriers and rejects "
+                      "the rest",
+                      &tests_is_recursive },
+                    { "tests_is_corecursive",
+                      "is_corecursive recognises build-side carriers and "
+                      "rejects the rest",
+                      &tests_is_corecursive },
+                    { "tests_custom_carrier_registration",
+                      "A native carrier (std::vector<int>) is made foldable "
+                      "and buildable purely by specialising the traits -- no "
+                      "rewrite as a fixed point",
+                      &tests_custom_carrier_registration },
+                }
+            },
+            dt::block_spec{
+                "cata",
+                "Cata",
+                {
+                    { "tests_cata_nat_depth",
+                      "Folds a Peano value to its depth",
+                      &tests_cata_nat_depth },
+                    { "tests_cata_list_sum",
+                      "Folds a list to the sum of its elements",
+                      &tests_cata_list_sum },
+                    { "tests_cata_list_length",
+                      "Folds a list to its length -- the algebra ignores the "
+                      "head payload and counts only structure, exercising the "
+                      "payload-vs-hole distinction",
+                      &tests_cata_list_length },
+                    { "tests_cata_list_to_string",
+                      "Folds a list to a std::string, so the result carrier "
+                      "differs from both the fixed point and the element type "
+                      "-- exercising the explicit _Result pin",
+                      &tests_cata_list_to_string },
+                    { "tests_cata_tree_leaf_sum",
+                      "Folds a binary tree to the sum of its leaves -- a "
+                      "Branch algebra combines the results of BOTH recursive "
+                      "holes",
+                      &tests_cata_tree_leaf_sum },
+                    { "tests_cata_tree_height",
+                      "Folds a binary tree to its height -- a Branch algebra "
+                      "takes the max over both holes, another two-child fold",
+                      &tests_cata_tree_height },
+                    { "tests_cata_native_vector",
+                      "Folds a plain std::vector<int> as a list, via its "
+                      "recursive_traits registration -- cata runs over a "
+                      "native carrier, not a mu",
+                      &tests_cata_native_vector },
+                    { "tests_cata_base_case",
+                      "A one-layer value with no recursive holes folds by "
+                      "applying the algebra to that single base layer",
+                      &tests_cata_base_case },
+                    { "tests_cata_reflection_law",
+                      "cata with the embed algebra is the identity (cata[In] "
+                      "== id): folding a value by re-boxing each layer "
+                      "reproduces it",
+                      &tests_cata_reflection_law },
+                    { "tests_cata_algebra_forms",
+                      "The algebra may be any callable",
+                      &tests_cata_algebra_forms },
+                }
+            },
+            dt::block_spec{
+                "ana",
+                "Ana",
+                {
+                    { "tests_ana_nat",
+                      "Unfolds an int into a Peano value",
+                      &tests_ana_nat },
+                    { "tests_ana_list_range",
+                      "Unfolds a seed into a descending list",
+                      &tests_ana_list_range },
+                    { "tests_ana_tree_balanced",
+                      "Unfolds a depth seed into a full binary tree -- a "
+                      "coalgebra with TWO holes (Branch seeds both children)",
+                      &tests_ana_tree_balanced },
+                    { "tests_ana_native_vector",
+                      "Unfolds a seed directly into a std::vector<int>, via "
+                      "its corecursive_traits registration -- ana builds a "
+                      "native carrier, not a mu",
+                      &tests_ana_native_vector },
+                    { "tests_ana_base_case",
+                      "When the coalgebra yields a hole-less layer "
+                      "immediately, ana builds a single base layer",
+                      &tests_ana_base_case },
+                    { "tests_ana_produces_structure",
+                      "ana lays down the expected layers, checked by walking "
+                      "out() directly (not by a fold), so the unfold is "
+                      "validated independently of cata",
+                      &tests_ana_produces_structure },
+                    { "tests_ana_coalgebra_forms",
+                      "The coalgebra may be any callable",
+                      &tests_ana_coalgebra_forms },
+                }
+            },
+            dt::block_spec{
+                "hylo",
+                "Hylo",
+                {
+                    { "tests_hylo_nat_depth",
+                      "Refolds an int seed to a depth without building a "
+                      "Peano value",
+                      &tests_hylo_nat_depth },
+                    { "tests_hylo_list_sum",
+                      "Refolds a seed into a sum through the list functor, no "
+                      "list materialised",
+                      &tests_hylo_list_sum },
+                    { "tests_hylo_factorial",
+                      "The textbook hylomorphism: unfold [n, n-1, ..., 1] and "
+                      "fold by product, fused",
+                      &tests_hylo_factorial },
+                    { "tests_hylo_tree",
+                      "Refolds a depth seed through the two-hole tree functor",
+                      &tests_hylo_tree },
+                    { "tests_hylo_equals_cata_ana",
+                      "hylo[phi, psi] agrees with cata[phi] ",
+                      &tests_hylo_equals_cata_ana },
+                    { "tests_hylo_base_case",
+                      "A seed the coalgebra maps straight to a hole-less "
+                      "layer refolds by one algebra application",
+                      &tests_hylo_base_case },
+                    { "tests_hylo_forms",
+                      "Both operands may be any callable",
+                      &tests_hylo_forms },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
+
+
 NS_END  // testing
 
 
@@ -485,6 +695,7 @@ NS_END  // testing
 // functor_traits<nat_f<_X>>
 //   the identity-plus-unit functor: map recurses on the Succ hole, rebuilds
 // Zero unchanged.
+#ifndef DTEST_SPEC_MODE  // fixture instances - normal mode only
 template<typename _X>
 struct functor_traits<testing::nat_f<_X>, void>
 {
@@ -640,6 +851,7 @@ struct corecursive_traits<std::vector<int>, void>
         return _r;
     }
 };
+#endif  // !DTEST_SPEC_MODE  (fixture instances)
 
 
 NS_END  // djinterp

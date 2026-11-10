@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/container/table/table_carrier.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.02
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/table/table_carrier.h"
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
@@ -470,6 +470,80 @@ d_table_fill
 }
 
 /*
+d_table_internal_widen_rows
+  Moves every row of _table from its stride of extent[1] columns to its
+seat at a stride of _new_cols, opening a gap at column _at, which takes the
+row's cell of _column or, where _column is null, zeroed cells. The rows are
+walked from the last backwards: a row's new seat is always at or beyond its
+old one, and every row above it has already vacated. The buffer holds the
+wider table already; extent[1] is the caller's to update.
+
+Parameter(s):
+  _table:    the table; a row-and-column table.
+  _at:       the index the new column takes; not past extent[1].
+  _column:   the cells of the new column, one per row, or null.
+  _new_cols: extent[1] + 1.
+Return:
+  none.
+*/
+static void
+d_table_internal_widen_rows
+(
+    struct dj_table* _table,
+    size_t           _at,
+    const void*      _column,
+    size_t           _new_cols
+)
+{
+    const unsigned char* supplied   = (const unsigned char*)_column;
+    size_t               width      = (size_t)_table->cell_size;
+    size_t               old_cols   = (size_t)_table->extent[1];
+    size_t               old_stride = old_cols * width;
+    size_t               new_stride = _new_cols * width;
+    size_t               r;
+    unsigned char*       source;
+    unsigned char*       target;
+
+    r = _table->extent[0];
+
+    while (r != 0)
+    {
+        --r;
+
+        source = _table->cells + (r * old_stride);
+        target = _table->cells + (r * new_stride);
+
+        // the tail moves first, being the part that lands highest
+        if (_at < old_cols)
+        {
+            memmove((void*)(target + ((_at + 1) * width)),
+                    (const void*)(source + (_at * width)),
+                    (old_cols - _at) * width);
+        }
+
+        // then the head, whose destination the tail has vacated
+        if (_at != 0)
+        {
+            memmove((void*)target, (const void*)source, _at * width);
+        }
+
+        // then the new cell in the gap the two left
+        if (supplied)
+        {
+            memcpy((void*)(target + (_at * width)),
+                   (const void*)(supplied + (r * width)),
+                   width);
+        }
+        else
+        {
+            memset((void*)(target + (_at * width)), 0, width);
+        }
+    }
+
+    return;
+}
+
+/*
 d_table_insert_column
   Inserts a column of _height cells at index _at, widening every row. Because
 the row stride changes, every row moves; the rows are walked from the last
@@ -485,8 +559,10 @@ Return:
   A dj_table_status value corresponding to either:
   - D_TABLE_STATUS_OK, if the column was inserted, or
   - D_TABLE_STATUS_INVALID_ARGUMENT, if _table was null, or
+  - D_TABLE_STATUS_RANK, if _table is not a row-and-column table, or
   - D_TABLE_STATUS_DOMAIN, if _at exceeded the column count, or
   - D_TABLE_STATUS_SHAPE, if _height disagreed with the row count, or
+  - D_TABLE_STATUS_OVERFLOW, if the wider table's size does not fit, or
   - D_TABLE_STATUS_CAPACITY, D_TABLE_STATUS_NO_MEMORY, or
     D_TABLE_STATUS_OVERFLOW, per
     d_table_internal_ensure_bytes.
@@ -501,16 +577,9 @@ d_table_insert_column
     const struct dj_table_alloc* _alloc
 )
 {
-    enum dj_table_status     status;
-    size_t                  needed;
-    size_t                  width;
-    size_t                  old_stride;
-    size_t                  new_stride;
-    size_t                  new_cols;
-    size_t                  r;
-    unsigned char*          source;
-    unsigned char*          target;
-    const unsigned char*    supplied;
+    enum dj_table_status status;
+    size_t               needed;
+    size_t               new_cols;
 
     if (!_table)
     {
@@ -561,50 +630,7 @@ d_table_insert_column
         return status;
     }
 
-    width      = (size_t)_table->cell_size;
-    old_stride = (size_t)_table->extent[1] * width;
-    new_stride = new_cols * width;
-    supplied   = (const unsigned char*)_column;
-
-    // walk the rows backwards: a row's new seat is always at or beyond its old
-    // one, and every row above it has already vacated
-    r = _table->extent[0];
-
-    while (r != 0)
-    {
-        --r;
-
-        source = _table->cells + ((size_t)r * old_stride);
-        target = _table->cells + ((size_t)r * new_stride);
-
-        // the tail moves first, being the part that lands highest
-        if (_at < (size_t)_table->extent[1])
-        {
-            memmove((void*)(target + (((size_t)_at + 1) * width)),
-                    (const void*)(source + ((size_t)_at * width)),
-                    ((size_t)_table->extent[1] - _at) * width);
-        }
-
-        // then the head, whose destination the tail has vacated
-        if (_at != 0)
-        {
-            memmove((void*)target,
-                    (const void*)source,
-                    (size_t)_at * width);
-        }
-
-        // then the new cell in the gap the two left
-        if (supplied)
-        {
-            memcpy((void*)(target + ((size_t)_at * width)),
-                   (const void*)(supplied + ((size_t)r * width)),
-                   width);
-        }
-        else
-        {
-            memset((void*)(target + ((size_t)_at * width)), 0, width);
-        }
-    }
+    d_table_internal_widen_rows(_table, _at, _column, new_cols);
 
     _table->extent[1] = (D_INTERNAL_TABLE_EXTENT)new_cols;
 

@@ -36,7 +36,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_multiplicity_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_MULTIPLICITY_TRAITS_TESTS_
@@ -56,7 +56,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_multiplicity_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // NS_TESTING / D_KEYWORD_TESTING may not be defined by the core headers; mirror
@@ -86,8 +94,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -183,6 +201,8 @@ struct DKeyedNoSize
     using key_type   = int;
     // no size() -> not countable
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -208,6 +228,93 @@ bool tests_is_multiset_container();
 // -- IV.  Aggregate snapshot + variable-template companions --
 bool tests_multiplicity_container_class();
 bool tests_multiplicity_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_multiplicity_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_multiplicity_traits_spec()
+{
+    return dt::module_spec{
+        "container_multiplicity_traits",
+        "SFINAE structural traits for the MULTIPLICITY axis - the per-class "
+        "occurrence bound a container...",
+        {
+            dt::block_spec{
+                "signals",
+                "Signals",
+                {
+                    { "tests_is_countable_container",
+                      "checks "
+                      "(is_countable_container<std::vector<int>>::value)",
+                      &tests_is_countable_container },
+                    { "tests_has_interval_bounds_signal",
+                      "checks "
+                      "(has_interval_bounds_signal<DIntervalSeq>::value)",
+                      &tests_has_interval_bounds_signal },
+                    { "tests_has_unique_insert",
+                      "checks (has_unique_insert<std::set<int>>::value)",
+                      &tests_has_unique_insert },
+                    { "tests_has_multiplicity_bound",
+                      "checks (has_multiplicity_bound<DOptinUnique>::value)",
+                      &tests_has_multiplicity_bound },
+                }
+            },
+            dt::block_spec{
+                "verdict",
+                "Verdict",
+                {
+                    { "tests_multiplicity_kind_of",
+                      "checks (multiplicity_kind_of<std::vector<int>>::value "
+                      "== multiplicity_kind",
+                      &tests_multiplicity_kind_of },
+                    { "tests_multiplicity_kind_companions",
+                      "checks "
+                      "(multiplicity_kind_of_t<std::vector<int>>::value == "
+                      "multiplicity_ki",
+                      &tests_multiplicity_kind_companions },
+                    { "tests_multiplicity_bound_of",
+                      "checks (multiplicity_bound_of<std::set<int>>::value == "
+                      "unique_multiplicity)",
+                      &tests_multiplicity_bound_of },
+                }
+            },
+            dt::block_spec{
+                "predicates",
+                "Predicates",
+                {
+                    { "tests_is_sequence_container",
+                      "checks (is_sequence_container<std::vector<int>>::value)",
+                      &tests_is_sequence_container },
+                    { "tests_is_unique_container",
+                      "checks (is_unique_container<std::set<int>>::value)",
+                      &tests_is_unique_container },
+                    { "tests_is_multiset_container",
+                      "checks "
+                      "(is_multiset_container<std::multiset<int>>::value)",
+                      &tests_is_multiset_container },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_multiplicity_container_class",
+                      "checks (!C::has_equivalence)",
+                      &tests_multiplicity_container_class },
+                    { "tests_multiplicity_variable_templates",
+                      "checks (is_countable_container_v<std::vector<int>> == "
+                      "is_countable_contain",
+                      &tests_multiplicity_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

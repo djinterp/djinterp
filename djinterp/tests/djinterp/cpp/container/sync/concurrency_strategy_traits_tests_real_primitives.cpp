@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]      concurrency_strategy_traits_tests_real_primitives.cpp
+/*******************************************************************************
+* djinterp [test]          concurrency_strategy_traits_tests_real_primitives.cpp
 *
 *   Integration - the classification run against the actual updated
 * /core/sync/ primitives (not synthetic fixtures).  Every primitive self-tags
@@ -7,7 +7,18 @@
 * exercise; the last test pins the property that a primitive's incidental
 * structure (DCowState's lock_policy_type, DRcuProtected's read_lock()) never
 * overrides its tag.  Defines the "real_primitives" block.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests_real_primitives.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+
+// FLOOR, FOR NOW: below C++17, concurrency_strategy_traits.hpp's floor,
+// this unit is empty, as that header is.
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #include "concurrency_strategy_traits_tests.hpp"
 
@@ -131,3 +142,5 @@ bool tests_real_tag_over_structure()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

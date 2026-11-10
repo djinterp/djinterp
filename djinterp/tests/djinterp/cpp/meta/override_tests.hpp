@@ -46,7 +46,7 @@
 * path:      /tests/djinterp/cpp/meta/override_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -78,12 +78,27 @@ VI.   test declarations
 #include <cstdio>
 #include <type_traits>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/override.hpp"                    // the module under test
 #include "djinterp/cpp/modules/test/test_traits.hpp"   // hostile type zoo + quantifiers
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -788,6 +803,8 @@ template<typename _Policy,
          typename _Base,
          typename _Delta>
 using ov_apply_t = typename ov_apply<_Policy, _Base, _Delta>::type;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -831,6 +848,155 @@ bool tests_override_always_keep_right();
 bool tests_override_engine_primitives();
 bool tests_override_engine_edge_cases();
 bool tests_override_engine_custom_policies();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// override_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+override_spec()
+{
+    return dt::module_spec{
+        "override",
+        "foundational, container-agnostic override-policy module",
+        {
+            dt::block_spec{
+                "dropped",
+                "Dropped sentinel",
+                {
+                    { "tests_override_dropped_shape",
+                      "The `dropped` sentinel's own type properties",
+                      &tests_override_dropped_shape },
+                    { "tests_override_is_dropped_trait",
+                      "The is_dropped detector's answers and its SHAPE",
+                      &tests_override_is_dropped_trait },
+                    { "tests_override_is_dropped_cvref",
+                      "The trait's behaviour on QUALIFIED spellings of the "
+                      "sentinel",
+                      &tests_override_is_dropped_cvref },
+                    { "tests_override_is_dropped_hostile",
+                      "The trait run over the adversarial type zoo",
+                      &tests_override_is_dropped_hostile },
+                }
+            },
+            dt::block_spec{
+                "concept",
+                "OverridePolicy concept",
+                {
+                    { "tests_override_concept_primitives",
+                      "Every shape the module itself ships must satisfy its "
+                      "own concept",
+                      &tests_override_concept_primitives },
+                    { "tests_override_concept_negatives",
+                      "What the concept must REJECT",
+                      &tests_override_concept_negatives },
+                    { "tests_override_concept_laziness",
+                      "The concept's deliberate blind spots - the header's "
+                      "central design claim",
+                      &tests_override_concept_laziness },
+                    { "tests_override_concept_as_constraint",
+                      "The concept used the way a downstream engine uses it",
+                      &tests_override_concept_as_constraint },
+                }
+            },
+            dt::block_spec{
+                "primitives",
+                "Atomic primitives",
+                {
+                    { "tests_override_keep_base",
+                      "keep_base: base wins everywhere, delta-only keys are "
+                      "discarded",
+                      &tests_override_keep_base },
+                    { "tests_override_keep_delta",
+                      "DKeepDelta: the standard override - delta wins, "
+                      "extensions allowed",
+                      &tests_override_keep_delta },
+                    { "tests_override_drop_extras",
+                      "DDropExtras: delta wins on overlap but may not "
+                      "introduce new keys",
+                      &tests_override_drop_extras },
+                    { "tests_override_strict_subset",
+                      "DStrictSubset: DDropExtras, but an extension is a hard "
+                      "compile error",
+                      &tests_override_strict_subset },
+                    { "tests_override_drop_unmatched_base",
+                      "DDropUnmatchedBase: filter to delta - only delta's "
+                      "keys survive",
+                      &tests_override_drop_unmatched_base },
+                    { "tests_override_primitive_shapes",
+                      "The primitives AS TYPES, and the matrix that separates "
+                      "them",
+                      &tests_override_primitive_shapes },
+                }
+            },
+            dt::block_spec{
+                "combinators",
+                "Combinators",
+                {
+                    { "tests_override_with_on_both",
+                      "DWithOnBoth: replace the overlap hook, inherit the "
+                      "other two",
+                      &tests_override_with_on_both },
+                    { "tests_override_with_on_base_only",
+                      "DWithOnBaseOnly: replace the base-only hook via a "
+                      "unary metafunction",
+                      &tests_override_with_on_base_only },
+                    { "tests_override_with_on_delta_only",
+                      "DWithOnDeltaOnly: replace the extension hook",
+                      &tests_override_with_on_delta_only },
+                    { "tests_override_combinator_stacking",
+                      "Combinators composed with one another",
+                      &tests_override_combinator_stacking },
+                    { "tests_override_combinator_equivalences",
+                      "The algebra: every primitive rebuilt out of another "
+                      "primitive plus one combinator",
+                      &tests_override_combinator_equivalences },
+                }
+            },
+            dt::block_spec{
+                "helpers",
+                "Misc helpers",
+                {
+                    { "tests_override_identity_t",
+                      "identity_t: the no-op slot for a combinator that "
+                      "demands a metafunction",
+                      &tests_override_identity_t },
+                    { "tests_override_always_drop",
+                      "always_drop: the metafunction that discards whatever "
+                      "it is handed",
+                      &tests_override_always_drop },
+                    { "tests_override_always_keep_left",
+                      "always_keep_left: the binary projection onto the first "
+                      "operand",
+                      &tests_override_always_keep_left },
+                    { "tests_override_always_keep_right",
+                      "always_keep_right: the binary projection onto the "
+                      "second operand",
+                      &tests_override_always_keep_right },
+                }
+            },
+            dt::block_spec{
+                "engine",
+                "Integration (policy-driven walk)",
+                {
+                    { "tests_override_engine_primitives",
+                      "The five primitives driven end to end by a real walk",
+                      &tests_override_engine_primitives },
+                    { "tests_override_engine_edge_cases",
+                      "The degenerate shapes a real container will eventually "
+                      "hand an engine",
+                      &tests_override_engine_edge_cases },
+                    { "tests_override_engine_custom_policies",
+                      "Combinator-built policies driven by the same walk",
+                      &tests_override_engine_custom_policies },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

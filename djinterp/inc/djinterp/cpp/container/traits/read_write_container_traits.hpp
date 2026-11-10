@@ -71,7 +71,7 @@
 * path:      /inc/djinterp/cpp/container/traits/read_write_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.01
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_READ_WRITE_CONTAINER_TRAITS_HPP
@@ -88,7 +88,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"           // clean_t, NS_*, D_ENV_* feature macros
+#include "../../djinterp.hpp"           // framework root
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_VALUE_BOOL, D_VOID_T
 #include "../../meta/read_write.hpp"     // read_write capability tag
 #include "../../meta/read_only.hpp"      // read_only  capability tag
@@ -112,6 +112,12 @@ NS_INTERNAL
     // on itself. Only such a tag is trusted as the opt-in; a `capability`
     // alias lacking the bits is ignored, and the structural surface decides
     // instead.
+    //   Each bit must be a constant usable as a bool template argument. A
+    // static member FUNCTION of that name is not one, so it is ignored like
+    // a missing bit. (Named by decltype, as it was, a function was trusted:
+    // it decayed to a pointer that is never null, so both bits read true
+    // whatever the function returned; and under GCC's sanitizers that
+    // comparison is not a constant expression, so the trait did not compile.)
     template<typename Type,
              typename = void>
     struct has_capability_bits_helper : std::false_type
@@ -119,8 +125,10 @@ NS_INTERNAL
 
     template<typename Type>
     struct has_capability_bits_helper<Type,
-        D_VOID_T<decltype(clean_t<Type>::capability::can_read),
-                 decltype(clean_t<Type>::capability::can_write)>>
+        D_VOID_T<std::integral_constant<bool,
+                     clean_t<Type>::capability::can_read>,
+                 std::integral_constant<bool,
+                     clean_t<Type>::capability::can_write>>>
         : std::true_type
     {};
 

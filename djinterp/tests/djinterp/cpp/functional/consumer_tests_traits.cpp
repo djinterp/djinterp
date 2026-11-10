@@ -12,8 +12,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/consumer_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -23,71 +23,67 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
 
     // concrete consumer types produced by the factories, named here so
     // the trait macros can pass them as single template arguments.
-    using discard_t  = decltype(::djinterp::consumers::discard());
+    using discard_t  = decltype(djinterp::discard());
     using free_sink_t = void (*)(const int&);
 
     // ---- is_consumer ------------------------------------------------------
     // positive: discard is a consumer of anything; a void(const int&)
     // function pointer is a consumer of int.
-    D_TEST_TRAIT_TRUE (is_consumer, discard_t,   int);
-    D_TEST_TRAIT_TRUE (is_consumer, discard_t,   std::string);
-    D_TEST_TRAIT_TRUE (is_consumer, free_sink_t, int);
-    D_TEST_TRAIT_TRUE (is_consumer, void_returning, int);
+    D_TEST_STATIC(is_consumer< discard_t, int >::value);
+    D_TEST_STATIC(is_consumer< discard_t, std::string >::value);
+    D_TEST_STATIC(is_consumer< free_sink_t, int >::value);
+    D_TEST_STATIC(is_consumer< void_returning, int >::value);
     // negative: a value-returning callable is not a consumer (result is
     // not void); a non-callable is not a consumer; wrong argument type.
-    D_TEST_TRAIT_FALSE(is_consumer, doubler,      int);
-    D_TEST_TRAIT_FALSE(is_consumer, is_even,      int);
-    D_TEST_TRAIT_FALSE(is_consumer, not_callable, int);
-    D_TEST_TRAIT_FALSE(is_consumer, free_sink_t,  std::string);
+    D_TEST_STATIC(!is_consumer< doubler, int >::value);
+    D_TEST_STATIC(!is_consumer< is_even, int >::value);
+    D_TEST_STATIC(!is_consumer< not_callable, int >::value);
+    D_TEST_STATIC(!is_consumer< free_sink_t, std::string >::value);
 
     // ---- consumer_result_t ------------------------------------------------
-    D_TEST_TYPE_EQ(consumer_result_t<discard_t, int>,  void);
-    D_TEST_TYPE_EQ(consumer_result_t<doubler, int>,    int);
-    D_TEST_TYPE_EQ(consumer_result_t<to_string_fn, int>, std::string);
+    D_TEST_STATIC(std::is_same< consumer_result_t<discard_t, int>, void >::value);
+    D_TEST_STATIC(std::is_same< consumer_result_t<doubler, int>, int >::value);
+    D_TEST_STATIC(std::is_same< consumer_result_t<to_string_fn, int>, std::string >::value);
 
     // ---- is_predicate -----------------------------------------------------
     // positive: bool-returning unary callables.
-    D_TEST_TRAIT_TRUE (is_predicate, is_even,      int);
-    D_TEST_TRAIT_TRUE (is_predicate, always_true,  int);
-    D_TEST_TRAIT_TRUE (is_predicate, always_false, int);
+    D_TEST_STATIC(is_predicate< is_even, int >::value);
+    D_TEST_STATIC(is_predicate< always_true, int >::value);
+    D_TEST_STATIC(is_predicate< always_false, int >::value);
     // negative: void result is not bool-convertible; non-callable.
-    D_TEST_TRAIT_FALSE(is_predicate, void_returning, int);
-    D_TEST_TRAIT_FALSE(is_predicate, not_callable,   int);
+    D_TEST_STATIC(!is_predicate< void_returning, int >::value);
+    D_TEST_STATIC(!is_predicate< not_callable, int >::value);
     // a to_string transformer returns std::string, not bool-convertible
-    D_TEST_TRAIT_FALSE(is_predicate, to_string_fn,   int);
+    D_TEST_STATIC(!is_predicate< to_string_fn, int >::value);
 
     // ---- is_transformer ---------------------------------------------------
     // positive: non-void unary callables, including same-type and
     // changing-type transforms.
-    D_TEST_TRAIT_TRUE (is_transformer, doubler,      int);
-    D_TEST_TRAIT_TRUE (is_transformer, to_string_fn, int);
-    D_TEST_TRAIT_TRUE (is_transformer, is_even,      int);   // bool is non-void
+    D_TEST_STATIC(is_transformer< doubler, int >::value);
+    D_TEST_STATIC(is_transformer< to_string_fn, int >::value);
+    D_TEST_STATIC(is_transformer< is_even, int >::value);   // bool is non-void
     // negative: void result; non-callable.
-    D_TEST_TRAIT_FALSE(is_transformer, void_returning, int);
-    D_TEST_TRAIT_FALSE(is_transformer, not_callable,   int);
+    D_TEST_STATIC(!is_transformer< void_returning, int >::value);
+    D_TEST_STATIC(!is_transformer< not_callable, int >::value);
 
     // ---- contramap_input_t ------------------------------------------------
     // the value type a mapped consumer forwards to its inner consumer.
-    D_TEST_TYPE_EQ(contramap_input_t<doubler, int>,      int);
-    D_TEST_TYPE_EQ(contramap_input_t<to_string_fn, int>, std::string);
+    D_TEST_STATIC(std::is_same< contramap_input_t<doubler, int>, int >::value);
+    D_TEST_STATIC(std::is_same< contramap_input_t<to_string_fn, int>, std::string >::value);
 
     // ---- is_boxable -------------------------------------------------------
     // positive: a discard helper and a function pointer both convert to
     // std::function<void(const int&)>.
-    D_TEST_TRAIT_TRUE (is_boxable, discard_t,   int);
-    D_TEST_TRAIT_TRUE (is_boxable, free_sink_t, int);
+    D_TEST_STATIC(is_boxable< discard_t, int >::value);
+    D_TEST_STATIC(is_boxable< free_sink_t, int >::value);
     // negative: a non-callable aggregate is not boxable.
-    D_TEST_TRAIT_FALSE(is_boxable, not_callable, int);
+    D_TEST_STATIC(!is_boxable< not_callable, int >::value);
 
     // ---- variable-template `_v` aliases (C++14+) -------------------------
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -111,15 +107,15 @@ namespace {
 
     // ---- concept mirrors (C++20) -----------------------------------------
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    D_TEST_CONCEPT_TRUE (consumes, discard_t, int);
-    D_TEST_CONCEPT_TRUE (consumes, free_sink_t, int);
-    D_TEST_CONCEPT_FALSE(consumes, doubler, int);
-    D_TEST_CONCEPT_TRUE (predicate_for, is_even, int);
-    D_TEST_CONCEPT_FALSE(predicate_for, void_returning, int);
-    D_TEST_CONCEPT_TRUE (transformer_for, to_string_fn, int);
-    D_TEST_CONCEPT_FALSE(transformer_for, void_returning, int);
-    D_TEST_CONCEPT_TRUE (boxable_as, free_sink_t, int);
-    D_TEST_CONCEPT_FALSE(boxable_as, not_callable, int);
+    D_TEST_STATIC(consumes< discard_t, int >);
+    D_TEST_STATIC(consumes< free_sink_t, int >);
+    D_TEST_STATIC(!consumes< doubler, int >);
+    D_TEST_STATIC(predicate_for< is_even, int >);
+    D_TEST_STATIC(!predicate_for< void_returning, int >);
+    D_TEST_STATIC(transformer_for< to_string_fn, int >);
+    D_TEST_STATIC(!transformer_for< void_returning, int >);
+    D_TEST_STATIC(boxable_as< free_sink_t, int >);
+    D_TEST_STATIC(!boxable_as< not_callable, int >);
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 }  // namespace
@@ -143,27 +139,25 @@ consumer_tests_traits
   assertion below is the runtime roll-up.  If this translation unit
   compiled, every compile-time property held.
 */
-void consumer_tests_traits(
-    test_handler& _handler
-)
+bool consumer_tests_traits()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "consumer traits + concepts (compile-time suite)",
         [&]()
         {
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 true,
                 "Section 0 predicate traits and concepts compiled",
                 "all static_assert checks held",
                 nullptr);
         });
 
-    return;
+    return verdict;
 }
 
 

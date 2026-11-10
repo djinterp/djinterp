@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/compose_tests_fix.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -22,10 +22,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
@@ -60,41 +56,36 @@ compose_tests_fix
   - a recursive Fibonacci, to confirm the combinator is generic (C++14+)
   - multi-argument recursion (Euclid's gcd) through fix (C++14+)
 */
-void compose_tests_fix(
-    test_handler& _handler
-)
+bool compose_tests_fix()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // C++11-safe functor recursion -- runs on every standard
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fix expresses recursion via a functor body",
         [&]()
         {
             auto factorial = ::djinterp::fix(DFactorialFn());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (factorial(5) == 120),
                 "fix(factorial_fn)(5) == 120");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (factorial(0) == 1),
                 "fix(factorial_fn)(0) == 1 (base case)");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (factorial(1) == 1),
                 "fix(factorial_fn)(1) == 1 (base case)");
         });
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     // recursive factorial via a generic lambda
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fix expresses a recursive factorial (generic lambda)",
         [&]()
@@ -105,15 +96,13 @@ void compose_tests_fix(
                     return (_n <= 1) ? 1 : (_n * _self(_n - 1));
                 });
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (factorial(6) == 720),
                 "fix factorial(6) == 720");
         });
 
     // recursive Fibonacci -- a different shape, to show genericity
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fix expresses a recursive Fibonacci (generic lambda)",
         [&]()
@@ -124,20 +113,17 @@ void compose_tests_fix(
                     return (_n < 2) ? _n : (_self(_n - 1) + _self(_n - 2));
                 });
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (fib(10) == 55),
                 "fix fib(10) == 55");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (fib(0) == 0 && fib(1) == 1),
                 "fix fib base cases (0 -> 0, 1 -> 1)");
         });
 
     // multi-argument recursion: Euclid's gcd
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fix supports multi-argument recursion (generic lambda)",
         [&]()
@@ -148,19 +134,17 @@ void compose_tests_fix(
                     return (_b == 0) ? _a : _self(_b, _a % _b);
                 });
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (gcd(48, 18) == 6),
                 "fix gcd(48, 18) == 6");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (gcd(17, 5) == 1),
                 "fix gcd(17, 5) == 1 (coprime)");
         });
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-    return;
+    return verdict;
 }
 
 

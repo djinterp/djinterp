@@ -44,7 +44,7 @@
 * path:      /tests/djinterp/cpp/functional/value_list_tests.hpp
 * link(s):   TBA
 * author(s): teer                                            created: 2026.07.12
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -82,11 +82,26 @@ VI.   REDUCTION        (fold)
 #include <type_traits>
 // djinterp
 // djinterp (module under test)
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/value_list.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,6 +339,8 @@ constexpr int which_list(_Type) { return 0; }
 
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -411,6 +428,272 @@ bool tests_fold_reverses_with_prepend();
 bool tests_fold_deep();
 bool tests_fold_seed_may_be_a_plain_value();
 bool tests_fold_and_transform_compose();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// value_list_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+value_list_spec()
+{
+    return dt::module_spec{
+        "value_list",
+        "size(), the empty-object layout, heterogeneity, the C++17 tier",
+        {
+            dt::block_spec{
+                "list",
+                "List",
+                {
+                    { "tests_value_list_size_member",
+                      "The list reports its own length",
+                      &tests_value_list_size_member },
+                    { "tests_value_list_is_empty_object",
+                      "The values live in the TYPE, so the list carries no "
+                      "storage -- it is an empty struct, cheap to pass by "
+                      "value into the constexpr free-function ops",
+                      &tests_value_list_is_empty_object },
+                    { "tests_value_list_heterogeneous",
+                      "The pack is auto..., so the elements need not share a "
+                      "type -- this is the value-domain analog of a "
+                      "std::tuple's heterogeneity",
+                      &tests_value_list_heterogeneous },
+                    { "tests_value_list_size_noexcept",
+                      "size() is a static constexpr noexcept function -- "
+                      "usable anywhere a constant is needed, and never "
+                      "throwing",
+                      &tests_value_list_size_noexcept },
+                    { "tests_value_list_duplicates",
+                      "A list is a sequence, not a set: repeated values are "
+                      "distinct elements, each addressable",
+                      &tests_value_list_duplicates },
+                    { "tests_value_list_type_identity",
+                      "Two lists are the same type exactly when their packs "
+                      "match -- so ORDER matters, and so does the TYPE of "
+                      "each value, since an NTTP carries its type with it",
+                      &tests_value_list_type_identity },
+                    { "tests_value_list_tier_gate",
+                      "The TIER claim: DValueList is an auto-NTTP facility, "
+                      "so the module is gated to C++17 and below that the "
+                      "header declares NOTHING (it adds no trait-floor "
+                      "surface)",
+                      &tests_value_list_tier_gate },
+                }
+            },
+            dt::block_spec{
+                "detection",
+                "Detection",
+                {
+                    { "tests_is_value_list_positive",
+                      "Any DValueList specialization is recognised",
+                      &tests_is_value_list_positive },
+                    { "tests_is_value_list_negative",
+                      "Everything else is refused -- notably std::tuple, "
+                      "which is the TYPE-domain sequence this module is the "
+                      "value-domain counterpart of",
+                      &tests_is_value_list_negative },
+                    { "tests_is_value_list_exact",
+                      "Detection is specialization-based, so it is EXACT: "
+                      "mimicking the interface does not qualify, and neither "
+                      "does deriving from a list",
+                      &tests_is_value_list_exact },
+                    { "tests_is_value_list_cvref",
+                      "clean_t is applied first, so cv-qualifiers and "
+                      "references are stripped before the match",
+                      &tests_is_value_list_cvref },
+                    { "tests_is_value_list_v_agrees",
+                      "The _v companion (emitted by D_TYPE_TRAIT_VALUE_BOOL) "
+                      "is exactly the trait's value",
+                      &tests_is_value_list_v_agrees },
+                    { "tests_concept_value_list",
+                      "ValueList is the concept face of is_value_list, and it "
+                      "really GATES resolution -- it is a constraint, not "
+                      "merely a bool that happens to be true",
+                      &tests_concept_value_list },
+                    { "tests_concept_value_list_gating",
+                      "The concept face is gated to C++20, one tier above the "
+                      "module's own C++17 floor, leaving is_value_list as the "
+                      "always-present face in between",
+                      &tests_concept_value_list_gating },
+                }
+            },
+            dt::block_spec{
+                "access",
+                "Access",
+                {
+                    { "tests_value_list_size_trait",
+                      "value_list_size is the value-domain analog of "
+                      "std::tuple_size",
+                      &tests_value_list_size_trait },
+                    { "tests_value_list_size_integral_constant",
+                      "It IS an integral_constant, so it carries that whole "
+                      "surface -- the same as std::tuple_size",
+                      &tests_value_list_size_integral_constant },
+                    { "tests_value_list_size_v_agrees",
+                      "The _v shorthand is exactly the trait's value",
+                      &tests_value_list_size_v_agrees },
+                    { "tests_value_list_at_positions",
+                      "value_list_at yields the I-th value, 0-based",
+                      &tests_value_list_at_positions },
+                    { "tests_value_list_at_preserves_value_type",
+                      "An NTTP carries its type with it, so the extracted "
+                      "value keeps that type -- an int stays an int, a char a "
+                      "char, an enum an enum",
+                      &tests_value_list_at_preserves_value_type },
+                    { "tests_value_list_at_deep",
+                      "The accessor peels one head per index step, so a deep "
+                      "index exercises that recursion",
+                      &tests_value_list_at_deep },
+                    { "tests_value_list_at_v_agrees",
+                      "The _v shorthand is exactly the trait's value, at "
+                      "every index",
+                      &tests_value_list_at_v_agrees },
+                    { "tests_at_returns_carrier",
+                      "at<I>(list) is the object-domain accessor: it hands "
+                      "back the element as a val_t carrier, so it slots "
+                      "straight into the carrier pipeline",
+                      &tests_at_returns_carrier },
+                    { "tests_at_feeds_the_carrier_pipeline",
+                      "The point of returning a carrier: at()'s result is "
+                      "exactly what append / prepend consume, so element "
+                      "access composes with growth without an unwrap step",
+                      &tests_at_feeds_the_carrier_pipeline },
+                    { "tests_traits_require_an_unqualified_list",
+                      "A sharp edge, pinned",
+                      &tests_traits_require_an_unqualified_list },
+                }
+            },
+            dt::block_spec{
+                "growth",
+                "Growth",
+                {
+                    { "tests_append",
+                      "append puts the new element at the END",
+                      &tests_append },
+                    { "tests_append_to_empty",
+                      "Appending to the empty list yields a singleton -- the "
+                      "base of the collect step",
+                      &tests_append_to_empty },
+                    { "tests_prepend",
+                      "prepend puts the new element at the FRONT -- the "
+                      "mirror of append, and the reason fold with it reverses "
+                      "a list",
+                      &tests_prepend },
+                    { "tests_prepend_to_empty",
+                      "Prepending to the empty list yields a singleton",
+                      &tests_prepend_to_empty },
+                    { "tests_growth_heterogeneous",
+                      "Growth does not homogenise: an element keeps its own "
+                      "type as it joins the list",
+                      &tests_growth_heterogeneous },
+                    { "tests_concat_nullary_and_unary",
+                      "The two degenerate arities: concat of nothing is the "
+                      "empty list, and concat of one list is that list (the "
+                      "identity overload, which returns its argument)",
+                      &tests_concat_nullary_and_unary },
+                    { "tests_concat_binary",
+                      "The two-list base case, which every longer concat "
+                      "folds down to",
+                      &tests_concat_binary },
+                    { "tests_concat_variadic",
+                      "Three or more lists take the >= 3 overload, which "
+                      "folds pairwise from the left",
+                      &tests_concat_variadic },
+                    { "tests_concat_empty_lists",
+                      "Empty lists contribute nothing, wherever they sit",
+                      &tests_concat_empty_lists },
+                    { "tests_concat_monoid_laws",
+                      "concat is a monoid over value_lists: associative, with "
+                      "the empty list as its identity element on both sides",
+                      &tests_concat_monoid_laws },
+                }
+            },
+            dt::block_spec{
+                "transform",
+                "Transform",
+                {
+                    { "tests_transform_maps_every_element",
+                      "transform applies the leaf to each element and returns "
+                      "a new list -- the value-domain analog of dtuple's "
+                      "tuple_apply_all",
+                      &tests_transform_maps_every_element },
+                    { "tests_transform_empty",
+                      "Mapping over the empty list yields the empty list -- "
+                      "the pack expansion has nothing to expand, so the leaf "
+                      "is never even probed",
+                      &tests_transform_empty },
+                    { "tests_transform_law_identity",
+                      "The functor identity law: mapping the identity leaf "
+                      "changes nothing",
+                      &tests_transform_law_identity },
+                    { "tests_transform_law_composition",
+                      "The functor composition law: mapping f then g is "
+                      "mapping (g ",
+                      &tests_transform_law_composition },
+                    { "tests_transform_changes_value_type",
+                      "The leaf may change the value's TYPE, not merely its "
+                      "value -- an int list can come back a bool list",
+                      &tests_transform_changes_value_type },
+                    { "tests_transform_unevaluated_probe",
+                      "transform needs only the leaf's RESULT TYPE, so it "
+                      "probes it in an UNEVALUATED context: "
+                      "decltype(declval<_Op&>()(val<V>))::value",
+                      &tests_transform_unevaluated_probe },
+                    { "tests_transform_heterogeneous",
+                      "A generic leaf maps a mixed list, each element "
+                      "entering at its own type",
+                      &tests_transform_heterogeneous },
+                    { "tests_transform_preserves_length",
+                      "transform is a map, not a filter: the result has "
+                      "exactly as many elements as the source, always",
+                      &tests_transform_preserves_length },
+                }
+            },
+            dt::block_spec{
+                "fold",
+                "Fold",
+                {
+                    { "tests_fold_reduces",
+                      "fold threads a binary carrier-callable reducer over "
+                      "the list, from a seed",
+                      &tests_fold_reduces },
+                    { "tests_fold_empty_returns_seed",
+                      "The base case: an empty list folds to the accumulator, "
+                      "untouched -- the reducer is never invoked",
+                      &tests_fold_empty_returns_seed },
+                    { "tests_fold_is_left_associative",
+                      "fold is left associative",
+                      &tests_fold_is_left_associative },
+                    { "tests_fold_single_element",
+                      "The one-element case exercises exactly one turn of the "
+                      "recursion before the base case",
+                      &tests_fold_single_element },
+                    { "tests_fold_accumulator_may_be_a_list",
+                      "The seed is \"any object\" -- typically a carrier, but "
+                      "a DValueList serves just as well",
+                      &tests_fold_accumulator_may_be_a_list },
+                    { "tests_fold_reverses_with_prepend",
+                      "The same fold with prepend instead of append REVERSES "
+                      "the list -- each element arrives at the front, so the "
+                      "last one processed ends up first",
+                      &tests_fold_reverses_with_prepend },
+                    { "tests_fold_deep",
+                      "A long list exercises the recursion to depth",
+                      &tests_fold_deep },
+                    { "tests_fold_seed_may_be_a_plain_value",
+                      "The seed is \"any object\" -- not only a carrier or a "
+                      "list",
+                      &tests_fold_seed_may_be_a_plain_value },
+                    { "tests_fold_and_transform_compose",
+                      "The two drivers compose: map, then reduce",
+                      &tests_fold_and_transform_compose },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

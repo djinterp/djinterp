@@ -41,7 +41,7 @@
 * path:      /tests/djinterp/cpp/functional/filter_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -105,6 +105,10 @@ IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: filter_spec)
         }                                                                     \
     } while (0)
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
@@ -445,7 +449,7 @@ dt::module_spec filter_spec()
                 "filterable container traits (folded from filterable_traits.hpp)",
                 {
                     { "filterable_member_detection", "Exercises the low-level member detectors at run time.",     &test_filterable_member_detection },
-                    { "filterable_iterable",         "Exercises the is_iterable composite.",                      &test_filterable_iterable },
+                    { "filterable_iterable",         "Exercises the iteration is_filterable reads.",              &test_filterable_iterable },
                     { "filterable_output_capable",   "Exercises the is_output_capable composite.",                &test_filterable_output_capable },
                     { "filterable_composite",        "Exercises the top-level is_filterable contract, incl. the array edge.", &test_filterable_composite },
                     { "filterable_native_method",    "Exercises has_filter_method.",                              &test_filterable_native_method },

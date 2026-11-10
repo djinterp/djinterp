@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_cursor_policies.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -23,9 +23,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_write_only_cursor_policy
   Covers the write_only_cursor_policy struct.
@@ -41,10 +39,10 @@ tests_write_only_cursor_policy
   - sequential write/advance/reset transitions preserve the
     expected invariants
 */
-void tests_write_only_cursor_policy(
-    test_handler& _handler
-)
+bool tests_write_only_cursor_policy()
 {
+    bool ok = true;
+
     using policy = write_only_cursor_policy;
     using state  = policy::cursor_state;
 
@@ -57,13 +55,11 @@ void tests_write_only_cursor_policy(
         policy::has_read_cursor == false,
         "write_only::has_read_cursor must be false.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::model == buffer_cursor_model::write_only,
         "write_only: model == ::write_only");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::has_read_cursor == false,
         "write_only: has_read_cursor == false");
 
@@ -71,25 +67,21 @@ void tests_write_only_cursor_policy(
 
     state s = policy::init();
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.write_pos == 0,
         "write_only: init() produces write_pos == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::written(s) == 0,
         "write_only: written(init()) == 0");
 
     // --- writable() ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 100,
         "write_only: writable({0}, 100) == 100");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 0) == 0,
         "write_only: writable({0}, 0) == 0");
 
@@ -97,39 +89,33 @@ void tests_write_only_cursor_policy(
 
     policy::advance_write(s, 10);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.write_pos == 10,
         "write_only: advance_write(10) sets write_pos to 10");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::written(s) == 10,
         "write_only: written(s) == 10 after advance");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 90,
         "write_only: writable({10}, 100) == 90");
 
     // advance by zero is a no-op
     policy::advance_write(s, 0);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.write_pos == 10,
         "write_only: advance_write(0) leaves write_pos unchanged");
 
     // advance again to confirm accumulation
     policy::advance_write(s, 5);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::written(s) == 15,
         "write_only: advance_write(5) accumulates to 15");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 85,
         "write_only: writable after second advance == 85");
 
@@ -137,22 +123,21 @@ void tests_write_only_cursor_policy(
 
     policy::reset(s);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.write_pos == 0,
         "write_only: reset() zeros write_pos");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::written(s) == 0,
         "write_only: written(s) == 0 after reset");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 100,
         "write_only: writable() restored to full capacity after reset");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -174,10 +159,10 @@ tests_dual_cursor_policy
       - partially consumed (memmove path)
       - no consumption (read_pos == 0, early-exit path)
 */
-void tests_dual_cursor_policy(
-    test_handler& _handler
-)
+bool tests_dual_cursor_policy()
 {
+    bool ok = true;
+
     using policy = dual_cursor_policy;
     using state  = policy::cursor_state;
 
@@ -190,13 +175,11 @@ void tests_dual_cursor_policy(
         policy::has_read_cursor == true,
         "dual::has_read_cursor must be true.");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::model == buffer_cursor_model::dual,
         "dual: model == ::dual");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::has_read_cursor == true,
         "dual: has_read_cursor == true");
 
@@ -204,40 +187,33 @@ void tests_dual_cursor_policy(
 
     state s = policy::init();
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.write_pos == 0,
         "dual: init() produces write_pos == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.read_pos == 0,
         "dual: init() produces read_pos == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::written(s) == 0,
         "dual: written(init()) == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::consumed(s) == 0,
         "dual: consumed(init()) == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::readable(s) == 0,
         "dual: readable(init()) == 0");
 
     // --- writable() / readable() with initial state ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 100,
         "dual: writable({0,0}, 100) == 100");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 0) == 0,
         "dual: writable({0,0}, 0) == 0");
 
@@ -245,23 +221,19 @@ void tests_dual_cursor_policy(
 
     policy::advance_write(s, 20);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.write_pos == 20,
         "dual: advance_write(20) sets write_pos to 20");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::written(s) == 20,
         "dual: written(s) == 20");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::readable(s) == 20,
         "dual: readable(s) == 20  (write_pos - read_pos)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 80,
         "dual: writable(s, 100) == 80");
 
@@ -269,31 +241,26 @@ void tests_dual_cursor_policy(
 
     policy::advance_read(s, 5);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         s.read_pos == 5,
         "dual: advance_read(5) sets read_pos to 5");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::consumed(s) == 5,
         "dual: consumed(s) == 5");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::readable(s) == 15,
         "dual: readable(s) == 15  (20 - 5)");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::writable(s, 100) == 80,
         "dual: writable unchanged by advance_read");
 
     // advance_read by zero is a no-op
     policy::advance_read(s, 0);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (s.read_pos == 5) && (s.write_pos == 20),
         "dual: advance_read(0) is a no-op");
 
@@ -301,13 +268,11 @@ void tests_dual_cursor_policy(
 
     policy::reset(s);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (s.write_pos == 0) && (s.read_pos == 0),
         "dual: reset() zeros both cursors");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         policy::readable(s) == 0,
         "dual: readable(s) == 0 after reset");
 
@@ -324,18 +289,15 @@ void tests_dual_cursor_policy(
 
         std::size_t pending = policy::compact(e, data);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 0,
             "dual: compact(empty) returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (e.read_pos == 0) && (e.write_pos == 0),
             "dual: compact(empty) leaves cursors zeroed");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             // payload must be untouched: no memmove triggered
             (static_cast<unsigned char>(data[0]) == 0xAB),
             "dual: compact(empty) does not touch the payload");
@@ -350,19 +312,16 @@ void tests_dual_cursor_policy(
 
         std::size_t pending = policy::compact(f, data);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 0,
             "dual: compact(all-consumed) returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (f.read_pos == 0) && (f.write_pos == 0),
             "dual: compact(all-consumed) zeros both cursors");
 
         // no memmove because pending == 0; payload unchanged
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(data, "ABCDEFGH12345678", 16) == 0,
             "dual: compact(all-consumed) does not touch payload "
             "(memmove skipped)");
@@ -377,13 +336,11 @@ void tests_dual_cursor_policy(
 
         std::size_t pending = policy::compact(p, data);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 5,
             "dual: compact(partial) returns 5 pending bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (p.read_pos == 0) && (p.write_pos == 5),
             "dual: compact(partial) resets read_pos, sets "
             "write_pos to pending");
@@ -391,8 +348,7 @@ void tests_dual_cursor_policy(
         // Bytes 3..7 ("DEFGH") should have been shifted to the
         // front; the tail content at positions 5..15 is permitted
         // by spec to be anything, so we only check the head.
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(data, "DEFGH", 5) == 0,
             "dual: compact(partial) shifts unconsumed bytes to "
             "the front (memmove)");
@@ -407,29 +363,28 @@ void tests_dual_cursor_policy(
 
         std::size_t pending = policy::compact(u, data);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 6,
             "dual: compact(no-consumption) returns 6 pending bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (u.read_pos == 0) && (u.write_pos == 6),
             "dual: compact(no-consumption) preserves cursor "
             "positions (early-exit path)");
 
         // memmove is skipped because read_pos is already zero;
         // payload must be byte-for-byte unchanged.
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(data, "QWERTY1234567890", 16) == 0,
             "dual: compact(no-consumption) does not touch payload "
             "(memmove skipped)");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

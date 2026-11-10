@@ -10,8 +10,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/consumer_tests_branching.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -23,10 +23,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
@@ -73,22 +69,21 @@ consumer_tests_branching
   - fallback runs the secondary when the primary throws
   - fallback lets an exception from the secondary propagate
 */
-void consumer_tests_branching(
-    test_handler& _handler
-)
+bool consumer_tests_branching()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // conditional: split evens / odds
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "conditional routes inputs by the predicate",
         [&]()
         {
             std::vector<int> evens;
             std::vector<int> odds;
-            auto c = ::djinterp::consumers::conditional(
+            auto c = djinterp::conditional(
                 is_even(),
                 probe_sink(evens),
                 probe_sink(odds));
@@ -101,22 +96,20 @@ void consumer_tests_branching(
             const std::vector<int> expected_even = { 0, 2, 4 };
             const std::vector<int> expected_odd  = { 1, 3 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (evens == expected_even && odds == expected_odd),
                 "conditional split 0..4 into evens {0,2,4} / odds {1,3}");
         });
 
     // conditional: always-true uses only the true branch
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "conditional with always-true uses only the true branch",
         [&]()
         {
             std::vector<int> t;
             std::vector<int> f;
-            auto c = ::djinterp::consumers::conditional(
+            auto c = djinterp::conditional(
                 always_true(),
                 probe_sink(t),
                 probe_sink(f));
@@ -126,22 +119,20 @@ void consumer_tests_branching(
 
             const std::vector<int> expected = { 1, 2 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (t == expected && f.empty()),
                 "conditional(always_true) used only the true branch");
         });
 
     // conditional: always-false uses only the false branch
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "conditional with always-false uses only the false branch",
         [&]()
         {
             std::vector<int> t;
             std::vector<int> f;
-            auto c = ::djinterp::consumers::conditional(
+            auto c = djinterp::conditional(
                 always_false(),
                 probe_sink(t),
                 probe_sink(f));
@@ -151,15 +142,13 @@ void consumer_tests_branching(
 
             const std::vector<int> expected = { 1, 2 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (f == expected && t.empty()),
                 "conditional(always_false) used only the false branch");
         });
 
     // conditional: predicate evaluated exactly once per input
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "conditional evaluates the predicate once per input",
         [&]()
@@ -167,7 +156,7 @@ void consumer_tests_branching(
             std::size_t      calls = 0;
             std::vector<int> evens;
             std::vector<int> odds;
-            auto c = ::djinterp::consumers::conditional(
+            auto c = djinterp::conditional(
                 counting_predicate(calls),
                 probe_sink(evens),
                 probe_sink(odds));
@@ -176,22 +165,20 @@ void consumer_tests_branching(
             c(2);
             c(3);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (calls == 3),
                 "conditional evaluated the predicate 3 times for 3 inputs");
         });
 
     // fallback: primary succeeds, secondary untouched
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fallback runs only the primary when it does not throw",
         [&]()
         {
             std::vector<int> primary;
             std::vector<int> secondary;
-            auto fb = ::djinterp::consumers::fallback(
+            auto fb = djinterp::fallback(
                 probe_sink(primary),
                 probe_sink(secondary));
 
@@ -200,21 +187,19 @@ void consumer_tests_branching(
 
             const std::vector<int> expected = { 1, 2 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (primary == expected && secondary.empty()),
                 "fallback used the primary; secondary stayed empty");
         });
 
     // fallback: primary throws, secondary handles
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fallback runs the secondary when the primary throws",
         [&]()
         {
             std::vector<int> secondary;
-            auto fb = ::djinterp::consumers::fallback(
+            auto fb = djinterp::fallback(
                 throwing_sink(),
                 probe_sink(secondary));
 
@@ -223,20 +208,18 @@ void consumer_tests_branching(
 
             const std::vector<int> expected = { 5, 6 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (secondary == expected),
                 "fallback routed {5, 6} to the secondary on throw");
         });
 
     // fallback: secondary's own exception propagates
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "fallback propagates an exception thrown by the secondary",
         [&]()
         {
-            auto fb = ::djinterp::consumers::fallback(
+            auto fb = djinterp::fallback(
                 throwing_sink(),
                 throwing_sink());
 
@@ -251,13 +234,12 @@ void consumer_tests_branching(
                 propagated = true;
             }
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 propagated,
                 "fallback let the secondary's exception propagate");
         });
 
-    return;
+    return verdict;
 }
 
 

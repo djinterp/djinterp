@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/polynomial_tests_traversable.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  polynomial_tests_traversable.cpp
 //   Section IV -- traversable_traits specialisations, traverse, and sequence.
@@ -206,14 +206,14 @@ bool tests_sequence_poly_var()
     bool ok = true;
 
     // present -> just(poly_var{7}).
-    auto r = sequence(poly_var<DTestMaybe<int> >(t_just(7)));
+    auto r = traverse_sequence(poly_var<DTestMaybe<int> >(t_just(7)));
     ok = ok && (std::is_same<decltype(r),
                              DTestMaybe<poly_var<int> > >::value);
     ok = ok && (r.has == true);
     ok = ok && (r.val.content == 7);
 
     // absent -> nothing.
-    auto rn = sequence(poly_var<DTestMaybe<int> >(t_nothing<int>()));
+    auto rn = traverse_sequence(poly_var<DTestMaybe<int> >(t_nothing<int>()));
     ok = ok && (rn.has == false);
 
     return ok;
@@ -232,13 +232,13 @@ bool tests_sequence_poly_unit_const()
     bool ok = true;
 
     // unit: no effect to sequence -> present.
-    auto ru = sequence(poly_unit<DTestMaybe<int> >());
+    auto ru = traverse_sequence(poly_unit<DTestMaybe<int> >());
     ok = ok && (std::is_same<decltype(ru),
                              DTestMaybe<poly_unit<int> > >::value);
     ok = ok && (ru.has == true);
 
     // const: constant threads through, present.
-    auto rc = sequence(poly_const<char, DTestMaybe<int> >('k'));
+    auto rc = traverse_sequence(poly_const<char, DTestMaybe<int> >('k'));
     ok = ok && (std::is_same<decltype(rc),
                              DTestMaybe<poly_const<char, int> > >::value);
     ok = ok && (rc.has == true);

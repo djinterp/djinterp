@@ -1,114 +1,43 @@
-/******************************************************************************
-* djinterp [testing]                 runtime_container_traits_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                      runtime_container_traits_tests_runner.cpp
 *
-*   Entry point for the runtime_container_traits.hpp unit suite.
-* Calls every test function in the order the test header declares its
-* sections, prints a per-test verdict, and reports a non-zero exit status
-* if any test failed - so CTest reads the result without any further
-* reporting machinery.
+*   The runner for runtime_container_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
 *
-*   The tests themselves live in the section TUs under
-* tests/djinterp/cpp/container/traits; this file holds only the driver, per
-* the config-tree convention that a runner sits beside the CMakeLists that
-* builds it.
-*
-*   The header divides into three numbered sections and the sections below
-* follow them: the structural probes, the two classification umbrellas built
-* on those probes, and the aggregate that restates both.
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/container/traits/runtime_container_traits/runtime_container_traits_tests_runner.cpp
-*                                   runtime_container_traits_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
 
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "runtime_container_traits_tests.hpp"
+#include "runtime_container_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-namespace
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    // run
-    //   function: invokes one test function and records its verdict.
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
+    dt::test_option_set opts = dt::default_test_options();
 
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("runtime_container_traits_tests.pdf"));
 
-        if (ok)
-        {
-            ++g_passed;
-        }
-        else
-        {
-            ++g_failed;
-        }
-
-        return;
-    }
-
-    // section
-    //   function: prints a section banner.
-    void section(
-        const char* _title
-    )
-    {
-        std::printf("\n%s\n", _title);
-
-        return;
-    }
-
-}  // namespace
-
-// D_RT_RUN
-//   macro: names a test once, as both the label and the callee, so the two
-// cannot drift apart.
-#define D_RT_RUN(_fn)  run(#_fn, &::djinterp::testing::_fn)
-
-
-int main()
-{
-    std::printf("runtime_container_traits.hpp - unit suite\n");
-
-    section("I.   Structural signals");
-    D_RT_RUN(tests_has_size_accessor_signal);
-    D_RT_RUN(tests_has_allocator_alias);
-    D_RT_RUN(tests_has_reserve_method_signal);
-    D_RT_RUN(tests_signals_are_independent);
-    D_RT_RUN(tests_signals_std_types);
-    D_RT_RUN(tests_signals_cv_ref);
-    D_RT_RUN(tests_signals_companions);
-
-    section("II.  Classification umbrellas");
-    D_RT_RUN(tests_is_runtime_container);
-    D_RT_RUN(tests_is_runtime_container_needs_shape);
-    D_RT_RUN(tests_is_runtime_container_needs_runtime_only);
-    D_RT_RUN(tests_runtime_only_is_exact_equality);
-    D_RT_RUN(tests_requires_runtime_storage);
-    D_RT_RUN(tests_requires_runtime_storage_is_independent);
-    D_RT_RUN(tests_classification_std_types);
-    D_RT_RUN(tests_classification_cv_ref);
-    D_RT_RUN(tests_classification_companions);
-
-    section("III. Aggregate snapshot");
-    D_RT_RUN(tests_runtime_container_class_signals);
-    D_RT_RUN(tests_runtime_container_class_verdicts);
-    D_RT_RUN(tests_runtime_container_class_life);
-    D_RT_RUN(tests_runtime_container_class_agreement);
-    D_RT_RUN(tests_runtime_container_class_cv_ref);
-
-    std::printf("\npassed: %d   failed: %d\n", g_passed, g_failed);
-
-    return (g_failed == 0) ? 0 : 1;
+    return dt::run_module(
+        tt::runtime_container_traits_spec(),
+        "runtime_container_traits.hpp unit tests",
+        "structural traits for the RUNTIME end of a container's Lifetime axis",
+        opts);
 }
-
-#undef D_RT_RUN

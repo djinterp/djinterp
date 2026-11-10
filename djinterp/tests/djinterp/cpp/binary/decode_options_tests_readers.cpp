@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/decode_options_tests_readers.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "decode_options_tests.hpp"
@@ -29,14 +29,14 @@ bool tests_decode_options_get_uint()
     {
         const byte_string _b = { 0x12, 0x34 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::big>(_r, 2, _v));
         D_DO_CHECK(_v == 0x1234u);
     }
     {
         const byte_string _b = { 0xDE, 0xAD, 0xBE, 0xEF };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::big>(_r, 4, _v));
         D_DO_CHECK(_v == 0xDEADBEEFu);
     }
@@ -44,14 +44,14 @@ bool tests_decode_options_get_uint()
     {
         const byte_string _b = { 0x34, 0x12 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 2, _v));
         D_DO_CHECK(_v == 0x1234u);
     }
     {
         const byte_string _b = { 0xEF, 0xBE, 0xAD, 0xDE };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 4, _v));
         D_DO_CHECK(_v == 0xDEADBEEFu);
     }
@@ -59,7 +59,7 @@ bool tests_decode_options_get_uint()
     {
         const byte_string _b = { 0x2A };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 1, _v));
         D_DO_CHECK(_v == 0x2Au);
     }
@@ -67,7 +67,7 @@ bool tests_decode_options_get_uint()
         const byte_string _b =
             { 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 8, _v));
         D_DO_CHECK(_v == 0x0102030405060708ull);
     }
@@ -76,7 +76,7 @@ bool tests_decode_options_get_uint()
         const byte_string _b =
             { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(!djinterp::internal::get_uint<DSerialEndian::big>(_r, 9, _v));
         D_DO_CHECK(_r.good());
         D_DO_CHECK(_r.remaining() == 9);
@@ -85,7 +85,7 @@ bool tests_decode_options_get_uint()
     {
         const byte_string _b = { 0x01, 0x02 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(!djinterp::internal::get_uint<DSerialEndian::little>(_r, 4, _v));
         D_DO_CHECK(!_r.good());
     }
@@ -104,7 +104,7 @@ tests_decode_options_get_varint
 */
 bool tests_decode_options_get_varint()
 {
-    struct case_t { byte_string bytes; std::uint64_t value; };
+    struct case_t { byte_string bytes; re_std::uint64_t value; };
     const case_t _cases[] =
     {
         { { 0x00 }, 0u },
@@ -119,7 +119,7 @@ bool tests_decode_options_get_varint()
     for (std::size_t _i = 0; _i < (sizeof(_cases) / sizeof(_cases[0])); ++_i)
     {
         DByteReader _r(_cases[_i].bytes);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_varint(_r, _v));
         D_DO_CHECK(_v == _cases[_i].value);
     }
@@ -128,7 +128,7 @@ bool tests_decode_options_get_varint()
     {
         const byte_string _b = { 0x80 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(!djinterp::internal::get_varint(_r, _v));
     }
     // overlong: ten continuation groups overrun the 64-bit budget
@@ -136,7 +136,7 @@ bool tests_decode_options_get_varint()
         const byte_string _b =
             { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK(!djinterp::internal::get_varint(_r, _v));
     }
 
@@ -158,14 +158,14 @@ bool tests_decode_options_get_length()
     {
         const byte_string _b = { 0x00, 0x05 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u16, DSerialEndian::big>(_r, _v)));
         D_DO_CHECK(_v == 5u);
     }
     {
         const byte_string _b = { 0x00, 0x00, 0x00, 0x05 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u32, DSerialEndian::big>(_r, _v)));
         D_DO_CHECK(_v == 5u);
     }
@@ -173,7 +173,7 @@ bool tests_decode_options_get_length()
         const byte_string _b =
             { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u64, DSerialEndian::big>(_r, _v)));
         D_DO_CHECK(_v == 5u);
     }
@@ -181,7 +181,7 @@ bool tests_decode_options_get_length()
     {
         const byte_string _b = { 0x05, 0x00 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u16, DSerialEndian::little>(_r, _v)));
         D_DO_CHECK(_v == 5u);
     }
@@ -189,7 +189,7 @@ bool tests_decode_options_get_length()
     {
         const byte_string _b = { 0xAC, 0x02 };
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::varint, DSerialEndian::big>(_r, _v)));
         D_DO_CHECK(_v == 300u);
     }
@@ -197,7 +197,7 @@ bool tests_decode_options_get_length()
     {
         const byte_string _b = { 0x00 };  // u16 needs two bytes
         DByteReader _r(_b);
-        std::uint64_t _v = 0;
+        re_std::uint64_t _v = 0;
         D_DO_CHECK((!djinterp::internal::get_length<DSerialLength::u16, DSerialEndian::big>(_r, _v)));
     }
 

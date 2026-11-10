@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/transducer_tests_composition.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <vector>
@@ -30,8 +30,8 @@ test_composition_compose2
 bool test_composition_compose2()
 {
     std::vector<int> in = { 1, 2, 3 };
-    auto xform = compose(transducers::map(square()),
-                         transducers::filter(is_even()));
+    auto xform = compose(djinterp::map(square()),
+                         djinterp::filter(is_even()));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 1);
@@ -51,9 +51,9 @@ test_composition_compose_variadic
 bool test_composition_compose_variadic()
 {
     std::vector<int> in = { 1, 2, 3, 4 };
-    auto xform = compose(transducers::map(plus_one()),
-                         transducers::map(square()),
-                         transducers::take(2));
+    auto xform = compose(djinterp::map(plus_one()),
+                         djinterp::map(square()),
+                         djinterp::take_transducer(2));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 2);
@@ -73,7 +73,7 @@ test_composition_pipe_operator
 bool test_composition_pipe_operator()
 {
     std::vector<int> in = { 1, 2, 3 };
-    auto xform = transducers::map(square()) | transducers::filter(is_even());
+    auto xform = djinterp::map(square()) | djinterp::filter(is_even());
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 1);
@@ -94,8 +94,8 @@ test_composition_pipe_lvalue
 bool test_composition_pipe_lvalue()
 {
     std::vector<int> in = { 1, 2, 3, 4 };
-    auto m = transducers::map(plus_one());
-    auto f = transducers::filter(is_even());
+    auto m = djinterp::map(plus_one());
+    auto f = djinterp::filter(is_even());
     auto xform = m | f;
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
@@ -122,12 +122,12 @@ bool test_composition_order()
 {
     std::vector<int> in = { 2 };
 
-    auto a = transducers::map(plus_one()) | transducers::map(square());
+    auto a = djinterp::map(plus_one()) | djinterp::map(square());
     std::vector<int> oa = transduce_into_vector<int>(a, in);
     D_INTERNAL_TRD_CHECK(oa.size() == 1);
     D_INTERNAL_TRD_CHECK(oa[0] == 9);
 
-    auto b = transducers::map(square()) | transducers::map(plus_one());
+    auto b = djinterp::map(square()) | djinterp::map(plus_one());
     std::vector<int> ob = transduce_into_vector<int>(b, in);
     D_INTERNAL_TRD_CHECK(ob.size() == 1);
     D_INTERNAL_TRD_CHECK(ob[0] == 5);
@@ -151,7 +151,7 @@ bool test_composition_into_reducer()
         _st.accumulator() += _v;
     };
 
-    auto wrapped = into_reducer(transducers::map(square()), downstream);
+    auto wrapped = into_reducer(djinterp::map(square()), downstream);
 
     DReducingState<int> st(0);
     std::vector<int> in = { 1, 2, 3 };

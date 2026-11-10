@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/constexpr_container_traits_tests_hazards.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -129,7 +129,7 @@ bool tests_hazard_destructor()
     D_CCT_LIFE(lifetime::runtime,
                lifetime_of<std::array<std::string, 3>>::value);
     D_CCT_LIFE(lifetime::runtime,
-               container_lifetime<std::array<std::string, 3>>::value);
+               container_lifetime_of<std::array<std::string, 3>>::value);
     D_CCT_CHECK(!is_constexpr_container<std::array<std::string, 3>>::value);
 
 #if D_CCT_HAZARD_TESTS

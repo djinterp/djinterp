@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_rules.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -86,14 +86,12 @@ namespace {
 }  // unnamed namespace
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_rules(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_rules()
 {
+    bool verdict = true;
+
     using fixtures::rule_of_zero_class;
     using fixtures::rule_of_three_class;
     using fixtures::rule_of_five_class;
@@ -182,9 +180,9 @@ void concepts_tests_rules(
     DT_CONCEPT(!follows_rule_of_five_c<rule_of_zero_class>
               || follows_rule_of_three_c<rule_of_zero_class>);
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/sorted_container_traits_tests_signals.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "sorted_container_traits_tests.hpp"
@@ -267,37 +267,26 @@ bool tests_sorted_invariant_helper()
 
 /*
 tests_sorted_invariant_shapes
-  Verifies which declarations the invariant probe accepts, and documents the
-  one that cannot be tested at all.
+  Verifies which declarations the invariant probe accepts.
 
-  THE UNTESTABLE SHAPE.  A NON-STATIC data member named sorted_invariant makes
-  the header fail to compile.  The detection - decltype of the id-expression -
-  is unevaluated and so succeeds for a non-static data member, selecting the
-  specialisation; the specialisation's initialiser is then EVALUATED, and
-  reading a non-static data member without an object is ill-formed.  Because
-  that error is in the specialisation's body rather than its immediate context,
-  substitution failure cannot rescue it, and the result is a hard error:
-
-      error: invalid use of non-static data member 'X::sorted_invariant'
-
-  It is raised by any use of sortedness_of, and so transitively by every
-  predicate and by DSortedContainerClass.  This is the one shape whose fixture
-  would break the build rather than fail an assertion, so the suite carries no
-  such fixture; the bound is described here instead.  The asymmetry is worth
-  noting: the interval helper only NAMES its members and therefore never
-  evaluates anything, so the same declaration shape merely misclassifies there
-  (see tests_interval_bounds_shapes) rather than failing to compile.
-
-  A STATIC MEMBER FUNCTION is accepted, and asserts.  decltype names it, so the
-  specialisation is selected; the function then decays to a pointer, and a
-  function pointer is never null, so the cast yields true.  A member given this
-  name by accident silently claims sortedness.
+  The member must be a constant usable as a bool template argument. That one
+  requirement rejects, in substitution's immediate context, the two shapes
+  that used to misbehave (until 2026-11-09):
+  - a STATIC MEMBER FUNCTION. Named by decltype it was accepted, and it
+    decayed to a pointer that is never null, so it asserted sortedness; under
+    GCC's sanitizers that comparison was not a constant expression, and the
+    suite did not build.
+  - a NON-STATIC data member. It was selected the same way and then read
+    without an object, a hard error in any unit that classified the type.
+  Both are now ignored like a missing member. (The interval helper only
+  NAMES its members, so it never evaluated anything; see
+  tests_interval_bounds_shapes.)
 
   A TYPE ALIAS is correctly rejected, decltype of a type name being ill-formed.
 
   Tests the following:
-  - the static member function shape, asserted, and carried through to the
-    classification
+  - the static member function and the non-static shapes, each ignored, and
+    carried through to the classification
   - the type alias shape, correctly denied
   - the boundary itself: a static CONSTANT is read for its value while a static
     FUNCTION is read for its address, so two declarations of the same name and
@@ -307,13 +296,20 @@ bool tests_sorted_invariant_shapes()
 {
     bool ok = true;
 
-    // a static member function asserts, by pointer decay
+    // a static member function is no constant, so it asserts nothing
     D_SR_CHECK(
         internal::sorted_invariant_helper<DSrtInvariantFunction>::value
-            == true);
+            == false);
     D_SR_CHECK(sortedness_of<DSrtInvariantFunction>::value
-                   == sortedness::sorted);
-    D_SR_CHECK(is_sorted_container<DSrtInvariantFunction>::value == true);
+                   == sortedness::order_dependent);
+    D_SR_CHECK(is_sorted_container<DSrtInvariantFunction>::value == false);
+
+    // nor is a non-static data member, read without an object
+    D_SR_CHECK(
+        internal::sorted_invariant_helper<DSrtInvariantNonStatic>::value
+            == false);
+    D_SR_CHECK(sortedness_of<DSrtInvariantNonStatic>::value
+                   == sortedness::order_dependent);
 
     // a type alias is correctly rejected
     D_SR_CHECK(internal::sorted_invariant_helper<DSrtInvariantAlias>::value
@@ -321,14 +317,14 @@ bool tests_sorted_invariant_shapes()
     D_SR_CHECK(sortedness_of<DSrtInvariantAlias>::value
                    == sortedness::order_dependent);
 
-    // the boundary: same name, opposite readings
+    // a function and a false constant now read alike: neither asserts
     D_SR_CHECK(
         internal::sorted_invariant_helper<DSrtInvariantFunction>::value
-            != internal::sorted_invariant_helper<DSrtInvariantFalse>::value);
+            == internal::sorted_invariant_helper<DSrtInvariantFalse>::value);
 
-    // a function-shaped invariant is indistinguishable from a true constant
+    // and a function-shaped invariant is no longer a true constant's twin
     D_SR_CHECK(sortedness_of<DSrtInvariantFunction>::value
-                   == sortedness_of<DSrtInvariantTrue>::value);
+                   != sortedness_of<DSrtInvariantTrue>::value);
 
     // the two signals are joined by a disjunction, so either alone suffices
     // and both together are no different

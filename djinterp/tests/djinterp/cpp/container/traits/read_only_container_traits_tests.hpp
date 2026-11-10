@@ -38,7 +38,7 @@
 *                                        read_only_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -74,11 +74,26 @@ V.    Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/read_only_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -357,6 +372,8 @@ using DRoString = std::string;
 using DRoSet    = std::set<int>;
 using DRoMap    = std::map<int, int>;
 using DRoPair   = std::pair<int, int>;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -378,6 +395,83 @@ bool tests_read_only_lattice_exclusivity();
 bool tests_read_only_is_not_complement();
 bool tests_read_only_orthogonal_to_mutability();
 bool tests_read_only_tag_agreement();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// read_only_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+read_only_container_traits_spec()
+{
+    return dt::module_spec{
+        "read_only_container_traits",
+        "is_read_only_container, true iff a handle to the type grants "
+        "observation but NOT mutation",
+        {
+            dt::block_spec{
+                "predicate",
+                "A. The predicate",
+                {
+                    { "tests_is_read_only_container",
+                      "Verifies that the predicate selects the read_only "
+                      "capability and no other",
+                      &tests_is_read_only_container },
+                    { "tests_is_read_only_structural",
+                      "Verifies the structural route - a value observer "
+                      "present, every mutator absent",
+                      &tests_is_read_only_structural },
+                    { "tests_is_read_only_tagged",
+                      "Verifies the opt-in route - a stamped `capability` "
+                      "tag, which the baseline honours ahead of the structure",
+                      &tests_is_read_only_tagged },
+                    { "tests_is_read_only_std_types",
+                      "Verifies the predicate across the standard library, "
+                      "and records why it finds nothing there",
+                      &tests_is_read_only_std_types },
+                    { "tests_is_read_only_cv_ref",
+                      "Verifies that the predicate honours the clean_t "
+                      "contract",
+                      &tests_is_read_only_cv_ref },
+                    { "tests_is_read_only_companions",
+                      "Verifies the `_v` companion the trait_detect engine "
+                      "emits",
+                      &tests_is_read_only_companions },
+                }
+            },
+            dt::block_spec{
+                "lattice",
+                "B. Delegation, lattice and orthogonality",
+                {
+                    { "tests_read_only_delegates",
+                      "Verifies that the predicate is exactly the baseline's "
+                      "read_only verdict, and carries no second opinion",
+                      &tests_read_only_delegates },
+                    { "tests_read_only_lattice_exclusivity",
+                      "Verifies that read_only and read_write name DIFFERENT "
+                      "corners, and that no type satisfies both",
+                      &tests_read_only_lattice_exclusivity },
+                    { "tests_read_only_is_not_complement",
+                      "Verifies that read_only is NOT the negation of "
+                      "read_write - the mistake the lattice's shape invites",
+                      &tests_read_only_is_not_complement },
+                    { "tests_read_only_orthogonal_to_mutability",
+                      "Verifies the header's ORTHOGONALITY claim: the "
+                      "capability describes the HANDLE, not the data behind it",
+                      &tests_read_only_orthogonal_to_mutability },
+                    { "tests_read_only_tag_agreement",
+                      "Verifies that the predicate and the baseline's tag "
+                      "re-emission name the same corner - so a type routed by "
+                      "access_tag_of and one tested by this predicate cannot "
+                      "disagree",
+                      &tests_read_only_tag_agreement },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

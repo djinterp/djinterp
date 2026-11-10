@@ -9,8 +9,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/compose_tests_tap.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -20,10 +20,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 /*
@@ -35,15 +31,14 @@ compose_tests_tap
   - the side effect fires exactly once per call
   - tap is transparent inside a pipe chain (does not alter the result)
 */
-void compose_tests_tap(
-    test_handler& _handler
-)
+bool compose_tests_tap()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // pass-through and observation
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tap returns input unchanged and runs the side effect",
         [&]()
@@ -53,20 +48,17 @@ void compose_tests_tap(
 
             const int result = t(99);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (result == 99),
                 "tap returns its input unchanged");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (seen == 99),
                 "tap side effect observed the value");
         });
 
     // invocation count: the side effect fires once per call
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tap fires its side effect exactly once per call",
         [&]()
@@ -78,15 +70,13 @@ void compose_tests_tap(
             t(2);
             t(3);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (count == 3),
                 "tap side effect fired once per call (3 calls)");
         });
 
     // transparency inside a pipe chain
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tap is transparent inside a pipe chain",
         [&]()
@@ -98,18 +88,16 @@ void compose_tests_tap(
             // returns 6 -- the chain result must equal add_one alone.
             const int piped = ::djinterp::pipe(add_one(), probe)(5);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (piped == 6),
                 "pipe(add_one, tap)(5) == 6 (tap does not alter result)");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (seen == 6),
                 "tap inside the chain observed the intermediate value");
         });
 
-    return;
+    return verdict;
 }
 
 

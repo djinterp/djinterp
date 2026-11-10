@@ -1,0 +1,429 @@
+/*******************************************************************************
+* djinterp [test]                                         enum_map_entry_tests.c
+*
+*   Tests for enum_map_entry module - entry structure and macros only.
+*   This tests the macros defined in enum_map_entry.h, not the map operations.
+*
+*
+* path:      /tests/djinterp/c/container/map/enum_map_entry_tests.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+// std
+#include <string.h>  // strcmp, strlen
+// djinterp
+#include "./enum_map_entry_tests.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+
+
+/******************************************************************************
+ * BASIC ENTRY CREATION MACRO TESTS
+ *****************************************************************************/
+
+/*
+d_tests_enum_map_entry_basic_macros
+  Tests D_ENUM_ENTRY and D_ENUM_KEY_ENTRY (legacy alias).
+  Tests the following:
+  - D_ENUM_ENTRY creates entry with correct key
+  - D_ENUM_ENTRY creates entry with correct value
+  - D_ENUM_ENTRY handles NULL value
+  - D_ENUM_ENTRY handles various pointer types
+  - D_ENUM_KEY_ENTRY (legacy) works identically
+  - entries are properly initialized
+*/
+bool d_tests_enum_map_entry_basic_macros(struct dj_test_suite* _suite)
+{
+    int                   test_int = 42;
+    char*                 test_str = "hello";
+    bool                  test_correct_key;
+    bool                  test_correct_value;
+    bool                  test_null_value;
+    bool                  test_pointer_types;
+    bool                  test_legacy_alias;
+    bool                  test_initialized;
+
+    // test 1: correct key
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &test_int);
+    test_correct_key = (e1.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_RED);
+
+    // test 2: correct value
+    test_correct_value = (e1.value == (void*)&test_int);
+
+    // test 3: NULL value
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, NULL);
+    test_null_value = (e2.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN) && (e2.value == NULL);
+
+    // test 4: various pointer types
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, test_str);
+    test_pointer_types = (e3.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE) &&
+                         (e3.value == (void*)test_str) &&
+                         (strcmp((char*)e3.value, "hello") == 0);
+
+    // test 5: legacy alias D_ENUM_KEY_ENTRY
+    struct dj_enum_map_entry e4 = D_ENUM_KEY_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &test_int);
+    test_legacy_alias = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
+                        (e4.value == (void*)&test_int);
+
+    // test 6: properly initialized (no garbage)
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY(0, NULL);
+    test_initialized = (e5.key == 0) && (e5.value == NULL);
+
+    // build result tree
+    d_test_suite_test(_suite, "D_ENUM_ENTRY & D_ENUM_KEY_ENTRY");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "correct_key",
+                     test_correct_key,
+                     "creates entry with correct key");
+    D_TEST_CHECK_MSG(_suite,
+                     "correct_value",
+                     test_correct_value,
+                     "creates entry with correct value");
+    D_TEST_CHECK_MSG(_suite,
+                     "null_value",
+                     test_null_value,
+                     "handles NULL value");
+    D_TEST_CHECK_MSG(_suite,
+                     "pointer_types",
+                     test_pointer_types,
+                     "handles various pointer types");
+    D_TEST_CHECK_MSG(_suite,
+                     "legacy_alias",
+                     test_legacy_alias,
+                     "D_ENUM_KEY_ENTRY works identically");
+    D_TEST_CHECK_MSG(_suite,
+                     "initialized",
+                     test_initialized,
+                     "entries properly initialized");
+
+    return true;
+}
+
+
+/******************************************************************************
+ * TYPED ENTRY CREATION MACRO TESTS
+ *****************************************************************************/
+
+/*
+d_tests_enum_map_entry_typed_macros
+  Tests specialized typed entry creation macros.
+  Tests the following:
+  - D_ENUM_ENTRY_STR creates string entry correctly
+  - D_ENUM_ENTRY_INT creates integer entry correctly
+  - D_ENUM_ENTRY_NULL creates NULL entry correctly
+  - D_ENUM_ENTRY_SELF creates identity entry correctly
+  - integer values preserved across cast
+  - negative integers handled correctly
+  - string literals accessible
+*/
+bool d_tests_enum_map_entry_typed_macros(struct dj_test_suite* _suite)
+{
+    bool                  test_str_entry;
+    bool                  test_int_entry;
+    bool                  test_null_entry;
+    bool                  test_self_entry;
+    bool                  test_int_preservation;
+    bool                  test_negative_int;
+    bool                  test_str_accessible;
+
+    // test 1: D_ENUM_ENTRY_STR
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY_STR(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, "red");
+    test_str_entry = (e1.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_RED) &&
+                     (e1.value != NULL) &&
+                     (strcmp((char*)e1.value, "red") == 0);
+
+    // test 2: D_ENUM_ENTRY_INT
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY_INT(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, 42);
+    test_int_entry = (e2.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN) &&
+                     ((intptr_t)e2.value == 42);
+
+    // test 3: D_ENUM_ENTRY_NULL
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
+    test_null_entry = (e3.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE) && (e3.value == NULL);
+
+    // test 4: D_ENUM_ENTRY_SELF
+    struct dj_enum_map_entry e4 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW);
+    test_self_entry = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
+                      ((intptr_t)e4.value == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
+                      (e4.key == (intptr_t)e4.value);
+
+    // test 5: integer value preservation
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY_INT(100, 999);
+    test_int_preservation = (e5.key == 100) && ((intptr_t)e5.value == 999);
+
+    // test 6: negative integers
+    struct dj_enum_map_entry e6 = D_ENUM_ENTRY_INT(-5, -100);
+    test_negative_int = (e6.key == -5) && ((intptr_t)e6.value == -100);
+
+    // test 7: string literals accessible
+    struct dj_enum_map_entry e7 = D_ENUM_ENTRY_STR(200, "Hello, World!");
+    test_str_accessible = (e7.key == 200) &&
+                          (strcmp((char*)e7.value, "Hello, World!") == 0) &&
+                          (strlen((char*)e7.value) == 13);
+
+    // build result tree
+    d_test_suite_test(_suite, "Typed Entry Macros");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "str_entry",
+                     test_str_entry,
+                     "D_ENUM_ENTRY_STR creates string entry");
+    D_TEST_CHECK_MSG(_suite,
+                     "int_entry",
+                     test_int_entry,
+                     "D_ENUM_ENTRY_INT creates integer entry");
+    D_TEST_CHECK_MSG(_suite,
+                     "null_entry",
+                     test_null_entry,
+                     "D_ENUM_ENTRY_NULL creates NULL entry");
+    D_TEST_CHECK_MSG(_suite,
+                     "self_entry",
+                     test_self_entry,
+                     "D_ENUM_ENTRY_SELF creates identity entry");
+    D_TEST_CHECK_MSG(_suite,
+                     "int_preservation",
+                     test_int_preservation,
+                     "integer values preserved across cast");
+    D_TEST_CHECK_MSG(_suite,
+                     "negative_int",
+                     test_negative_int,
+                     "negative integers handled correctly");
+    D_TEST_CHECK_MSG(_suite,
+                     "str_accessible",
+                     test_str_accessible,
+                     "string literals accessible");
+
+    return true;
+}
+
+
+/******************************************************************************
+ * ENTRY CREATION AGGREGATOR
+ *****************************************************************************/
+
+/*
+d_tests_enum_map_entry_creation_all
+  Runs all entry creation macro tests.
+  Tests the following:
+  - Basic entry macros
+  - Typed entry macros
+*/
+bool d_tests_enum_map_entry_creation_all(struct dj_test_suite* _suite)
+{
+    d_test_suite_block(_suite, "Entry Creation Macros");
+
+    d_tests_enum_map_entry_basic_macros(_suite);
+    d_tests_enum_map_entry_typed_macros(_suite);
+
+    return true;
+}
+
+
+/******************************************************************************
+ * ENTRY COMPARISON MACRO TESTS
+ *****************************************************************************/
+
+/*
+d_tests_enum_map_entry_comparison_macros
+  Tests entry comparison macros.
+  Tests the following:
+  - D_ENUM_ENTRY_KEY_EQ compares keys correctly
+  - D_ENUM_ENTRY_KEY_EQ returns false for different keys
+  - D_ENUM_ENTRY_VAL_EQ compares values correctly
+  - D_ENUM_ENTRY_VAL_EQ returns false for different values
+  - D_ENUM_ENTRY_EQ compares both key and value
+  - D_ENUM_ENTRY_EQ requires both to match
+  - handles NULL values in comparisons
+*/
+bool d_tests_enum_map_entry_comparison_macros(struct dj_test_suite* _suite)
+{
+    int                   val1 = 42;
+    int                   val2 = 99;
+    bool                  test_key_eq_true;
+    bool                  test_key_eq_false;
+    bool                  test_val_eq_true;
+    bool                  test_val_eq_false;
+    bool                  test_entry_eq_true;
+    bool                  test_entry_eq_requires_both;
+    bool                  test_null_values;
+
+    // test 1: D_ENUM_ENTRY_KEY_EQ returns true for same key
+    struct dj_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
+    struct dj_enum_map_entry e2 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val2);
+    test_key_eq_true = D_ENUM_ENTRY_KEY_EQ(e1, e2);
+
+    // test 2: D_ENUM_ENTRY_KEY_EQ returns false for different keys
+    struct dj_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, &val1);
+    test_key_eq_false = !D_ENUM_ENTRY_KEY_EQ(e1, e3);
+
+    // test 3: D_ENUM_ENTRY_VAL_EQ returns true for same value
+    struct dj_enum_map_entry e4 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, &val1);
+    struct dj_enum_map_entry e5 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &val1);
+    test_val_eq_true = D_ENUM_ENTRY_VAL_EQ(e4, e5);
+
+    // test 4: D_ENUM_ENTRY_VAL_EQ returns false for different values
+    struct dj_enum_map_entry e6 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_PURPLE, &val2);
+    test_val_eq_false = !D_ENUM_ENTRY_VAL_EQ(e4, e6);
+
+    // test 5: D_ENUM_ENTRY_EQ returns true when both match
+    struct dj_enum_map_entry e7 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
+    struct dj_enum_map_entry e8 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val1);
+    test_entry_eq_true = D_ENUM_ENTRY_EQ(e7, e8);
+
+    // test 6: D_ENUM_ENTRY_EQ requires both to match
+    struct dj_enum_map_entry e9 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &val2);   // same key, diff value
+    struct dj_enum_map_entry e10 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, &val1); // diff key, same value
+    test_entry_eq_requires_both = !D_ENUM_ENTRY_EQ(e7, e9) && !D_ENUM_ENTRY_EQ(e7, e10);
+
+    // test 7: handles NULL values
+    struct dj_enum_map_entry e11 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
+    struct dj_enum_map_entry e12 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE);
+    test_null_values = D_ENUM_ENTRY_EQ(e11, e12);
+
+    // build result tree
+    d_test_suite_test(_suite, "Entry Comparison Macros");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "key_eq_true",
+                     test_key_eq_true,
+                     "D_ENUM_ENTRY_KEY_EQ returns true for same key");
+    D_TEST_CHECK_MSG(_suite,
+                     "key_eq_false",
+                     test_key_eq_false,
+                     "D_ENUM_ENTRY_KEY_EQ returns false for different keys");
+    D_TEST_CHECK_MSG(_suite,
+                     "val_eq_true",
+                     test_val_eq_true,
+                     "D_ENUM_ENTRY_VAL_EQ returns true for same value");
+    D_TEST_CHECK_MSG(_suite,
+                     "val_eq_false",
+                     test_val_eq_false,
+                     "D_ENUM_ENTRY_VAL_EQ returns false for different values");
+    D_TEST_CHECK_MSG(_suite,
+                     "entry_eq_true",
+                     test_entry_eq_true,
+                     "D_ENUM_ENTRY_EQ returns true when both match");
+    D_TEST_CHECK_MSG(_suite,
+                     "entry_eq_requires_both",
+                     test_entry_eq_requires_both,
+                     "D_ENUM_ENTRY_EQ requires both to match");
+    D_TEST_CHECK_MSG(_suite,
+                     "null_values",
+                     test_null_values,
+                     "handles NULL values in comparisons");
+
+    return true;
+}
+
+
+/******************************************************************************
+ * SENTINEL MARKER TESTS
+ *****************************************************************************/
+
+/*
+d_tests_enum_map_entry_sentinel_macros
+  Tests sentinel marker macros.
+  Tests the following:
+  - D_ENUM_ENTRY_SENTINEL creates sentinel
+  - D_ENUM_ENTRY_IS_SENTINEL detects sentinel
+  - sentinel has INT_MIN key
+  - sentinel has NULL value
+  - D_ENUM_ENTRY_IS_SENTINEL returns false for normal entries
+  - multiple sentinels are equal
+*/
+bool d_tests_enum_map_entry_sentinel_macros(struct dj_test_suite* _suite)
+{
+    int                   dummy = 42;
+    bool                  test_creates_sentinel;
+    bool                  test_detects_sentinel;
+    bool                  test_sentinel_key;
+    bool                  test_sentinel_value;
+    bool                  test_false_for_normal;
+    bool                  test_multiple_sentinels;
+
+    // test 1: D_ENUM_ENTRY_SENTINEL creates sentinel
+    struct dj_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;
+    test_creates_sentinel = (sent.key == D_ENUM_MAP_SENTINEL_KEY) &&
+                           (sent.value == NULL);
+
+    // test 2: D_ENUM_ENTRY_IS_SENTINEL detects sentinel
+    test_detects_sentinel = D_ENUM_ENTRY_IS_SENTINEL(sent);
+
+    // test 3: sentinel has INT_MIN key (reserved value)
+    test_sentinel_key = (sent.key == INT_MIN);
+
+    // test 4: sentinel has NULL value
+    test_sentinel_value = (sent.value == NULL);
+
+    // test 5: D_ENUM_ENTRY_IS_SENTINEL returns false for normal entries
+    struct dj_enum_map_entry normal1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &dummy);
+    struct dj_enum_map_entry normal2 = D_ENUM_ENTRY_NULL(0);
+    struct dj_enum_map_entry normal3 = D_ENUM_ENTRY_INT(INT_MAX, 42);
+    test_false_for_normal = !D_ENUM_ENTRY_IS_SENTINEL(normal1) &&
+                           !D_ENUM_ENTRY_IS_SENTINEL(normal2) &&
+                           !D_ENUM_ENTRY_IS_SENTINEL(normal3);
+
+    // test 6: multiple sentinels are equal
+    struct dj_enum_map_entry sent2 = D_ENUM_ENTRY_SENTINEL;
+    test_multiple_sentinels = D_ENUM_ENTRY_EQ(sent, sent2);
+
+    // build result tree
+    d_test_suite_test(_suite, "Sentinel Marker Macros");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "creates_sentinel",
+                     test_creates_sentinel,
+                     "D_ENUM_ENTRY_SENTINEL creates sentinel");
+    D_TEST_CHECK_MSG(_suite,
+                     "detects_sentinel",
+                     test_detects_sentinel,
+                     "D_ENUM_ENTRY_IS_SENTINEL detects sentinel");
+    D_TEST_CHECK_MSG(_suite,
+                     "sentinel_key",
+                     test_sentinel_key,
+                     "sentinel has INT_MIN key");
+    D_TEST_CHECK_MSG(_suite,
+                     "sentinel_value",
+                     test_sentinel_value,
+                     "sentinel has NULL value");
+    D_TEST_CHECK_MSG(_suite,
+                     "false_for_normal",
+                     test_false_for_normal,
+                     "returns false for normal entries");
+    D_TEST_CHECK_MSG(_suite,
+                     "multiple_sentinels",
+                     test_multiple_sentinels,
+                     "multiple sentinels are equal");
+
+    return true;
+}
+
+
+/******************************************************************************
+ * MASTER TEST RUNNER
+ *****************************************************************************/
+
+/*
+d_tests_enum_map_entry_run_all
+  Master test runner for all enum_map_entry tests.
+  Tests the following:
+  - Entry creation macros
+  - Entry comparison macros
+  - Sentinel marker macros
+
+  Note: This only tests the macros and entry structure.
+  Map operations (min_enum_map) are tested separately.
+*/
+bool d_tests_enum_map_entry_run_all(struct dj_test_suite* _suite)
+{
+    // create master test group
+    d_test_suite_block(_suite, "enum_map_entry Module Tests");
+
+    // add all test categories
+    d_tests_enum_map_entry_creation_all(_suite);
+    d_tests_enum_map_entry_comparison_macros(_suite);
+    d_tests_enum_map_entry_sentinel_macros(_suite);
+
+    return true;
+}

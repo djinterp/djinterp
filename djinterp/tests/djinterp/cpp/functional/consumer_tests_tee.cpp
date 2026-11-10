@@ -9,8 +9,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/consumer_tests_tee.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -24,10 +24,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
@@ -73,43 +69,40 @@ consumer_tests_tee
   - tee invokes its inner consumers in left-to-right order
   - tee broadcasts to heterogeneous sink types (vector + stream)
 */
-void consumer_tests_tee(
-    test_handler& _handler
-)
+bool consumer_tests_tee()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // single-consumer degenerate case
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tee with one consumer forwards to just that consumer",
         [&]()
         {
             std::vector<int> log;
-            auto t = ::djinterp::consumers::tee(probe_sink(log));
+            auto t = djinterp::tee(probe_sink(log));
 
             t(1);
             t(2);
 
             const std::vector<int> expected = { 1, 2 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (log == expected),
                 "tee(one) forwarded {1, 2}");
         });
 
     // two-way broadcast
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tee broadcasts every value to two consumers",
         [&]()
         {
             std::vector<int> a;
             std::vector<int> b;
-            auto t = ::djinterp::consumers::tee(probe_sink(a),
+            auto t = djinterp::tee(probe_sink(a),
                                                 probe_sink(b));
 
             t(1);
@@ -118,15 +111,13 @@ void consumer_tests_tee(
 
             const std::vector<int> expected = { 1, 2, 3 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (a == expected && b == expected),
                 "tee(a, b) delivered {1, 2, 3} to both");
         });
 
     // three-way broadcast
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tee broadcasts to three consumers",
         [&]()
@@ -134,28 +125,26 @@ void consumer_tests_tee(
             std::vector<int> a;
             std::vector<int> b;
             std::vector<int> c;
-            auto t = ::djinterp::consumers::tee(probe_sink(a),
+            auto t = djinterp::tee(probe_sink(a),
                                                 probe_sink(b),
                                                 probe_sink(c));
 
             t(9);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (a.size() == 1 && b.size() == 1 && c.size() == 1 &&
                  a[0] == 9 && b[0] == 9 && c[0] == 9),
                 "tee(a, b, c) delivered 9 to all three");
         });
 
     // invocation order is left-to-right
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tee invokes its consumers in left-to-right order",
         [&]()
         {
             std::vector<int> order;
-            auto t = ::djinterp::consumers::tee(order_sink(order, 1),
+            auto t = djinterp::tee(order_sink(order, 1),
                                                 order_sink(order, 2),
                                                 order_sink(order, 3));
 
@@ -163,37 +152,34 @@ void consumer_tests_tee(
 
             const std::vector<int> expected = { 1, 2, 3 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (order == expected),
                 "tee fired tags in order {1, 2, 3}");
         });
 
     // heterogeneous sinks: vector + stream
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "tee broadcasts to heterogeneous sink types",
         [&]()
         {
             std::vector<int>   v;
             std::ostringstream os;
-            auto t = ::djinterp::consumers::tee(
+            auto t = djinterp::tee(
                 probe_sink(v),
-                ::djinterp::consumers::print_to(os, ';'));
+                djinterp::print_to(os, ';'));
 
             t(5);
             t(6);
 
             const std::vector<int> expected = { 5, 6 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (v == expected && os.str() == "5;6;"),
                 "tee fed a vector and a stream consistently");
         });
 
-    return;
+    return verdict;
 }
 
 

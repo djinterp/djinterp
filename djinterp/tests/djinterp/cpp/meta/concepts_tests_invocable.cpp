@@ -21,21 +21,19 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_invocable.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
 #include "concepts_tests.hpp"
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_invocable(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_invocable()
 {
+    bool verdict = true;
+
     using fixtures::returns_int;
     using fixtures::returns_int_noexcept;
     using fixtures::returns_void;
@@ -112,9 +110,9 @@ void concepts_tests_invocable(
     DT_CONCEPT((!(nothrow_invocable_r<int, returns_int_noexcept, int>)
                 ||  (nothrow_invocable<returns_int_noexcept, int>)));
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

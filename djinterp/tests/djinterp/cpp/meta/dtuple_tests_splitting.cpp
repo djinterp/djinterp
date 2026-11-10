@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_splitting.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -232,110 +232,110 @@ static_assert(std::is_same<tuple_subsequence_t<0, 0, std::tuple<>>,
 // III. RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_splitting_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_splitting_all()
 {
+    bool verdict = true;
+
     // ---- DTupleSplit ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTupleSplit<0, std::tuple<>>::before,
                        std::tuple<>>::value &&
           std::is_same<typename DTupleSplit<0, std::tuple<>>::after,
                        std::tuple<>>::value ),
         "tuple_split: empty input both halves empty");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTupleSplit<0, int, char, float>::before,
                        std::tuple<>>::value &&
           std::is_same<typename DTupleSplit<0, int, char, float>::after,
                        std::tuple<int, char, float>>::value ),
         "tuple_split<0>: empty before, whole input after");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTupleSplit<1, int, char, float>::before,
                        std::tuple<int>>::value &&
           std::is_same<typename DTupleSplit<1, int, char, float>::after,
                        std::tuple<char, float>>::value ),
         "tuple_split<1>: one before, two after");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTupleSplit<2, int, char, float>::before,
                        std::tuple<int, char>>::value &&
           std::is_same<typename DTupleSplit<2, int, char, float>::after,
                        std::tuple<float>>::value ),
         "tuple_split<2>: two before, one after");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( std::is_same<typename DTupleSplit<3, int, char, float>::before,
                        std::tuple<int, char, float>>::value &&
           std::is_same<typename DTupleSplit<3, int, char, float>::after,
                        std::tuple<>>::value ),
         "tuple_split<3>: whole input before, empty after");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleSplit<2, int, char, float, double, long>::before,
                      std::tuple<int, char>>::value,
         "tuple_split<2, 5-pack>: before");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleSplit<2, int, char, float, double, long>::after,
                      std::tuple<float, double, long>>::value,
         "tuple_split<2, 5-pack>: after");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleSplit<1, std::tuple<const int, int&, int*>>::before,
                      std::tuple<const int>>::value,
         "tuple_split: preserves cv on element 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename DTupleSplit<1, std::tuple<const int, int&, int*>>::after,
                      std::tuple<int&, int*>>::value,
         "tuple_split: preserves ref + pointer in after-half");
 
     // ---- tuple_subsequence ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<0, 0, std::tuple<>>::type,
                      std::tuple<>>::value,
         "tuple_subsequence: empty input empty range");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<0, 0, DSubseqFixture>::type,
                      std::tuple<>>::value,
         "tuple_subsequence: empty range at start");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<2, 2, DSubseqFixture>::type,
                      std::tuple<>>::value,
         "tuple_subsequence: empty range in middle");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<5, 5, DSubseqFixture>::type,
                      std::tuple<>>::value,
         "tuple_subsequence: empty range at end (the previously-ambiguous case)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<0, 1, DSubseqFixture>::type,
                      std::tuple<int>>::value,
         "tuple_subsequence: single-element prefix");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<4, 5, DSubseqFixture>::type,
                      std::tuple<long>>::value,
         "tuple_subsequence: single-element suffix");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<0, 3, DSubseqFixture>::type,
                      std::tuple<int, char, float>>::value,
         "tuple_subsequence: prefix of length 3");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<2, 5, DSubseqFixture>::type,
                      std::tuple<float, double, long>>::value,
         "tuple_subsequence: suffix of length 3");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<1, 4, DSubseqFixture>::type,
                      std::tuple<char, float, double>>::value,
         "tuple_subsequence: middle of length 3");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<0, 5, DSubseqFixture>::type,
                      DSubseqFixture>::value,
         "tuple_subsequence: whole-tuple slice");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_subsequence<1, 3,
                             std::tuple<int, const char, int&, float*>>::type,
                      std::tuple<const char, int&>>::value,
         "tuple_subsequence: preserves cv + ref qualifiers");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_subsequence_t<1, 4, DSubseqFixture>,
                      std::tuple<char, float, double>>::value,
         "tuple_subsequence_t: alias");
 
-    return;
+    return verdict;
 }
 
 

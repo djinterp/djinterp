@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/decode_options_tests_roundtrip.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "decode_options_tests.hpp"
@@ -36,14 +36,14 @@ template<DSerialLength _L,
          DSerialEndian  _E>
 static
 bool rt_len(
-    std::uint64_t _c
+    re_std::uint64_t _c
 )
 {
     byte_string _o;
     djinterp::internal::put_length<_L, _E>(_o, _c);
 
     DByteReader   _r(_o);
-    std::uint64_t _got = 0;
+    re_std::uint64_t _got = 0;
 
     return ( djinterp::internal::get_length<_L, _E>(_r, _got) && ( _got == _c ) );
 }
@@ -61,13 +61,13 @@ bool tests_decode_options_roundtrip_scalars()
     D_DO_CHECK(rt_e<DSerialEndian::big, bool>(true));
     D_DO_CHECK(rt_e<DSerialEndian::big, bool>(false));
 
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::uint8_t>(0xFF));
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::uint16_t>(0x1234));
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::uint32_t>(0xDEADBEEFu));
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::uint64_t>(0xFFFFFFFFFFFFFFFFull));
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::int16_t>(-2));
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::int32_t>(-2147483647 - 1));
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::int64_t>(-1));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::uint8_t>(0xFF));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::uint16_t>(0x1234));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::uint32_t>(0xDEADBEEFu));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::uint64_t>(0xFFFFFFFFFFFFFFFFull));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::int16_t>(-2));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::int32_t>(-2147483647 - 1));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::int64_t>(-1));
 
     D_DO_CHECK(rt_e<DSerialEndian::big, DDoEnumU16>(DDoEnumU16::value));
     D_DO_CHECK(rt_e<DSerialEndian::big, DDoEnumI32>(DDoEnumI32::value));
@@ -97,15 +97,15 @@ tests_decode_options_roundtrip_both_orders
 bool tests_decode_options_roundtrip_both_orders()
 {
     // unsigned
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::uint32_t>(0x89ABCDEFu));
-    D_DO_CHECK(rt_e<DSerialEndian::little, std::uint32_t>(0x89ABCDEFu));
-    D_DO_CHECK(rt_e<DSerialEndian::little, std::uint16_t>(0x0000));
-    D_DO_CHECK(rt_e<DSerialEndian::little, std::uint16_t>(0xFFFF));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::uint32_t>(0x89ABCDEFu));
+    D_DO_CHECK(rt_e<DSerialEndian::little, re_std::uint32_t>(0x89ABCDEFu));
+    D_DO_CHECK(rt_e<DSerialEndian::little, re_std::uint16_t>(0x0000));
+    D_DO_CHECK(rt_e<DSerialEndian::little, re_std::uint16_t>(0xFFFF));
 
     // signed boundaries
-    D_DO_CHECK(rt_e<DSerialEndian::big, std::int64_t>(0x7FFFFFFFFFFFFFFFll));
-    D_DO_CHECK(rt_e<DSerialEndian::little, std::int64_t>(0x7FFFFFFFFFFFFFFFll));
-    D_DO_CHECK(rt_e<DSerialEndian::little, std::int32_t>(-2147483647 - 1));
+    D_DO_CHECK(rt_e<DSerialEndian::big, re_std::int64_t>(0x7FFFFFFFFFFFFFFFll));
+    D_DO_CHECK(rt_e<DSerialEndian::little, re_std::int64_t>(0x7FFFFFFFFFFFFFFFll));
+    D_DO_CHECK(rt_e<DSerialEndian::little, re_std::int32_t>(-2147483647 - 1));
 
     // enum
     D_DO_CHECK(rt_e<DSerialEndian::little, DDoEnumU16>(DDoEnumU16::value));

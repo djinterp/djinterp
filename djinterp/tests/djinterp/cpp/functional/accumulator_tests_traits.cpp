@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -30,7 +30,7 @@ struct DNotAcc
 // ---- compile-time fixtures ----
 //   Concrete accumulator types produced by the pre-built factories. Naming
 // them here lets the static_asserts below read as plain type predicates.
-typedef decltype(sum<int>())   sum_acc_type;
+typedef decltype(accumulate_sum<int>())   sum_acc_type;
 typedef decltype(mean<int>())  mean_acc_type;
 
 
@@ -126,7 +126,7 @@ static_assert(
     std::is_same<accumulator_output_t<mean_acc_type>, double>::value,
     "mean() output_type is double");
 static_assert(
-    std::is_same<accumulator_state_t<DNotAcc>, internal::nonesuch>::value,
+    std::is_same<accumulator_state_t<DNotAcc>, nonesuch>::value,
     "extraction on a non-accumulator yields nonesuch");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -285,7 +285,7 @@ bool test_traits_type_extraction()
         (std::is_same<accumulator_output_t<mean_acc_type>, double>::value));
     D_INTERNAL_ACC_CHECK(
         (std::is_same<accumulator_state_t<DNotAcc>,
-                      internal::nonesuch>::value));
+                      nonesuch>::value));
 
     return true;
 }

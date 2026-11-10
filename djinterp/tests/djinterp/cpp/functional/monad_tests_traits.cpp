@@ -12,8 +12,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/monad_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./monad_tests.hpp"
@@ -22,11 +22,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
-using ::djinterp::test::type_equal;
 
 
 namespace {
@@ -35,39 +30,39 @@ namespace {
     using DMaybeStr = DTestMaybe<std::string>;
 
     // ---- monad_value_type_t ----------------------------------------------
-    D_TEST_TYPE_EQ(monad_value_type_t<maybe_int>, int);
-    D_TEST_TYPE_EQ(monad_value_type_t<DMaybeStr>, std::string);
+    D_TEST_STATIC(std::is_same< monad_value_type_t<maybe_int>, int >::value);
+    D_TEST_STATIC(std::is_same< monad_value_type_t<DMaybeStr>, std::string >::value);
 
     // ---- monad_rebind_t ---------------------------------------------------
-    D_TEST_TYPE_EQ(monad_rebind_t<maybe_int, double>,      DTestMaybe<double>);
-    D_TEST_TYPE_EQ(monad_rebind_t<maybe_int, std::string>, DMaybeStr);
+    D_TEST_STATIC(std::is_same< monad_rebind_t<maybe_int, double>, DTestMaybe<double> >::value);
+    D_TEST_STATIC(std::is_same< monad_rebind_t<maybe_int, std::string>, DMaybeStr >::value);
 
     // ---- is_monadic_function ---------------------------------------------
     // positive: a Kleisli arrow int -> DTestMaybe<U> over maybe_int.
-    D_TEST_TRAIT_TRUE(is_monadic_function, arrow_inc,       maybe_int);
-    D_TEST_TRAIT_TRUE(is_monadic_function, DArrowToString, maybe_int);
-    D_TEST_TRAIT_TRUE(is_monadic_function, DArrowToNone,   maybe_int);
+    D_TEST_STATIC(is_monadic_function< arrow_inc, maybe_int >::value);
+    D_TEST_STATIC(is_monadic_function< DArrowToString, maybe_int >::value);
+    D_TEST_STATIC(is_monadic_function< DArrowToNone, maybe_int >::value);
     // negative: a plain transform returns a non-monad; a non-callable
     // is not an arrow; a non-monad second arg is rejected.
-    D_TEST_TRAIT_FALSE(is_monadic_function, plain_double,    maybe_int);
-    D_TEST_TRAIT_FALSE(is_monadic_function, int,             maybe_int);
-    D_TEST_TRAIT_FALSE(is_monadic_function, arrow_inc,       not_a_monad);
+    D_TEST_STATIC(!is_monadic_function< plain_double, maybe_int >::value);
+    D_TEST_STATIC(!is_monadic_function< int, maybe_int >::value);
+    D_TEST_STATIC(!is_monadic_function< arrow_inc, not_a_monad >::value);
 
     // ---- is_bindable ------------------------------------------------------
     // positive: monad_bind(maybe_int, arrow) is well-formed.
-    D_TEST_TRAIT_TRUE (is_bindable, maybe_int, arrow_inc);
-    D_TEST_TRAIT_TRUE (is_bindable, maybe_int, DArrowToString);
+    D_TEST_STATIC(is_bindable< maybe_int, arrow_inc >::value);
+    D_TEST_STATIC(is_bindable< maybe_int, DArrowToString >::value);
     // negative: a non-function second arg; a non-monad first arg.
-    D_TEST_TRAIT_FALSE(is_bindable, maybe_int, int);
-    D_TEST_TRAIT_FALSE(is_bindable, not_a_monad, arrow_inc);
+    D_TEST_STATIC(!is_bindable< maybe_int, int >::value);
+    D_TEST_STATIC(!is_bindable< not_a_monad, arrow_inc >::value);
 
     // ---- is_mappable ------------------------------------------------------
     // positive: monad_map takes an ordinary T -> U transform.
-    D_TEST_TRAIT_TRUE (is_mappable, maybe_int, plain_double);
-    D_TEST_TRAIT_TRUE (is_mappable, maybe_int, DPlainToString);
+    D_TEST_STATIC(is_mappable< maybe_int, plain_double >::value);
+    D_TEST_STATIC(is_mappable< maybe_int, DPlainToString >::value);
     // negative: a non-callable; a non-monad first arg.
-    D_TEST_TRAIT_FALSE(is_mappable, maybe_int, int);
-    D_TEST_TRAIT_FALSE(is_mappable, not_a_monad, plain_double);
+    D_TEST_STATIC(!is_mappable< maybe_int, int >::value);
+    D_TEST_STATIC(!is_mappable< not_a_monad, plain_double >::value);
 
     // ---- is_monad_combinator ---------------------------------------------
     using bind_combinator_t = decltype(::djinterp::bind_with(arrow_inc()));
@@ -75,12 +70,12 @@ namespace {
     using then_combinator_t = decltype(
         ::djinterp::then_with(DTestMaybe<int>(0)));
 
-    D_TEST_TRAIT_TRUE (is_monad_combinator, bind_combinator_t, maybe_int);
-    D_TEST_TRAIT_TRUE (is_monad_combinator, map_combinator_t,  maybe_int);
-    D_TEST_TRAIT_TRUE (is_monad_combinator, then_combinator_t, maybe_int);
+    D_TEST_STATIC(is_monad_combinator< bind_combinator_t, maybe_int >::value);
+    D_TEST_STATIC(is_monad_combinator< map_combinator_t, maybe_int >::value);
+    D_TEST_STATIC(is_monad_combinator< then_combinator_t, maybe_int >::value);
     // negative: a plain type has no apply(monad) member.
-    D_TEST_TRAIT_FALSE(is_monad_combinator, not_a_monad,       maybe_int);
-    D_TEST_TRAIT_FALSE(is_monad_combinator, int,               maybe_int);
+    D_TEST_STATIC(!is_monad_combinator< not_a_monad, maybe_int >::value);
+    D_TEST_STATIC(!is_monad_combinator< int, maybe_int >::value);
 
     // ---- variable-template `_v` aliases (C++14+) -------------------------
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -106,15 +101,15 @@ namespace {
 
     // ---- concept mirrors (C++20) -----------------------------------------
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    D_TEST_CONCEPT_TRUE (monad, maybe_int);
-    D_TEST_CONCEPT_FALSE(monad, not_a_monad);
-    D_TEST_CONCEPT_TRUE (monadic_function_for, arrow_inc, maybe_int);
-    D_TEST_CONCEPT_FALSE(monadic_function_for, plain_double, maybe_int);
-    D_TEST_CONCEPT_TRUE (bindable_with, maybe_int, arrow_inc);
-    D_TEST_CONCEPT_FALSE(bindable_with, maybe_int, int);
-    D_TEST_CONCEPT_TRUE (mappable_with, maybe_int, plain_double);
-    D_TEST_CONCEPT_TRUE (monad_combinator_for, bind_combinator_t, maybe_int);
-    D_TEST_CONCEPT_FALSE(monad_combinator_for, not_a_monad, maybe_int);
+    D_TEST_STATIC(monad< maybe_int >);
+    D_TEST_STATIC(!monad< not_a_monad >);
+    D_TEST_STATIC(monadic_function_for< arrow_inc, maybe_int >);
+    D_TEST_STATIC(!monadic_function_for< plain_double, maybe_int >);
+    D_TEST_STATIC(bindable_with< maybe_int, arrow_inc >);
+    D_TEST_STATIC(!bindable_with< maybe_int, int >);
+    D_TEST_STATIC(mappable_with< maybe_int, plain_double >);
+    D_TEST_STATIC(monad_combinator_for< bind_combinator_t, maybe_int >);
+    D_TEST_STATIC(!monad_combinator_for< not_a_monad, maybe_int >);
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 }  // namespace
@@ -137,27 +132,25 @@ monad_tests_traits
   assertion below is the runtime roll-up.  If this translation unit
   compiled, every compile-time property held.
 */
-void monad_tests_traits(
-    test_handler& _handler
-)
+bool monad_tests_traits()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad traits + concepts (compile-time suite)",
         [&]()
         {
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 true,
                 "Section 0 predicate traits and concepts compiled",
                 "all static_assert checks held",
                 nullptr);
         });
 
-    return;
+    return verdict;
 }
 
 

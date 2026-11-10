@@ -30,7 +30,7 @@
 *                                    observational_comparison_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -75,11 +75,26 @@ VII.  Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/observational_comparison_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -678,6 +693,8 @@ namespace std
 
 NS_DJINTERP
 NS_TESTING
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -731,6 +748,207 @@ bool tests_stage_range();
 bool tests_stage_level_orthogonality();
 bool tests_stage_cv_ref();
 bool tests_stage_companions();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// observational_comparison_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+observational_comparison_traits_spec()
+{
+    return dt::module_spec{
+        "observational_comparison_traits",
+        "SFINAE structural traits for OBSERVATIONAL comparison - through "
+        "which of a container's interface...",
+        {
+            dt::block_spec{
+                "probes",
+                "Interface-operation probes",
+                {
+                    { "tests_has_size_member",
+                      "Verifies the probe for a const-callable size() - the "
+                      "equal-size interface, and the coarsest content step "
+                      "the header recognises",
+                      &tests_has_size_member },
+                    { "tests_has_subscript_index",
+                      "Verifies the probe for a const-callable "
+                      "operator[](size_t)",
+                      &tests_has_subscript_index },
+                    { "tests_has_at_index",
+                      "Verifies the probe for a const-callable at(size_t)",
+                      &tests_has_at_index },
+                    { "tests_has_indexed_access",
+                      "Verifies the disjunction of the two positional probes "
+                      "- the interface that, over a nested shape, supplies "
+                      "str, and over a flat one supplies a positional seq read",
+                      &tests_has_indexed_access },
+                    { "tests_has_count_member",
+                      "Verifies the probe for a const-callable count(x) "
+                      "taking an element - the per-class (bag) interface",
+                      &tests_has_count_member },
+                    { "tests_has_contains_member",
+                      "Verifies the probe for a const-callable contains(x) - "
+                      "the membership (set) interface",
+                      &tests_has_contains_member },
+                    { "tests_probe_method_shapes",
+                      "Verifies WHAT the probes admit, using size() as the "
+                      "representative, since the question they ask is \"does "
+                      "this expression compile on a const lvalue\" rather "
+                      "than \"is a member of this name declared\"",
+                      &tests_probe_method_shapes },
+                    { "tests_probe_const_observation",
+                      "Verifies the rule that unifies section I: an operation "
+                      "is an observation only if it is callable on a CONST "
+                      "lvalue",
+                      &tests_probe_const_observation },
+                    { "tests_probe_void_element_safety",
+                      "Verifies that the element-taking probes survive a type "
+                      "with NO element type",
+                      &tests_probe_void_element_safety },
+                    { "tests_probe_cv_ref",
+                      "Verifies that every section I probe honours the "
+                      "clean_t contract",
+                      &tests_probe_cv_ref },
+                    { "tests_probe_companions",
+                      "Verifies the `_v` companions of the section I probes",
+                      &tests_probe_companions },
+                }
+            },
+            dt::block_spec{
+                "level_algebra",
+                "The observational level",
+                {
+                    { "tests_observational_level_enum",
+                      "Verifies the enumeration itself",
+                      &tests_observational_level_enum },
+                    { "tests_observational_level_name",
+                      "Verifies the diagnostic spelling of each level",
+                      &tests_observational_level_name },
+                    { "tests_observational_level_rank",
+                      "Verifies the refinement rank - the linear order the "
+                      "level preorder collapses to",
+                      &tests_observational_level_rank },
+                    { "tests_observational_level_coarser",
+                      "Verifies the meet of the refinement order - the level "
+                      "a shared interface resolves",
+                      &tests_observational_level_coarser },
+                    { "tests_observational_level_finer",
+                      "Verifies the join of the refinement order",
+                      &tests_observational_level_finer },
+                    { "tests_observational_level_subsumes",
+                      "Verifies the order predicate - \"_a resolves at least "
+                      "as finely as _b\"",
+                      &tests_observational_level_subsumes },
+                    { "tests_level_algebra_lattice_laws",
+                      "Verifies that the meet and the join really do form a "
+                      "lattice over the six levels, checked on every pair and "
+                      "every triple rather than on witnesses",
+                      &tests_level_algebra_lattice_laws },
+                    { "tests_level_algebra_out_of_range",
+                      "Verifies what the algebra does with a value that names "
+                      "no enumerator, and records the two consequences that "
+                      "follow",
+                      &tests_level_algebra_out_of_range },
+                }
+            },
+            dt::block_spec{
+                "level_of",
+                "The level one type resolves",
+                {
+                    { "tests_observational_level_of_cascade",
+                      "Verifies that each rung is reachable, on a fixture "
+                      "carrying the minimum interface for it",
+                      &tests_observational_level_of_cascade },
+                    { "tests_observational_level_of_precedence",
+                      "Verifies the ORDER of the cascade, on fixtures that "
+                      "satisfy two rungs at once",
+                      &tests_observational_level_of_precedence },
+                    { "tests_observational_level_of_std_types",
+                      "Verifies the levels the standard containers resolve, "
+                      "which is where the header's claims meet real interfaces",
+                      &tests_observational_level_of_std_types },
+                    { "tests_observational_level_of_set_gap",
+                      "Verifies the gap this header exists to describe: the "
+                      "distance between a container's NATIVE content level "
+                      "and what its interface OBSERVATIONALLY resolves",
+                      &tests_observational_level_of_set_gap },
+                    { "tests_observational_level_of_cv_ref",
+                      "Verifies that the trait honours the clean_t contract",
+                      &tests_observational_level_of_cv_ref },
+                    { "tests_observational_level_of_companions",
+                      "Verifies the `_t` alias and the `_v` companion",
+                      &tests_observational_level_of_companions },
+                }
+            },
+            dt::block_spec{
+                "shared_level",
+                "The shared-interface principle",
+                {
+                    { "tests_shared_observational_level",
+                      "Verifies the level at which named pairs can be decided",
+                      &tests_shared_observational_level },
+                    { "tests_shared_level_is_meet",
+                      "Verifies that the trait really is the meet of the two "
+                      "operands' levels, and inherits the meet's algebra",
+                      &tests_shared_level_is_meet },
+                    { "tests_shared_level_principle",
+                      "Verifies the principle as the header states it: an "
+                      "iterable container compared with an opaque one falls "
+                      "from seq to whatever else is shared - contains gives "
+                      "set, else size, else identity",
+                      &tests_shared_level_principle },
+                    { "tests_shared_level_cv_ref",
+                      "Verifies that both operands are cleaned independently",
+                      &tests_shared_level_cv_ref },
+                    { "tests_shared_level_companions",
+                      "Verifies the `_t` alias and the `_v` companion",
+                      &tests_shared_level_companions },
+                }
+            },
+            dt::block_spec{
+                "stage",
+                "Stage of a comparison",
+                {
+                    { "tests_has_static_size_helper",
+                      "Verifies the internal helper that detects a "
+                      "std::tuple_size<T>::value",
+                      &tests_has_static_size_helper },
+                    { "tests_observed_access_stage_of",
+                      "Verifies the stage at which a single type's contents "
+                      "are observable",
+                      &tests_observed_access_stage_of },
+                    { "tests_observational_stage_of",
+                      "Verifies the stage a comparison of two types carries - "
+                      "the meet of their access stages",
+                      &tests_observational_stage_of },
+                    { "tests_is_compile_time_comparison",
+                      "Verifies the predicate that reads the compile-time bit "
+                      "off the pair's stage",
+                      &tests_is_compile_time_comparison },
+                    { "tests_stage_range",
+                      "Verifies which of the four lifetime values these "
+                      "traits can actually produce",
+                      &tests_stage_range },
+                    { "tests_stage_level_orthogonality",
+                      "Verifies that the stage axis and the level axis are "
+                      "INDEPENDENT",
+                      &tests_stage_level_orthogonality },
+                    { "tests_stage_cv_ref",
+                      "Verifies that the stage traits honour the clean_t "
+                      "contract",
+                      &tests_stage_cv_ref },
+                    { "tests_stage_companions",
+                      "Verifies the `_t` aliases and the `_v` companions of "
+                      "section V",
+                      &tests_stage_companions },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

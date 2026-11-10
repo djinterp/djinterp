@@ -1,148 +1,101 @@
 /*******************************************************************************
-* djinterp [cpp]                          container_metadata_tests_detection.cpp
+* djinterp [testing]                      container_metadata_tests_detection.cpp
+*
+*   The detection section of container_metadata's suite: the
+* is_container_metadata trait, and equality as a comparison of named entries
+* rather than of sequences.
 *
 *
 * path:      /tests/djinterp/cpp/container/container_metadata_tests_detection.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
-// djinterp
-#include "container_metadata_tests.hpp"
+#include "container_metadata_tests.hpp"  // corresponding header
 
 
 NS_DJINTERP
 NS_TESTING
 
-
 /*
 tests_container_metadata_detection
-  is_container_metadata as a structural trait.
+  is_container_metadata.
   Tests the following:
-  - it holds for the template's own specialisations, across payload types
-  - it is STRUCTURAL rather than nominal: DCmDuck satisfies it without any
-    relationship to the template, because it exposes the same four names.
-    That is a design decision with consequences - anything shaped alike is
-    accepted - so it is stated rather than left implicit
-  - ordinary class types and the whole hostile type zoo are rejected, and
-    the quantifier instantiates every cell rather than short-circuiting
-  - the `_v` companion agrees with `::value`
-  - qualification is NOT transparent here: a const-qualified type is still
-    detected, since cv-qualifiers are ignored inside a nested-name-
-    specifier, but a REFERENCE to a DContainerMetadata is not, because the
-    trait names into its argument without cleaning it first.  The metadata
-    protocol traits next door do clean, so the two disagree on reference
-    forms; that inconsistency is recorded here rather than judged
+  - true for the default specialisation, for other key and value types and
+    for another store
+  - true through const, volatile and references (the trait cleans its
+    argument)
+  - false for a vector of pairs (the default store itself), a std::map, a
+    scalar, and a type that carries metadata
+  - the _v companion agrees, where the language has inline variables
 */
 bool tests_container_metadata_detection()
 {
-    // the template's own specialisations
-    D_CM_CHECK(is_container_metadata<cm_meta>::value);
-    D_CM_CHECK(
-     (is_container_metadata<DContainerMetadata<DCmBox,
-                                               DCmCounted>>::value));
-    D_CM_CHECK(
-     (is_container_metadata<DContainerMetadata<DCmBox,
-                                               DCmBox>>::value));
+    D_CM_CHECK(is_container_metadata<DCmStrings>::value);
+    D_CM_CHECK(is_container_metadata<DCmNumbers>::value);
+    D_CM_CHECK(is_container_metadata<DCmListed>::value);
 
-    // structural, not nominal: an unrelated type of the same shape passes
-    D_CM_CHECK(is_container_metadata<DCmDuck>::value);
+    D_CM_CHECK(is_container_metadata<const DCmStrings>::value);
+    D_CM_CHECK(is_container_metadata<volatile DCmStrings>::value);
+    D_CM_CHECK(is_container_metadata<DCmStrings&>::value);
+    D_CM_CHECK(is_container_metadata<const DCmStrings&>::value);
+    D_CM_CHECK(is_container_metadata<DCmStrings&&>::value);
 
-    // ordinary types do not
-    D_CM_CHECK(!is_container_metadata<DCmBox>::value);
-    D_CM_CHECK(!is_container_metadata<DCmNote>::value);
+    D_CM_CHECK(!is_container_metadata<DCmStrings::store_type>::value);
+    D_CM_CHECK(!is_container_metadata<std::map<std::string,
+                                               std::string>>::value);
     D_CM_CHECK(!is_container_metadata<int>::value);
+    D_CM_CHECK(!is_container_metadata<DCmCarried>::value);
 
-    // nor does anything in the hostile zoo
-    D_CM_CHECK((test::holds_for_none<is_container_metadata,
-                                     D_TEST_HOSTILE_TYPES_COMPLETE
-                                     >::value));
-    D_CM_CHECK(
-     (test::is_bool_trait<is_container_metadata<cm_meta>>::value));
-    D_CM_CHECK(
-     (test::is_bool_trait<is_container_metadata<int>>::value));
-
-    // the `_v` companion tracks the trait
-    D_CM_CHECK(is_container_metadata_v<cm_meta> ==
-               is_container_metadata<cm_meta>::value);
-    D_CM_CHECK(is_container_metadata_v<DCmDuck> ==
-               is_container_metadata<DCmDuck>::value);
-    D_CM_CHECK(is_container_metadata_v<int> ==
-               is_container_metadata<int>::value);
-
-    // const is transparent, references are not
-    D_CM_CHECK(is_container_metadata<const cm_meta>::value);
-    D_CM_CHECK(!is_container_metadata<cm_meta&>::value);
-    D_CM_CHECK(!is_container_metadata<const cm_meta&>::value);
-
-    // ... whereas the metadata protocol traits DO clean their argument,
-    // so the two families answer differently about reference forms
-    D_CM_CHECK(has_metadata<cm_protocol_type&>::value);
-    D_CM_CHECK(has_metadata<cm_protocol_type>::value ==
-               has_metadata<cm_protocol_type&>::value);
-    D_CM_CHECK(is_container_metadata<cm_meta>::value !=
-               is_container_metadata<cm_meta&>::value);
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    D_CM_CHECK(is_container_metadata_v<DCmStrings>);
+    D_CM_CHECK(!is_container_metadata_v<DCmCarried>);
+#endif
 
     return true;
 }
 
 /*
-tests_container_metadata_detection_requirements
-  Each of the trait's four requirements is load-bearing.
+tests_container_metadata_equality
+  operator== and operator!=.
   Tests the following:
-  - removing the container_type alias, the payload_type alias,
-    get_container(), or payload() each drops the type from the trait,
-    one at a time, from a fixture that is otherwise complete.  A
-    requirement that had been dropped from the trait would show up as one
-    of these near-misses being wrongly accepted
-  - the accessors must be callable on a CONST object.  cm_nonconst_
-    accessors has all four names spelled correctly and is still rejected,
-    purely because its two accessors are not const-qualified.  This is the
-    sharpest of the set, and the one most likely to bite an author writing
-    a type to satisfy the trait deliberately
-  - the complete fixture is accepted, so the rejections above are the
-    result of the single removal in each case and not of some property
-    shared by all five
+  - two empty stores are equal
+  - the same entries in another order are equal: metadata is a set of
+    named entries, not a sequence
+  - a different size, a different value, or a different key at the same
+    size makes them unequal
+  - != is the negation of == in every case
 */
-bool tests_container_metadata_detection_requirements()
+bool tests_container_metadata_equality()
 {
-    // the complete duck type is accepted
-    D_CM_CHECK(is_container_metadata<DCmDuck>::value);
+    const DCmStrings empty_a;
+    const DCmStrings empty_b;
+    const DCmStrings ab = { { "a", "1" }, { "b", "2" } };
+    const DCmStrings ba = { { "b", "2" }, { "a", "1" } };
+    const DCmStrings a_only = { { "a", "1" } };
+    const DCmStrings ab_other = { { "a", "1" }, { "b", "9" } };
+    const DCmStrings ac = { { "a", "1" }, { "c", "2" } };
 
-    // each single removal is fatal
-    D_CM_CHECK(!is_container_metadata<cm_no_container_type>::value);
-    D_CM_CHECK(!is_container_metadata<cm_no_payload_type>::value);
-    D_CM_CHECK(!is_container_metadata<DCmNoGetContainer>::value);
-    D_CM_CHECK(!is_container_metadata<DCmNoPayloadFn>::value);
+    D_CM_CHECK(empty_a == empty_b);
+    D_CM_CHECK(!(empty_a != empty_b));
 
-    // and const-callability of the accessors is required, even with
-    // every name present and correctly spelled
-    D_CM_CHECK(!is_container_metadata<DCmNonconstAccessors>::value);
+    D_CM_CHECK(ab == ba);
+    D_CM_CHECK(!(ab != ba));
 
-    // the near-misses really do carry the parts they were meant to keep,
-    // so each rejection above is attributable to the one thing removed
-    D_CM_CHECK(
-     (std::is_same<cm_no_container_type::payload_type,
-                   DCmNote>::value));
-    D_CM_CHECK(
-     (std::is_same<cm_no_payload_type::container_type,
-                   DCmBox>::value));
-    D_CM_CHECK(
-     (std::is_same<DCmNoGetContainer::container_type,
-                   DCmBox>::value));
-    D_CM_CHECK(
-     (std::is_same<DCmNoPayloadFn::payload_type, DCmNote>::value));
-    D_CM_CHECK(
-     (std::is_same<DCmNonconstAccessors::container_type,
-                   DCmBox>::value));
+    D_CM_CHECK(!(ab == a_only));
+    D_CM_CHECK(ab != a_only);
+    D_CM_CHECK(!(a_only == ab));
 
-    // the `_v` companion agrees on the rejections too
-    D_CM_CHECK(!is_container_metadata_v<DCmNonconstAccessors>);
-    D_CM_CHECK(is_container_metadata_v<DCmDuck>);
+    D_CM_CHECK(!(ab == ab_other));
+    D_CM_CHECK(ab != ab_other);
+
+    D_CM_CHECK(!(ab == ac));
+    D_CM_CHECK(ab != ac);
+
+    D_CM_CHECK(!(ab == empty_a));
 
     return true;
 }
-
 
 NS_END  // testing
 NS_END  // djinterp

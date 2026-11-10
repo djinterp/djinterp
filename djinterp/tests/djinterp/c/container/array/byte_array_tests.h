@@ -1,0 +1,169 @@
+/*******************************************************************************
+* djinterp [test]                                             byte_array_tests.h
+*
+*   Unit test declarations for `byte_array.h` module.
+*   Provides comprehensive testing of all byte array macros including byte
+*   extraction, byte expansion, 1D array builders, 2D array builders, and
+*   jagged array builders.
+*
+*   NOTE: The byte_array macros have the following MSVC limitations:
+*   - 1D arrays (D_BYTE_ARRAY*) require at least 2 elements
+*   - 8-byte count macros (D_BYTE_ARRAY_8_*) skipped on MSVC (shift warnings)
+*   - 2D arrays (D_BYTE_ARRAY_2D*) skipped on MSVC (preprocessor incompatibility)
+*   - Jagged arrays (D_BYTE_ARRAY_JAGGED*) skipped on MSVC (preprocessor incompatibility)
+*
+*   The 2D and JAGGED macros use a GCC/Clang-specific preprocessor trick
+*   that MSVC does not support (zero-argument macro detection via argument
+*   count mismatch).
+*
+*
+* path:      /tests/djinterp/c/container/array/byte_array_tests.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.04
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+
+#ifndef DJINTERP_TESTS_BYTE_ARRAY_
+#define DJINTERP_TESTS_BYTE_ARRAY_ 1
+
+// std
+#include <stddef.h>
+#include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // fixed-width integers
+#include <stdlib.h>
+// djinterp
+#include "../../../../../inc/djinterp/c/container/array/byte_array.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+
+
+/******************************************************************************
+ * I. BYTE EXTRACTION MACRO TESTS
+ *****************************************************************************/
+bool d_tests_byte_array_byte_0_of_1(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_of_2(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_of_4(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_of_8(
+    struct dj_test_suite* _suite
+);
+
+// I.   aggregation function
+bool d_tests_byte_array_extraction_all(
+    struct dj_test_suite* _suite
+);
+
+
+/******************************************************************************
+ * II. BYTE EXPANSION MACRO TESTS
+ *****************************************************************************/
+bool d_tests_byte_array_bytes_1(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_2(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_4(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_8(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_bytes_n(
+    struct dj_test_suite* _suite
+);
+
+// II.  aggregation function
+bool d_tests_byte_array_expansion_all(
+    struct dj_test_suite* _suite
+);
+
+
+/******************************************************************************
+ * III. 1D ARRAY BUILDER TESTS
+ *****************************************************************************/
+bool d_tests_byte_array_default(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_init(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_1_x(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_2_x(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_4_x(
+    struct dj_test_suite* _suite
+);
+#if !defined(_MSC_VER)
+bool d_tests_byte_array_8_x(
+    struct dj_test_suite* _suite
+);
+#endif
+bool d_tests_byte_array_custom(
+    struct dj_test_suite* _suite
+);
+
+// III. aggregation function
+bool d_tests_byte_array_1d_all(
+    struct dj_test_suite* _suite
+);
+
+
+/******************************************************************************
+ * IV. 2D ARRAY BUILDER TESTS (GCC/Clang only)
+ *****************************************************************************/
+#if !defined(_MSC_VER)
+bool d_tests_byte_array_2d_basic(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_2d_layout(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_2d_ex(
+    struct dj_test_suite* _suite
+);
+
+// IV.  aggregation function
+bool d_tests_byte_array_2d_all(
+    struct dj_test_suite* _suite
+);
+#endif
+
+
+/******************************************************************************
+ * V. JAGGED ARRAY BUILDER TESTS (GCC/Clang only)
+ *****************************************************************************/
+#if !defined(_MSC_VER)
+bool d_tests_byte_array_jagged_basic(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_jagged_layout(
+    struct dj_test_suite* _suite
+);
+bool d_tests_byte_array_jagged_ex(
+    struct dj_test_suite* _suite
+);
+
+// V.   aggregation function
+bool d_tests_byte_array_jagged_all(
+    struct dj_test_suite* _suite
+);
+#endif
+
+
+/******************************************************************************
+ * MODULE-LEVEL AGGREGATION
+ *****************************************************************************/
+bool d_tests_byte_array_run_all(
+    struct dj_test_suite* _suite
+);
+
+
+#endif  // DJINTERP_TESTS_BYTE_ARRAY_

@@ -26,7 +26,7 @@
 # reports the same test count at every level.
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/patterns/visitor")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/visitor")
 
 # every per-section translation unit for this component
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/visitor_tests_*.cpp")
@@ -42,5 +42,5 @@ djinterp_add_test_executable(visitor_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/visitor_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/patterns/visitor"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/visitor"
         "${_tests_dir}")

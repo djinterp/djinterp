@@ -41,7 +41,7 @@
 * path:      /tests/djinterp/cpp/container/traits/element_relation_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_ELEMENT_RELATION_TRAITS_TESTS_
@@ -54,7 +54,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/element_relation_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 #ifndef D_KEYWORD_TESTING
@@ -81,8 +89,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -254,6 +272,8 @@ struct cmp_3way
     ) const = default;
 };
 #endif  // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -286,6 +306,126 @@ bool tests_elements_mutually_convertible();
 bool tests_cross_elements_equality_comparable();
 bool tests_cross_elements_ordered();
 bool tests_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// element_relation_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+element_relation_traits_spec()
+{
+    return dt::module_spec{
+        "element_relation_traits",
+        "the element relation - the =tau (and <tau) the whole content "
+        "hierarchy is parameterised over",
+        {
+            dt::block_spec{
+                "element",
+                "Element",
+                {
+                    { "tests_element_type_of",
+                      "checks (std::is_same<element_type_of_t<box<int>>, "
+                      "int>::value)",
+                      &tests_element_type_of },
+                    { "tests_has_equality_comparable_elements",
+                      "checks "
+                      "(has_equality_comparable_elements<box<DElemEq>>::value)",
+                      &tests_has_equality_comparable_elements },
+                    { "tests_has_less_than_comparable_elements",
+                      "checks "
+                      "(has_less_than_comparable_elements<box<DElemLt>>::value)",
+                      &tests_has_less_than_comparable_elements },
+                    { "tests_has_totally_ordered_elements",
+                      "checks "
+                      "(has_totally_ordered_elements<box<DElemTotal>>::value)",
+                      &tests_has_totally_ordered_elements },
+                    { "tests_has_three_way_comparable_elements",
+                      "checks "
+                      "(has_three_way_comparable_elements<box<elem_3way>>::value)",
+                      &tests_has_three_way_comparable_elements },
+                }
+            },
+            dt::block_spec{
+                "degree",
+                "Degree",
+                {
+                    { "tests_comparison_degree_name",
+                      "checks "
+                      "(er_cstr_eq(comparison_degree_name(DComparisonDegree::none), "
+                      "\"none\"))",
+                      &tests_comparison_degree_name },
+                    { "tests_comparison_degree_rank_and_weaker",
+                      "checks "
+                      "(comparison_degree_rank(DComparisonDegree::none) == 0)",
+                      &tests_comparison_degree_rank_and_weaker },
+                    { "tests_element_comparison_degree_of",
+                      "checks "
+                      "(element_comparison_degree_of<box<DElemNone>>::value "
+                      "== DComparison",
+                      &tests_element_comparison_degree_of },
+                }
+            },
+            dt::block_spec{
+                "container",
+                "Container",
+                {
+                    { "tests_has_container_equality_and_less",
+                      "checks (has_container_equality<DCmpEq>::value)",
+                      &tests_has_container_equality_and_less },
+                    { "tests_has_three_way_comparable_container",
+                      "checks "
+                      "(has_three_way_comparable_container<cmp_3way>::value)",
+                      &tests_has_three_way_comparable_container },
+                    { "tests_container_comparison_degree_of",
+                      "checks (container_comparison_degree_of<DCmpEq>::value "
+                      "== DComparisonDegree",
+                      &tests_container_comparison_degree_of },
+                    { "tests_is_equality_comparable_container",
+                      "checks "
+                      "(is_equality_comparable_container<DCmpEq>::value)",
+                      &tests_is_equality_comparable_container },
+                    { "tests_is_ordered_comparable_container",
+                      "checks "
+                      "(is_ordered_comparable_container<DCmpPartial>::value)",
+                      &tests_is_ordered_comparable_container },
+                }
+            },
+            dt::block_spec{
+                "cross",
+                "Cross",
+                {
+                    { "tests_elements_same_type",
+                      "checks (elements_same_type<box<int>, box<int>>::value)",
+                      &tests_elements_same_type },
+                    { "tests_elements_convertible",
+                      "checks (elements_convertible<box<int>, "
+                      "box<int>>::value)",
+                      &tests_elements_convertible },
+                    { "tests_elements_mutually_convertible",
+                      "checks (elements_mutually_convertible<box<int>, "
+                      "box<double>>::value)",
+                      &tests_elements_mutually_convertible },
+                    { "tests_cross_elements_equality_comparable",
+                      "checks (DCrossElementsEqualityComparable<box<int>, "
+                      "box<int>>::value)",
+                      &tests_cross_elements_equality_comparable },
+                    { "tests_cross_elements_ordered",
+                      "checks (DCrossElementsOrdered<box<int>, "
+                      "box<int>>::value)",
+                      &tests_cross_elements_ordered },
+                    { "tests_variable_templates",
+                      "checks "
+                      "(has_equality_comparable_elements_v<box<DElemEq>> == "
+                      "has_equality_c",
+                      &tests_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

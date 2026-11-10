@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/container/registry/registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/registry/registry.h"
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
@@ -149,32 +149,6 @@ bool d_registry_is_static(
 )
 {
     return registry && ((registry->flags & D_REGISTRY_FLAG_STATIC_ROWS) != 0);
-}
-
-/*
-d_registry_lookup_entry_cmp_for_reg
-  Compares two lookup entries using the comparison mode dictated by the
-  registry's flags.
-
-Parameter(s):
-  _registry: the registry whose flags determine comparison mode; may be NULL
-             (defaults to case-sensitive).
-  _a:        first lookup entry.
-  _b:        second lookup entry.
-Return:
-  Negative if _a < _b, 0 if equal, positive if _a > _b.
-*/
-D_STATIC_INLINE
-int d_registry_lookup_entry_cmp_for_reg(
-    const struct dj_registry*              _registry,
-    const struct dj_registry_lookup_entry* _a,
-    const struct dj_registry_lookup_entry* _b
-)
-{
-    return ( (!_registry) ||
-             ((_registry->flags & D_REGISTRY_FLAG_CASE_INSENSITIVE) == 0) )
-        ? d_registry_keycmp_case_sensitive(_a->key, _b->key)
-        : d_registry_keycmp_nocase(_a->key, _b->key);
 }
 
 /*
@@ -795,6 +769,49 @@ void* d_registry_get(
  *****************************************************************************/
 
 /*
+d_internal_registry_insert_at
+  Where a new row with _key goes: in a registry kept sorted
+(D_REGISTRY_FLAG_SORTED), before the first row whose key sorts after it,
+by the registry's case rule; otherwise, and after every row, at the end.
+
+Parameter(s):
+  _registry: the registry; not NULL.
+  _key:      the new row's key; not NULL.
+Return:
+  The row index the new row takes.
+*/
+static size_t
+d_internal_registry_insert_at(
+    struct dj_registry* _registry,
+    const char*         _key
+)
+{
+    const char* row_key;
+    size_t      i;
+    int         cmp;
+
+    if ( (_registry->flags & D_REGISTRY_FLAG_SORTED) == 0)
+    {
+        return _registry->count;
+    }
+
+    for (i = 0; i < _registry->count; ++i)
+    {
+        row_key = D_REGISTRY_ROW_KEY(d_registry_row_ptr(_registry, i));
+        cmp     = ((_registry->flags & D_REGISTRY_FLAG_CASE_INSENSITIVE) == 0)
+                  ? d_registry_keycmp_case_sensitive(_key, row_key)
+                  : d_registry_keycmp_nocase(_key, row_key);
+
+        if (cmp < 0)
+        {
+            return i;
+        }
+    }
+
+    return _registry->count;
+}
+
+/*
 d_registry_add
   Adds a new row to the registry. The row is copied into the internal
   array and a canonical lookup entry is created for its key. Duplicate
@@ -818,7 +835,6 @@ bool d_registry_add(
 )
 {
     const char* key;
-    const char* row_key;
     size_t      insert_at;
     size_t      i;
 
@@ -847,28 +863,7 @@ bool d_registry_add(
         return false;
     }
 
-    insert_at = _registry->count;
-
-    // optional sorted insertion by key
-    if ( (_registry->flags & D_REGISTRY_FLAG_SORTED) != 0)
-    {
-        for (i = 0; i < _registry->count; ++i)
-        {
-            row_key = D_REGISTRY_ROW_KEY(
-                d_registry_row_ptr(_registry, i));
-
-            int cmp = ((_registry->flags
-                        & D_REGISTRY_FLAG_CASE_INSENSITIVE) == 0)
-                ? d_registry_keycmp_case_sensitive(key, row_key)
-                : d_registry_keycmp_nocase(key, row_key);
-
-            if (cmp < 0)
-            {
-                insert_at = i;
-                break;
-            }
-        }
-    }
+    insert_at = d_internal_registry_insert_at(_registry, key);
 
     // ensure row and lookup capacity
     if (!d_registry_ensure_row_capacity(_registry,

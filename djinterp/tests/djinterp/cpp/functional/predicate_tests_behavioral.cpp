@@ -13,8 +13,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/predicate_tests_behavioral.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -73,23 +73,23 @@ static_assert(is_predicate_v<less_than, int, int>, "is_predicate_v binary");
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 // ---- C++20 concepts mirror the traits ----
-static_assert(predicate<is_positive, int>,
+static_assert(Predicate<is_positive, int>,
               "predicate concept: positive case");
-static_assert(!predicate<DNotAPredicate, int>,
+static_assert(!Predicate<DNotAPredicate, int>,
               "predicate concept: non-callable rejected");
-static_assert(!predicate<DReturnsVoidPredicate, int>,
+static_assert(!Predicate<DReturnsVoidPredicate, int>,
               "predicate concept: void result rejected");
 
 static_assert(
-    predicate_combinator<
+    PredicateCombinator<
         internal::predicate_and_combinator<is_positive, is_even> >,
     "predicate_combinator concept: and accepted");
-static_assert(!predicate_combinator<is_positive>,
+static_assert(!PredicateCombinator<is_positive>,
               "predicate_combinator concept: bare functor rejected");
 
 // concept usable as a constraint in an abbreviated function template
 template<typename _P>
-    requires predicate<_P, int>
+    requires Predicate<_P, int>
 D_CONSTEXPR bool invoke_pred(const _P& _p, int _v)
 {
     return _p(_v);
@@ -112,40 +112,35 @@ test_predicate_behavioral
   - the predicate / predicate_combinator concepts mirror the traits and are
     usable as constraints (C++20+)
 */
-void test_predicate_behavioral(
-    test::test_handler& _h
-)
+bool test_predicate_behavioral()
 {
+    bool verdict = true;
+
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // positive
-    D_TEST_CHECK(_h, (is_predicate<is_positive, int>::value));
-    D_TEST_CHECK(_h, (is_predicate<less_than, int, int>::value));
-    D_TEST_CHECK(_h, (is_predicate<DReturnsIntPredicate, int>::value));
-    D_TEST_CHECK(_h,
-        (is_predicate<
+    D_PREDICATE_CHECK((is_predicate<is_positive, int>::value));
+    D_PREDICATE_CHECK((is_predicate<less_than, int, int>::value));
+    D_PREDICATE_CHECK((is_predicate<DReturnsIntPredicate, int>::value));
+    D_PREDICATE_CHECK((is_predicate<
             internal::predicate_and_combinator<is_positive, is_even>,
             int>::value));
 
     // negative
-    D_TEST_CHECK(_h,
-        (is_predicate<DNotAPredicate, int>::value == false));
-    D_TEST_CHECK(_h,
-        (is_predicate<DReturnsVoidPredicate, int>::value == false));
-    D_TEST_CHECK(_h,
-        (is_predicate<is_positive, int, int>::value == false));
-    D_TEST_CHECK(_h, (is_predicate<int, int>::value == false));
+    D_PREDICATE_CHECK((is_predicate<DNotAPredicate, int>::value == false));
+    D_PREDICATE_CHECK((is_predicate<DReturnsVoidPredicate, int>::value == false));
+    D_PREDICATE_CHECK((is_predicate<is_positive, int, int>::value == false));
+    D_PREDICATE_CHECK((is_predicate<int, int>::value == false));
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // concept-constrained call compiles and runs
-    D_TEST_CHECK(_h, invoke_pred(is_positive(), 5)  == true);
-    D_TEST_CHECK(_h, invoke_pred(is_positive(), -5) == false);
+    D_PREDICATE_CHECK(invoke_pred(is_positive(), 5)  == true);
+    D_PREDICATE_CHECK(invoke_pred(is_positive(), -5) == false);
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 #else
-    (void)_h;  // C++98: trait/concepts unavailable
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return;
+    return verdict;
 }
 
 

@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/extractor_tests_pipeline.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "extractor_tests.hpp"
@@ -24,8 +24,8 @@ test_pipeline_then_extract_adapter
 bool test_pipeline_then_extract_adapter()
 {
     DPerson p = { 1, 21, 10 };
-    int v = ( extractors::from_function(get_age())
-              | extractors::then_extract(times_two()) )(p);
+    int v = ( djinterp::from_function(get_age())
+              | djinterp::then_extract(times_two()) )(p);
 
     D_INTERNAL_EXT_CHECK(v == 42);
 
@@ -42,8 +42,8 @@ test_pipeline_mapped_adapter
 bool test_pipeline_mapped_adapter()
 {
     DPerson p = { 1, 16, 10 };
-    int v = ( extractors::from_member(&DPerson::age)
-              | extractors::mapped(times_two()) )(p);
+    int v = ( djinterp::from_member(&DPerson::age)
+              | djinterp::mapped(times_two()) )(p);
 
     D_INTERNAL_EXT_CHECK(v == 32);
 
@@ -64,13 +64,13 @@ bool test_pipeline_filtered_adapter()
     DPerson adult = { 1, 30, 10 };
     DPerson minor = { 2, 15, 20 };
 
-    maybe<int> m_ok = ( extractors::from_member(&DPerson::age)
-                        | extractors::filtered(is_adult()) )(adult);
+    maybe<int> m_ok = ( djinterp::from_member(&DPerson::age)
+                        | djinterp::filtered(is_adult()) )(adult);
     D_INTERNAL_EXT_CHECK(m_ok.has_value());
     D_INTERNAL_EXT_CHECK(m_ok.value() == 30);
 
-    maybe<int> m_no = ( extractors::from_member(&DPerson::age)
-                        | extractors::filtered(is_adult()) )(minor);
+    maybe<int> m_no = ( djinterp::from_member(&DPerson::age)
+                        | djinterp::filtered(is_adult()) )(minor);
     D_INTERNAL_EXT_CHECK(m_no.is_nothing());
 
     return true;
@@ -89,9 +89,9 @@ bool test_pipeline_chained()
 {
     DPerson minor = { 2, 15, 20 };
 
-    maybe<int> m = ( extractors::from_member(&DPerson::age)
-                     | extractors::mapped(times_two())
-                     | extractors::filtered(is_adult()) )(minor);
+    maybe<int> m = ( djinterp::from_member(&DPerson::age)
+                     | djinterp::mapped(times_two())
+                     | djinterp::filtered(is_adult()) )(minor);
 
     D_INTERNAL_EXT_CHECK(m.has_value());
     D_INTERNAL_EXT_CHECK(m.value() == 30);
@@ -111,17 +111,17 @@ bool test_pipeline_equivalence()
 {
     DPerson p = { 1, 21, 10 };
 
-    int piped_then = ( extractors::from_function(get_age())
-                       | extractors::then_extract(times_two()) )(p);
+    int piped_then = ( djinterp::from_function(get_age())
+                       | djinterp::then_extract(times_two()) )(p);
     int direct_then =
-        extractors::then_extract(extractors::from_function(get_age()),
+        djinterp::then_extract(djinterp::from_function(get_age()),
                                  times_two())(p);
     D_INTERNAL_EXT_CHECK(piped_then == direct_then);
 
-    int piped_map = ( extractors::from_member(&DPerson::age)
-                      | extractors::mapped(times_two()) )(p);
+    int piped_map = ( djinterp::from_member(&DPerson::age)
+                      | djinterp::mapped(times_two()) )(p);
     int direct_map =
-        extractors::mapped(extractors::from_member(&DPerson::age),
+        djinterp::mapped(djinterp::from_member(&DPerson::age),
                            times_two())(p);
     D_INTERNAL_EXT_CHECK(piped_map == direct_map);
 

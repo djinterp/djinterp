@@ -26,7 +26,7 @@
 * path:      /tests/djinterp/cpp/paradigm/adapter/adapter/adapter_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.09
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_ADAPTER_TESTS_
@@ -89,6 +89,10 @@
 //   constrained_adapt (uncomment the line below, or pass -D on the build).
 // #define D_ADAPTER_BYREF_FIXED 1
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING

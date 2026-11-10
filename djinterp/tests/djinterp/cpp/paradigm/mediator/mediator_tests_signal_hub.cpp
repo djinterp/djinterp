@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_signal_hub.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : mediator_tests_signal_hub.cpp
 //   The named-channel multicast signal hub (section VI): connect (and the
@@ -58,11 +58,11 @@ bool tests_signal_hub_connect_emit()
     int        seen = 0;
 
     hub.connect(signal_id("chan"),
-                [&](const compat::any& _e) { seen = _e.get<int>(); });
+                [&](const re_std::any& _e) { seen = _e.get<int>(); });
 
     bool ok = (hub.slot_count() == 1);
 
-    hub.emit("chan", compat::any(42));
+    hub.emit("chan", re_std::any(42));
     ok = ok && (seen == 42);
 
     return ok;
@@ -82,9 +82,9 @@ bool tests_signal_hub_connect_literal()
     signal_hub hub;
     int        seen = 0;
 
-    hub.connect("literal", [&](const compat::any& _e) { seen = _e.get<int>(); });
+    hub.connect("literal", [&](const re_std::any& _e) { seen = _e.get<int>(); });
 
-    hub.emit("literal", compat::any(64));
+    hub.emit("literal", re_std::any(64));
 
     bool ok = true;
 
@@ -106,10 +106,10 @@ bool tests_signal_hub_multicast()
     int        a = 0;
     int        b = 0;
 
-    hub.connect(signal_id("chan"), [&](const compat::any&) { ++a; });
-    hub.connect(signal_id("chan"), [&](const compat::any&) { ++b; });
+    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++b; });
 
-    hub.emit("chan", compat::any(0));
+    hub.emit("chan", re_std::any(0));
 
     bool ok = true;
 
@@ -133,10 +133,10 @@ bool tests_signal_hub_channels()
     int        ca = 0;
     int        cb = 0;
 
-    hub.connect(signal_id("a"), [&](const compat::any&) { ++ca; });
-    hub.connect(signal_id("b"), [&](const compat::any&) { ++cb; });
+    hub.connect(signal_id("a"), [&](const re_std::any&) { ++ca; });
+    hub.connect(signal_id("b"), [&](const re_std::any&) { ++cb; });
 
-    hub.emit("a", compat::any(0));
+    hub.emit("a", re_std::any(0));
 
     bool ok = true;
 
@@ -163,15 +163,15 @@ bool tests_signal_hub_disconnect()
     int        a = 0;
     int        b = 0;
 
-    subscription_token tok =
-        hub.connect(signal_id("chan"), [&](const compat::any&) { ++a; });
-    hub.connect(signal_id("chan"), [&](const compat::any&) { ++b; });
+    subscription_id tok =
+        hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++b; });
 
     hub.disconnect(tok);
 
     bool ok = (hub.slot_count() == 1);
 
-    hub.emit("chan", compat::any(0));
+    hub.emit("chan", re_std::any(0));
     ok = ok && (a == 0);
     ok = ok && (b == 1);
 
@@ -191,9 +191,9 @@ bool tests_signal_hub_disconnect_all()
     int        a = 0;
     int        other = 0;
 
-    hub.connect(signal_id("chan"), [&](const compat::any&) { ++a; });
-    hub.connect(signal_id("chan"), [&](const compat::any&) { ++a; });
-    hub.connect(signal_id("keep"), [&](const compat::any&) { ++other; });
+    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(signal_id("keep"), [&](const re_std::any&) { ++other; });
 
     hub.disconnect_all("chan");
 
@@ -202,10 +202,10 @@ bool tests_signal_hub_disconnect_all()
     ok = ok && (hub.slot_count_for("chan") == 0);
     ok = ok && (hub.slot_count_for("keep") == 1);
 
-    hub.emit("chan", compat::any(0));
+    hub.emit("chan", re_std::any(0));
     ok = ok && (a == 0);
 
-    hub.emit("keep", compat::any(0));
+    hub.emit("keep", re_std::any(0));
     ok = ok && (other == 1);
 
     return ok;
@@ -226,10 +226,10 @@ bool tests_signal_hub_connect_typed()
     hub.connect_typed<ping>("chan",
                             [&](const ping& _e) { seen += _e.n; });
 
-    hub.emit("chan", compat::any(ping{ 6 }));       // match
+    hub.emit("chan", re_std::any(ping{ 6 }));       // match
     bool ok = (seen == 6);
 
-    hub.emit("chan", compat::any(pong{ 99 }));      // non-match: skipped
+    hub.emit("chan", re_std::any(pong{ 99 }));      // non-match: skipped
     ok = ok && (seen == 6);
 
     return ok;
@@ -249,7 +249,7 @@ bool tests_signal_hub_emit_typed()
     int        typed_seen = 0;
 
     hub.connect(signal_id("chan"),
-                [&](const compat::any& _e) { raw_holds_ping = _e.holds<ping>(); });
+                [&](const re_std::any& _e) { raw_holds_ping = _e.holds<ping>(); });
     hub.connect_typed<ping>("chan",
                             [&](const ping& _e) { typed_seen = _e.n; });
 
@@ -277,9 +277,9 @@ bool tests_signal_hub_string_view_connect()
     int        seen = 0;
 
     hub.connect(std::string_view("sv_chan"),
-                [&](const compat::any& _e) { seen = _e.get<int>(); });
+                [&](const re_std::any& _e) { seen = _e.get<int>(); });
 
-    hub.emit("sv_chan", compat::any(15));
+    hub.emit("sv_chan", re_std::any(15));
 
     bool ok = true;
 
@@ -304,8 +304,8 @@ bool tests_signal_hub_has_channel()
 {
     signal_hub hub;
 
-    subscription_token tok =
-        hub.connect(signal_id("live"), [](const compat::any&) {});
+    subscription_id tok =
+        hub.connect(signal_id("live"), [](const re_std::any&) {});
 
     bool ok = true;
 
@@ -330,15 +330,15 @@ bool tests_signal_hub_clear()
     signal_hub hub;
     int        seen = 0;
 
-    hub.connect(signal_id("a"), [&](const compat::any&) { ++seen; });
-    hub.connect(signal_id("b"), [&](const compat::any&) { ++seen; });
+    hub.connect(signal_id("a"), [&](const re_std::any&) { ++seen; });
+    hub.connect(signal_id("b"), [&](const re_std::any&) { ++seen; });
 
     hub.clear();
 
     bool ok = (hub.slot_count() == 0);
 
-    hub.emit("a", compat::any(0));
-    hub.emit("b", compat::any(0));
+    hub.emit("a", re_std::any(0));
+    hub.emit("b", re_std::any(0));
     ok = ok && (seen == 0);
 
     return ok;

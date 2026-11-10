@@ -25,16 +25,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_cpp20.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 // =========================================================================
 // I.   is_bounded_array  (compile-time)
 // =========================================================================
@@ -216,24 +214,24 @@ static_assert(std::is_same<type_identity_t<void>, void>::value,
 // VI.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_cpp20(
-    test_handler& _test_handler
-)
+bool type_traits_tests_cpp20()
 {
+    bool verdict = true;
+
     // ---- is_bounded_array ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_bounded_array<int[5]>::value == true,
         "is_bounded_array<int[5]>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_bounded_array<int[1]>::value == true,
         "is_bounded_array<int[1]>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_bounded_array<int[3][4]>::value == true,
         "is_bounded_array<int[3][4]>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_bounded_array<int[]>::value == false,
         "is_bounded_array<int[]> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_bounded_array<int>::value == false &&
           is_bounded_array<int*>::value == false &&
           is_bounded_array<int&>::value == false &&
@@ -241,68 +239,68 @@ void type_traits_tests_cpp20(
         "is_bounded_array: non-array types -> false");
 
     // ---- is_unbounded_array ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_unbounded_array<int[]>::value == true,
         "is_unbounded_array<int[]>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_unbounded_array<int[5]>::value == false,
         "is_unbounded_array<int[5]> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( is_unbounded_array<int>::value == false &&
           is_unbounded_array<int*>::value == false ),
         "is_unbounded_array: non-array types -> false");
 
     // mutual exclusion
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_bounded_array<int[5]>::value != is_unbounded_array<int[5]>::value,
         "Mutual exclusion: int[5]");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_bounded_array<int[]>::value != is_unbounded_array<int[]>::value,
         "Mutual exclusion: int[]");
 
     // ---- remove_cvref ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<int>, int>::value,
         "remove_cvref_t<int> -> int (no-op)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<const int>, int>::value,
         "remove_cvref_t<const int> -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<int&>, int>::value,
         "remove_cvref_t<int&> -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<const int&>, int>::value,
         "remove_cvref_t<const int&> -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<const volatile int&&>, int>::value,
         "remove_cvref_t<const volatile int&&> -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<int*>, int*>::value,
         "remove_cvref_t<int*> -> int* (pointee unaffected)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<const int*>, const int*>::value,
         "remove_cvref_t<const int*> -> const int* (pointee const survives)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<remove_cvref_t<int* const>, int*>::value,
         "remove_cvref_t<int* const> -> int* (top-level const stripped)");
 
     // ---- type_identity ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<type_identity_t<int>, int>::value,
         "type_identity_t<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<type_identity_t<const int&>, const int&>::value,
         "type_identity_t<const int&> -- preserves cv-ref");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<type_identity_t<int[5]>, int[5]>::value,
         "type_identity_t<int[5]>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<type_identity_t<void>, void>::value,
         "type_identity_t<void>");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

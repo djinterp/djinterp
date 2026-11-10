@@ -1,12 +1,23 @@
-/******************************************************************************
-* djinterp [test]          concurrency_strategy_traits_tests_aggregate.cpp
+/*******************************************************************************
+* djinterp [test]                concurrency_strategy_traits_tests_aggregate.cpp
 *
 *   Section IV.b - the vacuous / concurrent / synchronized / sequential axis.
 * These are tested as the header's own logical invariants so they hold whatever
 * the real is_immutable_container decides, while still pinning the concrete
 * true/false values that do not depend on immutability.  Defines the
 * "aggregate" block.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests_aggregate.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+
+// FLOOR, FOR NOW: below C++17, concurrency_strategy_traits.hpp's floor,
+// this unit is empty, as that header is.
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #include "concurrency_strategy_traits_tests.hpp"
 
@@ -90,26 +101,28 @@ bool tests_aggregate_concurrent()
 }
 
 // tests_aggregate_sequential
-//   Verifies is_sequential_container is the exact complement of
+//   Verifies is_unsynchronized_container is the exact complement of
 //   is_concurrent_container.
 //   Tests the following:
-//   - is_sequential_container_v<T> == !is_concurrent_container_v<T> across
+//   - is_unsynchronized_container_v<T> == !is_concurrent_container_v<T> across
 //     inputs
 //   - the empty mutable type is sequential; strategy-bearing types are not
 bool tests_aggregate_sequential()
 {
-    D_CS_CHECK(is_sequential_container_v<DStPlain> ==
+    D_CS_CHECK(is_unsynchronized_container_v<DStPlain> ==
                !is_concurrent_container_v<DStPlain>);
-    D_CS_CHECK(is_sequential_container_v<DStLockedRw> ==
+    D_CS_CHECK(is_unsynchronized_container_v<DStLockedRw> ==
                !is_concurrent_container_v<DStLockedRw>);
-    D_CS_CHECK(is_sequential_container_v<DImmutableProbe> ==
+    D_CS_CHECK(is_unsynchronized_container_v<DImmutableProbe> ==
                !is_concurrent_container_v<DImmutableProbe>);
 
-    D_CS_CHECK(is_sequential_container_v<DStPlain>);
-    D_CS_CHECK(!is_sequential_container_v<DStCowState>);
-    D_CS_CHECK(!is_sequential_container_v<DStHazard>);
+    D_CS_CHECK(is_unsynchronized_container_v<DStPlain>);
+    D_CS_CHECK(!is_unsynchronized_container_v<DStCowState>);
+    D_CS_CHECK(!is_unsynchronized_container_v<DStHazard>);
     return true;
 }
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

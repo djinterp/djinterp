@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_comparison_traits_tests_realization.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -57,8 +57,8 @@ bool tests_lifetime_relation()
               (lifetime_relation<DConstSeq, DCompileConstSeq>::value));
 
     // and the stages really are what they say
-    D_CCM_CHECK(is_compile_time(container_lifetime<DCompileSeq>::value));
-    D_CCM_CHECK(!is_compile_time(container_lifetime<DRuntimeSeq>::value));
+    D_CCM_CHECK(is_compile_time(container_lifetime_of<DCompileSeq>::value));
+    D_CCM_CHECK(!is_compile_time(container_lifetime_of<DRuntimeSeq>::value));
 
     // a non-container is runtime, so it is `less` than any compile-time container
     D_CCM_REL(order_relation::less,
@@ -233,10 +233,10 @@ bool tests_iterability_lattice()
     D_CCM_CHECK(iteration_mode_of<DCompileSeq>::value ==
                 iteration_mode::non_const);
 
-    D_CCM_CHECK(!is_compile_time(container_lifetime<DConstSeq>::value));
-    D_CCM_CHECK(!is_compile_time(container_lifetime<DRuntimeSeq>::value));
-    D_CCM_CHECK(is_compile_time(container_lifetime<DCompileConstSeq>::value));
-    D_CCM_CHECK(is_compile_time(container_lifetime<DCompileSeq>::value));
+    D_CCM_CHECK(!is_compile_time(container_lifetime_of<DConstSeq>::value));
+    D_CCM_CHECK(!is_compile_time(container_lifetime_of<DRuntimeSeq>::value));
+    D_CCM_CHECK(is_compile_time(container_lifetime_of<DCompileConstSeq>::value));
+    D_CCM_CHECK(is_compile_time(container_lifetime_of<DCompileSeq>::value));
 
     return ok;
 }
@@ -275,8 +275,8 @@ bool tests_iterability_mixed_kinds()
               (DIterabilityRelation<DRuntimeSeq, DCompileConstSeq>::value));
 
     // ...and they really are mixed: each has one bit the other lacks
-    D_CCM_CHECK(is_compile_time(container_lifetime<DCompileConstSeq>::value) &&
-                !is_compile_time(container_lifetime<DRuntimeSeq>::value));
+    D_CCM_CHECK(is_compile_time(container_lifetime_of<DCompileConstSeq>::value) &&
+                !is_compile_time(container_lifetime_of<DRuntimeSeq>::value));
     D_CCM_CHECK((iteration_mode_of<DRuntimeSeq>::value ==
                  iteration_mode::non_const) &&
                 (iteration_mode_of<DCompileConstSeq>::value ==

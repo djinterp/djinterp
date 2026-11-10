@@ -14,8 +14,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/maybe_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -86,51 +86,51 @@ static_assert(!maybe_predicate_for<DFnReturnsVoid, int>,
 #endif
 
 
-void test_traits(
-    test::test_handler& _h
-)
+bool test_traits()
 {
+    bool verdict = true;
+
     // ---- is_maybe (structural) ----
-    test::record_assertion(_h, is_maybe<maybe<int>>::value,
+    record_assertion(verdict, is_maybe<maybe<int>>::value,
         "trait: is_maybe true for maybe<int>");
-    test::record_assertion(_h, is_maybe<const maybe<double>&>::value,
+    record_assertion(verdict, is_maybe<const maybe<double>&>::value,
         "trait: is_maybe strips cv/ref before matching");
-    test::record_assertion(_h, !is_maybe<int>::value,
+    record_assertion(verdict, !is_maybe<int>::value,
         "trait: is_maybe false for a plain value type");
-    test::record_assertion(_h, !is_maybe<nothing_t>::value,
+    record_assertion(verdict, !is_maybe<nothing_t>::value,
         "trait: is_maybe false for nothing_t");
 
     // ---- is_maybe_predicate (predicate SFINAE) ----
-    test::record_assertion(_h, is_maybe_predicate<pred_is_even, int>::value,
+    record_assertion(verdict, is_maybe_predicate<pred_is_even, int>::value,
         "trait: is_maybe_predicate true for a bool(const int&) callable");
-    test::record_assertion(_h, !is_maybe_predicate<DFnReturnsVoid, int>::value,
+    record_assertion(verdict, !is_maybe_predicate<DFnReturnsVoid, int>::value,
         "trait: is_maybe_predicate false for a void-returning callable");
-    test::record_assertion(_h, !is_maybe_predicate<DFnStringOnly, int>::value,
+    record_assertion(verdict, !is_maybe_predicate<DFnStringOnly, int>::value,
         "trait: is_maybe_predicate false when not callable with int");
-    test::record_assertion(_h, !is_maybe_predicate<int, int>::value,
+    record_assertion(verdict, !is_maybe_predicate<int, int>::value,
         "trait: is_maybe_predicate false for a non-callable");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_maybe_v<maybe<int>> && !is_maybe_v<int>,
         "trait: is_maybe_v matches the struct form");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_maybe_predicate_v<pred_is_positive, int> &&
         !is_maybe_predicate_v<DFnReturnsVoid, int>,
         "trait: is_maybe_predicate_v matches the struct form");
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    test::record_assertion(_h,
+    record_assertion(verdict,
         maybe_type<maybe<int>> && !maybe_type<int>,
         "trait: maybe_type concept matches is_maybe");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         maybe_predicate_for<pred_is_even, int> &&
         !maybe_predicate_for<DFnStringOnly, int>,
         "trait: maybe_predicate_for concept matches is_maybe_predicate");
 #endif
 
-    return;
+    return verdict;
 }
 
 

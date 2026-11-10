@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/pattern/pattern_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : pattern_tests_traits.cpp
 //   The pattern traits (section V) and the C++20 concept (section VII): the
@@ -22,7 +22,6 @@
 NS_DJINTERP
 NS_TESTING
 
-namespace tr = ::djinterp::traits;
 
 namespace
 {
@@ -83,11 +82,11 @@ tests_trait_has_input_type
 */
 bool tests_trait_has_input_type()
 {
-    static_assert( tr::pattern_has_input_type<DTagPattern>::value,   "present");
-    static_assert(!tr::pattern_has_input_type<no_input_type>::value, "absent");
+    static_assert( pattern_has_input_type<DTagPattern>::value,   "present");
+    static_assert(!pattern_has_input_type<no_input_type>::value, "absent");
 
-    return ( tr::pattern_has_input_type<DTagPattern>::value &&
-            !tr::pattern_has_input_type<no_input_type>::value );
+    return ( pattern_has_input_type<DTagPattern>::value &&
+            !pattern_has_input_type<no_input_type>::value );
 }
 
 /*
@@ -98,8 +97,8 @@ tests_trait_has_key_type
 */
 bool tests_trait_has_key_type()
 {
-    return ( tr::pattern_has_key_type<DTagPattern>::value &&
-            !tr::pattern_has_key_type<int>::value );
+    return ( pattern_has_key_type<DTagPattern>::value &&
+            !pattern_has_key_type<int>::value );
 }
 
 /*
@@ -110,8 +109,8 @@ tests_trait_has_value_type
 */
 bool tests_trait_has_value_type()
 {
-    return ( tr::pattern_has_value_type<DTagPattern>::value &&
-            !tr::pattern_has_value_type<int>::value );
+    return ( pattern_has_value_type<DTagPattern>::value &&
+            !pattern_has_value_type<int>::value );
 }
 
 /*
@@ -126,9 +125,9 @@ bool tests_trait_has_do_match()
 {
     bool ok = true;
 
-    ok = ok && ( tr::pattern_has_do_match<DTagPattern>::value);
-    ok = ok && (!tr::pattern_has_do_match<DNoDoMatch>::value);
-    ok = ok && (!tr::pattern_has_do_match<DWrongDoMatch>::value);
+    ok = ok && ( pattern_has_do_match<DTagPattern>::value);
+    ok = ok && (!pattern_has_do_match<DNoDoMatch>::value);
+    ok = ok && (!pattern_has_do_match<DWrongDoMatch>::value);
 
     return ok;
 }
@@ -141,8 +140,8 @@ tests_trait_has_do_extract
 */
 bool tests_trait_has_do_extract()
 {
-    return ( tr::pattern_has_do_extract<DTagPattern>::value &&
-            !tr::pattern_has_do_extract<DNoDoMatch>::value );
+    return ( pattern_has_do_extract<DTagPattern>::value &&
+            !pattern_has_do_extract<DNoDoMatch>::value );
 }
 
 /*
@@ -153,8 +152,8 @@ tests_trait_has_do_render
 */
 bool tests_trait_has_do_render()
 {
-    return ( tr::pattern_has_do_render<DTagPattern>::value &&
-            !tr::pattern_has_do_render<DNoDoMatch>::value );
+    return ( pattern_has_do_render<DTagPattern>::value &&
+            !pattern_has_do_render<DNoDoMatch>::value );
 }
 
 /*
@@ -165,8 +164,8 @@ tests_trait_has_do_rewrite
 */
 bool tests_trait_has_do_rewrite()
 {
-    return ( tr::pattern_has_do_rewrite<DTagPattern>::value &&
-            !tr::pattern_has_do_rewrite<DNoDoMatch>::value );
+    return ( pattern_has_do_rewrite<DTagPattern>::value &&
+            !pattern_has_do_rewrite<DNoDoMatch>::value );
 }
 
 /*
@@ -178,11 +177,11 @@ tests_trait_is_pattern_conforming
 */
 bool tests_trait_is_pattern_conforming()
 {
-    static_assert(tr::is_pattern<DTagPattern>::value,      "derived conforms");
-    static_assert(tr::is_pattern<DPlainConforming>::value, "plain conforms");
+    static_assert(is_pattern<DTagPattern>::value,      "derived conforms");
+    static_assert(is_pattern<DPlainConforming>::value, "plain conforms");
 
-    return ( tr::is_pattern<DTagPattern>::value &&
-             tr::is_pattern<DPlainConforming>::value );
+    return ( is_pattern<DTagPattern>::value &&
+             is_pattern<DPlainConforming>::value );
 }
 
 /*
@@ -196,10 +195,10 @@ bool tests_trait_is_pattern_nonconforming()
 {
     bool ok = true;
 
-    ok = ok && (!tr::is_pattern<int>::value);
-    ok = ok && (!tr::is_pattern<no_input_type>::value);
-    ok = ok && (!tr::is_pattern<DNoDoMatch>::value);
-    ok = ok && (!tr::is_pattern<DWrongDoMatch>::value);
+    ok = ok && (!is_pattern<int>::value);
+    ok = ok && (!is_pattern<no_input_type>::value);
+    ok = ok && (!is_pattern<DNoDoMatch>::value);
+    ok = ok && (!is_pattern<DWrongDoMatch>::value);
 
     return ok;
 }
@@ -214,10 +213,10 @@ bool tests_trait_is_pattern_v()
 {
     bool ok = true;
 
-    ok = ok && (tr::is_pattern_v<DTagPattern> == tr::is_pattern<DTagPattern>::value);
-    ok = ok && (tr::is_pattern_v<int> == tr::is_pattern<int>::value);
-    ok = ok && (tr::is_pattern_v<DTagPattern>);
-    ok = ok && (!tr::is_pattern_v<int>);
+    ok = ok && (is_pattern_v<DTagPattern> == is_pattern<DTagPattern>::value);
+    ok = ok && (is_pattern_v<int> == is_pattern<int>::value);
+    ok = ok && (is_pattern_v<DTagPattern>);
+    ok = ok && (!is_pattern_v<int>);
 
     return ok;
 }

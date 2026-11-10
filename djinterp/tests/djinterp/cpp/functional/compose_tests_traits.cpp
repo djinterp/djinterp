@@ -12,8 +12,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/compose_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -23,64 +23,58 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
 
     // ---- is_invocable -----------------------------------------------------
     // positive: each helper callable accepts its intended argument.
-    D_TEST_TRAIT_TRUE (is_invocable, add_one,      int);
-    D_TEST_TRAIT_TRUE (is_invocable, doubler,      int);
-    D_TEST_TRAIT_TRUE (is_invocable, to_string_fn, int);
-    D_TEST_TRAIT_TRUE (is_invocable, length_of,    std::string);
-    D_TEST_TRAIT_TRUE (is_invocable, DSinkVoid,    int);
+    D_TEST_STATIC(is_invocable< add_one, int >::value);
+    D_TEST_STATIC(is_invocable< doubler, int >::value);
+    D_TEST_STATIC(is_invocable< to_string_fn, int >::value);
+    D_TEST_STATIC(is_invocable< length_of, std::string >::value);
+    D_TEST_STATIC(is_invocable< DSinkVoid, int >::value);
     // negative: wrong argument type, or a non-callable type.
-    D_TEST_TRAIT_FALSE(is_invocable, add_one,      std::string);
-    D_TEST_TRAIT_FALSE(is_invocable, length_of,    int);
-    D_TEST_TRAIT_FALSE(is_invocable, not_callable, int);
-    D_TEST_TRAIT_FALSE(is_invocable, int,          int);
+    D_TEST_STATIC(!is_invocable< add_one, std::string >::value);
+    D_TEST_STATIC(!is_invocable< length_of, int >::value);
+    D_TEST_STATIC(!is_invocable< not_callable, int >::value);
+    D_TEST_STATIC(!is_invocable< int, int >::value);
 
     // ---- callable_result_t ------------------------------------------------
-    D_TEST_TYPE_EQ(callable_result_t<add_one, int>,            int);
-    D_TEST_TYPE_EQ(callable_result_t<to_string_fn, int>,       std::string);
-    D_TEST_TYPE_EQ(callable_result_t<length_of, std::string>,  std::size_t);
+    D_TEST_STATIC(std::is_same< callable_result_t<add_one, int>, int >::value);
+    D_TEST_STATIC(std::is_same< callable_result_t<to_string_fn, int>, std::string >::value);
+    D_TEST_STATIC(std::is_same< callable_result_t<length_of, std::string>, std::size_t >::value);
 
     // ---- is_invocable_r ---------------------------------------------------
     // exact result type, and a widening conversion, both satisfy.
-    D_TEST_TRAIT_TRUE (is_invocable_r, int,         add_one, int);
-    D_TEST_TRAIT_TRUE (is_invocable_r, long,        add_one, int);
-    D_TEST_TRAIT_TRUE (is_invocable_r, std::string, to_string_fn, int);
+    D_TEST_STATIC(is_invocable_r< int, add_one, int >::value);
+    D_TEST_STATIC(is_invocable_r< long, add_one, int >::value);
+    D_TEST_STATIC(is_invocable_r< std::string, to_string_fn, int >::value);
     // not convertible: int result is not convertible to std::string;
     // and an uninvocable pairing is false regardless of result type.
-    D_TEST_TRAIT_FALSE(is_invocable_r, std::string, add_one, int);
-    D_TEST_TRAIT_FALSE(is_invocable_r, int,         add_one, std::string);
+    D_TEST_STATIC(!is_invocable_r< std::string, add_one, int >::value);
+    D_TEST_STATIC(!is_invocable_r< int, add_one, std::string >::value);
 
     // ---- is_unary_transformer --------------------------------------------
     // non-void unary callables qualify; the void-returning sink does not.
-    D_TEST_TRAIT_TRUE (is_unary_transformer, add_one,      int);
-    D_TEST_TRAIT_TRUE (is_unary_transformer, to_string_fn, int);
-    D_TEST_TRAIT_FALSE(is_unary_transformer, DSinkVoid,    int);
-    D_TEST_TRAIT_FALSE(is_unary_transformer, add_one,      std::string);
+    D_TEST_STATIC(is_unary_transformer< add_one, int >::value);
+    D_TEST_STATIC(is_unary_transformer< to_string_fn, int >::value);
+    D_TEST_STATIC(!is_unary_transformer< DSinkVoid, int >::value);
+    D_TEST_STATIC(!is_unary_transformer< add_one, std::string >::value);
 
     // ---- is_composable ----------------------------------------------------
     // outer(inner(input)) well-formed in both same-type and changing-type
     // chains; ill-formed when the outer cannot accept the inner result.
-    D_TEST_TRAIT_TRUE (is_composable, add_one,      doubler,      int);
-    D_TEST_TRAIT_TRUE (is_composable, to_string_fn, add_one,      int);
-    D_TEST_TRAIT_TRUE (is_composable, length_of,    to_string_fn, int);
-    D_TEST_TRAIT_FALSE(is_composable, add_one,      to_string_fn, int);
-    D_TEST_TRAIT_FALSE(is_composable, length_of,    add_one,      int);
+    D_TEST_STATIC(is_composable< add_one, doubler, int >::value);
+    D_TEST_STATIC(is_composable< to_string_fn, add_one, int >::value);
+    D_TEST_STATIC(is_composable< length_of, to_string_fn, int >::value);
+    D_TEST_STATIC(!is_composable< add_one, to_string_fn, int >::value);
+    D_TEST_STATIC(!is_composable< length_of, add_one, int >::value);
 
     // ---- composition_result_t --------------------------------------------
-    D_TEST_TYPE_EQ(composition_result_t<add_one, doubler, int>,        int);
-    D_TEST_TYPE_EQ(composition_result_t<to_string_fn, add_one, int>,
-                   std::string);
-    D_TEST_TYPE_EQ(composition_result_t<length_of, to_string_fn, int>,
-                   std::size_t);
+    D_TEST_STATIC(std::is_same< composition_result_t<add_one, doubler, int>, int >::value);
+    D_TEST_STATIC(std::is_same< composition_result_t<to_string_fn, add_one, int>, std::string >::value);
+    D_TEST_STATIC(std::is_same< composition_result_t<length_of, to_string_fn, int>, std::size_t >::value);
 
     // ---- is_composed_transformer (structural) ----------------------------
     // the three factories all yield the same composed_transformer_helper
@@ -89,19 +83,19 @@ namespace {
     using pipe_t      = decltype(pipe(add_one(), doubler()));
     using transform_t = decltype(compose_transformer(add_one(), doubler()));
 
-    D_TEST_TRAIT_TRUE (is_composed_transformer, compose_t);
-    D_TEST_TRAIT_TRUE (is_composed_transformer, pipe_t);
-    D_TEST_TRAIT_TRUE (is_composed_transformer, transform_t);
-    D_TEST_TRAIT_FALSE(is_composed_transformer, add_one);
-    D_TEST_TRAIT_FALSE(is_composed_transformer, int);
+    D_TEST_STATIC(is_composed_transformer< compose_t >::value);
+    D_TEST_STATIC(is_composed_transformer< pipe_t >::value);
+    D_TEST_STATIC(is_composed_transformer< transform_t >::value);
+    D_TEST_STATIC(!is_composed_transformer< add_one >::value);
+    D_TEST_STATIC(!is_composed_transformer< int >::value);
 
     // ---- is_memoized (structural) ----------------------------------------
     using memoize_t = decltype(
         ::djinterp::memoize<int (*)(const int&), int>(&free_add_one));
 
-    D_TEST_TRAIT_TRUE (is_memoized, memoize_t);
-    D_TEST_TRAIT_FALSE(is_memoized, add_one);
-    D_TEST_TRAIT_FALSE(is_memoized, compose_t);
+    D_TEST_STATIC(is_memoized< memoize_t >::value);
+    D_TEST_STATIC(!is_memoized< add_one >::value);
+    D_TEST_STATIC(!is_memoized< compose_t >::value);
 
     // ---- variable-template `_v` aliases (C++14+) -------------------------
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -129,16 +123,16 @@ namespace {
 
     // ---- concept mirrors (C++20) -----------------------------------------
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    D_TEST_CONCEPT_TRUE (invocable_with, add_one, int);
-    D_TEST_CONCEPT_FALSE(invocable_with, add_one, std::string);
-    D_TEST_CONCEPT_TRUE (unary_transformer, to_string_fn, int);
-    D_TEST_CONCEPT_FALSE(unary_transformer, DSinkVoid, int);
-    D_TEST_CONCEPT_TRUE (composable, length_of, to_string_fn, int);
-    D_TEST_CONCEPT_FALSE(composable, add_one, to_string_fn, int);
-    D_TEST_CONCEPT_TRUE (composed_transformer_like, compose_t);
-    D_TEST_CONCEPT_FALSE(composed_transformer_like, add_one);
-    D_TEST_CONCEPT_TRUE (memoized_like, memoize_t);
-    D_TEST_CONCEPT_FALSE(memoized_like, add_one);
+    D_TEST_STATIC(invocable_with< add_one, int >);
+    D_TEST_STATIC(!invocable_with< add_one, std::string >);
+    D_TEST_STATIC(unary_transformer< to_string_fn, int >);
+    D_TEST_STATIC(!unary_transformer< DSinkVoid, int >);
+    D_TEST_STATIC(composable< length_of, to_string_fn, int >);
+    D_TEST_STATIC(!composable< add_one, to_string_fn, int >);
+    D_TEST_STATIC(composed_transformer_like< compose_t >);
+    D_TEST_STATIC(!composed_transformer_like< add_one >);
+    D_TEST_STATIC(memoized_like< memoize_t >);
+    D_TEST_STATIC(!memoized_like< add_one >);
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 }  // namespace
@@ -163,30 +157,28 @@ compose_tests_traits
   appears as a row in the report.  If this translation unit compiled,
   every compile-time property held.
 */
-void compose_tests_traits(
-    test_handler& _handler
-)
+bool compose_tests_traits()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // every static_assert above is part of THIS translation unit; if it
     // compiled, the compile-time suite passed in full.  Record a single
     // green roll-up so the report shows a row for it.
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "compose traits + concepts (compile-time suite)",
         [&]()
         {
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 true,
                 "Section 0 predicate traits and concepts compiled",
                 "all static_assert checks held",
                 nullptr);
         });
 
-    return;
+    return verdict;
 }
 
 

@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/transducer_tests_core2.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <vector>
@@ -30,7 +30,7 @@ test_core2_take_while
 bool test_core2_take_while()
 {
     std::vector<int> in = { 1, 2, 3, 4, 5, 1 };
-    auto xform = transducers::take_while(under(4));
+    auto xform = djinterp::take_while(under(4));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 3);
@@ -51,7 +51,7 @@ test_core2_take_while_none
 bool test_core2_take_while_none()
 {
     std::vector<int> in = { 1, 2, 3 };
-    auto xform = transducers::take_while(under(0));
+    auto xform = djinterp::take_while(under(0));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.empty());
@@ -71,7 +71,7 @@ test_core2_drop_while
 bool test_core2_drop_while()
 {
     std::vector<int> in = { 1, 2, 3, 1, 4 };
-    auto xform = transducers::drop_while(under(3));
+    auto xform = djinterp::drop_while(under(3));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 3);
@@ -92,7 +92,7 @@ test_core2_drop_while_all
 bool test_core2_drop_while_all()
 {
     std::vector<int> in = { 1, 2, 3 };
-    auto xform = transducers::drop_while(under(100));
+    auto xform = djinterp::drop_while(under(100));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.empty());
@@ -110,7 +110,7 @@ test_core2_distinct
 bool test_core2_distinct()
 {
     std::vector<int> in = { 1, 1, 2, 3, 2, 1 };
-    auto xform = transducers::distinct<int>();
+    auto xform = djinterp::distinct<int>();
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 3);
@@ -134,7 +134,7 @@ bool test_core2_tap()
 {
     int hits = 0;
     std::vector<int> in = { 5, 6, 7 };
-    auto xform = transducers::tap(counter(&hits));
+    auto xform = djinterp::tap(counter(&hits));
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 3);
@@ -156,7 +156,7 @@ test_core2_flat_map
 bool test_core2_flat_map()
 {
     std::vector<int> in = { 1, 2 };
-    auto xform = transducers::flat_map(expand());
+    auto xform = djinterp::flat_map(expand());
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 4);
@@ -180,7 +180,7 @@ test_core2_flat_map_short_circuit
 bool test_core2_flat_map_short_circuit()
 {
     std::vector<int> in = { 1, 2, 3 };
-    auto xform = transducers::flat_map(expand()) | transducers::take(3);
+    auto xform = djinterp::flat_map(expand()) | djinterp::take_transducer(3);
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 3);

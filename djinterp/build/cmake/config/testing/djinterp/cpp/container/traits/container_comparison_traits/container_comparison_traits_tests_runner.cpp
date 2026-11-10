@@ -1,90 +1,44 @@
+/*******************************************************************************
+* djinterp [test]                   container_comparison_traits_tests_runner.cpp
+*
+*   The runner for container_comparison_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
+*
+*
+* path:      /build/cmake/config/testing/djinterp/cpp/container/traits/container_comparison_traits/container_comparison_traits_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
+
+// std
+#include <string>
 // djinterp
-#include "container_comparison_traits_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"   // report_builder + report model
+#include "container_comparison_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-// D_CCM_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_CCM_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
-
-
-int main()
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    rb.set_title("container_comparison_traits.hpp unit tests");
+    dt::test_option_set opts = dt::default_test_options();
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("container_comparison_traits_tests.pdf");
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("container_comparison_traits_tests.pdf"));
 
-    rb.module("container_comparison_traits",
-              "The comparison of two container TYPES: the content hierarchy, "
-              "the discipline strength order, the three realization preorders, "
-              "the product refinement they fold into - and the order-theoretic "
-              "laws that fold has to obey");
-
-    // I. comparison relations
-    D_CCM_RUN(tests_order_relation_enum);
-    D_CCM_RUN(tests_order_relation_name);
-    D_CCM_RUN(tests_order_relation_meet_table);
-    D_CCM_RUN(tests_order_relation_meet_laws);
-
-    // II. content: the native level lambda
-    D_CCM_RUN(tests_content_level_enum);
-    D_CCM_RUN(tests_content_level_name);
-    D_CCM_RUN(tests_content_level_rank);
-    D_CCM_RUN(tests_content_level_coarser);
-    D_CCM_RUN(tests_native_content_level_rungs);
-    D_CCM_RUN(tests_native_content_level_precedence);
-    D_CCM_RUN(tests_native_content_level_value_companion);
-
-    // III. discipline: the overlay strength order
-    D_CCM_RUN(tests_discipline_equivalent);
-    D_CCM_RUN(tests_discipline_ordered);
-    D_CCM_RUN(tests_discipline_incomparable);
-    D_CCM_RUN(tests_discipline_non_container);
-
-    // IV. realization preorders
-    D_CCM_RUN(tests_lifetime_relation);
-    D_CCM_RUN(tests_lifetime_is_total);
-    D_CCM_RUN(tests_iterability_bottom);
-    D_CCM_RUN(tests_iterability_lattice);
-    D_CCM_RUN(tests_iterability_mixed_kinds);
-    D_CCM_RUN(tests_storage_relation);
-    D_CCM_RUN(tests_storage_inert);
-
-    // V. the comparison profile
-    D_CCM_RUN(tests_profile_members);
-    D_CCM_RUN(tests_profile_agrees_with_axes);
-    D_CCM_RUN(tests_refinement_composition);
-    D_CCM_RUN(tests_refinement_non_container);
-    D_CCM_RUN(tests_realization_equal);
-    D_CCM_RUN(tests_realization_comparable);
-    D_CCM_RUN(tests_profile_value_companions);
-
-    // VI. the order-theoretic laws
-    D_CCM_RUN(tests_law_reflexivity);
-    D_CCM_RUN(tests_law_direction);
-    D_CCM_RUN(tests_law_transitivity);
-    D_CCM_RUN(tests_law_content_excluded);
-    D_CCM_RUN(tests_axis_coupling);
-
-    // VII. robustness  (cv-ref, hostile types, completeness, trait shape)
-    D_CCM_RUN(tests_cvref_axes);
-    D_CCM_RUN(tests_cvref_profile);
-    D_CCM_RUN(tests_hostile_types);
-    D_CCM_RUN(tests_incomplete_type);
-    D_CCM_RUN(tests_trait_shape);
-
-    // VIII. standard library
-    D_CCM_RUN(tests_stdlib_content_rungs);
-    D_CCM_RUN(tests_stdlib_sequences);
-    D_CCM_RUN(tests_stdlib_associative);
-    D_CCM_RUN(tests_stdlib_refinement);
-
-    return rb.finish();
+    return dt::run_module(
+        tt::container_comparison_traits_spec(),
+        "container_comparison_traits.hpp unit tests",
+        "where they stand, axis by axis, on the content, discipline, and "
+        "realization scales - their...",
+        opts);
 }
-
-#undef D_CCM_RUN

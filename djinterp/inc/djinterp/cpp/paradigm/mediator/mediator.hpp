@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/paradigm/mediator/mediator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.12
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -123,7 +123,6 @@ X.    CONCEPT-CONSTRAINED INTERFACES (C++20+)
 // djinterp
 #include "../../djinterp.hpp"
 #include "../../meta/type_traits.hpp"
-#include "re_std/cpp/any/any.hpp"
 // re_std
 #include "../../../../re_std/cpp/any/any.hpp"  // re_std::any, the event bus payload
 

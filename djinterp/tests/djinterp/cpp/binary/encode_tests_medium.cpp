@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/encode_tests_medium.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "encode_tests.hpp"
@@ -34,7 +34,7 @@ bool tests_encode_medium_types()
     D_EN_CHECK((std::is_same<byte_string, std::vector<byte>>::value));
 
     // encode_length_type: the width-fixed unsigned leading count
-    D_EN_CHECK((std::is_same<encode_length_type, std::uint64_t>::value));
+    D_EN_CHECK((std::is_same<encode_length_type, re_std::uint64_t>::value));
     D_EN_CHECK(sizeof(encode_length_type) == 8);
     D_EN_CHECK(!std::is_signed<encode_length_type>::value);
 

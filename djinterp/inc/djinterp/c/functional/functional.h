@@ -11,12 +11,15 @@
 * used: extractor.h, filter.h, foldable.h, free.h, functor.h, interpolate.h,
 * maybe.h, monoid.h, producer.h, reducer.h, result.h, semigroup.h,
 * sequence.h and transducer.h.
+*   Thread safety: no function in the module keeps state of its own. A
+* filter chain, builder or pipeline is its caller's to synchronise, as is
+* the context a callback is given.
 *
 *
 * path:      /inc/djinterp/c/functional/functional.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.10
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*

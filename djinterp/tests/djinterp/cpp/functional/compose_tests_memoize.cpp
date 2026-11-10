@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/compose_tests_memoize.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -22,10 +22,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
@@ -59,15 +55,14 @@ compose_tests_memoize
   - a cleared input is recomputed on the next call
   - the output type is deduced via callable_result_t (no explicit 3rd arg)
 */
-void compose_tests_memoize(
-    test_handler& _handler
-)
+bool compose_tests_memoize()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // correctness + caching of a repeated input
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "memoize returns correct results and caches repeats",
         [&]()
@@ -77,31 +72,26 @@ void compose_tests_memoize(
             auto m = ::djinterp::memoize<int (*)(const int&), int>(
                 &counted_add_one);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m(5) == 6),
                 "memoized counted_add_one(5) == 6");
 
             // repeat the same input -- should be served from cache
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m(5) == 6),
                 "repeated input returns the same result");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (g_call_count == 1),
                 "underlying function ran exactly once for a repeat");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.cache_size() == 1),
                 "cache holds one entry after one distinct input");
         });
 
     // distinct inputs grow the cache
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "memoize grows the cache for distinct inputs",
         [&]()
@@ -115,20 +105,17 @@ void compose_tests_memoize(
             (void)m(6);
             (void)m(7);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (g_call_count == 3),
                 "three distinct inputs ran the function three times");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.cache_size() == 3),
                 "cache holds three entries for three distinct inputs");
         });
 
     // clear_cache + recomputation
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "clear_cache empties the cache and forces recomputation",
         [&]()
@@ -140,33 +127,28 @@ void compose_tests_memoize(
 
             (void)m(5);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.cache_size() == 1),
                 "cache holds one entry before clear");
 
             m.clear_cache();
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.cache_size() == 0),
                 "cache is empty after clear_cache");
 
             // recompute the previously-cached input
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m(5) == 6),
                 "cleared input recomputes to the same result");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (g_call_count == 2),
                 "underlying function ran again after the clear");
         });
 
     // output-type deduction: no explicit _Output template argument
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "memoize deduces the output type via callable_result_t",
         [&]()
@@ -176,18 +158,16 @@ void compose_tests_memoize(
             auto m = ::djinterp::memoize<int (*)(const int&), int>(
                 &free_add_one);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m(41) == 42),
                 "deduced-output memoize(41) == 42");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (::djinterp::is_memoized<decltype(m)>::value),
                 "the wrapper is structurally a memoize helper");
         });
 
-    return;
+    return verdict;
 }
 
 

@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_overlay_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP
@@ -72,7 +72,7 @@
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"                       // framework root
 #include "../../meta/trait_detect.hpp"              // D_TYPE_TRAIT_* detection macros, D_VOID_T
 #include "../../meta/multiplicity.hpp"               // multiplicity_kind + ranks
 #include "./container_multiplicity_traits.hpp"       // multiplicity_kind_of (mu, the E+m parameter)
@@ -176,14 +176,20 @@ NS_INTERNAL
     };
 
     // overlay_sorted_invariant_helper specialization
-    //   helper: the detected case -- selected when the type declares the
-    // static member `sorted_invariant`.
+    //   helper: the detected case -- selected when the type declares
+    // `sorted_invariant` as a constant usable as a bool template argument,
+    // as sorted_container_traits.hpp's sorted_invariant_helper requires, so
+    // the two read one declaration alike: a static member function, or a
+    // non-static data member, asserts nothing. (A function used to assert,
+    // decaying to a never-null pointer.)
     template<typename Type>
     struct overlay_sorted_invariant_helper<Type,
-        D_VOID_T<decltype(clean_t<Type>::sorted_invariant)>>
+        D_VOID_T<std::integral_constant<bool,
+                     clean_t<Type>::sorted_invariant>>>
     {
         static constexpr bool value =
-            static_cast<bool>(clean_t<Type>::sorted_invariant);
+            std::integral_constant<bool,
+                clean_t<Type>::sorted_invariant>::value;
     };
 
 NS_END  // internal

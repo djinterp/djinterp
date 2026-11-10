@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.09
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_MEDIATOR_TESTS_
@@ -84,10 +84,14 @@
 //   (or declare m_colleagues before the method, or use a plain auto return).
 //
 //   PORTABILITY NOTE (not a bug): mediator.hpp routes all type erasure through
-//   djinterp::compat::any, which is external to this module.  The suite depends
+//   djinterp::re_std::any, which is external to this module.  The suite depends
 //   only on its documented surface (construct-from-value, type(), get<T>(),
 //   holds<T>(), any_type_id, any_type_id_of<T>::value).
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
@@ -262,10 +266,10 @@ inline
         dt::block_spec
         {
             "event bus",
-            "type-indexed publish/subscribe over compat::any.",
+            "type-indexed publish/subscribe over re_std::any.",
             std::vector<dt::test_spec>
             {
-                { "subscription_token type", "opaque token alias is size_t.",        &tests_subscription_token_type    },
+                { "subscription_id type", "opaque token alias is size_t.",        &tests_subscription_token_type    },
                 { "subscribe + publish",     "handler fires for its event type.",    &tests_event_bus_subscribe_publish },
                 { "type filtering",          "handlers fire only for their type.",   &tests_event_bus_type_filtering   },
                 { "multiple handlers",       "all handlers for a type fire.",        &tests_event_bus_multiple_handlers },
@@ -295,7 +299,7 @@ inline
         dt::block_spec
         {
             "signal hub",
-            "named-channel multicast over compat::any.",
+            "named-channel multicast over re_std::any.",
             std::vector<dt::test_spec>
             {
                 { "signal_id type",       "channel id alias is std::string.",        &tests_signal_id_type            },
@@ -349,7 +353,7 @@ inline
                 { "unsubscribe_all",       "batch unsubscription clears handlers.",&tests_unsubscribe_all      },
                 { "mediator_for",          "notify-surface concept.",              &tests_mediator_for         },
                 { "colleague_of",          "set_mediator + on_event concept.",     &tests_colleague_of         },
-                { "handler_for",           "invocability concept.",                &tests_handler_for          },
+                { "mediator_handler_for",  "invocability concept.",                &tests_handler_for          },
                 { "constrained_subscribe", "concept-guarded subscription.",        &tests_constrained_subscribe },
                 { "constrained_connect",   "concept-guarded connection.",          &tests_constrained_connect  }
             }

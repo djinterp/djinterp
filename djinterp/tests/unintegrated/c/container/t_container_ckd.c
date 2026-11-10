@@ -31,16 +31,16 @@
 * written out of bounds; run it with ASAN_OPTIONS=allocator_may_return_null=1,
 * so that a size that fits but cannot be allocated fails as malloc does
 * rather than stopping the run.
-*   A standalone program, as the other tests under tests/unintegrated are,
-* not yet in DTest: it prints a line per failed check, ends with "N checks,
-* M failed", and exits 0 only when nothing failed. It moves into DTest 2.0
-* with the container suites in week 2.
+*   A standalone program, as the other tests not yet in DTest are
+* (tests/unintegrated/README.md): it prints a line per failed check, ends
+* with "N checks, M failed", and exits 0 only when nothing failed. It moves
+* into DTest 2.0 with the container suites in week 2.
 *
 *
 * path:      /tests/unintegrated/c/container/t_container_ckd.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <errno.h>    // ENOMEM
@@ -672,6 +672,21 @@ d_tests_ckd_sites_contiguous(void)
                                                   D_TESTS_CKD_HALF).status
                       == D_FILTER_RESULT_NO_MEMORY);
 
+    // a step near SIZE_MAX takes the first element of the range only: its
+    // count and its index once wrapped, and the copy wrote past its block
+    {
+        static const unsigned int          values[4] = { 5u, 6u, 7u, 8u };
+        struct dj_contiguous_filter_result res;
+
+        res = d_contiguous_filter_slice(values, 4u, sizeof(values[0]),
+                                        1u, 4u, D_TESTS_CKD_MAX);
+        D_TESTS_CKD_CHECK( (res.status == D_FILTER_RESULT_SUCCESS) &&
+                           (res.count == 1u)                       &&
+                           (((const unsigned int*)res.data)[0] == 6u) );
+        free(res.data);
+        free(res.source_indices);
+    }
+
     return;
 }
 
@@ -900,6 +915,25 @@ d_tests_ckd_sites_filter(void)
     D_TESTS_CKD_CHECK(d_tests_ckd_chain_fails(
                           d_tests_ckd_chain_of(d_filter_reverse())));
 
+    // a slice's step near SIZE_MAX takes one element; its index once
+    // wrapped back below the end and took a second
+    {
+        static const unsigned int values[4] = { 5u, 6u, 7u, 8u };
+        struct dj_filter_chain*   chain;
+
+        chain  = d_tests_ckd_chain_of(d_filter_slice(1u, 4u,
+                                                     D_TESTS_CKD_MAX));
+        result = (chain) ? d_filter_apply_chain(chain, values, 4u,
+                                                sizeof(values[0]))
+                         : NULL;
+        D_TESTS_CKD_CHECK( (result) && (result->count == 1u) &&
+                           (((const unsigned int*)result->elements)[0]
+                            == 6u) );
+        d_filter_result_free(result);
+        free(result);
+        d_filter_chain_free(chain);
+    }
+
     // a union of one chain that fails fails, rather than being empty
     either = d_filter_union_new(2u);
     first  = d_tests_ckd_chain_of(d_filter_take_first(2u));
@@ -948,6 +982,72 @@ d_tests_ckd_sites_filter(void)
 
     return;
 }
+
+#if D_CFG_CONTAINER_ARRAY_FILTER
+
+/*
+d_tests_ckd_sites_contiguous_sets
+  array_filter.c's union, intersection and difference of chains, which fail
+where one of their chains does, rather than answer without it.
+*/
+static void
+d_tests_ckd_sites_contiguous_sets(void)
+{
+    struct dj_filter_union*            either;
+    struct dj_filter_intersection*     both;
+    struct dj_filter_difference*       less;
+    struct dj_filter_chain*            failing;
+    struct dj_filter_chain*            fine;
+    struct dj_contiguous_filter_result result;
+
+    // two elements of D_TESTS_CKD_HALF bytes cannot be copied
+    failing = d_tests_ckd_chain_of(d_filter_take_first(2u));
+    fine    = d_tests_ckd_chain_of(d_filter_take_first(0u));
+    either  = d_filter_union_new(2u);
+    both    = d_filter_intersection_new(2u);
+    less    = d_filter_difference_new(fine, failing);
+
+    D_TESTS_CKD_CHECK( (failing) && (fine) && (either) && (both) &&
+                       (less) );
+
+    if ( (failing) && (fine) && (either) && (both) && (less) )
+    {
+        D_TESTS_CKD_CHECK( (d_filter_union_add(either, fine)) &&
+                           (d_filter_union_add(either, failing)) );
+        result = d_contiguous_filter_apply_union(d_tests_ckd_bytes, 4u,
+                                                 D_TESTS_CKD_HALF, either,
+                                                 d_tests_ckd_same);
+        D_TESTS_CKD_CHECK(result.status == D_FILTER_RESULT_ERROR);
+        d_contiguous_filter_result_free(&result);
+
+        D_TESTS_CKD_CHECK( (d_filter_intersection_add(both, failing)) &&
+                           (d_filter_intersection_add(both, fine)) );
+        result = d_contiguous_filter_apply_intersection(
+                     d_tests_ckd_bytes, 4u, D_TESTS_CKD_HALF, both,
+                     d_tests_ckd_same);
+        D_TESTS_CKD_CHECK(result.status == D_FILTER_RESULT_ERROR);
+        d_contiguous_filter_result_free(&result);
+
+        // A minus a B that failed is not A
+        result = d_contiguous_filter_apply_difference(d_tests_ckd_bytes,
+                                                      4u,
+                                                      D_TESTS_CKD_HALF,
+                                                      less,
+                                                      d_tests_ckd_same);
+        D_TESTS_CKD_CHECK(result.status == D_FILTER_RESULT_ERROR);
+        d_contiguous_filter_result_free(&result);
+    }
+
+    d_filter_difference_free(less);
+    d_filter_intersection_free(both);
+    d_filter_union_free(either);
+    d_filter_chain_free(failing);
+    d_filter_chain_free(fine);
+
+    return;
+}
+
+#endif  // D_CFG_CONTAINER_ARRAY_FILTER
 
 /*
 d_tests_ckd_visit
@@ -1183,6 +1283,9 @@ main(void)
     d_tests_ckd_sites_sized();
     d_tests_ckd_sites_vector();
     d_tests_ckd_sites_filter();
+#if D_CFG_CONTAINER_ARRAY_FILTER
+    d_tests_ckd_sites_contiguous_sets();
+#endif
     d_tests_ckd_sites_file_tree();
     d_tests_ckd_sites_fn_builder();
     d_tests_ckd_sites_guards();

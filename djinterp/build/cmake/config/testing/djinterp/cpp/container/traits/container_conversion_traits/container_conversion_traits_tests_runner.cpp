@@ -1,74 +1,44 @@
-/******************************************************************************
-* djinterp [testing]           container_conversion_traits_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                   container_conversion_traits_tests_runner.cpp
 *
-*   Entry point for the container_conversion_traits.hpp suite.  Lives in the
-* config tree (next to its CMakeLists.txt), includes the test header, and calls
-* every tests_* function the section translation units define.  Linking this
-* runner with those sections produces the container_conversion_traits_tests exe.
+*   The runner for container_conversion_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
+*
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/container/traits/container_conversion_traits/container_conversion_traits_tests_runner.cpp
-* author(s): unit-test suite                               created: 2026.07.15
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
 
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "container_conversion_traits_tests.hpp"
+#include "container_conversion_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-namespace
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
-        if (ok) { ++g_passed; } else { ++g_failed; }
-    }
+    dt::test_option_set opts = dt::default_test_options();
+
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("container_conversion_traits_tests.pdf"));
+
+    return dt::run_module(
+        tt::container_conversion_traits_spec(),
+        "container_conversion_traits.hpp unit tests",
+        "conversion - the carrying of a container of one type to another - is "
+        "an operation FOUNDED on...",
+        opts);
 }
-
-// unique letters per suite: CCV = Container ConVersion traits
-#define D_CCV_RUN(_fn)   run(#_fn, &::djinterp::testing::_fn)
-
-
-int main()
-{
-    std::printf("container_conversion_traits.hpp unit tests\n");
-
-    // -- I.   Tier vocabulary --
-    D_CCV_RUN(tests_conversion_tier_vocabulary);
-
-    // -- II.  Construction-path detection --
-    D_CCV_RUN(tests_range_constructible);
-    D_CCV_RUN(tests_range_insertable);
-    D_CCV_RUN(tests_has_constructive_path);
-
-    // -- III. Per-concern analysis --
-    D_CCV_RUN(tests_elements_compatible);
-    D_CCV_RUN(tests_conversion_forgets_content);
-    D_CCV_RUN(tests_conversion_clamps_capacity);
-    D_CCV_RUN(tests_conversion_changes_topology);
-
-    // -- IV.  Classification --
-    D_CCV_RUN(tests_conversion_tier_of_view);
-    D_CCV_RUN(tests_conversion_tier_of_constructive);
-    D_CCV_RUN(tests_conversion_tier_of_lossy);
-    D_CCV_RUN(tests_conversion_tier_of_structural);
-    D_CCV_RUN(tests_conversion_tier_of_none);
-    D_CCV_RUN(tests_conversion_tier_of_cvref);
-    D_CCV_RUN(tests_conversion_predicates);
-
-    // -- IV.  Aggregate + variable-template companions --
-    D_CCV_RUN(tests_conversion_class);
-    D_CCV_RUN(tests_conversion_variable_templates);
-
-    std::printf("passed: %d   failed: %d\n", g_passed, g_failed);
-    return (g_failed == 0) ? 0 : 1;
-}
-
-#undef D_CCV_RUN

@@ -9,8 +9,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_creation.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -24,28 +24,28 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_creation(
-    test::test_handler& _h
-)
+bool test_creation()
 {
+    bool verdict = true;
+
     // create() seeds an identity builder: execute returns the input unchanged
     auto             b = DFnBuilder<int>::create();
     std::vector<int> in = { 1, 2, 3 };
-    test::record_assertion(_h, b.execute(in) == in,
+    record_assertion(verdict, b.execute(in) == in,
         "create: identity builder returns its input unchanged");
 
     // make_builder<T>() is equivalent to DFnBuilder<T>::create()
     auto mb = make_builder<int>();
-    test::record_assertion(_h, mb.execute(in) == in,
+    record_assertion(verdict, mb.execute(in) == in,
         "create: make_builder<T> seeds an identity builder");
 
     // identity over an empty input -> empty
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().execute(std::vector<int>()).empty(),
         "create: identity over empty input is empty");
 
     // chain_type alias is the seed's DIdentityChain
-    test::record_assertion(_h,
+    record_assertion(verdict,
         std::is_same<decltype(b)::chain_type,
                      internal::DIdentityChain<int> >::value,
         "create: chain_type names the identity seed chain");
@@ -56,10 +56,10 @@ void test_creation(
     std::vector<int> c = { 10 };
     bool reusable = doubler.execute(a) == std::vector<int>({ 2, 4 })
                  && doubler.execute(c) == std::vector<int>({ 20 });
-    test::record_assertion(_h, reusable,
+    record_assertion(verdict, reusable,
         "create: a composed builder can be executed on many inputs");
 
-    return;
+    return verdict;
 }
 
 

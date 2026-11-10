@@ -30,15 +30,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_macros_op.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
+NS_TESTING
 namespace
 {
 
@@ -224,9 +223,9 @@ namespace
 {
 
 // probe_returns_size_t
-//   constrained overload selectable only if `_Type::count()` returns
+//   constrained overload selectable only if `Type::count()` returns
 // exactly `std::size_t`. Implements the HAS_METHOD_OF_TYPE macro.
-template<typename _Type,
+template<typename Type,
          typename = HAS_METHOD_OF_TYPE(count, std::size_t)>
 int
 probe_returns_size_t(int)
@@ -243,9 +242,9 @@ long probe_returns_size_t(
 }
 
 // probe_returns_int_with_args
-//   constrained overload selectable only if `_Type::width(int)` returns
+//   constrained overload selectable only if `Type::width(int)` returns
 // exactly `int`. Implements the HAS_METHOD_OF_TYPE_ARGS macro.
-template<typename _Type,
+template<typename Type,
          typename = HAS_METHOD_OF_TYPE_ARGS(width, int, std::declval<int>())>
 int
 probe_returns_int_with_args(int)
@@ -308,91 +307,91 @@ static_assert(HAS_METHOD_OF_TYPE_ARGS_V(DSizedBox, width, long,
 // IV.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_macros_op(
-    test_handler& _test_handler
-)
+bool type_traits_tests_macros_op()
 {
+    bool verdict = true;
+
     // ---- HAS_BINARY_OP ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_plus<addable_t>::value  == true,
         "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t + addable_t");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_equal<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t == addable_t");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_less<addable_t>::value  == true,
         "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t < addable_t");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( has_op_plus<int>::value  == true &&
           has_op_equal<int>::value == true &&
           has_op_less<int>::value  == true ),
         "D_TYPE_TRAIT_HAS_BINARY_OP: builtin int supports +, ==, <");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_plus<inert_t>::value == false,
         "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t -> false for +");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_equal<inert_t>::value == false,
         "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t -> false for ==");
 
     // ---- HAS_UNARY_OP ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_neg<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: -addable_t");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_not<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: !addable_t");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_deref<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: *addable_t");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         ( has_op_neg<int>::value == true &&
           has_op_not<int>::value == true ),
         "D_TYPE_TRAIT_HAS_UNARY_OP: -int and !int (builtin)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_deref<int*>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: *int*");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_neg<inert_t>::value == false,
         "D_TYPE_TRAIT_HAS_UNARY_OP: -inert_t -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         has_op_deref<int>::value == false,
         "D_TYPE_TRAIT_HAS_UNARY_OP: *int -> false (cannot deref non-pointer)");
 
     // ---- HAS_METHOD_OF_TYPE ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<decltype(probe_returns_size_t<DSizedBox>(0)), int>::value,
         "HAS_METHOD_OF_TYPE: positive case selects constrained overload");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<decltype(probe_returns_size_t<DBareBox>(0)), long>::value,
         "HAS_METHOD_OF_TYPE: negative case falls to variadic");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         HAS_METHOD_OF_TYPE_V(DSizedBox, count, std::size_t) == true,
         "HAS_METHOD_OF_TYPE_V: returns true for matching return type");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         HAS_METHOD_OF_TYPE_V(DSizedBox, count, int) == false,
         "HAS_METHOD_OF_TYPE_V: returns false for non-matching return type");
 
     // ---- HAS_METHOD_OF_TYPE_ARGS ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<decltype(probe_returns_int_with_args<DSizedBox>(0)),
                      int>::value,
         "HAS_METHOD_OF_TYPE_ARGS: positive case selects constrained overload");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<decltype(probe_returns_int_with_args<DBareBox>(0)),
                      long>::value,
         "HAS_METHOD_OF_TYPE_ARGS: negative case falls to variadic");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         HAS_METHOD_OF_TYPE_ARGS_V(DSizedBox, width, int,
                                   std::declval<int>()) == true,
         "HAS_METHOD_OF_TYPE_ARGS_V: matching return type -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         HAS_METHOD_OF_TYPE_ARGS_V(DSizedBox, width, long,
                                   std::declval<int>()) == false,
         "HAS_METHOD_OF_TYPE_ARGS_V: non-matching return type -> false");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

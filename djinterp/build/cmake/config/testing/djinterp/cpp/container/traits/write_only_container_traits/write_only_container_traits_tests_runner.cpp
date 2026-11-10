@@ -1,103 +1,44 @@
-/******************************************************************************
-* djinterp [testing]              write_only_container_traits_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                   write_only_container_traits_tests_runner.cpp
 *
-*   Entry point for the write_only_container_traits.hpp unit suite.
-* Calls every test function in the order the test header declares its
-* sections, prints a per-test verdict, and reports a non-zero exit status
-* if any test failed - so CTest reads the result without any further
-* reporting machinery.
+*   The runner for write_only_container_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
 *
-*   The tests themselves live in the section TUs under
-* tests/djinterp/cpp/container/traits; this file holds only the driver, per
-* the config-tree convention that a runner sits beside the CMakeLists that
-* builds it.
-*
-*   The header under test carries no numbered sections - it is a single
-* predicate - so the banners below name the two groups of claims the suite is
-* organised around rather than any division in the source.
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/container/traits/write_only_container_traits/write_only_container_traits_tests_runner.cpp
-*                                write_only_container_traits_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
 
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "write_only_container_traits_tests.hpp"
+#include "write_only_container_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-namespace
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    // run
-    //   function: invokes one test function and records its verdict.
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
+    dt::test_option_set opts = dt::default_test_options();
 
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("write_only_container_traits_tests.pdf"));
 
-        if (ok)
-        {
-            ++g_passed;
-        }
-        else
-        {
-            ++g_failed;
-        }
-
-        return;
-    }
-
-    // section
-    //   function: prints a section banner.
-    void section(
-        const char* _title
-    )
-    {
-        std::printf("\n%s\n", _title);
-
-        return;
-    }
-
-}  // namespace
-
-// D_WO_RUN
-//   macro: names a test once, as both the label and the callee, so the two
-// cannot drift apart.
-#define D_WO_RUN(_fn)  run(#_fn, &::djinterp::testing::_fn)
-
-
-int main()
-{
-    std::printf("write_only_container_traits.hpp - unit suite\n");
-
-    section("A. The predicate");
-    D_WO_RUN(tests_is_write_only_container);
-    D_WO_RUN(tests_is_write_only_structural);
-    D_WO_RUN(tests_is_write_only_tagged);
-    D_WO_RUN(tests_is_write_only_std_types);
-    D_WO_RUN(tests_is_write_only_cv_ref);
-    D_WO_RUN(tests_is_write_only_companions);
-
-    section("B. Delegation, metadata, lattice and orthogonality");
-    D_WO_RUN(tests_write_only_delegates);
-    D_WO_RUN(tests_write_only_metadata_exclusion);
-    D_WO_RUN(tests_write_only_lattice_exclusivity);
-    D_WO_RUN(tests_write_only_is_not_complement);
-    D_WO_RUN(tests_write_only_orthogonal_to_mutability);
-    D_WO_RUN(tests_write_only_tag_agreement);
-
-    std::printf("\npassed: %d   failed: %d\n", g_passed, g_failed);
-
-    return (g_failed == 0) ? 0 : 1;
+    return dt::run_module(
+        tt::write_only_container_traits_spec(),
+        "write_only_container_traits.hpp unit tests",
+        "is_write_only_container, true iff a handle to the type grants "
+        "mutation but NOT observation of...",
+        opts);
 }
-
-#undef D_WO_RUN

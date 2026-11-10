@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/pattern/pattern_tests_combinators.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : pattern_tests_combinators.cpp
 //   The combinators (section VI): pattern_and, pattern_or, pattern_not and their
@@ -24,7 +24,6 @@
 NS_DJINTERP
 NS_TESTING
 
-namespace tr = ::djinterp::traits;
 
 namespace
 {
@@ -355,7 +354,7 @@ bool tests_combinator_nesting()
     bool ok = true;
 
     ok = ok && (nested.match(0));
-    ok = ok && (tr::is_pattern_v<decltype(nested)>);
+    ok = ok && (is_pattern_v<decltype(nested)>);
 
     // a nested non-match: not(matching) inside an and -> whole fails
     auto nested_fail = pattern_and(

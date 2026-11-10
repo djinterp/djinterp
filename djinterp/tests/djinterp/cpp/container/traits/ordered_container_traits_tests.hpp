@@ -32,7 +32,7 @@
 *                                          ordered_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -75,11 +75,26 @@ V.    Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/ordered_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -442,6 +457,8 @@ using DOrdMap         = std::map<int, int>;        // unordered
 using DOrdUset        = std::unordered_set<int>;   // unordered
 using DOrdUmap        = std::unordered_map<int, int>;    // unordered
 using DOrdPair        = std::pair<int, int>;       // non_container
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -477,6 +494,131 @@ bool tests_sequential_layout_of_fallthrough();
 bool tests_sequential_layout_out_of_range();
 bool tests_sequential_layout_cv_ref();
 bool tests_sequential_layout_companions();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// ordered_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+ordered_container_traits_spec()
+{
+    return dt::module_spec{
+        "ordered_container_traits",
+        "the ORDER axis, container-side traits: is a container's iteration "
+        "order a meaningful, stable...",
+        {
+            dt::block_spec{
+                "order_axis",
+                "Order-axis predicates",
+                {
+                    { "tests_has_key_type_helper",
+                      "Verifies the associative tell - a `key_type` alias - "
+                      "which is the single signal the whole order axis turns "
+                      "on",
+                      &tests_has_key_type_helper },
+                    { "tests_is_ordered_container",
+                      "Verifies the positional-identity predicate: iterable "
+                      "AND unkeyed",
+                      &tests_is_ordered_container },
+                    { "tests_is_unordered_container",
+                      "Verifies the permutation-invariance predicate: "
+                      "iterable AND keyed",
+                      &tests_is_unordered_container },
+                    { "tests_order_axis_exclusivity",
+                      "Verifies how the two predicates relate",
+                      &tests_order_axis_exclusivity },
+                    { "tests_order_axis_keyed_gap",
+                      "Verifies the reading this axis is easiest to get wrong",
+                      &tests_order_axis_keyed_gap },
+                    { "tests_order_axis_cv_ref",
+                      "Verifies that both predicates honour the clean_t "
+                      "contract",
+                      &tests_order_axis_cv_ref },
+                    { "tests_order_axis_companions",
+                      "Verifies the `_v` companions of the two predicates",
+                      &tests_order_axis_companions },
+                }
+            },
+            dt::block_spec{
+                "ordering_kind",
+                "The ordering kind",
+                {
+                    { "tests_ordering_kind_enum",
+                      "Verifies the enumeration itself",
+                      &tests_ordering_kind_enum },
+                    { "tests_ordering_kind_name",
+                      "Verifies the diagnostic spelling of each state",
+                      &tests_ordering_kind_name },
+                    { "tests_ordering_kind_of",
+                      "Verifies the classification itself, on a carrier for "
+                      "each state",
+                      &tests_ordering_kind_of },
+                    { "tests_ordering_kind_of_agreement",
+                      "Verifies that the classification and the two "
+                      "predicates of section I are one statement in two "
+                      "forms, so neither can drift from the other",
+                      &tests_ordering_kind_of_agreement },
+                    { "tests_ordering_kind_out_of_range",
+                      "Verifies what the spelling function does with a value "
+                      "that names no enumerator",
+                      &tests_ordering_kind_out_of_range },
+                    { "tests_ordering_kind_cv_ref",
+                      "Verifies that the classification honours the clean_t "
+                      "contract",
+                      &tests_ordering_kind_cv_ref },
+                    { "tests_ordering_kind_companions",
+                      "Verifies the `_t` alias and the `_v` companion",
+                      &tests_ordering_kind_companions },
+                }
+            },
+            dt::block_spec{
+                "layout",
+                "The sequential layout",
+                {
+                    { "tests_has_c_str_helper",
+                      "Verifies the text-buffer tell - a const-callable "
+                      "c_str() - which is the only signal in this header that "
+                      "is a member EXPRESSION rather than a nested alias",
+                      &tests_has_c_str_helper },
+                    { "tests_sequential_layout_enum",
+                      "Verifies the enumeration itself",
+                      &tests_sequential_layout_enum },
+                    { "tests_sequential_layout_name",
+                      "Verifies the diagnostic spelling of each layout",
+                      &tests_sequential_layout_name },
+                    { "tests_sequential_layout_of_std_types",
+                      "Verifies the layout each standard container receives - "
+                      "where the classification meets real interfaces",
+                      &tests_sequential_layout_of_std_types },
+                    { "tests_sequential_layout_of_precedence",
+                      "Verifies the ORDER of the cascade",
+                      &tests_sequential_layout_of_precedence },
+                    { "tests_sequential_layout_of_gate",
+                      "Verifies that only an ORDERED container has a layout",
+                      &tests_sequential_layout_of_gate },
+                    { "tests_sequential_layout_of_fallthrough",
+                      "Verifies the LAST branch of the cascade, which is "
+                      "otherwise unreachable by any standard container",
+                      &tests_sequential_layout_of_fallthrough },
+                    { "tests_sequential_layout_out_of_range",
+                      "Verifies what the spelling function does with a value "
+                      "that names no enumerator",
+                      &tests_sequential_layout_out_of_range },
+                    { "tests_sequential_layout_cv_ref",
+                      "Verifies that the classification honours the clean_t "
+                      "contract",
+                      &tests_sequential_layout_cv_ref },
+                    { "tests_sequential_layout_companions",
+                      "Verifies the `_t` alias and the `_v` companion",
+                      &tests_sequential_layout_companions },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

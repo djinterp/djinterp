@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/monad_tests_pipeline.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./monad_tests.hpp"
@@ -21,10 +21,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 namespace {
@@ -64,30 +60,27 @@ monad_tests_pipeline
   - the pipe form equals the equivalent direct monad_bind / monad_map
   - operator| does not interfere with an unrelated user operator|
 */
-void monad_tests_pipeline(
-    test_handler& _handler
-)
+bool monad_tests_pipeline()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // bind_with: success
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| with bind_with threads a some value",
         [&]()
         {
             auto m = some(5) | ::djinterp::bind_with(arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 6),
                 "some(5) | bind_with(inc) is some(6)");
         });
 
     // bind_with: none short-circuits
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| with bind_with short-circuits on none",
         [&]()
@@ -95,30 +88,26 @@ void monad_tests_pipeline(
             auto m = DTestMaybe<int>::none()
                    | ::djinterp::bind_with(arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "none | bind_with(inc) is none");
         });
 
     // map_with: success
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| with map_with maps the inner value",
         [&]()
         {
             auto m = some(5) | ::djinterp::map_with(plain_double());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 10),
                 "some(5) | map_with(double) is some(10)");
         });
 
     // map_with: none short-circuits
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| with map_with short-circuits on none",
         [&]()
@@ -126,30 +115,26 @@ void monad_tests_pipeline(
             auto m = DTestMaybe<int>::none()
                    | ::djinterp::map_with(plain_double());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "none | map_with(double) is none");
         });
 
     // then_with: success
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| with then_with sequences and discards the first",
         [&]()
         {
             auto m = some(1) | ::djinterp::then_with(some(42));
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 42),
                 "some(1) | then_with(some(42)) is some(42)");
         });
 
     // then_with: none short-circuits
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| with then_with short-circuits on a none first",
         [&]()
@@ -157,15 +142,13 @@ void monad_tests_pipeline(
             auto m = DTestMaybe<int>::none()
                    | ::djinterp::then_with(some(42));
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "none | then_with(some(42)) is none");
         });
 
     // multi-stage pipeline
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "a multi-stage pipeline composes left to right",
         [&]()
@@ -177,15 +160,13 @@ void monad_tests_pipeline(
                    | ::djinterp::map_with(plain_double())
                    | ::djinterp::bind_with(DArrowTimesTen());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 120),
                 "bind|map|bind pipeline yields some(120)");
         });
 
     // pipeline that fails mid-way
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "a pipeline propagates a mid-stage failure",
         [&]()
@@ -195,15 +176,13 @@ void monad_tests_pipeline(
                    | ::djinterp::bind_with(DArrowToNone())
                    | ::djinterp::map_with(plain_double());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "a mid-pipeline none propagates to the result");
         });
 
     // type-changing pipeline
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "a pipeline can change the inner type",
         [&]()
@@ -215,15 +194,13 @@ void monad_tests_pipeline(
             const bool type_ok =
                 std::is_same<decltype(m), DTestMaybe<std::string> >::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (type_ok && m.is_some() && m.value() == "42"),
                 "bind|map pipeline yields some(\"42\") : test_maybe<string>");
         });
 
     // pipe form equals direct call
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "the pipe form equals the equivalent direct call",
         [&]()
@@ -234,15 +211,13 @@ void monad_tests_pipeline(
             auto piped_map  = some(5) | ::djinterp::map_with(plain_double());
             auto direct_map = ::djinterp::monad_map(some(5), plain_double());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (piped == direct && piped_map == direct_map),
                 "pipe form matches monad_bind / monad_map directly");
         });
 
     // operator| does not hijack unrelated pipes
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "operator| leaves unrelated user operator| intact",
         [&]()
@@ -250,13 +225,12 @@ void monad_tests_pipeline(
             // DPipedFlag is not a monad; its own operator| must win.
             DPipedFlag r = DPipedFlag{ 2 } | DPipedFlag{ 3 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (r.value == 5),
                 "user-defined operator| on a non-monad is unaffected");
         });
 
-    return;
+    return verdict;
 }
 
 

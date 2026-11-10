@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_primitive.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <vector>
@@ -23,13 +23,13 @@ test_primitive_construct_and_state
   Tests the following:
   - the forwarding constructor seeds m_state from the factory's value
   - state() exposes the live state by const reference
-  - sum<int> starts at the value-initialised additive identity (0)
+  - accumulate_sum<int> starts at the value-initialised additive identity (0)
 */
 bool test_primitive_construct_and_state()
 {
     accumulator<int, int, int,
                 internal::DSumStep<int>,
-                internal::DIdentityFinal<int> > acc = sum<int>();
+                internal::DIdentityFinal<int> > acc = accumulate_sum<int>();
 
     D_INTERNAL_ACC_CHECK(acc.state() == 0);
     D_INTERNAL_ACC_CHECK(acc.finalize() == 0);
@@ -48,7 +48,7 @@ test_primitive_step_chaining
 */
 bool test_primitive_step_chaining()
 {
-    auto acc = sum<int>();
+    auto acc = accumulate_sum<int>();
 
     acc.step(1).step(2).step(3);
 
@@ -69,7 +69,7 @@ test_primitive_finalize_is_pure
 */
 bool test_primitive_finalize_is_pure()
 {
-    auto acc = sum<int>();
+    auto acc = accumulate_sum<int>();
 
     acc.step(10);
 
@@ -99,7 +99,7 @@ bool test_primitive_run_container()
     values.push_back(15);
     values.push_back(16);
 
-    D_INTERNAL_ACC_CHECK(sum<int>().run(values) == 43);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(values) == 43);
 
     return true;
 }
@@ -122,7 +122,7 @@ bool test_primitive_run_iterator_range()
 
     // exclude the final element
     D_INTERNAL_ACC_CHECK(
-        sum<int>().run(values.begin(), values.begin() + 3) == 6);
+        accumulate_sum<int>().run(values.begin(), values.begin() + 3) == 6);
 
     return true;
 }
@@ -140,7 +140,7 @@ bool test_primitive_run_raw_array()
     const int   data[] = { 5, 10, 20, 40 };
     std::size_t count  = sizeof(data) / sizeof(data[0]);
 
-    D_INTERNAL_ACC_CHECK(sum<int>().run(data, count) == 75);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(data, count) == 75);
 
     return true;
 }
@@ -159,10 +159,10 @@ bool test_primitive_run_empty_inputs()
     std::vector<int> empty_vec;
     const int*       null_data = nullptr;
 
-    D_INTERNAL_ACC_CHECK(sum<int>().run(empty_vec) == 0);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(empty_vec) == 0);
     D_INTERNAL_ACC_CHECK(
-        sum<int>().run(empty_vec.begin(), empty_vec.end()) == 0);
-    D_INTERNAL_ACC_CHECK(sum<int>().run(null_data, 0) == 0);
+        accumulate_sum<int>().run(empty_vec.begin(), empty_vec.end()) == 0);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(null_data, 0) == 0);
 
     return true;
 }
@@ -177,7 +177,7 @@ test_primitive_functor_accessors
 */
 bool test_primitive_functor_accessors()
 {
-    auto acc = sum<int>();
+    auto acc = accumulate_sum<int>();
 
     int scratch = 100;
     acc.step_fn()(scratch, 23);
@@ -223,7 +223,7 @@ test_primitive_copy_independence
 */
 bool test_primitive_copy_independence()
 {
-    auto original = sum<int>();
+    auto original = accumulate_sum<int>();
     auto twin     = original;
 
     original.step(50);

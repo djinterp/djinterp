@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_flip.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 // djinterp [test] -- curry.hpp Section V (argument transformations)
@@ -27,34 +27,34 @@ test_flip
   - the same overload with a non-empty remainder pack (quaternary callable)
   - flipping is involutive: flip(flip(f))(a, b) == f(a, b)
 */
-void test_flip(
-    test::test_handler& _h
-)
+bool test_flip()
 {
+    bool verdict = true;
+
     sub2 sub;
 
     // two-argument swap (documented example: 10 - 3)
-    test::record_assertion(_h, (flip(sub)(3, 10) == 7),
+    record_assertion(verdict, (flip(sub)(3, 10) == 7),
                            "flip: swaps two args (10 - 3 == 7)");
-    test::record_assertion(_h, (flip(sub)(10, 3) == -7),
+    record_assertion(verdict, (flip(sub)(10, 3) == -7),
                            "flip: swaps two args (3 - 10 == -7)");
 
     // three-argument: swap first two only, empty remainder pack
-    test::record_assertion(_h, (flip(DDigits3{})(1, 2, 3) == 213),
+    record_assertion(verdict, (flip(DDigits3{})(1, 2, 3) == 213),
                            "flip: ternary swaps first two only");
 
     // four-argument: swap first two, non-empty remainder pack passes through
     auto digits4 = [](int _a, int _b, int _c, int _d) {
         return (_a * 1000) + (_b * 100) + (_c * 10) + _d;
     };
-    test::record_assertion(_h, (flip(digits4)(1, 2, 3, 4) == 2134),
+    record_assertion(verdict, (flip(digits4)(1, 2, 3, 4) == 2134),
                            "flip: quaternary swaps first two, rest pass through");
 
     // involution: flipping twice restores original order
-    test::record_assertion(_h, (flip(flip(sub))(10, 3) == 7),
+    record_assertion(verdict, (flip(flip(sub))(10, 3) == 7),
                            "flip: flip(flip(f)) restores argument order");
 
-    return;
+    return verdict;
 }
 
 

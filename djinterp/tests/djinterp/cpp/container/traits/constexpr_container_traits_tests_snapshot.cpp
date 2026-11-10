@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/constexpr_container_traits_tests_snapshot.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -104,7 +104,7 @@ bool tests_class_agrees_with_traits()
         D_CCT_CHECK(DConstexprContainerClass<__VA_ARGS__>::has_iteration ==  \
                     has_constexpr_iteration<__VA_ARGS__>::value);             \
         D_CCT_CHECK(DConstexprContainerClass<__VA_ARGS__>::life ==           \
-                    container_lifetime<__VA_ARGS__>::value);                  \
+                    container_lifetime_of<__VA_ARGS__>::value);                  \
         D_CCT_CHECK(DConstexprContainerClass<__VA_ARGS__>::is_constexpr ==   \
                     is_constexpr_container<__VA_ARGS__>::value)
 
@@ -225,7 +225,7 @@ bool tests_class_is_constexpr_and_empty()
     D_CCT_CHECK((!std::integral_constant<bool, vec::has_tag>::value));
 
     // a lifetime constant expression
-    D_CCT_CHECK((std::integral_constant<lifetime, arr::life>::value ==
+    D_CCT_CHECK((std::integral_constant<lifetime::value, arr::life>::value ==
                  lifetime::both));
     D_CCT_CHECK((std::is_same<DLifetimeConstant<arr::life>,
                               DBothLifetime>::value));

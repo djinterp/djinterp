@@ -33,7 +33,7 @@
 * path:      /tests/djinterp/cpp/container/sequential_container_tests.hpp
 * link(s):   TBA
 * author(s): DTest suite                                     created: 2026.07.24
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_SEQUENTIAL_CONTAINER_TESTS_
@@ -66,6 +66,10 @@
 #include "djinterp/cpp/modules/test/test_defaults.hpp"          // module_spec + run_module
 #endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING

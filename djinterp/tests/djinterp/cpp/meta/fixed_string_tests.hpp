@@ -54,7 +54,7 @@
 * path:      /tests/djinterp/cpp/meta/fixed_string_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -86,11 +86,26 @@ V.    test declarations
 #include <string_view>
 #include <type_traits>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/fixed_string.hpp"                // the module under test
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -289,6 +304,8 @@ fs_guarded()
 template<template<fixed_string> class _Op>
 struct fs_binds_nttp : std::true_type
 {};
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -314,6 +331,92 @@ bool tests_fixed_string_view();
 bool tests_fixed_string_as_nttp();
 bool tests_fixed_string_argument_equivalence();
 bool tests_fixed_string_nttp_round_trip();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// fixed_string_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+fixed_string_spec()
+{
+    return dt::module_spec{
+        "fixed_string",
+        "fixed_string<N>: structural string-literal carrier suitable for use "
+        "as a C++20 class-type NTTP",
+        {
+            dt::block_spec{
+                "structure",
+                "Type shape",
+                {
+                    { "tests_fixed_string_layout",
+                      "The object's shape in memory",
+                      &tests_fixed_string_layout },
+                    { "tests_fixed_string_structural_requirements",
+                      "The properties that make fixed_string usable as a "
+                      "class-type NTTP",
+                      &tests_fixed_string_structural_requirements },
+                    { "tests_fixed_string_distinctness",
+                      "Different lengths are different types",
+                      &tests_fixed_string_distinctness },
+                }
+            },
+            dt::block_spec{
+                "construction",
+                "Construction and deduction",
+                {
+                    { "tests_fixed_string_construction",
+                      "The copy loop: every byte of the source array reaches "
+                      "the payload",
+                      &tests_fixed_string_construction },
+                    { "tests_fixed_string_deduction_guide",
+                      "CTAD from a string literal, and what _N comes out as",
+                      &tests_fixed_string_deduction_guide },
+                    { "tests_fixed_string_embedded_nulls",
+                      "A payload containing an INTERIOR null, which is where "
+                      "the byte-count contract and the C-string contract come "
+                      "apart",
+                      &tests_fixed_string_embedded_nulls },
+                }
+            },
+            dt::block_spec{
+                "accessors",
+                "Accessors",
+                {
+                    { "tests_fixed_string_c_str",
+                      "checks ok, fs_abc.c_str() == fs_abc.data",
+                      &tests_fixed_string_c_str },
+                    { "tests_fixed_string_size",
+                      "size(): the payload length, excluding the terminating "
+                      "null",
+                      &tests_fixed_string_size },
+                    { "tests_fixed_string_view",
+                      "view(): a std::string_view over the payload, null "
+                      "excluded",
+                      &tests_fixed_string_view },
+                }
+            },
+            dt::block_spec{
+                "nttp",
+                "Use as a class-type NTTP",
+                {
+                    { "tests_fixed_string_as_nttp",
+                      "The module's whole reason for existing, stated by use",
+                      &tests_fixed_string_as_nttp },
+                    { "tests_fixed_string_argument_equivalence",
+                      "When do two fixed_string template arguments name the "
+                      "SAME specialization?",
+                      &tests_fixed_string_argument_equivalence },
+                    { "tests_fixed_string_nttp_round_trip",
+                      "What comes back out of a specialization is what went in",
+                      &tests_fixed_string_nttp_round_trip },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

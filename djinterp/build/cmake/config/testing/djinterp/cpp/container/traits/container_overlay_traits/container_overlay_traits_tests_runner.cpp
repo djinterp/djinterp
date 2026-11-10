@@ -1,75 +1,43 @@
-/******************************************************************************
-* djinterp [testing]        container_overlay_traits_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                      container_overlay_traits_tests_runner.cpp
 *
-*   Entry point for the container_overlay_traits.hpp suite.  Lives in the config
-* tree (next to its CMakeLists.txt), includes the test header, and calls every
-* tests_* function the section translation units define.  Linking this runner
-* with those sections produces the container_overlay_traits_tests exe.
+*   The runner for container_overlay_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
+*
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/container/traits/container_overlay_traits/container_overlay_traits_tests_runner.cpp
-* author(s): unit-test suite                               created: 2026.07.16
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
 
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "container_overlay_traits_tests.hpp"
+#include "container_overlay_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-namespace
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
-        if (ok) { ++g_passed; } else { ++g_failed; }
-    }
+    dt::test_option_set opts = dt::default_test_options();
+
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("container_overlay_traits_tests.pdf"));
+
+    return dt::run_module(
+        tt::container_overlay_traits_spec(),
+        "container_overlay_traits.hpp unit tests",
+        "container_overlay_traits.hpp",
+        opts);
 }
-
-// unique letters per suite: OVL = OVerLay traits
-#define D_OVL_RUN(_fn)   run(#_fn, &::djinterp::testing::_fn)
-
-
-int main()
-{
-    std::printf("container_overlay_traits.hpp unit tests\n");
-
-    // -- I.   Restriction vocabulary --
-    D_OVL_RUN(tests_restriction_scope_name);
-    D_OVL_RUN(tests_restriction_kind_name);
-    D_OVL_RUN(tests_scope_of_restriction);
-
-    // -- II.  Overlay-specific signals (eta) --
-    D_OVL_RUN(tests_is_keyed_container);
-
-    // -- III. Overlay descriptor + algebra --
-    D_OVL_RUN(tests_overlay_top);
-    D_OVL_RUN(tests_is_order_blind);
-    D_OVL_RUN(tests_overlay_subsumes);
-    D_OVL_RUN(tests_overlay_meet);
-
-    // -- IV.  The overlay a container wears --
-    D_OVL_RUN(tests_overlay_of);
-    D_OVL_RUN(tests_is_order_blind_overlay);
-    D_OVL_RUN(tests_wears_overlay);
-
-    // -- V.   Canonical overlays --
-    D_OVL_RUN(tests_canonical_overlay_name);
-    D_OVL_RUN(tests_classify_canonical);
-    D_OVL_RUN(tests_canonical_overlay_of);
-
-    // -- VI.  Aggregate snapshot + variable-template companions --
-    D_OVL_RUN(tests_overlay_container_class);
-    D_OVL_RUN(tests_overlay_variable_templates);
-
-    std::printf("passed: %d   failed: %d\n", g_passed, g_failed);
-    return (g_failed == 0) ? 0 : 1;
-}
-
-#undef D_OVL_RUN

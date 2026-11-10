@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_combine.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <tuple>
@@ -32,7 +32,7 @@ bool test_combine_single()
     values.push_back(2);
     values.push_back(3);
 
-    std::tuple<int> result = combine(sum<int>()).run(values);
+    std::tuple<int> result = combine(accumulate_sum<int>()).run(values);
 
     D_INTERNAL_ACC_CHECK(std::get<0>(result) == 6);
 
@@ -56,7 +56,7 @@ bool test_combine_pair()
     values.push_back(1);
     values.push_back(5);
 
-    std::tuple<int, int> result = combine(sum<int>(), max<int>()).run(values);
+    std::tuple<int, int> result = combine(accumulate_sum<int>(), accumulate_max<int>()).run(values);
 
     D_INTERNAL_ACC_CHECK(std::get<0>(result) == 14);
     D_INTERNAL_ACC_CHECK(std::get<1>(result) == 5);
@@ -80,7 +80,7 @@ bool test_combine_heterogeneous()
     values.push_back(6);
 
     std::tuple<int, double, std::size_t> result =
-        combine(sum<int>(), mean<int>(), count<int>()).run(values);
+        combine(accumulate_sum<int>(), mean<int>(), count<int>()).run(values);
 
     D_INTERNAL_ACC_CHECK(std::get<0>(result) == 12);
     D_INTERNAL_ACC_CHECK(approx_eq(std::get<1>(result), 4.0));
@@ -106,7 +106,7 @@ bool test_combine_run_iterator_range()
     values.push_back(99);
 
     std::tuple<int, std::size_t> result =
-        combine(sum<int>(), count<int>()).run(values.begin(),
+        combine(accumulate_sum<int>(), count<int>()).run(values.begin(),
                                               values.begin() + 3);
 
     D_INTERNAL_ACC_CHECK(std::get<0>(result) == 6);
@@ -128,7 +128,7 @@ bool test_combine_empty()
     std::vector<int> empty_vec;
 
     std::tuple<int, std::size_t> result =
-        combine(sum<int>(), count<int>()).run(empty_vec);
+        combine(accumulate_sum<int>(), count<int>()).run(empty_vec);
 
     D_INTERNAL_ACC_CHECK(std::get<0>(result) == 0);
     D_INTERNAL_ACC_CHECK(std::get<1>(result) == 0);

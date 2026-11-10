@@ -39,7 +39,7 @@
 *                                          mutable_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_MUTABLE_CONTAINER_TRAITS_TESTS_
@@ -63,7 +63,15 @@
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/mutable_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     // std
@@ -76,8 +84,18 @@
 #endif
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -624,6 +642,8 @@ struct DMcElementAndElementConst
         std::size_t _index
     );
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -682,6 +702,228 @@ bool tests_mutable_container_class_access();
 bool tests_mutable_container_class_agreement();
 bool tests_mutable_container_class_cv_ref_invariance();
 bool tests_mutable_container_class_edge_types();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// mutable_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+mutable_container_traits_spec()
+{
+    return dt::module_spec{
+        "mutable_container_traits",
+        "SFINAE structural traits for mutability classification - WHAT "
+        "mutation a container's public...",
+        {
+            dt::block_spec{
+                "signals",
+                "SFINAE mutator detection",
+                {
+                    { "tests_has_push_back_signal",
+                      "Verifies the push_back detector",
+                      &tests_has_push_back_signal },
+                    { "tests_has_push_front_signal",
+                      "Verifies the push_front detector",
+                      &tests_has_push_front_signal },
+                    { "tests_has_insert_signal",
+                      "Verifies the insert detector, which probes the "
+                      "SINGLE-argument form",
+                      &tests_has_insert_signal },
+                    { "tests_has_erase_signal",
+                      "Verifies the erase detector, whose probe manufactures "
+                      "its argument by calling begin() on the same object",
+                      &tests_has_erase_signal },
+                    { "tests_has_clear_signal",
+                      "Verifies the clear detector",
+                      &tests_has_clear_signal },
+                    { "tests_has_resize_signal",
+                      "Verifies the resize detector",
+                      &tests_has_resize_signal },
+                    { "tests_has_mutable_subscript_signal",
+                      "Verifies the writable-subscript detector, whose probe "
+                      "is an ASSIGNMENT through operator[] - so it answers "
+                      "\"is the subscript settable\", not merely \"does a "
+                      "subscript exist\"",
+                      &tests_has_mutable_subscript_signal },
+                    { "tests_has_mutable_data_signal",
+                      "checks has_mutable_data_signal<DMcVectorInt>::value == "
+                      "true",
+                      &tests_has_mutable_data_signal },
+                    { "tests_signal_value_type_dependency",
+                      "Pins WHICH signals depend on a nested value_type, by "
+                      "comparing two probes that differ in exactly that one "
+                      "typedef",
+                      &tests_signal_value_type_dependency },
+                    { "tests_signal_cv_ref_invariance",
+                      "Verifies the clean_t contract at the signal layer: "
+                      "every probe strips cv-qualification and references "
+                      "before asking its question, so a signal answers "
+                      "identically for C, const C, volatile C, const volatile "
+                      "C, C&, const C& and C&&",
+                      &tests_signal_cv_ref_invariance },
+                    { "tests_signal_value_companions",
+                      "Verifies the `_v` companions the D_TYPE_TRAIT_TRUE "
+                      "engine emits alongside each signal",
+                      &tests_signal_value_companions },
+                }
+            },
+            dt::block_spec{
+                "umbrellas",
+                "Capability umbrellas",
+                {
+                    { "tests_is_element_mutable_container",
+                      "Verifies the element-mutation umbrella: an EXISTING "
+                      "element can be overwritten in place",
+                      &tests_is_element_mutable_container },
+                    { "tests_is_structurally_mutable_container",
+                      "Verifies the structural-mutation umbrella: the SET of "
+                      "elements can change",
+                      &tests_is_structurally_mutable_container },
+                    { "tests_is_mutable_container",
+                      "Verifies the umbrella over both capabilities - element "
+                      "OR structural",
+                      &tests_is_mutable_container },
+                    { "tests_is_immutable_container",
+                      "Verifies the conjunction that names a type which LOOKS "
+                      "like a container - it has a size() - yet exposes no "
+                      "mutator at all",
+                      &tests_is_immutable_container },
+                    { "tests_umbrella_signal_composition",
+                      "Verifies the SHAPE of the umbrellas, not merely their "
+                      "per-type answers: each is the disjunction of its "
+                      "constituent signals",
+                      &tests_umbrella_signal_composition },
+                    { "tests_umbrella_cv_ref_invariance",
+                      "Verifies that the umbrellas inherit the clean_t "
+                      "contract from the signals they combine",
+                      &tests_umbrella_cv_ref_invariance },
+                    { "tests_umbrella_value_companions",
+                      "Verifies the `_v` companions of the four umbrellas",
+                      &tests_umbrella_value_companions },
+                }
+            },
+            dt::block_spec{
+                "grade",
+                "The mutability grade",
+                {
+                    { "tests_mutability_enum",
+                      "Verifies the grade enumeration itself",
+                      &tests_mutability_enum },
+                    { "tests_mutability_name",
+                      "Verifies the stable spelling of each grade",
+                      &tests_mutability_name },
+                    { "tests_mutability_grade_predicates",
+                      "Verifies the four corner predicates as a complete "
+                      "truth table - each predicate against each of the four "
+                      "grades, sixteen entries in all",
+                      &tests_mutability_grade_predicates },
+                    { "tests_mutability_grade_admits",
+                      "Verifies the two admission predicates, which ask what "
+                      "a grade PERMITS rather than what it is",
+                      &tests_mutability_grade_admits },
+                    { "tests_mutability_of",
+                      "Verifies the grade computed for a type from its two "
+                      "capability bits",
+                      &tests_mutability_of },
+                    { "tests_mutability_of_companions",
+                      "Verifies the ::type member and the `_v` companion of "
+                      "mutability_of",
+                      &tests_mutability_of_companions },
+                    { "tests_mutability_grade_aliases",
+                      "Verifies the dimension-naming aliases, which let a "
+                      "caller pair the grade with the access restriction "
+                      "without renaming anything underneath",
+                      &tests_mutability_grade_aliases },
+                    { "tests_mutability_of_umbrella_agreement",
+                      "Verifies that the grade is a faithful re-encoding of "
+                      "the two capability bits it summarises - nothing is "
+                      "lost or invented in the collapse",
+                      &tests_mutability_of_umbrella_agreement },
+                    { "tests_mutability_of_cv_ref_invariance",
+                      "Verifies that the grade inherits the clean_t contract",
+                      &tests_mutability_of_cv_ref_invariance },
+                }
+            },
+            dt::block_spec{
+                "access",
+                "The access dimension",
+                {
+                    { "tests_access_internal_marks",
+                      "Verifies the two internal detectors the dimension is "
+                      "read from, directly",
+                      &tests_access_internal_marks },
+                    { "tests_access_restriction_enum",
+                      "Verifies the access enumeration itself",
+                      &tests_access_restriction_enum },
+                    { "tests_access_restriction_name",
+                      "Verifies the stable spelling of each restriction",
+                      &tests_access_restriction_name },
+                    { "tests_access_restriction_of",
+                      "Verifies the coordinate a type's discipline holds const",
+                      &tests_access_restriction_of },
+                    { "tests_access_restriction_of_companions",
+                      "Verifies the ::type member and the `_v` companion of "
+                      "access_restriction_of",
+                      &tests_access_restriction_of_companions },
+                    { "tests_constrains_element",
+                      "Verifies the predicate for \"the discipline holds the "
+                      "ELEMENT const\"",
+                      &tests_constrains_element },
+                    { "tests_constrains_key",
+                      "Verifies the predicate for \"the discipline holds the "
+                      "KEY const while freeing the value\"",
+                      &tests_constrains_key },
+                    { "tests_access_restriction_cv_ref_invariance",
+                      "Verifies that the access dimension inherits the "
+                      "clean_t contract",
+                      &tests_access_restriction_cv_ref_invariance },
+                    { "tests_access_grade_orthogonality",
+                      "Verifies that the two dimensions of the model are "
+                      "genuinely independent, by exhibiting a witness for "
+                      "EVERY cell of the four-by-three grid",
+                      &tests_access_grade_orthogonality },
+                }
+            },
+            dt::block_spec{
+                "aggregate",
+                "Aggregate snapshot",
+                {
+                    { "tests_mutable_container_class_signals",
+                      "Verifies the seven per-signal members of the snapshot",
+                      &tests_mutable_container_class_signals },
+                    { "tests_mutable_container_class_capabilities",
+                      "Verifies the four capability members of the snapshot",
+                      &tests_mutable_container_class_capabilities },
+                    { "tests_mutable_container_class_grade",
+                      "Verifies the grade members of the snapshot",
+                      &tests_mutable_container_class_grade },
+                    { "tests_mutable_container_class_access",
+                      "Verifies the access-dimension members of the snapshot",
+                      &tests_mutable_container_class_access },
+                    { "tests_mutable_container_class_agreement",
+                      "Verifies that the snapshot is a faithful mirror: every "
+                      "member equals the standalone trait it republishes, "
+                      "checked across carriers that occupy different cells of "
+                      "the model",
+                      &tests_mutable_container_class_agreement },
+                    { "tests_mutable_container_class_cv_ref_invariance",
+                      "Verifies that the snapshot inherits the clean_t "
+                      "contract from every trait it mirrors",
+                      &tests_mutable_container_class_cv_ref_invariance },
+                    { "tests_mutable_container_class_edge_types",
+                      "Verifies that the snapshot instantiates and answers "
+                      "sensibly for types that are not containers at all - "
+                      "the case an aggregate is most likely to break on, "
+                      "since it touches every trait in the header at once",
+                      &tests_mutable_container_class_edge_types },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

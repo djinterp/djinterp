@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/encode_tests_encodability.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "encode_tests.hpp"
@@ -32,10 +32,10 @@ bool tests_encode_is_leaf_encodable()
 
     // built-in families
     D_EN_CHECK(is_leaf_encodable<bool>::value);
-    D_EN_CHECK(is_leaf_encodable<std::uint8_t>::value);
-    D_EN_CHECK(is_leaf_encodable<std::int16_t>::value);
-    D_EN_CHECK(is_leaf_encodable<std::uint32_t>::value);
-    D_EN_CHECK(is_leaf_encodable<std::int64_t>::value);
+    D_EN_CHECK(is_leaf_encodable<re_std::uint8_t>::value);
+    D_EN_CHECK(is_leaf_encodable<re_std::int16_t>::value);
+    D_EN_CHECK(is_leaf_encodable<re_std::uint32_t>::value);
+    D_EN_CHECK(is_leaf_encodable<re_std::int64_t>::value);
     D_EN_CHECK(is_leaf_encodable<char>::value);
     D_EN_CHECK(is_leaf_encodable<char16_t>::value);
     D_EN_CHECK(is_leaf_encodable<char32_t>::value);
@@ -73,7 +73,7 @@ tests_encode_is_leaf_encodable_v
 bool tests_encode_is_leaf_encodable_v()
 {
     D_EN_CHECK(is_leaf_encodable_v<bool> == is_leaf_encodable<bool>::value);
-    D_EN_CHECK(is_leaf_encodable_v<std::uint32_t> == true);
+    D_EN_CHECK(is_leaf_encodable_v<re_std::uint32_t> == true);
     D_EN_CHECK(is_leaf_encodable_v<double> == true);
     D_EN_CHECK(is_leaf_encodable_v<DEncEnumU16> == true);
     D_EN_CHECK(is_leaf_encodable_v<DEncCustomLeaf> == true);

@@ -11,13 +11,13 @@
 * path:      /src/djinterp/c/functional/functional_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/functional_common.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <string.h>   // memcpy
+#include <string.h>   // memcpy, memmove
 
 
 /*
@@ -289,6 +289,55 @@ bool d_functional_map(
             return false;
         }
     }
+
+    return true;
+}
+
+/*
+d_functional_filter
+  An element kept is written at or before the slot it was read from, and is
+copied with memmove, so _output may be _input itself and the filter runs in
+place.
+*/
+bool d_functional_filter(
+    const void*  _input,
+    void*        _output,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context,
+    size_t*      _out_count
+)
+{
+    size_t kept = 0u;
+
+    // an output is needed whenever there is anything to filter
+    if ( (!_out_count) ||
+         (!d_internal_functional_valid(_input,
+                                       _count,
+                                       _element_size,
+                                       (_test != NULL))) ||
+         ( (_count > 0u) && (!_output) ) )
+    {
+        return false;
+    }
+
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        const void* element = d_internal_functional_at(_input,
+                                                       i,
+                                                       _element_size);
+
+        if (_test(element, _context))
+        {
+            memmove((unsigned char*)_output + (kept * _element_size),
+                    element,
+                    _element_size);
+            ++kept;
+        }
+    }
+
+    *_out_count = kept;
 
     return true;
 }

@@ -20,8 +20,9 @@
 * surfaces - size-and-contents lifetime versus allocator-and-reserve.)
 *
 *   THE SIGNALS (structural, never opt-in-required):
-*       static signal   has_constexpr_extent OR has_tuple_size
-*                          - a compile-time-fixed inline aggregate: a member
+*       static signal   a bounded C array OR has_constexpr_extent OR
+*                       has_tuple_size
+*                          - a compile-time-fixed inline aggregate: T[N], a member
 *                            `extent` (span / djinterp arrays) or a
 *                            std::tuple_size specialization (std::array,
 *                          tuple,
@@ -83,7 +84,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_storage_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_STORAGE_TRAITS_HPP
@@ -101,7 +102,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                  // clean_t, NS_*, D_ENV_* feature macros
+#include "../../djinterp.hpp"                  // framework root
 #include "../../meta/trait_detect.hpp"         // D_TYPE_TRAIT_* detection macros
 #include "../../meta/storage.hpp"              // storage_duration, algebra, storage_of, bridge
 #include "./runtime_container_traits.hpp"      // has_allocator_alias, has_reserve_method_signal,
@@ -125,13 +126,15 @@ NS_DJINTERP
 // DSizeLifetime).
 
 // has_static_storage_signal
-//   trait: true iff Type shows compile-time-fixed inline storage - a member
-// `extent` or a std::tuple_size specialization. Such cells sit in the
-// container's own footprint and are counted at compile time.
+//   trait: true iff Type shows compile-time-fixed inline storage - a bounded
+// C array, a member `extent` or a std::tuple_size specialization. Such cells
+// sit in the container's own footprint and are counted at compile time.
+// (std::extent is non-zero only for a bounded array; T[] has no footprint.)
 template<typename Type>
 struct has_static_storage_signal
     : std::integral_constant<bool,
-          ( has_constexpr_extent<clean_t<Type>>::value ||
+          ( (std::extent<clean_t<Type>>::value != 0)  ||
+            has_constexpr_extent<clean_t<Type>>::value ||
             has_tuple_size<clean_t<Type>>::value )>
 {};
 

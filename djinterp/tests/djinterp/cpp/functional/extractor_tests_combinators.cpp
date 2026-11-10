@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/extractor_tests_combinators.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <tuple>
@@ -28,7 +28,7 @@ bool test_combinators_then_extract()
 {
     DPerson p = { 1, 21, 10 };
     D_INTERNAL_EXT_CHECK(
-        extractors::then_extract(get_age(), times_two())(p) == 42);
+        djinterp::then_extract(get_age(), times_two())(p) == 42);
 
     return true;
 }
@@ -44,7 +44,7 @@ test_combinators_fanout2
 bool test_combinators_fanout2()
 {
     DPerson p = { 1, 30, 10 };
-    std::tuple<int, int> t = extractors::fanout(get_age(), get_dept())(p);
+    std::tuple<int, int> t = djinterp::fanout(get_age(), get_dept())(p);
 
     D_INTERNAL_EXT_CHECK(std::get<0>(t) == 30);
     D_INTERNAL_EXT_CHECK(std::get<1>(t) == 10);
@@ -63,7 +63,7 @@ bool test_combinators_fanout3()
 {
     DPerson p = { 7, 30, 10 };
     std::tuple<int, int, int> t =
-        extractors::fanout(get_id(), get_age(), get_dept())(p);
+        djinterp::fanout(get_id(), get_age(), get_dept())(p);
 
     D_INTERNAL_EXT_CHECK(std::get<0>(t) == 7);
     D_INTERNAL_EXT_CHECK(std::get<1>(t) == 30);
@@ -83,7 +83,7 @@ test_combinators_mapped
 bool test_combinators_mapped()
 {
     DPerson p = { 1, 16, 10 };
-    D_INTERNAL_EXT_CHECK(extractors::mapped(get_age(), times_two())(p) == 32);
+    D_INTERNAL_EXT_CHECK(djinterp::mapped(get_age(), times_two())(p) == 32);
 
     return true;
 }
@@ -100,7 +100,7 @@ test_combinators_filtered_pass
 bool test_combinators_filtered_pass()
 {
     DPerson adult = { 1, 30, 10 };
-    maybe<int> m = extractors::filtered(get_age(), is_adult())(adult);
+    maybe<int> m = djinterp::filtered(get_age(), is_adult())(adult);
 
     D_INTERNAL_EXT_CHECK(m.has_value());
     D_INTERNAL_EXT_CHECK(m.value() == 30);
@@ -118,7 +118,7 @@ test_combinators_filtered_fail
 bool test_combinators_filtered_fail()
 {
     DPerson minor = { 2, 15, 20 };
-    maybe<int> m = extractors::filtered(get_age(), is_adult())(minor);
+    maybe<int> m = djinterp::filtered(get_age(), is_adult())(minor);
 
     D_INTERNAL_EXT_CHECK(m.is_nothing());
     D_INTERNAL_EXT_CHECK(m.value_or(-1) == -1);
@@ -140,11 +140,11 @@ bool test_combinators_guarded()
     DPerson ok  = { 1, 30, 10 };   // dept != 0 -> guard passes
     DPerson bad = { 2, 40,  0 };   // dept == 0 -> guard fails
 
-    maybe<int> m_ok = extractors::guarded(get_age(), dept_nonzero())(ok);
+    maybe<int> m_ok = djinterp::guarded(get_age(), dept_nonzero())(ok);
     D_INTERNAL_EXT_CHECK(m_ok.has_value());
     D_INTERNAL_EXT_CHECK(m_ok.value() == 30);
 
-    maybe<int> m_bad = extractors::guarded(get_age(), dept_nonzero())(bad);
+    maybe<int> m_bad = djinterp::guarded(get_age(), dept_nonzero())(bad);
     D_INTERNAL_EXT_CHECK(m_bad.is_nothing());
 
     return true;
@@ -160,8 +160,8 @@ test_combinators_defaulted_present
 bool test_combinators_defaulted_present()
 {
     DPerson adult = { 1, 30, 10 };
-    int v = extractors::defaulted(
-                extractors::filtered(get_age(), is_adult()), -1)(adult);
+    int v = djinterp::defaulted(
+                djinterp::filtered(get_age(), is_adult()), -1)(adult);
 
     D_INTERNAL_EXT_CHECK(v == 30);
 
@@ -179,8 +179,8 @@ test_combinators_defaulted_absent
 bool test_combinators_defaulted_absent()
 {
     DPerson minor = { 2, 15, 20 };
-    int v = extractors::defaulted(
-                extractors::filtered(get_age(), is_adult()), -1)(minor);
+    int v = djinterp::defaulted(
+                djinterp::filtered(get_age(), is_adult()), -1)(minor);
 
     D_INTERNAL_EXT_CHECK(v == -1);
 
@@ -197,7 +197,7 @@ test_combinators_try_extract_success
 bool test_combinators_try_extract_success()
 {
     DPerson p = { 1, 30, 10 };
-    maybe<int> m = extractors::try_extract(checked_age())(p);
+    maybe<int> m = djinterp::try_extract(checked_age())(p);
 
     D_INTERNAL_EXT_CHECK(m.has_value());
     D_INTERNAL_EXT_CHECK(m.value() == 30);
@@ -216,7 +216,7 @@ test_combinators_try_extract_throws
 bool test_combinators_try_extract_throws()
 {
     DPerson bad = { 1, -5, 10 };   // negative age -> checked_age throws
-    maybe<int> m = extractors::try_extract(checked_age())(bad);
+    maybe<int> m = djinterp::try_extract(checked_age())(bad);
 
     D_INTERNAL_EXT_CHECK(m.is_nothing());
 

@@ -9,8 +9,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_reorder.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -23,102 +23,102 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_take_skip(
-    test::test_handler& _h
-)
+bool test_take_skip()
 {
+    bool verdict = true;
+
     std::vector<int> in = { 1, 2, 3, 4, 5 };
 
     // take fewer than size
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().take(3).execute(in)
             == std::vector<int>({ 1, 2, 3 }),
         "take: keeps the first n elements");
 
     // take(0) -> empty; take beyond size -> all
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().take(0).execute(in).empty(),
         "take: take(0) yields nothing");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().take(99).execute(in) == in,
         "take: n beyond size keeps everything");
 
     // skip some
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().skip(2).execute(in)
             == std::vector<int>({ 3, 4, 5 }),
         "skip: drops the first n elements");
 
     // skip(0) -> all; skip beyond size -> empty
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().skip(0).execute(in) == in,
         "skip: skip(0) keeps everything");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().skip(99).execute(in).empty(),
         "skip: n beyond size yields empty");
 
     // take and skip compose into a window
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().skip(1).take(2).execute(in)
             == std::vector<int>({ 2, 3 }),
         "take/skip: compose into a window");
 
-    return;
+    return verdict;
 }
 
 
-void test_distinct(
-    test::test_handler& _h
-)
+bool test_distinct()
 {
+    bool verdict = true;
+
     // de-duplicates, preserving first-seen order
     std::vector<int> in = { 1, 2, 2, 3, 1, 3, 4 };
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().distinct().execute(in)
             == std::vector<int>({ 1, 2, 3, 4 }),
         "distinct: removes duplicates, preserving first-seen order");
 
     // already-distinct input is unchanged
     std::vector<int> uniq = { 5, 6, 7 };
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().distinct().execute(uniq) == uniq,
         "distinct: an already-distinct input is unchanged");
 
-    return;
+    return verdict;
 }
 
 
-void test_reverse_sort(
-    test::test_handler& _h
-)
+bool test_reverse_sort()
 {
+    bool verdict = true;
+
     std::vector<int> in = { 3, 1, 4, 1, 5 };
 
     // reversed
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().reversed().execute(in)
             == std::vector<int>({ 5, 1, 4, 1, 3 }),
         "reversed: reverses element order");
 
     // sorted ascending
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().sorted(DFnLess{}).execute(in)
             == std::vector<int>({ 1, 1, 3, 4, 5 }),
         "sorted: orders ascending with a less comparator");
 
     // sorted descending
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().sorted(DFnGreater{}).execute(in)
             == std::vector<int>({ 5, 4, 3, 1, 1 }),
         "sorted: orders descending with a greater comparator");
 
     // sorted then distinct composes
-    test::record_assertion(_h,
+    record_assertion(verdict,
         DFnBuilder<int>::create().sorted(DFnLess{}).distinct().execute(in)
             == std::vector<int>({ 1, 3, 4, 5 }),
         "sorted/distinct: compose to a sorted unique sequence");
 
-    return;
+    return verdict;
 }
 
 

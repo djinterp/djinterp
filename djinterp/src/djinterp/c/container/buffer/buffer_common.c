@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/container/buffer/buffer_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.29
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/buffer/buffer_common.h"
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add, d_ckd_mul
@@ -2469,6 +2469,112 @@ size_t d_buffer_common_count_matching(
 }
 
 /*
+d_internal_buffer_common_filter_run
+  Counts the elements of one contiguous run that _chain accepts and, where
+_out is not NULL, copies each, in order, to _out from index _at on.
+
+Parameter(s):
+  _elements:     the run.
+  _count:        the number of elements in it.
+  _element_size: the size in bytes of each element.
+  _chain:        the filter chain; not NULL.
+  _out:          where accepted elements are copied, or NULL to count only.
+  _at:           the index in _out of the first copy.
+Return:
+  The number of elements the chain accepted.
+*/
+static size_t
+d_internal_buffer_common_filter_run(
+    const void*                   _elements,
+    size_t                        _count,
+    size_t                        _element_size,
+    const struct dj_filter_chain* _chain,
+    void*                         _out,
+    size_t                        _at
+)
+{
+    const void* elem;
+    size_t      kept;
+    size_t      i;
+
+    kept = 0;
+
+    for (i = 0; i < _count; ++i)
+    {
+        elem = d_internal_buffer_common_element_at(_elements,
+                                                   i,
+                                                   _element_size);
+
+        if (!d_filter_chain_matches_element(_chain, elem, _element_size))
+        {
+            continue;
+        }
+
+        if (_out)
+        {
+            d_memcpy(d_internal_buffer_common_element_at(_out,
+                                                         _at + kept,
+                                                         _element_size),
+                     elem,
+                     _element_size);
+        }
+
+        ++kept;
+    }
+
+    return kept;
+}
+
+/*
+d_internal_buffer_common_filter_all
+  d_internal_buffer_common_filter_run over the primary run and then each
+chunk of _list, in order, so that one pass counts and the next copies.
+
+Parameter(s):
+  _primary_elements: the primary run.
+  _primary_count:    the number of elements in it.
+  _element_size:     the size in bytes of each element.
+  _list:             the overflow chunks, or NULL.
+  _chain:            the filter chain; not NULL.
+  _out:              where accepted elements are copied, or NULL to count
+                     only.
+Return:
+  The number of elements the chain accepted, over every run.
+*/
+static size_t
+d_internal_buffer_common_filter_all(
+    const void*                        _primary_elements,
+    size_t                             _primary_count,
+    size_t                             _element_size,
+    const struct dj_buffer_chunk_list* _list,
+    const struct dj_filter_chain*      _chain,
+    void*                              _out
+)
+{
+    const struct dj_buffer_chunk* cur;
+    size_t                        kept;
+
+    kept = d_internal_buffer_common_filter_run(_primary_elements,
+                                               _primary_count,
+                                               _element_size,
+                                               _chain,
+                                               _out,
+                                               0);
+
+    for (cur = (_list) ? _list->head : NULL; cur; cur = cur->next)
+    {
+        kept += d_internal_buffer_common_filter_run(cur->elements,
+                                                    cur->count,
+                                                    _element_size,
+                                                    _chain,
+                                                    _out,
+                                                    kept);
+    }
+
+    return kept;
+}
+
+/*
 d_buffer_common_filter_chunked
   Filters across primary allocation + overflow chunks.
 
@@ -2496,13 +2602,9 @@ bool d_buffer_common_filter_chunked(
     size_t*                            _out_count
 )
 {
-    size_t                       total;
-    size_t                       matches;
-    size_t                       i;
-    size_t                       w;
-    const struct dj_buffer_chunk* cur;
-    const void*                  elem;
-    void*                        out;
+    size_t matches;
+    size_t bytes;
+    void*  out;
 
     // validate output pointers
     if ( (!_out_elements) ||
@@ -2521,54 +2623,19 @@ bool d_buffer_common_filter_chunked(
         return true;
     }
 
-    total = d_buffer_common_total_count(_primary_count, _list);
-
     // empty input
-    if (total == 0)
+    if (d_buffer_common_total_count(_primary_count, _list) == 0)
     {
         return true;
     }
 
     // first pass: count matches across primary + chunks
-    matches = 0;
-
-    for (i = 0; i < _primary_count; ++i)
-    {
-        elem = d_internal_buffer_common_element_at(_primary_elements,
-                                                   i,
-                                                   _element_size);
-
-        if (d_filter_chain_matches_element(_chain,
-                                           elem,
-                                           _element_size))
-        {
-            ++matches;
-        }
-    }
-
-    if (_list)
-    {
-        cur = _list->head;
-
-        while (cur)
-        {
-            for (i = 0; i < cur->count; ++i)
-            {
-                elem = d_internal_buffer_common_element_at(cur->elements,
-                                                           i,
-                                                           _element_size);
-
-                if (d_filter_chain_matches_element(_chain,
-                                                   elem,
-                                                   _element_size))
-                {
-                    ++matches;
-                }
-            }
-
-            cur = cur->next;
-        }
-    }
+    matches = d_internal_buffer_common_filter_all(_primary_elements,
+                                                  _primary_count,
+                                                  _element_size,
+                                                  _list,
+                                                  _chain,
+                                                  NULL);
 
     // no matches
     if (matches == 0)
@@ -2576,7 +2643,7 @@ bool d_buffer_common_filter_chunked(
         return true;
     }
 
-    size_t bytes = 0;
+    bytes = 0;
 
     // the matches are among the elements; a size that wraps means a corrupt
     // count
@@ -2595,57 +2662,12 @@ bool d_buffer_common_filter_chunked(
     }
 
     // second pass: copy matching elements
-    w = 0;
-
-    for (i = 0; i < _primary_count; ++i)
-    {
-        elem = d_internal_buffer_common_element_at(_primary_elements,
-                                                   i,
-                                                   _element_size);
-
-        if (d_filter_chain_matches_element(_chain,
-                                           elem,
-                                           _element_size))
-        {
-            d_memcpy(d_internal_buffer_common_element_at(out,
-                                                         w,
-                                                         _element_size),
-                     elem,
-                     _element_size);
-
-            ++w;
-        }
-    }
-
-    if (_list)
-    {
-        cur = _list->head;
-
-        while (cur)
-        {
-            for (i = 0; i < cur->count; ++i)
-            {
-                elem = d_internal_buffer_common_element_at(cur->elements,
-                                                           i,
-                                                           _element_size);
-
-                if (d_filter_chain_matches_element(_chain,
-                                                   elem,
-                                                   _element_size))
-                {
-                    d_memcpy(d_internal_buffer_common_element_at(out,
-                                                                 w,
-                                                                 _element_size),
-                             elem,
-                             _element_size);
-
-                    ++w;
-                }
-            }
-
-            cur = cur->next;
-        }
-    }
+    (void)d_internal_buffer_common_filter_all(_primary_elements,
+                                              _primary_count,
+                                              _element_size,
+                                              _list,
+                                              _chain,
+                                              out);
 
     *(_out_elements) = out;
     *(_out_count)    = matches;

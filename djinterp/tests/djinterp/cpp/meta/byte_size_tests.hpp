@@ -45,7 +45,7 @@
 * path:      /tests/djinterp/cpp/meta/byte_size_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_BYTE_SIZE_TESTS_
@@ -63,11 +63,26 @@
 #include <type_traits>
 #include <vector>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/byte_size.hpp"   // system under test
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -132,6 +147,8 @@ struct inline_bag
 struct wide_cell { char _bytes[32]; };
 
 }  // namespace byte_size_test_types
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -176,6 +193,133 @@ bool tests_byte_size_total_identity();
 bool tests_byte_size_total_static_sited();
 bool tests_byte_size_total_const_input();
 bool tests_byte_size_integration();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// byte_size_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+byte_size_spec()
+{
+    return dt::module_spec{
+        "byte_size",
+        "the byte footprint of a container, split as the model splits its "
+        "storage (Storage axis): a...",
+        {
+            dt::block_spec{
+                "static",
+                "Static",
+                {
+                    { "tests_byte_size_static_exact",
+                      "byte size static exact",
+                      &tests_byte_size_static_exact },
+                    { "tests_byte_size_static_cleans",
+                      "byte size static cleans",
+                      &tests_byte_size_static_cleans },
+                    { "tests_byte_size_static_v",
+                      "byte size static v",
+                      &tests_byte_size_static_v },
+                }
+            },
+            dt::block_spec{
+                "signals",
+                "Signals",
+                {
+                    { "tests_byte_size_signal_capacity",
+                      "byte size signal capacity",
+                      &tests_byte_size_signal_capacity },
+                    { "tests_byte_size_signal_size",
+                      "byte size signal size",
+                      &tests_byte_size_signal_size },
+                    { "tests_byte_size_signal_allocator",
+                      "byte size signal allocator",
+                      &tests_byte_size_signal_allocator },
+                    { "tests_byte_size_signal_reserve",
+                      "byte size signal reserve",
+                      &tests_byte_size_signal_reserve },
+                    { "tests_byte_size_signal_c_str",
+                      "byte size signal c str",
+                      &tests_byte_size_signal_c_str },
+                    { "tests_byte_size_signal_dynamically_sited",
+                      "byte size signal dynamically sited",
+                      &tests_byte_size_signal_dynamically_sited },
+                    { "tests_byte_size_signal_recurse_into_element",
+                      "byte size signal recurse into element",
+                      &tests_byte_size_signal_recurse_into_element },
+                    { "tests_byte_size_signal_cleans",
+                      "byte size signal cleans",
+                      &tests_byte_size_signal_cleans },
+                }
+            },
+            dt::block_spec{
+                "shape",
+                "Shape",
+                {
+                    { "tests_byte_size_shape_of",
+                      "byte size shape of",
+                      &tests_byte_size_shape_of },
+                    { "tests_byte_size_own_contiguous",
+                      "byte size own contiguous",
+                      &tests_byte_size_own_contiguous },
+                    { "tests_byte_size_own_node_size",
+                      "byte size own node size",
+                      &tests_byte_size_own_node_size },
+                    { "tests_byte_size_own_node_distance",
+                      "byte size own node distance",
+                      &tests_byte_size_own_node_distance },
+                    { "tests_byte_size_own_static",
+                      "byte size own static",
+                      &tests_byte_size_own_static },
+                }
+            },
+            dt::block_spec{
+                "descent",
+                "Descent",
+                {
+                    { "tests_byte_size_descent_leaf_element",
+                      "byte size descent leaf element",
+                      &tests_byte_size_descent_leaf_element },
+                    { "tests_byte_size_descent_nested",
+                      "byte size descent nested",
+                      &tests_byte_size_descent_nested },
+                    { "tests_byte_size_descent_c_str_frontier",
+                      "byte size descent c str frontier",
+                      &tests_byte_size_descent_c_str_frontier },
+                    { "tests_byte_size_descent_static_elements",
+                      "byte size descent static elements",
+                      &tests_byte_size_descent_static_elements },
+                    { "tests_byte_size_descent_mixed",
+                      "byte size descent mixed",
+                      &tests_byte_size_descent_mixed },
+                    { "tests_byte_size_descent_empty",
+                      "byte size descent empty",
+                      &tests_byte_size_descent_empty },
+                }
+            },
+            dt::block_spec{
+                "public",
+                "Public",
+                {
+                    { "tests_byte_size_total_identity",
+                      "byte size total identity",
+                      &tests_byte_size_total_identity },
+                    { "tests_byte_size_total_static_sited",
+                      "byte size total static sited",
+                      &tests_byte_size_total_static_sited },
+                    { "tests_byte_size_total_const_input",
+                      "byte size total const input",
+                      &tests_byte_size_total_const_input },
+                    { "tests_byte_size_integration",
+                      "byte size integration",
+                      &tests_byte_size_integration },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

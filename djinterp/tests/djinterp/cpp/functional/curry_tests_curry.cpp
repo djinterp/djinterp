@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_curry.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 // djinterp [test] -- curry.hpp Section III (curry factories)
@@ -32,54 +32,54 @@ test_curry_factory
     insufficient and force the call_multi false_type branch before a later
     completion
 */
-void test_curry_factory(
-    test::test_handler& _h
-)
+bool test_curry_factory()
 {
+    bool verdict = true;
+
     add3 a3;
     auto c = curry(a3);
 
     // single-argument chaining: extend, extend, invoke
-    test::record_assertion(_h, (c(1)(2)(3) == 6),
+    record_assertion(verdict, (c(1)(2)(3) == 6),
                            "curry: c(1)(2)(3) chains to 6");
 
     // grouped, all at once: multi-arg invoke
-    test::record_assertion(_h, (c(1, 2, 3) == 6),
+    record_assertion(verdict, (c(1, 2, 3) == 6),
                            "curry: c(1, 2, 3) invokes at once");
 
     // mixed groupings
-    test::record_assertion(_h, (c(1, 2)(3) == 6),
+    record_assertion(verdict, (c(1, 2)(3) == 6),
                            "curry: c(1, 2)(3)");
-    test::record_assertion(_h, (c(1)(2, 3) == 6),
+    record_assertion(verdict, (c(1)(2, 3) == 6),
                            "curry: c(1)(2, 3)");
 
     // partial application reused
     auto partial = c(1);
-    test::record_assertion(_h, (partial(2)(3) == 6),
+    record_assertion(verdict, (partial(2)(3) == 6),
                            "curry: stored partial completes via singles");
-    test::record_assertion(_h, (partial(2, 3) == 6),
+    record_assertion(verdict, (partial(2, 3) == 6),
                            "curry: stored partial completes via group");
 
     // unary callable: immediate invocation
-    test::record_assertion(_h, (curry(DEchoInt{})(9) == 9),
+    record_assertion(verdict, (curry(DEchoInt{})(9) == 9),
                            "curry: unary callable invokes immediately");
 
     // nullary callable: invocation with no arguments
-    test::record_assertion(_h, (curry(DNullarySeven{})() == 7),
+    record_assertion(verdict, (curry(DNullarySeven{})() == 7),
                            "curry: nullary callable invokes with ()");
 
     // higher-arity extension (4-ary): two args extend, two more invoke
     auto c4 = curry(DAdd4{});
-    test::record_assertion(_h, (c4(1, 2)(3, 4) == 10),
+    record_assertion(verdict, (c4(1, 2)(3, 4) == 10),
                            "curry: 4-ary extends on a pair then invokes");
-    test::record_assertion(_h, (c4(1)(2)(3)(4) == 10),
+    record_assertion(verdict, (c4(1)(2)(3)(4) == 10),
                            "curry: 4-ary full single-arg chain");
-    test::record_assertion(_h, (c4(1, 2)(3)(4) == 10),
+    record_assertion(verdict, (c4(1, 2)(3)(4) == 10),
                            "curry: 4-ary group then singles");
-    test::record_assertion(_h, (c4(1)(2, 3, 4) == 10),
+    record_assertion(verdict, (c4(1)(2, 3, 4) == 10),
                            "curry: 4-ary single then triple group");
 
-    return;
+    return verdict;
 }
 
 
@@ -100,52 +100,52 @@ test_curry_n_factory
   trailing (). It is deliberately NOT compared directly against a literal,
   since the templated conversion operator is not deduced in that context.
 */
-void test_curry_n_factory(
-    test::test_handler& _h
-)
+bool test_curry_n_factory()
 {
+    bool verdict = true;
+
     add3 a3;
     auto cn = curry_n<3>(a3);
 
     // single-arg chain, terminal value via copy-initialization
     const int chained = cn(1)(2)(3);
-    test::record_assertion(_h, (chained == 6),
+    record_assertion(verdict, (chained == 6),
                            "curry_n<3>: single-arg chain (implicit conv)");
 
     // single-arg chain, terminal value via explicit ()
-    test::record_assertion(_h, (cn(1)(2)(3)() == 6),
+    record_assertion(verdict, (cn(1)(2)(3)() == 6),
                            "curry_n<3>: single-arg chain (explicit ())");
 
     // grouped forms
     const int grouped_pair = cn(1, 2)(3);
-    test::record_assertion(_h, (grouped_pair == 6),
+    record_assertion(verdict, (grouped_pair == 6),
                            "curry_n<3>: cn(1, 2)(3)");
     const int grouped_all = cn(1, 2, 3);
-    test::record_assertion(_h, (grouped_all == 6),
+    record_assertion(verdict, (grouped_all == 6),
                            "curry_n<3>: cn(1, 2, 3)");
 
     // curry_n<1> over a unary callable
     const int unary_n = curry_n<1>(DEchoInt{})(12);
-    test::record_assertion(_h, (unary_n == 12),
+    record_assertion(verdict, (unary_n == 12),
                            "curry_n<1>: unary terminal (implicit conv)");
-    test::record_assertion(_h, (curry_n<1>(DEchoInt{})(13)() == 13),
+    record_assertion(verdict, (curry_n<1>(DEchoInt{})(13)() == 13),
                            "curry_n<1>: unary terminal (explicit ())");
 
     // curry_n<0> over a nullary callable
-    test::record_assertion(_h, (curry_n<0>(DNullarySeven{})() == 7),
+    record_assertion(verdict, (curry_n<0>(DNullarySeven{})() == 7),
                            "curry_n<0>: nullary terminal (explicit ())");
     const int zero_n = curry_n<0>(DNullarySeven{});
-    test::record_assertion(_h, (zero_n == 7),
+    record_assertion(verdict, (zero_n == 7),
                            "curry_n<0>: nullary terminal (implicit conv)");
 
     // curry_n<2> over a binary callable
     const int binary_singles = curry_n<2>(add2{})(3)(4);
-    test::record_assertion(_h, (binary_singles == 7),
+    record_assertion(verdict, (binary_singles == 7),
                            "curry_n<2>: binary via singles");
-    test::record_assertion(_h, (curry_n<2>(add2{})(3, 4)() == 7),
+    record_assertion(verdict, (curry_n<2>(add2{})(3, 4)() == 7),
                            "curry_n<2>: binary via group");
 
-    return;
+    return verdict;
 }
 
 

@@ -35,7 +35,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_storage_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_STORAGE_TRAITS_TESTS_
@@ -58,7 +58,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_storage_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // NS_TESTING / D_KEYWORD_TESTING may not be defined by the core headers; mirror
@@ -88,8 +96,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -137,7 +155,7 @@ struct DHybridShape
 struct DOptinDynamicOverride
 {
     static constexpr std::size_t extent = 4;
-    static constexpr storage_duration storage_duration_category =
+    static constexpr storage_duration::value storage_duration_category =
         storage_duration::dynamic_storage;
 };
 
@@ -145,7 +163,7 @@ struct DOptinDynamicOverride
 struct DOptinHybrid
 {
     static constexpr std::size_t extent = 4;
-    static constexpr storage_duration storage_duration_category =
+    static constexpr storage_duration::value storage_duration_category =
         storage_duration::hybrid_storage;
 };
 
@@ -154,7 +172,7 @@ struct DOptinHybrid
 // fails - static_storage_implies_constexpr_size is FALSE.
 struct DOptinStaticNoSize
 {
-    static constexpr storage_duration storage_duration_category =
+    static constexpr storage_duration::value storage_duration_category =
         storage_duration::static_storage;
 };
 
@@ -163,6 +181,8 @@ struct no_signal
 {
     using value_type = int;
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -190,6 +210,104 @@ bool tests_static_storage_implies_constexpr_size();
 // -- V.   Aggregate snapshot + variable-template companions --
 bool tests_container_storage_class();
 bool tests_storage_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_storage_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_storage_traits_spec()
+{
+    return dt::module_spec{
+        "container_storage_traits",
+        "container-side classification on the STORAGE axis: given a container "
+        "type, is its storage STATIC...",
+        {
+            dt::block_spec{
+                "signals",
+                "Signals",
+                {
+                    { "tests_has_static_storage_signal",
+                      "checks (has_static_storage_signal<std::array<int, "
+                      "4>>::value)",
+                      &tests_has_static_storage_signal },
+                    { "tests_has_dynamic_storage_signal",
+                      "checks "
+                      "(has_dynamic_storage_signal<std::set<int>>::value)",
+                      &tests_has_dynamic_storage_signal },
+                }
+            },
+            dt::block_spec{
+                "duration",
+                "Duration",
+                {
+                    { "tests_storage_duration_of",
+                      "checks (storage_duration_of<std::vector<int>>::value "
+                      "== storage_duration::",
+                      &tests_storage_duration_of },
+                    { "tests_storage_duration_of_companions",
+                      "checks (storage_duration_of_t<std::vector<int>>::value "
+                      "== storage_duration",
+                      &tests_storage_duration_of_companions },
+                }
+            },
+            dt::block_spec{
+                "predicates",
+                "Predicates",
+                {
+                    { "tests_is_static_storage_container",
+                      "checks (is_static_storage_container<std::array<int, "
+                      "4>>::value)",
+                      &tests_is_static_storage_container },
+                    { "tests_is_dynamic_storage_container",
+                      "checks "
+                      "(is_dynamic_storage_container<std::vector<int>>::value)",
+                      &tests_is_dynamic_storage_container },
+                    { "tests_is_hybrid_storage_container",
+                      "checks "
+                      "(is_hybrid_storage_container<DHybridShape>::value)",
+                      &tests_is_hybrid_storage_container },
+                    { "tests_has_static_storage_component_container",
+                      "checks "
+                      "(has_static_storage_component_container<std::array<int, "
+                      "4>>::value)",
+                      &tests_has_static_storage_component_container },
+                    { "tests_has_dynamic_storage_component_container",
+                      "checks "
+                      "(has_dynamic_storage_component_container<std::vector<int>>::value)",
+                      &tests_has_dynamic_storage_component_container },
+                }
+            },
+            dt::block_spec{
+                "entailment",
+                "Entailment",
+                {
+                    { "tests_static_storage_implies_constexpr_size",
+                      "checks "
+                      "(static_storage_implies_constexpr_size<std::array<int, "
+                      "4>>::value)",
+                      &tests_static_storage_implies_constexpr_size },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_container_storage_class",
+                      "checks (!C::has_static_signal)",
+                      &tests_container_storage_class },
+                    { "tests_storage_variable_templates",
+                      "checks (has_static_storage_signal_v<std::array<int, "
+                      "4>> == has_static_stor",
+                      &tests_storage_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

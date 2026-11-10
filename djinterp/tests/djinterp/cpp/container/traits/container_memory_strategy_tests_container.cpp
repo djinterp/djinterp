@@ -26,7 +26,7 @@
 *                              container_memory_strategy_tests_container.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -208,9 +208,9 @@ bool tests_container_strategy_precedence()
 
     // --- pointer_stable reflects the resolved strategy ---
     D_CN_CHECK(DContainerMemoryStrategy<DCnContainerExplicit>::pointer_stable
-                   == is_pointer_stable_strategy<DCnElementDynamic>::value);
+                   == is_stable_strategy<DCnElementDynamic>::value);
     D_CN_CHECK(DContainerMemoryStrategy<DCnContainerExtent>::pointer_stable
-                   == is_pointer_stable_strategy<DStaticExtentStrategy<
+                   == is_stable_strategy<DStaticExtentStrategy<
                           double, 0>>::value);
 
     return true;

@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/cpp/container/sequential_container.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -226,13 +226,17 @@ private:
 
 public:
     // --- positional access ---
+    //   decltype(auto), not a trailing decltype over Derived: a signature is
+    // instantiated with the base, while Derived is still incomplete, and
+    // std::begin of an incomplete type is an error; a deduced return type
+    // waits for the body, which is instantiated only on a call.
 
-    auto front() const -> decltype(*std::begin( std::declval<const Derived&>()))
+    decltype(auto) front() const
     {
         return *std::begin(self());
     }
 
-    auto back() const -> decltype(*std::begin( std::declval<const Derived&>()))
+    decltype(auto) back() const
     {
         auto it = std::end(self());
         --it;

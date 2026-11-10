@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/decode_tests_decodability.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "decode_tests.hpp"
@@ -33,10 +33,10 @@ bool tests_decode_is_leaf_decodable()
 
     // built-in families
     D_DE_CHECK(is_leaf_decodable<bool>::value);
-    D_DE_CHECK(is_leaf_decodable<std::uint8_t>::value);
-    D_DE_CHECK(is_leaf_decodable<std::int16_t>::value);
-    D_DE_CHECK(is_leaf_decodable<std::uint32_t>::value);
-    D_DE_CHECK(is_leaf_decodable<std::int64_t>::value);
+    D_DE_CHECK(is_leaf_decodable<re_std::uint8_t>::value);
+    D_DE_CHECK(is_leaf_decodable<re_std::int16_t>::value);
+    D_DE_CHECK(is_leaf_decodable<re_std::uint32_t>::value);
+    D_DE_CHECK(is_leaf_decodable<re_std::int64_t>::value);
     D_DE_CHECK(is_leaf_decodable<char>::value);
     D_DE_CHECK(is_leaf_decodable<char16_t>::value);
     D_DE_CHECK(is_leaf_decodable<char32_t>::value);
@@ -73,7 +73,7 @@ tests_decode_is_leaf_decodable_v
 bool tests_decode_is_leaf_decodable_v()
 {
     D_DE_CHECK(is_leaf_decodable_v<bool> == is_leaf_decodable<bool>::value);
-    D_DE_CHECK(is_leaf_decodable_v<std::uint32_t> == true);
+    D_DE_CHECK(is_leaf_decodable_v<re_std::uint32_t> == true);
     D_DE_CHECK(is_leaf_decodable_v<double> == true);
     D_DE_CHECK(is_leaf_decodable_v<DDecEnumU16> == true);
     D_DE_CHECK(is_leaf_decodable_v<DRtLeaf> == true);

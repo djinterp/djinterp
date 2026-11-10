@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/container/array/array_filter.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.19
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/container/array/array_filter.h"
 
@@ -571,7 +571,6 @@ struct dj_contiguous_filter_result d_contiguous_filter_slice(
     size_t                       clamped_end;
     size_t                       range_len;
     size_t                       out_count;
-    size_t                       src;
     size_t                       dst;
 
     if (!_elements)
@@ -605,8 +604,11 @@ struct dj_contiguous_filter_result d_contiguous_filter_slice(
                                _start, clamped_end - _start);
     }
 
+    //   the elements at _start, _start + _step, ... before clamped_end:
+    // counted and walked by their number, so that a step near SIZE_MAX
+    // can wrap neither the count nor the index
     range_len = clamped_end - _start;
-    out_count = (range_len + _step - 1) / _step;
+    out_count = ((range_len - 1) / _step) + 1;
 
     size_t bytes = 0;
 
@@ -621,14 +623,13 @@ struct dj_contiguous_filter_result d_contiguous_filter_slice(
                                  _element_size);
     }
 
-    dst = 0;
-
-    for (src = _start; src < clamped_end; src += _step)
+    for (dst = 0; dst < out_count; ++dst)
     {
         d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, dst, _element_size),
-                 D_ARRAY_FILTER_ELEM(_elements, src, _element_size),
+                 D_ARRAY_FILTER_ELEM(_elements,
+                                     _start + (dst * _step),
+                                     _element_size),
                  _element_size);
-        ++dst;
     }
 
     res.count          = out_count;
@@ -1615,6 +1616,139 @@ d_internal_cf_union_bytes(
 }
 
 /*
+d_cf_results_ok
+  Whether each of _n chain results succeeded or came out empty, so that a
+set operation over them answers rather than leaves a chain out.
+
+Parameter(s):
+  _results: the chain results.
+  _n:       their number.
+Return:
+  true if every result can be used, false if one failed.
+*/
+static bool
+d_cf_results_ok(
+    const struct dj_contiguous_filter_result* _results,
+    size_t                                    _n
+)
+{
+    size_t i;
+
+    for (i = 0; i < _n; ++i)
+    {
+        if ( (_results[i].status != D_FILTER_RESULT_SUCCESS) &&
+             (_results[i].status != D_FILTER_RESULT_EMPTY) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
+d_cf_results_release
+  Frees each of _n chain results, then the array that holds them.
+
+Parameter(s):
+  _results: the chain results, in an array from calloc.
+  _n:       their number.
+Return:
+  none.
+*/
+static void
+d_cf_results_release(
+    struct dj_contiguous_filter_result* _results,
+    size_t                              _n
+)
+{
+    size_t i;
+
+    for (i = 0; i < _n; ++i)
+    {
+        d_contiguous_filter_result_free(&_results[i]);
+    }
+
+    free(_results);
+
+    return;
+}
+
+/*
+d_cf_contains
+  Whether _result holds an element equal to _wanted, by _comparator.
+
+Parameter(s):
+  _result:       the chain result searched.
+  _wanted:       the element looked for.
+  _element_size: the size in bytes of each element.
+  _comparator:   the equality test, 0 for equal.
+Return:
+  true if an equal element is found, false otherwise.
+*/
+static bool
+d_cf_contains(
+    const struct dj_contiguous_filter_result* _result,
+    const void*                               _wanted,
+    size_t                                    _element_size,
+    fn_function_comparator                    _comparator
+)
+{
+    size_t k;
+
+    for (k = 0; k < _result->count; ++k)
+    {
+        if (_comparator(_wanted,
+                        D_ARRAY_FILTER_ELEM(_result->data, k, _element_size),
+                        NULL) == 0)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*
+d_cf_in_all
+  Whether element _j of the first chain result has an equal, by
+_comparator, in every other.
+
+Parameter(s):
+  _results:      the chain results; the first is the one searched from.
+  _n:            their number.
+  _j:            the element of the first result.
+  _element_size: the size in bytes of each element.
+  _comparator:   the equality test, 0 for equal.
+Return:
+  true if every other result holds an equal element, false otherwise.
+*/
+static bool
+d_cf_in_all(
+    const struct dj_contiguous_filter_result* _results,
+    size_t                                    _n,
+    size_t                                    _j,
+    size_t                                    _element_size,
+    fn_function_comparator                    _comparator
+)
+{
+    const void* wanted;
+    size_t      i;
+
+    wanted = D_ARRAY_FILTER_ELEM(_results[0].data, _j, _element_size);
+
+    for (i = 1; i < _n; ++i)
+    {
+        if (!d_cf_contains(&_results[i], wanted, _element_size, _comparator))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
 d_contiguous_filter_apply_union
   Applies multiple filter chains and produces their union (elements that
   appear in any chain's output).  Deduplication uses the provided comparator.
@@ -1675,6 +1809,15 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_union(
                                                       _combo->filters[i]);
     }
 
+    // a chain that failed leaves the union unknown: the failure is the
+    // result, as in d_filter_apply_union
+    if (!d_cf_results_ok(chain_results, _combo->count))
+    {
+        d_cf_results_release(chain_results, _combo->count);
+
+        return d_cf_result_error(D_FILTER_RESULT_ERROR, _element_size);
+    }
+
     size_t     bytes = 0;
     const bool wraps = d_internal_cf_union_bytes(chain_results,
                                                  _combo->count,
@@ -1689,12 +1832,7 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_union(
          ( (total > 0) ||
            (wraps) ) )
     {
-        for (i = 0; i < _combo->count; ++i)
-        {
-            d_contiguous_filter_result_free(&chain_results[i]);
-        }
-
-        free(chain_results);
+        d_cf_results_release(chain_results, _combo->count);
 
         return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
@@ -1763,11 +1901,10 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
 {
     struct dj_contiguous_filter_result* chain_results = NULL;
     struct dj_contiguous_filter_result  result = {0};
-    size_t                        i;
-    size_t                        j;
-    size_t                        k;
-    size_t                        out_count;
-    bool                          found;
+    size_t                              bytes;
+    size_t                              i;
+    size_t                              j;
+    size_t                              out_count;
 
     if ( (!_combo)     ||
          (!_elements)  ||
@@ -1785,7 +1922,7 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
     // apply each chain
     chain_results = (struct dj_contiguous_filter_result*)
                     calloc(_combo->count,
-                             sizeof(struct dj_contiguous_filter_result));
+                           sizeof(struct dj_contiguous_filter_result));
 
     if (!chain_results)
     {
@@ -1801,9 +1938,18 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
                                                       _combo->filters[i]);
     }
 
+    // a chain that failed leaves the intersection unknown: the failure is
+    // the result, as in d_filter_apply_intersection
+    if (!d_cf_results_ok(chain_results, _combo->count))
+    {
+        d_cf_results_release(chain_results, _combo->count);
+
+        return d_cf_result_error(D_FILTER_RESULT_ERROR, _element_size);
+    }
+
     // intersect: iterate over first chain's results, keep elements
     // present in all other chains
-    size_t bytes = 0;
+    bytes = 0;
 
     // a size that wraps cannot be allocated: it fails as an allocation does
     result.data = (d_ckd_mul(&bytes,
@@ -1815,12 +1961,7 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
     if ( (!result.data) &&
          (chain_results[0].count > 0) )
     {
-        for (i = 0; i < _combo->count; ++i)
-        {
-            d_contiguous_filter_result_free(&chain_results[i]);
-        }
-
-        free(chain_results);
+        d_cf_results_release(chain_results, _combo->count);
 
         return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
@@ -1830,50 +1971,21 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_intersection(
 
     for (j = 0; j < chain_results[0].count; ++j)
     {
-        bool in_all;
-
-        in_all = true;
-
-        for (i = 1; i < _combo->count; ++i)
+        if (d_cf_in_all(chain_results, _combo->count, j,
+                        _element_size, _comparator))
         {
-            found = false;
-
-            for (k = 0; k < chain_results[i].count; ++k)
-            {
-                if (_comparator(
-                        D_ARRAY_FILTER_ELEM(chain_results[0].data, j, _element_size),
-                        D_ARRAY_FILTER_ELEM(chain_results[i].data, k, _element_size),
-                        NULL) == 0)
-                {
-                    found = true;
-
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                in_all = false;
-
-                break;
-            }
-        }
-
-        if (in_all)
-        {
-            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(result.data, out_count, _element_size),
-                     D_ARRAY_FILTER_ELEM(chain_results[0].data, j, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(result.data,
+                                             out_count,
+                                             _element_size),
+                     D_ARRAY_FILTER_ELEM(chain_results[0].data,
+                                         j,
+                                         _element_size),
                      _element_size);
             ++out_count;
         }
     }
 
-    for (i = 0; i < _combo->count; ++i)
-    {
-        d_contiguous_filter_result_free(&chain_results[i]);
-    }
-
-    free(chain_results);
+    d_cf_results_release(chain_results, _combo->count);
 
     result.count          = out_count;
     result.element_size   = _element_size;
@@ -1914,8 +2026,6 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
     struct dj_contiguous_filter_result result = {0};
     size_t                       out_count;
     size_t                       i;
-    size_t                       j;
-    bool                         found;
 
     if ( (!_diff)      ||
          (!_elements)  ||
@@ -1931,6 +2041,17 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
     result_b = d_contiguous_filter_apply_chain(_elements, _count,
                                           _element_size,
                                           _diff->exclude);
+
+    // a chain that failed leaves A minus B unknown: the failure is the
+    // result, as in d_filter_apply_difference
+    if ( (!d_cf_results_ok(&result_a, 1)) ||
+         (!d_cf_results_ok(&result_b, 1)) )
+    {
+        d_contiguous_filter_result_free(&result_a);
+        d_contiguous_filter_result_free(&result_b);
+
+        return d_cf_result_error(D_FILTER_RESULT_ERROR, _element_size);
+    }
 
     // if A is empty, result is empty
     if (result_a.count == 0)
@@ -1968,25 +2089,16 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_difference(
 
     for (i = 0; i < result_a.count; ++i)
     {
-        found = false;
+        const void* element = D_ARRAY_FILTER_ELEM(result_a.data,
+                                                  i,
+                                                  _element_size);
 
-        for (j = 0; j < result_b.count; ++j)
+        if (!d_cf_contains(&result_b, element, _element_size, _comparator))
         {
-            if (_comparator(
-                    D_ARRAY_FILTER_ELEM(result_a.data, i, _element_size),
-                    D_ARRAY_FILTER_ELEM(result_b.data, j, _element_size),
-                    NULL) == 0)
-            {
-                found = true;
-
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(result.data, out_count, _element_size),
-                     D_ARRAY_FILTER_ELEM(result_a.data, i, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(result.data,
+                                             out_count,
+                                             _element_size),
+                     element,
                      _element_size);
             ++out_count;
         }
@@ -2422,7 +2534,8 @@ void d_contiguous_filter_result_free(
 d_contiguous_filter_apply_builder
   Bridges the fluent builder API to contiguous_filter semantics.
   Builds a chain from the builder, applies it, and returns an
-  contiguous_filter_result.
+  contiguous_filter_result. The builder is consumed: it is freed on every
+  path but a NULL builder.
 
 Parameter(s):
   _builder:      the fluent filter builder.
@@ -2456,8 +2569,11 @@ struct dj_contiguous_filter_result d_contiguous_filter_apply_builder(
                                  _element_size);
     }
 
-    // build the chain, which consumes the builder
+    //   take the chain out, then free the builder: d_filter_builder_build
+    // detaches the chain but leaves the builder itself to its owner, and this
+    // function owns it, as the NULL-elements path above shows
     chain = d_filter_builder_build(_builder);
+    d_filter_builder_free(_builder);
 
     if (!chain)
     {

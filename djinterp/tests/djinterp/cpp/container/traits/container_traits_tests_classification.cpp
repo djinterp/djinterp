@@ -19,8 +19,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_traits_tests_classification.cpp
 * link(s):   TBA
-* author(s): unit-test suite                                        created: TBA
-*                                                            revised: 2026.09.21
+* author(s): unit-test suite                                 created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -71,11 +71,12 @@ bool tests_container_class()
         D_CT_CHECK( (C::has_reverse_iteration) );
     }
 
-    // -- DEmptyCt: compile-time container AND dynamic storage (axes independent) --
+    //   -- DEmptyCt: a compile-time container whose siting is not legible (no
+    // inline aggregate, no allocator): the axes are independent --
     {
         using C = DContainerClass<DEmptyCt>;
         D_CT_CHECK( (C::is_compile_time) );
-        D_CT_CHECK( (C::is_dynamic_storage && !C::is_static_storage) );
+        D_CT_CHECK( (!C::is_dynamic_storage && !C::is_static_storage) );
         D_CT_CHECK( (C::is_unbounded) );
         D_CT_CHECK( (C::is_fundamental) );
         D_CT_CHECK( (C::allows_duplicates && !C::enforces_uniqueness) );
@@ -86,15 +87,16 @@ bool tests_container_class()
     {
         using C = DContainerClass<DAdaptor>;
         D_CT_CHECK( (C::is_underlying && !C::is_fundamental) );
-        D_CT_CHECK( (C::is_dynamic_storage) );
+        // it delegates its storage: no allocator or reserve of its own
+        D_CT_CHECK( (!C::is_dynamic_storage) );
         D_CT_CHECK( (C::is_unbounded) );
         D_CT_CHECK( (C::allows_duplicates) );
     }
 
-    // -- std::forward_list<int>: neither static nor dynamic; no reverse iteration --
+    // -- std::forward_list<int>: dynamic (its allocator); no reverse iteration --
     {
         using C = DContainerClass<std::forward_list<int>>;
-        D_CT_CHECK( (!C::is_static_storage && !C::is_dynamic_storage) );  // no size()
+        D_CT_CHECK( (!C::is_static_storage && C::is_dynamic_storage) );
         D_CT_CHECK( (!C::has_reverse_iteration) );
         D_CT_CHECK( (C::is_unbounded) );
         D_CT_CHECK( (C::is_fundamental) );
@@ -140,8 +142,8 @@ bool tests_container_variable_templates()
     D_CT_CHECK( (is_interval_bounded_v<std::array<int, 4>>) );
 
     // storage companions
-    D_CT_CHECK( (is_static_storage_v<DFixed4> == is_static_storage<DFixed4>::value) );
-    D_CT_CHECK( (is_dynamic_storage_v<std::vector<int>>) );
+    D_CT_CHECK( (is_static_storage_container_v<DFixed4> == is_static_storage_container<DFixed4>::value) );
+    D_CT_CHECK( (is_dynamic_storage_container_v<std::vector<int>>) );
 
     // uniqueness / multiplicity companions
     D_CT_CHECK( (enforces_uniqueness_v<std::set<int>>) );

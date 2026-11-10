@@ -23,21 +23,19 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_pack.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
 #include "concepts_tests.hpp"
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_pack(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_pack()
 {
+    bool verdict = true;
+
     using fixtures::polymorphic_class;
     using fixtures::derived_from_polymorphic;
     using fixtures::trivial_class;
@@ -76,8 +74,8 @@ void concepts_tests_pack(
     //   structural invariants over the arity-partition trio
     DT_CONCEPT    (empty_pack<>          != nonempty_pack<>);
     DT_CONCEPT    (empty_pack<int>       != nonempty_pack<int>);
-    DT_NOT_CONCEPT((single_type<>        && nonempty_pack<>));
-    DT_CONCEPT    ((single_type<int>     && nonempty_pack<int>));
+    DT_NOT_CONCEPT(((single_type<>)      && (nonempty_pack<>)));
+    DT_CONCEPT    (((single_type<int>)   && (nonempty_pack<int>)));
 
     // -------------------------------------------------------------------
     // all_same -- leading type + rest pack, all identical
@@ -188,9 +186,9 @@ void concepts_tests_pack(
     DT_NOT_CONCEPT((nonvoid_pack<int, void, char>));
     DT_NOT_CONCEPT((nonvoid_pack<const void>));              // cv-qualified void counts
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

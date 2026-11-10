@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/functional_common_tests_concepts.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  functional_traits_tests_concepts.cpp
 //   Section IV -- the C++20 concept faces (Callable / Predicate).
@@ -15,6 +15,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
+#include "functional_common_tests.hpp"
 
 
 NS_DJINTERP

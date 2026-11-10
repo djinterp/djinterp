@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_reducers.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <vector>
@@ -31,12 +31,12 @@ bool test_reducers_sum()
     values.push_back(-3);
     values.push_back(5);
 
-    D_INTERNAL_ACC_CHECK(sum<int>().run(values) == 12);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(values) == 12);
 
     std::vector<int> single;
     single.push_back(42);
 
-    D_INTERNAL_ACC_CHECK(sum<int>().run(single) == 42);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(single) == 42);
 
     return true;
 }
@@ -54,21 +54,21 @@ bool test_reducers_product()
 {
     std::vector<int> empty_vec;
 
-    D_INTERNAL_ACC_CHECK(product<int>().run(empty_vec) == 1);
+    D_INTERNAL_ACC_CHECK(accumulate_product<int>().run(empty_vec) == 1);
 
     std::vector<int> values;
     values.push_back(2);
     values.push_back(3);
     values.push_back(4);
 
-    D_INTERNAL_ACC_CHECK(product<int>().run(values) == 24);
+    D_INTERNAL_ACC_CHECK(accumulate_product<int>().run(values) == 24);
 
     std::vector<int> with_zero;
     with_zero.push_back(7);
     with_zero.push_back(0);
     with_zero.push_back(9);
 
-    D_INTERNAL_ACC_CHECK(product<int>().run(with_zero) == 0);
+    D_INTERNAL_ACC_CHECK(accumulate_product<int>().run(with_zero) == 0);
 
     return true;
 }
@@ -140,12 +140,12 @@ bool test_reducers_min()
     values.push_back(-7);
     values.push_back(2);
 
-    D_INTERNAL_ACC_CHECK(min<int>().run(values) == -7);
+    D_INTERNAL_ACC_CHECK(accumulate_min<int>().run(values) == -7);
 
     std::vector<int> single;
     single.push_back(9);
 
-    D_INTERNAL_ACC_CHECK(min<int>().run(single) == 9);
+    D_INTERNAL_ACC_CHECK(accumulate_min<int>().run(single) == 9);
 
     return true;
 }
@@ -166,7 +166,7 @@ bool test_reducers_max()
     values.push_back(11);
     values.push_back(2);
 
-    D_INTERNAL_ACC_CHECK(max<int>().run(values) == 11);
+    D_INTERNAL_ACC_CHECK(accumulate_max<int>().run(values) == 11);
 
     return true;
 }
@@ -230,11 +230,11 @@ bool test_reducers_empty_edges()
 {
     std::vector<int> empty_vec;
 
-    D_INTERNAL_ACC_CHECK(sum<int>().run(empty_vec) == 0);
+    D_INTERNAL_ACC_CHECK(accumulate_sum<int>().run(empty_vec) == 0);
     D_INTERNAL_ACC_CHECK(count<int>().run(empty_vec) == 0);
     D_INTERNAL_ACC_CHECK(count_if<int>(is_even()).run(empty_vec) == 0);
-    D_INTERNAL_ACC_CHECK(min<int>().run(empty_vec) == 0);
-    D_INTERNAL_ACC_CHECK(max<int>().run(empty_vec) == 0);
+    D_INTERNAL_ACC_CHECK(accumulate_min<int>().run(empty_vec) == 0);
+    D_INTERNAL_ACC_CHECK(accumulate_max<int>().run(empty_vec) == 0);
 
     return true;
 }

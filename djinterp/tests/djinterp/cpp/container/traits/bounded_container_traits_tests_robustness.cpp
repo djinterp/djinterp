@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/bounded_container_traits_tests_robustness.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -30,20 +30,20 @@ NS_TESTING
 
 // p_trait_value_type
 //   probe: does the instantiated trait carry `value_type`?
-D_TEST_TYPE_PROBE(p_trait_value_type, typename _Type::value_type)
+D_TEST_TYPE_PROBE(p_trait_value_type, typename Type::value_type)
 
 // p_trait_type
 //   probe: does it carry `type`?
-D_TEST_TYPE_PROBE(p_trait_type, typename _Type::type)
+D_TEST_TYPE_PROBE(p_trait_type, typename Type::type)
 
 // p_trait_to_bool
 //   probe: is it convertible to bool - i.e. does `if (is_foo<T>{})` compile?
 D_TEST_EXPR_PROBE(p_trait_to_bool,
-                  static_cast<bool>(std::declval<const _Type&>()))
+                  static_cast<bool>(std::declval<const Type&>()))
 
 // p_trait_call
 //   probe: is it callable - i.e. does `is_foo<T>{}()` compile?
-D_TEST_EXPR_PROBE(p_trait_call, std::declval<const _Type&>()())
+D_TEST_EXPR_PROBE(p_trait_call, std::declval<const Type&>()())
 
 
 ///////////////////////////////////////////////////////////////////////////////

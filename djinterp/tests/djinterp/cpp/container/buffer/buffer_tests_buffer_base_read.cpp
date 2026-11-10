@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_buffer_base_read.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -26,9 +26,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_buffer_base_read
   Covers read(void*, std::size_t) on a dual-cursor buffer.
@@ -44,10 +42,10 @@ tests_buffer_base_read
   - read after full consumption returns 0
   - read content matches the original write byte-for-byte
 */
-void tests_buffer_base_read(
-    test_handler& _handler
-)
+bool tests_buffer_base_read()
 {
+    bool ok = true;
+
     const char src[] = "0123456789ABCDEF";  // 16 bytes
 
     // --- null destination short-circuit ---
@@ -59,13 +57,11 @@ void tests_buffer_base_read(
 
         std::size_t n = b.read(nullptr, 5);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "read(): null destination returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "read(): null destination does not advance read cursor");
     }
@@ -80,13 +76,11 @@ void tests_buffer_base_read(
         char        out[16];
         std::size_t n = b.read(out, 0);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "read(): zero-length returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "read(): zero-length does not advance read cursor");
     }
@@ -101,23 +95,19 @@ void tests_buffer_base_read(
         char        out[16] = { 0 };
         std::size_t n       = b.read(out, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 16,
             "read(): full-payload read returns 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(out, src, 16) == 0,
             "read(): copied bytes match the source byte-for-byte");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 16,
             "read(): read cursor advances to 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 0,
             "read(): readable() == 0 after full consumption");
     }
@@ -134,35 +124,29 @@ void tests_buffer_base_read(
 
         std::size_t n1 = b.read(first, 6);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n1 == 6,
             "read(): first partial read returns 6");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(first, src, 6) == 0,
             "read(): first partial read returns the leading 6 bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 10,
             "read(): readable() == 10 after consuming 6 of 16");
 
         std::size_t n2 = b.read(second, 10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n2 == 10,
             "read(): second read consumes the remaining 10");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(second, src + 6, 10) == 0,
             "read(): second read returns the trailing 10 bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 0,
             "read(): buffer fully consumed after second read");
     }
@@ -177,13 +161,11 @@ void tests_buffer_base_read(
         char        out[32] = { 0 };
         std::size_t n       = b.read(out, 32);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 16,
             "read(): oversized request clamped to 16 readable bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(out, src, 16) == 0,
             "read(): clamped read still copies all readable bytes");
     }
@@ -196,8 +178,7 @@ void tests_buffer_base_read(
         char        out[16];
         std::size_t n = b.read(out, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "read(): empty buffer returns 0");
     }
@@ -214,13 +195,14 @@ void tests_buffer_base_read(
 
         std::size_t n2 = b.read(out, 4);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n2 == 0,
             "read(): exhausted buffer returns 0 on subsequent read");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -236,10 +218,10 @@ tests_buffer_base_peek
   - the pointed-to bytes are the same as those that read() would
     return
 */
-void tests_buffer_base_peek(
-    test_handler& _handler
-)
+bool tests_buffer_base_peek()
 {
+    bool ok = true;
+
     const char src[] = "PEEKDATA";  // 8 bytes
 
     // --- peek on empty buffer ---
@@ -247,8 +229,7 @@ void tests_buffer_base_peek(
         mock_buffer<exponential_growth_policy,
                     dual_cursor_policy> b(64);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.peek() == b.storage(),
             "peek(): empty buffer returns storage()");
     }
@@ -262,23 +243,19 @@ void tests_buffer_base_peek(
 
         const char* p = b.peek();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             p == b.storage(),
             "peek(): unread buffer returns storage()");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(p, src, 8) == 0,
             "peek(): peeked bytes match the written bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "peek(): does not advance read cursor");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 8,
             "peek(): readable() unchanged");
     }
@@ -293,18 +270,18 @@ void tests_buffer_base_peek(
 
         const char* p = b.peek();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             p == b.storage() + 3,
             "peek(): points at storage() + read_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(p, src + 3, 5) == 0,
             "peek(): returns the unconsumed tail bytes");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -317,47 +294,41 @@ tests_buffer_base_readable_and_read_position
   - read_position() reflects the consumed byte count
   - both update correctly after write/read/advance/compact
 */
-void tests_buffer_base_readable_and_read_position(
-    test_handler& _handler
-)
+bool tests_buffer_base_readable_and_read_position()
 {
+    bool ok = true;
+
     mock_buffer<exponential_growth_policy,
                 dual_cursor_policy> b(64);
 
     // fresh buffer
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.readable() == 0,
         "readable(): fresh buffer == 0");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.read_position() == 0,
         "read_position(): fresh buffer == 0");
 
     // write 10
     b.write_fill('p', 10);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.readable() == 10,
         "readable(): == 10 after writing 10 bytes");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.read_position() == 0,
         "read_position(): == 0 after writes only");
 
     // advance 4
     b.advance(4);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.readable() == 6,
         "readable(): == 6 after consuming 4 of 10");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.read_position() == 4,
         "read_position(): == 4 after consuming 4");
 
@@ -365,30 +336,28 @@ void tests_buffer_base_readable_and_read_position(
     char out[8];
     b.read(out, 3);
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.readable() == 3,
         "readable(): == 3 after destructive read of 3");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.read_position() == 7,
         "read_position(): == 7 after consuming 7 total");
 
     // compact resets read_position to 0 while preserving readable
     b.compact();
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.read_position() == 0,
         "read_position(): == 0 after compact");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         b.readable() == 3,
         "readable(): unchanged after compact (still 3)");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -404,10 +373,10 @@ tests_buffer_base_advance
   - advance on an empty buffer returns 0
   - advance does not affect the write cursor
 */
-void tests_buffer_base_advance(
-    test_handler& _handler
-)
+bool tests_buffer_base_advance()
 {
+    bool ok = true;
+
     const char src[] = "advancetest!!";  // 13 bytes
 
     // --- advance(0) is a no-op ---
@@ -419,18 +388,15 @@ void tests_buffer_base_advance(
 
         std::size_t n = b.advance(0);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "advance(): advance(0) returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "advance(): advance(0) leaves cursor at 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 13,
             "advance(): advance(0) leaves readable unchanged");
     }
@@ -444,24 +410,20 @@ void tests_buffer_base_advance(
 
         std::size_t n = b.advance(5);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 5,
             "advance(): returns the bytes advanced");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 5,
             "advance(): cursor at 5 after advance(5)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 8,
             "advance(): readable == 8 after advancing 5 of 13");
 
         // peek confirms cursor moved
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             *b.peek() == src[5],
             "advance(): peek() now points at byte 5");
     }
@@ -475,18 +437,15 @@ void tests_buffer_base_advance(
 
         std::size_t n = b.advance(100);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 5,
             "advance(): oversized clamped to readable (5)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 0,
             "advance(): buffer empty after clamped advance");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 5,
             "advance(): read_position == 5 (not 100) after clamp");
     }
@@ -498,8 +457,7 @@ void tests_buffer_base_advance(
 
         std::size_t n = b.advance(10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "advance(): empty buffer returns 0");
     }
@@ -514,13 +472,14 @@ void tests_buffer_base_advance(
 
         b.advance(4);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == wp_before,
             "advance(): write_position unchanged");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -538,10 +497,10 @@ tests_buffer_base_compact
     growth
   - subsequent reads return the shifted data correctly
 */
-void tests_buffer_base_compact(
-    test_handler& _handler
-)
+bool tests_buffer_base_compact()
 {
+    bool ok = true;
+
     const char src[] = "compactme!"; // 10 bytes
 
     // --- empty buffer ---
@@ -551,13 +510,11 @@ void tests_buffer_base_compact(
 
         std::size_t pending = b.compact();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 0,
             "compact(): empty buffer returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (b.read_position() == 0) && (b.write_position() == 0),
             "compact(): empty buffer leaves cursors at 0");
     }
@@ -574,29 +531,24 @@ void tests_buffer_base_compact(
 
         std::size_t pending = b.compact();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == pre_readable,
             "compact(): partial consumption returns readable count");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "compact(): read_position reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == pending,
             "compact(): write_position == pending");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == pending,
             "compact(): readable count preserved");
 
         // verify the unconsumed bytes are now at the head
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src + 3, pending) == 0,
             "compact(): unconsumed bytes shifted to the head");
     }
@@ -611,13 +563,11 @@ void tests_buffer_base_compact(
 
         std::size_t pending = b.compact();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 0,
             "compact(): full-consumption returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (b.read_position() == 0) && (b.write_position() == 0),
             "compact(): full-consumption zeros both cursors");
     }
@@ -632,18 +582,15 @@ void tests_buffer_base_compact(
         const std::size_t  pre_w = b.write_position();
         std::size_t        pending = b.compact();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 10,
             "compact(): no-consumption returns full readable count");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == pre_w,
             "compact(): no-consumption keeps write_position unchanged");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 10) == 0,
             "compact(): no-consumption leaves payload untouched");
     }
@@ -656,20 +603,17 @@ void tests_buffer_base_compact(
         b.write_fill('A', 16);   // fully fill (writable=0)
         b.advance(10);            // consume 10, leaving 6
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.writable() == 0,
             "compact(): writable == 0 before compact (fixed buffer)");
 
         std::size_t pending = b.compact();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             pending == 6,
             "compact(): preserves the 6 unconsumed bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.writable() == 10,
             "compact(): writable == 10 after compact "
             "(tail freed by shifting)");
@@ -677,13 +621,11 @@ void tests_buffer_base_compact(
         // now we can write 10 bytes without overflowing
         std::size_t w = b.write_fill('Z', 10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             w == 10,
             "compact(): freed tail accepts 10 new bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.full(),
             "compact(): fixed buffer is full again after refill");
 
@@ -692,8 +634,7 @@ void tests_buffer_base_compact(
         char out[16];
         std::size_t r = b.read(out, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             r == 16,
             "compact(): full read after compact + refill yields 16");
 
@@ -719,20 +660,20 @@ void tests_buffer_base_compact(
             }
         }
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             head_ok,
             "compact(): first 6 bytes == 'A' (shifted survivors)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             tail_ok,
             "compact(): next 10 bytes == 'Z' (refill)");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

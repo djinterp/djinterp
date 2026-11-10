@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/cpp/functional/maybe.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -1220,7 +1220,14 @@ maybe<Type> flatten(
 //   function: turns a container of maybe<T> into maybe<container<T>>.
 // Returns just(vector) if every element is just, otherwise nothing.
 // Equivalent to Haskell's sequence for the maybe monad.
-template<typename Container>
+//   SFINAE-constrained (via is_maybe on the element type), as
+// result.hpp's collect is via is_result: each needs only a nested
+// value_type from the element, so a container of result matched
+// both and the call was ambiguous until both were constrained.
+template<typename Container,
+         typename std::enable_if<
+             is_maybe<typename Container::value_type>::value,
+             int>::type = 0>
 D_NODISCARD auto collect(
     const Container& _container
 ) -> maybe<std::vector<typename Container::value_type::value_type>>

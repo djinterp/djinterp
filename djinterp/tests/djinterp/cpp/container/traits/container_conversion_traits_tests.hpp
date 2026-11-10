@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.15
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_CONVERSION_TRAITS_TESTS_
@@ -48,7 +48,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/container_conversion_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // NS_TESTING / D_KEYWORD_TESTING may not be defined by the core headers; mirror
@@ -77,8 +85,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -149,6 +167,8 @@ struct DSortedVec
     const int*  end()   const noexcept { return m_buf + m_size; }
     const int*  data()  const noexcept { return m_buf; }
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -181,6 +201,124 @@ bool tests_conversion_predicates();
 // -- IV.  Aggregate + variable-template companions --
 bool tests_conversion_class();
 bool tests_conversion_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_conversion_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_conversion_traits_spec()
+{
+    return dt::module_spec{
+        "container_conversion_traits",
+        "conversion - the carrying of a container of one type to another - is "
+        "an operation FOUNDED on...",
+        {
+            dt::block_spec{
+                "tier",
+                "Tier",
+                {
+                    { "tests_conversion_tier_vocabulary",
+                      "checks "
+                      "ccv_cstr_eq(conversion_tier_name(DConversionTier::view), "
+                      "\"view\")",
+                      &tests_conversion_tier_vocabulary },
+                }
+            },
+            dt::block_spec{
+                "construction_path",
+                "Construction path",
+                {
+                    { "tests_range_constructible",
+                      "checks (is_range_constructible<std::vector<int>, "
+                      "std::vector<int>>::value)",
+                      &tests_range_constructible },
+                    { "tests_range_insertable",
+                      "checks (is_range_insertable<std::vector<int>, "
+                      "std::set<int>>::value)",
+                      &tests_range_insertable },
+                    { "tests_has_constructive_path",
+                      "checks (has_constructive_path<std::vector<int>, "
+                      "std::vector<int>>::value)",
+                      &tests_has_constructive_path },
+                }
+            },
+            dt::block_spec{
+                "concerns",
+                "Concerns",
+                {
+                    { "tests_elements_compatible",
+                      "checks (elements_compatible<std::vector<int>, "
+                      "std::vector<int>>::value)",
+                      &tests_elements_compatible },
+                    { "tests_conversion_forgets_content",
+                      "checks (conversion_forgets_content<std::vector<int>, "
+                      "std::set<int>>::value)",
+                      &tests_conversion_forgets_content },
+                    { "tests_conversion_clamps_capacity",
+                      "checks (conversion_clamps_capacity<std::vector<int>, "
+                      "std::array<int, 4>>::",
+                      &tests_conversion_clamps_capacity },
+                    { "tests_conversion_changes_topology",
+                      "checks (conversion_changes_topology<std::vector<int>, "
+                      "std::vector<std::vec",
+                      &tests_conversion_changes_topology },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_conversion_tier_of_view",
+                      "checks (conversion_tier_of<std::vector<int>, "
+                      "std::vector<int>>::value == D",
+                      &tests_conversion_tier_of_view },
+                    { "tests_conversion_tier_of_constructive",
+                      "checks (conversion_tier_of<std::vector<int>, "
+                      "std::list<int>>::value == DCo",
+                      &tests_conversion_tier_of_constructive },
+                    { "tests_conversion_tier_of_lossy",
+                      "checks (conversion_tier_of<std::vector<int>, "
+                      "std::set<int>>::value == DCon",
+                      &tests_conversion_tier_of_lossy },
+                    { "tests_conversion_tier_of_structural",
+                      "checks (conversion_tier_of<std::vector<int>, "
+                      "std::vector<std::vector<int>>",
+                      &tests_conversion_tier_of_structural },
+                    { "tests_conversion_tier_of_none",
+                      "checks (conversion_tier_of<std::vector<int>, "
+                      "std::vector<opaque>>::value =",
+                      &tests_conversion_tier_of_none },
+                    { "tests_conversion_tier_of_cvref",
+                      "checks (conversion_tier_of<const std::vector<int>&, "
+                      "std::vector<int>>::val",
+                      &tests_conversion_tier_of_cvref },
+                    { "tests_conversion_predicates",
+                      "checks (is_convertible_between<std::vector<int>, "
+                      "std::vector<int>>::value)",
+                      &tests_conversion_predicates },
+                }
+            },
+            dt::block_spec{
+                "aggregate",
+                "Aggregate",
+                {
+                    { "tests_conversion_class",
+                      "checks (DConversionClass<std::vector<int>, "
+                      "std::vector<int>>::tier == DCon",
+                      &tests_conversion_class },
+                    { "tests_conversion_variable_templates",
+                      "checks (conversion_tier_of_v<std::vector<int>, "
+                      "std::vector<int>> == conver",
+                      &tests_conversion_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

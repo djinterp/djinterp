@@ -22,7 +22,7 @@
 * path:      /tests/djinterp/cpp/binary/encode_options_tests.hpp
 * link(s):   TBA
 * author(s): unit-test generator                             created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_BINARY_ENCODE_OPTIONS_TESTS_
@@ -30,7 +30,8 @@
 
 // std
 #include <cstddef>
-#include <cstdint>
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
+#include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uintN_t, intN_t
 // djinterp
 #ifdef DTEST_SPEC_MODE
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
@@ -54,6 +55,10 @@
         }                                                                     \
     } while (0)
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
@@ -102,12 +107,12 @@ struct DEoCustomLeaf
 // DEoEnumU16 / DEoEnumI32
 //   type: enumerations with fixed underlying types, so their width and byte
 // order under each DSerialEndian are deterministic across platforms.
-enum class DEoEnumU16 : std::uint16_t
+enum class DEoEnumU16 : re_std::uint16_t
 {
     value = 0x1234
 };
 
-enum class DEoEnumI32 : std::int32_t
+enum class DEoEnumI32 : re_std::int32_t
 {
     value = -123456
 };

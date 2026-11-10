@@ -26,7 +26,7 @@
 *                                              node_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -62,11 +62,26 @@ VII.  Test declarations
 #include <cstdio>
 #include <type_traits>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/node_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -795,6 +810,8 @@ struct DNctAllShapes
     const DNctNode* entries() const;
     const DNctNode* entry_point() const;
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -863,6 +880,267 @@ bool tests_node_container_class_entry();
 bool tests_node_container_class_node();
 bool tests_node_container_class_agreement();
 bool tests_node_container_class_edge_types();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// node_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+node_container_traits_spec()
+{
+    return dt::module_spec{
+        "node_container_traits",
+        "compile-time SFINAE-based structural detection for node-based "
+        "containers",
+        {
+            dt::block_spec{
+                "ownership_detect",
+                "Ownership policy detection",
+                {
+                    { "tests_has_ownership_policy",
+                      "Verifies the probe for a nested ownership_policy alias",
+                      &tests_has_ownership_policy },
+                    { "tests_has_entry_storage_type",
+                      "Verifies the probe for a nested entry_storage alias - "
+                      "the type in which a container actually holds its entry "
+                      "reference",
+                      &tests_has_entry_storage_type },
+                    { "tests_has_entry_owns_constant",
+                      "Verifies the probe for a static entry_owns constant",
+                      &tests_has_entry_owns_constant },
+                    { "tests_ownership_detect_cv_ref",
+                      "Verifies that all three section I probes honour the "
+                      "clean_t contract: each writes clean_t<_Type> before "
+                      "asking its question, so cv-qualification and "
+                      "reference-ness are stripped and every spelling of a "
+                      "type answers alike",
+                      &tests_ownership_detect_cv_ref },
+                    { "tests_ownership_detect_companions",
+                      "Verifies the `_v` companions of the section I probes",
+                      &tests_ownership_detect_companions },
+                }
+            },
+            dt::block_spec{
+                "entry_point",
+                "Entry point detection",
+                {
+                    { "tests_has_entry_point_method",
+                      "Verifies the probe for the topology-neutral "
+                      "entry_point() accessor",
+                      &tests_has_entry_point_method },
+                    { "tests_has_root_method",
+                      "Verifies the probe for root() - the single "
+                      "distinguished entry that marks a tree-shaped container",
+                      &tests_has_root_method },
+                    { "tests_has_root_member_method",
+                      "Verifies the probe for has_root() - the interrogative "
+                      "that reports whether a tree's root is populated",
+                      &tests_has_root_member_method },
+                    { "tests_has_head_method",
+                      "Verifies the probe for head() - the entry that marks a "
+                      "list-shaped container",
+                      &tests_has_head_method },
+                    { "tests_has_tail_method",
+                      "Verifies the probe for tail() - the second end of a "
+                      "doubly linked list",
+                      &tests_has_tail_method },
+                    { "tests_has_entries_method",
+                      "Verifies the probe for entries() - the entry SET rho "
+                      "that marks a graph- shaped container, where a node may "
+                      "be reached by several references",
+                      &tests_has_entries_method },
+                    { "tests_has_entry_count_method",
+                      "Verifies the probe for entry_count() - the cardinality "
+                      "of the entry set",
+                      &tests_has_entry_count_method },
+                    { "tests_has_has_entry_method",
+                      "Verifies the probe for has_entry() - the interrogative "
+                      "for the generic entry point",
+                      &tests_has_has_entry_method },
+                    { "tests_has_release_entry_method",
+                      "Verifies the probe for release_entry() - the hatch "
+                      "that relinquishes ownership of the entry",
+                      &tests_has_release_entry_method },
+                    { "tests_entry_point_method_shapes",
+                      "Verifies WHAT the method probes admit, using root() as "
+                      "the representative",
+                      &tests_entry_point_method_shapes },
+                    { "tests_has_any_entry_point",
+                      "Verifies the disjunction that decides whether a type "
+                      "holds a root at all",
+                      &tests_has_any_entry_point },
+                    { "tests_entry_point_probe_qualification",
+                      "Verifies the qualification contract of section II, "
+                      "which differs from the clean_t contract the rest of "
+                      "the header keeps",
+                      &tests_entry_point_probe_qualification },
+                    { "tests_entry_point_companions",
+                      "Verifies the `_v` companions of the section II probes",
+                      &tests_entry_point_companions },
+                }
+            },
+            dt::block_spec{
+                "node_type",
+                "Node type extraction",
+                {
+                    { "tests_has_node_type",
+                      "Verifies the probe for a nested node_type alias - one "
+                      "half of the identity requirement",
+                      &tests_has_node_type },
+                    { "tests_node_type_of_t",
+                      "Verifies the extractor on types that HAVE the alias",
+                      &tests_node_type_of_t },
+                    { "tests_node_type_of_t_fallback",
+                      "Verifies the extractor on types that do NOT have the "
+                      "alias, where the internal helper's primary template "
+                      "supplies nonesuch",
+                      &tests_node_type_of_t_fallback },
+                    { "tests_node_type_cv_ref",
+                      "Verifies that the section III probe honours the "
+                      "clean_t contract",
+                      &tests_node_type_cv_ref },
+                }
+            },
+            dt::block_spec{
+                "ownership_model",
+                "Ownership model classification",
+                {
+                    { "tests_ownership_model_enum",
+                      "Verifies the ownership enumeration itself",
+                      &tests_ownership_model_enum },
+                    { "tests_ownership_model_of",
+                      "Verifies the classification of a named policy by type "
+                      "identity",
+                      &tests_ownership_model_of },
+                    { "tests_ownership_model_absent_policy",
+                      "Verifies what the classifier answers for a type that "
+                      "names NO policy - the primary template's branch",
+                      &tests_ownership_model_absent_policy },
+                    { "tests_is_owning_container",
+                      "Verifies the predicate that reads the policy's own "
+                      "`owns` member",
+                      &tests_is_owning_container },
+                    { "tests_is_owning_container_completeness",
+                      "Verifies that is_owning_container requires a COMPLETE "
+                      "policy, and pins the consequence for this suite",
+                      &tests_is_owning_container_completeness },
+                    { "tests_is_unique_owning_container",
+                      "Verifies the predicate for the exclusive-ownership "
+                      "model",
+                      &tests_is_unique_owning_container },
+                    { "tests_is_shared_owning_container",
+                      "Verifies the predicate for the reference-counted model "
+                      "- the sharing that, in the monograph's terms, admits a "
+                      "node reached by several references and so a DAG or "
+                      "general graph rather than a tree",
+                      &tests_is_shared_owning_container },
+                    { "tests_ownership_model_orthogonality",
+                      "Verifies that the identity question and the ownership "
+                      "question are genuinely independent, by exhibiting a "
+                      "fixture for each combination that can exist",
+                      &tests_ownership_model_orthogonality },
+                    { "tests_ownership_model_cv_ref",
+                      "Verifies that section IV honours the clean_t contract "
+                      "throughout - both the identity classifier and the "
+                      "member read strip qualification before asking",
+                      &tests_ownership_model_cv_ref },
+                    { "tests_ownership_model_companions",
+                      "Verifies the `_v` companions of the section IV traits",
+                      &tests_ownership_model_companions },
+                }
+            },
+            dt::block_spec{
+                "identity",
+                "Node container identity",
+                {
+                    { "tests_is_node_container",
+                      "Verifies the structural minimum",
+                      &tests_is_node_container },
+                    { "tests_is_tree_shaped_container",
+                      "Verifies the tree predicate - a node container with a "
+                      "single root entry",
+                      &tests_is_tree_shaped_container },
+                    { "tests_is_list_shaped_container",
+                      "Verifies the list predicate - a node container with a "
+                      "head entry",
+                      &tests_is_list_shaped_container },
+                    { "tests_is_doubly_linked_container",
+                      "Verifies the doubly linked predicate - list-shaped AND "
+                      "carrying tail()",
+                      &tests_is_doubly_linked_container },
+                    { "tests_is_graph_shaped_container",
+                      "Verifies the graph predicate - a node container "
+                      "exposing the entry SET rho",
+                      &tests_is_graph_shaped_container },
+                    { "tests_identity_composition_shape",
+                      "Verifies the SHAPE of the composition, not merely its "
+                      "per-type answers: each predicate is its base conjoined "
+                      "with exactly one marker",
+                      &tests_identity_composition_shape },
+                    { "tests_identity_overlap",
+                      "Verifies that the shape predicates OVERLAP rather than "
+                      "partition",
+                      &tests_identity_overlap },
+                    { "tests_node_container_cv_ref_divergence",
+                      "Verifies - and pins - the fact that this header does "
+                      "NOT answer cv- and reference-qualified types "
+                      "uniformly, because its sections phrase their questions "
+                      "differently",
+                      &tests_node_container_cv_ref_divergence },
+                    { "tests_identity_companions",
+                      "Verifies the `_v` companions of the section V traits",
+                      &tests_identity_companions },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Combined classification",
+                {
+                    { "tests_node_container_shape_enum",
+                      "Verifies the shape enumeration itself",
+                      &tests_node_container_shape_enum },
+                    { "tests_node_container_shape_of",
+                      "Verifies the shape each unambiguous fixture resolves to",
+                      &tests_node_container_shape_of },
+                    { "tests_node_container_shape_precedence",
+                      "Verifies the ORDER in which the overlapping predicates "
+                      "are consulted",
+                      &tests_node_container_shape_precedence },
+                    { "tests_node_container_shape_companions",
+                      "Verifies the `_v` companion of node_container_shape_of",
+                      &tests_node_container_shape_companions },
+                    { "tests_node_container_class_identity",
+                      "Verifies the identity and shape members of the snapshot",
+                      &tests_node_container_class_identity },
+                    { "tests_node_container_class_ownership",
+                      "Verifies the ownership members of the snapshot",
+                      &tests_node_container_class_ownership },
+                    { "tests_node_container_class_entry",
+                      "Verifies the entry point members of the snapshot",
+                      &tests_node_container_class_entry },
+                    { "tests_node_container_class_node",
+                      "Verifies the node type members of the snapshot",
+                      &tests_node_container_class_node },
+                    { "tests_node_container_class_agreement",
+                      "Verifies that the snapshot is a faithful mirror: every "
+                      "member equals the standalone trait it republishes, "
+                      "checked across carriers that occupy different cells of "
+                      "the classification",
+                      &tests_node_container_class_agreement },
+                    { "tests_node_container_class_edge_types",
+                      "Verifies that the snapshot instantiates and answers "
+                      "sensibly for types that are not containers at all - "
+                      "the case an aggregate is most likely to break on, "
+                      "since it touches every trait in the header at once",
+                      &tests_node_container_class_edge_types },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

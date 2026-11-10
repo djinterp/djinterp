@@ -38,7 +38,7 @@
 * path:      /tests/djinterp/cpp/container/traits/flat_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_FLAT_CONTAINER_TRAITS_TESTS_
@@ -56,7 +56,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/core/container/structure)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/flat_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 #ifndef D_KEYWORD_TESTING
@@ -83,8 +91,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -165,6 +183,8 @@ struct hier_tagged
     using structure_category = hierarchical;
     std::size_t size() const;
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -178,6 +198,51 @@ bool tests_is_strictly_flat_container();
 // -- II. Aggregate snapshot + variable-template companions --
 bool tests_flat_container_class();
 bool tests_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// flat_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+flat_container_traits_spec()
+{
+    return dt::module_spec{
+        "flat_container_traits",
+        "SFINAE structural traits for the FLAT side of the structure axis - "
+        "whether a container holds...",
+        {
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_is_flat_container",
+                      "checks (is_flat_container<std::vector<int>>::value)",
+                      &tests_is_flat_container },
+                    { "tests_is_strictly_flat_container",
+                      "checks "
+                      "(is_strictly_flat_container<std::vector<int>>::value)",
+                      &tests_is_strictly_flat_container },
+                }
+            },
+            dt::block_spec{
+                "aggregate",
+                "Aggregate",
+                {
+                    { "tests_flat_container_class",
+                      "checks (C::is_container)",
+                      &tests_flat_container_class },
+                    { "tests_variable_templates",
+                      "checks (is_flat_container_v<std::vector<int>> == "
+                      "is_flat_container<std::ve",
+                      &tests_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_homogeneity.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./dtuple_tests.hpp"
@@ -111,36 +111,36 @@ static_assert(is_tuple_homogeneous<std::tuple<const int, const int>>::value == t
 // II.  RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_homogeneity_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_homogeneity_all()
 {
+    bool verdict = true;
+
     // ---- is_tuple_homogeneous (mirrored compile-time) ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<int>::value == false,
         "is_tuple_homogeneous: non-tuple type -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<>>::value == false,
         "is_tuple_homogeneous: empty tuple -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int>>::value == true,
         "is_tuple_homogeneous: single-element tuple -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int, int>>::value == true,
         "is_tuple_homogeneous: two equal elements -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int, char>>::value == false,
         "is_tuple_homogeneous: two distinct elements -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int, int, int>>::value == true,
         "is_tuple_homogeneous: three equal elements -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int, int, char>>::value == false,
         "is_tuple_homogeneous: three elements, last differs -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int, char, int>>::value == false,
         "is_tuple_homogeneous: three elements, middle differs -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_tuple_homogeneous<std::tuple<int, const int>>::value == false,
         "is_tuple_homogeneous: cv qualifies distinct types");
 
@@ -148,42 +148,42 @@ void dtuple_tests_homogeneity_all(
     {
         std::tuple<int> single{1};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(single) == true,
             "is_homogeneous: single-element tuple -> true");
     }
     {
         std::tuple<int, int> two_equal{1, 2};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(two_equal) == true,
             "is_homogeneous: two-equal tuple -> true");
     }
     {
         std::tuple<int, char> two_distinct{1, 'a'};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(two_distinct) == false,
             "is_homogeneous: two-distinct tuple -> false");
     }
     {
         std::tuple<int, int, int, int> four_equal{1, 2, 3, 4};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(four_equal) == true,
             "is_homogeneous: four-equal tuple -> true");
     }
     {
         std::tuple<int, int, char> mixed{1, 2, 'q'};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(mixed) == false,
             "is_homogeneous: three-element mixed tuple -> false");
     }
     {
         std::tuple<> empty{};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(empty) == false,
             "is_homogeneous: empty tuple -> false (matches the trait)");
     }
@@ -192,12 +192,12 @@ void dtuple_tests_homogeneity_all(
     {
         const std::tuple<int, int> const_t{1, 2};
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             is_homogeneous(const_t) == true,
             "is_homogeneous: const tuple input -> true (trait matches via tuple-of-T template arg)");
     }
 
-    return;
+    return verdict;
 }
 
 

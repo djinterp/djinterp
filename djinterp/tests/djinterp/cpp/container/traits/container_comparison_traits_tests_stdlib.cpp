@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_comparison_traits_tests_stdlib.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -138,8 +138,8 @@ bool tests_stdlib_sequences()
     // other for a std::array
     D_CCM_CHECK(overlay_of<std_array>::capacity_bounded);
     D_CCM_CHECK(!overlay_of<std_vector>::capacity_bounded);
-    D_CCM_CHECK(is_compile_time(container_lifetime<std_array>::value));
-    D_CCM_CHECK(!is_compile_time(container_lifetime<std_vector>::value));
+    D_CCM_CHECK(is_compile_time(container_lifetime_of<std_array>::value));
+    D_CCM_CHECK(!is_compile_time(container_lifetime_of<std_vector>::value));
 
     // two arrays of different extent are realization-EQUAL: the extent's VALUE is
     // not on any axis, only its existence

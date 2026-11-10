@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/cpp/functional/free_tests.hpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_FREE_TESTS_
@@ -47,7 +47,7 @@
 //   the functional companion), plus the DTest authoring + runner surface.
 //   NOTE: include paths are rooted at the djinterp include directory; adjust to
 //   match your build tree.
-#include "djinterp/cpp/functional/free.hpp"
+#include "djinterp/cpp/modules/parse/parser/free.hpp"
 #include "djinterp/cpp/modules/test/test_defaults.hpp"
 
 

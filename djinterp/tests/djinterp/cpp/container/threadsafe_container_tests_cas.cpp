@@ -1,14 +1,14 @@
 /*******************************************************************************
 * djinterp [test]                             threadsafe_container_tests_cas.cpp
 *
-*   Layer 5 - the CAS retry infrastructure: exponential_off (backoff) and
+*   Layer 5 - the CAS retry infrastructure: DExponentialBackoff and
 * cas_loop (the generic compare-exchange retry).  Defines the "cas" block.
 *
 *
 * path:      /tests/djinterp/cpp/container/threadsafe_container_tests_cas.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -19,16 +19,16 @@
 NS_DJINTERP
 NS_TESTING
 
-// tests_cas_exponential_off
+// tests_cas_exponential_backoff
 //   Verifies the backoff runs its whole schedule - the doubling spin phase and
 //   the yield phase past the cap - and resets, without error.  It exposes no
 //   observable state, so passing is "drove every branch and returned".
 //   Tests the following:
 //   - many calls across the spin-doubling and the yield-past-cap paths
 //   - reset() followed by further calls
-bool tests_cas_exponential_off()
+bool tests_cas_exponential_backoff()
 {
-    exponential_off off;                    // default 4 .. 1024
+    DExponentialBackoff off;                // default 4 .. 1024
     for (int i = 0; i < 16; ++i)            // doubles past the cap into yield
     {
         off();
@@ -36,7 +36,7 @@ bool tests_cas_exponential_off()
     off.reset();
     off();
 
-    exponential_off small(1, 4);            // reaches the yield path quickly
+    DExponentialBackoff small(1, 4);        // reaches the yield path quickly
     for (int i = 0; i < 6; ++i)
     {
         small();

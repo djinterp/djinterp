@@ -1,11 +1,22 @@
-/******************************************************************************
-* djinterp [test]      concurrency_strategy_traits_tests_classification.cpp
+/*******************************************************************************
+* djinterp [test]           concurrency_strategy_traits_tests_classification.cpp
 *
 *   Section VII - DContainerConcurrencyClass, the aggregate that gathers the
 * strategy predicates, the monograph signature, and the forwarded safety level
 * into one record.  Each member is checked against the standalone trait it
 * mirrors.  Defines the "classification" block.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests_classification.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+
+// FLOOR, FOR NOW: below C++17, concurrency_strategy_traits.hpp's floor,
+// this unit is empty, as that header is.
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #include "concurrency_strategy_traits_tests.hpp"
 
@@ -48,12 +59,12 @@ bool tests_classification_aggregate_fields()
     using cow_c = DContainerConcurrencyClass<DTagCow>;
     D_CS_CHECK(cow_c::is_concurrent   == is_concurrent_container_v<DTagCow>);
     D_CS_CHECK(cow_c::is_synchronized == is_synchronized_container_v<DTagCow>);
-    D_CS_CHECK(cow_c::is_sequential   == is_sequential_container_v<DTagCow>);
+    D_CS_CHECK(cow_c::is_sequential   == is_unsynchronized_container_v<DTagCow>);
 
     using plain_c = DContainerConcurrencyClass<DStPlain>;
     D_CS_CHECK(plain_c::is_synchronized ==
                is_synchronized_container_v<DStPlain>);
-    D_CS_CHECK(plain_c::is_sequential == is_sequential_container_v<DStPlain>);
+    D_CS_CHECK(plain_c::is_sequential == is_unsynchronized_container_v<DStPlain>);
 
     using imm_c = DContainerConcurrencyClass<DImmutableProbe>;
     D_CS_CHECK(imm_c::is_vacuously_concurrent ==
@@ -111,3 +122,5 @@ bool tests_classification_level_forwarding()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

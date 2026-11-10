@@ -7,8 +7,8 @@
 *
 * path:      /tests/djinterp/cpp/container/threadsafe_container_tests_atomic_state.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -52,11 +52,11 @@ bool tests_atomic_state_version()
     DAtomicState st;
     D_TC_CHECK(st.load_version() == 0u);
 
-    std::uint64_t v0 = st.increment_version();
+    re_std::uint64_t v0 = st.increment_version();
     D_TC_CHECK(v0 == 0u);
     D_TC_CHECK(st.load_version() == 1u);
 
-    std::uint64_t v1 = st.increment_version();
+    re_std::uint64_t v1 = st.increment_version();
     D_TC_CHECK(v1 == 1u);
     D_TC_CHECK(st.load_version() == 2u);
     return true;

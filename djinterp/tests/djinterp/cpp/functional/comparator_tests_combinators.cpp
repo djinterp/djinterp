@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/comparator_tests_combinators.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "comparator_tests.hpp"
@@ -24,9 +24,9 @@ test_combinators_reversed
 */
 bool test_combinators_reversed()
 {
-    D_INTERNAL_CMP_CHECK(comparators::reversed(comparators::natural<int>())(2, 1)
+    D_INTERNAL_CMP_CHECK(djinterp::reversed(djinterp::natural<int>())(2, 1)
                          == true);
-    D_INTERNAL_CMP_CHECK(comparators::reversed(comparators::natural<int>())(1, 2)
+    D_INTERNAL_CMP_CHECK(djinterp::reversed(djinterp::natural<int>())(1, 2)
                          == false);
 
     return true;
@@ -42,7 +42,7 @@ test_combinators_reversed_strictness
 */
 bool test_combinators_reversed_strictness()
 {
-    D_INTERNAL_CMP_CHECK(comparators::reversed(comparators::natural<int>())(4, 4)
+    D_INTERNAL_CMP_CHECK(djinterp::reversed(djinterp::natural<int>())(4, 4)
                          == false);
 
     return true;
@@ -64,11 +64,11 @@ bool test_combinators_then_tiebreak()
 
     // primary by rank (tie), secondary by id -> a before b.
     D_INTERNAL_CMP_CHECK(
-        comparators::then(comparators::by_key(get_rank()),
-                          comparators::by_key(get_id()))(a, b) == true);
+        djinterp::then(djinterp::by_key(get_rank()),
+                          djinterp::by_key(get_id()))(a, b) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::then(comparators::by_key(get_rank()),
-                          comparators::by_key(get_id()))(b, a) == false);
+        djinterp::then(djinterp::by_key(get_rank()),
+                          djinterp::by_key(get_id()))(b, a) == false);
 
     return true;
 }
@@ -90,11 +90,11 @@ bool test_combinators_then_primary_wins()
     // primary by rank says a < b; secondary by id would say b < a, but the
     // primary is decisive, so the chain reports a < b.
     D_INTERNAL_CMP_CHECK(
-        comparators::then(comparators::by_key(get_rank()),
-                          comparators::by_key(get_id()))(a, b) == true);
+        djinterp::then(djinterp::by_key(get_rank()),
+                          djinterp::by_key(get_id()))(a, b) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::then(comparators::by_key(get_rank()),
-                          comparators::by_key(get_id()))(b, a) == false);
+        djinterp::then(djinterp::by_key(get_rank()),
+                          djinterp::by_key(get_id()))(b, a) == false);
 
     return true;
 }
@@ -116,16 +116,16 @@ bool test_combinators_then_nested()
 
     // Equal on rank and id -> third level compares id reversed -> tie again,
     // so neither is less: chain reports false both ways (true equivalence).
-    bool ab = comparators::then(
-                  comparators::by_key(get_rank()),
-                  comparators::then(comparators::by_key(get_id()),
-                                    comparators::reversed(
-                                        comparators::by_key(get_id()))))(a, b);
-    bool ba = comparators::then(
-                  comparators::by_key(get_rank()),
-                  comparators::then(comparators::by_key(get_id()),
-                                    comparators::reversed(
-                                        comparators::by_key(get_id()))))(b, a);
+    bool ab = djinterp::then(
+                  djinterp::by_key(get_rank()),
+                  djinterp::then(djinterp::by_key(get_id()),
+                                    djinterp::reversed(
+                                        djinterp::by_key(get_id()))))(a, b);
+    bool ba = djinterp::then(
+                  djinterp::by_key(get_rank()),
+                  djinterp::then(djinterp::by_key(get_id()),
+                                    djinterp::reversed(
+                                        djinterp::by_key(get_id()))))(b, a);
 
     D_INTERNAL_CMP_CHECK(ab == false);
     D_INTERNAL_CMP_CHECK(ba == false);
@@ -135,10 +135,10 @@ bool test_combinators_then_nested()
     record d = { 1, 7 };
 
     D_INTERNAL_CMP_CHECK(
-        comparators::then(
-            comparators::by_key(get_rank()),
-            comparators::then(comparators::by_key(get_id()),
-                              comparators::by_key(get_rank())))(c, d) == true);
+        djinterp::then(
+            djinterp::by_key(get_rank()),
+            djinterp::then(djinterp::by_key(get_id()),
+                              djinterp::by_key(get_rank())))(c, d) == true);
 
     return true;
 }
@@ -157,10 +157,10 @@ bool test_combinators_lifted()
     record hi = { 6, 0 };
 
     D_INTERNAL_CMP_CHECK(
-        comparators::lifted(comparators::natural<int>(), get_rank())(lo, hi)
+        djinterp::lifted(djinterp::natural<int>(), get_rank())(lo, hi)
         == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::lifted(comparators::natural<int>(), get_rank())(hi, lo)
+        djinterp::lifted(djinterp::natural<int>(), get_rank())(hi, lo)
         == false);
 
     return true;
@@ -180,12 +180,12 @@ bool test_combinators_lifted_reversed()
     record hi = { 6, 0 };
 
     D_INTERNAL_CMP_CHECK(
-        comparators::lifted(
-            comparators::reversed(comparators::natural<int>()),
+        djinterp::lifted(
+            djinterp::reversed(djinterp::natural<int>()),
             get_rank())(hi, lo) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::lifted(
-            comparators::reversed(comparators::natural<int>()),
+        djinterp::lifted(
+            djinterp::reversed(djinterp::natural<int>()),
             get_rank())(lo, hi) == false);
 
     return true;

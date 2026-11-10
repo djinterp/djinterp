@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/container/buffer/buffer_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.29
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_BUFFER_BUFFER_COMMON_H
@@ -64,12 +64,12 @@
 #endif  // D_BUFFER_GROWTH_FACTOR
 
 
-// DBufferWriteMode
+// dj_buffer_write_mode
 //   enum: selects the write strategy when a buffer needs more space.
 // D_BUFFER_WRITE_RESIZE - grow the contiguous allocation (realloc).
 // D_BUFFER_WRITE_APPEND - attach a new chunk (linked list).
 // D_BUFFER_WRITE_DEFAULT - alias for resize mode.
-enum DBufferWriteMode
+enum dj_buffer_write_mode
 {
     D_BUFFER_WRITE_RESIZE  = 0,
     D_BUFFER_WRITE_APPEND  = 1,

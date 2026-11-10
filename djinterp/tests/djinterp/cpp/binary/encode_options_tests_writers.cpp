@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/encode_options_tests_writers.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "encode_options_tests.hpp"
@@ -22,7 +22,7 @@ NS_TESTING
 template<DSerialEndian _E>
 static
 byte_string pu(
-    std::uint64_t _v,
+    re_std::uint64_t _v,
     std::size_t   _w
 )
 {
@@ -34,7 +34,7 @@ byte_string pu(
 
 static
 byte_string pv(
-    std::uint64_t _v
+    re_std::uint64_t _v
 )
 {
     byte_string _o;
@@ -47,7 +47,7 @@ template<DSerialLength _L,
          DSerialEndian  _E>
 static
 byte_string pl(
-    std::uint64_t _c
+    re_std::uint64_t _c
 )
 {
     byte_string _o;

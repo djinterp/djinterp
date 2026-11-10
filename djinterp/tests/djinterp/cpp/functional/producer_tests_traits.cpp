@@ -12,8 +12,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/producer_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.02
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -171,54 +171,47 @@ test_producer_traits
   - the producer / producer_step_type concepts mirror the traits and are
     usable as constraints (C++20+)
 */
-void test_producer_traits(
-    test::test_handler& _h
-)
+bool test_producer_traits()
 {
+    bool verdict = true;
+
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // is_producer_step
-    D_TEST_CHECK(_h, (is_producer_step<DProducerStep<int> >::value));
-    D_TEST_CHECK(_h, (is_producer_step<int>::value == false));
-    D_TEST_CHECK(_h, (is_producer_step<range_t>::value == false));
+    D_PRODUCER_CHECK((is_producer_step<DProducerStep<int> >::value));
+    D_PRODUCER_CHECK((is_producer_step<int>::value == false));
+    D_PRODUCER_CHECK((is_producer_step<range_t>::value == false));
 
     // is_producer (positive)
-    D_TEST_CHECK(_h, is_producer<range_t>::value);
-    D_TEST_CHECK(_h, is_producer<single_t>::value);
-    D_TEST_CHECK(_h, is_producer<empty_t>::value);
-    D_TEST_CHECK(_h, is_producer<take_n_t>::value);
-    D_TEST_CHECK(_h, is_producer<transform_t>::value);
-    D_TEST_CHECK(_h, (is_producer<const range_t&>::value));
+    D_PRODUCER_CHECK(is_producer<range_t>::value);
+    D_PRODUCER_CHECK(is_producer<single_t>::value);
+    D_PRODUCER_CHECK(is_producer<empty_t>::value);
+    D_PRODUCER_CHECK(is_producer<take_n_t>::value);
+    D_PRODUCER_CHECK(is_producer<transform_t>::value);
+    D_PRODUCER_CHECK((is_producer<const range_t&>::value));
 
     // is_producer (negative)
-    D_TEST_CHECK(_h, (is_producer<int>::value == false));
-    D_TEST_CHECK(_h,
-        (is_producer<DProducerStep<int> >::value == false));
-    D_TEST_CHECK(_h,
-        (is_producer<step_returning_no_value_type>::value == false));
-    D_TEST_CHECK(_h,
-        (is_producer<DWrongReturnProducer>::value == false));
-    D_TEST_CHECK(_h,
-        (is_producer<DNeedsArgumentProducer>::value == false));
-    D_TEST_CHECK(_h,
-        (is_producer<DNonConstCallProducer>::value == false));
+    D_PRODUCER_CHECK((is_producer<int>::value == false));
+    D_PRODUCER_CHECK((is_producer<DProducerStep<int> >::value == false));
+    D_PRODUCER_CHECK((is_producer<step_returning_no_value_type>::value == false));
+    D_PRODUCER_CHECK((is_producer<DWrongReturnProducer>::value == false));
+    D_PRODUCER_CHECK((is_producer<DNeedsArgumentProducer>::value == false));
+    D_PRODUCER_CHECK((is_producer<DNonConstCallProducer>::value == false));
 
     // producer_value_type
-    D_TEST_CHECK(_h,
-        (std::is_same<producer_value_type<range_t>::type, int>::value));
+    D_PRODUCER_CHECK((std::is_same<producer_value_type<range_t>::type, int>::value));
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // concept-constrained call compiles and runs
     {
         auto r = range(0, 5);
-        D_TEST_CHECK(_h, length_of(r) == 5);
+        D_PRODUCER_CHECK(length_of(r) == 5);
     }
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 #else
-    (void)_h;  // producer.hpp requires C++11+; nothing to test under C++98
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return;
+    return verdict;
 }
 
 

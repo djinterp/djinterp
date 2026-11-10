@@ -10,8 +10,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/consumer_tests_primitives.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -25,10 +25,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 /*
@@ -45,95 +41,86 @@ consumer_tests_primitives
   - count_into: increments the external counter once per input
   - count_into starts from the counter's existing value (no reset)
 */
-void consumer_tests_primitives(
-    test_handler& _handler
-)
+bool consumer_tests_primitives()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // print_to with explicit separator
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "print_to writes each value followed by the separator",
         [&]()
         {
             std::ostringstream os;
-            auto p = ::djinterp::consumers::print_to(os, ',');
+            auto p = djinterp::print_to(os, ',');
 
             p(1);
             p(2);
             p(3);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (os.str() == "1,2,3,"),
                 "print_to(os, ',') yields \"1,2,3,\"");
         });
 
     // print_to with default separator
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "print_to defaults its separator to newline",
         [&]()
         {
             std::ostringstream os;
-            auto p = ::djinterp::consumers::print_to(os);
+            auto p = djinterp::print_to(os);
 
             p(7);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (os.str() == "7\n"),
                 "print_to(os) yields \"7\\n\"");
         });
 
     // print_to with a string separator
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "print_to accepts a string separator",
         [&]()
         {
             std::ostringstream os;
-            auto p = ::djinterp::consumers::print_to(os, std::string(", "));
+            auto p = djinterp::print_to(os, std::string(", "));
 
             p(10);
             p(20);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (os.str() == "10, 20, "),
                 "print_to(os, \", \") yields \"10, 20, \"");
         });
 
     // print_to with no inputs leaves the stream empty
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "print_to writes nothing when never called",
         [&]()
         {
             std::ostringstream os;
-            auto p = ::djinterp::consumers::print_to(os, ',');
+            auto p = djinterp::print_to(os, ',');
             (void)p;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (os.str().empty()),
                 "uninvoked print_to leaves the stream empty");
         });
 
     // write_to appends in order
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "write_to appends each input to the container",
         [&]()
         {
             std::vector<int> v;
-            auto w = ::djinterp::consumers::write_to(v);
+            auto w = djinterp::write_to(v);
 
             w(1);
             w(2);
@@ -141,38 +128,34 @@ void consumer_tests_primitives(
 
             const std::vector<int> expected = { 1, 2, 3 };
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (v == expected),
                 "write_to appended {1, 2, 3} in order");
         });
 
     // write_to with a single element
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "write_to handles a single element",
         [&]()
         {
             std::vector<int> v;
-            auto w = ::djinterp::consumers::write_to(v);
+            auto w = djinterp::write_to(v);
 
             w(42);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (v.size() == 1 && v.front() == 42),
                 "write_to appended the single element 42");
         });
 
     // discard is a no-op
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "discard accepts input and does nothing observable",
         [&]()
         {
-            auto d = ::djinterp::consumers::discard();
+            auto d = djinterp::discard();
 
             // calling it must be valid and have no side effect we can
             // observe; success is simply that the calls compile and run.
@@ -180,53 +163,48 @@ void consumer_tests_primitives(
             d(2);
             d(3);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 true,
                 "discard invoked three times without effect");
         });
 
     // count_into increments per input
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "count_into increments the counter once per input",
         [&]()
         {
             std::size_t n = 0;
-            auto c = ::djinterp::consumers::count_into(n);
+            auto c = djinterp::count_into(n);
 
             c(0);
             c(0);
             c(0);
             c(0);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (n == 4),
                 "count_into reached 4 after four inputs");
         });
 
     // count_into does not reset an existing counter
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "count_into accumulates onto the counter's existing value",
         [&]()
         {
             std::size_t n = 10;
-            auto c = ::djinterp::consumers::count_into(n);
+            auto c = djinterp::count_into(n);
 
             c(1);
             c(2);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (n == 12),
                 "count_into advanced 10 -> 12 (no reset)");
         });
 
-    return;
+    return verdict;
 }
 
 

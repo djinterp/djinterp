@@ -49,7 +49,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_wrap_partition_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_DTUPLE_WRAP_PARTITION_TESTS_
@@ -60,11 +60,26 @@
 #include <tuple>
 #include <type_traits>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/meta/dtuple_wrap_partition.hpp"   // system under test
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,6 +127,8 @@ using DPartitionGrouped =
     partition_wrap_except_t<group, _N, is_pass, _Schema...>;
 
 }  // namespace pwp_test_types
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -149,6 +166,121 @@ bool tests_pwp_schema_empty_pack();
 bool tests_pwp_integration_alias();
 bool tests_pwp_integration_wrapper_arbitrary();
 bool tests_pwp_integration_complex();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// dtuple_wrap_partition_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+dtuple_wrap_partition_spec()
+{
+    return dt::module_spec{
+        "dtuple_wrap_partition",
+        "RECONSTRUCTION NOTICE ===================== The original "
+        "dtuple_wrap_partition.hpp is no longer...",
+        {
+            dt::block_spec{
+                "cat",
+                "Cat",
+                {
+                    { "tests_pwp_cat_basic",
+                      "pwp cat basic",
+                      &tests_pwp_cat_basic },
+                    { "tests_pwp_cat_empty",
+                      "pwp cat empty",
+                      &tests_pwp_cat_empty },
+                }
+            },
+            dt::block_spec{
+                "chunking",
+                "Chunking",
+                {
+                    { "tests_pwp_chunking_n1",
+                      "pwp chunking n1",
+                      &tests_pwp_chunking_n1 },
+                    { "tests_pwp_chunking_n2",
+                      "pwp chunking n2",
+                      &tests_pwp_chunking_n2 },
+                    { "tests_pwp_chunking_n3",
+                      "pwp chunking n3",
+                      &tests_pwp_chunking_n3 },
+                    { "tests_pwp_chunking_n4",
+                      "pwp chunking n4",
+                      &tests_pwp_chunking_n4 },
+                    { "tests_pwp_chunking_multi",
+                      "pwp chunking multi",
+                      &tests_pwp_chunking_multi },
+                    { "tests_pwp_chunking_order",
+                      "pwp chunking order",
+                      &tests_pwp_chunking_order },
+                }
+            },
+            dt::block_spec{
+                "passthrough",
+                "Passthrough",
+                {
+                    { "tests_pwp_passthrough_start",
+                      "pwp passthrough start",
+                      &tests_pwp_passthrough_start },
+                    { "tests_pwp_passthrough_end",
+                      "pwp passthrough end",
+                      &tests_pwp_passthrough_end },
+                    { "tests_pwp_passthrough_between",
+                      "pwp passthrough between",
+                      &tests_pwp_passthrough_between },
+                    { "tests_pwp_passthrough_consecutive",
+                      "pwp passthrough consecutive",
+                      &tests_pwp_passthrough_consecutive },
+                    { "tests_pwp_passthrough_only",
+                      "pwp passthrough only",
+                      &tests_pwp_passthrough_only },
+                    { "tests_pwp_passthrough_n1",
+                      "pwp passthrough n1",
+                      &tests_pwp_passthrough_n1 },
+                }
+            },
+            dt::block_spec{
+                "schema",
+                "Schema",
+                {
+                    { "tests_pwp_schema_pack",
+                      "pwp schema pack",
+                      &tests_pwp_schema_pack },
+                    { "tests_pwp_schema_single_tuple",
+                      "pwp schema single tuple",
+                      &tests_pwp_schema_single_tuple },
+                    { "tests_pwp_schema_tuple_precedence",
+                      "pwp schema tuple precedence",
+                      &tests_pwp_schema_tuple_precedence },
+                    { "tests_pwp_schema_empty_tuple",
+                      "pwp schema empty tuple",
+                      &tests_pwp_schema_empty_tuple },
+                    { "tests_pwp_schema_empty_pack",
+                      "pwp schema empty pack",
+                      &tests_pwp_schema_empty_pack },
+                }
+            },
+            dt::block_spec{
+                "integration",
+                "Integration",
+                {
+                    { "tests_pwp_integration_alias",
+                      "pwp integration alias",
+                      &tests_pwp_integration_alias },
+                    { "tests_pwp_integration_wrapper_arbitrary",
+                      "pwp integration wrapper arbitrary",
+                      &tests_pwp_integration_wrapper_arbitrary },
+                    { "tests_pwp_integration_complex",
+                      "pwp integration complex",
+                      &tests_pwp_integration_complex },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

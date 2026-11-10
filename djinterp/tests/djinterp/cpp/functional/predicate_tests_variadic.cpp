@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/predicate_tests_variadic.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -36,18 +36,18 @@ test_predicate_variadic
     confirmed via the structural traits
   - mixed predicate types in one pack (functors of distinct types)
 */
-void test_predicate_variadic(
-    test::test_handler& _h
-)
+bool test_predicate_variadic()
 {
+    bool verdict = true;
+
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // ---- single-predicate base case (folds to the predicate itself) ----
     {
-        D_TEST_CHECK(_h, all_of(is_positive())(5)  == true);
-        D_TEST_CHECK(_h, all_of(is_positive())(-5) == false);
-        D_TEST_CHECK(_h, any_of(is_even())(2)      == true);
-        D_TEST_CHECK(_h, any_of(is_even())(3)      == false);
+        D_PREDICATE_CHECK(all_of(is_positive())(5)  == true);
+        D_PREDICATE_CHECK(all_of(is_positive())(-5) == false);
+        D_PREDICATE_CHECK(any_of(is_even())(2)      == true);
+        D_PREDICATE_CHECK(any_of(is_even())(3)      == false);
     }
 
     // ---- two-predicate all_of == predicate_and ----
@@ -57,8 +57,7 @@ void test_predicate_variadic(
 
         for (int v = -4; v <= 4; ++v)
         {
-            D_TEST_CHECK(_h,
-                all_of(pos, even)(v) == predicate_and(pos, even)(v));
+            D_PREDICATE_CHECK(all_of(pos, even)(v) == predicate_and(pos, even)(v));
         }
     }
 
@@ -69,8 +68,7 @@ void test_predicate_variadic(
 
         for (int v = -4; v <= 4; ++v)
         {
-            D_TEST_CHECK(_h,
-                any_of(pos, even)(v) == predicate_or(pos, even)(v));
+            D_PREDICATE_CHECK(any_of(pos, even)(v) == predicate_or(pos, even)(v));
         }
     }
 
@@ -82,10 +80,10 @@ void test_predicate_variadic(
         // not_neg is true for v >= 0
         auto combo = all_of(pos, even, predicate_not(is_negative()));
 
-        D_TEST_CHECK(_h, combo(4)  == true);   // pos, even, !neg
-        D_TEST_CHECK(_h, combo(2)  == true);
-        D_TEST_CHECK(_h, combo(3)  == false);  // !even
-        D_TEST_CHECK(_h, combo(-2) == false);  // !pos (and neg)
+        D_PREDICATE_CHECK(combo(4)  == true);   // pos, even, !neg
+        D_PREDICATE_CHECK(combo(2)  == true);
+        D_PREDICATE_CHECK(combo(3)  == false);  // !even
+        D_PREDICATE_CHECK(combo(-2) == false);  // !pos (and neg)
     }
 
     // ---- four-arity all_of (exercises deeper fold recursion) ----
@@ -93,8 +91,8 @@ void test_predicate_variadic(
         auto combo = all_of(always_true(), always_true(),
                             always_true(), is_positive());
 
-        D_TEST_CHECK(_h, combo(5)  == true);
-        D_TEST_CHECK(_h, combo(-5) == false);  // last fails
+        D_PREDICATE_CHECK(combo(5)  == true);
+        D_PREDICATE_CHECK(combo(-5) == false);  // last fails
     }
 
     // ---- three-arity any_of: neg OR even OR (always_false) ----
@@ -104,9 +102,9 @@ void test_predicate_variadic(
 
         auto combo = any_of(neg, even, always_false());
 
-        D_TEST_CHECK(_h, combo(-3) == true);   // neg
-        D_TEST_CHECK(_h, combo(2)  == true);   // even
-        D_TEST_CHECK(_h, combo(3)  == false);  // none
+        D_PREDICATE_CHECK(combo(-3) == true);   // neg
+        D_PREDICATE_CHECK(combo(2)  == true);   // even
+        D_PREDICATE_CHECK(combo(3)  == false);  // none
     }
 
     // ---- none_of truth table (== !any_of) ----
@@ -115,10 +113,10 @@ void test_predicate_variadic(
         is_even     even;
 
         // none_of(pos, even) true only when neither holds
-        D_TEST_CHECK(_h, none_of(pos, even)(-3) == true);   // !pos,!even
-        D_TEST_CHECK(_h, none_of(pos, even)(4)  == false);  // both
-        D_TEST_CHECK(_h, none_of(pos, even)(3)  == false);  // pos
-        D_TEST_CHECK(_h, none_of(pos, even)(-2) == false);  // even
+        D_PREDICATE_CHECK(none_of(pos, even)(-3) == true);   // !pos,!even
+        D_PREDICATE_CHECK(none_of(pos, even)(4)  == false);  // both
+        D_PREDICATE_CHECK(none_of(pos, even)(3)  == false);  // pos
+        D_PREDICATE_CHECK(none_of(pos, even)(-2) == false);  // even
     }
 
     // ---- none_of(p...) == not(any_of(p...)) over a sweep ----
@@ -133,7 +131,7 @@ void test_predicate_variadic(
             bool not_any =
                 predicate_not(any_of(pos, even, neg))(v);
 
-            D_TEST_CHECK(_h, none == not_any);
+            D_PREDICATE_CHECK(none == not_any);
         }
     }
 
@@ -149,10 +147,10 @@ void test_predicate_variadic(
 
         bool result = all_of(p1, p2, p3)(0);
 
-        D_TEST_CHECK(_h, result == false);
-        D_TEST_CHECK(_h, c1 == 1);
-        D_TEST_CHECK(_h, c2 == 1);
-        D_TEST_CHECK(_h, c3 == 0);  // never reached
+        D_PREDICATE_CHECK(result == false);
+        D_PREDICATE_CHECK(c1 == 1);
+        D_PREDICATE_CHECK(c2 == 1);
+        D_PREDICATE_CHECK(c3 == 0);  // never reached
     }
 
     // ---- short-circuit across a 3-chain any_of (true in the middle) ----
@@ -167,10 +165,10 @@ void test_predicate_variadic(
 
         bool result = any_of(p1, p2, p3)(0);
 
-        D_TEST_CHECK(_h, result == true);
-        D_TEST_CHECK(_h, c1 == 1);
-        D_TEST_CHECK(_h, c2 == 1);
-        D_TEST_CHECK(_h, c3 == 0);  // never reached
+        D_PREDICATE_CHECK(result == true);
+        D_PREDICATE_CHECK(c1 == 1);
+        D_PREDICATE_CHECK(c2 == 1);
+        D_PREDICATE_CHECK(c3 == 0);  // never reached
     }
 
     // ---- result-type folding: all_of of two is a predicate_and ----
@@ -181,19 +179,17 @@ void test_predicate_variadic(
         typedef decltype(all_of(pos, even)) all2_type;
         typedef decltype(any_of(pos, even)) any2_type;
 
-        D_TEST_CHECK(_h, is_predicate_and<all2_type>::value);
-        D_TEST_CHECK(_h, is_predicate_or<any2_type>::value);
+        D_PREDICATE_CHECK(is_predicate_and<all2_type>::value);
+        D_PREDICATE_CHECK(is_predicate_or<any2_type>::value);
 
         // single-arg fold decays to the bare predicate type
         typedef decltype(all_of(pos)) all1_type;
-        D_TEST_CHECK(_h,
-            (internal::is_predicate_and_helper<all1_type>::value == false));
+        D_PREDICATE_CHECK((internal::is_predicate_and_helper<all1_type>::value == false));
     }
 #else
-    (void)_h;  // C++98: variadic folds unavailable; nothing to test here
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return;
+    return verdict;
 }
 
 

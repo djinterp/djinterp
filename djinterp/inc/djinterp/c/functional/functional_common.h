@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/c/functional/functional_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.09
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H
@@ -450,7 +450,7 @@ bool d_functional_is_not_null(
 ///             X.    HIGHER-ORDER FUNCTIONS                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// i.    map
+// i.    map and filter
 bool d_functional_map(
     const void*    _input,
     void*          _output,
@@ -458,6 +458,34 @@ bool d_functional_map(
     size_t         _element_size,
     fn_transformer _transform,
     void*          _context
+);
+
+/**
+ * @brief Copies the elements _test accepts, in order, packed into _output.
+ *
+ * @param[in]  _input         the array read; may be NULL only when _count
+ *                            is 0.
+ * @param[out] _output        room for _count elements; may be _input itself,
+ *                            to filter in place.
+ * @param[in]  _count         the number of elements in _input.
+ * @param[in]  _element_size  the size of each element, in bytes.
+ * @param[in]  _test          the predicate; an element it returns true for
+ *                            is kept.
+ * @param[in]  _context       passed to _test with each element.
+ * @param[out] _out_count     the number of elements kept.
+ * @return `true` if the filter ran, `false` if _test or _out_count is NULL,
+ *         or _input or _output is NULL while _count is not 0, or
+ *         _element_size is 0 while _count is not 0; *_out_count is then
+ *         untouched.
+ */
+bool d_functional_filter(
+    const void*  _input,
+    void*        _output,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context,
+    size_t*      _out_count
 );
 
 // ii.     fold

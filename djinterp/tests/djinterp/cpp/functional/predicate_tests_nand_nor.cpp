@@ -8,8 +8,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/predicate_tests_nand_nor.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -33,10 +33,10 @@ test_predicate_nand_nor
   - the factories decay their arguments
   - short-circuit behavior of the underlying && / || is preserved
 */
-void test_predicate_nand_nor(
-    test::test_handler& _h
-)
+bool test_predicate_nand_nor()
 {
+    bool verdict = true;
+
 
     // ---- NAND truth table: !(pos && even) ----
     {
@@ -46,10 +46,10 @@ void test_predicate_nand_nor(
         internal::predicate_nand_combinator<is_positive, is_even>
             n(pos, even);
 
-        D_TEST_CHECK(_h, n(4)  == false);  // !(T&&T)
-        D_TEST_CHECK(_h, n(3)  == true);   // !(T&&F)
-        D_TEST_CHECK(_h, n(-2) == true);   // !(F&&T)
-        D_TEST_CHECK(_h, n(-3) == true);   // !(F&&F)
+        D_PREDICATE_CHECK(n(4)  == false);  // !(T&&T)
+        D_PREDICATE_CHECK(n(3)  == true);   // !(T&&F)
+        D_PREDICATE_CHECK(n(-2) == true);   // !(F&&T)
+        D_PREDICATE_CHECK(n(-3) == true);   // !(F&&F)
     }
 
     // ---- NOR truth table: !(pos || even) ----
@@ -60,10 +60,10 @@ void test_predicate_nand_nor(
         internal::predicate_nor_combinator<is_positive, is_even>
             n(pos, even);
 
-        D_TEST_CHECK(_h, n(4)  == false);  // !(T||T)
-        D_TEST_CHECK(_h, n(3)  == false);  // !(T||F)
-        D_TEST_CHECK(_h, n(-2) == false);  // !(F||T)
-        D_TEST_CHECK(_h, n(-3) == true);   // !(F||F)
+        D_PREDICATE_CHECK(n(4)  == false);  // !(T||T)
+        D_PREDICATE_CHECK(n(3)  == false);  // !(T||F)
+        D_PREDICATE_CHECK(n(-2) == false);  // !(F||T)
+        D_PREDICATE_CHECK(n(-3) == true);   // !(F||F)
     }
 
     // ---- factory equivalence ----
@@ -71,10 +71,10 @@ void test_predicate_nand_nor(
         is_positive pos;
         is_even     even;
 
-        D_TEST_CHECK(_h, predicate_nand(pos, even)(4)  == false);
-        D_TEST_CHECK(_h, predicate_nand(pos, even)(3)  == true);
-        D_TEST_CHECK(_h, predicate_nor(pos, even)(-3)  == true);
-        D_TEST_CHECK(_h, predicate_nor(pos, even)(4)   == false);
+        D_PREDICATE_CHECK(predicate_nand(pos, even)(4)  == false);
+        D_PREDICATE_CHECK(predicate_nand(pos, even)(3)  == true);
+        D_PREDICATE_CHECK(predicate_nor(pos, even)(-3)  == true);
+        D_PREDICATE_CHECK(predicate_nor(pos, even)(4)   == false);
     }
 
     // ---- arity-2 overloads ----
@@ -83,13 +83,13 @@ void test_predicate_nand_nor(
 
         internal::predicate_nand_combinator<less_than, less_than>
             nand2(lt, lt);
-        D_TEST_CHECK(_h, nand2(1, 2) == false);  // !(T&&T)
-        D_TEST_CHECK(_h, nand2(2, 1) == true);   // !(F&&F)
+        D_PREDICATE_CHECK(nand2(1, 2) == false);  // !(T&&T)
+        D_PREDICATE_CHECK(nand2(2, 1) == true);   // !(F&&F)
 
         internal::predicate_nor_combinator<less_than, less_than>
             nor2(lt, lt);
-        D_TEST_CHECK(_h, nor2(1, 2) == false);   // !(T||T)
-        D_TEST_CHECK(_h, nor2(2, 1) == true);    // !(F||F)
+        D_PREDICATE_CHECK(nor2(1, 2) == false);   // !(T||T)
+        D_PREDICATE_CHECK(nor2(2, 1) == true);    // !(F||F)
     }
 
     // ---- De Morgan: nand(p,q) == not(and(p,q)) over a sweep ----
@@ -102,7 +102,7 @@ void test_predicate_nand_nor(
             bool nand_result = predicate_nand(pos, even)(v);
             bool not_and     = predicate_not(predicate_and(pos, even))(v);
 
-            D_TEST_CHECK(_h, nand_result == not_and);
+            D_PREDICATE_CHECK(nand_result == not_and);
         }
     }
 
@@ -116,7 +116,7 @@ void test_predicate_nand_nor(
             bool nor_result = predicate_nor(pos, even)(v);
             bool not_or     = predicate_not(predicate_or(pos, even))(v);
 
-            D_TEST_CHECK(_h, nor_result == not_or);
+            D_PREDICATE_CHECK(nor_result == not_or);
         }
     }
 
@@ -131,7 +131,7 @@ void test_predicate_nand_nor(
             bool and_nots   =
                 predicate_and(predicate_not(pos), predicate_not(even))(v);
 
-            D_TEST_CHECK(_h, nor_result == and_nots);
+            D_PREDICATE_CHECK(nor_result == and_nots);
         }
     }
 
@@ -149,9 +149,9 @@ void test_predicate_nand_nor(
 
         bool result = n(0);
 
-        D_TEST_CHECK(_h, result == true);    // !(F&&?) -> true
-        D_TEST_CHECK(_h, left_calls  == 1);
-        D_TEST_CHECK(_h, right_calls == 0);  // short-circuited
+        D_PREDICATE_CHECK(result == true);    // !(F&&?) -> true
+        D_PREDICATE_CHECK(left_calls  == 1);
+        D_PREDICATE_CHECK(right_calls == 0);  // short-circuited
     }
 
     // ---- NOR preserves OR short-circuit: true-left skips right ----
@@ -167,13 +167,13 @@ void test_predicate_nand_nor(
 
         bool result = n(0);
 
-        D_TEST_CHECK(_h, result == false);   // !(T||?) -> false
-        D_TEST_CHECK(_h, left_calls  == 1);
-        D_TEST_CHECK(_h, right_calls == 0);  // short-circuited
+        D_PREDICATE_CHECK(result == false);   // !(T||?) -> false
+        D_PREDICATE_CHECK(left_calls  == 1);
+        D_PREDICATE_CHECK(right_calls == 0);  // short-circuited
     }
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return;
+    return verdict;
 }
 
 

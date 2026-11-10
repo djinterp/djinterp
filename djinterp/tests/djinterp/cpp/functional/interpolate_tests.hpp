@@ -45,7 +45,7 @@
 * path:      /tests/djinterp/cpp/functional/interpolate_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_INTERPOLATE_
@@ -65,6 +65,10 @@
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
 #include <djinterp/cpp/modules/test/test_runner.hpp>
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING

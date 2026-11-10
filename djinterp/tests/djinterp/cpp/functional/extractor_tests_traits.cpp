@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/extractor_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -31,13 +31,13 @@ struct DNotExt
 // static_asserts read as plain type predicates. Every fixture is built from
 // named functors (never lambdas) so decltype in this unevaluated context is
 // well-formed from C++11 upward.
-typedef decltype(extractors::from_member(&DPerson::age))            age_ext_t;
-typedef decltype(extractors::from_function(get_dept()))            dept_ext_t;
-typedef decltype(extractors::identity<DPerson>())                   identity_t;
-typedef decltype(extractors::filtered(get_age(), is_adult()))      filtered_t;
-typedef decltype(extractors::guarded(get_age(), dept_nonzero()))   guarded_t;
-typedef decltype(extractors::try_extract(checked_age()))           try_t;
-typedef decltype(extractors::mapped(get_age(), times_two()))       mapped_t;
+typedef decltype(djinterp::from_member(&DPerson::age))            age_ext_t;
+typedef decltype(djinterp::from_function(get_dept()))            dept_ext_t;
+typedef decltype(djinterp::make_identity<DPerson>())                   identity_t;
+typedef decltype(djinterp::filtered(get_age(), is_adult()))      filtered_t;
+typedef decltype(djinterp::guarded(get_age(), dept_nonzero()))   guarded_t;
+typedef decltype(djinterp::try_extract(checked_age()))           try_t;
+typedef decltype(djinterp::mapped(get_age(), times_two()))       mapped_t;
 
 
 ///////////////////////////////////////////////////////////////////////////////

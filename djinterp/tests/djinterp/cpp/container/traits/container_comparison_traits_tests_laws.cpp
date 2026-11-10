@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_comparison_traits_tests_laws.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <array>
@@ -403,7 +403,7 @@ bool tests_axis_coupling()
 
     // the same bit, read twice
     #define D_CCM_SAME_BIT(TYPE)                                              \
-        D_CCM_CHECK(is_compile_time(container_lifetime<TYPE>::value) ==       \
+        D_CCM_CHECK(is_compile_time(container_lifetime_of<TYPE>::value) ==       \
                     (::djinterp::internal::is_compile_stage_helper<TYPE>      \
                          ::value))
 

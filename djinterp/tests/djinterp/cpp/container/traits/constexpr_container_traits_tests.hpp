@@ -10,7 +10,7 @@
 * usable in constant evaluation?" - by composing two independent answers under
 * the lifetime lattice of meta/lifetime.hpp:
 *
-*       container_lifetime<T> = meet( DSizeLifetime<T>, lifetime_of<T> )
+*       container_lifetime_of<T> = meet( DSizeLifetime<T>, lifetime_of<T> )
 *
 * where DSizeLifetime asks "is the SIZE fixed by the type?" from five structural
 * signals, and lifetime_of asks "are the CONTENTS constexpr-constructible?".  So
@@ -64,7 +64,7 @@
 *                                      constexpr_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -101,8 +101,16 @@ IV.   TEST DECLARATIONS
 #include <type_traits>
 #include <utility>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/constexpr_container_traits.hpp"    // the header under test
 #include "djinterp/cpp/modules/test/test_traits.hpp"     // the trait-testing toolkit
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // D_CCT_HAZARD_TESTS
@@ -119,8 +127,18 @@ IV.   TEST DECLARATIONS
 #endif  // D_CCT_HAZARD_TESTS
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // the trait-testing toolkit, by name.  The traits under test need no
@@ -190,7 +208,7 @@ void cct_report_failure(
 #define D_CCT_LIFE(EXPECTED, ...)                                             \
     do                                                                        \
     {                                                                         \
-        D_CONSTEXPR ::djinterp::lifetime cct_actual = (__VA_ARGS__);          \
+        D_CONSTEXPR ::djinterp::lifetime::value cct_actual = (__VA_ARGS__);          \
                                                                               \
         if (cct_actual != (EXPECTED))                                         \
         {                                                                     \
@@ -713,7 +731,7 @@ struct DIterEndOnly
 struct life_both_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime    lifetime_category = lifetime::both;
+    static constexpr lifetime::value lifetime_category = lifetime::both;
 };
 
 // life_compile_sized
@@ -724,7 +742,7 @@ struct life_both_sized
 struct life_compile_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime    lifetime_category = lifetime::compile_time;
+    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
 };
 
 // life_runtime_sized
@@ -733,7 +751,7 @@ struct life_compile_sized
 struct life_runtime_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime    lifetime_category = lifetime::runtime;
+    static constexpr lifetime::value lifetime_category = lifetime::runtime;
 };
 
 // life_none_sized
@@ -742,7 +760,7 @@ struct life_runtime_sized
 struct life_none_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime    lifetime_category = lifetime::none;
+    static constexpr lifetime::value lifetime_category = lifetime::none;
 };
 
 // life_compile_unsized
@@ -754,7 +772,7 @@ struct life_none_sized
 // for, and exactly what a boolean "is it constexpr?" could never have said.
 struct life_compile_unsized
 {
-    static constexpr lifetime lifetime_category = lifetime::compile_time;
+    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
 };
 
 
@@ -815,6 +833,8 @@ namespace std
 
 NS_DJINTERP
 NS_TESTING
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -877,6 +897,231 @@ bool tests_stdlib_tuple_pair();
 // VII. hazards  (the hard-error boundary)
 bool tests_hazard_destructor();
 bool tests_hazard_tag_base();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// constexpr_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+constexpr_container_traits_spec()
+{
+    return dt::module_spec{
+        "constexpr_container_traits",
+        "The compile-time end of the Lifetime axis: the five "
+        "compile-time-size signals, the lattice meet with lifetime_of, and "
+        "the classifications built on them",
+        {
+            dt::block_spec{
+                "signals",
+                "Compile-time-expressible-size signals",
+                {
+                    { "tests_tag_basic",
+                      "has_constexpr_container_tag - the opt-in "
+                      "`is_constexpr_container` member",
+                      &tests_tag_basic },
+                    { "tests_tag_access",
+                      "What the probe declines, and what it inherits",
+                      &tests_tag_access },
+                    { "tests_extent_basic",
+                      "has_constexpr_extent - a static compile-time `extent`",
+                      &tests_extent_basic },
+                    { "tests_extent_shapes",
+                      "What ELSE `decltype(clean_t<_Type>::extent)` accepts",
+                      &tests_extent_shapes },
+                    { "tests_size_expression_basic",
+                      "has_constexpr_size_expression - the structural probe "
+                      "that `T{}.size()` is a constant expression",
+                      &tests_size_expression_basic },
+                    { "tests_size_expression_constness",
+                      "The probe calls size() on the PRVALUE `T{}`, not on a "
+                      "const lvalue",
+                      &tests_size_expression_constness },
+                    { "tests_size_expression_return_value",
+                      "The probe's result must survive conversion to "
+                      "std::size_t as a NON-TYPE TEMPLATE ARGUMENT, which is "
+                      "stricter than an ordinary conversion",
+                      &tests_size_expression_return_value },
+                    { "tests_size_expression_constructibility",
+                      "THE THIRD FINDING",
+                      &tests_size_expression_constructibility },
+                    { "tests_size_expression_destructor",
+                      "The temporary `T{}` is DESTROYED inside the constant "
+                      "expression, so the destructor is part of the probe",
+                      &tests_size_expression_destructor },
+                    { "tests_tuple_size",
+                      "has_tuple_size - the fixed-size-aggregate protocol, "
+                      "and the one signal that works INDEPENDENTLY of whether "
+                      "the element type is literal",
+                      &tests_tuple_size },
+                    { "tests_constexpr_iteration",
+                      "has_constexpr_iteration "
+                      "(constexpr_iterator_traits.hpp) - the fifth disjunct",
+                      &tests_constexpr_iteration },
+                    { "tests_signal_value_companions",
+                      "Each signal carries a `_v` companion",
+                      &tests_signal_value_companions },
+                }
+            },
+            dt::block_spec{
+                "lifetime",
+                "Lifetime of a container",
+                {
+                    { "tests_size_lifetime_disjuncts",
+                      "DSizeLifetime - the FIVE promoting signals, each in "
+                      "isolation",
+                      &tests_size_lifetime_disjuncts },
+                    { "tests_size_lifetime_negative",
+                      "No signal, no promotion",
+                      &tests_size_lifetime_negative },
+                    { "tests_size_lifetime_is_binary",
+                      "DSizeLifetime is a two-valued function into a "
+                      "four-valued lattice",
+                      &tests_size_lifetime_is_binary },
+                    { "tests_size_lifetime_opt_out_ignored",
+                      "The explicit opt-OUT does not opt out",
+                      &tests_size_lifetime_opt_out_ignored },
+                    { "tests_container_lifetime_meet",
+                      "container_lifetime = meet( DSizeLifetime, lifetime_of "
+                      ") - the composition the header's opening formula names",
+                      &tests_container_lifetime_meet },
+                    { "tests_container_lifetime_lattice",
+                      "All four lattice values are reachable, and `none` by "
+                      "two distinct routes",
+                      &tests_container_lifetime_lattice },
+                    { "tests_container_lifetime_tag_bypass",
+                      "The opt-in tag short-circuits the composition entirely",
+                      &tests_container_lifetime_tag_bypass },
+                    { "tests_container_lifetime_type",
+                      "The nested ::type and the container_lifetime_of_t alias",
+                      &tests_container_lifetime_type },
+                    { "tests_container_lifetime_value_companion",
+                      "container_lifetime_of_v - an inline variable on C++17+, a "
+                      "plain variable template on C++14, absent below",
+                      &tests_container_lifetime_value_companion },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification umbrella",
+                {
+                    { "tests_is_constexpr_positive",
+                      "is_constexpr_container - the types that ARE usable in "
+                      "constant evaluation",
+                      &tests_is_constexpr_positive },
+                    { "tests_is_constexpr_negative",
+                      "The types that are NOT",
+                      &tests_is_constexpr_negative },
+                    { "tests_is_constexpr_is_the_compile_time_bit",
+                      "is_constexpr_container is defined as "
+                      "is_compile_time(container_lifetime_of<T>), and nothing "
+                      "else",
+                      &tests_is_constexpr_is_the_compile_time_bit },
+                    { "tests_is_not_constexpr",
+                      "is_not_constexpr_container - the explicit negation",
+                      &tests_is_not_constexpr },
+                    { "tests_classification_exhaustive",
+                      "The two verdicts partition every type: exactly one of "
+                      "them is true, always",
+                      &tests_classification_exhaustive },
+                    { "tests_classification_value_companions",
+                      "The `_v` companions of the two verdicts",
+                      &tests_classification_value_companions },
+                }
+            },
+            dt::block_spec{
+                "snapshot",
+                "Aggregate snapshot",
+                {
+                    { "tests_class_members",
+                      "DConstexprContainerClass - the six members it exposes",
+                      &tests_class_members },
+                    { "tests_class_agrees_with_traits",
+                      "The snapshot must be a faithful restatement of its "
+                      "sources - a convenience that can disagree with what it "
+                      "summarizes is worse than no convenience",
+                      &tests_class_agrees_with_traits },
+                    { "tests_class_tuple_size_gap",
+                      "THE FINDING",
+                      &tests_class_tuple_size_gap },
+                    { "tests_class_is_constexpr_and_empty",
+                      "Every member is a static constexpr, so the whole "
+                      "snapshot is usable at compile time and costs nothing "
+                      "at run time",
+                      &tests_class_is_constexpr_and_empty },
+                }
+            },
+            dt::block_spec{
+                "robustness",
+                "Robustness  (cv-ref, hostile types, completeness, trait "
+                "shape)",
+                {
+                    { "tests_cvref_signals",
+                      "Every signal must answer identically for T, const T, "
+                      "volatile T, const volatile T, T&, const T&, T&& and "
+                      "const T&&",
+                      &tests_cvref_signals },
+                    { "tests_cvref_verdicts",
+                      "The lifetime traits, the umbrella and the snapshot all "
+                      "clean their argument",
+                      &tests_cvref_verdicts },
+                    { "tests_hostile_types_rejected",
+                      "Every trait must answer FALSE for every adversarial "
+                      "shape: void, const void, function types, function "
+                      "pointers and references, bounded and unbounded arrays, "
+                      "lvalue and rvalue references, member pointers, "
+                      "nullptr_t, enums, and the class-type adversaries - "
+                      "abstract, final, private-membered, "
+                      "ambiguously-inherited, convert-to-anything, "
+                      "operator&-overloading",
+                      &tests_hostile_types_rejected },
+                    { "tests_hostile_types_survived",
+                      "SFINAE-friendliness: the traits must REPORT false on a "
+                      "hostile type, not DIAGNOSE it",
+                      &tests_hostile_types_survived },
+                    { "tests_incomplete_type",
+                      "THE COMPLETENESS BOUNDARY",
+                      &tests_incomplete_type },
+                    { "tests_trait_shape",
+                      "Is each trait a well-formed bool trait?",
+                      &tests_trait_shape },
+                }
+            },
+            dt::block_spec{
+                "stdlib",
+                "Standard library",
+                {
+                    { "tests_stdlib_array",
+                      "std::array - the case the whole header is aimed at",
+                      &tests_stdlib_array },
+                    { "tests_stdlib_vector_string",
+                      "THE FINDING",
+                      &tests_stdlib_vector_string },
+                    { "tests_stdlib_node_containers",
+                      "std::list, std::deque, std::set, std::map",
+                      &tests_stdlib_node_containers },
+                    { "tests_stdlib_tuple_pair",
+                      "THE SECOND FINDING",
+                      &tests_stdlib_tuple_pair },
+                }
+            },
+            dt::block_spec{
+                "hazards",
+                "Hazards  (the hard-error boundary; the mines are gated behind",
+                {
+                    { "tests_hazard_destructor",
+                      "HAZARD 1",
+                      &tests_hazard_destructor },
+                    { "tests_hazard_tag_base",
+                      "HAZARD 2",
+                      &tests_hazard_tag_base },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

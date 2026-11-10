@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/monad_tests_composition.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./monad_tests.hpp"
@@ -21,10 +21,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 /*
@@ -44,30 +40,27 @@ monad_tests_composition
   - lift_m2 short-circuits if either argument monad is none
   - lift_m2 can produce a different inner type (int,int -> string)
 */
-void monad_tests_composition(
-    test_handler& _handler
-)
+bool monad_tests_composition()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // monad_then: some first -> second
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_then yields the second monad after a some first",
         [&]()
         {
             auto m = ::djinterp::monad_then(some(1), some(99));
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 99),
                 "then(some(1), some(99)) is some(99)");
         });
 
     // monad_then: none first short-circuits
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_then short-circuits when the first monad is none",
         [&]()
@@ -75,15 +68,13 @@ void monad_tests_composition(
             auto m = ::djinterp::monad_then(DTestMaybe<int>::none(),
                                             some(99));
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "then(none, some(99)) is none");
         });
 
     // monad_then: discards first value, changes type
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_then discards the first value and may change type",
         [&]()
@@ -94,15 +85,13 @@ void monad_tests_composition(
             const bool type_ok =
                 std::is_same<decltype(m), DTestMaybe<std::string> >::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (type_ok && m.is_some() && m.value() == "kept"),
                 "then(some(7), some(\"kept\")) is some(\"kept\")");
         });
 
     // kleisli_compose: success
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "kleisli_compose threads a value through two arrows",
         [&]()
@@ -111,15 +100,13 @@ void monad_tests_composition(
                                                  DArrowTimesTen());
             auto m = k(4);   // (4 + 1) * 10 = 50
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 50),
                 "(inc >=> times_ten)(4) is some(50)");
         });
 
     // kleisli_compose: first arrow fails
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "kleisli_compose short-circuits when the first arrow fails",
         [&]()
@@ -128,15 +115,13 @@ void monad_tests_composition(
                                                  DArrowTimesTen());
             auto m = k(4);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "(to_none >=> times_ten)(4) is none");
         });
 
     // kleisli_compose: second arrow fails
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "kleisli_compose short-circuits when the second arrow fails",
         [&]()
@@ -145,15 +130,13 @@ void monad_tests_composition(
                                                  DArrowToNone());
             auto m = k(4);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "(inc >=> to_none)(4) is none");
         });
 
     // kleisli_compose: type-changing
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "kleisli_compose can change types across arrows",
         [&]()
@@ -165,15 +148,13 @@ void monad_tests_composition(
             const bool type_ok =
                 std::is_same<decltype(m), DTestMaybe<std::string> >::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (type_ok && m.is_some() && m.value() == "5"),
                 "(inc >=> to_string)(4) is some(\"5\")");
         });
 
     // kleisli associativity
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "kleisli_compose is associative",
         [&]()
@@ -189,30 +170,26 @@ void monad_tests_composition(
             auto lm = left(4);    // ((4+1)*10)+1 = 51
             auto rm = right(4);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (lm == rm && lm.value() == 51),
                 "(f>=>g)>=>h == f>=>(g>=>h)");
         });
 
     // lift_m2: both some
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "lift_m2 combines two some values",
         [&]()
         {
             auto m = ::djinterp::lift_m2(some(3), some(4), DBinaryAdd());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 7),
                 "lift_m2(some(3), some(4), add) is some(7)");
         });
 
     // lift_m2: first none
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "lift_m2 short-circuits when the first monad is none",
         [&]()
@@ -220,15 +197,13 @@ void monad_tests_composition(
             auto m = ::djinterp::lift_m2(DTestMaybe<int>::none(),
                                          some(4), DBinaryAdd());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "lift_m2(none, some(4), add) is none");
         });
 
     // lift_m2: second none
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "lift_m2 short-circuits when the second monad is none",
         [&]()
@@ -237,15 +212,13 @@ void monad_tests_composition(
                                          DTestMaybe<int>::none(),
                                          DBinaryAdd());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "lift_m2(some(3), none, add) is none");
         });
 
     // lift_m2: type-changing
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "lift_m2 can produce a different inner type",
         [&]()
@@ -256,13 +229,12 @@ void monad_tests_composition(
             const bool type_ok =
                 std::is_same<decltype(m), DTestMaybe<std::string> >::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (type_ok && m.is_some() && m.value() == "7"),
                 "lift_m2(some(2), some(5), concat_sum) is some(\"7\")");
         });
 
-    return;
+    return verdict;
 }
 
 

@@ -1,10 +1,21 @@
-/******************************************************************************
-* djinterp [test]         concurrency_strategy_traits_tests_structural.cpp
+/*******************************************************************************
+* djinterp [test]               concurrency_strategy_traits_tests_structural.cpp
 *
 *   Section III - the structural member detectors used as the tag-less
 * fallback.  Each detector is exercised on a type that has the member and one
 * that lacks it.  Defines the "structural" block.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests_structural.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+
+// FLOOR, FOR NOW: below C++17, concurrency_strategy_traits.hpp's floor,
+// this unit is empty, as that header is.
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #include "concurrency_strategy_traits_tests.hpp"
 
@@ -105,3 +116,5 @@ bool tests_structural_hazard_member()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

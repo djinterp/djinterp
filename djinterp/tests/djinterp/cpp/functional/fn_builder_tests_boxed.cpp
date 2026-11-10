@@ -11,8 +11,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_boxed.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -27,10 +27,10 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_boxed(
-    test::test_handler& _h
-)
+bool test_boxed()
 {
+    bool verdict = true;
+
     std::vector<int> in = { 1, 2, 3, 4 };
 
     // direct construction from a same-type chain (int -> int)
@@ -38,36 +38,36 @@ void test_boxed(
                                           .filter(fn_is_even{})
                                           .map(DFnDouble{});
     DBoxedFnBuilder<int, int> boxed(typed);
-    test::record_assertion(_h,
+    record_assertion(verdict,
         boxed.execute(in) == std::vector<int>({ 4, 8 }),
         "boxed: direct construction erases a same-type chain");
 
     // box_builder deduces input/output from the typed builder
     auto deduced = box_builder(typed);
-    test::record_assertion(_h,
+    record_assertion(verdict,
         deduced.execute(in) == std::vector<int>({ 4, 8 }),
         "boxed: box_builder deduces input/output and erases the chain");
 
     // chain() exposes the composed functor for direct invocation
-    test::record_assertion(_h,
+    record_assertion(verdict,
         typed.chain()(in) == std::vector<int>({ 4, 8 }),
         "boxed: chain() exposes the composed chain functor directly");
 
     // type-changing chain (int -> std::string)
     auto typed_str = DFnBuilder<int>::create().map(fn_to_string{});
     DBoxedFnBuilder<int, std::string> boxed_str = box_builder(typed_str);
-    test::record_assertion(_h,
+    record_assertion(verdict,
         boxed_str.execute(in)
             == std::vector<std::string>({ "1", "2", "3", "4" }),
         "boxed: erases a type-changing chain");
 
     // operator() container overload converts then runs
     std::list<int> lin = { 2, 4 };
-    test::record_assertion(_h,
+    record_assertion(verdict,
         deduced(lin) == std::vector<int>({ 4, 8 }),
         "boxed: operator() accepts a generic container");
 
-    return;
+    return verdict;
 }
 
 

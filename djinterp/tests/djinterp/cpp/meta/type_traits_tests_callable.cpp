@@ -29,16 +29,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_callable.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 namespace
 {
 
@@ -265,87 +263,87 @@ static_assert(is_nothrow_invocable_r<non_callable_t, DCallableIntToIntNoexcept, 
 // VI.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_callable(
-    test_handler& _test_handler
-)
+bool type_traits_tests_callable()
 {
+    bool verdict = true;
+
     // ---- invoke_result ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<invoke_result_t<decltype(&free_fn_int_to_int), int>, int>::value,
         "invoke_result_t<free fn, int> -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<invoke_result_t<DCallableIntToInt, int>, int>::value,
         "invoke_result_t<1-arg functor, int> -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<invoke_result_t<DCallableTwoIntsToInt, int, int>, int>::value,
         "invoke_result_t<2-arg functor, int, int> -> int");
 
     // ---- is_invocable ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<DCallableIntToInt, int>::value == true,
         "is_invocable: 1-arg functor with int -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<DCallableTwoIntsToInt, int, int>::value == true,
         "is_invocable: 2-arg functor -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<non_callable_t, int>::value == false,
         "is_invocable: non-callable -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<int, int>::value == false,
         "is_invocable: int -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<DCallableIntToInt, int, int>::value == false,
         "is_invocable: arity mismatch (too many) -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<DCallableIntToInt>::value == false,
         "is_invocable: arity mismatch (too few) -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable<DCallableIntToInt, non_callable_t>::value == false,
         "is_invocable: incompatible arg type -> false");
 
     // ---- is_invocable_r ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable_r<int, DCallableIntToInt, int>::value == true,
         "is_invocable_r<int, functor returning int, int> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable_r<long, DCallableIntToInt, int>::value == true,
         "is_invocable_r<long, functor returning int, int> -> true (convertible)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable_r<to_double_t, DCallableIntToInt, int>::value == true,
         "is_invocable_r<to_double_t, functor returning int, int> -> true (via ctor)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable_r<int, DCallableIntToOpaque, int>::value == false,
         "is_invocable_r<int, functor returning opaque, int> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_invocable_r<void, DCallableIntToInt, int>::value == true,
         "is_invocable_r<void, ..., int> -> true (anything convertible to void)");
 
     // ---- is_nothrow_invocable ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nothrow_invocable<DCallableIntToIntNoexcept, int>::value == true,
         "is_nothrow_invocable<noexcept functor, int> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nothrow_invocable<DCallableIntToInt, int>::value == false,
         "is_nothrow_invocable<throwing functor, int> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nothrow_invocable<non_callable_t, int>::value == false,
         "is_nothrow_invocable<non-callable, int> -> false");
 
     // ---- is_nothrow_invocable_r ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nothrow_invocable_r<int, DCallableIntToIntNoexcept, int>::value == true,
         "is_nothrow_invocable_r<int, noexcept functor, int> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nothrow_invocable_r<int, DCallableIntToInt, int>::value == false,
         "is_nothrow_invocable_r<int, throwing functor, int> -> false (throws)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nothrow_invocable_r<non_callable_t,
                                DCallableIntToIntNoexcept, int>::value == false,
         "is_nothrow_invocable_r: incompatible return -> false");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

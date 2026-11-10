@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/functional_common_tests_callable.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  functional_traits_tests_callable.cpp
 //   Section I -- is_callable and callable_result_t.
@@ -14,6 +14,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
+#include "functional_common_tests.hpp"
 
 
 NS_DJINTERP
@@ -283,33 +284,47 @@ bool tests_callable_result_basic()
 }
 
 
-/*
-tests_callable_result_nonesuch
-  When the call is ill-formed the alias is internal::call_nonesuch rather than a
-  hard error -- so callers may name it before gating on is_callable.
-  Tests the following:
-  - a non-callable, a wrong arity, and a const-lvalue-rejected callable all
-    yield call_nonesuch
-  - a well-formed call does not
-*/
-bool tests_callable_result_nonesuch()
-{
-    static_assert(std::is_same<callable_result_t<not_callable, int>,
-                               internal::call_nonesuch>::value,
-                  "non-callable -> nonesuch");
-    static_assert(std::is_same<callable_result_t<const_fn, int, int>,
-                               internal::call_nonesuch>::value,
-                  "wrong arity -> nonesuch");
-    static_assert(std::is_same<callable_result_t<nonconst_fn, int>,
-                               internal::call_nonesuch>::value,
-                  "non-const operator() -> nonesuch");
-    static_assert(std::is_same<callable_result_t<ref_fn, const int&>,
-                               internal::call_nonesuch>::value,
-                  "wrong arg category -> nonesuch");
+// DHasType
+//   trait: true when Trait has a nested `type` -- how a caller sees whether
+// callable_result found a well-formed call.
+template<typename Trait,
+         typename = void>
+struct DHasType : std::false_type
+{};
 
-    static_assert(!std::is_same<callable_result_t<const_fn, int>,
-                                internal::call_nonesuch>::value,
-                  "well-formed call is not nonesuch");
+template<typename Trait>
+struct DHasType<Trait, void_t<typename Trait::type> > : std::true_type
+{};
+
+
+/*
+tests_callable_result_absent
+  When the call is ill-formed, callable_result has no `type`, so
+  callable_result_t is a soft (SFINAE) failure, as with std::invoke_result.
+  (call_result_t is the form that yields internal::call_nonesuch instead.)
+  Tests the following:
+  - a non-callable, a wrong arity, and a wrong argument category leave
+    callable_result without a `type`; a well-formed call has one
+  - the call is made as std::invoke_result makes it, on an rvalue Function, so
+    a non-const operator() is found; is_callable, which probes a const lvalue,
+    rejects the same type
+*/
+bool tests_callable_result_absent()
+{
+    static_assert(!DHasType<callable_result<not_callable, int> >::value,
+                  "non-callable: no type");
+    static_assert(!DHasType<callable_result<const_fn, int, int> >::value,
+                  "wrong arity: no type");
+    static_assert(!DHasType<callable_result<ref_fn, const int&> >::value,
+                  "wrong arg category: no type");
+    static_assert(DHasType<callable_result<const_fn, int> >::value,
+                  "well-formed call: type");
+
+    static_assert(std::is_same<callable_result_t<nonconst_fn, int>,
+                               int>::value,
+                  "an rvalue call finds a non-const operator()");
+    static_assert(!is_callable<nonconst_fn, int>::value,
+                  "is_callable probes a const lvalue");
 
     return true;
 }
@@ -340,23 +355,28 @@ bool tests_callable_result_preserves_reference()
 
 
 /*
-tests_callable_result_is_alias
-  callable_result_t is a thin alias of function_traits.hpp's call_result_t --
-  the same type, not a parallel computation.
+tests_callable_result_agrees
+  On a well-formed call callable_result_t and function_traits.hpp's
+  call_result_t name the same type; on an ill-formed one only call_result_t
+  names a type, internal::call_nonesuch.
   Tests the following:
-  - the two agree for a well-formed call and for an ill-formed one
+  - the two agree for a plain and for a templated operator()
+  - on an ill-formed call, call_result_t is call_nonesuch and callable_result
+    has no type
 */
-bool tests_callable_result_is_alias()
+bool tests_callable_result_agrees()
 {
     static_assert(std::is_same<callable_result_t<const_fn, int>,
                                call_result_t<const_fn, int> >::value,
-                  "alias, well-formed");
-    static_assert(std::is_same<callable_result_t<not_callable, int>,
-                               call_result_t<not_callable, int> >::value,
-                  "alias, ill-formed");
+                  "agree, well-formed");
     static_assert(std::is_same<callable_result_t<generic_fn, std::string>,
                                call_result_t<generic_fn, std::string> >::value,
-                  "alias, templated");
+                  "agree, templated");
+    static_assert(std::is_same<call_result_t<not_callable, int>,
+                               internal::call_nonesuch>::value,
+                  "call_result_t: call_nonesuch");
+    static_assert(!DHasType<callable_result<not_callable, int> >::value,
+                  "callable_result: no type");
 
     return true;
 }

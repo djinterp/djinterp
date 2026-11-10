@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_internal.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <tuple>
@@ -31,51 +31,51 @@ test_internal_machinery
   - apply_tuple expands a multi-element tuple in order
   - apply_tuple preserves argument ordering (not merely the sum)
 */
-void test_internal_machinery(
-    test::test_handler& _h
-)
+bool test_internal_machinery()
 {
+    bool verdict = true;
+
     // ---- make_index_seq ----
     const bool seq3_ok =
         std::is_same<internal::make_index_seq<3>,
                      internal::index_seq<0, 1, 2> >::value;
-    test::record_assertion(_h, seq3_ok,
+    record_assertion(verdict, seq3_ok,
                            "make_index_seq<3> == index_seq<0,1,2>");
 
     const bool seq1_ok =
         std::is_same<internal::make_index_seq<1>,
                      internal::index_seq<0> >::value;
-    test::record_assertion(_h, seq1_ok,
+    record_assertion(verdict, seq1_ok,
                            "make_index_seq<1> == index_seq<0>");
 
     const bool seq0_ok =
         std::is_same<internal::make_index_seq<0>,
                      internal::index_seq<> >::value;
-    test::record_assertion(_h, seq0_ok,
+    record_assertion(verdict, seq0_ok,
                            "make_index_seq<0> == index_seq<>");
 
     // ---- apply_tuple ----
     const int applied_nullary =
         internal::apply_tuple(DNullarySeven{}, std::tuple<>{});
-    test::record_assertion(_h, (applied_nullary == 7),
+    record_assertion(verdict, (applied_nullary == 7),
                            "apply_tuple over empty tuple invokes nullary");
 
     const int applied_unary =
         internal::apply_tuple(DEchoInt{}, std::make_tuple(5));
-    test::record_assertion(_h, (applied_unary == 5),
+    record_assertion(verdict, (applied_unary == 5),
                            "apply_tuple over 1-tuple forwards single arg");
 
     const int applied_ternary =
         internal::apply_tuple(add3{}, std::make_tuple(1, 2, 3));
-    test::record_assertion(_h, (applied_ternary == 6),
+    record_assertion(verdict, (applied_ternary == 6),
                            "apply_tuple over 3-tuple expands all args");
 
     const int applied_ordered =
         internal::apply_tuple(DDigits3{}, std::make_tuple(1, 2, 3));
-    test::record_assertion(_h, (applied_ordered == 123),
+    record_assertion(verdict, (applied_ordered == 123),
                            "apply_tuple preserves argument order");
 
-    return;
+    return verdict;
 }
 
 

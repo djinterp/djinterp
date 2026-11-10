@@ -9,7 +9,7 @@
 * path:      /inc/djinterp/c/functional/compose.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.09
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_C_FUNCTIONAL_COMPOSE_H
@@ -62,23 +62,29 @@
     }
 
 // D_FUNCTIONAL_MAP_THEN_FILTER
-//   macro: convenient composition of map followed by filter.
+//   macro: maps (data) into (output), then filters (output) in place with
+// (test), leaving the number kept in *(out_count). An expression: true when
+// both succeed.
 #define D_FUNCTIONAL_MAP_THEN_FILTER(data,                                  \
                                      count,                                 \
                                      size,                                  \
                                      transform,                             \
-                                     test)                                  \
-    d_functional_filter(d_functional_map( (data),                           \
-                                          NULL,                             \
-                                          (count),                          \
-                                          (size),                           \
-                                          (transform),                      \
-                                          NULL),                            \
-                         NULL,                                              \
-                         (count),                                           \
-                         (size),                                            \
-                         (test),                                            \
-                         NULL)
+                                     test,                                  \
+                                     output,                                \
+                                     out_count)                             \
+    ( (d_functional_map((data),                                             \
+                        (output),                                           \
+                        (count),                                            \
+                        (size),                                             \
+                        (transform),                                        \
+                        NULL)) &&                                           \
+      (d_functional_filter((output),                                        \
+                           (output),                                        \
+                           (count),                                         \
+                           (size),                                          \
+                           (test),                                          \
+                           NULL,                                            \
+                           (out_count))) )
 
 
 /// composable function templates

@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/traversable_tests_operations.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test]  traversable_tests_operations.cpp
 //   Section II -- traverse (the one obligation, delegated) and sequence
@@ -275,13 +275,13 @@ bool tests_traverse_constexpr()
                   "a failed effect folds");
 
     // sequence, likewise.
-    static_assert(sequence(just(boxed(7))).value.get() == 7, "sequence");
+    static_assert(traverse_sequence(just(boxed(7))).value.get() == 7, "sequence");
 
     // runtime: the other half of the dual domain.
     bool ok = true;
     int  x  = 4;
     ok = ok && (traverse(just(x), to_box()).value.get() == 40);
-    ok = ok && (sequence(just(boxed(x))).value.get() == 4);
+    ok = ok && (traverse_sequence(just(boxed(x))).value.get() == 4);
 
     return ok;
 }
@@ -302,10 +302,10 @@ bool tests_sequence_is_traverse_with_identity()
     const internal::traversable_identity_helper id;
 
     // the maybe structure.
-    ok = ok && (sequence(just(boxed(7))).value.get() ==
+    ok = ok && (traverse_sequence(just(boxed(7))).value.get() ==
                 traverse(just(boxed(7)), id).value.get());
     static_assert(std::is_same<
-        decltype(sequence(std::declval<const DTmaybe<DTbox<int> >&>())),
+        decltype(traverse_sequence(std::declval<const DTmaybe<DTbox<int> >&>())),
         decltype(traverse(std::declval<const DTmaybe<DTbox<int> >&>(),
                           internal::traversable_identity_helper()))>::value,
         "same type, maybe");
@@ -314,9 +314,9 @@ bool tests_sequence_is_traverse_with_identity()
     std::vector<DTbox<int> > vs;
     vs.push_back(boxed(1));
     vs.push_back(boxed(2));
-    ok = ok && (sequence(vs).value.size() == traverse(vs, id).value.size());
+    ok = ok && (traverse_sequence(vs).value.size() == traverse(vs, id).value.size());
     static_assert(std::is_same<
-        decltype(sequence(std::declval<const std::vector<DTbox<int> >&>())),
+        decltype(traverse_sequence(std::declval<const std::vector<DTbox<int> >&>())),
         decltype(traverse(std::declval<const std::vector<DTbox<int> >&>(),
                           internal::traversable_identity_helper()))>::value,
         "same type, vector");
@@ -339,12 +339,12 @@ bool tests_sequence_inverts_the_nesting()
     bool ok = true;
 
     // T<F<A>> -> F<T<A>>, shape preserved.
-    const DTbox<DTmaybe<int> > m = sequence(just(boxed(7)));
+    const DTbox<DTmaybe<int> > m = traverse_sequence(just(boxed(7)));
     ok = ok && (m.value.has());
     ok = ok && (m.value.get() == 7);
-    static_assert(std::is_same<decltype(sequence(just(boxed(7)))),
+    static_assert(std::is_same<decltype(traverse_sequence(just(boxed(7)))),
                                DTbox<DTmaybe<int> > >::value, "inverted");
-    static_assert(!std::is_same<decltype(sequence(just(boxed(7)))),
+    static_assert(!std::is_same<decltype(traverse_sequence(just(boxed(7)))),
                                 DTmaybe<DTbox<int> > >::value,
                   "and it really did change");
 
@@ -353,7 +353,7 @@ bool tests_sequence_inverts_the_nesting()
     vs.push_back(boxed(1));
     vs.push_back(boxed(2));
     vs.push_back(boxed(3));
-    const DTbox<std::vector<int> > v = sequence(vs);
+    const DTbox<std::vector<int> > v = traverse_sequence(vs);
     ok = ok && (v.value.size() == 3u);
     ok = ok && (v.value[0] == 1 && v.value[1] == 2 && v.value[2] == 3);
 
@@ -380,7 +380,7 @@ bool tests_sequence_is_all_or_nothing()
     all.push_back(just(2));
     all.push_back(just(3));
 
-    const DTmaybe<std::vector<int> > s = sequence(all);
+    const DTmaybe<std::vector<int> > s = traverse_sequence(all);
     ok = ok && (s.has());
     ok = ok && (s.get().size() == 3u);
     ok = ok && (s.get()[0] == 1 && s.get()[1] == 2 && s.get()[2] == 3);
@@ -390,23 +390,23 @@ bool tests_sequence_is_all_or_nothing()
     mid.push_back(just(1));
     mid.push_back(nothing<int>());
     mid.push_back(just(3));
-    ok = ok && (!sequence(mid).has());
+    ok = ok && (!traverse_sequence(mid).has());
 
     // one absent, at the head.
     std::vector<DTmaybe<int> > head;
     head.push_back(nothing<int>());
     head.push_back(just(2));
-    ok = ok && (!sequence(head).has());
+    ok = ok && (!traverse_sequence(head).has());
 
     // one absent, at the tail.
     std::vector<DTmaybe<int> > tail;
     tail.push_back(just(1));
     tail.push_back(nothing<int>());
-    ok = ok && (!sequence(tail).has());
+    ok = ok && (!traverse_sequence(tail).has());
 
     // the shape-preserving structure: a maybe of a failed effect.
-    ok = ok && (!sequence(just(nothing<int>())).has());
-    ok = ok && (sequence(just(just(5))).has());
+    ok = ok && (!traverse_sequence(just(nothing<int>())).has());
+    ok = ok && (traverse_sequence(just(just(5))).has());
 
     return ok;
 }
@@ -426,17 +426,17 @@ bool tests_sequence_empty()
 
     // an empty vector of maybes: just({}) -- success, not failure.
     const std::vector<DTmaybe<int> > none;
-    const DTmaybe<std::vector<int> > s = sequence(none);
+    const DTmaybe<std::vector<int> > s = traverse_sequence(none);
     ok = ok && (s.has());
     ok = ok && (s.get().empty());
 
     // an empty maybe of effects: the effect succeeds over an empty shape.
-    const DTmaybe<DTmaybe<int> > m = sequence(nothing<DTmaybe<int> >());
+    const DTmaybe<DTmaybe<int> > m = traverse_sequence(nothing<DTmaybe<int> >());
     ok = ok && (m.has());              // the effect SUCCEEDED
     ok = ok && (!m.get().has());       // over an empty shape
 
     // and under the never-failing effect.
-    const DTbox<DTmaybe<int> > b = sequence(nothing<DTbox<int> >());
+    const DTbox<DTmaybe<int> > b = traverse_sequence(nothing<DTbox<int> >());
     ok = ok && (!b.value.has());
 
     return ok;
@@ -459,29 +459,29 @@ bool tests_law_traverse_is_sequence_after_map()
 
     // present.
     const DTbox<DTmaybe<int> > lhs = traverse(just(4), to_box());
-    const DTbox<DTmaybe<int> > rhs = sequence(functor_map(just(4), to_box()));
+    const DTbox<DTmaybe<int> > rhs = traverse_sequence(functor_map(just(4), to_box()));
     ok = ok && (lhs.value.has() == rhs.value.has());
     ok = ok && (lhs.value.get() == rhs.value.get());
     static_assert(std::is_same<decltype(traverse(just(4), to_box())),
-                               decltype(sequence(functor_map(just(4),
+                               decltype(traverse_sequence(functor_map(just(4),
                                                              to_box())))>::value,
                   "the same type");
 
     // empty: both sides inject the empty shape with pure.
     const DTbox<DTmaybe<int> > le = traverse(nothing<int>(), to_box());
-    const DTbox<DTmaybe<int> > re = sequence(functor_map(nothing<int>(),
+    const DTbox<DTmaybe<int> > re = traverse_sequence(functor_map(nothing<int>(),
                                                        to_box()));
     ok = ok && (le.value.has() == re.value.has());
     ok = ok && (!le.value.has());
 
     // a failing effect: both sides fail.
     ok = ok && (traverse(just(-1), pos_or_nothing()).has() ==
-                sequence(functor_map(just(-1), pos_or_nothing())).has());
+                traverse_sequence(functor_map(just(-1), pos_or_nothing())).has());
     ok = ok && (!traverse(just(-1), pos_or_nothing()).has());
 
     // and it folds at compile time.
     static_assert(traverse(just(4), to_box()).value.get() ==
-                  sequence(functor_map(just(4), to_box())).value.get(),
+                  traverse_sequence(functor_map(just(4), to_box())).value.get(),
                   "the law, constexpr");
 
     return ok;

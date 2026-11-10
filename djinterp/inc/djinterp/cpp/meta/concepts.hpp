@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/meta/concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.21
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_META_CONCEPTS_HPP
@@ -338,13 +338,20 @@ concept is_enum_c = std::is_enum_v<Type>;
 
 // scoped_enum
 //   concept: satisfied if `Type` is a scoped enumeration (enum class).
-//template<typename Type>
-//concept scoped_enum = std::is_scoped_enum_v<Type>;
+// std::is_scoped_enum is C++23, so this is its C++20 spelling: an
+// enumeration that does not convert implicitly to its underlying type.
+// (These two were commented out for want of std::is_scoped_enum_v.)
+template<typename Type>
+concept scoped_enum =
+    std::is_enum_v<Type> &&
+    !std::is_convertible_v<Type, std::underlying_type_t<Type>>;
 
 // unscoped_enum
 //   concept: satisfied if `Type` is an unscoped enumeration.
-//template<typename Type>
-//concept unscoped_enum = std::is_enum_v<Type> && !std::is_scoped_enum_v<Type>;
+template<typename Type>
+concept unscoped_enum =
+    std::is_enum_v<Type> &&
+    std::is_convertible_v<Type, std::underlying_type_t<Type>>;
 
 // II.1.d  Pointer and reference concepts
 
@@ -688,18 +695,19 @@ template<typename                    Type,
 concept bounded_c = Concept<Type>::value && has_max_size_c<Type>;
 
 // allocator_c
-//   concept: satisfied if `Type` is an allocator (has allocate/deallocate
-// and a value_type accessible via std::allocator_traits).
-// Parallels djinterp::is_allocator.
+//   concept: satisfied if `Type` is an allocator: a value_type, and
+// allocate(n) whose result deallocate(p, n) takes back. Parallels
+// djinterp::is_allocator.
+//   The members are the allocator's own. Asked through
+// std::allocator_traits, as it was, std::allocator_traits<int> was a hard
+// error rather than a "no", and allocate/deallocate always looked present,
+// because the traits' own functions are declared for any type.
 template<typename Type>
-concept allocator_c = requires(Type _alloc, std::size_t _n)
+concept allocator_c = requires(Type& _alloc, std::size_t _n)
 {
-    typename std::allocator_traits<Type>::value_type;
-    { std::allocator_traits<Type>::allocate(_alloc, _n) };
-    { std::allocator_traits<Type>::deallocate(
-        _alloc,
-        std::declval<typename std::allocator_traits<Type>::pointer>(),
-        _n) };
+    typename Type::value_type;
+    _alloc.allocate(_n);
+    _alloc.deallocate(_alloc.allocate(_n), _n);
 };
 
 
@@ -729,9 +737,11 @@ NS_INTERNAL
     struct is_template_with_args_impl : std::false_type
     {};
 
+    //   One argument at least: Tpl<Args...> would match Tpl<> as well.
     template<template<typename...> typename Tpl,
-             typename...                    Args>
-    struct is_template_with_args_impl<Tpl<Args...>> : std::true_type
+             typename                       First,
+             typename...                    Rest>
+    struct is_template_with_args_impl<Tpl<First, Rest...>> : std::true_type
     {};
 NS_END  // internal
 

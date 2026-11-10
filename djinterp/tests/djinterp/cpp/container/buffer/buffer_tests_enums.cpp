@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_enums.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -18,9 +18,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_buffer_growth_strategy
   buffer_growth_strategy enum sanity coverage.
@@ -33,46 +31,40 @@ tests_buffer_growth_strategy
   - every value is reachable through a switch statement (every case
     branch returns true)
 */
-void tests_buffer_growth_strategy(
-    test_handler& _handler
-)
+bool tests_buffer_growth_strategy()
 {
+    bool ok = true;
+
     using strategy = buffer_growth_strategy;
 
     // --- distinctness ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(strategy::none) !=
          static_cast<int>(strategy::linear)),
         "buffer_growth_strategy::none != ::linear");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(strategy::none) !=
          static_cast<int>(strategy::exponential)),
         "buffer_growth_strategy::none != ::exponential");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(strategy::none) !=
          static_cast<int>(strategy::page_aligned)),
         "buffer_growth_strategy::none != ::page_aligned");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(strategy::linear) !=
          static_cast<int>(strategy::exponential)),
         "buffer_growth_strategy::linear != ::exponential");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(strategy::linear) !=
          static_cast<int>(strategy::page_aligned)),
         "buffer_growth_strategy::linear != ::page_aligned");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(strategy::exponential) !=
          static_cast<int>(strategy::page_aligned)),
         "buffer_growth_strategy::exponential != ::page_aligned");
@@ -83,8 +75,7 @@ void tests_buffer_growth_strategy(
         !std::is_convertible<int, strategy>::value,
         "buffer_growth_strategy must be a scoped enum (enum class).");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         !std::is_convertible<int, strategy>::value,
         "buffer_growth_strategy is enum class (not implicitly "
         "convertible from int)");
@@ -106,27 +97,25 @@ void tests_buffer_growth_strategy(
         return false;
     };
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         reachable(strategy::none),
         "switch reaches buffer_growth_strategy::none");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         reachable(strategy::linear),
         "switch reaches buffer_growth_strategy::linear");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         reachable(strategy::exponential),
         "switch reaches buffer_growth_strategy::exponential");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         reachable(strategy::page_aligned),
         "switch reaches buffer_growth_strategy::page_aligned");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -139,16 +128,15 @@ tests_buffer_cursor_model
   - the enum is scoped (not implicitly int-convertible)
   - every value is reachable through a switch statement
 */
-void tests_buffer_cursor_model(
-    test_handler& _handler
-)
+bool tests_buffer_cursor_model()
 {
+    bool ok = true;
+
     using model = buffer_cursor_model;
 
     // --- distinctness ---
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         (static_cast<int>(model::write_only) !=
          static_cast<int>(model::dual)),
         "buffer_cursor_model::write_only != ::dual");
@@ -159,8 +147,7 @@ void tests_buffer_cursor_model(
         !std::is_convertible<int, model>::value,
         "buffer_cursor_model must be a scoped enum (enum class).");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         !std::is_convertible<int, model>::value,
         "buffer_cursor_model is enum class (not implicitly "
         "convertible from int)");
@@ -178,19 +165,19 @@ void tests_buffer_cursor_model(
         return false;
     };
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         reachable(model::write_only),
         "switch reaches buffer_cursor_model::write_only");
 
-    record_assertion(
-        _handler,
+    record_assertion(ok,
         reachable(model::dual),
         "switch reaches buffer_cursor_model::dual");
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

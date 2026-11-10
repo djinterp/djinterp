@@ -27,7 +27,7 @@
 # CTest registration (ctest -R traversable_tests) are all supplied by the
 # helper; never set the output directory by hand.
 
-set(_tests_dir "${DJINTERP_INC_ROOT}/djinterp/test/functional")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/functional")
 
 # the section TUs (one per block); exclude any stale ..._main.cpp so two
 # main()s never collide at link.

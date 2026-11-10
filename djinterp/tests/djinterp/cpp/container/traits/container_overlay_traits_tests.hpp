@@ -36,7 +36,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_overlay_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_OVERLAY_TRAITS_TESTS_
@@ -57,9 +57,16 @@
 #include <vector>
 // djinterp
 #include <djinterp/cpp/djinterp.hpp>
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/container/buffer/byte_buffer.hpp>
 #include <djinterp/cpp/container/traits/container_overlay_traits.hpp>
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 // D_OVL_CHECK
 //   macro: the per-suite runtime check (unique letters: OVL = OVerLay).  Records
@@ -77,8 +84,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -158,6 +175,8 @@ struct keyed_half
 {
     using value_type = DOnlyFirstPair;
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -191,6 +210,117 @@ bool tests_canonical_overlay_of();
 // -- VI.  Aggregate snapshot + variable-template companions --
 bool tests_overlay_container_class();
 bool tests_overlay_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_overlay_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_overlay_traits_spec()
+{
+    return dt::module_spec{
+        "container_overlay_traits",
+        "container_overlay_traits.hpp",
+        {
+            dt::block_spec{
+                "vocabulary",
+                "Vocabulary",
+                {
+                    { "tests_restriction_scope_name",
+                      "checks "
+                      "(ovl_cstr_eq(restriction_scope_name(DRestrictionScope::static_scope",
+                      &tests_restriction_scope_name },
+                    { "tests_restriction_kind_name",
+                      "checks "
+                      "(ovl_cstr_eq(restriction_kind_name(DRestrictionKind::multiplicity),",
+                      &tests_restriction_kind_name },
+                    { "tests_scope_of_restriction",
+                      "checks (scope_of_restriction(DRestrictionKind::keyed) "
+                      "== DRestrictionScope",
+                      &tests_scope_of_restriction },
+                }
+            },
+            dt::block_spec{
+                "signals",
+                "Signals",
+                {
+                    { "tests_is_keyed_container",
+                      "checks (is_keyed_container<std::map<int, int>>::value)",
+                      &tests_is_keyed_container },
+                }
+            },
+            dt::block_spec{
+                "algebra",
+                "Algebra",
+                {
+                    { "tests_overlay_top",
+                      "checks (t.mult == multiplicity_kind::sequence)",
+                      &tests_overlay_top },
+                    { "tests_is_order_blind",
+                      "checks (is_order_blind(ovl_top))",
+                      &tests_is_order_blind },
+                    { "tests_overlay_subsumes",
+                      "checks (overlay_subsumes(ovl_set, ovl_set))",
+                      &tests_overlay_subsumes },
+                    { "tests_overlay_meet",
+                      "checks (m.mult == multiplicity_kind::unique)",
+                      &tests_overlay_meet },
+                }
+            },
+            dt::block_spec{
+                "overlay_of",
+                "Overlay of",
+                {
+                    { "tests_overlay_of",
+                      "checks (O::mult == multiplicity_kind::sequence)",
+                      &tests_overlay_of },
+                    { "tests_is_order_blind_overlay",
+                      "checks "
+                      "(is_order_blind_overlay<std::vector<int>>::value)",
+                      &tests_is_order_blind_overlay },
+                    { "tests_wears_overlay",
+                      "checks (wears_overlay<std::set<int>>(target_top))",
+                      &tests_wears_overlay },
+                }
+            },
+            dt::block_spec{
+                "canonical",
+                "Canonical",
+                {
+                    { "tests_canonical_overlay_name",
+                      "checks "
+                      "(ovl_cstr_eq(canonical_overlay_name(canonical_overlay::none), "
+                      "\"none",
+                      &tests_canonical_overlay_name },
+                    { "tests_classify_canonical",
+                      "checks (classify_canonical(multiplicity_kind::unique, "
+                      "false) == canonical_",
+                      &tests_classify_canonical },
+                    { "tests_canonical_overlay_of",
+                      "checks (canonical_overlay_of<std::set<int>>::value == "
+                      "canonical_overlay::s",
+                      &tests_canonical_overlay_of },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_overlay_container_class",
+                      "checks (C::mult == multiplicity_kind::sequence)",
+                      &tests_overlay_container_class },
+                    { "tests_overlay_variable_templates",
+                      "checks (is_keyed_container_v<std::map<int, int>> == "
+                      "is_keyed_container<std",
+                      &tests_overlay_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

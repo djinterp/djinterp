@@ -37,7 +37,7 @@
 *                                       read_write_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -84,11 +84,26 @@ VII.  Test declarations
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/read_write_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -526,15 +541,10 @@ struct DRwTagNoneBits
 };
 
 // DRwTagFunctions
-//   struct: the bits are static member FUNCTIONS.  The probe names them
-// happily and the read then decays each to a function pointer, which is never
-// null - so BOTH bits read true and the type reports read_write whatever the
-// functions would have returned.
-//   Classifying this fixture makes GCC emit -Waddress at the point of use, in
-// the header rather than here, which is the compiler agreeing with the test.
-// To keep that expected diagnostic in one place it is classified ONLY in
-// ..._tests_capability_bits.cpp; no other section TU should instantiate a
-// trait on it.
+//   struct: the bits are static member FUNCTIONS. They are not constants, so
+// the tag is ignored and the structural surface decides. (They used to be
+// trusted, decaying to never-null pointers, so both bits read true.)
+
 struct DRwTagFunctions
 {
     struct callable
@@ -547,6 +557,24 @@ struct DRwTagFunctions
 
     using value_type = int;
     using capability = callable;
+
+    const int* begin() const;
+};
+
+// DRwTagNonStatic
+//   struct: the bits are NON-STATIC data members. Without an object they are
+// no constants, so the tag is ignored. (They used to select the tagged path
+// and then be read without an object: a hard error.)
+struct DRwTagNonStatic
+{
+    struct bits
+    {
+        bool can_read;
+        bool can_write;
+    };
+
+    using value_type = int;
+    using capability = bits;
 
     const int* begin() const;
 };
@@ -697,6 +725,8 @@ using DRwSet         = std::set<int>;
 using DRwMap         = std::map<int, int>;
 using DRwUmap        = std::unordered_map<int, int>;
 using DRwPair        = std::pair<int, int>;
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -757,6 +787,227 @@ bool tests_access_container_class_kind();
 bool tests_access_container_class_predicates();
 bool tests_access_container_class_agreement();
 bool tests_access_container_class_cv_ref();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// read_write_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+read_write_container_traits_spec()
+{
+    return dt::module_spec{
+        "read_write_container_traits",
+        "the ACCESS axis (capability), container-side classifier - and the "
+        "shared core of the...",
+        {
+            dt::block_spec{
+                "read_surface",
+                "I-a. Read surface",
+                {
+                    { "tests_has_const_index_helper",
+                      "Verifies the readable-random-access probe",
+                      &tests_has_const_index_helper },
+                    { "tests_has_const_front_helper",
+                      "Verifies the readable-first-element probe",
+                      &tests_has_const_front_helper },
+                    { "tests_has_const_data_helper",
+                      "Verifies the readable-contiguous-block probe",
+                      &tests_has_const_data_helper },
+                    { "tests_has_const_begin_helper",
+                      "Verifies the readable-iteration probe - the one that "
+                      "lets an associative container, which has neither "
+                      "indexing nor front() nor data(), still count as "
+                      "observable",
+                      &tests_has_const_begin_helper },
+                    { "tests_has_read_surface",
+                      "Verifies the disjunction of the four probes",
+                      &tests_has_read_surface },
+                    { "tests_read_surface_excludes_metadata",
+                      "Verifies the design decision the whole write_only "
+                      "capability rests on",
+                      &tests_read_surface_excludes_metadata },
+                    { "tests_read_surface_std_types",
+                      "Verifies HOW each standard container reaches "
+                      "observability, which differs by container even though "
+                      "the verdict does not",
+                      &tests_read_surface_std_types },
+                }
+            },
+            dt::block_spec{
+                "write_surface",
+                "I-b. Write surface",
+                {
+                    { "tests_has_push_back_helper",
+                      "Verifies the append-at-the-end probe",
+                      &tests_has_push_back_helper },
+                    { "tests_has_emplace_back_helper",
+                      "Verifies the emplace-at-the-end probe",
+                      &tests_has_emplace_back_helper },
+                    { "tests_has_push_front_helper",
+                      "Verifies the append-at-the-front probe - the one that "
+                      "catches a forward_list, which no other append probe "
+                      "reaches",
+                      &tests_has_push_front_helper },
+                    { "tests_has_clear_helper",
+                      "Verifies the no-argument mutator probe - present on "
+                      "every growable standard container, sequence and "
+                      "associative alike, and absent on a fixed array",
+                      &tests_has_clear_helper },
+                    { "tests_has_assignable_index_helper",
+                      "Verifies the in-place mutation probe - what marks a "
+                      "fixed-size std::array as writable, and what a "
+                      "read_only handle must fail",
+                      &tests_has_assignable_index_helper },
+                    { "tests_has_write_surface",
+                      "Verifies the disjunction of the five probes",
+                      &tests_has_write_surface },
+                    { "tests_write_surface_value_type_asymmetry",
+                      "Verifies an asymmetry among the five write probes that "
+                      "decides whether a type is classifiable at all",
+                      &tests_write_surface_value_type_asymmetry },
+                    { "tests_write_surface_std_types",
+                      "Verifies HOW each standard container reaches "
+                      "writability",
+                      &tests_write_surface_std_types },
+                }
+            },
+            dt::block_spec{
+                "capability_bits",
+                "I-c. Capability tag and bits resolution",
+                {
+                    { "tests_has_capability_bits_helper",
+                      "Verifies the opt-in probe: a `capability` naming a "
+                      "TYPE that carries BOTH can_read and can_write",
+                      &tests_has_capability_bits_helper },
+                    { "tests_capability_tag_shapes",
+                      "Verifies exactly which tag shapes the opt-in accepts, "
+                      "and documents the one that cannot be tested at all",
+                      &tests_capability_tag_shapes },
+                    { "tests_access_bits_structural",
+                      "Verifies access_bits_impl's PRIMARY template - the "
+                      "untagged path, which copies the two structural "
+                      "surfaces straight through",
+                      &tests_access_bits_structural },
+                    { "tests_access_bits_tagged",
+                      "Verifies access_bits_impl's <_Type, true> "
+                      "SPECIALISATION - the tagged path, which reads the "
+                      "stamped bits and never looks at the structure",
+                      &tests_access_bits_tagged },
+                    { "tests_access_bits_precedence",
+                      "Verifies that the tag is honoured FIRST - the priority "
+                      "the header documents, and the escape hatch that makes "
+                      "the structural surface's heuristics correctable",
+                      &tests_access_bits_precedence },
+                    { "tests_capability_bits_cv_ref",
+                      "Verifies that the signal probes and the bits "
+                      "resolution honour the clean_t contract",
+                      &tests_capability_bits_cv_ref },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Capability classification",
+                {
+                    { "tests_access_capability_enum",
+                      "Verifies the enumeration itself",
+                      &tests_access_capability_enum },
+                    { "tests_access_capability_name",
+                      "Verifies the diagnostic spelling of each capability",
+                      &tests_access_capability_name },
+                    { "tests_access_capability_name_total",
+                      "Verifies that the spelling function has no "
+                      "unnamed-value hazard",
+                      &tests_access_capability_name_total },
+                    { "tests_access_capability_from_bits",
+                      "Verifies the pure (can_read, can_write) -> capability "
+                      "mapping, exhaustively - it takes two bools, so four "
+                      "cases is the whole function",
+                      &tests_access_capability_from_bits },
+                    { "tests_access_capability_of",
+                      "Verifies the classification itself, on a carrier for "
+                      "each capability",
+                      &tests_access_capability_of },
+                    { "tests_access_capability_of_members",
+                      "Verifies the three members the classifier exposes "
+                      "alongside its verdict",
+                      &tests_access_capability_of_members },
+                    { "tests_access_capability_cv_ref",
+                      "Verifies that the classification honours the clean_t "
+                      "contract",
+                      &tests_access_capability_cv_ref },
+                    { "tests_access_capability_companions",
+                      "Verifies the `_t` alias and the `_v` companion",
+                      &tests_access_capability_companions },
+                }
+            },
+            dt::block_spec{
+                "predicate_and_tag",
+                "Predicate and tag re-emission",
+                {
+                    { "tests_is_read_write_container",
+                      "Verifies the predicate that names the unrestricted "
+                      "baseline",
+                      &tests_is_read_write_container },
+                    { "tests_is_read_write_std_types",
+                      "Verifies the predicate across the standard library, "
+                      "and records what that does and does not demonstrate",
+                      &tests_is_read_write_std_types },
+                    { "tests_access_tag_of",
+                      "Verifies the re-emission of a verdict as the "
+                      "corresponding capability TAG TYPE - the bridge back to "
+                      "the access/ vocabulary",
+                      &tests_access_tag_of },
+                    { "tests_access_tag_of_none_is_void",
+                      "Verifies the primary template of the internal dispatch "
+                      "- the branch no capability tag exists for",
+                      &tests_access_tag_of_none_is_void },
+                    { "tests_access_tag_round_trip",
+                      "Verifies that classification and re-emission are "
+                      "inverse to one another over the three named "
+                      "capabilities - so a capability may be carried through "
+                      "the type system as a tag and recovered without loss",
+                      &tests_access_tag_round_trip },
+                    { "tests_predicate_cv_ref",
+                      "Verifies that the predicate and the tag re-emission "
+                      "honour the clean_t contract",
+                      &tests_predicate_cv_ref },
+                    { "tests_predicate_companions",
+                      "Verifies the `_v` companion the trait_detect engine "
+                      "emits",
+                      &tests_predicate_companions },
+                }
+            },
+            dt::block_spec{
+                "class",
+                "Aggregate snapshot",
+                {
+                    { "tests_access_container_class_bits",
+                      "Verifies the three boolean members the aggregate "
+                      "carries forward",
+                      &tests_access_container_class_bits },
+                    { "tests_access_container_class_kind",
+                      "Verifies the capability and its spelling",
+                      &tests_access_container_class_kind },
+                    { "tests_access_container_class_predicates",
+                      "Verifies the three per-capability booleans",
+                      &tests_access_container_class_predicates },
+                    { "tests_access_container_class_agreement",
+                      "Verifies that the aggregate restates the standalone "
+                      "traits and does not shadow them - the property that "
+                      "makes it safe to read either one",
+                      &tests_access_container_class_agreement },
+                    { "tests_access_container_class_cv_ref",
+                      "Verifies that the aggregate honours the clean_t "
+                      "contract",
+                      &tests_access_container_class_cv_ref },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

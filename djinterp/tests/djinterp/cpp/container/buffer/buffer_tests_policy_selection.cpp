@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_policy_selection.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -26,9 +26,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_select_growth_policy
   Covers select_growth_policy and its alias select_growth_policy_t.
@@ -41,10 +39,10 @@ tests_select_growth_policy
     typename select_growth_policy<S>::type for every strategy
   - the selected policy carries the matching ::strategy constant
 */
-void tests_select_growth_policy(
-    test_handler& _handler
-)
+bool tests_select_growth_policy()
 {
+    bool ok = true;
+
     // --- none -> fixed_growth_policy ---
     {
         using selected =
@@ -55,18 +53,15 @@ void tests_select_growth_policy(
             std::is_same<selected, fixed_growth_policy>::value,
             "select_growth_policy<none>::type must be fixed_growth_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<selected, fixed_growth_policy>::value),
             "select_growth_policy<none>::type == fixed_growth_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::strategy == buffer_growth_strategy::none,
             "select_growth_policy<none>::type::strategy == none");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::can_grow == false,
             "select_growth_policy<none>::type::can_grow == false");
     }
@@ -81,24 +76,20 @@ void tests_select_growth_policy(
             std::is_same<selected, DLinearGrowthPolicy<>>::value,
             "select_growth_policy<linear>::type must be linear_growth_policy<>");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<selected, DLinearGrowthPolicy<>>::value),
             "select_growth_policy<linear>::type == linear_growth_policy<>");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::strategy == buffer_growth_strategy::linear,
             "select_growth_policy<linear>::type::strategy == linear");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::can_grow == true,
             "select_growth_policy<linear>::type::can_grow == true");
 
         // default increment of DLinearGrowthPolicy<> is 4096
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::increment == 4096,
             "select_growth_policy<linear>::type::increment == 4096");
     }
@@ -114,23 +105,19 @@ void tests_select_growth_policy(
             "select_growth_policy<exponential>::type must be "
             "exponential_growth_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<selected, exponential_growth_policy>::value),
             "select_growth_policy<exponential>::type == exponential_growth_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::strategy == buffer_growth_strategy::exponential,
             "select_growth_policy<exponential>::type::strategy == exponential");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::can_grow == true,
             "select_growth_policy<exponential>::type::can_grow == true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::min_capacity == 64,
             "select_growth_policy<exponential>::type::min_capacity == 64");
     }
@@ -146,24 +133,20 @@ void tests_select_growth_policy(
             "select_growth_policy<page_aligned>::type must be "
             "page_growth_policy<>");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<selected, DPageGrowthPolicy<>>::value),
             "select_growth_policy<page_aligned>::type == page_growth_policy<>");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::strategy == buffer_growth_strategy::page_aligned,
             "select_growth_policy<page_aligned>::type::strategy == page_aligned");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::can_grow == true,
             "select_growth_policy<page_aligned>::type::can_grow == true");
 
         // default page size is 4096
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::page_size == 4096,
             "select_growth_policy<page_aligned>::type::page_size == 4096");
     }
@@ -178,8 +161,7 @@ void tests_select_growth_policy(
                     buffer_growth_strategy::none>::type>::value,
             "select_growth_policy_t<none> must alias ::type");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::none>,
                 typename select_growth_policy<
@@ -194,8 +176,7 @@ void tests_select_growth_policy(
                     buffer_growth_strategy::linear>::type>::value,
             "select_growth_policy_t<linear> must alias ::type");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::linear>,
                 typename select_growth_policy<
@@ -210,8 +191,7 @@ void tests_select_growth_policy(
                     buffer_growth_strategy::exponential>::type>::value,
             "select_growth_policy_t<exponential> must alias ::type");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::exponential>,
                 typename select_growth_policy<
@@ -226,8 +206,7 @@ void tests_select_growth_policy(
                     buffer_growth_strategy::page_aligned>::type>::value,
             "select_growth_policy_t<page_aligned> must alias ::type");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::page_aligned>,
                 typename select_growth_policy<
@@ -261,36 +240,34 @@ void tests_select_growth_policy(
                 select_growth_policy_t<buffer_growth_strategy::page_aligned>>::value,
             "none and page_aligned must map to distinct policies");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (!std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::none>,
                 select_growth_policy_t<buffer_growth_strategy::linear>>::value),
             "select_growth_policy: none vs linear are distinct");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (!std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::linear>,
                 select_growth_policy_t<buffer_growth_strategy::exponential>>::value),
             "select_growth_policy: linear vs exponential are distinct");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (!std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::exponential>,
                 select_growth_policy_t<buffer_growth_strategy::page_aligned>>::value),
             "select_growth_policy: exponential vs page_aligned are distinct");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (!std::is_same<
                 select_growth_policy_t<buffer_growth_strategy::none>,
                 select_growth_policy_t<buffer_growth_strategy::page_aligned>>::value),
             "select_growth_policy: none vs page_aligned are distinct");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -306,10 +283,10 @@ tests_select_cursor_policy
   - the two cursor models map to distinct, non-equivalent policy
     types
 */
-void tests_select_cursor_policy(
-    test_handler& _handler
-)
+bool tests_select_cursor_policy()
 {
+    bool ok = true;
+
     // --- write_only -> write_only_cursor_policy ---
     {
         using selected =
@@ -321,18 +298,15 @@ void tests_select_cursor_policy(
             "select_cursor_policy<write_only>::type must be "
             "write_only_cursor_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<selected, write_only_cursor_policy>::value),
             "select_cursor_policy<write_only>::type == write_only_cursor_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::model == buffer_cursor_model::write_only,
             "select_cursor_policy<write_only>::type::model == write_only");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::has_read_cursor == false,
             "select_cursor_policy<write_only>::type::has_read_cursor == false");
     }
@@ -347,18 +321,15 @@ void tests_select_cursor_policy(
             std::is_same<selected, dual_cursor_policy>::value,
             "select_cursor_policy<dual>::type must be dual_cursor_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<selected, dual_cursor_policy>::value),
             "select_cursor_policy<dual>::type == dual_cursor_policy");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::model == buffer_cursor_model::dual,
             "select_cursor_policy<dual>::type::model == dual");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             selected::has_read_cursor == true,
             "select_cursor_policy<dual>::type::has_read_cursor == true");
     }
@@ -373,8 +344,7 @@ void tests_select_cursor_policy(
                     buffer_cursor_model::write_only>::type>::value,
             "select_cursor_policy_t<write_only> must alias ::type");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 select_cursor_policy_t<buffer_cursor_model::write_only>,
                 typename select_cursor_policy<
@@ -389,8 +359,7 @@ void tests_select_cursor_policy(
                     buffer_cursor_model::dual>::type>::value,
             "select_cursor_policy_t<dual> must alias ::type");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (std::is_same<
                 select_cursor_policy_t<buffer_cursor_model::dual>,
                 typename select_cursor_policy<
@@ -406,17 +375,18 @@ void tests_select_cursor_policy(
                 select_cursor_policy_t<buffer_cursor_model::dual>>::value,
             "write_only and dual must map to distinct policies");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (!std::is_same<
                 select_cursor_policy_t<buffer_cursor_model::write_only>,
                 select_cursor_policy_t<buffer_cursor_model::dual>>::value),
             "select_cursor_policy: write_only vs dual are distinct");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

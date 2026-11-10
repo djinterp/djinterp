@@ -18,7 +18,7 @@
 # the existing one (the R5 "single-folder cluster" form; sketch at the bottom).
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/container")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/meta")
 
 # Section TUs (they DEFINE the tests_byte_size_* functions). The runner lives
 # in this config dir and is named explicitly below, so it is never globbed; a
@@ -32,7 +32,7 @@ djinterp_add_test_executable(byte_size_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/byte_size_tests_runner.cpp"
         ${_byte_size_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/cpp/container"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/meta"
         "${_tests_dir}")
 
 # ----------------------------------------------------------------------------

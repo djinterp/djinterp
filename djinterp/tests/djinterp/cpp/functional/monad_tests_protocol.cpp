@@ -10,8 +10,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/monad_tests_protocol.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./monad_tests.hpp"
@@ -20,10 +20,6 @@
 NS_DJINTERP
 NS_TESTING
 
-using ::djinterp::test::test_handler;
-using ::djinterp::test::DUnitTestTally;
-using ::djinterp::test::run_unit_test;
-using ::djinterp::test::record_assertion;
 
 
 /*
@@ -38,46 +34,40 @@ monad_tests_protocol
   - monad_traits::bind short-circuits on a none input
   - monad_traits::value_type / rebind expose the expected types
 */
-void monad_tests_protocol(
-    test_handler& _handler
-)
+bool monad_tests_protocol()
 {
+    bool verdict = true;
+
     DUnitTestTally tally;
 
     // is_monad: positive
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "is_monad detects a specialized monad",
         [&]()
         {
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (::djinterp::is_monad<DTestMaybe<int> >::value),
                 "is_monad<test_maybe<int>> is true");
         });
 
     // is_monad: negative
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "is_monad rejects non-monad types",
         [&]()
         {
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!::djinterp::is_monad<not_a_monad>::value),
                 "is_monad<not_a_monad> is false");
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!::djinterp::is_monad<int>::value),
                 "is_monad<int> is false");
         });
 
     // is_monad: decay-insensitive (reference / const)
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "is_monad sees through reference and const qualification",
         [&]()
@@ -87,15 +77,13 @@ void monad_tests_protocol(
             const bool cref_ok =
                 ::djinterp::is_monad<const DTestMaybe<int>&>::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (ref_ok && cref_ok),
                 "is_monad holds for lvalue-ref and const-ref forms");
         });
 
     // monad_traits::unit
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_traits::unit lifts a value into a some-state monad",
         [&]()
@@ -103,15 +91,13 @@ void monad_tests_protocol(
             DTestMaybe<int> m =
                 ::djinterp::monad_traits<DTestMaybe<int> >::unit(7);
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 7),
                 "unit(7) is some(7)");
         });
 
     // monad_traits::bind on some
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_traits::bind threads a some value through an arrow",
         [&]()
@@ -120,15 +106,13 @@ void monad_tests_protocol(
                 ::djinterp::monad_traits<DTestMaybe<int> >::bind(
                     some(5), arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (m.is_some() && m.value() == 6),
                 "bind(some(5), inc) is some(6)");
         });
 
     // monad_traits::bind on none short-circuits
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_traits::bind short-circuits on a none input",
         [&]()
@@ -137,15 +121,13 @@ void monad_tests_protocol(
                 ::djinterp::monad_traits<DTestMaybe<int> >::bind(
                     DTestMaybe<int>::none(), arrow_inc());
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (!m.is_some()),
                 "bind(none, inc) is none");
         });
 
     // monad_traits associated types
-    run_unit_test(
-        _handler,
+    run_unit_test(verdict,
         tally,
         "monad_traits exposes value_type and rebind",
         [&]()
@@ -158,13 +140,12 @@ void monad_tests_protocol(
                     template rebind<std::string>,
                 DTestMaybe<std::string> >::value;
 
-            record_assertion(
-                _handler,
+            record_assertion(verdict,
                 (value_ok && rebind_ok),
                 "value_type is int and rebind<string> is test_maybe<string>");
         });
 
-    return;
+    return verdict;
 }
 
 

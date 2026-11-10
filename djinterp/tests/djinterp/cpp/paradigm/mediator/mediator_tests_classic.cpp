@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_classic.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : mediator_tests_classic.cpp
 //   The classic, virtual-dispatch layer (section III): colleague_id, the
@@ -35,7 +35,7 @@ namespace
 
         void on_event(
             colleague_id       _sender,
-            const compat::any& _event
+            const re_std::any& _event
         ) override
         {
             last_sender = _sender;
@@ -49,7 +49,7 @@ namespace
             int _value
         )
         {
-            this->send(compat::any(_value));
+            this->send(re_std::any(_value));
 
             return;
         }

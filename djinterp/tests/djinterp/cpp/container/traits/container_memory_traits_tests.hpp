@@ -49,7 +49,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_memory_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_CONTAINER_MEMORY_TRAITS_TESTS_
@@ -70,9 +70,16 @@
 #include <vector>
 // djinterp
 #include <djinterp/cpp/djinterp.hpp>
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/cpp/container/buffer/byte_buffer.hpp>
 #include <djinterp/cpp/container/traits/container_memory_traits.hpp>
 #include <djinterp/cpp/modules/test/test_defaults.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // D_CM_CHECK
@@ -91,8 +98,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -231,6 +248,8 @@ struct inconsistent_individual_static
     using memory_strategy = heap_strategy;
     static constexpr std::size_t extent = 4;
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -258,6 +277,103 @@ bool tests_container_memory_consistent();
 // -- V.   Aggregate snapshot + variable-template companions --
 bool tests_container_memory_class();
 bool tests_memory_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// container_memory_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+container_memory_traits_spec()
+{
+    return dt::module_spec{
+        "container_memory_traits",
+        "container_memory_traits.hpp",
+        {
+            dt::block_spec{
+                "alias_detection",
+                "Alias detection",
+                {
+                    { "tests_has_memory_strategy_alias",
+                      "checks "
+                      "(has_memory_strategy_alias<pooled_via_strategy>::value)",
+                      &tests_has_memory_strategy_alias },
+                }
+            },
+            dt::block_spec{
+                "discipline",
+                "Discipline",
+                {
+                    { "tests_container_memory_discipline",
+                      "checks "
+                      "(container_memory_discipline<std::vector<int>>::value "
+                      "== memory_dis",
+                      &tests_container_memory_discipline },
+                    { "tests_container_memory_discipline_companions",
+                      "checks "
+                      "(container_memory_discipline_t<std::vector<int>>::value "
+                      "== memory_d",
+                      &tests_container_memory_discipline_companions },
+                }
+            },
+            dt::block_spec{
+                "predicates",
+                "Predicates",
+                {
+                    { "tests_container_has_inline_storage",
+                      "checks (container_has_inline_storage<std::array<int, "
+                      "4>>::value)",
+                      &tests_container_has_inline_storage },
+                    { "tests_container_uses_individual_heap",
+                      "checks "
+                      "(container_uses_individual_heap<std::vector<int>>::value)",
+                      &tests_container_uses_individual_heap },
+                    { "tests_container_uses_pool",
+                      "checks "
+                      "(container_uses_pool<pooled_via_strategy>::value)",
+                      &tests_container_uses_pool },
+                    { "tests_container_uses_arena",
+                      "checks "
+                      "(container_uses_arena<arena_via_strategy>::value)",
+                      &tests_container_uses_arena },
+                    { "tests_container_allocates",
+                      "checks (container_allocates<std::vector<int>>::value)",
+                      &tests_container_allocates },
+                    { "tests_container_memory_resolved",
+                      "checks "
+                      "(container_memory_resolved<std::vector<int>>::value)",
+                      &tests_container_memory_resolved },
+                }
+            },
+            dt::block_spec{
+                "consistency",
+                "Consistency",
+                {
+                    { "tests_container_memory_consistent",
+                      "checks "
+                      "(container_memory_consistent<arena_via_strategy>::value)",
+                      &tests_container_memory_consistent },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_container_memory_class",
+                      "checks (C::discipline == memory_discipline::individual)",
+                      &tests_container_memory_class },
+                    { "tests_memory_variable_templates",
+                      "checks "
+                      "(has_memory_strategy_alias_v<pooled_via_strategy> == "
+                      "has_memory_str",
+                      &tests_memory_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

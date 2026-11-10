@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_combinators.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <string>
@@ -27,28 +27,28 @@ test_identity
     the original object (assignable, same address)
   - is value-category- and type-agnostic (works for non-arithmetic types)
 */
-void test_identity(
-    test::test_handler& _h
-)
+bool test_identity()
 {
+    bool verdict = true;
+
     // value passthrough
-    test::record_assertion(_h, (identity(42) == 42),
+    record_assertion(verdict, (identity(42) == 42),
                            "identity: returns its argument value");
 
     // lvalue reference preservation: assignable and same address
     int x = 5;
     identity(x) = 10;
-    test::record_assertion(_h, (x == 10),
+    record_assertion(verdict, (x == 10),
                            "identity: returns an assignable lvalue reference");
-    test::record_assertion(_h, (&identity(x) == &x),
+    record_assertion(verdict, (&identity(x) == &x),
                            "identity: result aliases the original object");
 
     // non-arithmetic type
     std::string s = "hi";
-    test::record_assertion(_h, (identity(s) == "hi"),
+    record_assertion(verdict, (identity(s) == "hi"),
                            "identity: works for non-arithmetic types");
 
-    return;
+    return verdict;
 }
 
 
@@ -62,30 +62,30 @@ test_always_constant
   - constant() is a behavioural alias of always()
   - the stored value type is independent of the argument types
 */
-void test_always_constant(
-    test::test_handler& _h
-)
+bool test_always_constant()
 {
+    bool verdict = true;
+
     auto five = always(5);
 
     // nullary
-    test::record_assertion(_h, (five() == 5),
+    record_assertion(verdict, (five() == 5),
                            "always: nullary call returns stored value");
 
     // arguments of varying count and type are ignored
-    test::record_assertion(_h, (five(1, 2, std::string("x")) == 5),
+    record_assertion(verdict, (five(1, 2, std::string("x")) == 5),
                            "always: ignores all supplied arguments");
 
     // constant alias
-    test::record_assertion(_h, (constant(7)(1, 2, 3) == 7),
+    record_assertion(verdict, (constant(7)(1, 2, 3) == 7),
                            "constant: alias of always");
 
     // stored value type independent of arg types
     auto greet = always(std::string("hello"));
-    test::record_assertion(_h, (greet(0, 1.5) == "hello"),
+    record_assertion(verdict, (greet(0, 1.5) == "hello"),
                            "always: stored value type is independent of args");
 
-    return;
+    return verdict;
 }
 
 
@@ -96,17 +96,17 @@ test_never
   - returns false for a nullary call
   - returns false regardless of the number, type, or value of arguments
 */
-void test_never(
-    test::test_handler& _h
-)
+bool test_never()
 {
-    test::record_assertion(_h, (never() == false),
+    bool verdict = true;
+
+    record_assertion(verdict, (never() == false),
                            "never: nullary call returns false");
-    test::record_assertion(_h,
+    record_assertion(verdict,
                            (never(1, std::string("x"), 2.0) == false),
                            "never: returns false for any arguments");
 
-    return;
+    return verdict;
 }
 
 

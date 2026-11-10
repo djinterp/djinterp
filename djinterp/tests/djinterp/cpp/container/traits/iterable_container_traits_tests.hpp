@@ -55,7 +55,7 @@
 * path:      /tests/djinterp/cpp/container/traits/iterable_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.18
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_ITERABLE_CONTAINER_TRAITS_TESTS_
@@ -76,7 +76,15 @@
 #include <vector>
 // djinterp
 // djinterp (bare include; the leaf CMakeLists adds inc/djinterp/cpp/container/traits)
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/iterable_container_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 #ifndef D_KEYWORD_TESTING
@@ -103,8 +111,18 @@
     } while (false)
 
 
+#endif  // !DTEST_SPEC_MODE
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
+
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // ===========================================================================
@@ -195,6 +213,8 @@ struct DAliasOnly
     using iterator       = int*;
     using const_iterator = const int*;
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 // ===========================================================================
@@ -225,6 +245,109 @@ bool tests_derived_mode_predicates();
 // -- V.   Aggregate snapshot + variable-template companions --
 bool tests_iterable_container_class();
 bool tests_variable_templates();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// iterable_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+iterable_container_traits_spec()
+{
+    return dt::module_spec{
+        "iterable_container_traits",
+        "SFINAE structural traits for the ITERABILITY axis - in what mode a "
+        "container's contents may be...",
+        {
+            dt::block_spec{
+                "detection",
+                "Detection",
+                {
+                    { "tests_has_begin_end_methods",
+                      "checks (has_begin_method<std::vector<int>>::value)",
+                      &tests_has_begin_end_methods },
+                    { "tests_alias_detection",
+                      "checks (has_iterator_alias<std::vector<int>>::value)",
+                      &tests_alias_detection },
+                }
+            },
+            dt::block_spec{
+                "classification",
+                "Classification",
+                {
+                    { "tests_is_iterable_container",
+                      "checks (is_iterable_container<std::vector<int>>::value)",
+                      &tests_is_iterable_container },
+                    { "tests_is_non_iterable_container",
+                      "checks "
+                      "(is_non_iterable_container<positional_only>::value)",
+                      &tests_is_non_iterable_container },
+                }
+            },
+            dt::block_spec{
+                "mode_algebra",
+                "Mode algebra",
+                {
+                    { "tests_iteration_mode_name",
+                      "checks "
+                      "(ic_cstr_eq(iteration_mode_name(iteration_mode::none), "
+                      "\"none\"))",
+                      &tests_iteration_mode_name },
+                    { "tests_mode_value_predicates",
+                      "checks (is_no_iteration_mode(iteration_mode::none))",
+                      &tests_mode_value_predicates },
+                    { "tests_mode_grants",
+                      "checks (!mode_grants_observation(iteration_mode::none))",
+                      &tests_mode_grants },
+                    { "tests_iteration_mode_rank",
+                      "checks (iteration_mode_rank(iteration_mode::none) == 0)",
+                      &tests_iteration_mode_rank },
+                    { "tests_iteration_mode_subsumes",
+                      "checks (iteration_mode_subsumes(iteration_mode::none, "
+                      "iteration_mode::none))",
+                      &tests_iteration_mode_subsumes },
+                }
+            },
+            dt::block_spec{
+                "mode",
+                "Mode",
+                {
+                    { "tests_provides_const_iteration",
+                      "checks "
+                      "(provides_const_iteration<std::vector<int>>::value)",
+                      &tests_provides_const_iteration },
+                    { "tests_provides_mutable_iteration",
+                      "checks "
+                      "(provides_mutable_iteration<std::vector<int>>::value)",
+                      &tests_provides_mutable_iteration },
+                    { "tests_iteration_mode_of",
+                      "checks (iteration_mode_of<std::vector<int>>::value == "
+                      "iteration_mode::non_",
+                      &tests_iteration_mode_of },
+                    { "tests_derived_mode_predicates",
+                      "checks "
+                      "(is_const_iterable_container<std::vector<int>>::value)",
+                      &tests_derived_mode_predicates },
+                }
+            },
+            dt::block_spec{
+                "aggregate",
+                "Aggregate",
+                {
+                    { "tests_iterable_container_class",
+                      "checks (C::has_begin && C::has_end)",
+                      &tests_iterable_container_class },
+                    { "tests_variable_templates",
+                      "checks (has_begin_method_v<std::vector<int>> == "
+                      "has_begin_method<std::vect",
+                      &tests_variable_templates },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

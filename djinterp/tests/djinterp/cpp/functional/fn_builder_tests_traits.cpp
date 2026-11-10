@@ -13,8 +13,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -114,57 +114,57 @@ static_assert(fn_builder_predicate_for<fn_is_even, int>
 #endif
 
 
-void test_traits(
-    test::test_handler& _h
-)
+bool test_traits()
 {
+    bool verdict = true;
+
     // structural detectors
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_fn_builder<seed_t>::value && !is_fn_builder<int>::value,
         "trait: is_fn_builder distinguishes builders from scalars");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_boxed_fn_builder<boxed_t>::value
         && !is_boxed_fn_builder<seed_t>::value,
         "trait: is_boxed_fn_builder distinguishes boxed from typed builders");
 
     // extractors
-    test::record_assertion(_h,
+    record_assertion(verdict,
         std::is_same<fn_builder_input_type_t<restyled_t>, int>::value
         && std::is_same<
                fn_builder_current_type_t<restyled_t>, std::string>::value,
         "trait: input/current type extractors track a type-changing chain");
 
     // mapper / predicate
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_fn_builder_mapper<DFnDouble, int>::value
         && !is_fn_builder_mapper<DFnStringOnly, int>::value,
         "trait: is_fn_builder_mapper detects valid mappers");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_fn_builder_predicate<fn_is_even, int>::value
         && !is_fn_builder_predicate<fn_to_string, int>::value,
         "trait: is_fn_builder_predicate requires a bool-convertible result");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_fn_builder_v<mapped_t> && !is_fn_builder_v<double>,
         "trait: is_fn_builder_v matches the struct form");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_fn_builder_predicate_v<fn_is_even, int>
         && !is_fn_builder_predicate_v<DFnStringOnly, int>,
         "trait: is_fn_builder_predicate_v matches the struct form");
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    test::record_assertion(_h,
+    record_assertion(verdict,
         fn_builder_type<seed_t> && !fn_builder_type<int>,
         "trait: fn_builder_type concept matches is_fn_builder");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         fn_builder_mapper_for<DFnDouble, int>
         && fn_builder_predicate_for<fn_is_even, int>,
         "trait: mapper/predicate concepts match their traits");
 #endif
 
-    return;
+    return verdict;
 }
 
 

@@ -22,7 +22,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_utilities.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -73,17 +73,17 @@ namespace
 // II.  RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_utilities_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_utilities_all()
 {
+    bool verdict = true;
+
     // ---- empty tuple: callable is invoked with zero args ----
     {
         bool called = false;
 
         tuple_to_pack(std::tuple<>{}, [&called]() { called = true; });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             called,
             "tuple_to_pack: empty tuple invokes nullary callable");
     }
@@ -95,7 +95,7 @@ void dtuple_tests_utilities_all(
         tuple_to_pack(std::tuple<int>{42},
                       [&captured](int _a) { captured = _a; });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (captured == 42),
             "tuple_to_pack: single-element tuple forwards the value");
     }
@@ -112,7 +112,7 @@ void dtuple_tests_utilities_all(
                           cap_char = _b;
                       });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((cap_int == 7) && (cap_char == 'k')),
             "tuple_to_pack: two-element heterogeneous tuple expanded positionally");
     }
@@ -131,7 +131,7 @@ void dtuple_tests_utilities_all(
                           cap_c = _c;
                       });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((cap_a == 1) && (cap_b == 2.5) && (cap_c == 99L)),
             "tuple_to_pack: three-element tuple forwards each value in order");
     }
@@ -146,7 +146,7 @@ void dtuple_tests_utilities_all(
                           sum = _a + _b + _c + _d + _e;
                       });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (sum == 15),
             "tuple_to_pack: five-element tuple visits every index");
     }
@@ -169,7 +169,7 @@ void dtuple_tests_utilities_all(
                           cap_second = _b;
                       });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((cap_first == "hello") && (cap_second == "world")),
             "tuple_to_pack: non-trivial elements (std::string) forwarded");
     }
@@ -181,7 +181,7 @@ void dtuple_tests_utilities_all(
         tuple_to_pack(std::tuple<int, int>{10, 20},
                       [&captured](int _a, int _b) { captured = _a + _b; });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (captured == 30),
             "tuple_to_pack: rvalue tuple input forwarded correctly");
     }
@@ -194,10 +194,10 @@ void dtuple_tests_utilities_all(
         tuple_to_pack(lv,
                       [&captured](int _a, int _b) { captured = _a * _b; });
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (captured == 20),
             "tuple_to_pack: lvalue tuple input forwarded");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             ((std::get<0>(lv) == 4) && (std::get<1>(lv) == 5)),
             "tuple_to_pack: lvalue tuple values intact after the call");
     }
@@ -215,15 +215,15 @@ void dtuple_tests_utilities_all(
 
         tuple_to_pack(std::tuple<int, int, int>{2, 4, 6}, add_three);
 
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (call_count == 1),
             "tuple_to_pack: callable invoked exactly once");
-        record_assertion(_test_handler,
+        record_assertion(verdict,
             (sum == 12),
             "tuple_to_pack: stateful lambda observed correct args");
     }
 
-    return;
+    return verdict;
 }
 
 

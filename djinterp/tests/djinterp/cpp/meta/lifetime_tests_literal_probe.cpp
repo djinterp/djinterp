@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/meta/lifetime_tests_literal_probe.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "lifetime_tests.hpp"
@@ -35,7 +35,7 @@ bool tests_literal_probe_scalars_are_literal()
     D_LT_CHECK(is_literal_type<an_enum>::value);
 
     // the module's own lifetime enum is scalar too
-    D_LT_CHECK(is_literal_type<lifetime>::value);
+    D_LT_CHECK(is_literal_type<lifetime::value>::value);
 
     return true;
 }

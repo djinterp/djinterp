@@ -16,7 +16,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_buffer_base_lifecycle.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -24,9 +24,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_buffer_base_reset
   Covers reset() across both cursor policies.
@@ -41,10 +39,10 @@ tests_buffer_base_reset
   - reset() does not invoke the growth policy (grow_call_count is
     unchanged)
 */
-void tests_buffer_base_reset(
-    test_handler& _handler
-)
+bool tests_buffer_base_reset()
 {
+    bool ok = true;
+
     const char src[] = "RESETPAYLOAD0123";  // 16 bytes
 
     // --- write_only: reset zeros write cursor, retains storage ---
@@ -55,8 +53,7 @@ void tests_buffer_base_reset(
         b.write(src, 16);
 
         // sanity precondition
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 16,
             "reset(): write_only precondition - write_position == 16");
 
@@ -64,25 +61,21 @@ void tests_buffer_base_reset(
 
         b.reset();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "reset(): write_only zeros write_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.empty(),
             "reset(): write_only buffer reports empty after reset");
 
         // storage bytes survive - reset is cursor-only
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 16) == 0,
             "reset(): write_only retains underlying storage bytes");
 
         // no growth invoked
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "reset(): write_only does not invoke grow()");
     }
@@ -96,13 +89,11 @@ void tests_buffer_base_reset(
         b.advance(8);  // consume half
 
         // sanity preconditions
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 16,
             "reset(): dual precondition - write_position == 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 8,
             "reset(): dual precondition - read_position == 8");
 
@@ -110,35 +101,29 @@ void tests_buffer_base_reset(
 
         b.reset();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "reset(): dual zeros write_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "reset(): dual zeros read_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 0,
             "reset(): dual reports zero readable bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.empty(),
             "reset(): dual buffer reports empty after reset");
 
         // storage bytes survive
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 16) == 0,
             "reset(): dual retains underlying storage bytes");
 
         // no growth invoked
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "reset(): dual does not invoke grow()");
     }
@@ -150,18 +135,15 @@ void tests_buffer_base_reset(
 
         b.reset();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "reset(): idle buffer keeps write_position at 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "reset(): idle buffer keeps read_position at 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 32,
             "reset(): idle buffer preserves capacity");
     }
@@ -176,18 +158,18 @@ void tests_buffer_base_reset(
         b.reset();
         b.reset();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "reset(): idempotent - write_position == 0 after two calls");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "reset(): idempotent - read_position == 0 after two calls");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -205,10 +187,10 @@ tests_buffer_base_clear
   - clear() does not invoke grow() and does not change capacity
   - clear() is idempotent
 */
-void tests_buffer_base_clear(
-    test_handler& _handler
-)
+bool tests_buffer_base_clear()
 {
+    bool ok = true;
+
     const char src[] = "CLEARPAYLOAD0123";  // 16 bytes
 
     // --- write_only: clear zeros cursors AND storage ---
@@ -223,13 +205,11 @@ void tests_buffer_base_clear(
 
         b.clear();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "clear(): write_only zeros write_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.empty(),
             "clear(): write_only buffer reports empty after clear");
 
@@ -247,18 +227,15 @@ void tests_buffer_base_clear(
             }
         }
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             all_zero,
             "clear(): write_only zeros every byte of storage");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == cap_before,
             "clear(): write_only preserves capacity");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "clear(): write_only does not invoke grow()");
     }
@@ -275,18 +252,15 @@ void tests_buffer_base_clear(
 
         b.clear();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "clear(): dual zeros write_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "clear(): dual zeros read_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 0,
             "clear(): dual reports zero readable bytes");
 
@@ -304,13 +278,11 @@ void tests_buffer_base_clear(
             }
         }
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             all_zero,
             "clear(): dual zeros every byte of storage");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "clear(): dual does not invoke grow()");
     }
@@ -320,31 +292,26 @@ void tests_buffer_base_clear(
         mock_buffer<exponential_growth_policy,
                     dual_cursor_policy> b;  // no allocation
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 0,
             "clear(): zero-capacity precondition - capacity == 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.storage() == nullptr,
             "clear(): zero-capacity precondition - storage == nullptr");
 
         // must not crash; the capacity > 0 guard inside clear() skips memset
         b.clear();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "clear(): zero-capacity leaves write_position at 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "clear(): zero-capacity leaves read_position at 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 0,
             "clear(): zero-capacity preserves zero capacity");
     }
@@ -358,18 +325,18 @@ void tests_buffer_base_clear(
         b.clear();
         b.clear();
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "clear(): idempotent - write_position == 0 after two calls");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.storage()[0] == 0,
             "clear(): idempotent - first storage byte remains zero");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -389,10 +356,10 @@ tests_buffer_base_reserve
     fires (grow() returns false)
   - reserve() does not alter cursor state
 */
-void tests_buffer_base_reserve(
-    test_handler& _handler
-)
+bool tests_buffer_base_reserve()
 {
+    bool ok = true;
+
     // --- already-sufficient: no grow, returns true ---
     {
         mock_buffer<exponential_growth_policy,
@@ -402,18 +369,15 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(64);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "reserve(): already-sufficient returns true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "reserve(): already-sufficient does not invoke grow()");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 128,
             "reserve(): already-sufficient preserves capacity");
     }
@@ -427,13 +391,11 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(128);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "reserve(): exact-match returns true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "reserve(): exact-match does not invoke grow()");
     }
@@ -447,13 +409,11 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(0);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "reserve(0): empty buffer returns true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "reserve(0): empty buffer does not invoke grow()");
     }
@@ -467,24 +427,20 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(200);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "reserve(): growable + needs growth returns true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == (grows_before + 1),
             "reserve(): growable + needs growth invokes grow() once");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() >= 200,
             "reserve(): post-grow capacity satisfies the request");
 
         // exponential policy doubles from 64 -> 128 -> 256
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 256,
             "reserve(): exponential policy yields 256 for request of 200");
     }
@@ -500,23 +456,19 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(512);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "reserve(): growable preserves payload - grow succeeded");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 8,
             "reserve(): growable preserves write_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 3,
             "reserve(): growable preserves read_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 8) == 0,
             "reserve(): growable preserves payload bytes");
     }
@@ -530,18 +482,15 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(200);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             !ok,
             "reserve(): fixed + insufficient returns false");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == grows_before,
             "reserve(): fixed + insufficient does not invoke grow()");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 64,
             "reserve(): fixed + insufficient preserves capacity");
     }
@@ -553,8 +502,7 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(64);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "reserve(): fixed + already-sufficient returns true");
     }
@@ -570,23 +518,22 @@ void tests_buffer_base_reserve(
 
         bool ok = b.reserve(200);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             !ok,
             "reserve(): grow-failure injection returns false");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == (grows_before + 1),
             "reserve(): grow-failure still invokes grow() once");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 64,
             "reserve(): grow-failure preserves capacity");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -602,10 +549,10 @@ tests_buffer_base_move_construction
   - moved-from buffer has zeroed cursors
   - moved-from buffer has zero capacity (mock_buffer transfers ownership)
 */
-void tests_buffer_base_move_construction(
-    test_handler& _handler
-)
+bool tests_buffer_base_move_construction()
 {
+    bool ok = true;
+
     const char src[] = "MOVECTORPAYLOAD!";  // 16 bytes
 
     // --- dual cursor: full state transfer ---
@@ -617,13 +564,11 @@ void tests_buffer_base_move_construction(
         a.advance(5);
 
         // sanity preconditions on source
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.write_position() == 16,
             "move-ctor: dual source precondition - write_position == 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.read_position() == 5,
             "move-ctor: dual source precondition - read_position == 5");
 
@@ -633,23 +578,19 @@ void tests_buffer_base_move_construction(
                                     dual_cursor_policy>&&>(a));
 
         // destination inherits cursor state
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 16,
             "move-ctor: dual destination has write_position == 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 5,
             "move-ctor: dual destination has read_position == 5");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 11,
             "move-ctor: dual destination has readable == 11");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 64,
             "move-ctor: dual destination has capacity == 64");
 
@@ -657,34 +598,28 @@ void tests_buffer_base_move_construction(
         char        out[16];
         std::size_t n = b.read(out, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 11,
             "move-ctor: dual destination read returns 11 unconsumed bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(out, src + 5, 11) == 0,
             "move-ctor: dual destination payload matches source tail");
 
         // source is left in a resourceless state
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.write_position() == 0,
             "move-ctor: dual source has write_position reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.read_position() == 0,
             "move-ctor: dual source has read_position reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.capacity() == 0,
             "move-ctor: dual source has capacity reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.storage() == nullptr,
             "move-ctor: dual source has storage reset to nullptr");
     }
@@ -701,28 +636,23 @@ void tests_buffer_base_move_construction(
                         mock_buffer<exponential_growth_policy,
                                     write_only_cursor_policy>&&>(a));
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 12,
             "move-ctor: write_only destination has write_position == 12");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 32,
             "move-ctor: write_only destination has capacity == 32");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 12) == 0,
             "move-ctor: write_only destination payload matches source");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.write_position() == 0,
             "move-ctor: write_only source has write_position reset");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.capacity() == 0,
             "move-ctor: write_only source has capacity reset");
     }
@@ -737,28 +667,26 @@ void tests_buffer_base_move_construction(
                         mock_buffer<exponential_growth_policy,
                                     dual_cursor_policy>&&>(a));
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "move-ctor: idle source - destination write_position == 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 0,
             "move-ctor: idle source - destination read_position == 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 0,
             "move-ctor: idle source - destination capacity == 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.write_position() == 0,
             "move-ctor: idle source - source write_position == 0");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -775,10 +703,10 @@ tests_buffer_base_move_assignment
   - self-move assignment is a no-op: state is preserved
   - reading from the destination yields the original payload
 */
-void tests_buffer_base_move_assignment(
-    test_handler& _handler
-)
+bool tests_buffer_base_move_assignment()
 {
+    bool ok = true;
+
     const char src[] = "MOVEASSIGNPAYLD!";  // 16 bytes
 
     // --- normal move-assign: a -> b, where b has prior storage ---
@@ -796,8 +724,7 @@ void tests_buffer_base_move_assignment(
         char filler[8] = {'X','X','X','X','X','X','X','X'};
         b.write(filler, 8);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 8,
             "move-assign: destination precondition - write_position == 8");
 
@@ -806,23 +733,19 @@ void tests_buffer_base_move_assignment(
                             dual_cursor_policy>&&>(a);
 
         // destination now mirrors source's prior state
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 16,
             "move-assign: destination receives write_position == 16");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 4,
             "move-assign: destination receives read_position == 4");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.readable() == 12,
             "move-assign: destination receives readable == 12");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 64,
             "move-assign: destination receives capacity == 64");
 
@@ -830,34 +753,28 @@ void tests_buffer_base_move_assignment(
         char        out[16];
         std::size_t n = b.read(out, 16);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 12,
             "move-assign: destination yields 12 unconsumed bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(out, src + 4, 12) == 0,
             "move-assign: destination payload matches source tail");
 
         // source is resourceless
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.write_position() == 0,
             "move-assign: source write_position reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.read_position() == 0,
             "move-assign: source read_position reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.capacity() == 0,
             "move-assign: source capacity reset to 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.storage() == nullptr,
             "move-assign: source storage reset to nullptr");
     }
@@ -883,28 +800,23 @@ void tests_buffer_base_move_assignment(
                 mock_buffer<exponential_growth_policy,
                             dual_cursor_policy>&&>(alias);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 16,
             "move-assign: self-move preserves write_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.read_position() == 3,
             "move-assign: self-move preserves read_position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 64,
             "move-assign: self-move preserves capacity");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.storage() == storage_before,
             "move-assign: self-move preserves storage pointer identity");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 16) == 0,
             "move-assign: self-move preserves payload bytes");
     }
@@ -923,35 +835,32 @@ void tests_buffer_base_move_assignment(
                 mock_buffer<exponential_growth_policy,
                             write_only_cursor_policy>&&>(a);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 10,
             "move-assign: write_only destination has write_position == 10");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() == 32,
             "move-assign: write_only destination has capacity == 32");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, 10) == 0,
             "move-assign: write_only destination payload matches source");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.write_position() == 0,
             "move-assign: write_only source write_position reset");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             a.capacity() == 0,
             "move-assign: write_only source capacity reset");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

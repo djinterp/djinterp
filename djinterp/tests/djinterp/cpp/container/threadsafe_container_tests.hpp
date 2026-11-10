@@ -48,8 +48,8 @@
 *
 * path:      /tests/djinterp/cpp/container/threadsafe_container_tests.hpp
 * link(s):   TBA
-* author(s): djinterp test generator                                created: TBA
-*                                                            revised: 2026.09.21
+* author(s): djinterp test generator                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_THREADSAFE_CONTAINER_TESTS_
@@ -58,7 +58,6 @@
 // std
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <thread>
 #include <vector>
@@ -66,7 +65,8 @@
 // -- (part 1) mode-gated includes ------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
-#include <djinterp/cpp/djinterp.hpp>
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
+#include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uintN_t, intN_t
 #ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/container/threadsafe_container.hpp"             // the header under test
 #endif
@@ -194,7 +194,7 @@ bool tests_optimistic_read_fast_path();
 bool tests_optimistic_read_fallback();
 
 // V.    cas             (threadsafe_container_tests_cas.cpp)
-bool tests_cas_exponential_off();
+bool tests_cas_exponential_backoff();
 bool tests_cas_loop_success();
 bool tests_cas_loop_update();
 
@@ -324,10 +324,10 @@ dt::module_spec threadsafe_container_spec()
                 "the CAS retry infrastructure: exponential backoff and "
                 "cas_loop",
                 {
-                    { "tests_cas_exponential_off",
-                      "exponential_off drives its spin-then-yield schedule "
+                    { "tests_cas_exponential_backoff",
+                      "DExponentialBackoff drives its spin-then-yield schedule "
                       "and reset without error across many calls",
-                      &tests_cas_exponential_off },
+                      &tests_cas_exponential_backoff },
                     { "tests_cas_loop_success",
                       "an uncontended cas_loop succeeds and lands the value "
                       "the update function computed",

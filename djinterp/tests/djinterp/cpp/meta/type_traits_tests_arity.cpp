@@ -26,16 +26,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_arity.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 // =========================================================================
 // I.   is_zero  (compile-time)
 // =========================================================================
@@ -157,80 +155,80 @@ static_assert(is_single_type_arg<int, int, int>::value == false,
 // V.   RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_arity(
-    test_handler& _test_handler
-)
+bool type_traits_tests_arity()
 {
+    bool verdict = true;
+
     // ---- is_zero ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_zero<0>::value == true,
         "is_zero<0>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_zero<1>::value == false,
         "is_zero<1>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_zero<5>::value == false,
         "is_zero<5>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_zero<SIZE_MAX>::value == false,
         "is_zero<SIZE_MAX>");
 
     // ---- is_nonzero ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nonzero<0>::value == false,
         "is_nonzero<0>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nonzero<1>::value == true,
         "is_nonzero<1>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_nonzero<SIZE_MAX>::value == true,
         "is_nonzero<SIZE_MAX>");
 
     // complementarity
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_zero<0>::value != is_nonzero<0>::value,
         "is_zero/is_nonzero complementary at 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_zero<7>::value != is_nonzero<7>::value,
         "is_zero/is_nonzero complementary at 7");
 
     // ---- is_single_arg ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_arg<>::value == false,
         "is_single_arg<> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_arg<int>::value == true,
         "is_single_arg<int> -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename is_single_arg<int>::type, int>::value,
         "is_single_arg<int>::type == int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_arg<int, char>::value == false,
         "is_single_arg<int, char> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_arg<int, char, float>::value == false,
         "is_single_arg<int, char, float> -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_arg<int, int>::value == false,
         "is_single_arg<int, int> -> false (duplicates still multi-arg)");
 
     // ---- is_single_type_arg ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_type_arg<int, int>::value == true,
         "is_single_type_arg<int, int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_type_arg<double, double>::value == true,
         "is_single_type_arg<double, double>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_type_arg<int, char>::value == false,
         "is_single_type_arg<int, char> (mismatch)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_single_type_arg<int, int, int>::value == false,
         "is_single_type_arg<int, int, int> (arity)");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

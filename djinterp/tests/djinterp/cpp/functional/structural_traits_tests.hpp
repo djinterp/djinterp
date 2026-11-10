@@ -47,7 +47,7 @@
 * path:      /tests/djinterp/cpp/functional/structural_traits_tests.hpp
 * link(s):   TBA
 * author(s): teer                                            created: 2026.07.12
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -84,11 +84,26 @@ V.    PROTOCOL CONCEPTS  (BinaryCallable, Reducer, Transducer, UnfoldStep)
 #include <type_traits>
 // djinterp
 // djinterp (module under test)
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/functional/structural_traits.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -547,6 +562,8 @@ template<typename _Type>
 int which_unfold(_Type) { return 0; }
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -621,6 +638,244 @@ bool tests_concept_unfold_step();
 bool tests_concept_drives_the_protocols();
 bool tests_concept_overload_gating();
 bool tests_concepts_gating();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// structural_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+structural_traits_spec()
+{
+    return dt::module_spec{
+        "structural_traits",
+        "has_match_result_type, has_find_method (the pattern protocol)",
+        {
+            dt::block_spec{
+                "members",
+                "Members",
+                {
+                    { "tests_has_match_result_type_positive",
+                      "A type exposing the pattern protocol's extraction-face "
+                      "result is detected",
+                      &tests_has_match_result_type_positive },
+                    { "tests_has_match_result_type_negative",
+                      "The detector requires a nested TYPE -- a data member "
+                      "of the same name is not one",
+                      &tests_has_match_result_type_negative },
+                    { "tests_has_match_result_type_cvref",
+                      "The generated detector strips cv-qualifiers and "
+                      "references before looking",
+                      &tests_has_match_result_type_cvref },
+                    { "tests_has_find_method_positive",
+                      "The searchable-pattern shape -- find(const In&, "
+                      "size_t&, Result&) -> bool -- is detected, so "
+                      "pattern_scanner can static_assert the requirement "
+                      "instead of failing deep inside an instantiation",
+                      &tests_has_find_method_positive },
+                    { "tests_has_find_method_scan_protocol",
+                      "The detected shape really is the \"scan for the next "
+                      "occurrence\" protocol the pattern scanner pulls on "
+                      "repeatedly: find writes the next position and the "
+                      "captures, and returns false once no further occurrence "
+                      "exists",
+                      &tests_has_find_method_scan_protocol },
+                    { "tests_has_find_method_negative",
+                      "Types that do not carry the shape are rejected, cleanly",
+                      &tests_has_find_method_negative },
+                    { "tests_has_find_method_return_conversion",
+                      "The result is taken through static_cast<bool> -- an "
+                      "EXPLICIT conversion",
+                      &tests_has_find_method_return_conversion },
+                    { "tests_has_find_method_const_lvalue",
+                      "has_find_method probes `declval<const "
+                      "_Type&>().find(...)` -- a CONST lvalue -- so a "
+                      "non-const find is not detected",
+                      &tests_has_find_method_const_lvalue },
+                    { "tests_has_find_method_parameter_binding",
+                      "The probe passes lvalues -- a const Input&, a size_t&, "
+                      "and a Result& -- so any find whose parameters bind to "
+                      "those lvalues qualifies",
+                      &tests_has_find_method_parameter_binding },
+                    { "tests_has_find_method_cvref",
+                      "clean_t is applied to all three parameters, so cv-ref "
+                      "spellings of the pattern, the input, and the result "
+                      "all resolve to the same query",
+                      &tests_has_find_method_cvref },
+                }
+            },
+            dt::block_spec{
+                "arity",
+                "Arity",
+                {
+                    { "tests_is_nullary_callable_positive",
+                      "A nullary callable -- the \"next\" step that drives a "
+                      "pull-based source -- is detected",
+                      &tests_is_nullary_callable_positive },
+                    { "tests_is_nullary_callable_negative",
+                      "Rejected cleanly (SFINAE, not a hard error)",
+                      &tests_is_nullary_callable_negative },
+                    { "tests_is_unary_callable_positive",
+                      "A unary callable -- the transform and predicate shape "
+                      "-- is detected",
+                      &tests_is_unary_callable_positive },
+                    { "tests_is_unary_callable_negative",
+                      "is unary callable negative",
+                      &tests_is_unary_callable_negative },
+                    { "tests_is_binary_callable_positive",
+                      "A binary callable -- the reducer step (acc, x) -> acc "
+                      "-- is detected",
+                      &tests_is_binary_callable_positive },
+                    { "tests_is_binary_callable_negative",
+                      "is binary callable negative",
+                      &tests_is_binary_callable_negative },
+                    { "tests_arity_mutable_lvalue_contract",
+                      "The defining contract of all three: the probe is "
+                      "declval<_Type&>() -- a MUTABLE LVALUE",
+                      &tests_arity_mutable_lvalue_contract },
+                    { "tests_arity_argument_decay",
+                      "clean_t is applied to _Arg, so every cv-ref spelling "
+                      "of an argument collapses to the same query -- and the "
+                      "probe then offers an RVALUE",
+                      &tests_arity_argument_decay },
+                    { "tests_arity_type_decay",
+                      "clean_t is also applied to _Type, so cv-ref spellings "
+                      "of the CALLABLE collapse too",
+                      &tests_arity_type_decay },
+                    { "tests_arity_trilogy_exclusive",
+                      "The three traits partition by arity: each accepts its "
+                      "own and refuses the others, so the source / transform "
+                      "/ reducer roles cannot be confused",
+                      &tests_arity_trilogy_exclusive },
+                }
+            },
+            dt::block_spec{
+                "optional",
+                "Optional",
+                {
+                    { "tests_produces_optional_like_positive",
+                      "A nullary callable whose result is both bool-testable "
+                      "and dereferenceable is a well-formed pull source",
+                      &tests_produces_optional_like_positive },
+                    { "tests_produces_optional_like_requires_bool",
+                      "BOTH halves are required",
+                      &tests_produces_optional_like_requires_bool },
+                    { "tests_produces_optional_like_requires_deref",
+                      "The other half",
+                      &tests_produces_optional_like_requires_deref },
+                    { "tests_produces_optional_like_requires_nullary",
+                      "The source step is NULLARY -- a unary step is a "
+                      "different role (that is is_unfold_step's job)",
+                      &tests_produces_optional_like_requires_nullary },
+                    { "tests_produces_optional_like_pull_protocol",
+                      "The detected shape really is the pull protocol: each "
+                      "call advances the source and answers \"more values?\", "
+                      "and the source finally exhausts",
+                      &tests_produces_optional_like_pull_protocol },
+                    { "tests_is_unfold_step_positive",
+                      "The unary, state-threaded analog: Step(state) -> "
+                      "maybe<next>",
+                      &tests_is_unfold_step_positive },
+                    { "tests_is_unfold_step_negative",
+                      "is unfold step negative",
+                      &tests_is_unfold_step_negative },
+                    { "tests_is_unfold_step_requires_both",
+                      "As with DProducesOptionalLike, both halves are "
+                      "required of the result",
+                      &tests_is_unfold_step_requires_both },
+                    { "tests_is_unfold_step_unfold_protocol",
+                      "The detected shape is a working unfold: thread the "
+                      "state, take a value while the step yields one, stop "
+                      "when it does not",
+                      &tests_is_unfold_step_unfold_protocol },
+                    { "tests_optional_like_nullary_vs_unary",
+                      "The two traits are the nullary and the unary halves of "
+                      "one idea, and they do not overlap: a source is not an "
+                      "unfold step and an unfold step is not a source",
+                      &tests_optional_like_nullary_vs_unary },
+                }
+            },
+            dt::block_spec{
+                "aliases",
+                "Aliases",
+                {
+                    { "tests_has_match_result_type_v_agrees",
+                      "The member-type detector's _v companion (emitted by "
+                      "the trait macro) is exactly the trait's value",
+                      &tests_has_match_result_type_v_agrees },
+                    { "tests_has_find_method_v_agrees",
+                      "has_find_method_v is the trait's value (it re-applies "
+                      "clean_t, which is idempotent, so the two cannot drift)",
+                      &tests_has_find_method_v_agrees },
+                    { "tests_arity_v_agree",
+                      "The trilogy's three shorthands agree with their traits",
+                      &tests_arity_v_agree },
+                    { "tests_optional_like_v_agree",
+                      "The two source-protocol shorthands agree with their "
+                      "traits",
+                      &tests_optional_like_v_agree },
+                    { "tests_aliases_are_constant_expressions",
+                      "The shorthands are constexpr bools, usable wherever a "
+                      "constant is required",
+                      &tests_aliases_are_constant_expressions },
+                    { "tests_aliases_gating",
+                      "The shorthands exist exactly where the standard allows "
+                      "them: gated on variable templates (C++14+), with the "
+                      "::value forms as the always-present floor -- the "
+                      "header degrades to C++11",
+                      &tests_aliases_gating },
+                }
+            },
+            dt::block_spec{
+                "concepts",
+                "Concepts",
+                {
+                    { "tests_concept_binary_callable_mirrors",
+                      "BinaryCallable is the concept face of "
+                      "is_binary_callable",
+                      &tests_concept_binary_callable_mirrors },
+                    { "tests_concept_reducer",
+                      "Reducer is the reduction step -- the pure `step` half "
+                      "of the step/driver split, defined over BinaryCallable",
+                      &tests_concept_reducer },
+                    { "tests_concept_reducer_ignores_result",
+                      "Worth pinning honestly: Reducer is defined as "
+                      "BinaryCallable, so it constrains ARITY ONLY -- it does "
+                      "not check that the result is the accumulator type, "
+                      "though the documented shape is (acc, x) -> acc",
+                      &tests_concept_reducer_ignores_result },
+                    { "tests_concept_transducer",
+                      "Transducer is a reducer-to-reducer transformer: a "
+                      "unary callable that, given a reducer, yields a "
+                      "transformed one",
+                      &tests_concept_transducer },
+                    { "tests_concept_unfold_step",
+                      "UnfoldStep is the concept face of is_unfold_step -- "
+                      "the pull-based source step State -> maybe<(value, "
+                      "state)>",
+                      &tests_concept_unfold_step },
+                    { "tests_concept_drives_the_protocols",
+                      "The faces put to work: a Reducer-constrained driver "
+                      "runs any reduction step, and an UnfoldStep-constrained "
+                      "driver pulls a source to exhaustion",
+                      &tests_concept_drives_the_protocols },
+                    { "tests_concept_overload_gating",
+                      "The concepts really GATE overload resolution -- they "
+                      "are constraints, not merely bools that happen to be "
+                      "true",
+                      &tests_concept_overload_gating },
+                    { "tests_concepts_gating",
+                      "The faces exist exactly where the standard allows "
+                      "them: guarded away below C++20, leaving the structural "
+                      "traits -- which degrade to C++11 -- as the floor",
+                      &tests_concepts_gating },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

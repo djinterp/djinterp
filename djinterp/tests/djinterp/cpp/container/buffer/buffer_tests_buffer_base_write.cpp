@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/container/buffer/buffer_tests_buffer_base_write.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -23,9 +23,7 @@
 
 
 NS_DJINTERP
-NS_TEST
-
-
+NS_TESTING
 /*
 tests_buffer_base_write
   Covers the write(const void*, std::size_t) entry point.
@@ -45,10 +43,10 @@ tests_buffer_base_write
     nothing fits
   - the byte payload is preserved across all successful paths
 */
-void tests_buffer_base_write(
-    test_handler& _handler
-)
+bool tests_buffer_base_write()
 {
+    bool ok = true;
+
     const char src[]   = "hello world!";
     const std::size_t  n_src = sizeof(src) - 1;  // 12 bytes
 
@@ -59,13 +57,11 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(nullptr, 5);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write(): null source returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "write(): null source does not advance cursor");
     }
@@ -77,13 +73,11 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, 0);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write(): zero-length returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "write(): zero-length does not advance cursor");
     }
@@ -95,23 +89,19 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == n_src,
             "write(): normal write returns the bytes written");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == n_src,
             "write(): write_position advances by n_src");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, n_src) == 0,
             "write(): payload matches the source byte-for-byte");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() == 0,
             "write(): no grow() invocation when n fits in capacity");
     }
@@ -123,18 +113,15 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == n_src,
             "write(): exact-fit on fixed buffer succeeds");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.full(),
             "write(): fixed buffer is full after exact-fit write");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, n_src) == 0,
             "write(): payload preserved at exact-fit boundary");
     }
@@ -146,24 +133,20 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == n_src,
             "write(): growable buffer accepts all bytes despite "
             "starting under capacity");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() >= 1,
             "write(): grow() was invoked at least once");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() >= n_src,
             "write(): capacity now >= n_src after grow");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, n_src) == 0,
             "write(): payload preserved across grow");
     }
@@ -176,19 +159,16 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == cap,
             "write(): fixed-buffer overflow is truncated to "
             "writable() (5 bytes)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.full(),
             "write(): fixed buffer is full after truncated write");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), src, cap) == 0,
             "write(): truncated bytes copied are the leading bytes "
             "of the source");
@@ -203,13 +183,11 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write(): full fixed buffer returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 4,
             "write(): cursor unchanged on full-buffer write");
     }
@@ -225,18 +203,15 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);  // 12 > 4 remaining
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 4,
             "write(): grow failure falls back to writable() (4 bytes)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 8,
             "write(): cursor at capacity after fallback write");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage() + 4, src, 4) == 0,
             "write(): the four fallback bytes match source prefix");
     }
@@ -251,18 +226,18 @@ void tests_buffer_base_write(
 
         std::size_t n = b.write(src, n_src);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write(): grow failure with zero writable returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 4,
             "write(): cursor unchanged on zero-fallback write");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -278,10 +253,10 @@ tests_buffer_base_write_byte
   - write_byte on a fixed buffer where grow is unavailable but space
     remains succeeds normally
 */
-void tests_buffer_base_write_byte(
-    test_handler& _handler
-)
+bool tests_buffer_base_write_byte()
 {
+    bool ok = true;
+
     // --- normal sequence of write_byte calls ---
     {
         mock_buffer<exponential_growth_policy,
@@ -291,18 +266,15 @@ void tests_buffer_base_write_byte(
         bool ok_b = b.write_byte('B');
         bool ok_c = b.write_byte('C');
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (ok_a && ok_b && ok_c),
             "write_byte(): three calls return true");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 3,
             "write_byte(): cursor advances by 1 per call");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (b.storage()[0] == 'A') &&
             (b.storage()[1] == 'B') &&
             (b.storage()[2] == 'C'),
@@ -317,13 +289,11 @@ void tests_buffer_base_write_byte(
         b.write_byte('\0');
         b.write_byte(static_cast<char>(0xFF));
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.storage()[0] == '\0',
             "write_byte(): 0x00 byte preserved exactly");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             static_cast<unsigned char>(b.storage()[1]) == 0xFF,
             "write_byte(): 0xFF byte preserved exactly");
     }
@@ -336,19 +306,16 @@ void tests_buffer_base_write_byte(
         b.write_byte('X');  // fills it
         bool ok = b.write_byte('Y');
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             ok,
             "write_byte(): triggers grow on growable buffer");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (b.storage()[0] == 'X') &&
             (b.storage()[1] == 'Y'),
             "write_byte(): payload preserved across grow");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() >= 1,
             "write_byte(): grow invoked at least once");
     }
@@ -361,25 +328,24 @@ void tests_buffer_base_write_byte(
         b.write_byte('1');
         b.write_byte('2');
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.full(),
             "write_byte(): fixed buffer is full after 2 writes");
 
         bool ok = b.write_byte('3');
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             !ok,
             "write_byte(): returns false when fixed buffer is full");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 2,
             "write_byte(): cursor unchanged on failed write");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -396,10 +362,10 @@ tests_buffer_base_write_fill
   - fill where grow fails and writable is zero returns 0
   - the byte value used in the fill is preserved exactly
 */
-void tests_buffer_base_write_fill(
-    test_handler& _handler
-)
+bool tests_buffer_base_write_fill()
 {
+    bool ok = true;
+
     // --- zero-length is a no-op ---
     {
         mock_buffer<exponential_growth_policy,
@@ -407,13 +373,11 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('Z', 0);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write_fill(): zero-length returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 0,
             "write_fill(): zero-length does not advance cursor");
     }
@@ -425,13 +389,11 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('K', 10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 10,
             "write_fill(): normal fill returns 10");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 10,
             "write_fill(): cursor advances by 10");
 
@@ -447,8 +409,7 @@ void tests_buffer_base_write_fill(
             }
         }
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             every_byte_ok,
             "write_fill(): all 10 bytes equal 'K'");
     }
@@ -460,18 +421,15 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('q', 20);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 20,
             "write_fill(): triggers grow and writes all 20 bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.capacity() >= 20,
             "write_fill(): capacity expanded to >= 20");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.grow_call_count() >= 1,
             "write_fill(): grow invoked at least once");
     }
@@ -483,14 +441,12 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('!', 10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 5,
             "write_fill(): fixed-buffer overflow truncated to "
             "writable() (5 bytes)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.full(),
             "write_fill(): fixed buffer is full after truncated fill");
 
@@ -498,16 +454,14 @@ void tests_buffer_base_write_fill(
         {
             if (b.storage()[i] != '!')
             {
-                record_assertion(
-                    _handler,
+                record_assertion(ok,
                     false,
                     "write_fill(): truncated bytes match fill char");
-                return;
+                return ok;
             }
         }
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             true,
             "write_fill(): truncated bytes match fill char");
     }
@@ -521,13 +475,11 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('b', 10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write_fill(): full fixed buffer returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 4,
             "write_fill(): cursor unchanged when fill returns 0");
 
@@ -543,8 +495,7 @@ void tests_buffer_base_write_fill(
             }
         }
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             intact,
             "write_fill(): pre-existing payload preserved on rejection");
     }
@@ -559,19 +510,16 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('B', 20);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 4,
             "write_fill(): grow failure falls back to writable() "
             "(4 bytes remaining)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 8,
             "write_fill(): cursor at capacity after fallback");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (b.storage()[3] == 'A') && (b.storage()[4] == 'B'),
             "write_fill(): boundary byte transitions from A to B");
     }
@@ -586,13 +534,11 @@ void tests_buffer_base_write_fill(
 
         std::size_t n = b.write_fill('Y', 10);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             n == 0,
             "write_fill(): grow failure with zero writable returns 0");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 4,
             "write_fill(): cursor unchanged on zero-fallback fill");
     }
@@ -604,20 +550,20 @@ void tests_buffer_base_write_fill(
 
         b.write_fill(static_cast<char>(0x00), 3);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             (b.storage()[0] == 0) &&
             (b.storage()[1] == 0) &&
             (b.storage()[2] == 0),
             "write_fill(): 0x00 bytes preserved");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 3,
             "write_fill(): cursor advanced after 0x00 fill");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
@@ -632,17 +578,16 @@ tests_buffer_base_write_head_commit
   - commit(0) is a no-op
   - sequential write_head/commit cycles compose correctly
 */
-void tests_buffer_base_write_head_commit(
-    test_handler& _handler
-)
+bool tests_buffer_base_write_head_commit()
 {
+    bool ok = true;
+
     // --- write_head returns the right pointer ---
     {
         mock_buffer<exponential_growth_policy,
                     dual_cursor_policy> b(64);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_head() == b.storage(),
             "write_head(): == storage() on a fresh buffer");
 
@@ -651,23 +596,19 @@ void tests_buffer_base_write_head_commit(
         std::memcpy(b.write_head(), data, 6);
         b.commit(6);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 6,
             "commit(): write_position advances by 6");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_head() == b.storage() + 6,
             "write_head(): == storage()+6 after commit(6)");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), data, 6) == 0,
             "write_head/commit: payload visible via storage()");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.size() == 6,
             "write_head/commit: size() == 6 in dual mode");
     }
@@ -680,8 +621,7 @@ void tests_buffer_base_write_head_commit(
         b.write_byte('1');
         b.commit(0);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 1,
             "commit(): commit(0) does not advance the cursor");
     }
@@ -700,13 +640,11 @@ void tests_buffer_base_write_head_commit(
         std::memcpy(b.write_head(), "CCC", 3);
         b.commit(3);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             b.write_position() == 9,
             "write_head/commit: chained cycles accumulate position");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(b.storage(), "AAABBBCCC", 9) == 0,
             "write_head/commit: chained payloads are contiguous");
     }
@@ -722,20 +660,20 @@ void tests_buffer_base_write_head_commit(
         char out[10] = { 0 };
         std::size_t r = b.read(out, 9);
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             r == 9,
             "write_head/commit: read() returns 9 bytes");
 
-        record_assertion(
-            _handler,
+        record_assertion(ok,
             std::memcmp(out, "ROUNDTRIP", 9) == 0,
             "write_head/commit: round-trip payload intact");
     }
 
-    return;
+    return ok;
+
+    return ok;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

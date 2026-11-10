@@ -22,7 +22,7 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_templates.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // djinterp
@@ -45,14 +45,12 @@ namespace {
 }  // unnamed namespace
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_templates(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_templates()
 {
+    bool verdict = true;
+
     using fixtures::empty_template;
     using fixtures::args_template;
     using fixtures::nested_template_holder;
@@ -126,9 +124,9 @@ void concepts_tests_templates(
     DT_NOT_CONCEPT(template_parameter_base_of<trivial_class>);
     DT_NOT_CONCEPT(template_parameter_base_of<int>);
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

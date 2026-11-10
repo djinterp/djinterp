@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/meta/lifetime_tests_algebra.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "lifetime_tests.hpp"
@@ -49,7 +49,7 @@ tests_algebra_meet_is_bitwise_and
 bool tests_algebra_meet_is_bitwise_and()
 {
     std::size_t n = 0;
-    const lifetime* vals = all_lifetimes(n);
+    const lifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
@@ -86,7 +86,7 @@ tests_algebra_join_is_bitwise_or
 bool tests_algebra_join_is_bitwise_or()
 {
     std::size_t n = 0;
-    const lifetime* vals = all_lifetimes(n);
+    const lifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
@@ -122,7 +122,7 @@ tests_algebra_meet_lattice_laws
 bool tests_algebra_meet_lattice_laws()
 {
     std::size_t n = 0;
-    const lifetime* vals = all_lifetimes(n);
+    const lifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
@@ -156,7 +156,7 @@ tests_algebra_join_lattice_laws
 bool tests_algebra_join_lattice_laws()
 {
     std::size_t n = 0;
-    const lifetime* vals = all_lifetimes(n);
+    const lifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {

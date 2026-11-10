@@ -1,7 +1,8 @@
-/******************************************************************************
-* djinterp [test]                       concurrency_strategy_traits_tests.hpp
+/*******************************************************************************
+* djinterp [test]                          concurrency_strategy_traits_tests.hpp
 *
-*   DTest suite for /core/container/sync/concurrency_strategy_traits.hpp - the
+*   DTest suite for
+* /inc/djinterp/cpp/container/traits/concurrency_strategy_traits.hpp - the
 * compile-time classification header that places a container on the monograph's
 * concurrency axis (strategy, progress/arity/iteration/reclamation signature,
 * and the concurrent / synchronized / sequential aggregate).
@@ -46,13 +47,20 @@
 * exercised by the DImmutableProbe fixture, immutable by structure -- a size
 * and no mutator -- as mutable_container_traits.hpp recognises it.
 *
+*
 * path:      /tests/djinterp/cpp/container/sync/concurrency_strategy_traits_tests.hpp
-*                                   concurrency_strategy_traits_tests.hpp
-* author(s): djinterp test generator
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CONCURRENCY_STRATEGY_TRAITS_TESTS_
 #define DJINTERP_TESTS_CONCURRENCY_STRATEGY_TRAITS_TESTS_ 1
+
+// FLOOR, FOR NOW: below C++17, concurrency_strategy_traits.hpp's floor,
+// this header is empty, as that header is.
+#include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstdio>
@@ -67,7 +75,7 @@
 // normal face: the header under test, plus the real /core/sync/ primitives the
 // real_primitives block classifies (full-from-inc; the sync slug is reached
 // through the inc/ root, not an extra INCLUDES entry).
-#include "../../../../../inc/djinterp/cpp/container/sync/concurrency_strategy_traits.hpp"
+#include "../../../../../inc/djinterp/cpp/container/traits/concurrency_strategy_traits.hpp"
 #include "../../../../../inc/djinterp/cpp/sync/atomic.hpp"
 #include "../../../../../inc/djinterp/cpp/sync/cow.hpp"
 #include "../../../../../inc/djinterp/cpp/sync/rcu.hpp"
@@ -408,7 +416,7 @@ dt::module_spec concurrency_strategy_traits_spec()
                       "vacuously-concurrent",
                       &tests_aggregate_concurrent },
                     { "tests_aggregate_sequential",
-                      "is_sequential_container_v is the exact complement of "
+                      "is_unsynchronized_container_v is the exact complement of "
                       "is_concurrent_container_v",
                       &tests_aggregate_sequential },
                 }
@@ -525,5 +533,8 @@ dt::module_spec concurrency_strategy_traits_spec()
 
 NS_END  // testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 
 #endif  // DJINTERP_TESTS_CONCURRENCY_STRATEGY_TRAITS_TESTS_

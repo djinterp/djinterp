@@ -14,8 +14,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_adapters_basic.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -28,166 +28,166 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_transform(
-    test::test_handler& _h
-)
+bool test_transform()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3 };
 
     // value-preserving-type map
-    test::record_assertion(_h,
-        (data | views::transform(DFnDouble{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::transform(DFnDouble{}) | to_vector())
             == std::vector<int>({ 2, 4, 6 }),
         "transform: applies the function to each element");
 
     // type-changing map (int -> double)
-    test::record_assertion(_h,
-        (data | views::transform(DFnToDouble{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::transform(DFnToDouble{}) | to_vector())
             == std::vector<double>({ 1.5, 2.5, 3.5 }),
         "transform: can change the element type");
 
     // over an empty input -> empty
     std::vector<int> none;
-    test::record_assertion(_h,
-        (none | views::transform(DFnDouble{}) | count()) == 0u,
+    record_assertion(verdict,
+        (none | djinterp::transform(DFnDouble{}) | count()) == 0u,
         "transform: empty input yields empty output");
 
-    return;
+    return verdict;
 }
 
 
-void test_filter(
-    test::test_handler& _h
-)
+bool test_filter()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 4, 5, 6 };
 
     // keeps matching elements
-    test::record_assertion(_h,
-        (data | views::filter(fn_is_even{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::filter(fn_is_even{}) | to_vector())
             == std::vector<int>({ 2, 4, 6 }),
         "filter: keeps only elements satisfying the predicate");
 
     // none match -> empty
     std::vector<int> odds = { 1, 3, 5 };
-    test::record_assertion(_h,
-        (odds | views::filter(fn_is_even{}) | count()) == 0u,
+    record_assertion(verdict,
+        (odds | djinterp::filter(fn_is_even{}) | count()) == 0u,
         "filter: yields nothing when no element matches");
 
     // all match -> all retained
     std::vector<int> evens = { 2, 4 };
-    test::record_assertion(_h,
-        (evens | views::filter(fn_is_even{}) | to_vector())
+    record_assertion(verdict,
+        (evens | djinterp::filter(fn_is_even{}) | to_vector())
             == std::vector<int>({ 2, 4 }),
         "filter: retains everything when all match");
 
-    return;
+    return verdict;
 }
 
 
-void test_take(
-    test::test_handler& _h
-)
+bool test_take()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 4, 5 };
 
     // take fewer than size
-    test::record_assertion(_h,
-        (data | views::take(3) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::take(3) | to_vector())
             == std::vector<int>({ 1, 2, 3 }),
         "take: yields the first n elements");
 
     // take(0) -> empty
-    test::record_assertion(_h, (data | views::take(0) | count()) == 0u,
+    record_assertion(verdict, (data | djinterp::take(0) | count()) == 0u,
         "take: take(0) yields nothing");
 
     // take more than size -> all
-    test::record_assertion(_h,
-        (data | views::take(99) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::take(99) | to_vector())
             == std::vector<int>({ 1, 2, 3, 4, 5 }),
         "take: n beyond size yields the whole input");
 
-    return;
+    return verdict;
 }
 
 
-void test_drop(
-    test::test_handler& _h
-)
+bool test_drop()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 4, 5 };
 
     // drop some
-    test::record_assertion(_h,
-        (data | views::drop(2) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::drop(2) | to_vector())
             == std::vector<int>({ 3, 4, 5 }),
         "drop: skips the first n elements");
 
     // drop(0) -> all
-    test::record_assertion(_h,
-        (data | views::drop(0) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::drop(0) | to_vector())
             == std::vector<int>({ 1, 2, 3, 4, 5 }),
         "drop: drop(0) keeps everything");
 
     // drop more than size -> empty
-    test::record_assertion(_h, (data | views::drop(99) | count()) == 0u,
+    record_assertion(verdict, (data | djinterp::drop(99) | count()) == 0u,
         "drop: n beyond size yields nothing");
 
-    return;
+    return verdict;
 }
 
 
-void test_take_while(
-    test::test_handler& _h
-)
+bool test_take_while()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 7, 4 };
 
     // stops at the first element failing the predicate (7)
-    test::record_assertion(_h,
-        (data | views::take_while(DFnLessThan5{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::take_while(DFnLessThan5{}) | to_vector())
             == std::vector<int>({ 1, 2, 3 }),
         "take_while: yields the leading run satisfying the predicate");
 
     // first element fails -> empty
-    test::record_assertion(_h,
-        (data | views::take_while(DFnAlwaysFalse{}) | count()) == 0u,
+    record_assertion(verdict,
+        (data | djinterp::take_while(DFnAlwaysFalse{}) | count()) == 0u,
         "take_while: empty when the first element fails");
 
     // all satisfy -> all
-    test::record_assertion(_h,
-        (data | views::take_while(DFnAlwaysTrue{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::take_while(DFnAlwaysTrue{}) | to_vector())
             == std::vector<int>({ 1, 2, 3, 7, 4 }),
         "take_while: yields everything when all satisfy");
 
-    return;
+    return verdict;
 }
 
 
-void test_drop_while(
-    test::test_handler& _h
-)
+bool test_drop_while()
 {
+    bool verdict = true;
+
     std::vector<int> data = { 1, 2, 3, 7, 4 };
 
     // drops the leading run < 5, keeps from the first failure (7) onward
-    test::record_assertion(_h,
-        (data | views::drop_while(DFnLessThan5{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::drop_while(DFnLessThan5{}) | to_vector())
             == std::vector<int>({ 7, 4 }),
         "drop_while: drops the leading satisfying run");
 
     // all satisfy -> empty
-    test::record_assertion(_h,
-        (data | views::drop_while(DFnAlwaysTrue{}) | count()) == 0u,
+    record_assertion(verdict,
+        (data | djinterp::drop_while(DFnAlwaysTrue{}) | count()) == 0u,
         "drop_while: empty when every element satisfies");
 
     // first fails -> nothing dropped
-    test::record_assertion(_h,
-        (data | views::drop_while(DFnAlwaysFalse{}) | to_vector())
+    record_assertion(verdict,
+        (data | djinterp::drop_while(DFnAlwaysFalse{}) | to_vector())
             == std::vector<int>({ 1, 2, 3, 7, 4 }),
         "drop_while: keeps everything when the first element fails");
 
-    return;
+    return verdict;
 }
 
 

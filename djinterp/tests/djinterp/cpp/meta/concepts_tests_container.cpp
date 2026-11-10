@@ -22,7 +22,7 @@
 * path:      /tests/djinterp/cpp/meta/concepts_tests_container.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -31,14 +31,12 @@
 #include "concepts_tests.hpp"
 
 
-NS_DJINTERP_TEST
-
-
-void concepts_tests_container(
-    test_handler& _test_handler,
-    test_option _options...
-)
+NS_DJINTERP
+NS_TESTING
+bool concepts_tests_container()
 {
+    bool verdict = true;
+
     using fixtures::sized_container;
     using fixtures::bounded_container;
     using fixtures::no_size_member;
@@ -50,15 +48,15 @@ void concepts_tests_container(
     // has_value_type / has_size_type / has_iterator / has_const_iterator
     // -------------------------------------------------------------------
 
-    DT_CONCEPT    (has_value_type<sized_container>);
-    DT_CONCEPT    (has_value_type<std::vector<int>>);
-    DT_NOT_CONCEPT(has_value_type<trivial_class>);
-    DT_NOT_CONCEPT(has_value_type<int>);
+    DT_CONCEPT    (has_value_type_c<sized_container>);
+    DT_CONCEPT    (has_value_type_c<std::vector<int>>);
+    DT_NOT_CONCEPT(has_value_type_c<trivial_class>);
+    DT_NOT_CONCEPT(has_value_type_c<int>);
 
-    DT_CONCEPT    (has_size_type<sized_container>);
-    DT_CONCEPT    (has_size_type<no_size_member>);          // has only size_type
-    DT_NOT_CONCEPT(has_size_type<no_size_type>);            // has only size()
-    DT_NOT_CONCEPT(has_size_type<trivial_class>);
+    DT_CONCEPT    (has_size_type_c<sized_container>);
+    DT_CONCEPT    (has_size_type_c<no_size_member>);          // has only size_type
+    DT_NOT_CONCEPT(has_size_type_c<no_size_type>);            // has only size()
+    DT_NOT_CONCEPT(has_size_type_c<trivial_class>);
 
     DT_CONCEPT    (has_iterator<sized_container>);
     DT_CONCEPT    (has_iterator<std::vector<int>>);
@@ -113,9 +111,9 @@ void concepts_tests_container(
     DT_NOT_CONCEPT(allocator_c<trivial_class>);
     DT_NOT_CONCEPT(allocator_c<sized_container>);                    // no allocate
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

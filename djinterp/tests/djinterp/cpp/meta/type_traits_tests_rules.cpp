@@ -30,15 +30,14 @@
 * path:      /tests/djinterp/cpp/meta/type_traits_tests_rules.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./type_traits_tests.hpp"
 
 
 NS_DJINTERP
-NS_TEST
-
+NS_TESTING
 using tt = type_traits_test_types::trivial_t;
 using fs = type_traits_test_types::full_special_member_t;
 using co = type_traits_test_types::copy_only_t;
@@ -162,67 +161,67 @@ static_assert(follows_rule_of_zero<nc>::value == false,
 // IV.  RUNTIME DRIVER
 // =========================================================================
 
-void type_traits_tests_rules(
-    test_handler& _test_handler
-)
+bool type_traits_tests_rules()
 {
+    bool verdict = true;
+
     // ---- follows_rule_of_five ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_five<fs>::value == true,
         "follows_rule_of_five<full_special_member_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_five<tt>::value == true,
         "follows_rule_of_five<trivial_t> (defaults pass)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_five<int>::value == true,
         "follows_rule_of_five<int> (builtin)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_five<nc>::value == false,
         "follows_rule_of_five<noncopyable_t> -- copy deleted");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_five<void>::value == false,
         "follows_rule_of_five<void>");
 
     // ---- follows_rule_of_three ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_three<co>::value == true,
         "follows_rule_of_three<copy_only_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_three<fs>::value == true,
         "follows_rule_of_three<full_special_member_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_three<tt>::value == true,
         "follows_rule_of_three<trivial_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_three<int>::value == true,
         "follows_rule_of_three<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_three<nc>::value == false,
         "follows_rule_of_three<noncopyable_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_three<void>::value == false,
         "follows_rule_of_three<void>");
 
     // ---- follows_rule_of_zero ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_zero<tt>::value == true,
         "follows_rule_of_zero<trivial_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_zero<int>::value == true,
         "follows_rule_of_zero<int>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_zero<fs>::value == false,
         "follows_rule_of_zero<full_special_member_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_zero<co>::value == false,
         "follows_rule_of_zero<copy_only_t>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         follows_rule_of_zero<nc>::value == false,
         "follows_rule_of_zero<noncopyable_t>");
 
-    return;
+    return verdict;
 }
 
 
-NS_END  // test
+NS_END  // testing
 NS_END  // djinterp

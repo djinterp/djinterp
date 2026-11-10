@@ -13,8 +13,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/view_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -30,8 +30,8 @@ NS_TESTING
 
 // adapter / terminal instance types obtained from their factory functions
 // (unevaluated -- decltype only).
-using transform_adapter_t = decltype(views::transform(DFnDouble{}));
-using take_adapter_t       = decltype(views::take(std::size_t(3)));
+using transform_adapter_t = decltype(djinterp::transform(DFnDouble{}));
+using take_adapter_t       = decltype(djinterp::take(std::size_t(3)));
 using to_vector_terminal_t = decltype(to_vector());
 using count_terminal_t     = decltype(count());
 
@@ -118,92 +118,92 @@ static_assert(pipeable_to_view<std::vector<int>> && !pipeable_to_view<int>,
 #endif
 
 
-void test_core_traits(
-    test::test_handler& _h
-)
+bool test_core_traits()
 {
+    bool verdict = true;
+
     // is_view
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_view<DSingleView<int>>::value && !is_view<int>::value,
         "trait: is_view distinguishes views from scalars");
-    test::record_assertion(_h, !is_view<std::vector<int>>::value,
+    record_assertion(verdict, !is_view<std::vector<int>>::value,
         "trait: is_view is false for a bare container");
 
     // has_begin_end
-    test::record_assertion(_h,
+    record_assertion(verdict,
         has_begin_end<std::vector<int>>::value && !has_begin_end<int>::value,
         "trait: has_begin_end detects container-like types");
 
     // is_pipeable_to_view
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeable_to_view<std::vector<int>>::value
         && is_pipeable_to_view<DSingleView<int>>::value
         && !is_pipeable_to_view<int>::value,
         "trait: is_pipeable_to_view accepts views and containers only");
 
     // view_value_type
-    test::record_assertion(_h,
+    record_assertion(verdict,
         std::is_same<view_value_type_t<DSingleView<int>>, int>::value,
         "trait: view_value_type_t extracts the element type");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_view_v<iota_view<int>> && !is_view_v<double>,
         "trait: is_view_v matches the struct form");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeable_to_view_v<DSingleView<int>>
         && !is_pipeable_to_view_v<int>,
         "trait: is_pipeable_to_view_v matches the struct form");
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    test::record_assertion(_h,
+    record_assertion(verdict,
         view_type<DSingleView<int>> && !view_type<int>,
         "trait: view_type concept matches is_view");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         pipeable_to_view<std::vector<int>> && !pipeable_to_view<int>,
         "trait: pipeable_to_view concept matches is_pipeable_to_view");
 #endif
 
-    return;
+    return verdict;
 }
 
 
-void test_adapter_terminal_traits(
-    test::test_handler& _h
-)
+bool test_adapter_terminal_traits()
 {
+    bool verdict = true;
+
     // adapter is an adapter, not a terminal
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_adapter<transform_adapter_t>::value
         && !is_terminal<transform_adapter_t>::value,
         "trait: an adapter is is_adapter and not is_terminal");
 
     // terminal is a terminal, not an adapter
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_terminal<to_vector_terminal_t>::value
         && !is_adapter<to_vector_terminal_t>::value,
         "trait: a terminal is is_terminal and not is_adapter");
 
     // a plain type is neither
-    test::record_assertion(_h,
+    record_assertion(verdict,
         !is_adapter<int>::value && !is_terminal<int>::value,
         "trait: a scalar is neither adapter nor terminal");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_adapter_v<take_adapter_t> && is_terminal_v<count_terminal_t>,
         "trait: is_adapter_v / is_terminal_v match the struct forms");
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    test::record_assertion(_h,
+    record_assertion(verdict,
         view_adapter<transform_adapter_t>
         && view_terminal<to_vector_terminal_t>,
         "trait: view_adapter / view_terminal concepts match the traits");
 #endif
 
-    return;
+    return verdict;
 }
 
 

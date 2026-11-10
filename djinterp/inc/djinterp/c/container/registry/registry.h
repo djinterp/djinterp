@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/c/container/registry/registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_REGISTRY_REGISTRY_H
@@ -64,9 +64,9 @@
  * FLAG DEFINITIONS
  *****************************************************************************/
 
-// DRegistryFlag
+// dj_registry_flag
 //   enum: flags for registry-wide configuration and behavior.
-enum DRegistryFlag
+enum dj_registry_flag
 {
     D_REGISTRY_FLAG_NONE             = 0x00,
     D_REGISTRY_FLAG_CASE_INSENSITIVE = 0x01,  // key comparisons ignore case

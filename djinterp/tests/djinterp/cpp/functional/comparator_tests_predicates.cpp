@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/comparator_tests_predicates.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "comparator_tests.hpp"
@@ -26,11 +26,11 @@ test_predicates_equal_under
 bool test_predicates_equal_under()
 {
     D_INTERNAL_CMP_CHECK(
-        comparators::equal_under(comparators::natural<int>())(4, 4) == true);
+        djinterp::equal_under(djinterp::natural<int>())(4, 4) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::equal_under(comparators::natural<int>())(4, 5) == false);
+        djinterp::equal_under(djinterp::natural<int>())(4, 5) == false);
     D_INTERNAL_CMP_CHECK(
-        comparators::equal_under(comparators::natural<int>())(5, 4) == false);
+        djinterp::equal_under(djinterp::natural<int>())(5, 4) == false);
 
     return true;
 }
@@ -52,10 +52,10 @@ bool test_predicates_equal_under_by_key()
     record c = { 6, 1 };    // different rank
 
     D_INTERNAL_CMP_CHECK(
-        comparators::equal_under(comparators::by_key(get_rank()))(a, b)
+        djinterp::equal_under(djinterp::by_key(get_rank()))(a, b)
         == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::equal_under(comparators::by_key(get_rank()))(a, c)
+        djinterp::equal_under(djinterp::by_key(get_rank()))(a, c)
         == false);
 
     return true;
@@ -73,11 +73,11 @@ test_predicates_less_than
 bool test_predicates_less_than()
 {
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(comparators::natural<int>(), 10)(3) == true);
+        djinterp::less_than(djinterp::natural<int>(), 10)(3) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(comparators::natural<int>(), 10)(10) == false);
+        djinterp::less_than(djinterp::natural<int>(), 10)(10) == false);
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(comparators::natural<int>(), 10)(11) == false);
+        djinterp::less_than(djinterp::natural<int>(), 10)(11) == false);
 
     return true;
 }
@@ -94,11 +94,11 @@ test_predicates_greater_than
 bool test_predicates_greater_than()
 {
     D_INTERNAL_CMP_CHECK(
-        comparators::greater_than(comparators::natural<int>(), 10)(11) == true);
+        djinterp::greater_than(djinterp::natural<int>(), 10)(11) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::greater_than(comparators::natural<int>(), 10)(10) == false);
+        djinterp::greater_than(djinterp::natural<int>(), 10)(10) == false);
     D_INTERNAL_CMP_CHECK(
-        comparators::greater_than(comparators::natural<int>(), 10)(3) == false);
+        djinterp::greater_than(djinterp::natural<int>(), 10)(3) == false);
 
     return true;
 }
@@ -117,17 +117,17 @@ bool test_predicates_boundary()
     int bound = 0;
 
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(comparators::natural<int>(), bound)(bound)
+        djinterp::less_than(djinterp::natural<int>(), bound)(bound)
         == false);
     D_INTERNAL_CMP_CHECK(
-        comparators::greater_than(comparators::natural<int>(), bound)(bound)
+        djinterp::greater_than(djinterp::natural<int>(), bound)(bound)
         == false);
 
     // disjoint, complementary away from the bound.
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(comparators::natural<int>(), bound)(-1) == true);
+        djinterp::less_than(djinterp::natural<int>(), bound)(-1) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::greater_than(comparators::natural<int>(), bound)(-1)
+        djinterp::greater_than(djinterp::natural<int>(), bound)(-1)
         == false);
 
     return true;
@@ -145,11 +145,11 @@ test_predicates_with_reversed
 bool test_predicates_with_reversed()
 {
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(
-            comparators::reversed(comparators::natural<int>()), 5)(9) == true);
+        djinterp::less_than(
+            djinterp::reversed(djinterp::natural<int>()), 5)(9) == true);
     D_INTERNAL_CMP_CHECK(
-        comparators::less_than(
-            comparators::reversed(comparators::natural<int>()), 5)(1) == false);
+        djinterp::less_than(
+            djinterp::reversed(djinterp::natural<int>()), 5)(1) == false);
 
     return true;
 }

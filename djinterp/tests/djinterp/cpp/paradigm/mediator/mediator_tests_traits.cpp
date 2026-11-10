@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : mediator_tests_traits.cpp
 //   Feature gates (section I) and the SFINAE protocol-detection traits
@@ -45,13 +45,13 @@ namespace
     // mp_notify : notify(const any&) only.
     struct mp_notify
     {
-        void notify(const compat::any&) {}
+        void notify(const re_std::any&) {}
     };
 
     // mp_subscribe : subscribe(function<void(const any&)>) only.
     struct mp_subscribe
     {
-        void subscribe(std::function<void(const compat::any&)>) {}
+        void subscribe(std::function<void(const re_std::any&)>) {}
     };
 
     // mp_set_mediator : single-argument set_mediator(ptr) only.
@@ -63,16 +63,16 @@ namespace
     // mp_on_event : single-argument on_event(const any&) only.
     struct mp_on_event
     {
-        void on_event(const compat::any&) {}
+        void on_event(const re_std::any&) {}
     };
 
     // mp_all : the full narrow protocol surface.
     struct mp_all
     {
-        void notify(const compat::any&) {}
-        void subscribe(std::function<void(const compat::any&)>) {}
+        void notify(const re_std::any&) {}
+        void subscribe(std::function<void(const re_std::any&)>) {}
         void set_mediator(void*) {}
-        void on_event(const compat::any&) {}
+        void on_event(const re_std::any&) {}
     };
 }
 

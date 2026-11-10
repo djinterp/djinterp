@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_uncurry.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 // djinterp [test] -- curry.hpp Section IV (uncurrying)
@@ -27,10 +27,10 @@ test_uncurry
     callable, where the wrapper reduces to a direct call
   - equivalence with the hand-written curried form f(a)(b)(c)
 */
-void test_uncurry(
-    test::test_handler& _h
-)
+bool test_uncurry()
 {
+    bool verdict = true;
+
     // hand-rolled curried callables of increasing depth
     auto c2 = [](int _a) {
         return [_a](int _b) { return _a + _b; };
@@ -49,26 +49,26 @@ void test_uncurry(
     };
 
     // two-argument path
-    test::record_assertion(_h, (uncurry(c2)(3, 4) == 7),
+    record_assertion(verdict, (uncurry(c2)(3, 4) == 7),
                            "uncurry: two-argument application");
 
     // recursive path, remainder pack {c}
-    test::record_assertion(_h, (uncurry(c3)(1, 2, 3) == 6),
+    record_assertion(verdict, (uncurry(c3)(1, 2, 3) == 6),
                            "uncurry: three-argument recursion");
 
     // deeper recursion, remainder pack non-empty across steps
-    test::record_assertion(_h, (uncurry(c4)(1, 2, 3, 4) == 10),
+    record_assertion(verdict, (uncurry(c4)(1, 2, 3, 4) == 10),
                            "uncurry: four-argument recursion");
 
     // equivalence with explicit curried application
-    test::record_assertion(_h, (uncurry(c3)(1, 2, 3) == c3(1)(2)(3)),
+    record_assertion(verdict, (uncurry(c3)(1, 2, 3) == c3(1)(2)(3)),
                            "uncurry: matches f(a)(b)(c)");
 
     // degenerate single-argument path over a plain unary callable
-    test::record_assertion(_h, (uncurry(DEchoInt{})(41) == 41),
+    record_assertion(verdict, (uncurry(DEchoInt{})(41) == 41),
                            "uncurry: degenerate single-argument call");
 
-    return;
+    return verdict;
 }
 
 

@@ -34,7 +34,7 @@
 *                                        bounded_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -66,12 +66,27 @@ III.  TEST DECLARATIONS
 #include <type_traits>
 #include <utility>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/bounded_container_traits.hpp"      // the header under test
 #include "djinterp/cpp/modules/test/test_traits.hpp"     // the trait-testing toolkit
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
 
 
 // the trait-testing toolkit, by name.  The traits under test need no
@@ -523,6 +538,8 @@ namespace std
 
 NS_DJINTERP
 NS_TESTING
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -589,6 +606,242 @@ bool tests_stdlib_node_containers();
 bool tests_stdlib_string();
 bool tests_stdlib_tuple_pair();
 bool tests_stdlib_associative();
+
+
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// bounded_container_traits_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+bounded_container_traits_spec()
+{
+    return dt::module_spec{
+        "bounded_container_traits",
+        "The boundedness axis: capacity signals, domain signals, and the "
+        "classifications built on them",
+        {
+            dt::block_spec{
+                "signals",
+                "Structural signals",
+                {
+                    { "tests_signal_fixed_extent",
+                      "has_fixed_extent_signal on the shape it was written for",
+                      &tests_signal_fixed_extent },
+                    { "tests_signal_fixed_extent_shapes",
+                      "What ELSE `decltype(clean_t<_Type>::extent)` accepts",
+                      &tests_signal_fixed_extent_shapes },
+                    { "tests_signal_tuple_size",
+                      "has_tuple_size_signal - the fixed-size-aggregate "
+                      "protocol",
+                      &tests_signal_tuple_size },
+                    { "tests_signal_static_bounds",
+                      "has_static_bounds_signal - the closed-interval domain "
+                      "I = [x, y, z]",
+                      &tests_signal_static_bounds },
+                    { "tests_signal_capacity",
+                      "has_capacity_signal - a capacity() accessor on a CONST "
+                      "lvalue",
+                      &tests_signal_capacity },
+                    { "tests_signal_reserve",
+                      "has_reserve_signal - the growability anti-signal",
+                      &tests_signal_reserve },
+                    { "tests_signal_max_size",
+                      "has_max_size_signal - informational, never promoting",
+                      &tests_signal_max_size },
+                    { "tests_signal_size",
+                      "has_size_signal - the \"looks like a container\" guard",
+                      &tests_signal_size },
+                    { "tests_signal_value_companions",
+                      "Every signal trait carries a `_v` companion emitted by "
+                      "D_TYPE_TRAIT_VALUE_BOOL",
+                      &tests_signal_value_companions },
+                }
+            },
+            dt::block_spec{
+                "capacity",
+                "Capacity classification",
+                {
+                    { "tests_bounded_extent_disjunct",
+                      "is_bounded_container, first disjunct: a static `extent`",
+                      &tests_bounded_extent_disjunct },
+                    { "tests_bounded_tuple_size_disjunct",
+                      "is_bounded_container, second disjunct: a "
+                      "std::tuple_size specialization",
+                      &tests_bounded_tuple_size_disjunct },
+                    { "tests_bounded_static_bounds_disjunct",
+                      "is_bounded_container, third disjunct: static interval "
+                      "endpoints",
+                      &tests_bounded_static_bounds_disjunct },
+                    { "tests_bounded_capacity_disjunct",
+                      "is_bounded_container, fourth disjunct: `capacity() && "
+                      "!reserve()`",
+                      &tests_bounded_capacity_disjunct },
+                    { "tests_bounded_negative",
+                      "The all-zeros row and its neighbours: types with no "
+                      "promoting evidence at all",
+                      &tests_bounded_negative },
+                    { "tests_bounded_ignores_size",
+                      "is_bounded_container is deliberately NOT gated on "
+                      "size()",
+                      &tests_bounded_ignores_size },
+                    { "tests_bounded_first_signal_wins",
+                      "The disjunction is not a vote",
+                      &tests_bounded_first_signal_wins },
+                    { "tests_unbounded_truth_table",
+                      "is_unbounded_container = has_size_signal && "
+                      "!is_bounded_container",
+                      &tests_unbounded_truth_table },
+                    { "tests_bounded_unbounded_exclusive",
+                      "The two verdicts are mutually exclusive but NOT "
+                      "exhaustive",
+                      &tests_bounded_unbounded_exclusive },
+                    { "tests_capacity_value_companions",
+                      "The `_v` companions of the two capacity verdicts",
+                      &tests_capacity_value_companions },
+                }
+            },
+            dt::block_spec{
+                "domain",
+                "Domain classification",
+                {
+                    { "tests_domain_bounded",
+                      "is_domain_bounded_container - the orthogonal sub-axis",
+                      &tests_domain_bounded },
+                    { "tests_domain_implies_bounded",
+                      "Domain-bounded implies capacity-bounded",
+                      &tests_domain_implies_bounded },
+                    { "tests_domain_orthogonal",
+                      "The two sub-axes are independent - all four quadrants "
+                      "are populated",
+                      &tests_domain_orthogonal },
+                    { "tests_domain_value_companion",
+                      "is_domain_bounded_container_v",
+                      &tests_domain_value_companion },
+                }
+            },
+            dt::block_spec{
+                "summary",
+                "Capacity-bound summary",
+                {
+                    { "tests_capacity_bound_enumerators",
+                      "The capacity_bound enum itself",
+                      &tests_capacity_bound_enumerators },
+                    { "tests_capacity_bound_name",
+                      "capacity_bound_name - the stable spelling",
+                      &tests_capacity_bound_name },
+                    { "tests_capacity_bound_name_out_of_range",
+                      "What capacity_bound_name does with a value that is not "
+                      "an enumerator",
+                      &tests_capacity_bound_name_out_of_range },
+                    { "tests_capacity_bound_of",
+                      "capacity_bound_of - the three-way classification",
+                      &tests_capacity_bound_of },
+                    { "tests_capacity_bound_of_type",
+                      "The nested ::type and the capacity_bound_of_t alias",
+                      &tests_capacity_bound_of_type },
+                    { "tests_capacity_bound_of_agrees",
+                      "The summary must be a faithful re-statement of the two "
+                      "predicates",
+                      &tests_capacity_bound_of_agrees },
+                    { "tests_capacity_bound_of_value_companion",
+                      "capacity_bound_of_v - an inline variable on C++17+, a "
+                      "plain variable template on C++14, and absent below that",
+                      &tests_capacity_bound_of_value_companion },
+                }
+            },
+            dt::block_spec{
+                "snapshot",
+                "Aggregate snapshot",
+                {
+                    { "tests_class_signals",
+                      "DBoundedContainerClass - the six SIGNAL members",
+                      &tests_class_signals },
+                    { "tests_class_verdicts",
+                      "DBoundedContainerClass - the three VERDICT members",
+                      &tests_class_verdicts },
+                    { "tests_class_summary",
+                      "DBoundedContainerClass - the two SUMMARY members",
+                      &tests_class_summary },
+                    { "tests_class_agrees_with_traits",
+                      "The snapshot must be a faithful re-statement of the "
+                      "standalone traits - it is a convenience, and a "
+                      "convenience that can disagree with its sources is "
+                      "worse than no convenience at all",
+                      &tests_class_agrees_with_traits },
+                    { "tests_class_is_constexpr",
+                      "checks (std::integral_constant<bool, "
+                      "arr::is_bounded>::value)",
+                      &tests_class_is_constexpr },
+                }
+            },
+            dt::block_spec{
+                "robustness",
+                "Robustness  (cv-ref, hostile types, incomplete types, trait "
+                "shape)",
+                {
+                    { "tests_cvref_signals",
+                      "Every signal trait must answer identically for T, "
+                      "const T, volatile T, const volatile T, T&, const T&, "
+                      "T&& and const T&&",
+                      &tests_cvref_signals },
+                    { "tests_cvref_verdicts",
+                      "The three verdicts, the summary and the snapshot all "
+                      "clean their argument too",
+                      &tests_cvref_verdicts },
+                    { "tests_hostile_types_rejected",
+                      "Every trait must answer FALSE for every type in the "
+                      "toolkit's adversarial zoo: void, const void, function "
+                      "types, function pointers and references, bounded and "
+                      "unbounded arrays, lvalue and rvalue references, member "
+                      "pointers, nullptr_t, enums, and the class-type "
+                      "adversaries - an abstract class, a final class, a "
+                      "class whose members are private, one whose members are "
+                      "ambiguously inherited, one that converts to anything, "
+                      "one that overloads operator& and operator,, and an "
+                      "incomplete type",
+                      &tests_hostile_types_rejected },
+                    { "tests_hostile_types_survived",
+                      "SFINAE-friendliness: the traits must REPORT false on a "
+                      "hostile type, not DIAGNOSE it",
+                      &tests_hostile_types_survived },
+                    { "tests_incomplete_type",
+                      "An incomplete type must be tolerated, not completed",
+                      &tests_incomplete_type },
+                    { "tests_trait_shape",
+                      "Is each trait a well-formed bool trait?",
+                      &tests_trait_shape },
+                }
+            },
+            dt::block_spec{
+                "stdlib",
+                "Standard library",
+                {
+                    { "tests_stdlib_array",
+                      "std::array - the bounded case the design is aimed at",
+                      &tests_stdlib_array },
+                    { "tests_stdlib_vector",
+                      "std::vector - the unbounded case the design is aimed at",
+                      &tests_stdlib_vector },
+                    { "tests_stdlib_node_containers",
+                      "The node-based sequences: no capacity(), no reserve(), "
+                      "no extent",
+                      &tests_stdlib_node_containers },
+                    { "tests_stdlib_string",
+                      "std::string and std::string_view",
+                      &tests_stdlib_string },
+                    { "tests_stdlib_tuple_pair",
+                      "std::tuple and std::pair - bounded, and not containers",
+                      &tests_stdlib_tuple_pair },
+                    { "tests_stdlib_associative",
+                      "The associative and unordered-associative containers",
+                      &tests_stdlib_associative },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

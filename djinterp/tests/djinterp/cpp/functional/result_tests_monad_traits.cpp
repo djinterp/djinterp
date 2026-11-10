@@ -10,8 +10,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/result_tests_monad_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -42,37 +42,37 @@ static_assert(
     "monad_traits<result>: rebind<U> yields result<U, E>");
 
 
-void test_monad_traits(
-    test::test_handler& _h
-)
+bool test_monad_traits()
 {
+    bool verdict = true;
+
     using traits = monad_traits<ri>;
 
     // unit lifts a value into an ok result
     ri u = traits::unit(5);
-    test::record_assertion(_h, u.is_ok() && u.value() == 5,
+    record_assertion(verdict, u.is_ok() && u.value() == 5,
         "monad_traits: unit lifts a value into ok");
 
     // bind threads an ok value through a result-returning function
     ri okv = ok<int, std::string>(8);
     ri bound = traits::bind(okv, DFnSafeHalve());
-    test::record_assertion(_h, bound.is_ok() && bound.value() == 4,
+    record_assertion(verdict, bound.is_ok() && bound.value() == 4,
         "monad_traits: bind threads an ok value");
 
     // bind on err short-circuits, preserving the error
     ri errv = err<int, std::string>("e");
     ri bound_err = traits::bind(errv, DFnSafeHalve());
-    test::record_assertion(_h, bound_err.is_err() && bound_err.error() == "e",
+    record_assertion(verdict, bound_err.is_err() && bound_err.error() == "e",
         "monad_traits: bind on err short-circuits");
 
     // bind where the inner function yields err
     ri odd = ok<int, std::string>(7);
     ri bound_inner = traits::bind(odd, DFnSafeHalve());
-    test::record_assertion(_h,
+    record_assertion(verdict,
         bound_inner.is_err() && bound_inner.error() == "odd",
         "monad_traits: bind propagates an inner err");
 
-    return;
+    return verdict;
 }
 
 

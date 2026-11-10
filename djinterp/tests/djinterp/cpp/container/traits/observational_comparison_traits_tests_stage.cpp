@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/observational_comparison_traits_tests_stage.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "observational_comparison_traits_tests.hpp"
@@ -435,15 +435,15 @@ bool tests_stage_companions()
     // the _t aliases are the integral_constants, exactly
     D_OC_STATIC_CHECK(
         std::is_same<observed_access_stage_of_t<DOctArray>,
-                     std::integral_constant<lifetime,
+                     std::integral_constant<lifetime::value,
                                             lifetime::both> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<observed_access_stage_of_t<DOctVector>,
-                     std::integral_constant<lifetime,
+                     std::integral_constant<lifetime::value,
                                             lifetime::runtime> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<observational_stage_of_t<DOctArray, DOctVector>,
-                     std::integral_constant<lifetime,
+                     std::integral_constant<lifetime::value,
                                             lifetime::runtime> >::value);
 
     // ... and carry the same values the traits report

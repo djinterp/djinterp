@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/encode_tests_convenience.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "encode_tests.hpp"
@@ -27,8 +27,8 @@ tests_encode_convenience
 bool tests_encode_convenience()
 {
     // a fresh buffer each call - no accumulation across calls
-    const byte_string _first  = encode(static_cast<std::uint16_t>(0x1234));
-    const byte_string _second = encode(static_cast<std::uint16_t>(0x1234));
+    const byte_string _first  = encode(static_cast<re_std::uint16_t>(0x1234));
+    const byte_string _second = encode(static_cast<re_std::uint16_t>(0x1234));
     D_EN_CHECK((_first == byte_string{ 0x12, 0x34 }));
     D_EN_CHECK((_second == byte_string{ 0x12, 0x34 }));
     D_EN_CHECK(_first.size() == 2);
@@ -41,8 +41,8 @@ bool tests_encode_convenience()
     }
     {
         byte_string _manual;
-        encode_into(_manual, static_cast<std::int32_t>(-2147483647 - 1));
-        D_EN_CHECK(encode(static_cast<std::int32_t>(-2147483647 - 1)) == _manual);
+        encode_into(_manual, static_cast<re_std::int32_t>(-2147483647 - 1));
+        D_EN_CHECK(encode(static_cast<re_std::int32_t>(-2147483647 - 1)) == _manual);
     }
     {
         byte_string _manual;

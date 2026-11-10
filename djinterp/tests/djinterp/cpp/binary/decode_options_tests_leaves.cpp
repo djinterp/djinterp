@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/decode_options_tests_leaves.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "decode_options_tests.hpp"
@@ -66,20 +66,20 @@ tests_decode_options_leaf_integrals
 bool tests_decode_options_leaf_integrals()
 {
     // unsigned, both orders yield the same value
-    D_DO_CHECK((dl<DSerialEndian::big, std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u));
-    D_DO_CHECK((dl<DSerialEndian::little, std::uint16_t>(byte_string{ 0x34, 0x12 }).value == 0x1234u));
-    D_DO_CHECK((dl<DSerialEndian::big, std::uint32_t>(byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }).value == 0xDEADBEEFu));
-    D_DO_CHECK((dl<DSerialEndian::little, std::uint32_t>(byte_string{ 0xEF, 0xBE, 0xAD, 0xDE }).value == 0xDEADBEEFu));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint16_t>(byte_string{ 0x34, 0x12 }).value == 0x1234u));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint32_t>(byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }).value == 0xDEADBEEFu));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint32_t>(byte_string{ 0xEF, 0xBE, 0xAD, 0xDE }).value == 0xDEADBEEFu));
 
     // signed
-    D_DO_CHECK((dl<DSerialEndian::big, std::int16_t>(byte_string{ 0xFF, 0xFE }).value == static_cast<std::int16_t>(-2)));
-    D_DO_CHECK((dl<DSerialEndian::little, std::int16_t>(byte_string{ 0xFE, 0xFF }).value == static_cast<std::int16_t>(-2)));
-    D_DO_CHECK((dl<DSerialEndian::big, std::int32_t>(byte_string{ 0x80, 0x00, 0x00, 0x00 }).value == (-2147483647 - 1)));
-    D_DO_CHECK((dl<DSerialEndian::little, std::int32_t>(byte_string{ 0x00, 0x00, 0x00, 0x80 }).value == (-2147483647 - 1)));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::int16_t>(byte_string{ 0xFF, 0xFE }).value == static_cast<re_std::int16_t>(-2)));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::int16_t>(byte_string{ 0xFE, 0xFF }).value == static_cast<re_std::int16_t>(-2)));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::int32_t>(byte_string{ 0x80, 0x00, 0x00, 0x00 }).value == (-2147483647 - 1)));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::int32_t>(byte_string{ 0x00, 0x00, 0x00, 0x80 }).value == (-2147483647 - 1)));
 
     // one byte, order-invariant
-    D_DO_CHECK((dl<DSerialEndian::big, std::uint8_t>(byte_string{ 0xFF }).value == 0xFFu));
-    D_DO_CHECK((dl<DSerialEndian::little, std::uint8_t>(byte_string{ 0xFF }).value == 0xFFu));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint8_t>(byte_string{ 0xFF }).value == 0xFFu));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint8_t>(byte_string{ 0xFF }).value == 0xFFu));
 
     return true;
 }
@@ -158,7 +158,7 @@ bool tests_decode_options_leaf_failures()
     {
         const byte_string _b = { 0x01, 0x02 };
         DByteReader _r(_b);
-        DDecodeResult<std::uint32_t> _res = decode_leaf<DSerialEndian::little, std::uint32_t>(_r);
+        DDecodeResult<re_std::uint32_t> _res = decode_leaf<DSerialEndian::little, re_std::uint32_t>(_r);
         D_DO_CHECK(!_res.ok);
         D_DO_CHECK(!_r.good());
     }
@@ -198,16 +198,16 @@ bool tests_decode_options_big_matches_decode()
         const byte_string _b = { 0xDE, 0xAD, 0xBE, 0xEF };
         DByteReader _r1(_b);
         DByteReader _r2(_b);
-        D_DO_CHECK(decode_leaf<DSerialEndian::big, std::uint32_t>(_r1).value
-                   == decode<std::uint32_t>(_r2).value);
+        D_DO_CHECK(decode_leaf<DSerialEndian::big, re_std::uint32_t>(_r1).value
+                   == decode<re_std::uint32_t>(_r2).value);
     }
     // signed integral
     {
         const byte_string _b = { 0x80, 0x00, 0x00, 0x00 };
         DByteReader _r1(_b);
         DByteReader _r2(_b);
-        D_DO_CHECK(decode_leaf<DSerialEndian::big, std::int32_t>(_r1).value
-                   == decode<std::int32_t>(_r2).value);
+        D_DO_CHECK(decode_leaf<DSerialEndian::big, re_std::int32_t>(_r1).value
+                   == decode<re_std::int32_t>(_r2).value);
     }
     // enum
     {

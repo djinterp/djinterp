@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/decode_tests_roundtrip.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "decode_tests.hpp"
@@ -41,24 +41,24 @@ tests_decode_roundtrip_integrals
 bool tests_decode_roundtrip_integrals()
 {
     // unsigned boundaries
-    D_DE_CHECK(rt_check<std::uint8_t>(0x00));
-    D_DE_CHECK(rt_check<std::uint8_t>(0xFF));
-    D_DE_CHECK(rt_check<std::uint16_t>(0x0000));
-    D_DE_CHECK(rt_check<std::uint16_t>(0xFFFF));
-    D_DE_CHECK(rt_check<std::uint32_t>(0xDEADBEEFu));
-    D_DE_CHECK(rt_check<std::uint64_t>(0xFFFFFFFFFFFFFFFFull));
-    D_DE_CHECK(rt_check<std::uint64_t>(0x0123456789ABCDEFull));
+    D_DE_CHECK(rt_check<re_std::uint8_t>(0x00));
+    D_DE_CHECK(rt_check<re_std::uint8_t>(0xFF));
+    D_DE_CHECK(rt_check<re_std::uint16_t>(0x0000));
+    D_DE_CHECK(rt_check<re_std::uint16_t>(0xFFFF));
+    D_DE_CHECK(rt_check<re_std::uint32_t>(0xDEADBEEFu));
+    D_DE_CHECK(rt_check<re_std::uint64_t>(0xFFFFFFFFFFFFFFFFull));
+    D_DE_CHECK(rt_check<re_std::uint64_t>(0x0123456789ABCDEFull));
 
     // signed boundaries
-    D_DE_CHECK(rt_check<std::int8_t>(-128));
-    D_DE_CHECK(rt_check<std::int8_t>(-1));
-    D_DE_CHECK(rt_check<std::int8_t>(127));
-    D_DE_CHECK(rt_check<std::int16_t>(-2));
-    D_DE_CHECK(rt_check<std::int16_t>(0));
-    D_DE_CHECK(rt_check<std::int32_t>(-2147483647 - 1));
-    D_DE_CHECK(rt_check<std::int32_t>(123456789));
-    D_DE_CHECK(rt_check<std::int64_t>(-1));
-    D_DE_CHECK(rt_check<std::int64_t>(0x7FFFFFFFFFFFFFFFll));
+    D_DE_CHECK(rt_check<re_std::int8_t>(-128));
+    D_DE_CHECK(rt_check<re_std::int8_t>(-1));
+    D_DE_CHECK(rt_check<re_std::int8_t>(127));
+    D_DE_CHECK(rt_check<re_std::int16_t>(-2));
+    D_DE_CHECK(rt_check<re_std::int16_t>(0));
+    D_DE_CHECK(rt_check<re_std::int32_t>(-2147483647 - 1));
+    D_DE_CHECK(rt_check<re_std::int32_t>(123456789));
+    D_DE_CHECK(rt_check<re_std::int64_t>(-1));
+    D_DE_CHECK(rt_check<re_std::int64_t>(0x7FFFFFFFFFFFFFFFll));
 
     // character types
     D_DE_CHECK(rt_check<char>('Z'));
@@ -120,7 +120,7 @@ tests_decode_roundtrip_member
 */
 bool tests_decode_roundtrip_member()
 {
-    const std::uint32_t _values[] =
+    const re_std::uint32_t _values[] =
         { 0x00000000u, 0x0000002Au, 0xDEADBEEFu, 0xFFFFFFFFu };
 
     for (std::size_t _i = 0; _i < (sizeof(_values) / sizeof(_values[0])); ++_i)

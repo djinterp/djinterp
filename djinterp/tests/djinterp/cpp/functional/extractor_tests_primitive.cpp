@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/extractor_tests_primitive.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <tuple>
@@ -27,12 +27,12 @@ test_primitive_identity
 */
 bool test_primitive_identity()
 {
-    D_INTERNAL_EXT_CHECK(extractors::identity<int>()(42) == 42);
+    D_INTERNAL_EXT_CHECK(djinterp::make_identity<int>()(42) == 42);
 
     DPerson p = { 1, 30, 10 };
-    D_INTERNAL_EXT_CHECK(extractors::identity<DPerson>()(p).id == 1);
-    D_INTERNAL_EXT_CHECK(extractors::identity<DPerson>()(p).age == 30);
-    D_INTERNAL_EXT_CHECK(extractors::identity<DPerson>()(p).dept == 10);
+    D_INTERNAL_EXT_CHECK(djinterp::make_identity<DPerson>()(p).id == 1);
+    D_INTERNAL_EXT_CHECK(djinterp::make_identity<DPerson>()(p).age == 30);
+    D_INTERNAL_EXT_CHECK(djinterp::make_identity<DPerson>()(p).dept == 10);
 
     return true;
 }
@@ -47,11 +47,11 @@ test_primitive_constant
 */
 bool test_primitive_constant()
 {
-    D_INTERNAL_EXT_CHECK(extractors::constant(7)(0) == 7);
-    D_INTERNAL_EXT_CHECK(extractors::constant(7)(999) == 7);
+    D_INTERNAL_EXT_CHECK(djinterp::constant(7)(0) == 7);
+    D_INTERNAL_EXT_CHECK(djinterp::constant(7)(999) == 7);
 
     DPerson p = { 1, 30, 10 };
-    D_INTERNAL_EXT_CHECK(extractors::constant(-1)(p) == -1);
+    D_INTERNAL_EXT_CHECK(djinterp::constant(-1)(p) == -1);
 
     return true;
 }
@@ -66,7 +66,7 @@ test_primitive_from_function_functor
 bool test_primitive_from_function_functor()
 {
     DPerson p = { 1, 30, 10 };
-    D_INTERNAL_EXT_CHECK(extractors::from_function(get_age())(p) == 30);
+    D_INTERNAL_EXT_CHECK(djinterp::from_function(get_age())(p) == 30);
 
     return true;
 }
@@ -82,7 +82,7 @@ test_primitive_from_function_pointer
 bool test_primitive_from_function_pointer()
 {
     DPerson p = { 1, 30, 10 };
-    D_INTERNAL_EXT_CHECK(extractors::from_function(&age_of)(p) == 30);
+    D_INTERNAL_EXT_CHECK(djinterp::from_function(&age_of)(p) == 30);
 
     return true;
 }
@@ -98,9 +98,9 @@ bool test_primitive_from_member()
 {
     DPerson p = { 5, 33, 99 };
 
-    D_INTERNAL_EXT_CHECK(extractors::from_member(&DPerson::id)(p) == 5);
-    D_INTERNAL_EXT_CHECK(extractors::from_member(&DPerson::age)(p) == 33);
-    D_INTERNAL_EXT_CHECK(extractors::from_member(&DPerson::dept)(p) == 99);
+    D_INTERNAL_EXT_CHECK(djinterp::from_member(&DPerson::id)(p) == 5);
+    D_INTERNAL_EXT_CHECK(djinterp::from_member(&DPerson::age)(p) == 33);
+    D_INTERNAL_EXT_CHECK(djinterp::from_member(&DPerson::dept)(p) == 99);
 
     return true;
 }
@@ -116,13 +116,13 @@ test_primitive_from_index
 bool test_primitive_from_index()
 {
     std::tuple<int, int, int> t(10, 20, 30);
-    D_INTERNAL_EXT_CHECK(extractors::from_index<0>()(t) == 10);
-    D_INTERNAL_EXT_CHECK(extractors::from_index<1>()(t) == 20);
-    D_INTERNAL_EXT_CHECK(extractors::from_index<2>()(t) == 30);
+    D_INTERNAL_EXT_CHECK(djinterp::from_index<0>()(t) == 10);
+    D_INTERNAL_EXT_CHECK(djinterp::from_index<1>()(t) == 20);
+    D_INTERNAL_EXT_CHECK(djinterp::from_index<2>()(t) == 30);
 
     std::pair<int, int> pr(101, 202);
-    D_INTERNAL_EXT_CHECK(extractors::from_index<0>()(pr) == 101);
-    D_INTERNAL_EXT_CHECK(extractors::from_index<1>()(pr) == 202);
+    D_INTERNAL_EXT_CHECK(djinterp::from_index<0>()(pr) == 101);
+    D_INTERNAL_EXT_CHECK(djinterp::from_index<1>()(pr) == 202);
 
     return true;
 }
@@ -142,15 +142,15 @@ test_primitive_constexpr
 bool test_primitive_constexpr()
 {
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-    constexpr int a = extractors::identity<int>()(5);
+    constexpr int a = djinterp::make_identity<int>()(5);
     static_assert(a == 5, "identity is constexpr");
 
-    constexpr int b = extractors::constant(9)(0);
+    constexpr int b = djinterp::constant(9)(0);
     static_assert(b == 9, "constant is constexpr");
 
     constexpr int c =
-        extractors::then_extract(extractors::identity<int>(),
-                                 extractors::constant(3))(123);
+        djinterp::then_extract(djinterp::make_identity<int>(),
+                                 djinterp::constant(3))(123);
     static_assert(c == 3, "then_extract(identity, constant) is constexpr");
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 

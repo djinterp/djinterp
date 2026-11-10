@@ -10,16 +10,16 @@
 * header carries only declarations and the helper callable types the
 * sections share.
 *
-*   Each section function has the framework's leaf signature
-* `void(test::test_handler&)` and records its findings with
-* test::record_assertion, so the totals roll up through the runner exactly
-* like every other DTest module.
+*   Each section function is a `bool()` unit test: it records its findings
+* on a local verdict with this header's record_assertion and returns it.
+* The spec provider lists the functions for run_module, so the suite runs
+* and reports like every other DTest module.
 *
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -39,18 +39,114 @@ III.  MODULE ENTRY POINTS
 #define DJINTERP_TESTING_FUNCTIONAL_CURRY_ 1
 
 // std
+#include <cstdio>
 #include <cstddef>
 #include <string>
 // djinterp
+#include "../../../../inc/djinterp/cpp/djinterp.hpp"
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/cpp/functional/curry.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_common.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_handler.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"
-#include "../../../../inc/djinterp/cpp/modules/test/test_runner.hpp"
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "../../../../inc/djinterp/cpp/modules/test/test_defaults.hpp"  // module_spec, run_module
+#endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING
+
+// dt names DTest; unconditional, the spec provider needs it
+namespace dt = ::djinterp::test;
+
+#ifndef DTEST_SPEC_MODE  // fixtures - normal mode only
+
+// record_assertion
+//   function: one check of a converted body: on failure it prints what was
+// expected and clears the body's verdict.  (The bodies used DTest's retired
+// handler API, record_assertion(handler, condition, what).)
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s\n", _what);
+        _ok = false;
+    }
+
+    return;
+}
+
+// record_assertion (with detail)
+//   function: the five-argument form the bodies also used: the detail and
+// the extra text are printed with a failure.
+inline
+void record_assertion(
+    bool&       _ok,
+    bool        _condition,
+    const char* _what,
+    const char* _detail,
+    const char* _extra = nullptr
+)
+{
+    if (!_condition)
+    {
+        std::printf("    ! %s (%s%s%s)\n",
+                    _what,
+                    _detail ? _detail : "",
+                    _extra ? "; " : "",
+                    _extra ? _extra : "");
+        _ok = false;
+    }
+
+    return;
+}
+
+
+// DUnitTestTally
+//   struct: kept for the converted bodies' run_unit_test calls; a body's
+// verdict is its bool now, so the tally holds nothing.
+struct DUnitTestTally
+{
+};
+
+// run_unit_test
+//   function: runs one named unit inside a converted body, and prints its
+// name when it was the unit that first failed.
+template<typename Fn>
+void run_unit_test(
+    bool&           _ok,
+    DUnitTestTally& _tally,
+    const char*     _name,
+    Fn              _unit
+)
+{
+    const bool before = _ok;
+
+    (void)_tally;
+    _unit();
+
+    if ( (before) &&
+         (!_ok) )
+    {
+        std::printf("    [FAIL] %s\n", _name);
+    }
+
+    return;
+}
+
+// D_CURRY_CHECK
+//   macro: one check of a converted body, its text the message.
+#define D_CURRY_CHECK(...) \
+    record_assertion(verdict, (__VA_ARGS__), #__VA_ARGS__)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -228,6 +324,8 @@ struct DReturnsPointer
         return nullptr;
     }
 };
+#endif  // !DTEST_SPEC_MODE  (fixtures)
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -237,49 +335,115 @@ struct DReturnsPointer
 // adorn these declarations per the project style guide; see the matching
 // definition in each section's .cpp for the per-function scope description.
 
-void test_internal_machinery(
-    test::test_handler& _h
-);
+bool test_internal_machinery();
 
-void test_predicate_traits(
-    test::test_handler& _h
-);
+bool test_predicate_traits();
 
-void test_curry_factory(
-    test::test_handler& _h
-);
-void test_curry_n_factory(
-    test::test_handler& _h
-);
+bool test_curry_factory();
+bool test_curry_n_factory();
 
-void test_uncurry(
-    test::test_handler& _h
-);
+bool test_uncurry();
 
-void test_flip(
-    test::test_handler& _h
-);
+bool test_flip();
 
-void test_identity(
-    test::test_handler& _h
-);
-void test_always_constant(
-    test::test_handler& _h
-);
-void test_never(
-    test::test_handler& _h
-);
+bool test_identity();
+bool test_always_constant();
+bool test_never();
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. MODULE ENTRY POINTS                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-extern const test::test_module_info curry_module_info;
 
-void curry_module_run_all(
-    test::test_runner_ctx& _ctx
-);
+// -- the spec provider: spec mode only ----------------------------------------
+#ifdef DTEST_SPEC_MODE
+// curry_spec
+//   function: the suite as DTest's module spec, one block per section.
+inline
+dt::module_spec
+curry_spec()
+{
+    return dt::module_spec{
+        "curry",
+        "function currying, uncurrying, and related combinators (C++)",
+        {
+            dt::block_spec{
+                "internal",
+                "Internal",
+                {
+                    { "test_internal_machinery",
+                      "Exercises the C++11 index-sequence fallback and the "
+                      "std::apply stand-in that underpin every curry "
+                      "invocation",
+                      &test_internal_machinery },
+                }
+            },
+            dt::block_spec{
+                "predicate_traits",
+                "Predicate traits",
+                {
+                    { "test_predicate_traits",
+                      "predicate traits",
+                      &test_predicate_traits },
+                }
+            },
+            dt::block_spec{
+                "curry",
+                "Curry",
+                {
+                    { "test_curry_factory",
+                      "Exercises the auto-arity curry() factory and every "
+                      "branch of its DCurryHelper accumulator",
+                      &test_curry_factory },
+                    { "test_curry_n_factory",
+                      "Exercises the explicit-arity curry_n<N>() factory, "
+                      "both the counting curry_n_helper and its zero-arity "
+                      "terminal specialization",
+                      &test_curry_n_factory },
+                }
+            },
+            dt::block_spec{
+                "uncurry",
+                "Uncurry",
+                {
+                    { "test_uncurry",
+                      "Exercises uncurry() and both operator() overloads of "
+                      "DUncurryHelper",
+                      &test_uncurry },
+                }
+            },
+            dt::block_spec{
+                "flip",
+                "Flip",
+                {
+                    { "test_flip",
+                      "Exercises flip() and both operator() overloads of "
+                      "DFlipHelper",
+                      &test_flip },
+                }
+            },
+            dt::block_spec{
+                "combinators",
+                "Combinators",
+                {
+                    { "test_identity",
+                      "Exercises the identity function object "
+                      "(DIdentityFnHelper)",
+                      &test_identity },
+                    { "test_always_constant",
+                      "Exercises always() and its constant() alias "
+                      "(DAlwaysHelper)",
+                      &test_always_constant },
+                    { "test_never",
+                      "Exercises the never predicate primitive (DNeverHelper)",
+                      &test_never },
+                }
+            },
+        }
+    };
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

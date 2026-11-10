@@ -1,111 +1,44 @@
+/*******************************************************************************
+* djinterp [test]                      mutable_container_traits_tests_runner.cpp
+*
+*   The runner for mutable_container_traits.hpp's suite: it selects the suite header's spec
+* face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the
+* tests and reports them (docs/djinterp_testing.md, section 5).
+*
+*
+* path:      /build/cmake/config/testing/djinterp/cpp/container/traits/mutable_container_traits/mutable_container_traits_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
+*******************************************************************************/
+#define DTEST_SPEC_MODE  // the suite header shows its spec provider
+
 // std
-#include <cstdio>
+#include <string>
 // djinterp
-#include "mutable_container_traits_tests.hpp"
+#include "mutable_container_traits_tests.hpp"  // via INCLUDES (tests dir)
 
 
-namespace
+/*
+main
+  The runner: the default options, a PDF report, and the module.
+*/
+int
+main()
 {
-    int g_passed = 0;
-    int g_failed = 0;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    void run(
-        const char* _name,
-        bool (*_test)()
-    )
-    {
-        const bool ok = _test();
+    dt::test_option_set opts = dt::default_test_options();
 
-        std::printf("  [%s] %s\n", ok ? "PASS" : "FAIL", _name);
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("mutable_container_traits_tests.pdf"));
 
-        if (ok)
-        {
-            ++g_passed;
-        }
-        else
-        {
-            ++g_failed;
-        }
-
-        return;
-    }
-
-    void section(
-        const char* _title
-    )
-    {
-        std::printf("\n-- %s\n", _title);
-
-        return;
-    }
+    return dt::run_module(
+        tt::mutable_container_traits_spec(),
+        "mutable_container_traits.hpp unit tests",
+        "SFINAE structural traits for mutability classification - WHAT "
+        "mutation a container's public...",
+        opts);
 }
-
-// D_MC_RUN
-//   macro: runs one test function of the mutable_container_traits suite,
-// naming it from its own identifier.  The MC letters are unique to this suite
-// so a co-compiled runner cannot collide on the macro name.
-#define D_MC_RUN(_fn)   run(#_fn, &::djinterp::testing::_fn)
-
-int main()
-{
-    std::printf("mutable_container_traits.hpp unit tests\n");
-
-    section("I.   SFINAE mutator detection");
-    D_MC_RUN(tests_has_push_back_signal);
-    D_MC_RUN(tests_has_push_front_signal);
-    D_MC_RUN(tests_has_insert_signal);
-    D_MC_RUN(tests_has_erase_signal);
-    D_MC_RUN(tests_has_clear_signal);
-    D_MC_RUN(tests_has_resize_signal);
-    D_MC_RUN(tests_has_mutable_subscript_signal);
-    D_MC_RUN(tests_has_mutable_data_signal);
-    D_MC_RUN(tests_signal_value_type_dependency);
-    D_MC_RUN(tests_signal_cv_ref_invariance);
-    D_MC_RUN(tests_signal_value_companions);
-
-    section("II.  Capability umbrellas");
-    D_MC_RUN(tests_is_element_mutable_container);
-    D_MC_RUN(tests_is_structurally_mutable_container);
-    D_MC_RUN(tests_is_mutable_container);
-    D_MC_RUN(tests_is_immutable_container);
-    D_MC_RUN(tests_umbrella_signal_composition);
-    D_MC_RUN(tests_umbrella_cv_ref_invariance);
-    D_MC_RUN(tests_umbrella_value_companions);
-
-    section("III. The mutability grade");
-    D_MC_RUN(tests_mutability_enum);
-    D_MC_RUN(tests_mutability_name);
-    D_MC_RUN(tests_mutability_grade_predicates);
-    D_MC_RUN(tests_mutability_grade_admits);
-    D_MC_RUN(tests_mutability_of);
-    D_MC_RUN(tests_mutability_of_companions);
-    D_MC_RUN(tests_mutability_grade_aliases);
-    D_MC_RUN(tests_mutability_of_umbrella_agreement);
-    D_MC_RUN(tests_mutability_of_cv_ref_invariance);
-
-    section("IV.  The access dimension");
-    D_MC_RUN(tests_access_internal_marks);
-    D_MC_RUN(tests_access_restriction_enum);
-    D_MC_RUN(tests_access_restriction_name);
-    D_MC_RUN(tests_access_restriction_of);
-    D_MC_RUN(tests_access_restriction_of_companions);
-    D_MC_RUN(tests_constrains_element);
-    D_MC_RUN(tests_constrains_key);
-    D_MC_RUN(tests_access_restriction_cv_ref_invariance);
-    D_MC_RUN(tests_access_grade_orthogonality);
-
-    section("V.   Aggregate snapshot");
-    D_MC_RUN(tests_mutable_container_class_signals);
-    D_MC_RUN(tests_mutable_container_class_capabilities);
-    D_MC_RUN(tests_mutable_container_class_grade);
-    D_MC_RUN(tests_mutable_container_class_access);
-    D_MC_RUN(tests_mutable_container_class_agreement);
-    D_MC_RUN(tests_mutable_container_class_cv_ref_invariance);
-    D_MC_RUN(tests_mutable_container_class_edge_types);
-
-    std::printf("\npassed: %d   failed: %d\n", g_passed, g_failed);
-
-    return (g_failed == 0) ? 0 : 1;
-}
-
-#undef D_MC_RUN

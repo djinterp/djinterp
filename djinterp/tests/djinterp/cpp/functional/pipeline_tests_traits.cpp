@@ -13,8 +13,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/pipeline_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -99,55 +99,55 @@ static_assert(pipeline_predicate_for<fn_is_even, int>
 #endif
 
 
-void test_traits(
-    test::test_handler& _h
-)
+bool test_traits()
 {
+    bool verdict = true;
+
     // is_pipeline
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeline<pi>::value && !is_pipeline<int>::value,
         "trait: is_pipeline distinguishes pipelines from scalars");
-    test::record_assertion(_h, is_pipeline<const pi&>::value,
+    record_assertion(verdict, is_pipeline<const pi&>::value,
         "trait: is_pipeline strips cv/ref before matching");
 
     // pipeline_value_type
-    test::record_assertion(_h,
+    record_assertion(verdict,
         std::is_same<pipeline_value_type_t<pi>, int>::value,
         "trait: pipeline_value_type_t extracts the element type");
 
     // mapper
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeline_mapper<DFnDouble, int>::value
         && !is_pipeline_mapper<DFnStringOnly, int>::value,
         "trait: is_pipeline_mapper detects valid mappers");
 
     // predicate
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeline_predicate<fn_is_even, int>::value
         && !is_pipeline_predicate<fn_to_string, int>::value,
         "trait: is_pipeline_predicate requires a bool-convertible result");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeline_v<pi> && !is_pipeline_v<double>,
         "trait: is_pipeline_v matches the struct form");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         is_pipeline_predicate_v<fn_is_even, int>
         && !is_pipeline_predicate_v<DFnStringOnly, int>,
         "trait: is_pipeline_predicate_v matches the struct form");
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    test::record_assertion(_h,
+    record_assertion(verdict,
         pipeline_type<pi> && !pipeline_type<int>,
         "trait: pipeline_type concept matches is_pipeline");
-    test::record_assertion(_h,
+    record_assertion(verdict,
         pipeline_mapper_for<DFnDouble, int>
         && pipeline_predicate_for<fn_is_even, int>,
         "trait: mapper/predicate concepts match their traits");
 #endif
 
-    return;
+    return verdict;
 }
 
 

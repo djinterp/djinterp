@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/transducer_tests_drivers.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // std
 #include <vector>
@@ -34,7 +34,7 @@ bool test_drivers_transduce()
     };
 
     std::vector<int> in = { 1, 2, 3, 4 };
-    int result = transduce(transducers::filter(is_even()),
+    int result = transduce(djinterp::filter(is_even()),
                            sum_reducer, 0, in);
 
     D_INTERNAL_TRD_CHECK(result == 6);
@@ -53,7 +53,7 @@ test_drivers_into_vector
 bool test_drivers_into_vector()
 {
     std::vector<int> in = { 1, 2, 3, 4 };
-    auto xform = transducers::map(square()) | transducers::filter(is_even());
+    auto xform = djinterp::map(square()) | djinterp::filter(is_even());
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.size() == 2);
@@ -73,7 +73,7 @@ test_drivers_into_vector_empty
 bool test_drivers_into_vector_empty()
 {
     std::vector<int> in;
-    auto xform = transducers::map(square());
+    auto xform = djinterp::map(square());
     std::vector<int> out = transduce_into_vector<int>(xform, in);
 
     D_INTERNAL_TRD_CHECK(out.empty());
@@ -94,7 +94,7 @@ bool test_drivers_into_accumulator()
 {
     std::vector<int> in = { 1, 2, 3, 4, 5, 6 };
     int total = transduce_into_accumulator(
-        transducers::filter(is_even()), DIntSumAcc(), in);
+        djinterp::filter(is_even()), DIntSumAcc(), in);
 
     D_INTERNAL_TRD_CHECK(total == 12);
 
@@ -119,7 +119,7 @@ bool test_drivers_producer_to_consumer()
         collected.push_back(_v);
     };
 
-    auto xform = transducers::map(plus_one());
+    auto xform = djinterp::map(plus_one());
     transduce_producer_to_consumer(xform, prod, consumer);
 
     D_INTERNAL_TRD_CHECK(collected.size() == 5);
@@ -148,7 +148,7 @@ bool test_drivers_short_circuit_stops_source()
         collected.push_back(_v);
     };
 
-    auto xform = transducers::take(3);
+    auto xform = djinterp::take_transducer(3);
     transduce_producer_to_consumer(xform, prod, consumer);
 
     D_INTERNAL_TRD_CHECK(collected.size() == 3);

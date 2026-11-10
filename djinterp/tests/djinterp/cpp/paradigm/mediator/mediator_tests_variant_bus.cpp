@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_variant_bus.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp [test] : mediator_tests_variant_bus.cpp
 //   The closed-set variant_event_bus (section V, C++17+).  variant_event_bus
@@ -143,7 +143,7 @@ bool tests_variant_bus_unsubscribe()
     variant_event_bus<ping, pong> bus;
     int                           seen = 0;
 
-    subscription_token tok =
+    subscription_id tok =
         bus.subscribe<ping>([&](const ping&) { ++seen; });
 
     bus.unsubscribe(tok);

@@ -35,7 +35,7 @@
 * path:      /tests/djinterp/cpp/meta/dtuple_tests_2d.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./dtuple_tests.hpp"
@@ -526,179 +526,179 @@ static_assert(tuple_row_size<0, std::tuple<DRowEmpty>>::value == 0,
 // XI.  RUNTIME DRIVER
 // =========================================================================
 
-void dtuple_tests_2d_all(
-    test_handler& _test_handler
-)
+bool dtuple_tests_2d_all()
 {
+    bool verdict = true;
+
     // ---- is_2d_tuple ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<int>::value == false,
         "is_2d_tuple: non-tuple -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<DEmpty2d>::value == true,
         "is_2d_tuple: empty tuple -> true (vacuous)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<std::tuple<int>>::value == false,
         "is_2d_tuple: 1D tuple -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<DUniform2>::value == true,
         "is_2d_tuple: uniform 2D -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<jagged>::value == true,
         "is_2d_tuple: jagged tuple is still 2D");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<std::tuple<std::tuple<int>, int>>::value == false,
         "is_2d_tuple: mixed tuple/non-tuple rows -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_2d_tuple<std::tuple<const std::tuple<int>>>::value == true,
         "is_2d_tuple: cv-qualified rows accepted (clean_t)");
 
     // ---- tuple_inner_sizes ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_inner_sizes<DEmpty2d>::type,
                      std::index_sequence<>>::value,
         "tuple_inner_sizes: empty 2D -> index_sequence<>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_inner_sizes<DUniform2>::type,
                      std::index_sequence<2, 2>>::value,
         "tuple_inner_sizes: uniform 2x2 -> index_sequence<2, 2>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_inner_sizes<jagged>::type,
                      std::index_sequence<1, 2, 3>>::value,
         "tuple_inner_sizes: jagged -> index_sequence<1, 2, 3>");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_inner_sizes_t<DUniform2>,
                      std::index_sequence<2, 2>>::value,
         "tuple_inner_sizes_t: alias");
 
     // ---- tuple_outer_size ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_outer_size<int>::value == 0,
         "tuple_outer_size: non-tuple -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_outer_size<std::tuple<int>>::value == 0,
         "tuple_outer_size: 1D tuple -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_outer_size<DEmpty2d>::value == 0,
         "tuple_outer_size: empty 2D -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_outer_size<DUniform3>::value == 3,
         "tuple_outer_size: 3-row uniform -> 3");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_outer_size<jagged>::value == 3,
         "tuple_outer_size: jagged 3-row -> 3");
 
     // ---- tuple_flatten_types ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_flatten_types<DEmpty2d>::type, std::tuple<>>::value,
         "tuple_flatten_types: empty 2D -> empty");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_flatten_types<DUniform2>::type,
                      std::tuple<int, char, int, char>>::value,
         "tuple_flatten_types: uniform2 flattened");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_flatten_types<jagged>::type,
                      std::tuple<int, int, char, int, char, float>>::value,
         "tuple_flatten_types: jagged flattened");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_flatten_types<DEmptyRows>::type, std::tuple<>>::value,
         "tuple_flatten_types: rows of empty tuples -> empty");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_flatten_types_t<jagged>,
                      std::tuple<int, int, char, int, char, float>>::value,
         "tuple_flatten_types_t: alias");
 
     // ---- is_uniform_2d_tuple ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_uniform_2d_tuple<DEmpty2d>::value == true,
         "is_uniform_2d_tuple: empty 2D vacuously uniform");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_uniform_2d_tuple<DOneRow>::value == true,
         "is_uniform_2d_tuple: single row vacuously uniform");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_uniform_2d_tuple<DUniform2>::value == true,
         "is_uniform_2d_tuple: uniform 2x2 -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_uniform_2d_tuple<jagged>::value == false,
         "is_uniform_2d_tuple: jagged -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_uniform_2d_tuple<int>::value == false,
         "is_uniform_2d_tuple: non-tuple -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_uniform_2d_tuple<std::tuple<int>>::value == false,
         "is_uniform_2d_tuple: 1D tuple -> false");
 
     // ---- is_jagged_tuple ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_jagged_tuple<DEmpty2d>::value == false,
         "is_jagged_tuple: empty 2D -> false (< 2 rows)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_jagged_tuple<DOneRow>::value == false,
         "is_jagged_tuple: single-row -> false (< 2 rows)");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_jagged_tuple<DUniform2>::value == false,
         "is_jagged_tuple: uniform multi-row -> false");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_jagged_tuple<jagged>::value == true,
         "is_jagged_tuple: jagged -> true");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         is_jagged_tuple<std::tuple<DRow1, DRow2>>::value == true,
         "is_jagged_tuple: two-row jagged -> true");
 
     // ---- DTupleTotalElements ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleTotalElements<DEmpty2d>::value == 0,
         "tuple_total_elements: empty 2D -> 0");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleTotalElements<DUniform3>::value == 6,
         "tuple_total_elements: uniform3 -> 6");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleTotalElements<jagged>::value == 6,
         "tuple_total_elements: jagged 1+2+3 -> 6");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         DTupleTotalElements<DEmptyRows>::value == 0,
         "tuple_total_elements: empty rows -> 0");
 
     // ---- tuple_common_element_type ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_common_element_type<DEmpty2d>::type, void>::value,
         "tuple_common_element_type: empty 2D -> void");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_common_element_type<
                             std::tuple<std::tuple<int>, std::tuple<int>>>::type, int>::value,
         "tuple_common_element_type: all int -> int");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_common_element_type<
                             std::tuple<std::tuple<int>, std::tuple<long>>>::type, long>::value,
         "tuple_common_element_type: int and long -> long");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_common_element_type_t<
                             std::tuple<std::tuple<int>, std::tuple<long>>>, long>::value,
         "tuple_common_element_type_t: alias");
 
     // ---- make_2d_tuple_of ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename make_2d_tuple_of<int>::type, std::tuple<>>::value,
         "make_2d_tuple_of<int>: no rows -> empty 2D");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename make_2d_tuple_of<int, 1>::type,
                      std::tuple<std::tuple<int>>>::value,
         "make_2d_tuple_of<int, 1>: single 1-element row");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename make_2d_tuple_of<int, 2, 2>::type,
                      std::tuple<std::tuple<int, int>, std::tuple<int, int>>>::value,
         "make_2d_tuple_of<int, 2, 2>: uniform 2x2");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename make_2d_tuple_of<int, 1, 2, 3>::type,
                      std::tuple<std::tuple<int>,
                                 std::tuple<int, int>,
                                 std::tuple<int, int, int>>>::value,
         "make_2d_tuple_of<int, 1, 2, 3>: jagged");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename make_2d_tuple_of<int, 0>::type,
                      std::tuple<std::tuple<>>>::value,
         "make_2d_tuple_of<int, 0>: empty inner row");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<make_2d_tuple_of_t<int, 1, 2, 3>,
                      std::tuple<std::tuple<int>,
                                 std::tuple<int, int>,
@@ -706,33 +706,33 @@ void dtuple_tests_2d_all(
         "make_2d_tuple_of_t: alias");
 
     // ---- tuple_row_type ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_row_type<0, DUniform2>::type, DRow2>::value,
         "tuple_row_type<0, uniform2> -> row_2");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_row_type<2, jagged>::type, DRow3>::value,
         "tuple_row_type<2, jagged> -> row_3");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<typename tuple_row_type<0,
                             std::tuple<const std::tuple<int, char>>>::type,
                      std::tuple<int, char>>::value,
         "tuple_row_type: const-qualified inner stripped");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         std::is_same<tuple_row_type_t<1, DUniform2>, DRow2>::value,
         "tuple_row_type_t: alias");
 
     // ---- tuple_row_size ----
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_row_size<0, DOneRow>::value == 2,
         "tuple_row_size<0, one_row> -> 2");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_row_size<2, jagged>::value == 3,
         "tuple_row_size<2, jagged> -> 3");
-    record_assertion(_test_handler,
+    record_assertion(verdict,
         tuple_row_size<0, std::tuple<DRowEmpty>>::value == 0,
         "tuple_row_size<0, tuple<empty>> -> 0");
 
-    return;
+    return verdict;
 }
 
 

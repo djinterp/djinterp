@@ -8,8 +8,8 @@
 *
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests_execute.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 // std
@@ -23,41 +23,41 @@ NS_DJINTERP
 NS_TESTING
 
 
-void test_execute(
-    test::test_handler& _h
-)
+bool test_execute()
 {
+    bool verdict = true;
+
     auto doubler = DFnBuilder<int>::create().map(DFnDouble{});
 
     // execute(vector)
     std::vector<int> vin = { 1, 2, 3 };
-    test::record_assertion(_h,
+    record_assertion(verdict,
         doubler.execute(vin) == std::vector<int>({ 2, 4, 6 }),
         "execute: drains a std::vector input");
 
     // execute(generic container) -- std::list is converted to the input vector
     std::list<int> lin = { 4, 5 };
-    test::record_assertion(_h,
+    record_assertion(verdict,
         doubler.execute(lin) == std::vector<int>({ 8, 10 }),
         "execute: accepts a generic container and converts it");
 
     // execute(pointer, count)
     const int arr[] = { 6, 7 };
-    test::record_assertion(_h,
+    record_assertion(verdict,
         doubler.execute(arr, 2) == std::vector<int>({ 12, 14 }),
         "execute: accepts a raw array and count");
 
     // operator() is a shorthand for execute
-    test::record_assertion(_h,
+    record_assertion(verdict,
         doubler(vin) == std::vector<int>({ 2, 4, 6 }),
         "execute: operator() forwards to execute");
 
     // operator() over a generic container
-    test::record_assertion(_h,
+    record_assertion(verdict,
         doubler(lin) == std::vector<int>({ 8, 10 }),
         "execute: operator() accepts a generic container");
 
-    return;
+    return verdict;
 }
 
 

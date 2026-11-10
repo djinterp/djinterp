@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/binary/encode_options_tests_leaves.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "encode_options_tests.hpp"
@@ -49,35 +49,35 @@ tests_encode_options_leaf_integrals
 bool tests_encode_options_leaf_integrals()
 {
     // unsigned, order reverses
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<std::uint16_t>(0x1234))
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::uint16_t>(0x1234))
                 == byte_string{ 0x12, 0x34 }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<std::uint16_t>(0x1234))
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::uint16_t>(0x1234))
                 == byte_string{ 0x34, 0x12 }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<std::uint32_t>(0xDEADBEEF))
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::uint32_t>(0xDEADBEEF))
                 == byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<std::uint32_t>(0xDEADBEEF))
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::uint32_t>(0xDEADBEEF))
                 == byte_string{ 0xEF, 0xBE, 0xAD, 0xDE }));
 
     // signed, order reverses
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<std::int16_t>(-2))
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::int16_t>(-2))
                 == byte_string{ 0xFF, 0xFE }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<std::int16_t>(-2))
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::int16_t>(-2))
                 == byte_string{ 0xFE, 0xFF }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<std::int32_t>(-2147483647 - 1))
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::int32_t>(-2147483647 - 1))
                 == byte_string{ 0x80, 0x00, 0x00, 0x00 }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<std::int32_t>(-2147483647 - 1))
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::int32_t>(-2147483647 - 1))
                 == byte_string{ 0x00, 0x00, 0x00, 0x80 }));
 
     // one byte is order-invariant
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<std::uint8_t>(0xFF))
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::uint8_t>(0xFF))
                 == byte_string{ 0xFF }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<std::uint8_t>(0xFF))
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::uint8_t>(0xFF))
                 == byte_string{ 0xFF }));
 
     // an all-ones 64-bit value is eight 0xFF bytes under either order
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<std::int64_t>(-1))
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::int64_t>(-1))
                 == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<std::int64_t>(-1))
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::int64_t>(-1))
                 == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
 
     return true;
@@ -166,10 +166,10 @@ tests_encode_options_big_matches_encode
 bool tests_encode_options_big_matches_encode()
 {
     D_EO_CHECK(encode_leaf<DSerialEndian::big>(true) == encode(true));
-    D_EO_CHECK(encode_leaf<DSerialEndian::big>(static_cast<std::uint32_t>(0xDEADBEEF))
-               == encode(static_cast<std::uint32_t>(0xDEADBEEF)));
-    D_EO_CHECK(encode_leaf<DSerialEndian::big>(static_cast<std::int32_t>(-2147483647 - 1))
-               == encode(static_cast<std::int32_t>(-2147483647 - 1)));
+    D_EO_CHECK(encode_leaf<DSerialEndian::big>(static_cast<re_std::uint32_t>(0xDEADBEEF))
+               == encode(static_cast<re_std::uint32_t>(0xDEADBEEF)));
+    D_EO_CHECK(encode_leaf<DSerialEndian::big>(static_cast<re_std::int32_t>(-2147483647 - 1))
+               == encode(static_cast<re_std::int32_t>(-2147483647 - 1)));
     D_EO_CHECK(encode_leaf<DSerialEndian::big>(DEoEnumI32::value)
                == encode(DEoEnumI32::value));
     D_EO_CHECK(encode_leaf<DSerialEndian::big>(1.0f) == encode(1.0f));

@@ -52,7 +52,7 @@
 *                write_only_container_tests.hpp
 * link(s):   TBA
 * author(s): DTest contributors                              created: 2026.07.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -99,6 +99,10 @@ V.    SEAL          (write_only_container_tests_seal.cpp)
 #include "djinterp/cpp/modules/test/test_defaults.hpp"
 #endif
 
+
+// the name ::djinterp::test exists in both faces for the dt alias below
+// (test_defaults.hpp declares it in the spec face; this reopens it)
+namespace djinterp { namespace test {} }
 
 NS_DJINTERP
 NS_TESTING

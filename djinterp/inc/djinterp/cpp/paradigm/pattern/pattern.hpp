@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/paradigm/pattern/pattern.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -397,31 +397,11 @@ struct DPatternMatchResult
 ///                IV.  PATTERN (CRTP BASE)                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// forward declaration of traits for static_assert in pattern<>
-NS_TRAITS
-
-    template<typename Type, typename = void>
-    struct pattern_has_input_type;
-
-    template<typename Type, typename = void>
-    struct pattern_has_key_type;
-
-    template<typename Type, typename = void>
-    struct pattern_has_value_type;
-
-    template<typename Type, typename = void>
-    struct pattern_has_do_match;
-
-    template<typename Type, typename = void>
-    struct pattern_has_do_extract;
-
-    template<typename Type, typename = void>
-    struct pattern_has_do_render;
-
-    template<typename Type, typename = void>
-    struct pattern_has_do_rewrite;
-
-NS_END  // traits
+// (The traits pattern<>'s static_asserts read are forward-declared at the
+// top of the header, in djinterp, where section V defines them. A second set
+// of forward declarations in djinterp::traits stayed behind when the traits
+// moved; nothing defined those, so naming one was an incomplete type. It
+// went 2026-11-09.)
 
 
 // pattern
