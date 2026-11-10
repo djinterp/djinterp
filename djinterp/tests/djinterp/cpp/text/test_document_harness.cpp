@@ -47,7 +47,7 @@ using ::djinterp::test::render_run_flow;
 
 
 // ===========================================================================
-// tree target stand-in (matches document_writer cursor's open_child/text)
+// tree target stand-in (matches DDocumentWriter cursor's open_child/text)
 // ===========================================================================
 
 struct tree_node
@@ -343,7 +343,7 @@ std::vector<module_record> collect_invariant_records(
 
     _doc.per_module().for_each(
         _env, _run_ctx, _out,
-        [&_doc](const ::djinterp::binding_env<test_context>& _e,
+        [&_doc](const ::djinterp::DBindingEnv<test_context>& _e,
                 const test_context& _module_ctx,
                 std::vector<module_record>& _acc)
         {
@@ -359,7 +359,7 @@ std::vector<module_record> collect_invariant_records(
 
             _doc.per_unit_in_module().for_each(
                 _e, _module_ctx, _inner,
-                [&_doc](const ::djinterp::binding_env<test_context>& _ie,
+                [&_doc](const ::djinterp::DBindingEnv<test_context>& _ie,
                         const test_context& _unit_ctx,
                         std::pair<std::vector<std::string>,
                                   std::vector<std::vector<std::string> > >& _ic)
@@ -369,7 +369,7 @@ std::vector<module_record> collect_invariant_records(
                     std::vector<std::string> _statuses;
                     _doc.per_check_in_unit().for_each(
                         _ie, _unit_ctx, _statuses,
-                        [](const ::djinterp::binding_env<test_context>& _je,
+                        [](const ::djinterp::DBindingEnv<test_context>& _je,
                            const test_context& _check_ctx,
                            std::vector<std::string>& _ss)
                         {
@@ -385,7 +385,7 @@ std::vector<module_record> collect_invariant_records(
             // unit verdicts (re-walk the units for clarity)
             _doc.per_unit_in_module().for_each(
                 _e, _module_ctx, _r.unit_verdicts,
-                [](const ::djinterp::binding_env<test_context>& _ie,
+                [](const ::djinterp::DBindingEnv<test_context>& _ie,
                    const test_context& _unit_ctx,
                    std::vector<std::string>& _vs)
                 {

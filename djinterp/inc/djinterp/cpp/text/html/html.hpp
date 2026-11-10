@@ -19,7 +19,7 @@
 * the trait system, and the concepts together.
 *
 *   ZERO OVERHEAD:
-*   - `html_element<Backend>` adds NO members beyond `xml_node`.
+*   - `DHtmlElement<Backend>` adds NO members beyond `DXmlNode`.
 *   - All tag / attribute / category lookups are `D_CONSTEXPR` and
 *     compile down to switch tables or simple comparisons.
 *   - Tag-name strings live in `html::tags` as string-literal pointers
@@ -151,11 +151,11 @@ namespace html {
 ///                II.   HTML VERSION & DOCTYPE                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_version
+// DHtmlVersion
 //   enum: identifies the document's target HTML / XHTML version.
 // Drives DOCTYPE emission and self-closing-tag formatting (`<br>`
 // for HTML5 / HTML4 vs `<br/>` for XHTML).
-enum class html_version : re_std::uint8_t
+enum class DHtmlVersion : re_std::uint8_t
 {
     html5,
     html4_strict,
@@ -175,36 +175,36 @@ enum class html_version : re_std::uint8_t
 // version. Returns an empty string for `unspecified` and `custom`.
 D_CONSTEXPR_INLINE
 const char* html_doctype_string(
-    html_version _v
+    DHtmlVersion _v
 )
 {
-    return (_v == html_version::html5)
+    return (_v == DHtmlVersion::html5)
             ? "<!DOCTYPE html>"
-         : (_v == html_version::html4_strict)
+         : (_v == DHtmlVersion::html4_strict)
             ? "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\""
               " \"http://www.w3.org/TR/html4/strict.dtd\">"
-         : (_v == html_version::html4_transitional)
+         : (_v == DHtmlVersion::html4_transitional)
             ? "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01"
               " Transitional//EN\""
               " \"http://www.w3.org/TR/html4/loose.dtd\">"
-         : (_v == html_version::html4_frameset)
+         : (_v == DHtmlVersion::html4_frameset)
             ? "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01"
               " Frameset//EN\""
               " \"http://www.w3.org/TR/html4/frameset.dtd\">"
-         : (_v == html_version::xhtml1_strict)
+         : (_v == DHtmlVersion::xhtml1_strict)
             ? "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0"
               " Strict//EN\""
               " \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
-         : (_v == html_version::xhtml1_transitional)
+         : (_v == DHtmlVersion::xhtml1_transitional)
             ? "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0"
               " Transitional//EN\""
               " \"http://www.w3.org/TR/xhtml1/DTD/"
               "xhtml1-transitional.dtd\">"
-         : (_v == html_version::xhtml1_frameset)
+         : (_v == DHtmlVersion::xhtml1_frameset)
             ? "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0"
               " Frameset//EN\""
               " \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\">"
-         : (_v == html_version::xhtml5)
+         : (_v == DHtmlVersion::xhtml5)
             ? "<!DOCTYPE html>"
          :    "";
 }
@@ -215,13 +215,13 @@ const char* html_doctype_string(
 // emission (lowercase tags, quoted attributes, self-closed voids).
 D_CONSTEXPR_INLINE
 bool is_xhtml_version(
-    html_version _v
+    DHtmlVersion _v
 )
 {
-    return ( (_v == html_version::xhtml1_strict)       ||
-             (_v == html_version::xhtml1_transitional) ||
-             (_v == html_version::xhtml1_frameset)     ||
-             (_v == html_version::xhtml5) );
+    return ( (_v == DHtmlVersion::xhtml1_strict)       ||
+             (_v == DHtmlVersion::xhtml1_transitional) ||
+             (_v == DHtmlVersion::xhtml1_frameset)     ||
+             (_v == DHtmlVersion::xhtml5) );
 }
 
 
@@ -229,12 +229,12 @@ bool is_xhtml_version(
 ///                III.   ELEMENT KIND ENUM                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_element_kind
+// DHtmlElementKind
 //   enum: discriminator for every standard HTML5 element. Backed
 // by `re_std::uint8_t` to keep storage minimal. The `unknown` value
 // is used for elements not in this list (custom elements, web
 // components, deprecated tags).
-enum class html_element_kind : re_std::uint8_t
+enum class DHtmlElementKind : re_std::uint8_t
 {
     // root / metadata
     html_root, head, title, base, link_, meta, style, script, noscript,
@@ -283,11 +283,11 @@ enum class html_element_kind : re_std::uint8_t
 ///                IV.   ATTRIBUTE KIND ENUM                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_attribute_kind
+// DHtmlAttributeKind
 //   enum: discriminator for the most common HTML attributes.
 // The list covers the global attributes plus the attributes most
 // frequently inspected by templating and DOM-walking code.
-enum class html_attribute_kind : re_std::uint8_t
+enum class DHtmlAttributeKind : re_std::uint8_t
 {
     // global
     id, class_, style, title, lang, dir, hidden, tabindex, accesskey,
@@ -320,11 +320,11 @@ enum class html_attribute_kind : re_std::uint8_t
 ///             V.   ELEMENT CATEGORY CLASSIFICATION                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_element_category
+// DHtmlElementCategory
 //   enum: bitmask describing the categorical properties of an
 // element. An element may belong to several categories (e.g. `a`
 // is both `flow` and `phrasing`). Backed by `unsigned`.
-enum html_element_category : unsigned
+enum DHtmlElementCategory : unsigned
 {
     hec_none           = 0u,
     hec_void           = 1u <<  0,  // self-closing, no end tag
@@ -353,248 +353,248 @@ enum html_element_category : unsigned
 // `hec_none` for `unknown`.
 D_CONSTEXPR_INLINE
 unsigned html_category_for_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     // void elements: area, base, br, col, embed, hr, img, input,
     // link, meta, param, source, track, wbr.
-    return (_k == html_element_kind::area)   ? (hec_void | hec_phrasing | hec_flow)
-         : (_k == html_element_kind::base)   ? (hec_void | hec_metadata)
-         : (_k == html_element_kind::br)     ? (hec_void | hec_phrasing | hec_flow)
-         : (_k == html_element_kind::col)    ? (hec_void | hec_table)
-         : (_k == html_element_kind::embed)  ? (hec_void | hec_phrasing | hec_flow
+    return (_k == DHtmlElementKind::area)    ? (hec_void | hec_phrasing | hec_flow)
+         : (_k == DHtmlElementKind::base)    ? (hec_void | hec_metadata)
+         : (_k == DHtmlElementKind::br)      ? (hec_void | hec_phrasing | hec_flow)
+         : (_k == DHtmlElementKind::col)     ? (hec_void | hec_table)
+         : (_k == DHtmlElementKind::embed)   ? (hec_void | hec_phrasing | hec_flow
                                                 | hec_embedded | hec_interactive)
-         : (_k == html_element_kind::hr)     ? (hec_void | hec_block | hec_flow)
-         : (_k == html_element_kind::img)    ? (hec_void | hec_phrasing | hec_flow
+         : (_k == DHtmlElementKind::hr)      ? (hec_void | hec_block | hec_flow)
+         : (_k == DHtmlElementKind::img)     ? (hec_void | hec_phrasing | hec_flow
                                                 | hec_embedded | hec_palpable)
-         : (_k == html_element_kind::input)  ? (hec_void | hec_phrasing | hec_flow
+         : (_k == DHtmlElementKind::input)  ? (hec_void | hec_phrasing | hec_flow
                                                 | hec_form_assoc | hec_interactive
                                                 | hec_palpable)
-         : (_k == html_element_kind::link_)  ? (hec_void | hec_metadata | hec_flow)
-         : (_k == html_element_kind::meta)   ? (hec_void | hec_metadata | hec_flow)
-         : (_k == html_element_kind::param)  ? (hec_void)
-         : (_k == html_element_kind::source) ? (hec_void)
-         : (_k == html_element_kind::track)  ? (hec_void)
-         : (_k == html_element_kind::wbr)    ? (hec_void | hec_phrasing | hec_flow)
+         : (_k == DHtmlElementKind::link_)   ? (hec_void | hec_metadata | hec_flow)
+         : (_k == DHtmlElementKind::meta)    ? (hec_void | hec_metadata | hec_flow)
+         : (_k == DHtmlElementKind::param)   ? (hec_void)
+         : (_k == DHtmlElementKind::source)  ? (hec_void)
+         : (_k == DHtmlElementKind::track)   ? (hec_void)
+         : (_k == DHtmlElementKind::wbr)     ? (hec_void | hec_phrasing | hec_flow)
 
          // metadata
-         : (_k == html_element_kind::title)    ? (hec_metadata | hec_escapable_raw)
-         : (_k == html_element_kind::style)    ? (hec_metadata | hec_raw_text)
-         : (_k == html_element_kind::script)   ? (hec_metadata | hec_raw_text
+         : (_k == DHtmlElementKind::title)     ? (hec_metadata | hec_escapable_raw)
+         : (_k == DHtmlElementKind::style)     ? (hec_metadata | hec_raw_text)
+         : (_k == DHtmlElementKind::script)    ? (hec_metadata | hec_raw_text
                                                   | hec_phrasing | hec_flow)
-         : (_k == html_element_kind::noscript) ? (hec_metadata | hec_phrasing
+         : (_k == DHtmlElementKind::noscript) ? (hec_metadata | hec_phrasing
                                                   | hec_flow)
-         : (_k == html_element_kind::head)     ? (hec_metadata)
+         : (_k == DHtmlElementKind::head)     ? (hec_metadata)
 
          // sectioning
-         : (_k == html_element_kind::html_root) ? (hec_block)
-         : (_k == html_element_kind::body)      ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::html_root)  ? (hec_block)
+         : (_k == DHtmlElementKind::body)       ? (hec_block | hec_sectioning
                                                    | hec_flow)
-         : (_k == html_element_kind::header)    ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::header)    ? (hec_block | hec_flow
                                                    | hec_palpable)
-         : (_k == html_element_kind::nav)       ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::nav)       ? (hec_block | hec_sectioning
                                                    | hec_flow | hec_palpable)
-         : (_k == html_element_kind::main_)     ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::main_)     ? (hec_block | hec_flow
                                                    | hec_palpable)
-         : (_k == html_element_kind::section)   ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::section)   ? (hec_block | hec_sectioning
                                                    | hec_flow | hec_palpable)
-         : (_k == html_element_kind::article)   ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::article)   ? (hec_block | hec_sectioning
                                                    | hec_flow | hec_palpable)
-         : (_k == html_element_kind::aside)     ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::aside)     ? (hec_block | hec_sectioning
                                                    | hec_flow | hec_palpable)
-         : (_k == html_element_kind::footer)    ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::footer)    ? (hec_block | hec_flow
                                                    | hec_palpable)
-         : (_k == html_element_kind::address)   ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::address)   ? (hec_block | hec_flow
                                                    | hec_palpable)
 
          // headings (uniform)
-         : ( (_k == html_element_kind::h1) ||
-             (_k == html_element_kind::h2) ||
-             (_k == html_element_kind::h3) ||
-             (_k == html_element_kind::h4) ||
-             (_k == html_element_kind::h5) ||
-             (_k == html_element_kind::h6) ||
-             (_k == html_element_kind::hgroup) )
+         : ( (_k == DHtmlElementKind::h1) ||
+             (_k == DHtmlElementKind::h2) ||
+             (_k == DHtmlElementKind::h3) ||
+             (_k == DHtmlElementKind::h4) ||
+             (_k == DHtmlElementKind::h5) ||
+             (_k == DHtmlElementKind::h6) ||
+             (_k == DHtmlElementKind::hgroup) )
                                               ? (hec_block | hec_flow | hec_heading
                                                  | hec_palpable)
 
          // paragraph / list block
-         : (_k == html_element_kind::p)          ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::p)          ? (hec_block | hec_flow
                                                     | hec_palpable)
-         : (_k == html_element_kind::pre)        ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::pre)        ? (hec_block | hec_flow
                                                     | hec_palpable)
-         : (_k == html_element_kind::blockquote) ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::blockquote) ? (hec_block | hec_sectioning
                                                     | hec_flow | hec_palpable)
-         : ( (_k == html_element_kind::ol) ||
-             (_k == html_element_kind::ul) ||
-             (_k == html_element_kind::dl) )
+         : ( (_k == DHtmlElementKind::ol) ||
+             (_k == DHtmlElementKind::ul) ||
+             (_k == DHtmlElementKind::dl) )
                                                  ? (hec_block | hec_flow
                                                     | hec_palpable)
-         : ( (_k == html_element_kind::li) ||
-             (_k == html_element_kind::dt) ||
-             (_k == html_element_kind::dd) )
+         : ( (_k == DHtmlElementKind::li) ||
+             (_k == DHtmlElementKind::dt) ||
+             (_k == DHtmlElementKind::dd) )
                                                  ? (hec_block)
-         : (_k == html_element_kind::figure)     ? (hec_block | hec_sectioning
+         : (_k == DHtmlElementKind::figure)      ? (hec_block | hec_sectioning
                                                     | hec_flow | hec_palpable)
-         : (_k == html_element_kind::figcaption) ? (hec_block)
-         : (_k == html_element_kind::div_)       ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::figcaption)  ? (hec_block)
+         : (_k == DHtmlElementKind::div_)        ? (hec_block | hec_flow
                                                     | hec_palpable)
 
          // forms
-         : (_k == html_element_kind::form)     ? (hec_block | hec_form
+         : (_k == DHtmlElementKind::form)     ? (hec_block | hec_form
                                                   | hec_flow | hec_palpable)
-         : (_k == html_element_kind::fieldset) ? (hec_block | hec_form_assoc
+         : (_k == DHtmlElementKind::fieldset) ? (hec_block | hec_form_assoc
                                                   | hec_flow | hec_palpable)
-         : (_k == html_element_kind::legend)   ? (hec_block)
-         : (_k == html_element_kind::label)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::legend)    ? (hec_block)
+         : (_k == DHtmlElementKind::label)     ? (hec_inline_ | hec_phrasing
                                                   | hec_form_assoc | hec_flow
                                                   | hec_interactive
                                                   | hec_palpable)
-         : (_k == html_element_kind::button)   ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::button)   ? (hec_inline_ | hec_phrasing
                                                   | hec_form_assoc | hec_flow
                                                   | hec_interactive
                                                   | hec_palpable)
-         : (_k == html_element_kind::select_)  ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::select_)  ? (hec_inline_ | hec_phrasing
                                                   | hec_form_assoc | hec_flow
                                                   | hec_interactive
                                                   | hec_palpable)
-         : (_k == html_element_kind::textarea) ? (hec_inline_ | hec_escapable_raw
+         : (_k == DHtmlElementKind::textarea) ? (hec_inline_ | hec_escapable_raw
                                                   | hec_form_assoc | hec_phrasing
                                                   | hec_flow | hec_interactive
                                                   | hec_palpable)
-         : ( (_k == html_element_kind::output)   ||
-             (_k == html_element_kind::progress) ||
-             (_k == html_element_kind::meter) )
+         : ( (_k == DHtmlElementKind::output)    ||
+             (_k == DHtmlElementKind::progress)  ||
+             (_k == DHtmlElementKind::meter) )
                                                 ? (hec_inline_ | hec_phrasing
                                                    | hec_form_assoc | hec_flow
                                                    | hec_palpable)
-         : ( (_k == html_element_kind::option) ||
-             (_k == html_element_kind::optgroup) )
+         : ( (_k == DHtmlElementKind::option) ||
+             (_k == DHtmlElementKind::optgroup) )
                                                 ? (hec_inline_)
-         : (_k == html_element_kind::datalist)  ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::datalist)   ? (hec_inline_ | hec_phrasing
                                                    | hec_flow)
 
          // tables
-         : (_k == html_element_kind::table)    ? (hec_block | hec_table | hec_flow
+         : (_k == DHtmlElementKind::table)    ? (hec_block | hec_table | hec_flow
                                                   | hec_palpable)
-         : (_k == html_element_kind::caption)  ? (hec_block | hec_table)
-         : (_k == html_element_kind::colgroup) ? (hec_table)
-         : ( (_k == html_element_kind::tbody) ||
-             (_k == html_element_kind::thead) ||
-             (_k == html_element_kind::tfoot) ||
-             (_k == html_element_kind::tr) )
+         : (_k == DHtmlElementKind::caption)   ? (hec_block | hec_table)
+         : (_k == DHtmlElementKind::colgroup)  ? (hec_table)
+         : ( (_k == DHtmlElementKind::tbody) ||
+             (_k == DHtmlElementKind::thead) ||
+             (_k == DHtmlElementKind::tfoot) ||
+             (_k == DHtmlElementKind::tr) )
                                               ? (hec_block | hec_table)
-         : ( (_k == html_element_kind::td) ||
-             (_k == html_element_kind::th) )
+         : ( (_k == DHtmlElementKind::td) ||
+             (_k == DHtmlElementKind::th) )
                                               ? (hec_block | hec_table
                                                  | hec_sectioning)
 
          // interactive
-         : (_k == html_element_kind::details) ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::details) ? (hec_block | hec_flow
                                                  | hec_interactive
                                                  | hec_palpable)
-         : (_k == html_element_kind::summary) ? (hec_block)
-         : (_k == html_element_kind::dialog)  ? (hec_block | hec_flow
+         : (_k == DHtmlElementKind::summary)  ? (hec_block)
+         : (_k == DHtmlElementKind::dialog)   ? (hec_block | hec_flow
                                                  | hec_sectioning)
 
          // embedded
-         : (_k == html_element_kind::iframe)  ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::iframe)  ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_embedded
                                                  | hec_interactive
                                                  | hec_palpable)
-         : (_k == html_element_kind::object_) ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::object_) ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_embedded
                                                  | hec_form_assoc
                                                  | hec_palpable)
-         : ( (_k == html_element_kind::video) ||
-             (_k == html_element_kind::audio) )
+         : ( (_k == DHtmlElementKind::video) ||
+             (_k == DHtmlElementKind::audio)  )
                                               ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_embedded
                                                  | hec_interactive
                                                  | hec_palpable)
-         : (_k == html_element_kind::canvas)  ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::canvas)  ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_embedded
                                                  | hec_palpable)
-         : (_k == html_element_kind::picture) ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::picture) ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_embedded)
-         : (_k == html_element_kind::map_)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::map_)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : ( (_k == html_element_kind::math) ||
-             (_k == html_element_kind::svg) )
+         : ( (_k == DHtmlElementKind::math) ||
+             (_k == DHtmlElementKind::svg) )
                                               ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_embedded
                                                  | hec_palpable)
 
          // scripting / template
-         : (_k == html_element_kind::template_) ? (hec_metadata | hec_phrasing
+         : (_k == DHtmlElementKind::template_) ? (hec_metadata | hec_phrasing
                                                    | hec_flow)
-         : (_k == html_element_kind::slot)      ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::slot)      ? (hec_inline_ | hec_phrasing
                                                    | hec_flow)
 
          // edits
-         : ( (_k == html_element_kind::ins) ||
-             (_k == html_element_kind::del_) )
+         : ( (_k == DHtmlElementKind::ins) ||
+             (_k == DHtmlElementKind::del_) )
                                               ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
 
          // anchor
-         : (_k == html_element_kind::a)       ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::a)       ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_interactive
                                                  | hec_palpable)
 
          // remaining inline phrasing elements (em, strong, small, s,
          // cite, q, dfn, abbr, ruby, rt, rp, data, time, code, var,
          // samp, kbd, sub, sup, i, b, u, mark, bdi, bdo, span)
-         : (_k == html_element_kind::em)      ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::em)      ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::strong)  ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::strong)  ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::small)   ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::small)   ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::s)       ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::s)       ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::cite)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::cite)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::q)       ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::q)       ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::dfn)     ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::dfn)     ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::abbr)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::abbr)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::ruby)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::ruby)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : ( (_k == html_element_kind::rt) ||
-             (_k == html_element_kind::rp) )
+         : ( (_k == DHtmlElementKind::rt) ||
+             (_k == DHtmlElementKind::rp) )
                                               ? (hec_inline_)
-         : (_k == html_element_kind::data_)   ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::data_)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::time_)   ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::time_)   ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::code)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::code)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::var_)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::var_)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::samp)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::samp)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::kbd)     ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::kbd)     ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::sub)     ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::sub)     ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::sup)     ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::sup)     ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::i)       ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::i)       ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::b)       ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::b)       ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::u)       ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::u)       ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::mark)    ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::mark)    ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::bdi)     ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::bdi)     ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::bdo)     ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::bdo)     ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
-         : (_k == html_element_kind::span_)   ? (hec_inline_ | hec_phrasing
+         : (_k == DHtmlElementKind::span_)   ? (hec_inline_ | hec_phrasing
                                                  | hec_flow | hec_palpable)
 
          :    hec_none;
@@ -605,7 +605,7 @@ unsigned html_category_for_kind(
 //   function: true if `_k` is a void element (no end tag).
 D_CONSTEXPR_INLINE
 bool is_void_element_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     return ((html_category_for_kind(_k) & hec_void) != 0u);
@@ -616,7 +616,7 @@ bool is_void_element_kind(
 //   function: true if `_k` is a block-level element.
 D_CONSTEXPR_INLINE
 bool is_block_element_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     return ((html_category_for_kind(_k) & hec_block) != 0u);
@@ -627,7 +627,7 @@ bool is_block_element_kind(
 //   function: true if `_k` is an inline-level element.
 D_CONSTEXPR_INLINE
 bool is_inline_element_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     return ((html_category_for_kind(_k) & hec_inline_) != 0u);
@@ -639,7 +639,7 @@ bool is_inline_element_kind(
 // Such elements must NOT have their text escaped on emission.
 D_CONSTEXPR_INLINE
 bool is_raw_text_element_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     return ((html_category_for_kind(_k) & hec_raw_text) != 0u);
@@ -650,7 +650,7 @@ bool is_raw_text_element_kind(
 //   function: true if `_k` is `<form>` or a form-associated control.
 D_CONSTEXPR_INLINE
 bool is_form_element_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     return ( (html_category_for_kind(_k) &
@@ -662,7 +662,7 @@ bool is_form_element_kind(
 //   function: true if `_k` belongs in `<head>`.
 D_CONSTEXPR_INLINE
 bool is_metadata_element_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
     return ((html_category_for_kind(_k) & hec_metadata) != 0u);
@@ -893,218 +893,218 @@ bool internal_streq(
 
 // html_kind_from_name
 //   function: maps an element tag name (case-sensitive,
-// lowercase) to its `html_element_kind`. Returns
-// `html_element_kind::unknown` for unrecognised tags.
+// lowercase) to its `DHtmlElementKind`. Returns
+// `DHtmlElementKind::unknown` for unrecognised tags.
 D_CONSTEXPR_INLINE
-html_element_kind html_kind_from_name(
+DHtmlElementKind html_kind_from_name(
     const char* _name
 )
 {
-    return (!_name)                                  ? html_element_kind::unknown
-         : (internal_streq(_name, tags::html_root))  ? html_element_kind::html_root
-         : (internal_streq(_name, tags::head))       ? html_element_kind::head
-         : (internal_streq(_name, tags::title))      ? html_element_kind::title
-         : (internal_streq(_name, tags::base))       ? html_element_kind::base
-         : (internal_streq(_name, tags::link_))      ? html_element_kind::link_
-         : (internal_streq(_name, tags::meta))       ? html_element_kind::meta
-         : (internal_streq(_name, tags::style))      ? html_element_kind::style
-         : (internal_streq(_name, tags::script))     ? html_element_kind::script
-         : (internal_streq(_name, tags::noscript))   ? html_element_kind::noscript
-         : (internal_streq(_name, tags::body))       ? html_element_kind::body
-         : (internal_streq(_name, tags::header))     ? html_element_kind::header
-         : (internal_streq(_name, tags::nav))        ? html_element_kind::nav
-         : (internal_streq(_name, tags::main_))      ? html_element_kind::main_
-         : (internal_streq(_name, tags::section))    ? html_element_kind::section
-         : (internal_streq(_name, tags::article))    ? html_element_kind::article
-         : (internal_streq(_name, tags::aside))      ? html_element_kind::aside
-         : (internal_streq(_name, tags::footer))     ? html_element_kind::footer
-         : (internal_streq(_name, tags::address))    ? html_element_kind::address
-         : (internal_streq(_name, tags::h1))         ? html_element_kind::h1
-         : (internal_streq(_name, tags::h2))         ? html_element_kind::h2
-         : (internal_streq(_name, tags::h3))         ? html_element_kind::h3
-         : (internal_streq(_name, tags::h4))         ? html_element_kind::h4
-         : (internal_streq(_name, tags::h5))         ? html_element_kind::h5
-         : (internal_streq(_name, tags::h6))         ? html_element_kind::h6
-         : (internal_streq(_name, tags::hgroup))     ? html_element_kind::hgroup
-         : (internal_streq(_name, tags::p))          ? html_element_kind::p
-         : (internal_streq(_name, tags::hr))         ? html_element_kind::hr
-         : (internal_streq(_name, tags::pre))        ? html_element_kind::pre
-         : (internal_streq(_name, tags::blockquote)) ? html_element_kind::blockquote
-         : (internal_streq(_name, tags::ol))         ? html_element_kind::ol
-         : (internal_streq(_name, tags::ul))         ? html_element_kind::ul
-         : (internal_streq(_name, tags::li))         ? html_element_kind::li
-         : (internal_streq(_name, tags::dl))         ? html_element_kind::dl
-         : (internal_streq(_name, tags::dt))         ? html_element_kind::dt
-         : (internal_streq(_name, tags::dd))         ? html_element_kind::dd
-         : (internal_streq(_name, tags::figure))     ? html_element_kind::figure
-         : (internal_streq(_name, tags::figcaption)) ? html_element_kind::figcaption
-         : (internal_streq(_name, tags::div_))       ? html_element_kind::div_
-         : (internal_streq(_name, tags::a))          ? html_element_kind::a
-         : (internal_streq(_name, tags::em))         ? html_element_kind::em
-         : (internal_streq(_name, tags::strong))     ? html_element_kind::strong
-         : (internal_streq(_name, tags::small))      ? html_element_kind::small
-         : (internal_streq(_name, tags::s))          ? html_element_kind::s
-         : (internal_streq(_name, tags::cite))       ? html_element_kind::cite
-         : (internal_streq(_name, tags::q))          ? html_element_kind::q
-         : (internal_streq(_name, tags::dfn))        ? html_element_kind::dfn
-         : (internal_streq(_name, tags::abbr))       ? html_element_kind::abbr
-         : (internal_streq(_name, tags::code))       ? html_element_kind::code
-         : (internal_streq(_name, tags::var_))       ? html_element_kind::var_
-         : (internal_streq(_name, tags::samp))       ? html_element_kind::samp
-         : (internal_streq(_name, tags::kbd))        ? html_element_kind::kbd
-         : (internal_streq(_name, tags::sub))        ? html_element_kind::sub
-         : (internal_streq(_name, tags::sup))        ? html_element_kind::sup
-         : (internal_streq(_name, tags::i))          ? html_element_kind::i
-         : (internal_streq(_name, tags::b))          ? html_element_kind::b
-         : (internal_streq(_name, tags::u))          ? html_element_kind::u
-         : (internal_streq(_name, tags::mark))       ? html_element_kind::mark
-         : (internal_streq(_name, tags::span_))      ? html_element_kind::span_
-         : (internal_streq(_name, tags::br))         ? html_element_kind::br
-         : (internal_streq(_name, tags::wbr))        ? html_element_kind::wbr
-         : (internal_streq(_name, tags::img))        ? html_element_kind::img
-         : (internal_streq(_name, tags::iframe))     ? html_element_kind::iframe
-         : (internal_streq(_name, tags::embed))      ? html_element_kind::embed
-         : (internal_streq(_name, tags::object_))    ? html_element_kind::object_
-         : (internal_streq(_name, tags::video))      ? html_element_kind::video
-         : (internal_streq(_name, tags::audio))      ? html_element_kind::audio
-         : (internal_streq(_name, tags::source))     ? html_element_kind::source
-         : (internal_streq(_name, tags::track))      ? html_element_kind::track
-         : (internal_streq(_name, tags::canvas))     ? html_element_kind::canvas
-         : (internal_streq(_name, tags::picture))    ? html_element_kind::picture
-         : (internal_streq(_name, tags::map_))       ? html_element_kind::map_
-         : (internal_streq(_name, tags::area))       ? html_element_kind::area
-         : (internal_streq(_name, tags::svg))        ? html_element_kind::svg
-         : (internal_streq(_name, tags::table))      ? html_element_kind::table
-         : (internal_streq(_name, tags::caption))    ? html_element_kind::caption
-         : (internal_streq(_name, tags::colgroup))   ? html_element_kind::colgroup
-         : (internal_streq(_name, tags::col))        ? html_element_kind::col
-         : (internal_streq(_name, tags::tbody))      ? html_element_kind::tbody
-         : (internal_streq(_name, tags::thead))      ? html_element_kind::thead
-         : (internal_streq(_name, tags::tfoot))      ? html_element_kind::tfoot
-         : (internal_streq(_name, tags::tr))         ? html_element_kind::tr
-         : (internal_streq(_name, tags::td))         ? html_element_kind::td
-         : (internal_streq(_name, tags::th))         ? html_element_kind::th
-         : (internal_streq(_name, tags::form))       ? html_element_kind::form
-         : (internal_streq(_name, tags::label))      ? html_element_kind::label
-         : (internal_streq(_name, tags::input))      ? html_element_kind::input
-         : (internal_streq(_name, tags::button))     ? html_element_kind::button
-         : (internal_streq(_name, tags::select_))    ? html_element_kind::select_
-         : (internal_streq(_name, tags::option))     ? html_element_kind::option
-         : (internal_streq(_name, tags::textarea))   ? html_element_kind::textarea
-         : (internal_streq(_name, tags::fieldset))   ? html_element_kind::fieldset
-         : (internal_streq(_name, tags::legend))     ? html_element_kind::legend
-         : (internal_streq(_name, tags::details))    ? html_element_kind::details
-         : (internal_streq(_name, tags::summary))    ? html_element_kind::summary
-         : (internal_streq(_name, tags::dialog))     ? html_element_kind::dialog
-         : (internal_streq(_name, tags::template_))  ? html_element_kind::template_
-         :    html_element_kind::unknown;
+    return (!_name)                                  ? DHtmlElementKind::unknown
+         : (internal_streq(_name, tags::html_root))  ? DHtmlElementKind::html_root
+         : (internal_streq(_name, tags::head))       ? DHtmlElementKind::head
+         : (internal_streq(_name, tags::title))      ? DHtmlElementKind::title
+         : (internal_streq(_name, tags::base))       ? DHtmlElementKind::base
+         : (internal_streq(_name, tags::link_))      ? DHtmlElementKind::link_
+         : (internal_streq(_name, tags::meta))       ? DHtmlElementKind::meta
+         : (internal_streq(_name, tags::style))      ? DHtmlElementKind::style
+         : (internal_streq(_name, tags::script))     ? DHtmlElementKind::script
+         : (internal_streq(_name, tags::noscript))   ? DHtmlElementKind::noscript
+         : (internal_streq(_name, tags::body))       ? DHtmlElementKind::body
+         : (internal_streq(_name, tags::header))     ? DHtmlElementKind::header
+         : (internal_streq(_name, tags::nav))        ? DHtmlElementKind::nav
+         : (internal_streq(_name, tags::main_))      ? DHtmlElementKind::main_
+         : (internal_streq(_name, tags::section))    ? DHtmlElementKind::section
+         : (internal_streq(_name, tags::article))    ? DHtmlElementKind::article
+         : (internal_streq(_name, tags::aside))      ? DHtmlElementKind::aside
+         : (internal_streq(_name, tags::footer))     ? DHtmlElementKind::footer
+         : (internal_streq(_name, tags::address))    ? DHtmlElementKind::address
+         : (internal_streq(_name, tags::h1))         ? DHtmlElementKind::h1
+         : (internal_streq(_name, tags::h2))         ? DHtmlElementKind::h2
+         : (internal_streq(_name, tags::h3))         ? DHtmlElementKind::h3
+         : (internal_streq(_name, tags::h4))         ? DHtmlElementKind::h4
+         : (internal_streq(_name, tags::h5))         ? DHtmlElementKind::h5
+         : (internal_streq(_name, tags::h6))         ? DHtmlElementKind::h6
+         : (internal_streq(_name, tags::hgroup))     ? DHtmlElementKind::hgroup
+         : (internal_streq(_name, tags::p))          ? DHtmlElementKind::p
+         : (internal_streq(_name, tags::hr))         ? DHtmlElementKind::hr
+         : (internal_streq(_name, tags::pre))        ? DHtmlElementKind::pre
+         : (internal_streq(_name, tags::blockquote)) ? DHtmlElementKind::blockquote
+         : (internal_streq(_name, tags::ol))         ? DHtmlElementKind::ol
+         : (internal_streq(_name, tags::ul))         ? DHtmlElementKind::ul
+         : (internal_streq(_name, tags::li))         ? DHtmlElementKind::li
+         : (internal_streq(_name, tags::dl))         ? DHtmlElementKind::dl
+         : (internal_streq(_name, tags::dt))         ? DHtmlElementKind::dt
+         : (internal_streq(_name, tags::dd))         ? DHtmlElementKind::dd
+         : (internal_streq(_name, tags::figure))     ? DHtmlElementKind::figure
+         : (internal_streq(_name, tags::figcaption)) ? DHtmlElementKind::figcaption
+         : (internal_streq(_name, tags::div_))       ? DHtmlElementKind::div_
+         : (internal_streq(_name, tags::a))          ? DHtmlElementKind::a
+         : (internal_streq(_name, tags::em))         ? DHtmlElementKind::em
+         : (internal_streq(_name, tags::strong))     ? DHtmlElementKind::strong
+         : (internal_streq(_name, tags::small))      ? DHtmlElementKind::small
+         : (internal_streq(_name, tags::s))          ? DHtmlElementKind::s
+         : (internal_streq(_name, tags::cite))       ? DHtmlElementKind::cite
+         : (internal_streq(_name, tags::q))          ? DHtmlElementKind::q
+         : (internal_streq(_name, tags::dfn))        ? DHtmlElementKind::dfn
+         : (internal_streq(_name, tags::abbr))       ? DHtmlElementKind::abbr
+         : (internal_streq(_name, tags::code))       ? DHtmlElementKind::code
+         : (internal_streq(_name, tags::var_))       ? DHtmlElementKind::var_
+         : (internal_streq(_name, tags::samp))       ? DHtmlElementKind::samp
+         : (internal_streq(_name, tags::kbd))        ? DHtmlElementKind::kbd
+         : (internal_streq(_name, tags::sub))        ? DHtmlElementKind::sub
+         : (internal_streq(_name, tags::sup))        ? DHtmlElementKind::sup
+         : (internal_streq(_name, tags::i))          ? DHtmlElementKind::i
+         : (internal_streq(_name, tags::b))          ? DHtmlElementKind::b
+         : (internal_streq(_name, tags::u))          ? DHtmlElementKind::u
+         : (internal_streq(_name, tags::mark))       ? DHtmlElementKind::mark
+         : (internal_streq(_name, tags::span_))      ? DHtmlElementKind::span_
+         : (internal_streq(_name, tags::br))         ? DHtmlElementKind::br
+         : (internal_streq(_name, tags::wbr))        ? DHtmlElementKind::wbr
+         : (internal_streq(_name, tags::img))        ? DHtmlElementKind::img
+         : (internal_streq(_name, tags::iframe))     ? DHtmlElementKind::iframe
+         : (internal_streq(_name, tags::embed))      ? DHtmlElementKind::embed
+         : (internal_streq(_name, tags::object_))    ? DHtmlElementKind::object_
+         : (internal_streq(_name, tags::video))      ? DHtmlElementKind::video
+         : (internal_streq(_name, tags::audio))      ? DHtmlElementKind::audio
+         : (internal_streq(_name, tags::source))     ? DHtmlElementKind::source
+         : (internal_streq(_name, tags::track))      ? DHtmlElementKind::track
+         : (internal_streq(_name, tags::canvas))     ? DHtmlElementKind::canvas
+         : (internal_streq(_name, tags::picture))    ? DHtmlElementKind::picture
+         : (internal_streq(_name, tags::map_))       ? DHtmlElementKind::map_
+         : (internal_streq(_name, tags::area))       ? DHtmlElementKind::area
+         : (internal_streq(_name, tags::svg))        ? DHtmlElementKind::svg
+         : (internal_streq(_name, tags::table))      ? DHtmlElementKind::table
+         : (internal_streq(_name, tags::caption))    ? DHtmlElementKind::caption
+         : (internal_streq(_name, tags::colgroup))   ? DHtmlElementKind::colgroup
+         : (internal_streq(_name, tags::col))        ? DHtmlElementKind::col
+         : (internal_streq(_name, tags::tbody))      ? DHtmlElementKind::tbody
+         : (internal_streq(_name, tags::thead))      ? DHtmlElementKind::thead
+         : (internal_streq(_name, tags::tfoot))      ? DHtmlElementKind::tfoot
+         : (internal_streq(_name, tags::tr))         ? DHtmlElementKind::tr
+         : (internal_streq(_name, tags::td))         ? DHtmlElementKind::td
+         : (internal_streq(_name, tags::th))         ? DHtmlElementKind::th
+         : (internal_streq(_name, tags::form))       ? DHtmlElementKind::form
+         : (internal_streq(_name, tags::label))      ? DHtmlElementKind::label
+         : (internal_streq(_name, tags::input))      ? DHtmlElementKind::input
+         : (internal_streq(_name, tags::button))     ? DHtmlElementKind::button
+         : (internal_streq(_name, tags::select_))    ? DHtmlElementKind::select_
+         : (internal_streq(_name, tags::option))     ? DHtmlElementKind::option
+         : (internal_streq(_name, tags::textarea))   ? DHtmlElementKind::textarea
+         : (internal_streq(_name, tags::fieldset))   ? DHtmlElementKind::fieldset
+         : (internal_streq(_name, tags::legend))     ? DHtmlElementKind::legend
+         : (internal_streq(_name, tags::details))    ? DHtmlElementKind::details
+         : (internal_streq(_name, tags::summary))    ? DHtmlElementKind::summary
+         : (internal_streq(_name, tags::dialog))     ? DHtmlElementKind::dialog
+         : (internal_streq(_name, tags::template_))  ? DHtmlElementKind::template_
+         :    DHtmlElementKind::unknown;
 }
 
 
 // name_from_html_kind
-//   function: maps an `html_element_kind` to its tag-name string.
+//   function: maps an `DHtmlElementKind` to its tag-name string.
 // Returns the empty string for `unknown`.
 D_CONSTEXPR_INLINE
 const char* name_from_html_kind(
-    html_element_kind _k
+    DHtmlElementKind _k
 )
 {
-    return (_k == html_element_kind::html_root)  ? tags::html_root
-         : (_k == html_element_kind::head)       ? tags::head
-         : (_k == html_element_kind::title)      ? tags::title
-         : (_k == html_element_kind::base)       ? tags::base
-         : (_k == html_element_kind::link_)      ? tags::link_
-         : (_k == html_element_kind::meta)       ? tags::meta
-         : (_k == html_element_kind::style)      ? tags::style
-         : (_k == html_element_kind::script)     ? tags::script
-         : (_k == html_element_kind::noscript)   ? tags::noscript
-         : (_k == html_element_kind::body)       ? tags::body
-         : (_k == html_element_kind::header)     ? tags::header
-         : (_k == html_element_kind::nav)        ? tags::nav
-         : (_k == html_element_kind::main_)      ? tags::main_
-         : (_k == html_element_kind::section)    ? tags::section
-         : (_k == html_element_kind::article)    ? tags::article
-         : (_k == html_element_kind::aside)      ? tags::aside
-         : (_k == html_element_kind::footer)     ? tags::footer
-         : (_k == html_element_kind::address)    ? tags::address
-         : (_k == html_element_kind::h1)         ? tags::h1
-         : (_k == html_element_kind::h2)         ? tags::h2
-         : (_k == html_element_kind::h3)         ? tags::h3
-         : (_k == html_element_kind::h4)         ? tags::h4
-         : (_k == html_element_kind::h5)         ? tags::h5
-         : (_k == html_element_kind::h6)         ? tags::h6
-         : (_k == html_element_kind::hgroup)     ? tags::hgroup
-         : (_k == html_element_kind::p)          ? tags::p
-         : (_k == html_element_kind::hr)         ? tags::hr
-         : (_k == html_element_kind::pre)        ? tags::pre
-         : (_k == html_element_kind::blockquote) ? tags::blockquote
-         : (_k == html_element_kind::ol)         ? tags::ol
-         : (_k == html_element_kind::ul)         ? tags::ul
-         : (_k == html_element_kind::li)         ? tags::li
-         : (_k == html_element_kind::dl)         ? tags::dl
-         : (_k == html_element_kind::dt)         ? tags::dt
-         : (_k == html_element_kind::dd)         ? tags::dd
-         : (_k == html_element_kind::figure)     ? tags::figure
-         : (_k == html_element_kind::figcaption) ? tags::figcaption
-         : (_k == html_element_kind::div_)       ? tags::div_
-         : (_k == html_element_kind::a)          ? tags::a
-         : (_k == html_element_kind::em)         ? tags::em
-         : (_k == html_element_kind::strong)     ? tags::strong
-         : (_k == html_element_kind::small)      ? tags::small
-         : (_k == html_element_kind::s)          ? tags::s
-         : (_k == html_element_kind::cite)       ? tags::cite
-         : (_k == html_element_kind::q)          ? tags::q
-         : (_k == html_element_kind::dfn)        ? tags::dfn
-         : (_k == html_element_kind::abbr)       ? tags::abbr
-         : (_k == html_element_kind::code)       ? tags::code
-         : (_k == html_element_kind::var_)       ? tags::var_
-         : (_k == html_element_kind::samp)       ? tags::samp
-         : (_k == html_element_kind::kbd)        ? tags::kbd
-         : (_k == html_element_kind::sub)        ? tags::sub
-         : (_k == html_element_kind::sup)        ? tags::sup
-         : (_k == html_element_kind::i)          ? tags::i
-         : (_k == html_element_kind::b)          ? tags::b
-         : (_k == html_element_kind::u)          ? tags::u
-         : (_k == html_element_kind::mark)       ? tags::mark
-         : (_k == html_element_kind::span_)      ? tags::span_
-         : (_k == html_element_kind::br)         ? tags::br
-         : (_k == html_element_kind::wbr)        ? tags::wbr
-         : (_k == html_element_kind::img)        ? tags::img
-         : (_k == html_element_kind::iframe)     ? tags::iframe
-         : (_k == html_element_kind::embed)      ? tags::embed
-         : (_k == html_element_kind::object_)    ? tags::object_
-         : (_k == html_element_kind::video)      ? tags::video
-         : (_k == html_element_kind::audio)      ? tags::audio
-         : (_k == html_element_kind::source)     ? tags::source
-         : (_k == html_element_kind::track)      ? tags::track
-         : (_k == html_element_kind::canvas)     ? tags::canvas
-         : (_k == html_element_kind::picture)    ? tags::picture
-         : (_k == html_element_kind::map_)       ? tags::map_
-         : (_k == html_element_kind::area)       ? tags::area
-         : (_k == html_element_kind::svg)        ? tags::svg
-         : (_k == html_element_kind::table)      ? tags::table
-         : (_k == html_element_kind::caption)    ? tags::caption
-         : (_k == html_element_kind::colgroup)   ? tags::colgroup
-         : (_k == html_element_kind::col)        ? tags::col
-         : (_k == html_element_kind::tbody)      ? tags::tbody
-         : (_k == html_element_kind::thead)      ? tags::thead
-         : (_k == html_element_kind::tfoot)      ? tags::tfoot
-         : (_k == html_element_kind::tr)         ? tags::tr
-         : (_k == html_element_kind::td)         ? tags::td
-         : (_k == html_element_kind::th)         ? tags::th
-         : (_k == html_element_kind::form)       ? tags::form
-         : (_k == html_element_kind::label)      ? tags::label
-         : (_k == html_element_kind::input)      ? tags::input
-         : (_k == html_element_kind::button)     ? tags::button
-         : (_k == html_element_kind::select_)    ? tags::select_
-         : (_k == html_element_kind::option)     ? tags::option
-         : (_k == html_element_kind::textarea)   ? tags::textarea
-         : (_k == html_element_kind::fieldset)   ? tags::fieldset
-         : (_k == html_element_kind::legend)     ? tags::legend
-         : (_k == html_element_kind::details)    ? tags::details
-         : (_k == html_element_kind::summary)    ? tags::summary
-         : (_k == html_element_kind::dialog)     ? tags::dialog
-         : (_k == html_element_kind::template_)  ? tags::template_
+    return (_k == DHtmlElementKind::html_root)   ? tags::html_root
+         : (_k == DHtmlElementKind::head)        ? tags::head
+         : (_k == DHtmlElementKind::title)       ? tags::title
+         : (_k == DHtmlElementKind::base)        ? tags::base
+         : (_k == DHtmlElementKind::link_)       ? tags::link_
+         : (_k == DHtmlElementKind::meta)        ? tags::meta
+         : (_k == DHtmlElementKind::style)       ? tags::style
+         : (_k == DHtmlElementKind::script)      ? tags::script
+         : (_k == DHtmlElementKind::noscript)    ? tags::noscript
+         : (_k == DHtmlElementKind::body)        ? tags::body
+         : (_k == DHtmlElementKind::header)      ? tags::header
+         : (_k == DHtmlElementKind::nav)         ? tags::nav
+         : (_k == DHtmlElementKind::main_)       ? tags::main_
+         : (_k == DHtmlElementKind::section)     ? tags::section
+         : (_k == DHtmlElementKind::article)     ? tags::article
+         : (_k == DHtmlElementKind::aside)       ? tags::aside
+         : (_k == DHtmlElementKind::footer)      ? tags::footer
+         : (_k == DHtmlElementKind::address)     ? tags::address
+         : (_k == DHtmlElementKind::h1)          ? tags::h1
+         : (_k == DHtmlElementKind::h2)          ? tags::h2
+         : (_k == DHtmlElementKind::h3)          ? tags::h3
+         : (_k == DHtmlElementKind::h4)          ? tags::h4
+         : (_k == DHtmlElementKind::h5)          ? tags::h5
+         : (_k == DHtmlElementKind::h6)          ? tags::h6
+         : (_k == DHtmlElementKind::hgroup)      ? tags::hgroup
+         : (_k == DHtmlElementKind::p)           ? tags::p
+         : (_k == DHtmlElementKind::hr)          ? tags::hr
+         : (_k == DHtmlElementKind::pre)         ? tags::pre
+         : (_k == DHtmlElementKind::blockquote)  ? tags::blockquote
+         : (_k == DHtmlElementKind::ol)          ? tags::ol
+         : (_k == DHtmlElementKind::ul)          ? tags::ul
+         : (_k == DHtmlElementKind::li)          ? tags::li
+         : (_k == DHtmlElementKind::dl)          ? tags::dl
+         : (_k == DHtmlElementKind::dt)          ? tags::dt
+         : (_k == DHtmlElementKind::dd)          ? tags::dd
+         : (_k == DHtmlElementKind::figure)      ? tags::figure
+         : (_k == DHtmlElementKind::figcaption)  ? tags::figcaption
+         : (_k == DHtmlElementKind::div_)        ? tags::div_
+         : (_k == DHtmlElementKind::a)           ? tags::a
+         : (_k == DHtmlElementKind::em)          ? tags::em
+         : (_k == DHtmlElementKind::strong)      ? tags::strong
+         : (_k == DHtmlElementKind::small)       ? tags::small
+         : (_k == DHtmlElementKind::s)           ? tags::s
+         : (_k == DHtmlElementKind::cite)        ? tags::cite
+         : (_k == DHtmlElementKind::q)           ? tags::q
+         : (_k == DHtmlElementKind::dfn)         ? tags::dfn
+         : (_k == DHtmlElementKind::abbr)        ? tags::abbr
+         : (_k == DHtmlElementKind::code)        ? tags::code
+         : (_k == DHtmlElementKind::var_)        ? tags::var_
+         : (_k == DHtmlElementKind::samp)        ? tags::samp
+         : (_k == DHtmlElementKind::kbd)         ? tags::kbd
+         : (_k == DHtmlElementKind::sub)         ? tags::sub
+         : (_k == DHtmlElementKind::sup)         ? tags::sup
+         : (_k == DHtmlElementKind::i)           ? tags::i
+         : (_k == DHtmlElementKind::b)           ? tags::b
+         : (_k == DHtmlElementKind::u)           ? tags::u
+         : (_k == DHtmlElementKind::mark)        ? tags::mark
+         : (_k == DHtmlElementKind::span_)       ? tags::span_
+         : (_k == DHtmlElementKind::br)          ? tags::br
+         : (_k == DHtmlElementKind::wbr)         ? tags::wbr
+         : (_k == DHtmlElementKind::img)         ? tags::img
+         : (_k == DHtmlElementKind::iframe)      ? tags::iframe
+         : (_k == DHtmlElementKind::embed)       ? tags::embed
+         : (_k == DHtmlElementKind::object_)     ? tags::object_
+         : (_k == DHtmlElementKind::video)       ? tags::video
+         : (_k == DHtmlElementKind::audio)       ? tags::audio
+         : (_k == DHtmlElementKind::source)      ? tags::source
+         : (_k == DHtmlElementKind::track)       ? tags::track
+         : (_k == DHtmlElementKind::canvas)      ? tags::canvas
+         : (_k == DHtmlElementKind::picture)     ? tags::picture
+         : (_k == DHtmlElementKind::map_)        ? tags::map_
+         : (_k == DHtmlElementKind::area)        ? tags::area
+         : (_k == DHtmlElementKind::svg)         ? tags::svg
+         : (_k == DHtmlElementKind::table)       ? tags::table
+         : (_k == DHtmlElementKind::caption)     ? tags::caption
+         : (_k == DHtmlElementKind::colgroup)    ? tags::colgroup
+         : (_k == DHtmlElementKind::col)         ? tags::col
+         : (_k == DHtmlElementKind::tbody)       ? tags::tbody
+         : (_k == DHtmlElementKind::thead)       ? tags::thead
+         : (_k == DHtmlElementKind::tfoot)       ? tags::tfoot
+         : (_k == DHtmlElementKind::tr)          ? tags::tr
+         : (_k == DHtmlElementKind::td)          ? tags::td
+         : (_k == DHtmlElementKind::th)          ? tags::th
+         : (_k == DHtmlElementKind::form)        ? tags::form
+         : (_k == DHtmlElementKind::label)       ? tags::label
+         : (_k == DHtmlElementKind::input)       ? tags::input
+         : (_k == DHtmlElementKind::button)      ? tags::button
+         : (_k == DHtmlElementKind::select_)     ? tags::select_
+         : (_k == DHtmlElementKind::option)      ? tags::option
+         : (_k == DHtmlElementKind::textarea)    ? tags::textarea
+         : (_k == DHtmlElementKind::fieldset)    ? tags::fieldset
+         : (_k == DHtmlElementKind::legend)      ? tags::legend
+         : (_k == DHtmlElementKind::details)     ? tags::details
+         : (_k == DHtmlElementKind::summary)     ? tags::summary
+         : (_k == DHtmlElementKind::dialog)      ? tags::dialog
+         : (_k == DHtmlElementKind::template_)   ? tags::template_
          :    "";
 }
 
@@ -1154,34 +1154,34 @@ bool is_raw_text_element_name(
 ///                VIII.   BACKEND TAG DISPATCH                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_backend_tag
+// DHtmlBackendTag
 //   struct: empty base tag for all HTML backend tag types.
-struct html_backend_tag
+struct DHtmlBackendTag
 {};
 
-// html_default_backend_tag
+// DHtmlDefaultBackendTag
 //   struct: tag identifying the bundled in-memory HTML backend.
-struct html_default_backend_tag : html_backend_tag
+struct DHtmlDefaultBackendTag : DHtmlBackendTag
 {};
 
-// html_libxmlpp_backend_tag
+// DHtmlLibxmlppBackendTag
 //   struct: tag identifying a libxml++ HTML-mode adapter backend.
-struct html_libxmlpp_backend_tag : html_backend_tag
+struct DHtmlLibxmlppBackendTag : DHtmlBackendTag
 {};
 
-// html_gumbo_backend_tag
+// DHtmlGumboBackendTag
 //   struct: tag identifying a gumbo-parser-based backend.
-struct html_gumbo_backend_tag : html_backend_tag
+struct DHtmlGumboBackendTag : DHtmlBackendTag
 {};
 
-// html_lexbor_backend_tag
+// DHtmlLexborBackendTag
 //   struct: tag identifying a Lexbor-based backend.
-struct html_lexbor_backend_tag : html_backend_tag
+struct DHtmlLexborBackendTag : DHtmlBackendTag
 {};
 
-// html_htmlcxx_backend_tag
+// DHtmlHtmlcxxBackendTag
 //   struct: tag identifying an htmlcxx-based backend.
-struct html_htmlcxx_backend_tag : html_backend_tag
+struct DHtmlHtmlcxxBackendTag : DHtmlBackendTag
 {};
 
 
@@ -1191,7 +1191,7 @@ struct html_htmlcxx_backend_tag : html_backend_tag
 
 // is_html_backend
 //   trait: detects whether Type is an HTML backend type by
-// checking for a nested `html_backend_tag` alias.
+// checking for a nested `DHtmlBackendTag` alias.
 
 }   // namespace html
 
@@ -1222,7 +1222,7 @@ NS_END  // internal
 namespace html {
 
 // is_html_backend
-//   trait: true if Type has a nested html_backend_tag type.
+//   trait: true if Type has a nested DHtmlBackendTag type.
 template<typename Type>
 struct is_html_backend
 {
@@ -1246,7 +1246,7 @@ struct is_html_backend
 
 // has_html_kind_method
 //   trait: true if Type exposes an `html_kind()` const method
-// returning an `html_element_kind` discriminator. This is the
+// returning an `DHtmlElementKind` discriminator. This is the
 // HTML-specific analogue of XML's `has_kind_method` and is what
 // lets generic code branch on element kind without reading the
 // tag-name string.
@@ -1457,7 +1457,7 @@ struct has_set_doctype_method<Type, void_t<
 
 // has_html_version_method
 //   trait: true if Type exposes `html_version()` const returning
-// an `html_version` enum value.
+// an `DHtmlVersion` enum value.
 template<typename Type,
          typename = void>
 struct has_html_version_method : std::false_type
@@ -1555,8 +1555,8 @@ struct has_html_dom_shortcuts
 // element protocol (the type behaves like a tag-attribute-text
 // node); the HTML kind accessor is what marks the type as
 // HTML-aware. Library backends without an `html_kind()` method
-// can still be treated as HTML by wrapping them in `html_element`
-// (which derives from xml_node and adds the accessor).
+// can still be treated as HTML by wrapping them in `DHtmlElement`
+// (which derives from DXmlNode and adds the accessor).
 template<typename Type>
 struct is_html_element
 {
@@ -1578,11 +1578,11 @@ struct is_html_element_loose
 };
 
 
-// html_element_class
+// DHtmlElementClass
 //   struct: comprehensive classification of an HTML-element-shaped
 // type. Aggregates XML node classification with HTML extensions.
 template<typename Type>
-struct html_element_class
+struct DHtmlElementClass
 {
     // identity
     D_STATIC_CONSTEXPR bool is_html_elem      =
@@ -1644,11 +1644,11 @@ struct is_html_document_loose
 };
 
 
-// html_document_class
+// DHtmlDocumentClass
 //   struct: comprehensive classification of an HTML-document-shaped
 // type. Aggregates XML document classification with HTML extensions.
 template<typename Type>
-struct html_document_class
+struct DHtmlDocumentClass
 {
     // identity
     D_STATIC_CONSTEXPR bool is_html_doc       =
@@ -1733,8 +1733,8 @@ struct has_make_html_document_method<Type, void_t<
 // (every nested type alias plus the make_html_document factory).
 // Stronger than `is_html_backend` (which only checks for the
 // backend tag); used by code that needs to confidently
-// instantiate `html_element<Backend>` and
-// `html_document<Backend>`.
+// instantiate `DHtmlElement<Backend>` and
+// `DHtmlDocument<Backend>`.
 template<typename Type>
 struct is_html_backend_complete
 {
@@ -1877,7 +1877,7 @@ concept doctype_aware_document =
 
 
 // versioned_html_document
-//   concept: HTML document with an html_version accessor.
+//   concept: HTML document with an DHtmlVersion accessor.
 template<typename Type>
 concept versioned_html_document =
        ( html_document_type<Type> )
@@ -1933,7 +1933,7 @@ concept full_html_document =
 // ---------------------------------------------------------------------
 
 // html_backend_type
-//   concept: satisfied by any type tagged with `html_backend_tag`
+//   concept: satisfied by any type tagged with `DHtmlBackendTag`
 // (i.e. any type for which `is_html_backend<T>::value` is true).
 template<typename Type>
 concept html_backend_type =
@@ -1943,7 +1943,7 @@ concept html_backend_type =
 // complete_html_backend
 //   concept: an HTML backend that additionally exposes the full
 // nested-type-alias protocol AND a make_html_document factory.
-// Code that needs to instantiate `html_document<Backend>` from
+// Code that needs to instantiate `DHtmlDocument<Backend>` from
 // scratch should constrain on this concept.
 template<typename Type>
 concept complete_html_backend =

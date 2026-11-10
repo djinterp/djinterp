@@ -21,7 +21,7 @@ NS_DJINTERP
 NS_TESTING
 
 // A NOTE ON HOW ZERO-COST IS MEASURED
-//   The tempting test - compare sizeof(font<ff_none>) against a hand-rolled
+//   The tempting test - compare sizeof(DFont<ff_none>) against a hand-rolled
 // struct holding only the core members - is NOT portable.  Whether a class
 // with seventeen distinct empty bases folds them all to offset 0 is an ABI
 // decision: the Itanium ABI does, and MSVC does so only under
@@ -30,8 +30,8 @@ NS_TESTING
 //
 //   So the suite proves the claim from an angle no ABI can argue with:
 // hold the mixin arrangement FIXED and vary only the payload.  If a
-// disabled color mixin truly costs nothing, then font<ff_none, probe_color>
-// and font<ff_none, wide_color> - identical in every respect except a color
+// disabled color mixin truly costs nothing, then DFont<ff_none, probe_color>
+// and DFont<ff_none, wide_color> - identical in every respect except a color
 // type that differs by 60-odd bytes - must be exactly the same size.  Any
 // layout that charged for the disabled mixin would leak that difference.
 
@@ -200,7 +200,7 @@ bool tests_mixin_metrics_defaults()
 /*
 tests_mixin_axes_defaults
   Tests the following:
-  - stretch defaults to font_stretch::normal (5), a VALID width class -
+  - stretch defaults to DFontStretch::normal (5), a VALID width class -
     value-initialising it would have produced 0, which is not one
   - spacing defaults to DFontSpacing::any (0), i.e. "adapter should not
     filter"
@@ -210,7 +210,7 @@ bool tests_mixin_axes_defaults()
     const font_mixin::DStretchData<true> st;
     const font_mixin::DSpacingData<true> sp;
 
-    D_FT_CHECK(st.stretch == font_stretch::normal);
+    D_FT_CHECK(st.stretch == DFontStretch::normal);
     D_FT_CHECK(sp.spacing == DFontSpacing::any);
 
     // the distinction that matters: stretch is NOT zero-initialised
@@ -372,12 +372,12 @@ bool tests_mixin_backend_handles_defaults()
 /*
 tests_mixin_color_type_is_parameterised
   The color mixins are the only ones templated on a second parameter.  The
-member's type must BE that parameter, or font<F, rgba> would silently store
+member's type must BE that parameter, or DFont<F, rgba> would silently store
 an rgb.
   Tests the following:
   - DColorData<true, C>::foreground has type C, for two different C
   - DBackgroundData<true, C>::background likewise
-  - font<F, C>::color_type and the member type agree
+  - DFont<F, C>::color_type and the member type agree
 */
 bool tests_mixin_color_type_is_parameterised()
 {
@@ -395,7 +395,7 @@ bool tests_mixin_color_type_is_parameterised()
     D_FT_CHECK((std::is_same<probe_bg, probe_color>::value));
 
     // and the font agrees with its own alias
-    using fw = font<ff_color | ff_background, wide_color>;
+    using fw = DFont<ff_color | ff_background, wide_color>;
 
     D_FT_CHECK((std::is_same<fw::color_type, wide_color>::value));
     D_FT_CHECK((std::is_same<decltype(fw{}.foreground), wide_color>::value));
@@ -412,7 +412,7 @@ color features OFF, the two fonts must be byte-for-byte the same size: the
 mixin arrangement is identical, so the ONLY thing that could differ is a
 payload that is supposed not to exist.
   Tests the following:
-  - sizeof(font<ff_none, probe_color>) == sizeof(font<ff_none, wide_color>)
+  - sizeof(DFont<ff_none, probe_color>) == sizeof(DFont<ff_none, wide_color>)
   - the same holds for a font that enables a NON-color feature set
   - wide_color really is much larger, so the test has teeth
 */
@@ -422,8 +422,8 @@ bool tests_ebo_disabled_color_costs_nothing()
     D_FT_CHECK(sizeof(wide_color) > sizeof(probe_color));
     D_FT_CHECK(sizeof(wide_color) >= (sizeof(probe_color) + 32u));
 
-    D_FT_CHECK((sizeof(font<ff_none, probe_color>) ==
-                sizeof(font<ff_none, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_none, probe_color>) ==
+                sizeof(DFont<ff_none, wide_color>)));
 
     // a font with every NON-color feature must also be color-type agnostic
     constexpr unsigned no_color = ( ff_decorations | ff_casing | ff_metrics
@@ -431,8 +431,8 @@ bool tests_ebo_disabled_color_costs_nothing()
                                   | ff_variable_axes | ff_script_hint
                                   | ff_backend_handles );
 
-    D_FT_CHECK((sizeof(font<no_color, probe_color>) ==
-                sizeof(font<no_color, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<no_color, probe_color>) ==
+                sizeof(DFont<no_color, wide_color>)));
 
     return true;
 }
@@ -447,23 +447,23 @@ only shows up once some mixin is non-empty cannot hide.
 */
 bool tests_ebo_disabled_color_costs_nothing_alongside_features()
 {
-    D_FT_CHECK((sizeof(font<ff_underline, probe_color>) ==
-                sizeof(font<ff_underline, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_underline, probe_color>) ==
+                sizeof(DFont<ff_underline, wide_color>)));
 
-    D_FT_CHECK((sizeof(font<ff_decorations, probe_color>) ==
-                sizeof(font<ff_decorations, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_decorations, probe_color>) ==
+                sizeof(DFont<ff_decorations, wide_color>)));
 
-    D_FT_CHECK((sizeof(font<ff_metrics, probe_color>) ==
-                sizeof(font<ff_metrics, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_metrics, probe_color>) ==
+                sizeof(DFont<ff_metrics, wide_color>)));
 
-    D_FT_CHECK((sizeof(font<ff_axes, probe_color>) ==
-                sizeof(font<ff_axes, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_axes, probe_color>) ==
+                sizeof(DFont<ff_axes, wide_color>)));
 
-    D_FT_CHECK((sizeof(font<ff_backend_handles, probe_color>) ==
-                sizeof(font<ff_backend_handles, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_backend_handles, probe_color>) ==
+                sizeof(DFont<ff_backend_handles, wide_color>)));
 
-    D_FT_CHECK((sizeof(font<ff_opentype_features, probe_color>) ==
-                sizeof(font<ff_opentype_features, wide_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_opentype_features, probe_color>) ==
+                sizeof(DFont<ff_opentype_features, wide_color>)));
 
     return true;
 }
@@ -489,8 +489,8 @@ not an exact byte count that would hard-code one ABI's padding.
 */
 bool tests_ebo_enabled_color_costs_its_weight()
 {
-    const std::size_t narrow = sizeof(font<ff_color, probe_color>);
-    const std::size_t wide   = sizeof(font<ff_color, wide_color>);
+    const std::size_t narrow = sizeof(DFont<ff_color, probe_color>);
+    const std::size_t wide   = sizeof(DFont<ff_color, wide_color>);
 
     // direction: the fat color must cost more
     D_FT_CHECK(wide > narrow);
@@ -506,15 +506,15 @@ bool tests_ebo_enabled_color_costs_its_weight()
     D_FT_CHECK((wide - narrow) >= (raw_diff - sizeof(void*)));
 
     // background pays too
-    D_FT_CHECK((sizeof(font<ff_background, wide_color>) >
-                sizeof(font<ff_background, probe_color>)));
+    D_FT_CHECK((sizeof(DFont<ff_background, wide_color>) >
+                sizeof(DFont<ff_background, probe_color>)));
 
     // and both together cost at least as much as either alone
-    const std::size_t both = sizeof(font<ff_color | ff_background,
+    const std::size_t both = sizeof(DFont<ff_color | ff_background,
                                          wide_color>);
 
     D_FT_CHECK(both >= wide);
-    D_FT_CHECK(both >= sizeof(font<ff_background, wide_color>));
+    D_FT_CHECK(both >= sizeof(DFont<ff_background, wide_color>));
 
     return true;
 }

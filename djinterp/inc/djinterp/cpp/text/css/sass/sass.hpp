@@ -14,7 +14,7 @@
 *   COVERS BOTH DIALECTS:
 *   - SCSS (curly-brace, semicolon-terminated)
 *   - Sass (indented, newline-terminated)
-*   Both share the same AST. The `sass_syntax` enum on stylesheets
+*   Both share the same AST. The `DSassSyntax` enum on stylesheets
 * drives emission style; parsing-side adapter backends pick it up
 * automatically from file extension (.scss vs .sass).
 *
@@ -110,11 +110,11 @@ NS_DJINTERP
 namespace sass {
 
 
-// sass_string_t
+// DSassString
 //   type: alias for the string type used throughout the sass
-// module. Same as `css::css_string_t` but re-exported for
+// module. Same as `css::DCssString` but re-exported for
 // convenience.
-using sass_string_t = ::djinterp::css::css_string_t;
+using DSassString = ::djinterp::css::DCssString;
 
 
 // D_SASS_VARIABLE_PREFIX
@@ -147,9 +147,9 @@ using sass_string_t = ::djinterp::css::css_string_t;
 ///                II.   SASS SYNTAX & DIALECT ENUMS                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_syntax
+// DSassSyntax
 //   enum: identifies which surface syntax the stylesheet uses.
-enum class sass_syntax : re_std::uint8_t
+enum class DSassSyntax : re_std::uint8_t
 {
     scss,           // curly-brace, semicolon-terminated (.scss)
     indented,       // indentation-significant (.sass)
@@ -158,11 +158,11 @@ enum class sass_syntax : re_std::uint8_t
 };
 
 
-// sass_dialect
+// DSassDialect
 //   enum: identifies the implementation / spec target. Drives
 // which features (modern modules, calc-functions inside
 // expressions, color-function math) are accepted.
-enum class sass_dialect : re_std::uint8_t
+enum class DSassDialect : re_std::uint8_t
 {
     libsass_3,      // libsass 3.x (legacy import system)
     dart_sass,      // dart-sass (modern module system,
@@ -177,14 +177,14 @@ enum class sass_dialect : re_std::uint8_t
 ///                III.   SASS RULE KIND ENUM                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_rule_kind
+// DSassRuleKind
 //   enum: discriminator for Sass-specific rule kinds. The
 // standard CSS rule kinds remain reachable through the
-// inherited CSS layer (`css::css_rule_kind`); this enum
+// inherited CSS layer (`css::DCssRuleKind`); this enum
 // captures the additions Sass introduces. Values that shadow
 // CSS kinds use the `sass_` prefix to avoid confusion at the
 // switch site.
-enum class sass_rule_kind : re_std::uint8_t
+enum class DSassRuleKind : re_std::uint8_t
 {
     // declaration of a Sass entity
     variable_declaration,       // $name: value;
@@ -228,11 +228,11 @@ enum class sass_rule_kind : re_std::uint8_t
 ///                IV.   SASS AT-RULE KIND ENUM                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_at_rule_kind
-//   enum: refines `css::css_at_rule_kind` with Sass-specific
+// DSassAtRuleKind
+//   enum: refines `css::DCssAtRuleKind` with Sass-specific
 // at-keywords. Backends that store all at-rules under a single
 // discriminator can use this to further classify.
-enum class sass_at_rule_kind : re_std::uint8_t
+enum class DSassAtRuleKind : re_std::uint8_t
 {
     mixin,
     include,
@@ -260,12 +260,12 @@ enum class sass_at_rule_kind : re_std::uint8_t
 ///                V.   SASS VALUE / EXPRESSION ENUMS                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_value_kind
+// DSassValueKind
 //   enum: extends CSS's value kinds with Sass-specific value
 // types. Sass values include all CSS values plus typed values
 // the Sass evaluator produces (booleans, lists with separator
 // type, maps).
-enum class sass_value_kind : re_std::uint8_t
+enum class DSassValueKind : re_std::uint8_t
 {
     null_,                      // null literal
     boolean,                    // true / false
@@ -283,9 +283,9 @@ enum class sass_value_kind : re_std::uint8_t
 };
 
 
-// sass_list_separator
+// DSassListSeparator
 //   enum: identifies the separator style of a Sass list.
-enum class sass_list_separator : re_std::uint8_t
+enum class DSassListSeparator : re_std::uint8_t
 {
     comma,                      // a, b, c
     space,                      // a b c
@@ -300,12 +300,12 @@ enum class sass_list_separator : re_std::uint8_t
 ///                VI.   RULE CATEGORY CLASSIFICATION                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_rule_category
+// DSassRuleCategory
 //   enum: bitmask describing the categorical properties of a
 // Sass rule kind. Backed by `unsigned`. Distinct from CSS
 // categories because Sass rules are evaluated, not just
 // emitted.
-enum sass_rule_category : unsigned
+enum DSassRuleCategory : unsigned
 {
     src_none           = 0u,
     src_declaration    = 1u <<  0,  // declares a variable / mixin / fn
@@ -326,10 +326,10 @@ enum sass_rule_category : unsigned
 // kind.
 D_CONSTEXPR_INLINE
 unsigned sass_category_for_rule_kind(
-    sass_rule_kind _k
+    DSassRuleKind _k
 )
 {
-    using K = sass_rule_kind;
+    using K = DSassRuleKind;
     return (_k == K::variable_declaration) ? (src_declaration)
          : (_k == K::mixin_declaration)    ? (src_declaration | src_grouping)
          : (_k == K::function_declaration) ? (src_declaration | src_grouping)
@@ -363,7 +363,7 @@ unsigned sass_category_for_rule_kind(
 // (variable, mixin, function).
 D_CONSTEXPR_INLINE
 bool is_sass_declaration_kind(
-    sass_rule_kind _k
+    DSassRuleKind _k
 )
 {
     return ((sass_category_for_rule_kind(_k) & src_declaration) != 0u);
@@ -374,7 +374,7 @@ bool is_sass_declaration_kind(
 //   function: true for @if / @else / @each / @for / @while.
 D_CONSTEXPR_INLINE
 bool is_sass_control_flow_kind(
-    sass_rule_kind _k
+    DSassRuleKind _k
 )
 {
     return ((sass_category_for_rule_kind(_k) & src_control_flow) != 0u);
@@ -385,7 +385,7 @@ bool is_sass_control_flow_kind(
 //   function: true for @use / @forward / @import.
 D_CONSTEXPR_INLINE
 bool is_sass_module_kind(
-    sass_rule_kind _k
+    DSassRuleKind _k
 )
 {
     return ((sass_category_for_rule_kind(_k) & src_module) != 0u);
@@ -396,7 +396,7 @@ bool is_sass_module_kind(
 //   function: true for @debug / @warn / @error.
 D_CONSTEXPR_INLINE
 bool is_sass_diagnostic_kind(
-    sass_rule_kind _k
+    DSassRuleKind _k
 )
 {
     return ((sass_category_for_rule_kind(_k) & src_diagnostic) != 0u);
@@ -407,7 +407,7 @@ bool is_sass_diagnostic_kind(
 //   function: true if the rule hosts nested rules / statements.
 D_CONSTEXPR_INLINE
 bool is_sass_grouping_kind(
-    sass_rule_kind _k
+    DSassRuleKind _k
 )
 {
     return ((sass_category_for_rule_kind(_k) & src_grouping) != 0u);
@@ -577,14 +577,14 @@ bool sass_internal_streq(
 
 // sass_at_rule_kind_from_name
 //   function: maps an at-keyword (without the leading `@`) to
-// its `sass_at_rule_kind`. Returns `unknown` for keywords not
+// its `DSassAtRuleKind`. Returns `unknown` for keywords not
 // in the Sass extension set.
 D_CONSTEXPR_INLINE
-sass_at_rule_kind sass_at_rule_kind_from_name(
+DSassAtRuleKind sass_at_rule_kind_from_name(
     const char* _name
 )
 {
-    using K = sass_at_rule_kind;
+    using K = DSassAtRuleKind;
     return (!_name)                                                 ? K::unknown
          : (sass_internal_streq(_name, at_keywords::mixin))         ? K::mixin
          : (sass_internal_streq(_name, at_keywords::include))       ? K::include
@@ -608,14 +608,14 @@ sass_at_rule_kind sass_at_rule_kind_from_name(
 
 
 // name_from_sass_at_rule_kind
-//   function: maps a `sass_at_rule_kind` to its at-keyword
+//   function: maps a `DSassAtRuleKind` to its at-keyword
 // string (without the leading `@`).
 D_CONSTEXPR_INLINE
 const char* name_from_sass_at_rule_kind(
-    sass_at_rule_kind _k
+    DSassAtRuleKind _k
 )
 {
-    using K = sass_at_rule_kind;
+    using K = DSassAtRuleKind;
     return (_k == K::mixin)         ? at_keywords::mixin
          : (_k == K::include)       ? at_keywords::include
          : (_k == K::function)      ? at_keywords::function
@@ -638,16 +638,16 @@ const char* name_from_sass_at_rule_kind(
 
 
 // sass_rule_kind_from_at_rule_kind
-//   function: maps a `sass_at_rule_kind` to the corresponding
-// `sass_rule_kind`. Returns `unknown` for kinds without a
+//   function: maps a `DSassAtRuleKind` to the corresponding
+// `DSassRuleKind`. Returns `unknown` for kinds without a
 // dedicated rule kind.
 D_CONSTEXPR_INLINE
-sass_rule_kind sass_rule_kind_from_at_rule_kind(
-    sass_at_rule_kind _k
+DSassRuleKind sass_rule_kind_from_at_rule_kind(
+    DSassAtRuleKind _k
 )
 {
-    using A = sass_at_rule_kind;
-    using R = sass_rule_kind;
+    using A = DSassAtRuleKind;
+    using R = DSassRuleKind;
     return (_k == A::mixin)         ? R::mixin_declaration
          : (_k == A::include)       ? R::include_statement
          : (_k == A::function)      ? R::function_declaration
@@ -697,24 +697,24 @@ bool is_sass_placeholder_name(
 ///                IX.   BACKEND TAG DISPATCH                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_backend_tag
+// DSassBackendTag
 //   struct: empty base tag for all Sass backend tag types.
-struct sass_backend_tag
+struct DSassBackendTag
 {};
 
-// sass_default_backend_tag
-struct sass_default_backend_tag : sass_backend_tag
+// DSassDefaultBackendTag
+struct DSassDefaultBackendTag : DSassBackendTag
 {};
 
-// sass_libsass_backend_tag
+// DSassLibsassBackendTag
 //   struct: tag identifying a libsass-based adapter backend.
-struct sass_libsass_backend_tag : sass_backend_tag
+struct DSassLibsassBackendTag : DSassBackendTag
 {};
 
-// sass_dart_backend_tag
+// DSassDartBackendTag
 //   struct: tag identifying a dart-sass / sass-embedded
 // adapter backend.
-struct sass_dart_backend_tag : sass_backend_tag
+struct DSassDartBackendTag : DSassBackendTag
 {};
 
 
@@ -727,7 +727,7 @@ NS_INTERNAL
 
     // has_sass_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
-    // `sass_backend_tag` alias. Primary template (failure).
+    // `DSassBackendTag` alias. Primary template (failure).
     template<typename Type,
              typename = void>
     struct has_sass_backend_tag_helper
@@ -750,7 +750,7 @@ namespace sass {
 
 
 // is_sass_backend
-//   trait: true if `Type` has a nested `sass_backend_tag`
+//   trait: true if `Type` has a nested `DSassBackendTag`
 // type.
 template<typename    Type>
 struct is_sass_backend
@@ -1348,12 +1348,12 @@ struct is_sass_stylesheet_loose
 ///                X.   CLASSIFICATION STRUCTS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_rule_class
+// DSassRuleClass
 //   struct: comprehensive classification of a Sass-rule-shaped
 // type. Aggregates the CSS rule classification with Sass
 // extensions.
 template<typename Type>
-struct sass_rule_class
+struct DSassRuleClass
 {
     D_STATIC_CONSTEXPR bool is_sass_rule_  = is_sass_rule<Type>::value;
     D_STATIC_CONSTEXPR bool is_css_rule_   =
@@ -1392,11 +1392,11 @@ struct sass_rule_class
 };
 
 
-// sass_stylesheet_class
+// DSassStylesheetClass
 //   struct: comprehensive classification of a Sass-stylesheet
 // shaped type.
 template<typename Type>
-struct sass_stylesheet_class
+struct DSassStylesheetClass
 {
     D_STATIC_CONSTEXPR bool is_sass_sheet  = is_sass_stylesheet<Type>::value;
     D_STATIC_CONSTEXPR bool is_css_sheet   =
@@ -1794,7 +1794,7 @@ concept full_sass_stylesheet =
 
 // sass_backend_type
 //   concept: satisfied by any type tagged with
-// `sass_backend_tag`.
+// `DSassBackendTag`.
 template<typename Type>
 concept sass_backend_type =
     is_sass_backend<Type>::value;

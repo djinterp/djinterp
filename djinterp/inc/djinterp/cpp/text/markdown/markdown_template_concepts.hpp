@@ -316,7 +316,7 @@ concept full_markdown_document =
 
 // markdown_backend_type
 //   concept: satisfied by any type tagged with
-// `markdown_backend_tag`.
+// `DMarkdownBackendTag`.
 template<typename Type>
 concept markdown_backend_type =
     is_markdown_backend<Type>::value;

@@ -1,29 +1,29 @@
 /*******************************************************************************
 * djinterp [cpp]                                            layout_interpret.hpp
 *
-*   The interpreter for a document-structure term: how a layout_doc (layout.hpp)
-* becomes a rendered document, driving a document_renderer.  Two levels of
+*   The interpreter for a document-structure term: how a DLayoutDoc (layout.hpp)
+* becomes a rendered document, driving a DDocumentRenderer.  Two levels of
 * "render behavior" meet here, and they stay separate.  A construct's STRUCTURAL
 * lowering -- "a section contributes a heading then its children in order; a
 * clearpage forces a page boundary; a toc lists the outline" -- is
 * dialect-independent and is interpreted by a fold that consults the signature,
 * exactly as expression_render.hpp interprets an operator's layout by consulting
 * the operator_signature.  DIALECT realisation -- an 18pt heading in PDF, an
-* <h2> in HTML, an underline in text -- is the document_renderer's job, and is
+* <h2> in HTML, an underline in text -- is the DDocumentRenderer's job, and is
 * left entirely to it.  The construct set is open, so it is never frozen into
 * the renderer interface; each construct lowers to the renderer's existing
 * semantic verbs, and the renderer decides how to draw them.
 *
 *   THE PIPELINE (render_document).
-*     build  -> layout_doc                       (any of the dialect surfaces)
+*     build  -> DLayoutDoc                       (any of the dialect surfaces)
 *     number -> re-annotate each section          (renumber; top-down, threaded)
 *     outline-> collect (number, title, anchor)   (a fold; feeds the toc)
-*     emit   -> a deferred render_action           (annotated_cata to a thunk)
-*     run    -> drive the document_renderer
+*     emit   -> a deferred DRenderAction           (annotated_cata to a thunk)
+*     run    -> drive the DDocumentRenderer
 *
 *   WHY EMIT FOLDS TO A THUNK.  cata is bottom-up (children fold before their
 * parent), but a parent must open BEFORE its children and close AFTER.  So the
-* emit fold produces, at each node, a render_action = a deferred emitter; a
+* emit fold produces, at each node, a DRenderAction = a deferred emitter; a
 * parent composes begin >> children >> end and nothing writes until the root
 * action is run.  Emission stays one fold, and ordering is correct.
 *
@@ -50,13 +50,13 @@ TABLE OF CONTENTS
 I.    OUTLINE ENTRY                       (a collected table-of-contents row)
       -----------------------------------------------------------------------
 
-II.   RENDER SURFACE                      (render_action / content_resolver / render_ctx)
+II.   RENDER SURFACE                      (DRenderAction / DContentResolver / DRenderCtx)
       -----------------------------------------------------------------------------------
 
-III.  DESCRIPTOR & SIGNATURE              (layout_lowering / layout_descriptor / layout_signature)
+III.  DESCRIPTOR & SIGNATURE              (layout_lowering / DLayoutDescriptor / DLayoutSignature)
       --------------------------------------------------------------------------------------------
 
-IV.   EMIT                                (annotated_cata -> render_action)
+IV.   EMIT                                (annotated_cata -> DRenderAction)
       ---------------------------------------------------------------------
 
 V.    OUTLINE                             (fold: sections -> outline entries)
@@ -87,9 +87,9 @@ VII.  RENDER_DOCUMENT                     (the whole pipeline)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"                 // NS_*, gates, D_NODISCARD
-#include "./layout.hpp"                       // layout_doc, layout_atom, builders, observers
-#include "../templates/document_attributes.hpp"          // doc_attributes, attr_or, doc_attr_*
-#include "../templates/document_renderer.hpp"            // document_renderer
+#include "./layout.hpp"                       // DLayoutDoc, DLayoutAtom, builders, observers
+#include "../templates/document_attributes.hpp"          // DDocAttributes, attr_or, doc_attr_*
+#include "../templates/document_renderer.hpp"            // DDocumentRenderer
 #include "../../../modules/parse/expression/expression.hpp"    // expr_layer, operator_signature
 #include "../../../functional/maybe.hpp"         // maybe, just, nothing
 #include "../../../functional/semigroup.hpp"     // mappend
@@ -106,18 +106,18 @@ NS_DJINTERP
 ///             I.    OUTLINE ENTRY                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// outline_entry
+// DOutlineEntry
 //   struct: one row of the collected document outline -- what a table of
 // contents lists.  Filled by the outline fold from each in-outline node's bag
 // after numbering has run.
-struct outline_entry
+struct DOutlineEntry
 {
     std::string number;   // "1.2.1", or empty when numbering is off
     std::string title;    // the section title
     std::string anchor;   // cross-reference target (matches doc_attr_locator)
     std::size_t level;    // nesting depth, 1 = outermost
 
-    outline_entry()
+    DOutlineEntry()
         : number(),
           title (),
           anchor(),
@@ -130,35 +130,35 @@ struct outline_entry
 ///             II.   RENDER SURFACE                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// render_action
+// DRenderAction
 //   type: the deferred emission of one subtree.  Running it drives a
-// document_renderer; the emit fold builds these and composes them so a parent
+// DDocumentRenderer; the emit fold builds these and composes them so a parent
 // wraps its children in order.
-using render_action = std::function<void(document_renderer&)>;
+using DRenderAction = std::function<void(DDocumentRenderer&)>;
 
-// content_resolver
+// DContentResolver
 //   type: the content side of the boundary -- a body_ref leaf's name to how it
 // emits, or nothing when the name is unbound.  Late binding by name: the layout
 // carries only the name, the caller supplies the content (a map, a file, a live
 // computation closed over here).  A missing binding is a graceful hole, not a
 // crash.
-using content_resolver =
-    std::function<maybe<render_action>(const layout_atom& /*_ref*/)>;
+using DContentResolver =
+    std::function<maybe<DRenderAction>(const DLayoutAtom& /*_ref*/)>;
 
-// render_ctx
+// DRenderCtx
 //   struct: what the emit pass threads to every lowering -- the body resolver,
 // the flat metadata bag meta_ref leaves resolve against, the computed outline a
 // toc lowering renders, and the base heading level.  Held by reference during a
-// run, so it must outlive the render_action the pass returns (render_document
+// run, so it must outlive the DRenderAction the pass returns (render_document
 // guarantees this).
-struct render_ctx
+struct DRenderCtx
 {
-    content_resolver           body;         // body_ref -> render_action (maybe)
-    doc_attributes             metadata;     // meta_ref -> string
-    std::vector<outline_entry> outline_rows; // computed outline, for the toc
+    DContentResolver           body;         // body_ref -> DRenderAction (maybe)
+    DDocAttributes             metadata;     // meta_ref -> string
+    std::vector<DOutlineEntry> outline_rows; // computed outline, for the toc
     std::size_t                base_level;   // heading level of a top section
 
-    render_ctx()
+    DRenderCtx()
         : body        (),
           metadata    (),
           outline_rows(),
@@ -176,19 +176,19 @@ struct render_ctx
 // parameter bag, its already-lowered child actions, the renderer, and the
 // context, it emits -- deciding when to run the children (a section emits its
 // heading, THEN the children; a clearpage has none).  A plain function pointer,
-// so layout_descriptor stays a literal-ish value.
-typedef void (*layout_lowering)(const doc_attributes&             /*_bag*/,
-                                const std::vector<render_action>&  /*_children*/,
-                                document_renderer&                 /*_renderer*/,
-                                const render_ctx&                  /*_ctx*/);
+// so DLayoutDescriptor stays a literal-ish value.
+typedef void (*layout_lowering)(const DDocAttributes&             /*_bag*/,
+                                const std::vector<DRenderAction>&  /*_children*/,
+                                DDocumentRenderer&                 /*_renderer*/,
+                                const DRenderCtx&                  /*_ctx*/);
 
-// layout_descriptor
+// DLayoutDescriptor
 //   struct: the per-construct metadata the signature maps each op to -- the
 // document analogue of operator_descriptor.  Structural flags drive the number
 // and outline passes; the lowering drives emission; spelling names the construct
 // for the (future) textual grammar.  A null lowering means "just emit the
 // children" (the default container behaviour, e.g. the document body).
-struct layout_descriptor
+struct DLayoutDescriptor
 {
     unsigned        min_arity;        // fewest children the construct expects
     bool            starts_new_page;  // advisory: does it force a page boundary?
@@ -197,8 +197,8 @@ struct layout_descriptor
     const char*     spelling;         // the construct keyword (for the grammar)
     layout_lowering lower;            // how it lowers to renderer verbs, or null
 
-    // layout_descriptor (default)
-    layout_descriptor()
+    // DLayoutDescriptor (default)
+    DLayoutDescriptor()
         : min_arity      (0),
           starts_new_page(false),
           in_outline     (false),
@@ -207,8 +207,8 @@ struct layout_descriptor
           lower          (nullptr)
     {}
 
-    // layout_descriptor (full)
-    layout_descriptor(
+    // DLayoutDescriptor (full)
+    DLayoutDescriptor(
         unsigned        _min_arity,
         bool            _starts_new_page,
         bool            _in_outline,
@@ -225,14 +225,14 @@ struct layout_descriptor
     {}
 };
 
-// layout_signature
+// DLayoutSignature
 //   alias: the described construct set of one document dialect -- reuse
-// operator_signature with layout_descriptor as its value.  `.define(op, d)`
+// operator_signature with DLayoutDescriptor as its value.  `.define(op, d)`
 // registers a construct; `.describe(op)` recovers it (a first-match walk, the
 // runtime face of the lookup family).  Nothing is built in; a dialect IS the
 // set it defines.
 template<typename OpId>
-using layout_signature = operator_signature<OpId, layout_descriptor>;
+using DLayoutSignature = operator_signature<OpId, DLayoutDescriptor>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -269,19 +269,19 @@ NS_INTERNAL
     // than nothing); a meta_ref reads the metadata bag; a literal is verbatim.
     inline
     void emit_leaf(
-        const layout_atom&    _atom,
-        const doc_attributes& _bag,
-        const render_ctx&     _ctx,
-        document_renderer&    _renderer
+        const DLayoutAtom&    _atom,
+        const DDocAttributes& _bag,
+        const DRenderCtx&     _ctx,
+        DDocumentRenderer&    _renderer
     )
     {
         // body content named by the leaf, resolved late
-        if (_atom.kind == layout_atom::kind_body_ref)
+        if (_atom.kind == DLayoutAtom::kind_body_ref)
         {
-            maybe<render_action> _act =
+            maybe<DRenderAction> _act =
                 _ctx.body
                     ? _ctx.body(_atom)
-                    : nothing<render_action>();
+                    : nothing<DRenderAction>();
 
             if (_act.has_value())
             {
@@ -297,7 +297,7 @@ NS_INTERNAL
         }
 
         // a metadata field
-        if (_atom.kind == layout_atom::kind_meta_ref)
+        if (_atom.kind == DLayoutAtom::kind_meta_ref)
         {
             _renderer.paragraph(attr_or(_ctx.metadata, _atom.key), _bag);
 
@@ -314,7 +314,7 @@ NS_END  // internal
 
 
 // emit
-//   function: fold the annotated layout to one deferred render_action.  Leaves
+//   function: fold the annotated layout to one deferred DRenderAction.  Leaves
 // become content-emitting actions (resolved by name at run time); applications
 // look up their construct's lowering in _signature and compose an action that
 // runs it over the already-lowered child actions.  A construct with no lowering
@@ -323,42 +323,42 @@ NS_END  // internal
 //   The extension point for a structure-AWARE dialect goes where noted: offer
 // the construct name to the renderer first (e.g. a begin_structure hook) and
 // skip the default lowering if it claims it.  Left out here so this pass needs
-// no change to document_renderer; add the two verbs and the branch if wanted.
+// no change to DDocumentRenderer; add the two verbs and the branch if wanted.
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-render_action emit(
-    const layout_doc<OpId, Atom>& _doc,
-    const layout_signature<OpId>& _signature,
-    const render_ctx&             _ctx
+DRenderAction emit(
+    const DLayoutDoc<OpId, Atom>& _doc,
+    const DLayoutSignature<OpId>& _signature,
+    const DRenderCtx&             _ctx
 )
 {
-    return annotated_cata<render_action>(
+    return annotated_cata<DRenderAction>(
         [&_signature, &_ctx]
-        (const doc_attributes&                              _bag,
-         const expr_layer<OpId, Atom, render_action>&      _layer)
-            -> render_action
+        (const DDocAttributes&                              _bag,
+         const expr_layer<OpId, Atom, DRenderAction>&      _layer)
+            -> DRenderAction
         {
             // a content leaf: resolve and emit at run time
             if (_layer.is_leaf())
             {
                 const Atom           _atom = _layer.atom();
-                const doc_attributes _b    = _bag;
+                const DDocAttributes _b    = _bag;
 
-                return [_atom, _b, &_ctx](document_renderer& _renderer)
+                return [_atom, _b, &_ctx](DDocumentRenderer& _renderer)
                 {
                     internal::emit_leaf(_atom, _b, _ctx, _renderer);
                 };
             }
 
             // an application: its construct's lowering over the lowered children
-            const layout_descriptor*   _descriptor =
+            const DLayoutDescriptor*   _descriptor =
                 _signature.describe(_layer.op());
-            std::vector<render_action> _children = _layer.children();
-            const doc_attributes       _b        = _bag;
+            std::vector<DRenderAction> _children = _layer.children();
+            const DDocAttributes       _b        = _bag;
 
             return
-                [_descriptor, _children, _b, &_ctx](document_renderer& _renderer)
+                [_descriptor, _children, _b, &_ctx](DDocumentRenderer& _renderer)
                 {
                     // (extension point: if _renderer.begin_structure(...) claims
                     //  it, run children then _renderer.end_structure(...) and
@@ -389,7 +389,7 @@ render_action emit(
 ///////////////////////////////////////////////////////////////////////////////
 
 // outline
-//   function: collect an outline_entry for every in-outline node, in pre-order
+//   function: collect an DOutlineEntry for every in-outline node, in pre-order
 // -- the rows a table of contents renders.  A clean bottom-up fold: a node
 // contributes its own row (when its descriptor is in_outline) ahead of its
 // children's, child lists concatenated through the vector monoid (mconcat), the
@@ -398,33 +398,33 @@ render_action emit(
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-std::vector<outline_entry> outline(
-    const layout_doc<OpId, Atom>& _doc,
-    const layout_signature<OpId>& _signature
+std::vector<DOutlineEntry> outline(
+    const DLayoutDoc<OpId, Atom>& _doc,
+    const DLayoutSignature<OpId>& _signature
 )
 {
-    return annotated_cata<std::vector<outline_entry> >(
+    return annotated_cata<std::vector<DOutlineEntry> >(
         [&_signature]
-        (const doc_attributes&                                       _bag,
-         const expr_layer<OpId, Atom, std::vector<outline_entry> >&  _layer)
-            -> std::vector<outline_entry>
+        (const DDocAttributes&                                       _bag,
+         const expr_layer<OpId, Atom, std::vector<DOutlineEntry> >&  _layer)
+            -> std::vector<DOutlineEntry>
         {
             // a leaf contributes nothing to the outline
             if (_layer.is_leaf())
             {
-                return std::vector<outline_entry>();
+                return std::vector<DOutlineEntry>();
             }
 
-            std::vector<outline_entry> _head;
+            std::vector<DOutlineEntry> _head;
 
-            const layout_descriptor* _descriptor =
+            const DLayoutDescriptor* _descriptor =
                 _signature.describe(_layer.op());
 
             // an in-outline node contributes its own row from its bag
             if ( (_descriptor != nullptr) &&
                  (_descriptor->in_outline) )
             {
-                outline_entry _entry;
+                DOutlineEntry _entry;
                 _entry.number = attr_or(_bag, std::string("number"));
                 _entry.title  = attr_or(_bag, std::string("title"));
                 _entry.anchor = attr_or(_bag, std::string("anchor"));
@@ -481,14 +481,14 @@ NS_INTERNAL
     template<typename OpId,
              typename Atom>
     D_NODISCARD
-    std::vector<std::shared_ptr<layout_doc<OpId, Atom> > > renumber_children(
-        const std::vector<std::shared_ptr<layout_doc<OpId, Atom> > >& _kids,
+    std::vector<std::shared_ptr<DLayoutDoc<OpId, Atom> > > renumber_children(
+        const std::vector<std::shared_ptr<DLayoutDoc<OpId, Atom> > >& _kids,
         const std::string&                                            _prefix,
         std::size_t                                                   _depth,
-        const layout_signature<OpId>&                                 _signature
+        const DLayoutSignature<OpId>&                                 _signature
     )
     {
-        using node_type  = layout_doc<OpId, Atom>;
+        using node_type  = DLayoutDoc<OpId, Atom>;
         using layer_type = typename node_type::layer_type;
 
         std::vector<std::shared_ptr<node_type> > _out;
@@ -499,7 +499,7 @@ NS_INTERNAL
         for (std::size_t _i = 0; _i < _kids.size(); ++_i)
         {
             const std::shared_ptr<node_type>& _child  = _kids[_i];
-            const doc_attributes&             _cbag   = _child->head();
+            const DDocAttributes&             _cbag   = _child->head();
             const layer_type&                 _clayer = _child->unwrap();
 
             // leaves carry no structure to number
@@ -509,7 +509,7 @@ NS_INTERNAL
                 continue;
             }
 
-            const layout_descriptor* _descriptor =
+            const DLayoutDescriptor* _descriptor =
                 _signature.describe(_clayer.op());
 
             const bool _is_numbered =
@@ -525,7 +525,7 @@ NS_INTERNAL
                         ? to_dec(_counter)
                         : (_prefix + "." + to_dec(_counter));
 
-                doc_attributes _nbag = _cbag;
+                DDocAttributes _nbag = _cbag;
                 _nbag.set(std::string("number"), _number);
                 _nbag.set(std::string("level"),  to_dec(_depth));
                 _nbag.set(std::string("anchor"), std::string("sec-") + _number);
@@ -570,12 +570,12 @@ NS_END  // internal
 template<typename OpId,
          typename Atom>
 D_NODISCARD
-layout_doc<OpId, Atom> renumber(
-    const layout_doc<OpId, Atom>& _doc,
-    const layout_signature<OpId>& _signature
+DLayoutDoc<OpId, Atom> renumber(
+    const DLayoutDoc<OpId, Atom>& _doc,
+    const DLayoutSignature<OpId>& _signature
 )
 {
-    using node_type = layout_doc<OpId, Atom>;
+    using node_type = DLayoutDoc<OpId, Atom>;
 
     std::vector<std::shared_ptr<node_type> > _single;
     _single.push_back(std::make_shared<node_type>(_doc));
@@ -602,26 +602,26 @@ layout_doc<OpId, Atom> renumber(
 template<typename OpId,
          typename Atom>
 void render_document(
-    const layout_doc<OpId, Atom>& _doc,
-    const layout_signature<OpId>& _signature,
-    content_resolver              _body,
-    doc_attributes                _metadata,
-    document_renderer&            _renderer
+    const DLayoutDoc<OpId, Atom>& _doc,
+    const DLayoutSignature<OpId>& _signature,
+    DContentResolver              _body,
+    DDocAttributes                _metadata,
+    DDocumentRenderer&            _renderer
 )
 {
     // 1. number the sections (re-annotate)
-    layout_doc<OpId, Atom> _numbered = renumber<OpId, Atom>(_doc, _signature);
+    DLayoutDoc<OpId, Atom> _numbered = renumber<OpId, Atom>(_doc, _signature);
 
     // 2. assemble the context, with the outline computed from the numbered tree
-    render_ctx _ctx;
-    _ctx.body         = static_cast<content_resolver&&>(_body);
-    _ctx.metadata     = static_cast<doc_attributes&&>(_metadata);
+    DRenderCtx _ctx;
+    _ctx.body         = static_cast<DContentResolver&&>(_body);
+    _ctx.metadata     = static_cast<DDocAttributes&&>(_metadata);
     _ctx.outline_rows = outline<OpId, Atom>(_numbered, _signature);
 
     // 3. emit to a deferred action and 4. run it
-    render_action _action = emit<OpId, Atom>(_numbered, _signature, _ctx);
+    DRenderAction _action = emit<OpId, Atom>(_numbered, _signature, _ctx);
 
-    _renderer.begin_document(doc_attributes());
+    _renderer.begin_document(DDocAttributes());
     _action(_renderer);
     _renderer.end_document();
 

@@ -10,30 +10,30 @@
 *
 *   STORAGE MODEL:
 *   For the default backend, the storage type is the CSS default
-* node (`css::internal::css_default_node`) augmented with Sass
-* fields stored in a sibling struct (`internal::sass_default_extra`)
+* node (`css::internal::DCssDefaultNode`) augmented with Sass
+* fields stored in a sibling struct (`internal::DSassDefaultExtra`)
 * attached via the parent / child relationship. This keeps the CSS
 * node compatible with the Sass facades; adapter backends (libsass,
 * dart-sass IPC) are free to use distinct types.
 *
 *   FACADES:
-*   - `sass_rule<Backend>`       extends `css::css_rule<Backend>`
-*   - `sass_stylesheet<Backend>` extends `css::css_stylesheet<Backend>`
+*   - `DSassRule<Backend>`       extends `css::DCssRule<Backend>`
+*   - `DSassStylesheet<Backend>` extends `css::DCssStylesheet<Backend>`
 *   The Sass-specific information (variable name, mixin name,
 * parameters, condition, etc.) is read from / written to optional
 * fields on the same backend node. This keeps memory layout
 * unchanged below the extension surface.
 *
 *   ZERO ADDED MEMBERS:
-*   `sass_rule<B>` adds NO members beyond `css_rule<B>`.
-*   `sass_stylesheet<B>` adds NO members beyond `css_stylesheet<B>`.
+*   `DSassRule<B>` adds NO members beyond `DCssRule<B>`.
+*   `DSassStylesheet<B>` adds NO members beyond `DCssStylesheet<B>`.
 *   The Sass-specific fields live in the backend node itself
 * (which the default backend stores in unused fields of the CSS
 * default node), so the facades remain pointer-only / by-value
 * with the same footprint as their CSS bases.
 *
 *   RENDERING:
-*   `sass_stylesheet` exposes:
+*   `DSassStylesheet` exposes:
 *     - render_to_scss_source  (SCSS source, semicolons + braces)
 *     - render_to_sass_source  (Sass indented source)
 *     - compile_to_css         (stub; real compilation is delegated
@@ -53,16 +53,16 @@ TABLE OF CONTENTS
 I.    DEFAULT BACKEND STORAGE EXTENSION
       ---------------------------------
 
-II.   sass_rule<Backend>
+II.   DSassRule<Backend>
       -------------------
 
 III.  INTERNAL EMISSION HELPERS
       -------------------------
 
-IV.   sass_stylesheet<Backend>
+IV.   DSassStylesheet<Backend>
       -------------------------
 
-V.    sass_default_backend
+V.    DSassDefaultBackend
       --------------------
 
 VI.   FREE HELPERS / FACTORIES
@@ -104,7 +104,7 @@ namespace sass {
 }   // namespace sass
 NS_INTERNAL
 
-    // sass_default_extra
+    // DSassDefaultExtra
     //   struct: optional Sass extension fields stored alongside
     // the CSS default node. Carried as an optional sidecar
     // pointer on the CSS node's parent map so that the CSS
@@ -131,10 +131,10 @@ NS_INTERNAL
     //
     //   This sidecar struct is reserved for future use when an
     // adapter backend wants to surface richer parsed state.
-    struct sass_default_extra
+    struct DSassDefaultExtra
     {
-        ::djinterp::sass::sass_rule_kind        sass_kind =
-            ::djinterp::sass::sass_rule_kind::unknown;
+        ::djinterp::sass::DSassRuleKind        sass_kind =
+            ::djinterp::sass::DSassRuleKind::unknown;
         bool                                    is_default = false;
         bool                                    is_global  = false;
         bool                                    accepts_content_block = false;
@@ -149,23 +149,23 @@ namespace sass {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   sass_rule<Backend>                                ///
+///                II.   DSassRule<Backend>                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_rule
-//   class: thin facade extending `css::css_rule<Backend>`
+// DSassRule
+//   class: thin facade extending `css::DCssRule<Backend>`
 // with Sass-specific accessors. The Sass kind discriminator
 // is derived from the underlying CSS rule kind plus the
 // at-keyword string -- no extra storage required for the
 // default backend.
 template<typename Backend>
-class sass_rule
-:   public ::djinterp::css::css_rule<Backend>
+class DSassRule
+:   public ::djinterp::css::DCssRule<Backend>
 {
 public:
     // base_type
     //   type: the underlying CSS rule facade.
-    using base_type = ::djinterp::css::css_rule<Backend>;
+    using base_type = ::djinterp::css::DCssRule<Backend>;
 
     // node_type
     //   type: the backend's rule storage type, inherited from
@@ -175,19 +175,19 @@ public:
 
     /// constructors
 
-    sass_rule()
+    DSassRule()
     :   base_type()
     {}
 
     explicit
-    sass_rule(
+    DSassRule(
         node_type*  _node
     )
     :   base_type(_node)
     {}
 
     explicit
-    sass_rule(
+    DSassRule(
         const base_type&    _css
     )
     :   base_type(_css)
@@ -196,30 +196,30 @@ public:
 
     /// Sass kind dispatch
 
-    // sass_rule_kind
+    // DSassRuleKind
     //   function: returns the Sass-specific rule kind. Derived
     // from the underlying CSS rule kind plus the at-keyword
     // string, so the same backend node can be classified by
     // either layer.
-    ::djinterp::sass::sass_rule_kind sass_rule_kind() const
+    ::djinterp::sass::DSassRuleKind sass_rule_kind() const
     {
         if (!this->valid())
         {
-            return ::djinterp::sass::sass_rule_kind::unknown;
+            return ::djinterp::sass::DSassRuleKind::unknown;
         }
         // variable declaration: a CSS declaration whose
         // property name begins with `$`.
-        if ( (this->rule_kind() == ::djinterp::css::css_rule_kind::declaration_block) &&
+        if ( (this->rule_kind() == ::djinterp::css::DCssRuleKind::declaration_block) &&
              is_sass_variable_name(this->backend_handle()->property.c_str()) )
         {
-            return ::djinterp::sass::sass_rule_kind::variable_declaration;
+            return ::djinterp::sass::DSassRuleKind::variable_declaration;
         }
         // style rule whose selector begins with `%` is a
         // placeholder.
-        if ( (this->rule_kind() == ::djinterp::css::css_rule_kind::style_rule) &&
+        if ( (this->rule_kind() == ::djinterp::css::DCssRuleKind::style_rule) &&
              is_sass_placeholder_name(this->selector().c_str()) )
         {
-            return ::djinterp::sass::sass_rule_kind::placeholder_rule;
+            return ::djinterp::sass::DSassRuleKind::placeholder_rule;
         }
         // at-rules: classify by keyword.
         if (this->is_at_rule())
@@ -228,78 +228,78 @@ public:
                 sass_at_rule_kind_from_name(
                     this->at_keyword().c_str()));
         }
-        return ::djinterp::sass::sass_rule_kind::unknown;
+        return ::djinterp::sass::DSassRuleKind::unknown;
     }
 
     // get_sass_rule_kind
     //   function: getter-form alias.
-    ::djinterp::sass::sass_rule_kind get_sass_rule_kind() const
+    ::djinterp::sass::DSassRuleKind get_sass_rule_kind() const
     {
         return this->sass_rule_kind();
     }
 
-    // sass_at_rule_kind
+    // DSassAtRuleKind
     //   function: returns the Sass-specific at-rule kind.
-    ::djinterp::sass::sass_at_rule_kind sass_at_rule_kind() const
+    ::djinterp::sass::DSassAtRuleKind sass_at_rule_kind() const
     {
         if (!this->valid())
         {
-            return ::djinterp::sass::sass_at_rule_kind::unknown;
+            return ::djinterp::sass::DSassAtRuleKind::unknown;
         }
         return sass_at_rule_kind_from_name(this->at_keyword().c_str());
     }
 
     bool is_variable_declaration() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::variable_declaration );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::variable_declaration );
     }
     bool is_mixin_declaration() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::mixin_declaration );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::mixin_declaration );
     }
     bool is_function_declaration() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::function_declaration );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::function_declaration );
     }
     bool is_include_statement() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::include_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::include_statement );
     }
     bool is_extend_statement() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::extend_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::extend_statement );
     }
     bool is_if_statement() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::if_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::if_statement );
     }
     bool is_each_statement() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::each_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::each_statement );
     }
     bool is_for_statement() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::for_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::for_statement );
     }
     bool is_while_statement() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::while_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::while_statement );
     }
     bool is_use_rule() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::use_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::use_rule );
     }
     bool is_forward_rule() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::forward_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::forward_rule );
     }
     bool is_at_root_rule() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::at_root_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::at_root_rule );
     }
     bool is_placeholder_rule() const
     {
-        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::placeholder_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::DSassRuleKind::placeholder_rule );
     }
 
 
@@ -309,25 +309,25 @@ public:
     //   function: returns the variable name (including the
     // leading `$`). Only meaningful when
     // `is_variable_declaration() == true`.
-    sass_string_t variable_name() const
+    DSassString variable_name() const
     {
         if (!this->valid())
         {
-            return sass_string_t();
+            return DSassString();
         }
         // For Sass variable declarations the default backend
         // stores the variable name in the property field.
         return this->backend_handle()->property;
     }
 
-    sass_string_t get_variable_name() const
+    DSassString get_variable_name() const
     {
         return this->variable_name();
     }
 
     // set_variable_name
     void set_variable_name(
-        const sass_string_t& _name
+        const DSassString& _name
     )
     {
         if (!this->valid())
@@ -336,7 +336,7 @@ public:
         }
         if ( (!_name.empty()) && (_name[0] != '$') )
         {
-            this->backend_handle()->property = sass_string_t("$") + _name;
+            this->backend_handle()->property = DSassString("$") + _name;
         }
         else
         {
@@ -351,18 +351,18 @@ public:
     //   function: returns the mixin name. For default-backend
     // storage, mixin name is encoded as the at-rule prelude
     // up to the first `(`.
-    sass_string_t mixin_name() const
+    DSassString mixin_name() const
     {
         if (!this->valid())
         {
-            return sass_string_t();
+            return DSassString();
         }
-        const sass_string_t&    pre = this->prelude();
+        const DSassString&      pre = this->prelude();
         const std::size_t       p   = pre.find('(');
-        return (p == sass_string_t::npos) ? pre : pre.substr(0, p);
+        return (p == DSassString::npos) ? pre : pre.substr(0, p);
     }
 
-    sass_string_t get_mixin_name() const
+    DSassString get_mixin_name() const
     {
         return this->mixin_name();
     }
@@ -370,12 +370,12 @@ public:
     // function_name
     //   function: alias of `mixin_name` -- @function and @mixin
     // share the same default-backend encoding.
-    sass_string_t function_name() const
+    DSassString function_name() const
     {
         return this->mixin_name();
     }
 
-    sass_string_t get_function_name() const
+    DSassString get_function_name() const
     {
         return this->mixin_name();
     }
@@ -383,25 +383,25 @@ public:
     // parameters
     //   function: returns the parameter-list source between
     // the parentheses, e.g. `($x, $y: 10px)` -> `$x, $y: 10px`.
-    sass_string_t parameters() const
+    DSassString parameters() const
     {
         if (!this->valid())
         {
-            return sass_string_t();
+            return DSassString();
         }
-        const sass_string_t&    pre = this->prelude();
+        const DSassString&      pre = this->prelude();
         const std::size_t       open  = pre.find('(');
         const std::size_t       close = pre.rfind(')');
-        if ( (open == sass_string_t::npos) ||
-             (close == sass_string_t::npos) ||
+        if ( (open == DSassString::npos) ||
+             (close == DSassString::npos) ||
              (close <= open + 1) )
         {
-            return sass_string_t();
+            return DSassString();
         }
         return pre.substr(open + 1, close - open - 1);
     }
 
-    sass_string_t get_parameters() const
+    DSassString get_parameters() const
     {
         return this->parameters();
     }
@@ -412,7 +412,7 @@ public:
     // include_target
     //   function: returns the mixin name being included
     // (without the argument list).
-    sass_string_t include_target() const
+    DSassString include_target() const
     {
         return this->mixin_name();
     }
@@ -420,23 +420,23 @@ public:
     // arguments
     //   function: alias of `parameters()` -- the syntactic form
     // is identical for default-backend storage.
-    sass_string_t arguments() const
+    DSassString arguments() const
     {
         return this->parameters();
     }
 
     // extend_target
     //   function: returns the selector being extended.
-    sass_string_t extend_target() const
+    DSassString extend_target() const
     {
         if (!this->valid())
         {
-            return sass_string_t();
+            return DSassString();
         }
         // Trim any trailing `!optional` flag.
-        sass_string_t   p = this->prelude();
+        DSassString   p = this->prelude();
         const std::size_t   bang = p.find("!optional");
-        if (bang != sass_string_t::npos)
+        if (bang != DSassString::npos)
         {
             // strip the flag and any preceding whitespace
             std::size_t end = bang;
@@ -459,7 +459,7 @@ public:
         {
             return false;
         }
-        return ( this->prelude().find("!optional") != sass_string_t::npos );
+        return ( this->prelude().find("!optional") != DSassString::npos );
     }
 
 
@@ -468,12 +468,12 @@ public:
     // condition
     //   function: returns the condition expression for @if /
     // @while statements.
-    sass_string_t condition() const
+    DSassString condition() const
     {
-        return this->valid() ? this->prelude() : sass_string_t();
+        return this->valid() ? this->prelude() : DSassString();
     }
 
-    sass_string_t get_condition() const
+    DSassString get_condition() const
     {
         return this->condition();
     }
@@ -482,15 +482,15 @@ public:
     //   function: returns the loop binding for @each / @for.
     // For @each `$x in list`, returns `$x`. For @for `$i from
     // 1 through 5`, returns `$i`.
-    sass_string_t loop_variable() const
+    DSassString loop_variable() const
     {
         if (!this->valid())
         {
-            return sass_string_t();
+            return DSassString();
         }
-        const sass_string_t&    pre = this->prelude();
+        const DSassString&      pre = this->prelude();
         const std::size_t       sp = pre.find(' ');
-        return (sp == sass_string_t::npos) ? pre : pre.substr(0, sp);
+        return (sp == DSassString::npos) ? pre : pre.substr(0, sp);
     }
 
 
@@ -499,14 +499,14 @@ public:
     // module_url
     //   function: returns the module URL string for @use /
     // @forward / @import.
-    sass_string_t module_url() const
+    DSassString module_url() const
     {
         if (!this->valid())
         {
-            return sass_string_t();
+            return DSassString();
         }
         // Strip surrounding quotes if present.
-        const sass_string_t&    pre = this->prelude();
+        const DSassString&      pre = this->prelude();
         std::size_t             a   = 0;
         std::size_t             b   = pre.size();
         while ( (a < b) && ( (pre[a] == ' ') || (pre[a] == '\t') ) )
@@ -520,7 +520,7 @@ public:
         {
             ++end;
         }
-        sass_string_t   url = pre.substr(a, end - a);
+        DSassString   url = pre.substr(a, end - a);
         if ( (url.size() >= 2) &&
              ((url.front() == '\'') || (url.front() == '"')) &&
              (url.back() == url.front()) )
@@ -567,11 +567,11 @@ NS_INTERNAL
     inline
     void sass_emit_rule_scss_helper(
         std::ostream&                                 _out,
-        const ::djinterp::internal::css_default_node& _node,
+        const ::djinterp::internal::DCssDefaultNode&  _node,
         std::size_t                                   _depth
     )
     {
-        using K = ::djinterp::css::css_rule_kind;
+        using K = ::djinterp::css::DCssRuleKind;
 
         if (_node.rule_kind == K::comment)
         {
@@ -588,7 +588,7 @@ NS_INTERNAL
             {
                 _out << _node.property << ": " << _node.value;
                 if (_node.importance ==
-                        ::djinterp::css::css_importance::important)
+                        ::djinterp::css::DCssImportance::important)
                 {
                     _out << " !default";
                 }
@@ -596,7 +596,7 @@ NS_INTERNAL
                 return;
             }
             _out << _node.property << ": " << _node.value;
-            if (_node.importance == ::djinterp::css::css_importance::important)
+            if (_node.importance == ::djinterp::css::DCssImportance::important)
             {
                 _out << " !important";
             }
@@ -667,11 +667,11 @@ NS_INTERNAL
     inline
     void sass_emit_rule_indented_helper(
         std::ostream&                                 _out,
-        const ::djinterp::internal::css_default_node& _node,
+        const ::djinterp::internal::DCssDefaultNode&  _node,
         std::size_t                                   _depth
     )
     {
-        using K = ::djinterp::css::css_rule_kind;
+        using K = ::djinterp::css::DCssRuleKind;
 
         if (_node.rule_kind == K::comment)
         {
@@ -684,7 +684,7 @@ NS_INTERNAL
         {
             sass_emit_indent_helper(_out, _depth);
             _out << _node.property << ": " << _node.value;
-            if (_node.importance == ::djinterp::css::css_importance::important)
+            if (_node.importance == ::djinterp::css::DCssImportance::important)
             {
                 if ( (!_node.property.empty()) && (_node.property[0] == '$') )
                 {
@@ -740,39 +740,39 @@ namespace sass {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.   sass_stylesheet<Backend>                          ///
+///                IV.   DSassStylesheet<Backend>                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_stylesheet
+// DSassStylesheet
 //   class: thin facade extending
-// `css::css_stylesheet<Backend>` with Sass-specific
+// `css::DCssStylesheet<Backend>` with Sass-specific
 // metadata and emission. Adds NO data members beyond the CSS
 // base; the Sass syntax / dialect tags are stored in unused
 // fields of the inherited stylesheet storage (the CSS
 // `syntax_mode` field already covers SCSS / Sass; this facade
 // surfaces them under the Sass-specific enums).
 template<typename Backend>
-class sass_stylesheet
-:   public ::djinterp::css::css_stylesheet<Backend>
+class DSassStylesheet
+:   public ::djinterp::css::DCssStylesheet<Backend>
 {
 public:
-    using base_type       = ::djinterp::css::css_stylesheet<Backend>;
+    using base_type       = ::djinterp::css::DCssStylesheet<Backend>;
     using stylesheet_type = typename base_type::stylesheet_type;
     using rule_node_type  = typename base_type::rule_node_type;
-    using rule_facade     = sass_rule<Backend>;
+    using rule_facade     = DSassRule<Backend>;
 
 
     /// constructors
 
-    sass_stylesheet()
+    DSassStylesheet()
     :   base_type()
     {
-        this->set_syntax_mode(::djinterp::css::css_syntax_mode::scss);
+        this->set_syntax_mode(::djinterp::css::DCssSyntaxMode::scss);
     }
 
     explicit
-    sass_stylesheet(
-        ::djinterp::sass::sass_syntax     _syntax
+    DSassStylesheet(
+        ::djinterp::sass::DSassSyntax     _syntax
     )
     :   base_type()
     {
@@ -782,50 +782,50 @@ public:
 
     /// metadata
 
-    // sass_syntax
+    // DSassSyntax
     //   function: returns the Sass surface syntax. Derived
     // from the CSS `syntax_mode` field.
-    ::djinterp::sass::sass_syntax sass_syntax() const
+    ::djinterp::sass::DSassSyntax sass_syntax() const
     {
         const auto m = this->syntax_mode();
-        return ( m == ::djinterp::css::css_syntax_mode::sass )
-                ? ::djinterp::sass::sass_syntax::indented
-             : ( m == ::djinterp::css::css_syntax_mode::scss )
-                ? ::djinterp::sass::sass_syntax::scss
-             :    ::djinterp::sass::sass_syntax::unspecified;
+        return ( m == ::djinterp::css::DCssSyntaxMode::sass )
+                ? ::djinterp::sass::DSassSyntax::indented
+             : ( m == ::djinterp::css::DCssSyntaxMode::scss )
+                ? ::djinterp::sass::DSassSyntax::scss
+             :    ::djinterp::sass::DSassSyntax::unspecified;
     }
 
-    ::djinterp::sass::sass_syntax get_sass_syntax() const
+    ::djinterp::sass::DSassSyntax get_sass_syntax() const
     {
         return this->sass_syntax();
     }
 
     // set_sass_syntax
     void set_sass_syntax(
-        ::djinterp::sass::sass_syntax _syntax
+        ::djinterp::sass::DSassSyntax _syntax
     )
     {
         switch (_syntax)
         {
-            case ::djinterp::sass::sass_syntax::indented:
-                this->set_syntax_mode(::djinterp::css::css_syntax_mode::sass);
+            case ::djinterp::sass::DSassSyntax::indented:
+                this->set_syntax_mode(::djinterp::css::DCssSyntaxMode::sass);
                 break;
-            case ::djinterp::sass::sass_syntax::scss:
-                this->set_syntax_mode(::djinterp::css::css_syntax_mode::scss);
+            case ::djinterp::sass::DSassSyntax::scss:
+                this->set_syntax_mode(::djinterp::css::DCssSyntaxMode::scss);
                 break;
             default:
-                this->set_syntax_mode(::djinterp::css::css_syntax_mode::scss);
+                this->set_syntax_mode(::djinterp::css::DCssSyntaxMode::scss);
                 break;
         }
     }
 
-    // sass_dialect
+    // DSassDialect
     //   function: returns the configured dialect. Default
     // backend reports `dart_sass`; adapter backends can
     // override.
-    ::djinterp::sass::sass_dialect sass_dialect() const
+    ::djinterp::sass::DSassDialect sass_dialect() const
     {
-        return ::djinterp::sass::sass_dialect::dart_sass;
+        return ::djinterp::sass::DSassDialect::dart_sass;
     }
 
 
@@ -849,8 +849,8 @@ public:
     //   function: appends a variable declaration to the
     // stylesheet root.
     rule_facade add_variable(
-        const sass_string_t& _name,
-        const sass_string_t& _value,
+        const DSassString& _name,
+        const DSassString&   _value,
         bool                 _default = false
     )
     {
@@ -859,14 +859,14 @@ public:
             return rule_facade();
         }
         std::unique_ptr<rule_node_type>     n(new rule_node_type);
-        n->rule_kind = ::djinterp::css::css_rule_kind::declaration_block;
+        n->rule_kind = ::djinterp::css::DCssRuleKind::declaration_block;
         n->property  = ( (!_name.empty()) && (_name[0] == '$') )
             ? _name
-            : sass_string_t("$") + _name;
+            : DSassString("$") + _name;
         n->value     = _value;
         if (_default)
         {
-            n->importance = ::djinterp::css::css_importance::important;
+            n->importance = ::djinterp::css::DCssImportance::important;
         }
         rule_node_type* raw = n.get();
         const_cast<typename base_type::stylesheet_type&>(
@@ -879,7 +879,7 @@ public:
     // color model (rgb, rgba, cmyk, hsl, ...), via the css bridge.
     template <typename Color>
     rule_facade add_color_variable(
-        const sass_string_t& _name,
+        const DSassString&   _name,
         const Color&         _c,
         bool                 _default = false
     )
@@ -890,11 +890,11 @@ public:
 
     // add_font_variable
     //   function: appends `$name: <css-font-shorthand>;` from a
-    // native djinterp::font, via the css bridge.
+    // native djinterp::DFont, via the css bridge.
     template <unsigned Feat, typename ColorT>
     rule_facade add_font_variable(
-        const sass_string_t&                  _name,
-        const ::djinterp::font<Feat, ColorT>& _f,
+        const DSassString&                    _name,
+        const ::djinterp::DFont<Feat, ColorT>& _f,
         bool                                  _default = false
     )
     {
@@ -905,11 +905,11 @@ public:
     // add_mixin
     //   function: appends a `@mixin name(params)` rule.
     rule_facade add_mixin(
-        const sass_string_t& _name,
-        const sass_string_t& _parameters = sass_string_t()
+        const DSassString& _name,
+        const DSassString& _parameters = DSassString()
     )
     {
-        sass_string_t   prelude = _name;
+        DSassString   prelude = _name;
         if (!_parameters.empty())
         {
             prelude += '(';
@@ -922,11 +922,11 @@ public:
     // add_include
     //   function: appends an `@include name(args)` statement.
     rule_facade add_include(
-        const sass_string_t& _target,
-        const sass_string_t& _arguments = sass_string_t()
+        const DSassString& _target,
+        const DSassString& _arguments = DSassString()
     )
     {
-        sass_string_t   prelude = _target;
+        DSassString   prelude = _target;
         if (!_arguments.empty())
         {
             prelude += '(';
@@ -939,11 +939,11 @@ public:
     // add_function
     //   function: appends a `@function name(params)` rule.
     rule_facade add_function(
-        const sass_string_t& _name,
-        const sass_string_t& _parameters = sass_string_t()
+        const DSassString& _name,
+        const DSassString& _parameters = DSassString()
     )
     {
-        sass_string_t   prelude = _name;
+        DSassString   prelude = _name;
         if (!_parameters.empty())
         {
             prelude += '(';
@@ -956,11 +956,11 @@ public:
     // add_extend
     //   function: appends an `@extend selector` statement.
     rule_facade add_extend(
-        const sass_string_t& _target,
+        const DSassString&   _target,
         bool                 _optional = false
     )
     {
-        sass_string_t   prelude = _target;
+        DSassString   prelude = _target;
         if (_optional)
         {
             prelude += " !optional";
@@ -971,11 +971,11 @@ public:
     // add_use
     //   function: appends a `@use 'url'` rule.
     rule_facade add_use(
-        const sass_string_t& _url,
-        const sass_string_t& _namespace = sass_string_t()
+        const DSassString& _url,
+        const DSassString& _namespace = DSassString()
     )
     {
-        sass_string_t   prelude = sass_string_t("'") + _url + sass_string_t("'");
+        DSassString   prelude = DSassString("'") + _url + DSassString("'");
         if (!_namespace.empty())
         {
             prelude += " as ";
@@ -987,17 +987,17 @@ public:
     // add_forward
     //   function: appends a `@forward 'url'` rule.
     rule_facade add_forward(
-        const sass_string_t& _url
+        const DSassString& _url
     )
     {
-        sass_string_t   prelude = sass_string_t("'") + _url + sass_string_t("'");
+        DSassString   prelude = DSassString("'") + _url + DSassString("'");
         return this->add_sass_at_rule_(at_keywords::forward, prelude);
     }
 
     // add_if
     //   function: appends an `@if condition` block.
     rule_facade add_if(
-        const sass_string_t& _condition
+        const DSassString& _condition
     )
     {
         return this->add_sass_at_rule_(at_keywords::if_, _condition);
@@ -1006,11 +1006,11 @@ public:
     // add_each
     //   function: appends an `@each $var in list` block.
     rule_facade add_each(
-        const sass_string_t& _variable,
-        const sass_string_t& _iterable
+        const DSassString& _variable,
+        const DSassString& _iterable
     )
     {
-        sass_string_t   prelude;
+        DSassString   prelude;
         prelude.reserve(_variable.size() + _iterable.size() + 5);
         prelude.append(_variable);
         prelude.append(" in ");
@@ -1042,7 +1042,7 @@ public:
         }
     }
 
-    sass_string_t render_to_scss_source() const
+    DSassString render_to_scss_source() const
     {
         std::ostringstream  oss;
         this->render_to_scss_source(oss);
@@ -1072,7 +1072,7 @@ public:
         }
     }
 
-    sass_string_t render_to_sass_source() const
+    DSassString render_to_sass_source() const
     {
         std::ostringstream  oss;
         this->render_to_sass_source(oss);
@@ -1104,8 +1104,8 @@ private:
     // with the given Sass-specific keyword and prelude. Used
     // by the per-keyword `add_*` methods above.
     rule_facade add_sass_at_rule_(
-        const sass_string_t& _keyword,
-        const sass_string_t& _prelude
+        const DSassString& _keyword,
+        const DSassString& _prelude
     )
     {
         auto    css_r = this->add_at_rule(_keyword, _prelude);
@@ -1115,33 +1115,33 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   sass_default_backend                                ///
+///                V.   DSassDefaultBackend                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// sass_default_backend
+// DSassDefaultBackend
 //   struct: bundled in-memory backend for the Sass facades.
 // Reuses the CSS default backend's storage types verbatim --
 // the Sass extension state fits entirely into existing fields
 // on the CSS default node, so no parallel storage hierarchy is
 // needed. Exposes BOTH the CSS backend tag and the Sass
 // backend tag so the same type satisfies both protocols.
-struct sass_default_backend
+struct DSassDefaultBackend
 {
-    using css_backend_tag  = ::djinterp::css::css_default_backend_tag;
-    using sass_backend_tag = ::djinterp::sass::sass_default_backend_tag;
+    using css_backend_tag  = ::djinterp::css::DCssDefaultBackendTag;
+    using sass_backend_tag = ::djinterp::sass::DSassDefaultBackendTag;
 
-    using rule_type             = ::djinterp::internal::css_default_node;
-    using declaration_type      = ::djinterp::internal::css_default_node;
-    using stylesheet_type       = ::djinterp::internal::css_default_stylesheet;
-    using sass_rule_type        = ::djinterp::internal::css_default_node;
-    using sass_stylesheet_type  = ::djinterp::internal::css_default_stylesheet;
+    using rule_type             = ::djinterp::internal::DCssDefaultNode;
+    using declaration_type      = ::djinterp::internal::DCssDefaultNode;
+    using stylesheet_type       = ::djinterp::internal::DCssDefaultStylesheet;
+    using sass_rule_type        = ::djinterp::internal::DCssDefaultNode;
+    using sass_stylesheet_type  = ::djinterp::internal::DCssDefaultStylesheet;
 
     // make_stylesheet
     //   function: factory matching the CSS backend protocol.
     static
     stylesheet_type make_stylesheet()
     {
-        return ::djinterp::css::css_default_backend::make_stylesheet();
+        return ::djinterp::css::DCssDefaultBackend::make_stylesheet();
     }
 
     // make_sass_stylesheet
@@ -1151,7 +1151,7 @@ struct sass_default_backend
     stylesheet_type make_sass_stylesheet()
     {
         stylesheet_type s = make_stylesheet();
-        s.syntax_mode = ::djinterp::css::css_syntax_mode::scss;
+        s.syntax_mode = ::djinterp::css::DCssSyntaxMode::scss;
         return s;
     }
 };
@@ -1166,11 +1166,11 @@ struct sass_default_backend
 // stylesheet facade for the given backend.
 template<typename Backend>
 inline
-sass_stylesheet<Backend> make_sass_stylesheet(
-    ::djinterp::sass::sass_syntax _syntax = ::djinterp::sass::sass_syntax::scss
+DSassStylesheet<Backend> make_sass_stylesheet(
+    ::djinterp::sass::DSassSyntax _syntax = ::djinterp::sass::DSassSyntax::scss
 )
 {
-    return sass_stylesheet<Backend>(_syntax);
+    return DSassStylesheet<Backend>(_syntax);
 }
 
 
@@ -1178,24 +1178,24 @@ sass_stylesheet<Backend> make_sass_stylesheet(
 //   function: returns a new freestanding variable declaration.
 template<typename Backend>
 inline
-sass_rule<Backend> make_variable(
-    const sass_string_t& _name,
-    const sass_string_t& _value,
+DSassRule<Backend> make_variable(
+    const DSassString& _name,
+    const DSassString&   _value,
     bool                 _default = false
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind = ::djinterp::css::css_rule_kind::declaration_block;
+    n->rule_kind = ::djinterp::css::DCssRuleKind::declaration_block;
     n->property  = ( (!_name.empty()) && (_name[0] == '$') )
         ? _name
-        : sass_string_t("$") + _name;
+        : DSassString("$") + _name;
     n->value = _value;
     if (_default)
     {
-        n->importance = ::djinterp::css::css_importance::important;
+        n->importance = ::djinterp::css::DCssImportance::important;
     }
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1203,15 +1203,15 @@ sass_rule<Backend> make_variable(
 //   function: returns a new freestanding @mixin rule.
 template<typename Backend>
 inline
-sass_rule<Backend> make_mixin(
-    const sass_string_t& _name,
-    const sass_string_t& _parameters = sass_string_t()
+DSassRule<Backend> make_mixin(
+    const DSassString& _name,
+    const DSassString& _parameters = DSassString()
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::mixin;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _name;
     if (!_parameters.empty())
     {
@@ -1219,7 +1219,7 @@ sass_rule<Backend> make_mixin(
         n->prelude += _parameters;
         n->prelude += ')';
     }
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1227,15 +1227,15 @@ sass_rule<Backend> make_mixin(
 //   function: returns a new freestanding @include statement.
 template<typename Backend>
 inline
-sass_rule<Backend> make_include(
-    const sass_string_t& _target,
-    const sass_string_t& _arguments = sass_string_t()
+DSassRule<Backend> make_include(
+    const DSassString& _target,
+    const DSassString& _arguments = DSassString()
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::include;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _target;
     if (!_arguments.empty())
     {
@@ -1243,7 +1243,7 @@ sass_rule<Backend> make_include(
         n->prelude += _arguments;
         n->prelude += ')';
     }
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1251,21 +1251,21 @@ sass_rule<Backend> make_include(
 //   function: returns a new freestanding @extend statement.
 template<typename Backend>
 inline
-sass_rule<Backend> make_extend(
-    const sass_string_t& _target,
+DSassRule<Backend> make_extend(
+    const DSassString&   _target,
     bool                 _optional = false
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::extend;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _target;
     if (_optional)
     {
         n->prelude += " !optional";
     }
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1273,22 +1273,22 @@ sass_rule<Backend> make_extend(
 //   function: returns a new freestanding @use rule.
 template<typename Backend>
 inline
-sass_rule<Backend> make_use(
-    const sass_string_t& _url,
-    const sass_string_t& _namespace = sass_string_t()
+DSassRule<Backend> make_use(
+    const DSassString& _url,
+    const DSassString& _namespace = DSassString()
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::use;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
-    n->prelude    = sass_string_t("'") + _url + sass_string_t("'");
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
+    n->prelude    = DSassString("'") + _url + DSassString("'");
     if (!_namespace.empty())
     {
         n->prelude += " as ";
         n->prelude += _namespace;
     }
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1297,17 +1297,17 @@ sass_rule<Backend> make_use(
 // rule (`%name { ... }`).
 template<typename Backend>
 inline
-sass_rule<Backend> make_placeholder_rule(
-    const sass_string_t& _name
+DSassRule<Backend> make_placeholder_rule(
+    const DSassString& _name
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
+    n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
     n->selector  = ( (!_name.empty()) && (_name[0] == '%') )
         ? _name
-        : sass_string_t("%") + _name;
-    return sass_rule<Backend>(n);
+        : DSassString("%") + _name;
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1315,19 +1315,19 @@ sass_rule<Backend> make_placeholder_rule(
 //   function: returns a new freestanding @each rule.
 template<typename Backend>
 inline
-sass_rule<Backend> make_each(
-    const sass_string_t& _variable,
-    const sass_string_t& _iterable
+DSassRule<Backend> make_each(
+    const DSassString& _variable,
+    const DSassString& _iterable
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::each;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _variable;
     n->prelude   += " in ";
     n->prelude   += _iterable;
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 
@@ -1335,16 +1335,16 @@ sass_rule<Backend> make_each(
 //   function: returns a new freestanding @if rule.
 template<typename Backend>
 inline
-sass_rule<Backend> make_if(
-    const sass_string_t& _condition
+DSassRule<Backend> make_if(
+    const DSassString& _condition
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::if_;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _condition;
-    return sass_rule<Backend>(n);
+    return DSassRule<Backend>(n);
 }
 
 

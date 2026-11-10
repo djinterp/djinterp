@@ -19,7 +19,7 @@
 * a cover, a table of contents, and nested numbered sections holding content;
 * report_dialect.hpp already names exactly that set (body / cover / clearpage /
 * toc / section, with content as a body_ref leaf).  So this header registers
-* nothing and lowers nothing: it builds a report_op term with the dialect's own
+* nothing and lowers nothing: it builds a DReportOp term with the dialect's own
 * combinators and hands it to the dialect's own signature.  If DTest needed a
 * construct the dialect lacks, the fix would be a lowering in a dialect header,
 * not a special case here.
@@ -55,16 +55,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    report_to_layout            (the fold: report -> layout_doc<report_op>)
+I.    report_to_layout            (the fold: report -> DLayoutDoc<DReportOp>)
       -----------------------------------------------------------------------
 
 II.   report_metadata_bag         (cover / meta_ref bindings)
       -------------------------------------------------------
 
-III.  make_report_resolver        (content_resolver over a borrowed report)
+III.  make_report_resolver        (DContentResolver over a borrowed report)
       ---------------------------------------------------------------------
 
-IV.   render_test_report          (drive any document_renderer)
+IV.   render_test_report          (drive any DDocumentRenderer)
       ---------------------------------------------------------
       1.    render_report_layout  (render_document, for a report term)
       2.    render_test_report    (fold, bind, render)
@@ -88,11 +88,11 @@ IV.   render_test_report          (drive any document_renderer)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"                     // NS_*, gates, D_NODISCARD
-#include "../../../util/document/report_dialect.hpp" // report_op, the combinator
+#include "../../../util/document/report_dialect.hpp" // DReportOp, the combinator
                                                        //   surface, make_report_signature
 #include "../../../util/document/layout/layout_interpret.hpp"
                                                        // renumber, outline, emit,
-                                                       //   content_resolver
+                                                       //   DContentResolver
 #include "./test_report_content.hpp"                   // resolve_report_content + keys
 #include "./test_report.hpp"                           // test_report + the model
 
@@ -108,17 +108,17 @@ NS_TEST
 // report_to_layout
 //   function: the fold from the report model to the document term.  Structure
 // only -- every piece of text that is CONTENT rather than STRUCTURE leaves as a
-// named body_ref, resolved later.  The result is an ordinary layout_doc: the
+// named body_ref, resolved later.  The result is an ordinary DLayoutDoc: the
 // interpreter cannot tell it was built here rather than by the cursor, the
 // aggregate spec, or the block-form parser.
-D_NODISCARD inline ::djinterp::layout_doc< ::djinterp::report_op> report_to_layout(
+D_NODISCARD inline ::djinterp::DLayoutDoc< ::djinterp::DReportOp> report_to_layout(
     const test_report& _report
 )
 {
-    using ::djinterp::layout_doc;
-    using ::djinterp::report_op;
+    using ::djinterp::DLayoutDoc;
+    using ::djinterp::DReportOp;
 
-    std::vector<layout_doc<report_op> > _top;
+    std::vector<DLayoutDoc<DReportOp> > _top;
 
     // the cover, then a table of contents, each on its own page
     _top.push_back(::djinterp::cover({
@@ -138,7 +138,7 @@ D_NODISCARD inline ::djinterp::layout_doc< ::djinterp::report_op> report_to_layo
     {
         const report_module& _module = _report.modules[_m];
 
-        std::vector<layout_doc<report_op> > _module_children;
+        std::vector<DLayoutDoc<DReportOp> > _module_children;
 
         // the module's own figures lead its section
         _module_children.push_back(
@@ -148,7 +148,7 @@ D_NODISCARD inline ::djinterp::layout_doc< ::djinterp::report_op> report_to_layo
         {
             // the unit's assertion table is its whole body; its descriptor
             // rides inside the table's emission, not as a sibling
-            std::vector<layout_doc<report_op> > _unit_children;
+            std::vector<DLayoutDoc<DReportOp> > _unit_children;
 
             _unit_children.push_back(
                 ::djinterp::content(content_key_unit(_m, _u)));
@@ -173,11 +173,11 @@ D_NODISCARD inline ::djinterp::layout_doc< ::djinterp::report_op> report_to_layo
 // cover reads its title / subtitle / author from.  A report field with nothing
 // in it is simply not bound, so a cover renders what is present rather than a
 // row of empty labels.
-D_NODISCARD inline ::djinterp::doc_attributes report_metadata_bag(
+D_NODISCARD inline ::djinterp::DDocAttributes report_metadata_bag(
     const test_report& _report
 )
 {
-    ::djinterp::doc_attributes _bag;
+    ::djinterp::DDocAttributes _bag;
 
     if (!_report.title.empty())
     {
@@ -210,15 +210,15 @@ D_NODISCARD inline ::djinterp::doc_attributes report_metadata_bag(
 // outlive every use of it.  The entry points below build and render within one
 // call, so it holds for them by construction; a caller storing the resolver
 // takes on the obligation.
-D_NODISCARD inline ::djinterp::content_resolver make_report_resolver(
+D_NODISCARD inline ::djinterp::DContentResolver make_report_resolver(
     const test_report& _report
 )
 {
     const test_report* _borrowed = &_report;
 
-    return ::djinterp::content_resolver(
-        [_borrowed](const ::djinterp::layout_atom& _ref)
-            -> ::djinterp::maybe< ::djinterp::render_action>
+    return ::djinterp::DContentResolver(
+        [_borrowed](const ::djinterp::DLayoutAtom& _ref)
+            -> ::djinterp::maybe< ::djinterp::DRenderAction>
         {
             const std::string _key = _ref.key;
 
@@ -227,11 +227,11 @@ D_NODISCARD inline ::djinterp::content_resolver make_report_resolver(
             // is rendered twice
             if (!report_binds_content(*_borrowed, _key))
             {
-                return ::djinterp::nothing< ::djinterp::render_action>();
+                return ::djinterp::nothing< ::djinterp::DRenderAction>();
             }
 
-            return ::djinterp::just(::djinterp::render_action(
-                [_borrowed, _key](::djinterp::document_renderer& _r)
+            return ::djinterp::just(::djinterp::DRenderAction(
+                [_borrowed, _key](::djinterp::DDocumentRenderer& _r)
                 {
                     (void)resolve_report_content(*_borrowed, _key, _r);
                 }));
@@ -244,24 +244,24 @@ D_NODISCARD inline ::djinterp::content_resolver make_report_resolver(
 ///////////////////////////////////////////////////////////////////////////////
 
 // render_report_layout
-//   function: layout_interpret.hpp's render_document for a report_op term --
+//   function: layout_interpret.hpp's render_document for a DReportOp term --
 // number it, collect its outline, emit it, and run the emission against
 // _renderer between begin_document and end_document. The template arguments
-// are named because an annotated term's atom type is never deduced: layout_doc
+// are named because an annotated term's atom type is never deduced: DLayoutDoc
 // is an alias whose atom sits in a nested-name-specifier. (This spelled the
 // pipeline out while render_document could not be instantiated -- R1; lane 2's
 // round 3 named its passes' arguments, and this became a call.)
 inline
 void render_report_layout(
-    const ::djinterp::layout_doc< ::djinterp::report_op>&       _doc,
-    const ::djinterp::layout_signature< ::djinterp::report_op>& _signature,
-    const ::djinterp::content_resolver&                         _body,
-    const ::djinterp::doc_attributes&                           _metadata,
-    ::djinterp::document_renderer&                              _renderer
+    const ::djinterp::DLayoutDoc< ::djinterp::DReportOp>&       _doc,
+    const ::djinterp::DLayoutSignature< ::djinterp::DReportOp>& _signature,
+    const ::djinterp::DContentResolver&                         _body,
+    const ::djinterp::DDocAttributes&                           _metadata,
+    ::djinterp::DDocumentRenderer&                              _renderer
 )
 {
-    ::djinterp::render_document< ::djinterp::report_op,
-                                 ::djinterp::layout_atom>(_doc,
+    ::djinterp::render_document< ::djinterp::DReportOp,
+                                 ::djinterp::DLayoutAtom>(_doc,
                                                           _signature,
                                                           _body,
                                                           _metadata,
@@ -277,7 +277,7 @@ void render_report_layout(
 inline
 void render_test_report(
     const test_report&             _report,
-    ::djinterp::document_renderer& _renderer
+    ::djinterp::DDocumentRenderer& _renderer
 )
 {
     render_report_layout(report_to_layout(_report),

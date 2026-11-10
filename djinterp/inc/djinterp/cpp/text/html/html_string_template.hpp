@@ -1,24 +1,24 @@
 /*******************************************************************************
 * djinterp [cpp]                                        html_string_template.hpp
 *
-*   HTML facade over `markup_string_template<EscapePolicy>`. Binds
-* `html_escape_policy` and re-exports the templating engine under
+*   HTML facade over `DMarkupStringTemplate<EscapePolicy>`. Binds
+* `DHtmlEscapePolicy` and re-exports the templating engine under
 * HTML-flavoured names. All the actual parsing, rendering, partial
 * resolution, section iteration, and context machinery lives in
 * `markup_string_template.hpp`; this file is a thin subclass plus a
 * matching context subclass plus convenience aliases.
 *
 *   ZERO OVERHEAD:
-*   `html_string_template` adds NO members beyond
-* `markup_string_template<html_escape_policy>`, so memory layout is
+*   `DHtmlStringTemplate` adds NO members beyond
+* `DMarkupStringTemplate<DHtmlEscapePolicy>`, so memory layout is
 * identical and slicing is harmless. Constructors are inherited via
 * `using base::base`. The subclass exists for clean type names in
 * error messages and to leave room for HTML-specific extensions
 * later.
 *
 *   USAGE:
-*     html::html_string_template t("<p>{name}</p>");
-*     html::html_string_template_context ctx;
+*     html::DHtmlStringTemplate t("<p>{name}</p>");
+*     html::DHtmlStringTemplateContext ctx;
 *     ctx.set("name", "Hello & World");
 *     std::string out = t.render(ctx);   // <p>Hello &amp; World</p>
 *
@@ -53,38 +53,38 @@ namespace html {
 ///                HTML STRING TEMPLATE FACADE                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_string_template_context
+// DHtmlStringTemplateContext
 //   class: thin facade over
-// `markup_string_template_context<html_escape_policy>`.
+// `DMarkupStringTemplateContext<DHtmlEscapePolicy>`.
 // Inherits every constructor and method via `using base::base`;
 // adds nothing.
-class html_string_template_context
-:   public ::djinterp::markup_string_template_context<
-        ::djinterp::html_escape_policy>
+class DHtmlStringTemplateContext
+:   public ::djinterp::DMarkupStringTemplateContext<
+        ::djinterp::DHtmlEscapePolicy>
 {
 public:
     // base_type
     //   type: alias for the underlying template-context.
-    using base_type = ::djinterp::markup_string_template_context<
-        ::djinterp::html_escape_policy>;
+    using base_type = ::djinterp::DMarkupStringTemplateContext<
+        ::djinterp::DHtmlEscapePolicy>;
 
     using base_type::base_type;
 };
 
 
-// html_string_template
+// DHtmlStringTemplate
 //   class: thin facade over
-// `markup_string_template<html_escape_policy>`. Inherits every
+// `DMarkupStringTemplate<DHtmlEscapePolicy>`. Inherits every
 // constructor and method via `using base::base`; adds nothing.
-class html_string_template
-:   public ::djinterp::markup_string_template<
-        ::djinterp::html_escape_policy>
+class DHtmlStringTemplate
+:   public ::djinterp::DMarkupStringTemplate<
+        ::djinterp::DHtmlEscapePolicy>
 {
 public:
     // base_type
     //   type: alias for the underlying template engine.
-    using base_type = ::djinterp::markup_string_template<
-        ::djinterp::html_escape_policy>;
+    using base_type = ::djinterp::DMarkupStringTemplate<
+        ::djinterp::DHtmlEscapePolicy>;
 
     using base_type::base_type;
 };
@@ -98,20 +98,20 @@ public:
 // naming for syntax policies. The underlying types are the shared
 // `markup_string_template_syntax_*` structs from
 // `markup_string_template.hpp`; using either name is equivalent.
-using html_string_template_syntax_default      =
-    ::djinterp::markup_string_template_syntax_default;
-using html_string_template_syntax_handlebars   =
-    ::djinterp::markup_string_template_syntax_handlebars;
-using html_string_template_syntax_erb          =
-    ::djinterp::markup_string_template_syntax_erb;
-using html_string_template_syntax_dollar       =
-    ::djinterp::markup_string_template_syntax_dollar;
-using html_string_template_syntax_angle        =
-    ::djinterp::markup_string_template_syntax_angle;
-using html_string_template_syntax_square       =
-    ::djinterp::markup_string_template_syntax_square;
-using html_string_template_syntax_php          =
-    ::djinterp::markup_string_template_syntax_php;
+using DHtmlStringTemplateSyntaxDefault      =
+    ::djinterp::DMarkupStringTemplateSyntaxDefault;
+using DHtmlStringTemplateSyntaxHandlebars   =
+    ::djinterp::DMarkupStringTemplateSyntaxHandlebars;
+using DHtmlStringTemplateSyntaxErb          =
+    ::djinterp::DMarkupStringTemplateSyntaxErb;
+using DHtmlStringTemplateSyntaxDollar       =
+    ::djinterp::DMarkupStringTemplateSyntaxDollar;
+using DHtmlStringTemplateSyntaxAngle        =
+    ::djinterp::DMarkupStringTemplateSyntaxAngle;
+using DHtmlStringTemplateSyntaxSquare       =
+    ::djinterp::DMarkupStringTemplateSyntaxSquare;
+using DHtmlStringTemplateSyntaxPhp          =
+    ::djinterp::DMarkupStringTemplateSyntaxPhp;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -123,12 +123,12 @@ using html_string_template_syntax_php          =
 // source text and a syntax-policy tag in a single expression.
 template<typename Syntax>
 inline
-html_string_template make_html_string_template(
+DHtmlStringTemplate make_html_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )
 {
-    return html_string_template(_source, _syntax_tag);
+    return DHtmlStringTemplate(_source, _syntax_tag);
 }
 
 
@@ -137,12 +137,12 @@ html_string_template make_html_string_template(
 // template, ready to be registered as a partial.
 template<typename Syntax>
 inline
-std::shared_ptr<html_string_template> make_shared_html_string_template(
+std::shared_ptr<DHtmlStringTemplate> make_shared_html_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )
 {
-    return std::make_shared<html_string_template>(_source, _syntax_tag);
+    return std::make_shared<DHtmlStringTemplate>(_source, _syntax_tag);
 }
 
 

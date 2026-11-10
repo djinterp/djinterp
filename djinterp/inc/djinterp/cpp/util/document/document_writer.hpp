@@ -3,7 +3,7 @@
 *
 *   Builds a document tree incrementally through stable, position-holding
 * cursors. The tree is stored in a flat, append-only arena
-* (`std::vector<doc_node>`); a cursor is `{arena, dj_index}` -- a comonadic
+* (`std::vector<DDocNode>`); a cursor is `{arena, dj_index}` -- a comonadic
 * focus into that arena. Because the arena only ever grows, an index never
 * invalidates: appending elsewhere may reallocate the vector's memory, but
 * a node at index `i` is still at index `i`, so a cursor stays anchored to
@@ -15,20 +15,20 @@
 *   A node's place in the output is fixed by the TREE, not by when it was
 * written. Build the skeleton once, capture a cursor per region, then
 * stream into each region in whatever order data arrives; the single
-* serialisation fold (`document_printer` over `document()`) emits each
+* serialisation fold (`DDocumentPrinter` over `document()`) emits each
 * region in its structural slot. Write order and document order are fully
 * decoupled.
 *
 *   PROTOCOL BRIDGE:
-*   `document()` returns a `doc_view` -- a lightweight, read-only view over
+*   `document()` returns a `DDocView` -- a lightweight, read-only view over
 * the arena that satisfies the XML node protocol (name / kind / text /
-* attributes / children). So the generic `document_printer` (and any
+* attributes / children). So the generic `DDocumentPrinter` (and any
 * protocol-generic consumer) serialises an arena-built document through the
 * exact same code path as a pugixml or libxml++ document. The writer OWNS
 * building; the node protocol is the meeting point with reading/printing.
 *
-*   This header depends only on `xml.hpp` (for `xml_string_t` /
-* `xml_node_kind`); it does NOT depend on the printer -- serialisation is a
+*   This header depends only on `xml.hpp` (for `DXmlString` /
+* `DXmlNodeKind`); it does NOT depend on the printer -- serialisation is a
 * separate concern applied to `document()`.
 *
 *   Requires C++17 (fold expressions in the fan-out helpers); self-
@@ -46,14 +46,14 @@ TABLE OF CONTENTS
 =================
 I.    ARENA NODE
       ----------
-      a. doc_attribute, doc_node, doc_arena
+      a. DDocAttribute, DDocNode, DDocArena
       b. k_none
 
 II.   NODE VIEW (protocol bridge)
       ---------------------------
-      a. attribute_view / attribute_range
-      b. child_range
-      c.    doc_view
+      a. DAttributeView / DAttributeRange
+      b. DChildRange
+      c.    DDocView
 
 III.  CURSOR
       ------
@@ -61,7 +61,7 @@ III.  CURSOR
 
 IV.   DOCUMENT WRITER
       ---------------
-      a. document_writer
+      a. DDocumentWriter
 
 V.    FAN-OUT HELPERS
       ---------------
@@ -86,7 +86,7 @@ V.    FAN-OUT HELPERS
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../text/xml/xml.hpp"          // xml_string_t, xml_node_kind
+#include "../../text/xml/xml.hpp"          // DXmlString, DXmlNodeKind
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -105,76 +105,76 @@ NS_DJINTERP
 constexpr dj_index k_none = -1;
 
 
-// doc_attribute
+// DDocAttribute
 //   type: a single attribute as a (name, value) pair.
-using doc_attribute = std::pair<xml_string_t, xml_string_t>;
+using DDocAttribute = std::pair<DXmlString, DXmlString>;
 
 
-// doc_node
+// DDocNode
 //   struct: one cell of the document arena. Children are held by the
 // left-child / right-sibling index encoding (`first_child` + `next_sibling`),
 // with `last_child` cached so appending a child is O(1). Every link is a
 // `dj_index` into the owning arena, so nothing here is a pointer that could
 // dangle on reallocation.
-struct doc_node
+struct DDocNode
 {
-    xml_string_t  name;
-    xml_string_t  text;
-    xml_node_kind kind         = xml_node_kind::element;
+    DXmlString    name;
+    DXmlString    text;
+    DXmlNodeKind  kind         = DXmlNodeKind::element;
 
     dj_index       parent       = k_none;
     dj_index       first_child  = k_none;
     dj_index       last_child   = k_none;
     dj_index       next_sibling = k_none;
 
-    std::vector<doc_attribute> attributes;
+    std::vector<DDocAttribute> attributes;
 };
 
 
-// doc_arena
+// DDocArena
 //   type: the flat, append-only node store. Indices into it are stable for
 // the arena's lifetime.
-using doc_arena = std::vector<doc_node>;
+using DDocArena = std::vector<DDocNode>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                II.   NODE VIEW (protocol bridge)                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// attribute_view
+// DAttributeView
 //   class: a read-only view of one arena attribute. Exposes `name()` and
 // `value()`, satisfying the XML attribute protocol.
-class attribute_view
+class DAttributeView
 {
 public:
-    explicit attribute_view(
-        const doc_attribute* _attribute
+    explicit DAttributeView(
+        const DDocAttribute* _attribute
     )
         : m_attribute(_attribute)
     {}
 
-    D_NODISCARD const xml_string_t& name() const
+    D_NODISCARD const DXmlString& name() const
     {
         return m_attribute->first;
     }
 
-    D_NODISCARD const xml_string_t& value() const
+    D_NODISCARD const DXmlString& value() const
     {
         return m_attribute->second;
     }
 
 private:
-    const doc_attribute* m_attribute;
+    const DDocAttribute* m_attribute;
 };
 
 
-// attribute_range
-//   class: an iterable over a node's attributes, yielding `attribute_view`s.
-class attribute_range
+// DAttributeRange
+//   class: an iterable over a node's attributes, yielding `DAttributeView`s.
+class DAttributeRange
 {
 public:
-    explicit attribute_range(
-        const std::vector<doc_attribute>* _attributes
+    explicit DAttributeRange(
+        const std::vector<DDocAttribute>* _attributes
     )
         : m_attributes(_attributes)
     {}
@@ -183,16 +183,16 @@ public:
     {
     public:
         iterator(
-            const std::vector<doc_attribute>* _attributes,
+            const std::vector<DDocAttribute>* _attributes,
             std::size_t                       _index
         )
             : m_attributes(_attributes)
             , m_index(_index)
         {}
 
-        D_NODISCARD attribute_view operator*() const
+        D_NODISCARD DAttributeView operator*() const
         {
-            return attribute_view(&(*m_attributes)[m_index]);
+            return DAttributeView(&(*m_attributes)[m_index]);
         }
 
         iterator& operator++()
@@ -209,7 +209,7 @@ public:
         }
 
     private:
-        const std::vector<doc_attribute>* m_attributes;
+        const std::vector<DDocAttribute>* m_attributes;
         std::size_t                       m_index;
     };
 
@@ -224,22 +224,22 @@ public:
     }
 
 private:
-    const std::vector<doc_attribute>* m_attributes;
+    const std::vector<DDocAttribute>* m_attributes;
 };
 
 
-// child_range
+// DChildRange
 //   class: an iterable over a node's children, walking the sibling chain
-// (first_child -> next_sibling -> ... -> k_none) and yielding a `doc_view`
-// for each. Declared before doc_view and completed inline once doc_view is
+// (first_child -> next_sibling -> ... -> k_none) and yielding a `DDocView`
+// for each. Declared before DDocView and completed inline once DDocView is
 // defined (see below the class).
-class doc_view;
+class DDocView;
 
-class child_range
+class DChildRange
 {
 public:
-    child_range(
-        const doc_arena* _arena,
+    DChildRange(
+        const DDocArena* _arena,
         dj_index          _first
     )
         : m_arena(_arena)
@@ -250,14 +250,14 @@ public:
     {
     public:
         iterator(
-            const doc_arena* _arena,
+            const DDocArena* _arena,
             dj_index          _node
         )
             : m_arena(_arena)
             , m_node(_node)
         {}
 
-        D_NODISCARD doc_view operator*() const;                  // completed after doc_view
+        D_NODISCARD DDocView operator*() const;                  // completed after DDocView
 
         iterator& operator++()
         {
@@ -273,7 +273,7 @@ public:
         }
 
     private:
-        const doc_arena* m_arena;
+        const DDocArena* m_arena;
         dj_index          m_node;
     };
 
@@ -288,67 +288,67 @@ public:
     }
 
 private:
-    const doc_arena* m_arena;
+    const DDocArena* m_arena;
     dj_index          m_first;
 };
 
 
-// doc_view
+// DDocView
 //   class: a read-only view of one arena node that satisfies the XML node
 // protocol -- name / kind / text / attributes / children. This is the
-// bridge that lets `document_printer` serialise an arena-built document.
-class doc_view
+// bridge that lets `DDocumentPrinter` serialise an arena-built document.
+class DDocView
 {
 public:
-    doc_view(
-        const doc_arena* _arena,
+    DDocView(
+        const DDocArena* _arena,
         dj_index          _node
     )
         : m_arena(_arena)
         , m_node(_node)
     {}
 
-    D_NODISCARD const xml_string_t& name() const
+    D_NODISCARD const DXmlString& name() const
     {
         return m_at().name;
     }
 
-    D_NODISCARD const xml_string_t& text() const
+    D_NODISCARD const DXmlString& text() const
     {
         return m_at().text;
     }
 
-    D_NODISCARD xml_node_kind kind() const
+    D_NODISCARD DXmlNodeKind kind() const
     {
         return m_at().kind;
     }
 
-    D_NODISCARD attribute_range attributes() const
+    D_NODISCARD DAttributeRange attributes() const
     {
-        return attribute_range(&m_at().attributes);
+        return DAttributeRange(&m_at().attributes);
     }
 
-    D_NODISCARD child_range children() const
+    D_NODISCARD DChildRange children() const
     {
-        return child_range(m_arena, m_at().first_child);
+        return DChildRange(m_arena, m_at().first_child);
     }
 
 private:
-    const doc_node& m_at() const
+    const DDocNode& m_at() const
     {
         return (*m_arena)[static_cast<std::size_t>(m_node)];
     }
 
-    const doc_arena* m_arena;
+    const DDocArena* m_arena;
     dj_index          m_node;
 };
 
 
-// child_range::iterator::operator* -- now that doc_view is complete.
+// DChildRange::iterator::operator* -- now that DDocView is complete.
 inline
-doc_view child_range::iterator::operator*() const
+DDocView DChildRange::iterator::operator*() const
 {
-    return doc_view(m_arena, m_node);
+    return DDocView(m_arena, m_node);
 }
 
 
@@ -356,7 +356,7 @@ doc_view child_range::iterator::operator*() const
 ///                  III.   CURSOR                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// cursor
+// DCursor
 //   class: a position-holding handle into a document arena -- `{arena,
 // dj_index}`, ~16 bytes, trivially copyable. A cursor names a node and stays
 // valid for the arena's life, so many cursors can be held at once and
@@ -368,11 +368,11 @@ doc_view child_range::iterator::operator*() const
 //   open_child   : add a child, return the CHILD's cursor (descend/configure).
 //   append       : add a sibling after the focus, return the new sibling.
 //   text / attr  : set the focus's text / add an attribute, return the focus.
-class cursor
+class DCursor
 {
 public:
-    cursor(
-        doc_arena* _arena,
+    DCursor(
+        DDocArena* _arena,
         dj_index    _node
     )
         : m_arena(_arena)
@@ -380,79 +380,79 @@ public:
     {}
 
     // append_child -- add a child element; return this focus (sibling chain).
-    cursor& append_child(
-        xml_string_t _name
+    DCursor& append_child(
+        DXmlString _name
     )
     {
         const dj_index _child =
-            m_add(static_cast<xml_string_t&&>(_name), m_node);
+            m_add(static_cast<DXmlString&&>(_name), m_node);
         m_link_child(m_node, _child);
 
         return *this;
     }
 
     // open_child -- add a child element; return the child's cursor (descend).
-    D_NODISCARD cursor open_child(
-        xml_string_t _name
+    D_NODISCARD DCursor open_child(
+        DXmlString _name
     )
     {
         const dj_index _child =
-            m_add(static_cast<xml_string_t&&>(_name), m_node);
+            m_add(static_cast<DXmlString&&>(_name), m_node);
         m_link_child(m_node, _child);
 
-        return cursor(m_arena, _child);
+        return DCursor(m_arena, _child);
     }
 
     // append -- add a sibling immediately after the focus; return its cursor.
-    D_NODISCARD cursor append(
-        xml_string_t _name
+    D_NODISCARD DCursor append(
+        DXmlString _name
     )
     {
         const dj_index _parent = m_at(m_node).parent;
         const dj_index _sibling =
-            m_add(static_cast<xml_string_t&&>(_name), _parent);
+            m_add(static_cast<DXmlString&&>(_name), _parent);
 
         // splice _sibling in after m_node (references taken AFTER m_add, which
         // may have reallocated the arena).
-        doc_node& _focus = m_at(m_node);
+        DDocNode& _focus = m_at(m_node);
         m_at(_sibling).next_sibling = _focus.next_sibling;
         _focus.next_sibling         = _sibling;
         if (_parent != k_none)
         {
-            doc_node& _p = m_at(_parent);
+            DDocNode& _p = m_at(_parent);
             if (_p.last_child == m_node)
             {
                 _p.last_child = _sibling;
             }
         }
 
-        return cursor(m_arena, _sibling);
+        return DCursor(m_arena, _sibling);
     }
 
     // text -- set the focus's text content; return the focus.
-    cursor& text(
-        xml_string_t _text
+    DCursor& text(
+        DXmlString _text
     )
     {
-        m_at(m_node).text = static_cast<xml_string_t&&>(_text);
+        m_at(m_node).text = static_cast<DXmlString&&>(_text);
         return *this;
     }
 
     // attr -- append an attribute to the focus; return the focus.
-    cursor& attr(
-        xml_string_t _name,
-        xml_string_t _value
+    DCursor& attr(
+        DXmlString _name,
+        DXmlString _value
     )
     {
         m_at(m_node).attributes.emplace_back(
-            static_cast<xml_string_t&&>(_name),
-            static_cast<xml_string_t&&>(_value));
+            static_cast<DXmlString&&>(_name),
+            static_cast<DXmlString&&>(_value));
         return *this;
     }
 
     // kind -- set the focus's node kind; return the focus.
-    cursor& kind(
-        xml_node_kind _kind
+    DCursor& kind(
+        DXmlNodeKind _kind
     )
     {
         m_at(m_node).kind = _kind;
@@ -460,9 +460,9 @@ public:
     }
 
     // view -- a read-only protocol view of the focused node.
-    D_NODISCARD doc_view view() const
+    D_NODISCARD DDocView view() const
     {
-        return doc_view(m_arena, m_node);
+        return DDocView(m_arena, m_node);
     }
 
     // index -- the focus's arena index (its stable identity).
@@ -472,7 +472,7 @@ public:
     }
 
 private:
-    doc_node& m_at(
+    DDocNode& m_at(
         dj_index _node
     )
     {
@@ -482,14 +482,14 @@ private:
     // m_add -- append a fresh element node; return its index. May reallocate
     // the arena, so callers must re-fetch any references afterwards.
     dj_index m_add(
-        xml_string_t _name,
+        DXmlString   _name,
         dj_index     _parent
     )
     {
         const dj_index _index = static_cast<dj_index>(m_arena->size());
         m_arena->emplace_back();
-        doc_node& _node = m_at(_index);
-        _node.name   = static_cast<xml_string_t&&>(_name);
+        DDocNode& _node = m_at(_index);
+        _node.name   = static_cast<DXmlString&&>(_name);
         _node.parent = _parent;
 
         return _index;
@@ -501,7 +501,7 @@ private:
         dj_index _child
     )
     {
-        doc_node& _p = m_at(_parent);
+        DDocNode& _p = m_at(_parent);
         if (_p.first_child == k_none)
         {
             _p.first_child = _child;
@@ -516,7 +516,7 @@ private:
         return;
     }
 
-    doc_arena* m_arena;
+    DDocArena* m_arena;
     dj_index    m_node;
 };
 
@@ -525,47 +525,47 @@ private:
 ///                  IV.   DOCUMENT WRITER                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// document_writer
+// DDocumentWriter
 //   class: owns the document arena and hands out cursors. The arena lives
 // behind a `unique_ptr` so the writer stays movable WITHOUT moving the arena
 // storage -- a cursor borrows `arena()` and remains valid as long as the
 // writer lives (iterator-like). Call `root(name)` once to create the root and
 // obtain the first cursor; `document()` returns a protocol view of the root
 // for serialisation.
-class document_writer
+class DDocumentWriter
 {
 public:
-    document_writer()
-        : m_arena(new doc_arena())
+    DDocumentWriter()
+        : m_arena(new DDocArena())
     {}
 
     // root -- create the root element and return a cursor at it. Call once,
     // before any other building.
-    cursor root(
-        xml_string_t _name
+    DCursor root(
+        DXmlString _name
     )
     {
         const dj_index _index = static_cast<dj_index>(m_arena->size());
         m_arena->emplace_back();
-        doc_node& _node = (*m_arena)[static_cast<std::size_t>(_index)];
-        _node.name   = static_cast<xml_string_t&&>(_name);
+        DDocNode& _node = (*m_arena)[static_cast<std::size_t>(_index)];
+        _node.name   = static_cast<DXmlString&&>(_name);
         _node.parent = k_none;
 
-        return cursor(m_arena.get(), _index);
+        return DCursor(m_arena.get(), _index);
     }
 
     // document -- a read-only protocol view of the root node, for printing.
-    D_NODISCARD doc_view document() const
+    D_NODISCARD DDocView document() const
     {
-        return doc_view(m_arena.get(), 0);
+        return DDocView(m_arena.get(), 0);
     }
 
     // at -- a cursor at an arbitrary stable index (e.g. one saved earlier).
-    D_NODISCARD cursor at(
+    D_NODISCARD DCursor at(
         dj_index _index
     )
     {
-        return cursor(m_arena.get(), _index);
+        return DCursor(m_arena.get(), _index);
     }
 
     // node_count -- number of nodes built so far.
@@ -575,13 +575,13 @@ public:
     }
 
     // arena -- the underlying store (advanced/interop use).
-    D_NODISCARD const doc_arena& arena() const
+    D_NODISCARD const DDocArena& arena() const
     {
         return *m_arena;
     }
 
 private:
-    std::unique_ptr<doc_arena> m_arena;
+    std::unique_ptr<DDocArena> m_arena;
 };
 
 
@@ -597,8 +597,8 @@ private:
 // appending under the same node.
 template<typename Render>
 D_NODISCARD auto to_head(
-    cursor       _head,
-    xml_string_t _element,
+    DCursor      _head,
+    DXmlString   _element,
     Render       _render
 )
 {

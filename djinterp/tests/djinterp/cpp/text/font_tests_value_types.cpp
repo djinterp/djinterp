@@ -152,16 +152,16 @@ bool tests_font_color_equality_is_constexpr_and_noexcept()
 /*
 tests_opentype_tag_is_uint32
   Tests the following:
-  - opentype_tag is exactly std::uint32_t, so it drops into hb_tag_t /
+  - DOpentypeTag is exactly std::uint32_t, so it drops into hb_tag_t /
     DWRITE_FONT_FEATURE_TAG / CTFontFeatureTag with a plain cast
 */
 bool tests_opentype_tag_is_uint32()
 {
-    static_assert(std::is_same<opentype_tag, std::uint32_t>::value,
-                  "opentype_tag must be uint32_t");
+    static_assert(std::is_same<DOpentypeTag, std::uint32_t>::value,
+                  "DOpentypeTag must be uint32_t");
 
-    D_FT_CHECK(sizeof(opentype_tag) == 4u);
-    D_FT_CHECK((std::is_same<opentype_tag, std::uint32_t>::value));
+    D_FT_CHECK(sizeof(DOpentypeTag) == 4u);
+    D_FT_CHECK((std::is_same<DOpentypeTag, std::uint32_t>::value));
 
     return true;
 }
@@ -177,12 +177,12 @@ look plausible and match nothing.
 */
 bool tests_ot_tag_packs_big_endian()
 {
-    const opentype_tag t = ot_tag("abcd");
+    const DOpentypeTag t = ot_tag("abcd");
 
-    D_FT_CHECK(((t >> 24) & 0xFFu) == static_cast<opentype_tag>('a'));
-    D_FT_CHECK(((t >> 16) & 0xFFu) == static_cast<opentype_tag>('b'));
-    D_FT_CHECK(((t >>  8) & 0xFFu) == static_cast<opentype_tag>('c'));
-    D_FT_CHECK(((t      ) & 0xFFu) == static_cast<opentype_tag>('d'));
+    D_FT_CHECK(((t >> 24) & 0xFFu) == static_cast<DOpentypeTag>('a'));
+    D_FT_CHECK(((t >> 16) & 0xFFu) == static_cast<DOpentypeTag>('b'));
+    D_FT_CHECK(((t >>  8) & 0xFFu) == static_cast<DOpentypeTag>('c'));
+    D_FT_CHECK(((t      ) & 0xFFu) == static_cast<DOpentypeTag>('d'));
 
     // the whole word, spelled out
     D_FT_CHECK(t == 0x61626364u);
@@ -226,12 +226,12 @@ nothing at run time.
 */
 bool tests_ot_tag_is_constexpr_and_noexcept()
 {
-    constexpr opentype_tag liga = ot_tag("liga");
+    constexpr DOpentypeTag liga = ot_tag("liga");
 
     static_assert((liga == 0x6C696761u), "ot_tag must fold at compile time");
     static_assert(noexcept(ot_tag("liga")), "ot_tag must be noexcept");
 
-    using probe = std::integral_constant<opentype_tag, ot_tag("kern")>;
+    using probe = std::integral_constant<DOpentypeTag, ot_tag("kern")>;
 
     D_FT_CHECK(probe::value == 0x6B65726Eu);
     D_FT_CHECK(liga == 0x6C696761u);
@@ -256,7 +256,7 @@ bool tests_ot_tag_handles_high_bit_bytes()
         static_cast<char>(0xC3), 'a', 'b', 'c', '\0'
     };
 
-    constexpr opentype_tag t = ot_tag(lead);
+    constexpr DOpentypeTag t = ot_tag(lead);
 
     static_assert((t == 0xC3616263u),
                   "ot_tag must widen through unsigned char, not sign-extend");
@@ -268,7 +268,7 @@ bool tests_ot_tag_handles_high_bit_bytes()
         'a', 'b', 'c', static_cast<char>(0xFF), '\0'
     };
 
-    constexpr opentype_tag u = ot_tag(trail);
+    constexpr DOpentypeTag u = ot_tag(trail);
 
     static_assert((u == 0x616263FFu),
                   "a high trailing byte must not bleed into the upper bits");
@@ -294,15 +294,15 @@ the padding: ot_tag("aa  "), never ot_tag("aa").
 bool tests_ot_tag_space_padding_is_the_callers_job()
 {
     // "aa" in OpenType convention == "aa  "
-    const opentype_tag padded = ot_tag("aa  ");
+    const DOpentypeTag padded = ot_tag("aa  ");
 
     D_FT_CHECK(padded == 0x61612020u);
 
     // the pad bytes are the LOW ones
     D_FT_CHECK(((padded      ) & 0xFFu) == 0x20u);
     D_FT_CHECK(((padded >>  8) & 0xFFu) == 0x20u);
-    D_FT_CHECK(((padded >> 16) & 0xFFu) == static_cast<opentype_tag>('a'));
-    D_FT_CHECK(((padded >> 24) & 0xFFu) == static_cast<opentype_tag>('a'));
+    D_FT_CHECK(((padded >> 16) & 0xFFu) == static_cast<DOpentypeTag>('a'));
+    D_FT_CHECK(((padded >> 24) & 0xFFu) == static_cast<DOpentypeTag>('a'));
 
     // a three-letter tag, padded by hand
     D_FT_CHECK(ot_tag("dlig") != ot_tag("dli "));
@@ -321,7 +321,7 @@ entry.
 */
 bool tests_ot_tag_distinct_tags_are_distinct_values()
 {
-    const opentype_tag tags[] =
+    const DOpentypeTag tags[] =
     {
         ot_tag("liga"), ot_tag("kern"), ot_tag("smcp"), ot_tag("ss01"),
         ot_tag("ss02"), ot_tag("calt"), ot_tag("dlig"), ot_tag("wght")

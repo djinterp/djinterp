@@ -9,8 +9,8 @@
 *******************************************************************************/
 // T4 verification harness — test_output (report -> multi-format bundle -> write).
 //
-// Compiles the REAL test_output.hpp against the REAL document_bundle /
-// output_packaging and stub engines (pdf_template / document<_Policy>) + a stub
+// Compiles the REAL test_output.hpp against the REAL DDocumentBundle /
+// output_packaging and stub engines (pdf_template / DDocument<_Policy>) + a stub
 // test_document whose render_run_flow / render_run_tree emit recognizable
 // markers and count their invocations.  The real engines plug in unchanged at
 // the same named call sites; what is proven here is test_output's own logic:
@@ -37,7 +37,7 @@
 
 
 using djinterp::byte_blob;
-using djinterp::document_bundle;
+using djinterp::DDocumentBundle;
 using djinterp::output_config;
 using djinterp::output_sink;
 using djinterp::pack_mode;
@@ -143,7 +143,7 @@ int main()
         _fmts.push_back(doc_format::pdf);         // flow
         _fmts.push_back(doc_format::xml);         // tree
 
-        document_bundle _b = build_report_bundle(_doc, _run, _fmts, "report");
+        DDocumentBundle _b = build_report_bundle(_doc, _run, _fmts, "report");
 
         assert(djinterp::test::g_flow_calls == 0);   // nothing rendered on build
         assert(djinterp::test::g_tree_calls == 0);
@@ -167,7 +167,7 @@ int main()
         std::vector<doc_format> _fmts;
         _fmts.push_back(doc_format::html);
 
-        document_bundle _b = build_report_bundle(_doc, _run, _fmts, "summary");
+        DDocumentBundle _b = build_report_bundle(_doc, _run, _fmts, "summary");
         DRecordingSink  _sink;
         output_config   _cfg;
         assert(write_custom(_b, _cfg, _sink));
@@ -183,7 +183,7 @@ int main()
         _fmts.push_back(doc_format::pdf);
         _fmts.push_back(doc_format::xml);
 
-        document_bundle _b = build_report_bundle(_doc, _run, _fmts, "report");
+        DDocumentBundle _b = build_report_bundle(_doc, _run, _fmts, "report");
         DRecordingSink  _sink;
         output_config   _cfg;
         _cfg.pack         = pack_mode::archive;

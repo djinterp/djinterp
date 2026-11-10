@@ -4,23 +4,23 @@
 *   The assembly half of the document-output stack: a bundle collects the
 * documents a run produced - each a (logical name, extension, DEFERRED
 * producer) - and write() drives them through the output_packaging vocabulary
-* to a sink.  Content production (state -> byte_blob, in binding_env /
+* to a sink.  Content production (state -> byte_blob, in DBindingEnv /
 * the format skeletons / test_document) and assembly (bytes -> files / archive,
 * here) are the two composing halves of the pipeline:
 *
 *     DTest state
-*        -> [ binding_env + format skeleton ]   one byte_blob per document
-*        -> [ document_bundle: collate + name ]  THIS LAYER
+*        -> [ DBindingEnv + format skeleton ]   one byte_blob per document
+*        -> [ DDocumentBundle: collate + name ]  THIS LAYER
 *        -> [ output_packaging: none|compress|archive ]
 *        -> sink (disk or in-memory buffer)
 *
 *   DEFERRED PRODUCERS:
 *   A bundle item holds a producer_type (std::function<byte_blob()>), not a
 * rendered buffer.  Rendering is deferred to write() time, so a producer may
-* close over a stack-built template / binding_env that has gone out of scope by
+* close over a stack-built template / DBindingEnv that has gone out of scope by
 * the time the bytes are wanted, and an item that is never written is never
 * rendered.  The carrier is std::function for parity with the rest of the stack
-* (binding_env's projection_type, section's count_fn / refocus_fn are all
+* (DBindingEnv's projection_type, section's count_fn / refocus_fn are all
 * std::function); producer.hpp's pull-based stream type is a different tool,
 * for  sequences of values rather than a single deferred document.
 *
@@ -37,12 +37,12 @@
 *   write() returns bool (true iff every document rendered, packaged, and
 * wrote) in keeping with the facades' status-returning style; it raises nothing
 * of its own.  A producer is an arbitrary host closure: one that itself throws
-* will propagate (write() does not wrap it), exactly as a binding_env
+* will propagate (write() does not wrap it), exactly as a DBindingEnv
 * projection would - producers are expected to be as well-behaved as
 * projections.
 *
 *   DTEST-AGNOSTIC:
-*   document_bundle names no format, no test_report, no test_options.  A custom
+*   DDocumentBundle names no format, no test_report, no test_options.  A custom
 * test_kind that adds documents adds bundle items; a custom destination is an
 * output_sink subclass.  Both touch this layer not at all.
 *
@@ -59,10 +59,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    BUNDLE ITEM             (bundle_item: name + ext + deferred producer)
+I.    BUNDLE ITEM             (DBundleItem: name + ext + deferred producer)
       ---------------------------------------------------------------------
 
-II.   DOCUMENT BUNDLE         (document_bundle: the fluent collection)
+II.   DOCUMENT BUNDLE         (DDocumentBundle: the fluent collection)
       ----------------------------------------------------------------
 
 III.  WRITE ORCHESTRATOR      (write: render + package + sink)
@@ -88,7 +88,7 @@ IV.   CONVENIENCE WRITES      (write_to_disk / write_to_buffer / write_custom)
 #include "../archive/archive.hpp"                  // entry, entry_list, internal leaves
 
 
-// document_bundle composes output_packaging (C++17); below the floor it
+// DDocumentBundle composes output_packaging (C++17); below the floor it
 // contributes nothing rather than failing to compile.
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -100,12 +100,12 @@ NS_DJINTERP
 ///                I.   BUNDLE ITEM                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// bundle_item
+// DBundleItem
 //   struct: one document of a run, named for output and rendered on demand.
 // `name` + `ext` feed the naming policy (output_config::naming); `produce` is
 // the DEFERRED render that yields the document's bytes when write() asks for
 // them.
-struct bundle_item
+struct DBundleItem
 {
     // producer_type
     //   type: the deferred render - a nullary thunk yielding the document's
@@ -121,18 +121,18 @@ struct bundle_item
     // produce: the deferred render; invoked exactly once, at write() time.
     producer_type  produce;
 
-    // bundle_item
+    // DBundleItem
     //   constructor: an empty item (no name, no extension, no producer).
-    bundle_item()
+    DBundleItem()
         : name(),
           ext(),
           produce()
     {}
 
-    // bundle_item
+    // DBundleItem
     //   constructor: an item named _name with extension _ext, rendered by
     // _produce.
-    bundle_item(
+    DBundleItem(
         std::string    _name,
         std::string    _ext,
         producer_type  _produce
@@ -148,41 +148,41 @@ struct bundle_item
 ///                II.  DOCUMENT BUNDLE                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// document_bundle
+// DDocumentBundle
 //   class: an ordered, fluently-assembled collection of bundle_items.  The
 // bundle carries only logical names and deferred producers; packaging, naming,
 // and the destination are decided at write() time by an output_config and a
 // sink, so one bundle can be written several ways.
-class document_bundle
+class DDocumentBundle
 {
 public:
     // -- public type aliases -------------------------------------------------
 
     // item_type
     //   type: one collected document.
-    using item_type = bundle_item;
+    using item_type = DBundleItem;
 
     // producer_type
-    //   type: a document's deferred render (passed through from bundle_item).
-    using producer_type = bundle_item::producer_type;
+    //   type: a document's deferred render (passed through from DBundleItem).
+    using producer_type = DBundleItem::producer_type;
 
     // item_list
     //   type: the ordered item storage.
-    using item_list = std::vector<bundle_item>;
+    using item_list = std::vector<DBundleItem>;
 
     // size_type
     //   type: the item-count type.
     using size_type = std::size_t;
 
-    // document_bundle
+    // DDocumentBundle
     //   constructor: an empty bundle (no documents).
-    document_bundle() = default;
+    DDocumentBundle() = default;
 
     // add
     //   appends a document named _name with extension _ext, rendered by
     // _produce.  Returns *this so a whole bundle can be assembled in one fluent
     // statement.
-    document_bundle& add(
+    DDocumentBundle& add(
         std::string   _name,
         std::string   _ext,
         producer_type _produce
@@ -197,11 +197,11 @@ public:
 
     // add
     //   appends an already-built item.  Returns *this for fluent assembly.
-    document_bundle& add(
-        bundle_item _item
+    DDocumentBundle& add(
+        DBundleItem _item
     )
     {
-        m_items.push_back(static_cast<bundle_item&&>(_item));
+        m_items.push_back(static_cast<DBundleItem&&>(_item));
 
         return *this;
     }
@@ -320,12 +320,12 @@ NS_END  // internal
 //   A producer is invoked exactly once.  write() raises nothing itself; a
 // producer that throws propagates.
 D_NODISCARD inline bool write(
-    const document_bundle& _bundle,
+    const DDocumentBundle& _bundle,
     const output_config&   _cfg,
     output_sink&           _sink
 )
 {
-    const document_bundle::item_list& _items = _bundle.items();
+    const DDocumentBundle::item_list& _items = _bundle.items();
     const std::size_t                 _total = _items.size();
     std::size_t                       _i     = 0;
 
@@ -422,7 +422,7 @@ D_NODISCARD inline bool write(
 // (filename -> destination path).  Builds a disk_output_sink and forwards to
 // write(); returns its result.
 D_NODISCARD inline bool write_to_disk(
-    const document_bundle&    _bundle,
+    const DDocumentBundle&    _bundle,
     const output_config&      _cfg,
     disk_output_sink::path_fn _path
 )
@@ -439,7 +439,7 @@ D_NODISCARD inline bool write_to_disk(
 // mode; `archive` mode yields a single container).  Builds a buffer_output_sink
 // and forwards to write(); returns its result.
 D_NODISCARD inline bool write_to_buffer(
-    const document_bundle& _bundle,
+    const DDocumentBundle& _bundle,
     const output_config&   _cfg,
     byte_blob&             _out,
     const std::string&     _separator = std::string()
@@ -456,7 +456,7 @@ D_NODISCARD inline bool write_to_buffer(
 // over write() for symmetry with the disk / buffer helpers when the destination
 // is a custom output_sink subclass.
 D_NODISCARD inline bool write_custom(
-    const document_bundle& _bundle,
+    const DDocumentBundle& _bundle,
     const output_config&   _cfg,
     output_sink&           _sink
 )

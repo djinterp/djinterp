@@ -66,7 +66,7 @@ III.  register_layout_tests       (the module the runner executes)
 // djinterp
 #include "../../../djinterp.hpp"
 #include "../../../util/document/report_surfaces.hpp"   // the three surfaces
-#include "../../../util/document/report_dialect.hpp"    // report_op + combinators
+#include "../../../util/document/report_dialect.hpp"    // DReportOp + combinators
 #include "../../../util/document/layout/layout_parse.hpp"      // the block-DSL surface
 #include "./test_report_runner.hpp"                       // report_builder, D_CHECK_EQ
 #include "./test_layout.hpp"                              // render_report_layout
@@ -132,7 +132,7 @@ D_NODISCARD inline std::string report_dsl_source()
 
 // build_via_combinator
 //   the functional surface (mirrors report_dialect.hpp).
-D_NODISCARD inline layout_doc<report_op> build_via_combinator()
+D_NODISCARD inline DLayoutDoc<DReportOp> build_via_combinator()
 {
     return body({
         cover({ std::pair<std::string, std::string>("subtitle", "nightly build"),
@@ -150,9 +150,9 @@ D_NODISCARD inline layout_doc<report_op> build_via_combinator()
 
 // build_via_cursor
 //   the procedural surface.
-D_NODISCARD inline layout_doc<report_op> build_via_cursor()
+D_NODISCARD inline DLayoutDoc<DReportOp> build_via_cursor()
 {
-    report_document _doc;
+    DReportDocument _doc;
 
     _doc.cover({ std::pair<std::string, std::string>("subtitle", "nightly build"),
                  std::pair<std::string, std::string>("author",   "teer") })
@@ -176,21 +176,21 @@ D_NODISCARD inline layout_doc<report_op> build_via_cursor()
 
 // build_via_spec
 //   the declarative surface.
-D_NODISCARD inline layout_doc<report_op> build_via_spec()
+D_NODISCARD inline DLayoutDoc<DReportOp> build_via_spec()
 {
-    document_spec _doc = {
+    DDocumentSpec _doc = {
         {
-            cover_spec{ { std::pair<std::string, std::string>("subtitle", "nightly build"),
+            DCoverSpec{ { std::pair<std::string, std::string>("subtitle", "nightly build"),
                           std::pair<std::string, std::string>("author",   "teer") } },
-            break_spec{},
-            toc_spec{},
-            break_spec{},
-            section_spec{ "Introduction", {
-                content_spec{ "intro.body" },
-                section_spec{ "Motivation", {
-                    content_spec{ "intro.motivation" } } } } },
-            section_spec{ "Results", {
-                table_spec{ "results.table" } } },
+            DBreakSpec{},
+            DTocSpec{},
+            DBreakSpec{},
+            DSectionSpec{ "Introduction", {
+                DContentSpec{ "intro.body" },
+                DSectionSpec{ "Motivation", {
+                    DContentSpec{ "intro.motivation" } } } } },
+            DSectionSpec{ "Results", {
+                DTableSpec{ "results.table" } } },
         }
     };
 
@@ -204,38 +204,38 @@ D_NODISCARD inline layout_doc<report_op> build_via_spec()
 D_NODISCARD inline bool surfaces_equivalent()
 {
     // a shared content resolver + metadata, so only the CONSTRUCTION differs
-    content_resolver _body =
-        [](const layout_atom& _ref) -> maybe<render_action>
+    DContentResolver _body =
+        [](const DLayoutAtom& _ref) -> maybe<DRenderAction>
         {
             if (_ref.key == "intro.body")
             {
-                return just(render_action([](document_renderer& _r)
-                    { _r.paragraph(std::string("intro prose"), doc_attributes()); }));
+                return just(DRenderAction([](DDocumentRenderer& _r)
+                    { _r.paragraph(std::string("intro prose"), DDocAttributes()); }));
             }
             if (_ref.key == "intro.motivation")
             {
-                return just(render_action([](document_renderer& _r)
-                    { _r.paragraph(std::string("motivation prose"), doc_attributes()); }));
+                return just(DRenderAction([](DDocumentRenderer& _r)
+                    { _r.paragraph(std::string("motivation prose"), DDocAttributes()); }));
             }
             if (_ref.key == "results.table")
             {
-                return just(render_action([](document_renderer& _r)
-                    { _r.paragraph(std::string("<table>"), doc_attributes()); }));
+                return just(DRenderAction([](DDocumentRenderer& _r)
+                    { _r.paragraph(std::string("<table>"), DDocAttributes()); }));
             }
-            return nothing<render_action>();
+            return nothing<DRenderAction>();
         };
 
-    layout_signature<report_op> _sig = make_report_signature();
+    DLayoutSignature<DReportOp> _sig = make_report_signature();
 
     // render helper
     struct local
     {
         static std::string
-        run(const layout_doc<report_op>&  _doc,
-            const layout_signature<report_op>& _sig,
-            content_resolver              _body)
+        run(const DLayoutDoc<DReportOp>&  _doc,
+            const DLayoutSignature<DReportOp>& _sig,
+            DContentResolver              _body)
         {
-            doc_attributes _meta;
+            DDocAttributes _meta;
             _meta.set(std::string("title"), std::string("djinterp"));
 
             DPlainDocumentRenderer _renderer;
@@ -249,7 +249,7 @@ D_NODISCARD inline bool surfaces_equivalent()
     const std::string _b = local::run(build_via_cursor(),     _sig, _body);
     const std::string _c = local::run(build_via_spec(),       _sig, _body);
 
-    parse::parse_result<layout_doc<report_op> > _parsed =
+    parse::parse_result<DLayoutDoc<DReportOp> > _parsed =
         parse_document(report_dsl_source(), report_grammar());
 
     if (!_parsed.ok())
@@ -278,7 +278,7 @@ D_NODISCARD inline bool surfaces_equivalent()
 D_NODISCARD inline std::string demo_render()
 {
     // structure (combinator surface) -- nests by value
-    layout_doc<report_op> _doc = body({
+    DLayoutDoc<DReportOp> _doc = body({
         cover({ std::pair<std::string, std::string>("subtitle", "nightly build"),
                 std::pair<std::string, std::string>("author",   "teer") }),
         clearpage(),
@@ -291,58 +291,58 @@ D_NODISCARD inline std::string demo_render()
         section("Results", {
             table("results.table") }) });
 
-    layout_signature<report_op> _sig = make_report_signature();
+    DLayoutSignature<DReportOp> _sig = make_report_signature();
 
     // content -- resolved late, by name (a map / file / live computation lives
     // wherever this closure closes over; here, inline)
-    content_resolver _body =
-        [](const layout_atom& _ref) -> maybe<render_action>
+    DContentResolver _body =
+        [](const DLayoutAtom& _ref) -> maybe<DRenderAction>
         {
             if (_ref.key == "intro.body")
             {
-                return just(render_action(
-                    [](document_renderer& _r)
+                return just(DRenderAction(
+                    [](DDocumentRenderer& _r)
                     {
                         _r.paragraph(
                             std::string("djinterp expresses document "
                                         "structure as data."),
-                            doc_attributes());
+                            DDocAttributes());
                     }));
             }
 
             if (_ref.key == "intro.motivation")
             {
-                return just(render_action(
-                    [](document_renderer& _r)
+                return just(DRenderAction(
+                    [](DDocumentRenderer& _r)
                     {
                         _r.paragraph(
                             std::string("One term, many surfaces, many "
                                         "render targets."),
-                            doc_attributes());
+                            DDocAttributes());
                     }));
             }
 
             if (_ref.key == "results.table")
             {
-                return just(render_action(
-                    [](document_renderer& _r)
+                return just(DRenderAction(
+                    [](DDocumentRenderer& _r)
                     {
-                        _r.begin_table(doc_attributes());
-                        _r.table_column(std::string("Metric"), doc_attributes());
-                        _r.table_column(std::string("Value"),  doc_attributes());
-                        _r.begin_row(doc_attributes());
-                        _r.cell(std::string("Assertions"), doc_attributes());
-                        _r.cell(std::string("412/412"),    doc_attributes());
+                        _r.begin_table(DDocAttributes());
+                        _r.table_column(std::string("Metric"), DDocAttributes());
+                        _r.table_column(std::string("Value"),  DDocAttributes());
+                        _r.begin_row(DDocAttributes());
+                        _r.cell(std::string("Assertions"), DDocAttributes());
+                        _r.cell(std::string("412/412"),    DDocAttributes());
                         _r.end_row();
                         _r.end_table();
                     }));
             }
 
-            return nothing<render_action>();
+            return nothing<DRenderAction>();
         };
 
     // metadata -- answers meta_ref leaves and seeds constructs (the cover title)
-    doc_attributes _meta;
+    DDocAttributes _meta;
     _meta.set(std::string("title"), std::string("djinterp"));
 
     DPlainDocumentRenderer _renderer;

@@ -15,7 +15,7 @@
 *
 *   THE PAYOFF OF SAYING IT SEMANTICALLY.  The painter could only ever produce
 * PDF, because it spoke in fills and glyph placements.  The same design written
-* as document_renderer calls renders as PDF (canvas-backed: real bands, ruled
+* as DDocumentRenderer calls renders as PDF (canvas-backed: real bands, ruled
 * tables), as HTML (bands become styled divs, tables become <table>), as
 * Markdown, and as plain monospace -- from one description.  A band is
 * `heading` carrying a `background` hint; a card is a heading plus a table.
@@ -33,7 +33,7 @@
 * the DOCUMENT; the renderer decides the medium.
 *
 *   PORTABILITY:
-*   C++11 baseline (document_renderer's floor).  No PDF dependency -- this
+*   C++11 baseline (DDocumentRenderer's floor).  No PDF dependency -- this
 * header is renderer-agnostic and a text-only build includes it happily.
 *
 *
@@ -71,9 +71,9 @@ III.  render_report_document      (the composition)
 // djinterp
 #include "../../../djinterp.hpp"                  // NS_*, D_NODISCARD
 #include "../../../util/document/templates/document_renderer.hpp"
-                                                    // document_renderer
+                                                    // DDocumentRenderer
 #include "../../../util/document/templates/document_attributes.hpp"
-                                                    // doc_attributes, doc_attr_*
+                                                    // DDocAttributes, doc_attr_*
 #include "./test_report_content.hpp"                // the emitters + key scheme
 #include "./test_report.hpp"                        // test_report + the model
 
@@ -185,13 +185,13 @@ NS_INTERNAL
     // band_attrs_helper
     //   helper: the hint bag for a banded heading -- a ground and a type
     // colour, both dropped when the palette leaves them empty.
-    D_NODISCARD inline doc_attributes band_attrs_helper(
+    D_NODISCARD inline DDocAttributes band_attrs_helper(
         const std::string& _fill,
         const std::string& _text,
         bool               _banded
     )
     {
-        doc_attributes _attrs;
+        DDocAttributes _attrs;
 
         // an unbanded (or uncoloured) heading carries no ground at all
         if ( (!_banded) ||
@@ -226,7 +226,7 @@ NS_END  // internal
 inline
 void render_report_document(
     const test_report&            _report,
-    document_renderer&            _renderer,
+    DDocumentRenderer&            _renderer,
     const DReportDocumentOptions& _opts = DReportDocumentOptions()
 )
 {
@@ -237,21 +237,21 @@ void render_report_document(
         _renderer.heading(std::size_t(1),
                           _report.title.empty() ? std::string("Test Report")
                                                 : _report.title,
-                          doc_attributes());
+                          DDocAttributes());
 
         if (!_report.subtitle.empty())
         {
-            _renderer.paragraph(_report.subtitle, doc_attributes());
+            _renderer.paragraph(_report.subtitle, DDocAttributes());
         }
 
         if (!_report.author.empty())
         {
             _renderer.key_value(std::string("Author"),
                                 _report.author,
-                                doc_attributes());
+                                DDocAttributes());
         }
 
-        _renderer.rule(doc_attributes());
+        _renderer.rule(DDocAttributes());
     }
 
     // --- run summary ---------------------------------------------------------

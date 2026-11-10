@@ -10,12 +10,12 @@
 * table of its own.
 *
 *   COMPILE-TIME AND RUNTIME:
-*     compile-time   using html_document = document<html_print_policy>;
-*                    render(node, html_print_policy{});
+*     compile-time   using DHtmlDocument = DDocument<DHtmlPrintPolicy>;
+*                    render(node, DHtmlPrintPolicy{});
 *     runtime        render(node, html_policy());        // boxed
-*                    document<boxed_print_policy> doc( html_policy() );
-*   `html_print_policy` is an ordinary policy; `html_policy()` boxes it for
-* runtime selection. Both plug into the same `document_printer` / `render` /
+*                    DDocument<DBoxedPrintPolicy> doc( html_policy() );
+*   `DHtmlPrintPolicy` is an ordinary policy; `html_policy()` boxes it for
+* runtime selection. Both plug into the same `DDocumentPrinter` / `render` /
 * `document` as the XML policy does.
 *
 *   v1 LIMITATION: `escape_text` escapes uniformly and has no element context,
@@ -36,9 +36,9 @@ TABLE OF CONTENTS
 =================
 I.    HTML PRINT POLICY
       -----------------
-      a. html_print_policy
+      a. DHtmlPrintPolicy
       b. html_policy
-      c.    html_document
+      c.    DHtmlDocument
 */
 
 #ifndef DJINTERP_TEXT_HTML_HTML_PRINTER_HPP
@@ -54,7 +54,7 @@ I.    HTML PRINT POLICY
 #include <string>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../util/document/document.hpp"         // document<>, document_printer, element_form
+#include "../../util/document/document.hpp"         // DDocument<>, DDocumentPrinter, DElementForm
 #include "./html.hpp"             // html::is_void_element_name
 
 
@@ -68,21 +68,21 @@ NS_DJINTERP
 ///                  I.   HTML PRINT POLICY                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// html_print_policy
+// DHtmlPrintPolicy
 //   struct: HTML serialisation rules. Text/attribute escaping match XML's
 // safe subset (`& < >`, plus `"` in attributes); the substance is `form_of`,
 // which classifies void elements as `voidlike` (open tag only) and everything
 // else as `paired` -- HTML never self-closes a non-void element.
-struct html_print_policy
+struct DHtmlPrintPolicy
 {
     // escape_text
     //   function: escape character data (`&`, `<`, `>`).
     static
-    xml_string_t escape_text(
-        const xml_string_t& _in
+    DXmlString escape_text(
+        const DXmlString& _in
     )
     {
-        xml_string_t _out;
+        DXmlString _out;
         _out.reserve(_in.size());
 
         for (char _c : _in)
@@ -103,11 +103,11 @@ struct html_print_policy
     //   function: escape character data plus the double quote, for values in
     // double-quoted attributes.
     static
-    xml_string_t escape_attribute(
-        const xml_string_t& _in
+    DXmlString escape_attribute(
+        const DXmlString& _in
     )
     {
-        xml_string_t _out;
+        DXmlString _out;
         _out.reserve(_in.size());
 
         for (char _c : _in)
@@ -128,15 +128,15 @@ struct html_print_policy
     // form_of
     //   function: void elements (by tag name) render as a lone open tag;
     // all other elements are paired, empty or not.
-    static element_form
+    static DElementForm
     form_of(
-        const xml_string_t& _name,
+        const DXmlString&   _name,
         bool                /*_is_empty*/
     )
     {
         return html::is_void_element_name(_name.c_str())
-                   ? element_form::voidlike
-                   : element_form::paired;
+                   ? DElementForm::voidlike
+                   : DElementForm::paired;
     }
 };
 
@@ -144,15 +144,15 @@ struct html_print_policy
 // html_policy
 //   function: the HTML policy as a runtime value, for runtime format
 // selection (e.g. `render(node, choose ? html_policy() : xml_policy())`).
-D_NODISCARD inline boxed_print_policy html_policy()
+D_NODISCARD inline DBoxedPrintPolicy html_policy()
 {
-    return boxed_print_policy(html_print_policy{});
+    return DBoxedPrintPolicy(DHtmlPrintPolicy{});
 }
 
 
-// html_document
+// DHtmlDocument
 //   type: the fluent façade fixed to HTML serialisation (compile-time policy).
-using html_document = document<html_print_policy>;
+using DHtmlDocument = DDocument<DHtmlPrintPolicy>;
 
 
 NS_END  // djinterp

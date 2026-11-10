@@ -7,9 +7,9 @@
 * Grouped by the header under test:
 *
 *     I.   document_attributes      - the open kv hint bag: keys, flags, tokens
-*     II.  document_renderer        - the abstract protocol + plain realization
-*     III. document_table           - content model: build API, queries, render
-*     IV.  title_page               - cover composition + knobs
+*     II.  DDocumentRenderer        - the abstract protocol + plain realization
+*     III. DDocumentTable           - content model: build API, queries, render
+*     IV.  DTitlePage               - cover composition + knobs
 *     V.   pdf_document_renderer    - the PDF face over pdf_template (integration)
 *
 *   The plain-text renderer's str() is the observable surface for I-IV (semantics
@@ -75,7 +75,7 @@ bool looks_like_pdf(
 inline
 bool tests_attr_set_and_read()
 {
-    doc_attributes _a;
+    DDocAttributes _a;
     _a.set(doc_attr_color, std::string("#2E7D32"));
 
     return attr_has(_a, doc_attr_color)
@@ -88,7 +88,7 @@ bool tests_attr_set_and_read()
 inline
 bool tests_attr_flag_parsing()
 {
-    doc_attributes _a;
+    DDocAttributes _a;
     _a.set(doc_attr_bold,   std::string("true"));
     _a.set(doc_attr_italic, std::string("false"));
 
@@ -101,28 +101,28 @@ bool tests_attr_flag_parsing()
 inline
 bool tests_align_token_roundtrip()
 {
-    return (std::string(align_to_string(text_alignment::center)) == "center")
-        && (align_from_string("right", text_alignment::left)    == text_alignment::right)
-        && (align_from_string("",      text_alignment::justify) == text_alignment::justify)
-        && (align_from_string("C")                              == text_alignment::center);
+    return (std::string(align_to_string(DTextAlignment::center)) == "center")
+        && (align_from_string("right", DTextAlignment::left)    == DTextAlignment::right)
+        && (align_from_string("",      DTextAlignment::justify) == DTextAlignment::justify)
+        && (align_from_string("C")                              == DTextAlignment::center);
 }
 
 // attr_align reads the align key, falling back when unset.
 inline
 bool tests_attr_align_reads_key()
 {
-    doc_attributes _a;
+    DDocAttributes _a;
     _a.set(doc_attr_align, std::string("center"));
 
-    doc_attributes _empty;
+    DDocAttributes _empty;
 
-    return (attr_align(_a,     text_alignment::left)  == text_alignment::center)
-        && (attr_align(_empty, text_alignment::right) == text_alignment::right);
+    return (attr_align(_a,     DTextAlignment::left)  == DTextAlignment::center)
+        && (attr_align(_empty, DTextAlignment::right) == DTextAlignment::right);
 }
 
 
 // ===========================================================================
-// II.  document_renderer  (plain realization)
+// II.  DDocumentRenderer  (plain realization)
 // ===========================================================================
 
 // a level-1 heading is underlined; a paragraph follows as its own line.
@@ -130,8 +130,8 @@ inline
 bool tests_plain_heading_and_paragraph()
 {
     DPlainDocumentRenderer _r;
-    _r.heading(1, "Overview", doc_attributes());
-    _r.paragraph("a paragraph line", doc_attributes());
+    _r.heading(1, "Overview", DDocAttributes());
+    _r.paragraph("a paragraph line", DDocAttributes());
 
     const std::string _s = _r.str();
 
@@ -145,9 +145,9 @@ inline
 bool tests_plain_ordered_list()
 {
     DPlainDocumentRenderer _r;
-    _r.begin_list(true, doc_attributes());
-    _r.list_item("first",  doc_attributes());
-    _r.list_item("second", doc_attributes());
+    _r.begin_list(true, DDocAttributes());
+    _r.list_item("first",  DDocAttributes());
+    _r.list_item("second", DDocAttributes());
     _r.end_list();
 
     const std::string _s = _r.str();
@@ -161,8 +161,8 @@ inline
 bool tests_plain_key_value_and_rule()
 {
     DPlainDocumentRenderer _r;
-    _r.key_value("Author", "teer", doc_attributes());
-    _r.rule(doc_attributes());
+    _r.key_value("Author", "teer", DDocAttributes());
+    _r.rule(DDocAttributes());
 
     const std::string _s = _r.str();
 
@@ -175,9 +175,9 @@ inline
 bool tests_plain_page_break()
 {
     DPlainDocumentRenderer _r;
-    _r.paragraph("before", doc_attributes());
+    _r.paragraph("before", DDocAttributes());
     _r.page_break();
-    _r.paragraph("after", doc_attributes());
+    _r.paragraph("after", DDocAttributes());
 
     const std::string _s = _r.str();
 
@@ -188,15 +188,15 @@ bool tests_plain_page_break()
 
 
 // ===========================================================================
-// III. document_table
+// III. DDocumentTable
 // ===========================================================================
 
 // the build API and queries agree on shape.
 inline
 bool tests_table_build_queries()
 {
-    document_table _t;
-    _t.add_column("Module").add_column("Rate", text_alignment::right);
+    DDocumentTable _t;
+    _t.add_column("Module").add_column("Rate", DTextAlignment::right);
     _t.add_row({ "color", "100.00%" });
     _t.add_row({ "table", "97.50%"  });
 
@@ -210,9 +210,9 @@ bool tests_table_build_queries()
 inline
 bool tests_table_render_monospace()
 {
-    document_table _t;
+    DDocumentTable _t;
     _t.set_caption("Summary", 2);
-    _t.add_column("K").add_column("V", text_alignment::right, 8);
+    _t.add_column("K").add_column("V", DTextAlignment::right, 8);
     _t.add_row({ "alpha", "1" });
 
     const std::string _s = _t.to_string();
@@ -227,7 +227,7 @@ bool tests_table_render_monospace()
 inline
 bool tests_table_ragged_row()
 {
-    document_table _t;
+    DDocumentTable _t;
     _t.add_column("A").add_column("B").add_column("C");
     _t.add_row({ "only-one" });
 
@@ -238,21 +238,21 @@ bool tests_table_ragged_row()
 inline
 bool tests_make_document_table_factory()
 {
-    document_table _t = make_document_table({ "X", "Y", "Z" });
+    DDocumentTable _t = make_document_table({ "X", "Y", "Z" });
 
     return (_t.column_count() == 3);
 }
 
 
 // ===========================================================================
-// IV.  title_page
+// IV.  DTitlePage
 // ===========================================================================
 
 // the cover carries title, subtitle, banner, author, date, and fields.
 inline
 bool tests_title_page_composition()
 {
-    title_page _p;
+    DTitlePage _p;
     _p.set_title("Report")
       .set_subtitle("subtitle")
       .set_author("teer")
@@ -274,11 +274,11 @@ bool tests_title_page_composition()
 inline
 bool tests_title_page_page_break_toggle()
 {
-    title_page _on;
+    DTitlePage _on;
     _on.set_title("T");
     const bool _has_break = contains(_on.to_string(), "\f");
 
-    title_page _off;
+    DTitlePage _off;
     _off.set_title("T").set_page_break(false);
     const bool _no_break = !contains(_off.to_string(), "\f");
 
@@ -306,7 +306,7 @@ bool tests_pdf_renders_title_page()
     pdf_template          _tpl;
     pdf_document_renderer _r(_tpl);
 
-    title_page _p;
+    DTitlePage _p;
     _p.set_title("T").set_banner("PASS", "verdict.pass");
     _p.render(_r);
 
@@ -320,8 +320,8 @@ bool tests_pdf_renders_table()
     pdf_template          _tpl;
     pdf_document_renderer _r(_tpl);
 
-    document_table _t;
-    _t.add_column("A").add_column("B", text_alignment::right);
+    DDocumentTable _t;
+    _t.add_column("A").add_column("B", DTextAlignment::right);
     _t.add_row({ "x", "1" });
     _t.render(_r);
 
@@ -335,7 +335,7 @@ bool tests_pdf_handles_brace_text()
     pdf_template          _tpl;
     pdf_document_renderer _r(_tpl);
 
-    _r.paragraph("value with {curly} and {{already}}", doc_attributes());
+    _r.paragraph("value with {curly} and {{already}}", DDocAttributes());
 
     return looks_like_pdf(_tpl.render_pdf());
 }
@@ -351,7 +351,7 @@ bool tests_pdf_resolves_registered_style()
     _style.color = pdf_color::green();
     _r.register_style("verdict.pass", _style);
 
-    doc_attributes _a;
+    DDocAttributes _a;
     _a.set(doc_attr_style, std::string("verdict.pass"));
     _r.paragraph("PASS", _a);
 

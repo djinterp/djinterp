@@ -9,7 +9,7 @@
 *
 *   STORAGE MODEL:
 *   For the default backend, blocks and inlines share a single
-* underlying storage type (`internal::default_node`) carrying both
+* underlying storage type (`internal::DDefaultNode`) carrying both
 * `block_kind` and `inline_kind` discriminators plus optional fields
 * for url / title / language / heading level / list metadata / etc.
 * This keeps the backend simple and avoids a sum-type machinery
@@ -17,9 +17,9 @@
 * distinct types -- the trait layer detects them structurally.
 *
 *   FACADES:
-*   - `markdown_block<Backend>`    wraps `Backend::block_type`
-*   - `markdown_inline<Backend>`   wraps `Backend::inline_type`
-*   - `markdown_document<Backend>` holds a `Backend::document_type`
+*   - `DMarkdownBlock<Backend>`    wraps `Backend::block_type`
+*   - `DMarkdownInline<Backend>`   wraps `Backend::inline_type`
+*   - `DMarkdownDocument<Backend>` holds a `Backend::document_type`
 *     by value and exposes the four render targets.
 *
 *   ZERO OVERHEAD:
@@ -28,7 +28,7 @@
 * beyond that pointer.
 *
 *   RENDERING:
-*   `markdown_document` exposes:
+*   `DMarkdownDocument` exposes:
 *     - render_to_markdown (round-trip to source)
 *     - render_to_html     (HTML5 fragment)
 *     - render_to_xml      (CommonMark XML AST format)
@@ -49,19 +49,19 @@ TABLE OF CONTENTS
 I.    DEFAULT BACKEND STORAGE
       -----------------------
 
-II.   markdown_block<Backend>
+II.   DMarkdownBlock<Backend>
       ------------------------
 
-III.  markdown_inline<Backend>
+III.  DMarkdownInline<Backend>
       -------------------------
 
 IV.   INTERNAL EMISSION HELPERS
       -------------------------
 
-V.    markdown_document<Backend>
+V.    DMarkdownDocument<Backend>
       ---------------------------
 
-VI.   markdown_default_backend
+VI.   DMarkdownDefaultBackend
       ------------------------
 
 VII.  FREE HELPERS / FACTORIES
@@ -87,7 +87,7 @@ VII.  FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"  // framework root
-#include "./markdown.hpp"          // markdown_block_kind, markdown_inline_kind,
+#include "./markdown.hpp"          // DMarkdownBlockKind, DMarkdownInlineKind,
                                   // the markdown vocabulary
 
 
@@ -103,7 +103,7 @@ namespace markdown {
 }   // namespace markdown
 NS_INTERNAL
 
-    // markdown_default_node
+    // DMarkdownDefaultNode
     //   struct: bundled in-memory storage type used by the
     // default backend for both blocks and inlines. Carries
     // both kind discriminators plus the union of all fields
@@ -111,14 +111,14 @@ NS_INTERNAL
     // and use `block_kind`; inlines set `is_block = false` and
     // use `inline_kind`. A single struct keeps the default
     // backend trivially simple.
-    struct markdown_default_node
+    struct DMarkdownDefaultNode
     {
         // discrimination
         bool                                    is_block      = true;
-        ::djinterp::markdown::markdown_block_kind   block_kind  =
-            ::djinterp::markdown::markdown_block_kind::unknown;
-        ::djinterp::markdown::markdown_inline_kind  inline_kind =
-            ::djinterp::markdown::markdown_inline_kind::unknown;
+        ::djinterp::markdown::DMarkdownBlockKind   block_kind  =
+            ::djinterp::markdown::DMarkdownBlockKind::unknown;
+        ::djinterp::markdown::DMarkdownInlineKind  inline_kind =
+            ::djinterp::markdown::DMarkdownInlineKind::unknown;
 
         // common content
         std::string                             text;
@@ -136,8 +136,8 @@ NS_INTERNAL
 
         // heading fields
         int                                     heading_level = 0;
-        ::djinterp::markdown::markdown_heading_style heading_style =
-            ::djinterp::markdown::markdown_heading_style::atx;
+        ::djinterp::markdown::DMarkdownHeadingStyle heading_style =
+            ::djinterp::markdown::DMarkdownHeadingStyle::atx;
 
         // list fields
         bool                                    list_ordered  = false;
@@ -148,24 +148,24 @@ NS_INTERNAL
         bool                                    task_checked  = false;
 
         // table fields
-        std::vector<::djinterp::markdown::markdown_table_alignment>
+        std::vector<::djinterp::markdown::DMarkdownTableAlignment>
                                                 column_alignments;
 
         // tree
-        std::vector<std::unique_ptr<markdown_default_node>>     children;
-        markdown_default_node*                                  parent = nullptr;
+        std::vector<std::unique_ptr<DMarkdownDefaultNode>>      children;
+        DMarkdownDefaultNode*                                   parent = nullptr;
     };
 
 
-    // markdown_default_document
+    // DMarkdownDefaultDocument
     //   struct: bundled in-memory storage type for documents.
     // Holds the root block subtree plus the document-level
     // flavor tag.
-    struct markdown_default_document
+    struct DMarkdownDefaultDocument
     {
-        ::djinterp::markdown::markdown_flavor   flavor =
-            ::djinterp::markdown::markdown_flavor::commonmark;
-        std::unique_ptr<markdown_default_node>  root;
+        ::djinterp::markdown::DMarkdownFlavor   flavor =
+            ::djinterp::markdown::DMarkdownFlavor::commonmark;
+        std::unique_ptr<DMarkdownDefaultNode>  root;
     };
 
 NS_END  // internal
@@ -173,14 +173,14 @@ namespace markdown {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   markdown_block<Backend>                           ///
+///                II.   DMarkdownBlock<Backend>                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// markdown_block
+// DMarkdownBlock
 //   class: thin facade over a backend block storage node. Holds
 // only a raw pointer to the node; does not own the storage.
 template<typename Backend>
-class markdown_block
+class DMarkdownBlock
 {
 public:
     // node_type
@@ -190,12 +190,12 @@ public:
 
     /// constructors
 
-    markdown_block()
+    DMarkdownBlock()
     :   m_node(nullptr)
     {}
 
     explicit
-    markdown_block(
+    DMarkdownBlock(
         node_type*  _node
     )
     :   m_node(_node)
@@ -218,15 +218,15 @@ public:
 
     // block_kind
     //   function: returns the block kind discriminator.
-    markdown_block_kind block_kind() const
+    DMarkdownBlockKind block_kind() const
     {
         return (m_node != nullptr) ? m_node->block_kind
-                                   : markdown_block_kind::unknown;
+                                   : DMarkdownBlockKind::unknown;
     }
 
     // get_block_kind
     //   function: getter-form alias.
-    markdown_block_kind get_block_kind() const
+    DMarkdownBlockKind get_block_kind() const
     {
         return this->block_kind();
     }
@@ -245,21 +245,21 @@ public:
     // text
     //   function: returns this block's raw text content (only
     // meaningful for code blocks, html blocks, raw blocks).
-    const markdown_string_t& text() const
+    const DMarkdownString& text() const
     {
         return (m_node != nullptr) ? m_node->text : s_empty();
     }
 
     // get_text
     //   function: getter-form alias.
-    const markdown_string_t& get_text() const
+    const DMarkdownString& get_text() const
     {
         return this->text();
     }
 
     // set_text
     void set_text(
-        const markdown_string_t& _text
+        const DMarkdownString& _text
     )
     {
         if (m_node != nullptr)
@@ -284,17 +284,17 @@ public:
 
     /// code blocks
 
-    const markdown_string_t& language() const
+    const DMarkdownString& language() const
     {
         return (m_node != nullptr) ? m_node->language : s_empty();
     }
 
-    const markdown_string_t& get_language() const
+    const DMarkdownString& get_language() const
     {
         return this->language();
     }
 
-    const markdown_string_t& info_string() const
+    const DMarkdownString& info_string() const
     {
         return (m_node != nullptr) ? m_node->info_string : s_empty();
     }
@@ -328,7 +328,7 @@ public:
 
     /// tables
 
-    const std::vector<markdown_table_alignment>& column_alignments() const
+    const std::vector<DMarkdownTableAlignment>& column_alignments() const
     {
         return (m_node != nullptr) ? m_node->column_alignments
                                    : s_empty_alignments();
@@ -347,22 +347,22 @@ public:
     //   function: returns a facade for the child at `_index`.
     // The returned facade may be a block or an inline depending
     // on this block's kind; check `child.is_block` if needed.
-    markdown_block<Backend> block_child_at(
+    DMarkdownBlock<Backend> block_child_at(
         std::size_t _index
     ) const
     {
         if ((m_node == nullptr) || (_index >= m_node->children.size()))
         {
-            return markdown_block<Backend>();
+            return DMarkdownBlock<Backend>();
         }
-        return markdown_block<Backend>(m_node->children[_index].get());
+        return DMarkdownBlock<Backend>(m_node->children[_index].get());
     }
 
     // add_block
     //   function: takes ownership of an existing detached
     // block, appending it as a child of this block.
     void add_block(
-        markdown_block<Backend>&& _child
+        DMarkdownBlock<Backend>&& _child
     )
     {
         if ((m_node == nullptr) || (!_child.valid()))
@@ -378,16 +378,16 @@ public:
 
 private:
     static
-    const markdown_string_t& s_empty()
+    const DMarkdownString& s_empty()
     {
-        static const markdown_string_t e;
+        static const DMarkdownString e;
         return e;
     }
 
     static
-    const std::vector<markdown_table_alignment>& s_empty_alignments()
+    const std::vector<DMarkdownTableAlignment>& s_empty_alignments()
     {
-        static const std::vector<markdown_table_alignment> e;
+        static const std::vector<DMarkdownTableAlignment> e;
         return e;
     }
 
@@ -401,26 +401,26 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   markdown_inline<Backend>                         ///
+///                III.   DMarkdownInline<Backend>                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// markdown_inline
+// DMarkdownInline
 //   class: thin facade over a backend inline storage node.
-// Same shape as `markdown_block` but exposes inline-specific
+// Same shape as `DMarkdownBlock` but exposes inline-specific
 // accessors.
 template<typename Backend>
-class markdown_inline
+class DMarkdownInline
 {
 public:
     using node_type = typename Backend::inline_type;
 
 
-    markdown_inline()
+    DMarkdownInline()
     :   m_node(nullptr)
     {}
 
     explicit
-    markdown_inline(
+    DMarkdownInline(
         node_type*  _node
     )
     :   m_node(_node)
@@ -435,13 +435,13 @@ public:
 
     /// kind
 
-    markdown_inline_kind inline_kind() const
+    DMarkdownInlineKind inline_kind() const
     {
         return (m_node != nullptr) ? m_node->inline_kind
-                                   : markdown_inline_kind::unknown;
+                                   : DMarkdownInlineKind::unknown;
     }
 
-    markdown_inline_kind get_inline_kind() const
+    DMarkdownInlineKind get_inline_kind() const
     {
         return this->inline_kind();
     }
@@ -456,18 +456,18 @@ public:
 
     /// content access
 
-    const markdown_string_t& text() const
+    const DMarkdownString& text() const
     {
         return (m_node != nullptr) ? m_node->text : s_empty();
     }
 
-    const markdown_string_t& get_text() const
+    const DMarkdownString& get_text() const
     {
         return this->text();
     }
 
     void set_text(
-        const markdown_string_t& _text
+        const DMarkdownString& _text
     )
     {
         if (m_node != nullptr)
@@ -479,39 +479,39 @@ public:
 
     /// link / image accessors
 
-    const markdown_string_t& url() const
+    const DMarkdownString& url() const
     {
         return (m_node != nullptr) ? m_node->url : s_empty();
     }
 
-    const markdown_string_t& get_url() const
+    const DMarkdownString& get_url() const
     {
         return this->url();
     }
 
-    const markdown_string_t& title() const
+    const DMarkdownString& title() const
     {
         return (m_node != nullptr) ? m_node->title : s_empty();
     }
 
-    const markdown_string_t& get_title() const
+    const DMarkdownString& get_title() const
     {
         return this->title();
     }
 
-    const markdown_string_t& alt_text() const
+    const DMarkdownString& alt_text() const
     {
         return (m_node != nullptr) ? m_node->alt_text : s_empty();
     }
 
-    const markdown_string_t& get_alt_text() const
+    const DMarkdownString& get_alt_text() const
     {
         return this->alt_text();
     }
 
-    void set_url  (const markdown_string_t& _v) { if (m_node) m_node->url   = _v; }
-    void set_title(const markdown_string_t& _v) { if (m_node) m_node->title = _v; }
-    void set_alt  (const markdown_string_t& _v) { if (m_node) m_node->alt_text = _v; }
+    void set_url  (const DMarkdownString& _v) { if (m_node) m_node->url   = _v; }
+    void set_title(const DMarkdownString& _v) { if (m_node) m_node->title = _v; }
+    void set_alt  (const DMarkdownString& _v) { if (m_node) m_node->alt_text = _v; }
 
 
     /// children (for container inlines)
@@ -521,19 +521,19 @@ public:
         return (m_node != nullptr) ? m_node->children.size() : 0;
     }
 
-    markdown_inline<Backend> inline_child_at(
+    DMarkdownInline<Backend> inline_child_at(
         std::size_t _index
     ) const
     {
         if ((m_node == nullptr) || (_index >= m_node->children.size()))
         {
-            return markdown_inline<Backend>();
+            return DMarkdownInline<Backend>();
         }
-        return markdown_inline<Backend>(m_node->children[_index].get());
+        return DMarkdownInline<Backend>(m_node->children[_index].get());
     }
 
     void add_inline(
-        markdown_inline<Backend>&& _child
+        DMarkdownInline<Backend>&& _child
     )
     {
         if ((m_node == nullptr) || (!_child.valid()))
@@ -549,9 +549,9 @@ public:
 
 private:
     static
-    const markdown_string_t& s_empty()
+    const DMarkdownString& s_empty()
     {
-        static const markdown_string_t e;
+        static const DMarkdownString e;
         return e;
     }
 
@@ -642,10 +642,10 @@ NS_INTERNAL
     inline
     void markdown_emit_inline_html_helper(
         std::ostream&                _out,
-        const markdown_default_node& _node
+        const DMarkdownDefaultNode&  _node
     )
     {
-        using K = ::djinterp::markdown::markdown_inline_kind;
+        using K = ::djinterp::markdown::DMarkdownInlineKind;
 
         switch (_node.inline_kind)
         {
@@ -805,10 +805,10 @@ NS_INTERNAL
     inline
     void markdown_emit_block_html_helper(
         std::ostream&                _out,
-        const markdown_default_node& _node
+        const DMarkdownDefaultNode&  _node
     )
     {
-        using K = ::djinterp::markdown::markdown_block_kind;
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
 
         switch (_node.block_kind)
         {
@@ -1041,10 +1041,10 @@ NS_INTERNAL
     inline
     void markdown_emit_inline_md_helper(
         std::ostream&                _out,
-        const markdown_default_node& _node
+        const DMarkdownDefaultNode&  _node
     )
     {
-        using K = ::djinterp::markdown::markdown_inline_kind;
+        using K = ::djinterp::markdown::DMarkdownInlineKind;
 
         switch (_node.inline_kind)
         {
@@ -1140,11 +1140,11 @@ NS_INTERNAL
     inline
     void markdown_emit_block_md_helper(
         std::ostream&                _out,
-        const markdown_default_node& _node,
+        const DMarkdownDefaultNode&  _node,
         std::size_t                  _list_depth = 0
     )
     {
-        using K = ::djinterp::markdown::markdown_block_kind;
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
 
         switch (_node.block_kind)
         {
@@ -1360,7 +1360,7 @@ NS_INTERNAL
     inline
     void markdown_emit_block_plaintext_helper(
         std::ostream&                _out,
-        const markdown_default_node& _node
+        const DMarkdownDefaultNode&  _node
     )
     {
         if ( !_node.text.empty() &&
@@ -1384,7 +1384,7 @@ NS_INTERNAL
         // append a newline after block-level elements
         if (_node.is_block)
         {
-            using K = ::djinterp::markdown::markdown_block_kind;
+            using K = ::djinterp::markdown::DMarkdownBlockKind;
             const auto k = _node.block_kind;
             if ( (k == K::paragraph)     ||
                  (k == K::heading_1)     || (k == K::heading_2) ||
@@ -1405,32 +1405,32 @@ namespace markdown {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   markdown_document<Backend>                         ///
+///                V.   DMarkdownDocument<Backend>                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// markdown_document
+// DMarkdownDocument
 //   class: facade over the backend's storage document type plus
 // flavor metadata. Owns the storage by value and exposes the
 // four render targets.
 template<typename Backend>
-class markdown_document
+class DMarkdownDocument
 {
 public:
     using backend_type  = Backend;
     using document_type = typename Backend::document_type;
     using node_type     = typename Backend::block_type;
-    using block_facade  = markdown_block<Backend>;
+    using block_facade  = DMarkdownBlock<Backend>;
 
 
     /// constructors
 
-    markdown_document()
+    DMarkdownDocument()
     :   m_doc(Backend::make_markdown_document())
     {}
 
     explicit
-    markdown_document(
-        markdown_flavor     _flavor
+    DMarkdownDocument(
+        DMarkdownFlavor     _flavor
     )
     :   m_doc(Backend::make_markdown_document())
     {
@@ -1438,7 +1438,7 @@ public:
     }
 
     explicit
-    markdown_document(
+    DMarkdownDocument(
         document_type&&     _doc
     )
     :   m_doc(std::move(_doc))
@@ -1448,20 +1448,20 @@ public:
     /// flavor
 
     // flavor
-    markdown_flavor flavor() const
+    DMarkdownFlavor flavor() const
     {
         return m_doc.flavor;
     }
 
     // get_flavor
-    markdown_flavor get_flavor() const
+    DMarkdownFlavor get_flavor() const
     {
         return m_doc.flavor;
     }
 
     // set_flavor
     void set_flavor(
-        markdown_flavor _flavor
+        DMarkdownFlavor _flavor
     )
     {
         m_doc.flavor = _flavor;
@@ -1505,7 +1505,7 @@ public:
 
     // render_to_markdown
     //   function: convenience overload returning a string.
-    markdown_string_t render_to_markdown() const
+    DMarkdownString render_to_markdown() const
     {
         std::ostringstream  oss;
         this->render_to_markdown(oss);
@@ -1526,7 +1526,7 @@ public:
         }
     }
 
-    markdown_string_t render_to_html() const
+    DMarkdownString render_to_html() const
     {
         std::ostringstream  oss;
         this->render_to_html(oss);
@@ -1548,7 +1548,7 @@ public:
         }
     }
 
-    markdown_string_t render_to_plaintext() const
+    DMarkdownString render_to_plaintext() const
     {
         std::ostringstream  oss;
         this->render_to_plaintext(oss);
@@ -1575,7 +1575,7 @@ public:
         _out << "</document>\n";
     }
 
-    markdown_string_t render_to_xml() const
+    DMarkdownString render_to_xml() const
     {
         std::ostringstream  oss;
         this->render_to_xml(oss);
@@ -1591,21 +1591,21 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VI.   markdown_default_backend                           ///
+///                VI.   DMarkdownDefaultBackend                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// markdown_default_backend
+// DMarkdownDefaultBackend
 //   struct: bundled in-memory backend for the markdown facades.
 // Uses a single underlying storage type for both blocks and
-// inlines (`internal::markdown_default_node`) carrying both
+// inlines (`internal::DMarkdownDefaultNode`) carrying both
 // kind discriminators plus the union of all per-kind fields.
-struct markdown_default_backend
+struct DMarkdownDefaultBackend
 {
-    using markdown_backend_tag = ::djinterp::markdown::markdown_default_backend_tag;
+    using markdown_backend_tag = ::djinterp::markdown::DMarkdownDefaultBackendTag;
 
-    using block_type    = ::djinterp::internal::markdown_default_node;
-    using inline_type   = ::djinterp::internal::markdown_default_node;
-    using document_type = ::djinterp::internal::markdown_default_document;
+    using block_type    = ::djinterp::internal::DMarkdownDefaultNode;
+    using inline_type   = ::djinterp::internal::DMarkdownDefaultNode;
+    using document_type = ::djinterp::internal::DMarkdownDefaultDocument;
 
     // make_markdown_document
     //   function: factory for a fresh empty document with a
@@ -1614,10 +1614,10 @@ struct markdown_default_backend
     document_type make_markdown_document()
     {
         document_type   d;
-        d.flavor = markdown_flavor::commonmark;
+        d.flavor = DMarkdownFlavor::commonmark;
         std::unique_ptr<block_type> root(new block_type);
         root->is_block   = true;
-        root->block_kind = markdown_block_kind::document;
+        root->block_kind = DMarkdownBlockKind::document;
         d.root           = std::move(root);
         return d;
     }
@@ -1633,11 +1633,11 @@ struct markdown_default_backend
 // facade for the given backend.
 template<typename Backend>
 inline
-markdown_document<Backend> make_markdown_document(
-    markdown_flavor _flavor = markdown_flavor::commonmark
+DMarkdownDocument<Backend> make_markdown_document(
+    DMarkdownFlavor _flavor = DMarkdownFlavor::commonmark
 )
 {
-    return markdown_document<Backend>(_flavor);
+    return DMarkdownDocument<Backend>(_flavor);
 }
 
 
@@ -1645,13 +1645,13 @@ markdown_document<Backend> make_markdown_document(
 //   function: returns a new freestanding paragraph block.
 template<typename Backend>
 inline
-markdown_block<Backend> make_paragraph()
+DMarkdownBlock<Backend> make_paragraph()
 {
     using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block   = true;
-    n->block_kind = markdown_block_kind::paragraph;
-    return markdown_block<Backend>(n);
+    n->block_kind = DMarkdownBlockKind::paragraph;
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1660,7 +1660,7 @@ markdown_block<Backend> make_paragraph()
 // given level (1..6; clamped).
 template<typename Backend>
 inline
-markdown_block<Backend> make_heading(
+DMarkdownBlock<Backend> make_heading(
     int _level
 )
 {
@@ -1671,7 +1671,7 @@ markdown_block<Backend> make_heading(
     n->is_block      = true;
     n->block_kind    = heading_kind_from_level(_level);
     n->heading_level = _level;
-    return markdown_block<Backend>(n);
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1680,19 +1680,19 @@ markdown_block<Backend> make_heading(
 // with the given language tag and code body.
 template<typename Backend>
 inline
-markdown_block<Backend> make_fenced_code_block(
-    const markdown_string_t& _code,
-    const markdown_string_t& _language = markdown_string_t()
+DMarkdownBlock<Backend> make_fenced_code_block(
+    const DMarkdownString& _code,
+    const DMarkdownString& _language = DMarkdownString()
 )
 {
     using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block    = true;
-    n->block_kind  = markdown_block_kind::fenced_code_block;
+    n->block_kind  = DMarkdownBlockKind::fenced_code_block;
     n->text        = _code;
     n->language    = _language;
     n->info_string = _language;
-    return markdown_block<Backend>(n);
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1700,13 +1700,13 @@ markdown_block<Backend> make_fenced_code_block(
 //   function: returns a new freestanding thematic break block.
 template<typename Backend>
 inline
-markdown_block<Backend> make_thematic_break()
+DMarkdownBlock<Backend> make_thematic_break()
 {
     using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block   = true;
-    n->block_kind = markdown_block_kind::thematic_break;
-    return markdown_block<Backend>(n);
+    n->block_kind = DMarkdownBlockKind::thematic_break;
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1714,13 +1714,13 @@ markdown_block<Backend> make_thematic_break()
 //   function: returns a new freestanding block quote.
 template<typename Backend>
 inline
-markdown_block<Backend> make_block_quote()
+DMarkdownBlock<Backend> make_block_quote()
 {
     using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block   = true;
-    n->block_kind = markdown_block_kind::block_quote;
-    return markdown_block<Backend>(n);
+    n->block_kind = DMarkdownBlockKind::block_quote;
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1728,7 +1728,7 @@ markdown_block<Backend> make_block_quote()
 //   function: returns a new freestanding list block.
 template<typename Backend>
 inline
-markdown_block<Backend> make_list(
+DMarkdownBlock<Backend> make_list(
     bool _ordered = false,
     int  _start = 1
 )
@@ -1736,11 +1736,11 @@ markdown_block<Backend> make_list(
     using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block     = true;
-    n->block_kind   = _ordered ? markdown_block_kind::ordered_list
-                               : markdown_block_kind::unordered_list;
+    n->block_kind   = _ordered ? DMarkdownBlockKind::ordered_list
+                               : DMarkdownBlockKind::unordered_list;
     n->list_ordered = _ordered;
     n->list_start   = _start;
-    return markdown_block<Backend>(n);
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1748,14 +1748,14 @@ markdown_block<Backend> make_list(
 //   function: returns a new freestanding list item block.
 template<typename Backend>
 inline
-markdown_block<Backend> make_list_item()
+DMarkdownBlock<Backend> make_list_item()
 {
     using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block    = true;
-    n->block_kind  = markdown_block_kind::list_item;
+    n->block_kind  = DMarkdownBlockKind::list_item;
     n->list_bullet = D_MARKDOWN_DEFAULT_BULLET;
-    return markdown_block<Backend>(n);
+    return DMarkdownBlock<Backend>(n);
 }
 
 
@@ -1763,16 +1763,16 @@ markdown_block<Backend> make_list_item()
 //   function: returns a new freestanding text inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_text(
-    const markdown_string_t& _text
+DMarkdownInline<Backend> make_text(
+    const DMarkdownString& _text
 )
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::text;
+    n->inline_kind = DMarkdownInlineKind::text;
     n->text        = _text;
-    return markdown_inline<Backend>(n);
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1780,13 +1780,13 @@ markdown_inline<Backend> make_text(
 //   function: returns a new freestanding emphasis inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_emphasis()
+DMarkdownInline<Backend> make_emphasis()
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::emphasis;
-    return markdown_inline<Backend>(n);
+    n->inline_kind = DMarkdownInlineKind::emphasis;
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1794,13 +1794,13 @@ markdown_inline<Backend> make_emphasis()
 //   function: returns a new freestanding strong inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_strong()
+DMarkdownInline<Backend> make_strong()
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::strong;
-    return markdown_inline<Backend>(n);
+    n->inline_kind = DMarkdownInlineKind::strong;
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1808,16 +1808,16 @@ markdown_inline<Backend> make_strong()
 //   function: returns a new freestanding code span inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_code_span(
-    const markdown_string_t& _code
+DMarkdownInline<Backend> make_code_span(
+    const DMarkdownString& _code
 )
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::code_span;
+    n->inline_kind = DMarkdownInlineKind::code_span;
     n->text        = _code;
-    return markdown_inline<Backend>(n);
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1825,18 +1825,18 @@ markdown_inline<Backend> make_code_span(
 //   function: returns a new freestanding link inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_link(
-    const markdown_string_t& _url,
-    const markdown_string_t& _title = markdown_string_t()
+DMarkdownInline<Backend> make_link(
+    const DMarkdownString& _url,
+    const DMarkdownString& _title = DMarkdownString()
 )
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::link;
+    n->inline_kind = DMarkdownInlineKind::link;
     n->url         = _url;
     n->title       = _title;
-    return markdown_inline<Backend>(n);
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1844,20 +1844,20 @@ markdown_inline<Backend> make_link(
 //   function: returns a new freestanding image inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_image(
-    const markdown_string_t& _url,
-    const markdown_string_t& _alt = markdown_string_t(),
-    const markdown_string_t& _title = markdown_string_t()
+DMarkdownInline<Backend> make_image(
+    const DMarkdownString& _url,
+    const DMarkdownString& _alt = DMarkdownString(),
+    const DMarkdownString& _title = DMarkdownString()
 )
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::image;
+    n->inline_kind = DMarkdownInlineKind::image;
     n->url         = _url;
     n->alt_text    = _alt;
     n->title       = _title;
-    return markdown_inline<Backend>(n);
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1865,16 +1865,16 @@ markdown_inline<Backend> make_image(
 //   function: returns a new freestanding autolink inline.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_autolink(
-    const markdown_string_t& _url
+DMarkdownInline<Backend> make_autolink(
+    const DMarkdownString& _url
 )
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::autolink;
+    n->inline_kind = DMarkdownInlineKind::autolink;
     n->url         = _url;
-    return markdown_inline<Backend>(n);
+    return DMarkdownInline<Backend>(n);
 }
 
 
@@ -1882,13 +1882,13 @@ markdown_inline<Backend> make_autolink(
 //   function: returns a new freestanding hard line break.
 template<typename Backend>
 inline
-markdown_inline<Backend> make_hard_break()
+DMarkdownInline<Backend> make_hard_break()
 {
     using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
-    n->inline_kind = markdown_inline_kind::hard_break;
-    return markdown_inline<Backend>(n);
+    n->inline_kind = DMarkdownInlineKind::hard_break;
+    return DMarkdownInline<Backend>(n);
 }
 
 

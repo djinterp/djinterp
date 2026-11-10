@@ -22,7 +22,7 @@
 // The PDF drawing vocabulary: units & geometry, page sizes, color,
 // fonts, text & paint options, and raster images.  Color accepts any
 // native color model (default rgb) and fonts accept any native
-// djinterp::font (resolved onto the base-14 faces).  This is the base
+// djinterp::DFont (resolved onto the base-14 faces).  This is the base
 // layer of the split pdf module; everything else builds on it.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +40,7 @@
 #include "../../djinterp.hpp"
 #include "../color/color.hpp"  // native color models + color_cast
 #include "../../text/font.hpp"                 // native font (resolved onto base-14)
-#include "../../text/text_align.hpp"           // native text_alignment (alias target)
+#include "../../text/text_align.hpp"           // native DTextAlignment (alias target)
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -544,12 +544,12 @@ struct pdf_font
           size(_size)
     {}
 
-    // from a native djinterp::font: the face is resolved onto the
+    // from a native djinterp::DFont: the face is resolved onto the
     // nearest base-14 font and the point size is carried across, so any
     // framework font can drive the built-in backend.
     template <unsigned Feat, typename Color>
     pdf_font(
-        const djinterp::font<Feat, Color>& _f
+        const djinterp::DFont<Feat, Color>& _f
     )
         : family(pdf_base_font_from(_f.family,
                                     djinterp::fn_is_bold(_f),
@@ -918,11 +918,11 @@ private:
 //   alias: horizontal alignment for higher layers (the foundation
 // places text at an explicit point; alignment is resolved by
 // pdf_template).  This is the framework's native
-// djinterp::text_alignment - the same {left, center, right,
+// djinterp::DTextAlignment - the same {left, center, right,
 // justify} enumerators with identical values - so the PDF layer
 // shares one alignment vocabulary with the rest of the framework
 // and the two names are fully interchangeable.
-using DPdfTextAlign = djinterp::text_alignment;
+using DPdfTextAlign = djinterp::DTextAlignment;
 
 
 // DPdfTextOptions

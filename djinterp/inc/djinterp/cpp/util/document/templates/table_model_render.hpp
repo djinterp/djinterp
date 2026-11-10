@@ -3,7 +3,7 @@
 *
 *   The join between the TABLE subframework's model and the DOCUMENT
 * subframework's dialects: stream a table_model_value through any
-* document_renderer, so one table renders as monospace, Markdown, XML, HTML or
+* DDocumentRenderer, so one table renders as monospace, Markdown, XML, HTML or
 * PDF without a per-dialect table engine.
 *
 *   WHY THIS EXISTS.  Both halves already had a table.  container/table carries
@@ -11,7 +11,7 @@
 * GROUPED headers on both dimensions -- and one text renderer that round-trips
 * with table_parser.  util/document carries the richer DIALECT set -- plain,
 * Markdown, XML, HTML, PDF -- behind one semantic sink, but a flat model
-* (document_table: a column list and string rows, no merges, no row headers).
+* (DDocumentTable: a column list and string rows, no merges, no row headers).
 * Neither is wrong; they answer different questions.  This header lets the
 * richer model reach the wider dialect set, which is what makes the several
 * independent monospace table engines around the codebase redundant rather than
@@ -27,7 +27,7 @@
 * pack), and a text-only build pays for neither.  This is the same decoupling
 * table_metadata::conforms_to already uses -- any type with the accessors works.
 *
-*   SPANS ARE A DIALECT QUESTION, so they are a POLICY (span_policy):
+*   SPANS ARE A DIALECT QUESTION, so they are a POLICY (DSpanPolicy):
 *     hint  -- a layout cell emits ONCE, at its anchor, carrying colspan /
 *              rowspan hints; covered positions are skipped entirely.  Correct
 *              for HTML, which expresses merges natively.  A dialect that
@@ -46,11 +46,11 @@
 *     rows  -- emit the coarser levels as leading body rows carrying colspan.
 *              Shows the grouping structurally; in markup they land in the body
 *              rather than the header block, which is valid but not ideal.
-*   Extending document_renderer with a header_row verb would beat both; that is
+*   Extending DDocumentRenderer with a header_row verb would beat both; that is
 * a protocol change and deliberately not made here.
 *
 *   PORTABILITY:
-*   C++11 baseline (matches document_renderer).
+*   C++11 baseline (matches DDocumentRenderer).
 *
 *
 * path:      /inc/djinterp/cpp/util/document/templates/table_model_render.hpp
@@ -62,10 +62,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    POLICIES                      (span_policy / header_level_policy)
+I.    POLICIES                      (DSpanPolicy / DHeaderLevelPolicy)
       -----------------------------------------------------------------
 
-II.   table_render_options          (+ table_render_defaults)
+II.   DTableRenderOptions          (+ table_render_defaults)
       -------------------------------------------------------
 
 III.  render_table_model            (the traversal)
@@ -90,9 +90,9 @@ IV.   ONE-SHOT CONVENIENCE         (see table_model_dialect.hpp)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"      // NS_*, D_NODISCARD, D_NOEXCEPT
-#include "../document_format.hpp"     // document_format, format_is_markup
-#include "./document_attributes.hpp"  // doc_attributes, doc_attr_*, text_alignment
-#include "./document_renderer.hpp"    // document_renderer
+#include "../document_format.hpp"     // DDocumentFormat, format_is_markup
+#include "./document_attributes.hpp"  // DDocAttributes, doc_attr_*, DTextAlignment
+#include "./document_renderer.hpp"    // DDocumentRenderer
 
 
 NS_DJINTERP
@@ -102,22 +102,22 @@ NS_DJINTERP
 // I.   POLICIES
 // ===========================================================================
 
-// span_policy
+// DSpanPolicy
 //   enum: how a model's merge cover reaches the renderer.  See the header note
 // -- `hint` is right for a dialect that expresses merges, `fill` for one whose
 // grid depends on every row carrying every column.
-enum class span_policy
+enum class DSpanPolicy
 {
     hint,
     fill
 };
 
 
-// header_level_policy
+// DHeaderLevelPolicy
 //   enum: how the coarser (grouping) header levels reach a protocol that has
 // one header row.  `join` folds them into the column's header text; `rows`
 // emits them as leading body rows carrying colspan.
-enum class header_level_policy
+enum class DHeaderLevelPolicy
 {
     join,
     rows
@@ -125,24 +125,24 @@ enum class header_level_policy
 
 
 // ===========================================================================
-// II.  table_render_options
+// II.  DTableRenderOptions
 // ===========================================================================
 
-// table_render_options
+// DTableRenderOptions
 //   struct: how a model is streamed.  Defaults are the safe, every-dialect
 // choices; table_render_defaults(format) sharpens them per dialect.
-struct table_render_options
+struct DTableRenderOptions
 {
     // spans
     //   how the merge cover is expressed.
-    span_policy         spans;
+    DSpanPolicy         spans;
 
     // header_levels
     //   how grouped header levels are expressed.
-    header_level_policy header_levels;
+    DHeaderLevelPolicy header_levels;
 
     // level_separator
-    //   what joins a column's header levels under header_level_policy::join.
+    //   what joins a column's header levels under DHeaderLevelPolicy::join.
     std::string         level_separator;
 
     // emit_row_headers
@@ -155,13 +155,13 @@ struct table_render_options
     // its cells.  Empty leaves alignment unhinted, which is what a model that
     // does not carry presentation should do.  Indexed by DATA column, not
     // counting a prepended row-header column.
-    std::vector<text_alignment> column_aligns;
+    std::vector<DTextAlignment> column_aligns;
 
-    // table_render_options (default)
+    // DTableRenderOptions (default)
     //   fill spans, joined header levels, row headers emitted.
-    table_render_options()
-        : spans           (span_policy::fill),
-          header_levels   (header_level_policy::join),
+    DTableRenderOptions()
+        : spans           (DSpanPolicy::fill),
+          header_levels   (DHeaderLevelPolicy::join),
           level_separator (" / "),
           emit_row_headers(true),
           column_aligns   ()
@@ -173,15 +173,15 @@ struct table_render_options
 //   function: the options that suit _format.  A markup dialect expresses merges
 // natively, so it takes hinted spans; every other dialect needs a full grid, so
 // it takes filled ones.  Everything else is the shared default.
-D_NODISCARD inline table_render_options table_render_defaults(
-    document_format _format
+D_NODISCARD inline DTableRenderOptions table_render_defaults(
+    DDocumentFormat _format
 )
 {
-    table_render_options _opts;
+    DTableRenderOptions _opts;
 
     // xml / html carry colspan / rowspan; the rest cannot
-    _opts.spans = format_is_markup(_format) ? span_policy::hint
-                                            : span_policy::fill;
+    _opts.spans = format_is_markup(_format) ? DSpanPolicy::hint
+                                            : DSpanPolicy::fill;
 
     return _opts;
 }
@@ -262,12 +262,12 @@ NS_INTERNAL
     // align_attrs_helper
     //   helper: a hint bag carrying _index's alignment, or an empty bag when
     // the caller supplied none.
-    D_NODISCARD inline doc_attributes align_attrs_helper(
-        const std::vector<text_alignment>& _aligns,
+    D_NODISCARD inline DDocAttributes align_attrs_helper(
+        const std::vector<DTextAlignment>& _aligns,
         std::size_t                        _index
     )
     {
-        doc_attributes _attrs;
+        DDocAttributes _attrs;
 
         // an unhinted column stays unhinted -- the model carries no presentation
         if (_index < _aligns.size())
@@ -287,14 +287,14 @@ NS_END  // internal
 // this function decides only what the semantic call sequence is.
 //
 // Usage:
-//   html_document_renderer _r;
-//   render_table_model(_model, _r, table_render_defaults(document_format::html));
+//   DHtmlDocumentRenderer _r;
+//   render_table_model(_model, _r, table_render_defaults(DDocumentFormat::html));
 template<typename Model>
 inline
 void render_table_model(
     const Model&                _model,
-    document_renderer&          _renderer,
-    const table_render_options& _opts = table_render_options()
+    DDocumentRenderer&          _renderer,
+    const DTableRenderOptions&  _opts = DTableRenderOptions()
 )
 {
     const std::size_t _rows = static_cast<std::size_t>(_model.rows());
@@ -306,7 +306,7 @@ void render_table_model(
     std::size_t _r = 0;
     std::size_t _c = 0;
 
-    _renderer.begin_table(doc_attributes());
+    _renderer.begin_table(DDocAttributes());
 
     // --- column headers ------------------------------------------------------
     //   The finest level addresses the columns one-to-one; the coarser levels
@@ -318,15 +318,15 @@ void render_table_model(
         // the corner cell above a row-header column carries no label
         if (_row_heads)
         {
-            _renderer.table_column(std::string(), doc_attributes());
+            _renderer.table_column(std::string(), DDocAttributes());
         }
 
         for (_c = 0; _c < _cols; ++_c)
         {
-            const doc_attributes _attrs =
+            const DDocAttributes _attrs =
                 internal::align_attrs_helper(_opts.column_aligns, _c);
 
-            if (_opts.header_levels == header_level_policy::join)
+            if (_opts.header_levels == DHeaderLevelPolicy::join)
             {
                 _renderer.table_column(
                     internal::joined_header_helper(
@@ -354,7 +354,7 @@ void render_table_model(
 
     // --- grouping levels as leading rows -------------------------------------
 
-    if ( (_opts.header_levels == header_level_policy::rows) &&
+    if ( (_opts.header_levels == DHeaderLevelPolicy::rows) &&
          _model.metadata().has_column_headers() &&
          (_model.metadata().column_headers().size() > std::size_t(1)) )
     {
@@ -364,12 +364,12 @@ void render_table_model(
         // every level ABOVE the finest, outermost first
         for (_l = 0; (_l + std::size_t(1)) < _levels; ++_l)
         {
-            _renderer.begin_row(doc_attributes());
+            _renderer.begin_row(DDocAttributes());
 
             // keep the row-header column aligned with the body
             if (_row_heads)
             {
-                _renderer.cell(std::string(), doc_attributes());
+                _renderer.cell(std::string(), DDocAttributes());
             }
 
             std::size_t _pos = 0;
@@ -386,7 +386,7 @@ void render_table_model(
                         ? _model.metadata().column_headers()[_l][_k].span
                         : std::size_t(1);
 
-                doc_attributes _attrs;
+                DDocAttributes _attrs;
 
                 // a grouping label spans the finer positions beneath it
                 if (_span > std::size_t(1))
@@ -400,13 +400,13 @@ void render_table_model(
                     _attrs);
 
                 // under `fill` the covered positions still need their cells
-                if (_opts.spans == span_policy::fill)
+                if (_opts.spans == DSpanPolicy::fill)
                 {
                     std::size_t _f = 1;
 
                     for (_f = 1; _f < _span; ++_f)
                     {
-                        _renderer.cell(std::string(), doc_attributes());
+                        _renderer.cell(std::string(), DDocAttributes());
                     }
                 }
 
@@ -421,7 +421,7 @@ void render_table_model(
 
     for (_r = 0; _r < _rows; ++_r)
     {
-        _renderer.begin_row(doc_attributes());
+        _renderer.begin_row(DDocAttributes());
 
         // the row's own header, as a leading cell
         if (_row_heads)
@@ -431,7 +431,7 @@ void render_table_model(
                     _model.metadata().row_headers(),
                     _r,
                     _opts.level_separator),
-                doc_attributes());
+                DDocAttributes());
         }
 
         for (_c = 0; _c < _cols; ++_c)
@@ -447,10 +447,10 @@ void render_table_model(
             const bool _is_anchor = ( (_ar == _r) &&
                                       (_ac == _c) );
 
-            doc_attributes _attrs =
+            DDocAttributes _attrs =
                 internal::align_attrs_helper(_opts.column_aligns, _c);
 
-            if (_opts.spans == span_policy::hint)
+            if (_opts.spans == DSpanPolicy::hint)
             {
                 // a covered position was already emitted, at its anchor
                 if (!_is_anchor)
