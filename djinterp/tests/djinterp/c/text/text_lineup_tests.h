@@ -8,16 +8,14 @@
 * Converted from the standalone tier to DTest's C face on 2026.11.09; the
 * entry point is d_tests_text_lineup_run_all.
 *
-*   BUILD PREREQUISITE. The module under test is not in the tree: there is no
-* inc/djinterp/c/text/text_lineup.h and no src/djinterp/c/text/text_lineup.c,
-* though an earlier tree had both (scripts/trees2.txt, under c/text/), and
-* this header includes neither. Until they are restored, the suite does not
-* compile -- dj_text_buffer is incomplete here and d_text_lineup is
-* undeclared -- so it has no CMake leaf. Restored, it needs:
-*     #include "../../../../inc/djinterp/c/text/text_lineup.h"
-* below DTest's include, a leaf like text_template/'s with text_lineup.c and
-* c/container/buffer/text_buffer.c among its sources, and <stdint.h> or
-* re_std's dstdint.h for the uint32_t this header uses (lane D, 2026.11.09).
+*   The module was restored on 2026.11.09 (the owner's copy of 2025.12.17,
+* ported): the template is dj_text_lineup_template, its flags are
+* D_TEXT_LINEUP_FLAG_*, and the buffer is the container module's
+* dj_text_buffer, read through its data and count. The suite's old section I
+* tested a text buffer API of the 2025 tree that the container module no
+* longer has (append, append_s, prepend, write_over); lane C's text_buffer
+* suites test the buffer, so section I is gone and the sections keep their
+* numbers.
 *
 *
 * path:      /tests/djinterp/c/text/text_lineup_tests.h
@@ -29,9 +27,13 @@
 #ifndef DJINTERP_TEXT_LINEUP_TESTS_STANDALONE_
 #define DJINTERP_TEXT_LINEUP_TESTS_STANDALONE_ 1
 
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 // djinterp
+#include "../../../../inc/djinterp/c/string_fn.h"         // d_strequals,
+                                                           // d_strcontains
+#include "../../../../inc/djinterp/c/text/text_lineup.h"  // d_text_lineup
 
 
 /******************************************************************************
@@ -100,7 +102,7 @@ struct dj_string_array* d_tests_text_lineup_make_token_array(
     size_t _count,
     ...
 );
-struct dj_text_template d_tests_text_lineup_make_template(
+struct dj_text_lineup_template d_tests_text_lineup_make_template(
     struct dj_string_array* _tokens,
     const char*             _separator,
     bool                    _sep_before,
@@ -110,32 +112,6 @@ struct dj_text_template d_tests_text_lineup_make_template(
     size_t                  _min_token_width,
     uint32_t                _flags
 );
-
-
-/******************************************************************************
- * SECTION I: dj_text_buffer OPERATIONS
- *****************************************************************************/
-
-// d_text_buffer_new tests
-bool d_tests_text_lineup_text_buffer_new(struct dj_test_suite* _suite);
-
-// d_text_buffer_ensure_capacity tests
-bool d_tests_text_lineup_text_buffer_ensure_capacity(struct dj_test_suite* _suite);
-
-// d_text_buffer_append tests
-bool d_tests_text_lineup_text_buffer_append(struct dj_test_suite* _suite);
-
-// d_text_buffer_append_s tests
-bool d_tests_text_lineup_text_buffer_append_s(struct dj_test_suite* _suite);
-
-// d_text_buffer_prepend tests
-bool d_tests_text_lineup_text_buffer_prepend(struct dj_test_suite* _suite);
-
-// d_text_buffer_write_over tests
-bool d_tests_text_lineup_text_buffer_write_over(struct dj_test_suite* _suite);
-
-// section I aggregator
-bool d_tests_text_lineup_text_buffer_all(struct dj_test_suite* _suite);
 
 
 /******************************************************************************
@@ -152,10 +128,12 @@ bool d_tests_text_lineup_string_array_reserve(struct dj_test_suite* _suite);
 bool d_tests_text_lineup_string_array_append(struct dj_test_suite* _suite);
 
 // d_string_array_generate_series tests
-bool d_tests_text_lineup_string_array_generate_series(struct dj_test_suite* _suite);
+bool d_tests_text_lineup_string_array_generate_series(
+    struct dj_test_suite* _suite);
 
 // d_string_array_generate_series_capacity tests
-bool d_tests_text_lineup_string_array_generate_series_capacity(struct dj_test_suite* _suite);
+bool d_tests_text_lineup_string_array_generate_series_capacity(
+    struct dj_test_suite* _suite);
 
 // section II aggregator
 bool d_tests_text_lineup_string_array_all(struct dj_test_suite* _suite);

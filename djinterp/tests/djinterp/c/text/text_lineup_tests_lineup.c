@@ -5,11 +5,12 @@
 * path:      /tests/djinterp/c/text/text_lineup_tests_lineup.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./text_lineup_tests.h"
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 
 /******************************************************************************
@@ -20,18 +21,18 @@
 
 // D_TL_TEST_BUF_CONTAINS
 //   macro: convenience check — true when the null-terminated region
-// [buf->buffer, buf->pos) contains the literal substring _substr.
+// [buf->data, buf->count) contains the literal substring _substr.
 #define D_TL_TEST_BUF_CONTAINS(buf, _substr)                        \
-    d_strcontains((buf)->buffer,                                     \
-                  (buf)->pos,                                        \
+    d_strcontains((buf)->data,                                       \
+                  (buf)->count,                                        \
                   (_substr))
 
 // D_TL_TEST_BUF_EQUALS
 //   macro: convenience check — true when the buffer content exactly
 // equals the literal string _str of length _len.
 #define D_TL_TEST_BUF_EQUALS(buf, _str, _len)                       \
-    d_strequals((buf)->buffer,                                       \
-                (buf)->pos,                                          \
+    d_strequals((buf)->data,                                         \
+                (buf)->count,                                          \
                 (_str),                                              \
                 (_len))
 
@@ -39,8 +40,8 @@
 //   macro: true when the buffer content starts with _prefix of
 // length _prefix_len.
 #define D_TL_TEST_STARTS_WITH(buf, _prefix, _prefix_len)            \
-    d_strstartswith((buf)->buffer,                                   \
-                    (buf)->pos,                                      \
+    d_strstartswith((buf)->data,                                     \
+                    (buf)->count,                                      \
                     (_prefix),                                       \
                     (_prefix_len))
 
@@ -61,7 +62,7 @@ d_tests_text_lineup_null_inputs
 */
 bool d_tests_text_lineup_null_inputs(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -102,8 +103,7 @@ bool d_tests_text_lineup_null_inputs(struct dj_test_suite* _suite)
 
     if (buf)
     {
-        buf->pos = 0;
-        buf->buffer[0] = '\0';
+        d_text_buffer_clear(buf);
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = NULL;
         result           = d_text_lineup(&tmpl, buf, 0, NULL, NULL,
@@ -116,8 +116,7 @@ bool d_tests_text_lineup_null_inputs(struct dj_test_suite* _suite)
 
     if (buf && tokens)
     {
-        buf->pos         = 0;
-        buf->buffer[0]   = '\0';
+        d_text_buffer_clear(buf);
         d_memset(&tmpl, 0, sizeof(tmpl));
 
         // build fresh empty array
@@ -138,11 +137,7 @@ bool d_tests_text_lineup_null_inputs(struct dj_test_suite* _suite)
 
     if (buf && tokens)
     {
-        buf->pos = 0;
-        if (buf->buffer)
-        {
-            buf->buffer[0] = '\0';
-        }
+        d_text_buffer_clear(buf);
 
         d_string_array_append(tokens, "X");
         d_memset(&tmpl, 0, sizeof(tmpl));
@@ -201,7 +196,7 @@ d_tests_text_lineup_no_wrap
 */
 bool d_tests_text_lineup_no_wrap(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -434,11 +429,11 @@ d_tests_text_lineup_wrapping
   - all tokens are present across all lines
   - each line respects line_width (no line exceeds it, incl. newline)
   - a very wide line_width keeps all tokens on one line
-  - a very narrow line_width forces one token per line
+  - a line_width as wide as one token forces one token per line
 */
 bool d_tests_text_lineup_wrapping(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -498,10 +493,10 @@ bool d_tests_text_lineup_wrapping(struct dj_test_suite* _suite)
         line_start = 0;
         line_ok    = true;
 
-        for (i = 0; i <= buf->pos; i++)
+        for (i = 0; i <= buf->count; i++)
         {
-            if ( (i == buf->pos) ||
-                 (buf->buffer[i] == '\n') )
+            if ( (i == buf->count) ||
+                 (buf->data[i] == '\n') )
             {
                 line_len = i - line_start;
 
@@ -573,12 +568,13 @@ bool d_tests_text_lineup_wrapping(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens = tokens;
 
-        // width 3 → only one 1-char token fits per line
-        result = d_text_lineup(&tmpl, buf, 2, NULL, NULL, false, false);
+        // width 1 → only one 1-char token fits per line (width 2 fits
+        // two: "ab\nc")
+        result = d_text_lineup(&tmpl, buf, 1, NULL, NULL, false, false);
 
-        // expect at least 2 newlines for 3 tokens
+        // one token per line: 2 newlines for 3 tokens
         test_narrow = result &&
-                      (d_strcount_char(buf->buffer, buf->pos, '\n') >= 2);
+                      D_TL_TEST_BUF_EQUALS(buf, "a\nb\nc", 5);
     }
 
     if (buf)
@@ -637,7 +633,7 @@ d_tests_text_lineup_prefix_suffix
 */
 bool d_tests_text_lineup_prefix_suffix(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -652,10 +648,10 @@ bool d_tests_text_lineup_prefix_suffix(struct dj_test_suite* _suite)
 // helper macro: reset the output buffer to empty
 #define RESET_BUF(b)                \
     do {                            \
-        (b)->pos = 0;               \
-        if ((b)->buffer)            \
+        (b)->count = 0;             \
+        if ((b)->data)              \
         {                           \
-            (b)->buffer[0] = '\0';  \
+            (b)->data[0] = '\0';    \
         }                           \
     } while (0)
 
@@ -705,13 +701,13 @@ bool d_tests_text_lineup_prefix_suffix(struct dj_test_suite* _suite)
         RESET_BUF(buf);
         result           = d_text_lineup(&tmpl, buf, 60,
                                          NULL, NULL, false, false);
-        test_null_prefix = result && (buf->pos > 0);
+        test_null_prefix = result && (buf->count > 0);
 
         // test 5: NULL suffix
         RESET_BUF(buf);
         result           = d_text_lineup(&tmpl, buf, 60,
                                          NULL, NULL, false, false);
-        test_null_suffix = result && (buf->pos > 0);
+        test_null_suffix = result && (buf->count > 0);
 
         // test 6: oversize prefix (100 chars) rejected when flag not set
         RESET_BUF(buf);
@@ -728,7 +724,7 @@ bool d_tests_text_lineup_prefix_suffix(struct dj_test_suite* _suite)
         RESET_BUF(buf);
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens = tokens;
-        tmpl.flags  = D_BEHAVIOR_FLAG_ALLOW_OVERSIZE_PREFIX;
+        tmpl.flags  = D_TEXT_LINEUP_FLAG_ALLOW_OVERSIZE_PREFIX;
         result = d_text_lineup(
             &tmpl, buf, 20,
             "This prefix is definitely longer than twenty chars",
@@ -790,7 +786,7 @@ d_tests_text_lineup_line_prefix_suffix
 */
 bool d_tests_text_lineup_line_prefix_suffix(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -803,10 +799,10 @@ bool d_tests_text_lineup_line_prefix_suffix(struct dj_test_suite* _suite)
 // reset helper
 #define RESET_BUF(b)                \
     do {                            \
-        (b)->pos = 0;               \
-        if ((b)->buffer)            \
+        (b)->count = 0;             \
+        if ((b)->data)              \
         {                           \
-            (b)->buffer[0] = '\0';  \
+            (b)->data[0] = '\0';    \
         }                           \
     } while (0)
 
@@ -864,7 +860,7 @@ bool d_tests_text_lineup_line_prefix_suffix(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = tokens;
         tmpl.line_prefix = line_prefix;
-        tmpl.flags       = D_BEHAVIOR_FLAG_LINE_PREFIX_ALL_LINES;
+        tmpl.flags       = D_TEXT_LINEUP_FLAG_LINE_PREFIX_ALL_LINES;
 
         result                = d_text_lineup(&tmpl, buf, 18,
                                               NULL, NULL, false, false);
@@ -876,7 +872,7 @@ bool d_tests_text_lineup_line_prefix_suffix(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = tokens;
         tmpl.line_suffix = line_suffix;
-        tmpl.flags       = D_BEHAVIOR_FLAG_LINE_SUFFIX_ALL_LINES;
+        tmpl.flags       = D_TEXT_LINEUP_FLAG_LINE_SUFFIX_ALL_LINES;
 
         result                = d_text_lineup(&tmpl, buf, 18,
                                               NULL, NULL, false, false);
@@ -889,7 +885,7 @@ bool d_tests_text_lineup_line_prefix_suffix(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = tokens;
         tmpl.line_suffix = line_suffix;
-        tmpl.flags       = D_BEHAVIOR_FLAG_LINE_SUFFIX_AFTER_SUFFIX;
+        tmpl.flags       = D_TEXT_LINEUP_FLAG_LINE_SUFFIX_AFTER_SUFFIX;
 
         result                   = d_text_lineup(&tmpl, buf, 18,
                                                  NULL, "END", false, false);
@@ -948,7 +944,7 @@ d_tests_text_lineup_separators
 */
 bool d_tests_text_lineup_separators(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -961,10 +957,10 @@ bool d_tests_text_lineup_separators(struct dj_test_suite* _suite)
 
 #define RESET_BUF(b)                \
     do {                            \
-        (b)->pos = 0;               \
-        if ((b)->buffer)            \
+        (b)->count = 0;             \
+        if ((b)->data)              \
         {                           \
-            (b)->buffer[0] = '\0';  \
+            (b)->data[0] = '\0';    \
         }                           \
     } while (0)
 
@@ -1124,10 +1120,12 @@ d_tests_text_lineup_token_alignment
   - TOKEN_ALIGN_CENTER: shorter token padded on both sides
   - all three modes produce the same total column width
   - mixed-length tokens are correctly padded under each mode
+  A line width is given: slots and padding apply only to a wrapped lineup;
+  at width 0 the tokens are joined as they are.
 */
 bool d_tests_text_lineup_token_alignment(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf_right;
     struct dj_text_buffer*  buf_left;
     struct dj_text_buffer*  buf_center;
@@ -1171,52 +1169,46 @@ bool d_tests_text_lineup_token_alignment(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens = tokens;
         tmpl.flags  = 0;
-        result_r    = d_text_lineup(&tmpl, buf_right, 0,
+        result_r    = d_text_lineup(&tmpl, buf_right, 20,
                                     NULL, NULL, false, false);
 
         // left alignment — spaces after shorter tokens
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens = tokens;
-        tmpl.flags  = D_BEHAVIOR_FLAG_TOKEN_ALIGN_LEFT;
-        result_l    = d_text_lineup(&tmpl, buf_left, 0,
+        tmpl.flags  = D_TEXT_LINEUP_FLAG_TOKEN_ALIGN_LEFT;
+        result_l    = d_text_lineup(&tmpl, buf_left, 20,
                                     NULL, NULL, false, false);
 
         // center alignment — spaces split around shorter tokens
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens = tokens;
-        tmpl.flags  = D_BEHAVIOR_FLAG_TOKEN_ALIGN_CENTER;
-        result_c    = d_text_lineup(&tmpl, buf_center, 0,
+        tmpl.flags  = D_TEXT_LINEUP_FLAG_TOKEN_ALIGN_CENTER;
+        result_c    = d_text_lineup(&tmpl, buf_center, 20,
                                     NULL, NULL, false, false);
 
-        // test 1: right alignment — all actual token text present
+        // test 1: right alignment — each token ends its 3-wide slot
         test_right = result_r &&
-                     D_TL_TEST_BUF_CONTAINS(buf_right, "i")   &&
-                     D_TL_TEST_BUF_CONTAINS(buf_right, "ab")  &&
-                     D_TL_TEST_BUF_CONTAINS(buf_right, "xyz");
+                     D_TL_TEST_BUF_EQUALS(buf_right, "  i abxyz", 9);
 
-        // test 2: left alignment — token text present
+        // test 2: left alignment — each token starts its slot
         test_left = result_l &&
-                    D_TL_TEST_BUF_CONTAINS(buf_left, "i")  &&
-                    D_TL_TEST_BUF_CONTAINS(buf_left, "ab") &&
-                    D_TL_TEST_BUF_CONTAINS(buf_left, "xyz");
+                    D_TL_TEST_BUF_EQUALS(buf_left, "i  ab xyz", 9);
 
-        // test 3: center alignment — token text present
+        // test 3: center alignment — the odd space goes before
         test_center = result_c &&
-                      D_TL_TEST_BUF_CONTAINS(buf_center, "i")   &&
-                      D_TL_TEST_BUF_CONTAINS(buf_center, "ab")  &&
-                      D_TL_TEST_BUF_CONTAINS(buf_center, "xyz");
+                      D_TL_TEST_BUF_EQUALS(buf_center, " i ab xyz", 9);
 
         // test 4: all three produce the same total byte count
         // (alignment only redistributes spaces, not total column space)
         test_same_width = result_r && result_l && result_c &&
-                          (buf_right->pos == buf_left->pos) &&
-                          (buf_right->pos == buf_center->pos);
+                          (buf_right->count == buf_left->count) &&
+                          (buf_right->count == buf_center->count);
 
         // test 5: mixed lengths — padding bytes are actually spaces
         // the space count in the output should be > 0 (padding exists)
         test_mixed = result_r &&
-                     (d_strcount_char(buf_right->buffer,
-                                      buf_right->pos,
+                     (d_strcount_char(buf_right->data,
+                                      buf_right->count,
                                       ' ') > 0);
     }
 
@@ -1231,15 +1223,15 @@ bool d_tests_text_lineup_token_alignment(struct dj_test_suite* _suite)
     D_TEST_CHECK_MSG(_suite,
                      "right",
                      test_right,
-                     "default (right) alignment: tokens present");
+                     "default (right) alignment: padded before");
     D_TEST_CHECK_MSG(_suite,
                      "left",
                      test_left,
-                     "TOKEN_ALIGN_LEFT: tokens present");
+                     "TOKEN_ALIGN_LEFT: padded after");
     D_TEST_CHECK_MSG(_suite,
                      "center",
                      test_center,
-                     "TOKEN_ALIGN_CENTER: tokens present");
+                     "TOKEN_ALIGN_CENTER: padded around");
     D_TEST_CHECK_MSG(_suite,
                      "same_width",
                      test_same_width,
@@ -1259,9 +1251,11 @@ bool d_tests_text_lineup_token_alignment(struct dj_test_suite* _suite)
 
 /*
 d_tests_text_lineup_flags
-  Tests the remaining DBehaviorFlag values.
+  Tests the remaining dj_text_lineup_flag values.
   Tests the following:
-  - RIGHT_ALIGN_LINE_SUFFIX right-aligns the line_suffix column
+  - RIGHT_ALIGN_LINE_SUFFIX with _outdent_suffix pads the line_suffix out
+    to line_width (line_suffix ends each line but the last, so the tokens
+    must wrap)
   - PAD_AFTER_SEPARATOR places padding after the separator
   - ALIGN_SINGLE_ROW applies column alignment even for a single row
   - ALIGN_FIRST_ROW_TO_SLOTS aligns first-row tokens to slot boundaries
@@ -1269,7 +1263,7 @@ d_tests_text_lineup_flags
 */
 bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf;
     struct dj_string_array* tokens;
     bool                   result;
@@ -1281,10 +1275,10 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
 
 #define RESET_BUF(b)                \
     do {                            \
-        (b)->pos = 0;               \
-        if ((b)->buffer)            \
+        (b)->count = 0;             \
+        if ((b)->data)              \
         {                           \
-            (b)->buffer[0] = '\0';  \
+            (b)->data[0] = '\0';    \
         }                           \
     } while (0)
 
@@ -1311,24 +1305,27 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
     {
         char line_suffix[] = "|";
 
-        // test 1: RIGHT_ALIGN_LINE_SUFFIX — output contains "|" and spaces
+        // test 1: RIGHT_ALIGN_LINE_SUFFIX — width 8 holds three 2-char
+        // tokens and the "|"; the suffix is padded out to column 8
         RESET_BUF(buf);
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = tokens;
         tmpl.line_suffix = line_suffix;
-        tmpl.flags       = D_BEHAVIOR_FLAG_RIGHT_ALIGN_LINE_SUFFIX;
+        tmpl.flags       = D_TEXT_LINEUP_FLAG_RIGHT_ALIGN_LINE_SUFFIX;
 
-        result                  = d_text_lineup(&tmpl, buf, 30,
-                                                NULL, NULL, false, false);
+        result                  = d_text_lineup(&tmpl, buf, 8,
+                                                NULL, NULL, false, true);
         test_right_align_suffix = result &&
-                                  D_TL_TEST_BUF_CONTAINS(buf, "|");
+                                  D_TL_TEST_BUF_EQUALS(buf,
+                                                       "aabbcc |\nddeeff",
+                                                       15);
 
         // test 2: PAD_AFTER_SEPARATOR — succeeds without crashing
         RESET_BUF(buf);
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens    = tokens;
         tmpl.separator = ", ";
-        tmpl.flags     = D_BEHAVIOR_FLAG_PAD_AFTER_SEPARATOR;
+        tmpl.flags     = D_TEXT_LINEUP_FLAG_PAD_AFTER_SEPARATOR;
 
         result             = d_text_lineup(&tmpl, buf, 30,
                                            NULL, NULL, false, false);
@@ -1344,7 +1341,7 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
             d_string_array_append(tokens, "only");
             d_memset(&tmpl, 0, sizeof(tmpl));
             tmpl.tokens = tokens;
-            tmpl.flags  = D_BEHAVIOR_FLAG_ALIGN_SINGLE_ROW;
+            tmpl.flags  = D_TEXT_LINEUP_FLAG_ALIGN_SINGLE_ROW;
 
             result                = d_text_lineup(&tmpl, buf, 40,
                                                   NULL, NULL, false, false);
@@ -1355,11 +1352,7 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
         }
 
         // test 4: ALIGN_FIRST_ROW_TO_SLOTS — succeeds and contains tokens
-        buf->pos = 0;
-        if (buf->buffer)
-        {
-            buf->buffer[0] = '\0';
-        }
+        d_text_buffer_clear(buf);
 
         tokens = d_string_array_new(4);
 
@@ -1372,7 +1365,7 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
             d_memset(&tmpl, 0, sizeof(tmpl));
             tmpl.tokens    = tokens;
             tmpl.separator = " ";
-            tmpl.flags     = D_BEHAVIOR_FLAG_ALIGN_FIRST_ROW_TO_SLOTS;
+            tmpl.flags     = D_TEXT_LINEUP_FLAG_ALIGN_FIRST_ROW_TO_SLOTS;
 
             result               = d_text_lineup(&tmpl, buf, 40,
                                                  "  ", NULL, false, false);
@@ -1392,7 +1385,7 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
 
             d_memset(&tmpl, 0, sizeof(tmpl));
             tmpl.tokens = tokens;
-            tmpl.flags  = D_BEHAVIOR_FLAG_ALLOW_OVERSIZE_SUFFIX;
+            tmpl.flags  = D_TEXT_LINEUP_FLAG_ALLOW_OVERSIZE_SUFFIX;
 
             result = d_text_lineup(
                 &tmpl, buf, 10,
@@ -1414,7 +1407,7 @@ bool d_tests_text_lineup_flags(struct dj_test_suite* _suite)
     D_TEST_CHECK_MSG(_suite,
                      "right_align_suffix",
                      test_right_align_suffix,
-                     "RIGHT_ALIGN_LINE_SUFFIX: suffix present");
+                     "RIGHT_ALIGN_LINE_SUFFIX: suffix at the width");
     D_TEST_CHECK_MSG(_suite,
                      "pad_after_sep",
                      test_pad_after_sep,
@@ -1448,11 +1441,13 @@ d_tests_text_lineup_min_token_width
   - output is wider (more spaces) than without min_token_width
   - min_token_width equal to max token length has no visible effect
   - min_token_width of 0 uses natural token width
+  A line width is given: min_token_width sizes the slots of a wrapped
+  lineup; at width 0 the tokens are joined as they are.
   - all tokens still present with min_token_width set
 */
 bool d_tests_text_lineup_min_token_width(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf_narrow;
     struct dj_text_buffer*  buf_wide;
     struct dj_string_array* tokens;
@@ -1487,32 +1482,32 @@ bool d_tests_text_lineup_min_token_width(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens          = tokens;
         tmpl.min_token_width = 0;
-        result_n             = d_text_lineup(&tmpl, buf_narrow, 0,
+        result_n             = d_text_lineup(&tmpl, buf_narrow, 40,
                                              NULL, NULL, false, false);
 
         // run with min_token_width == 5 (wider than "a", "b", "c")
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens          = tokens;
         tmpl.min_token_width = 5;
-        result_w             = d_text_lineup(&tmpl, buf_wide, 0,
+        result_w             = d_text_lineup(&tmpl, buf_wide, 40,
                                              NULL, NULL, false, false);
 
         // test 1: min_token_width forces output to be wider
         test_wider = result_n && result_w &&
-                     (buf_wide->pos > buf_narrow->pos);
+                     (buf_wide->count > buf_narrow->count);
 
         // test 2: min_token_width == max token len → same as no override
         // (both "xyz" runs use the same natural width)
-        buf_narrow->pos = 0;
-        if (buf_narrow->buffer)
+        buf_narrow->count = 0;
+        if (buf_narrow->data)
         {
-            buf_narrow->buffer[0] = '\0';
+            buf_narrow->data[0] = '\0';
         }
 
-        buf_wide->pos = 0;
-        if (buf_wide->buffer)
+        buf_wide->count = 0;
+        if (buf_wide->data)
         {
-            buf_wide->buffer[0] = '\0';
+            buf_wide->data[0] = '\0';
         }
 
         d_string_array_free(tokens);
@@ -1525,16 +1520,16 @@ bool d_tests_text_lineup_min_token_width(struct dj_test_suite* _suite)
             d_memset(&tmpl, 0, sizeof(tmpl));
             tmpl.tokens          = tokens;
             tmpl.min_token_width = 0;
-            d_text_lineup(&tmpl, buf_narrow, 0,
+            d_text_lineup(&tmpl, buf_narrow, 40,
                           NULL, NULL, false, false);
 
             d_memset(&tmpl, 0, sizeof(tmpl));
             tmpl.tokens          = tokens;
             tmpl.min_token_width = 3;  // == strlen("xyz")
-            d_text_lineup(&tmpl, buf_wide, 0,
+            d_text_lineup(&tmpl, buf_wide, 40,
                           NULL, NULL, false, false);
 
-            test_equal = (buf_narrow->pos == buf_wide->pos);
+            test_equal = (buf_narrow->count == buf_wide->count);
 
             // test 3: min_token_width == 0 uses natural width
             test_zero = D_TL_TEST_BUF_EQUALS(buf_narrow, "xyz", 3);
@@ -1582,14 +1577,17 @@ d_tests_text_lineup_indent_outdent
   Tests the following:
   - _indent_prefix true: line_prefix precedes the first-line prefix
   - _indent_prefix false: first line starts with prefix only
-  - _outdent_suffix true: line_suffix follows the global suffix on last line
-  - _outdent_suffix false: last line does not have line_suffix after suffix
+  - _outdent_suffix true: a right-aligned line_suffix is padded out to
+    line_width on each line but the last
+  - _outdent_suffix false: the line_suffix follows the tokens
+  (either way the last line ends with the suffix; the line_suffix follows
+  it there only under LINE_SUFFIX_AFTER_SUFFIX)
   - both flags false produces correct output without crashes
   - both flags true produces correct output without crashes
 */
 bool d_tests_text_lineup_indent_outdent(struct dj_test_suite* _suite)
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
     struct dj_text_buffer*  buf_a;
     struct dj_text_buffer*  buf_b;
     struct dj_string_array* tokens;
@@ -1632,7 +1630,7 @@ bool d_tests_text_lineup_indent_outdent(struct dj_test_suite* _suite)
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = tokens;
         tmpl.line_prefix = line_prefix;
-        tmpl.flags       = D_BEHAVIOR_FLAG_LINE_PREFIX_ALL_LINES;
+        tmpl.flags       = D_TEXT_LINEUP_FLAG_LINE_PREFIX_ALL_LINES;
 
         // _indent_prefix = true → line_prefix before first-line prefix
         result_a = d_text_lineup(&tmpl, buf_a, 20,
@@ -1648,46 +1646,50 @@ bool d_tests_text_lineup_indent_outdent(struct dj_test_suite* _suite)
                             D_TL_TEST_STARTS_WITH(buf_b, ">", 1);
 
         // test 3 & 4: _outdent_suffix true vs false
-        buf_a->pos = 0;
-        if (buf_a->buffer)
+        buf_a->count = 0;
+        if (buf_a->data)
         {
-            buf_a->buffer[0] = '\0';
+            buf_a->data[0] = '\0';
         }
 
-        buf_b->pos = 0;
-        if (buf_b->buffer)
+        buf_b->count = 0;
+        if (buf_b->data)
         {
-            buf_b->buffer[0] = '\0';
+            buf_b->data[0] = '\0';
         }
 
         d_memset(&tmpl, 0, sizeof(tmpl));
         tmpl.tokens      = tokens;
         tmpl.line_suffix = line_suffix;
-        tmpl.flags       = D_BEHAVIOR_FLAG_LINE_SUFFIX_ALL_LINES |
-                           D_BEHAVIOR_FLAG_RIGHT_ALIGN_LINE_SUFFIX;
+        tmpl.flags       = D_TEXT_LINEUP_FLAG_RIGHT_ALIGN_LINE_SUFFIX;
+
+        // width 12 holds three 3-char tokens and " \\" on the first line
 
         // _outdent_suffix = true
-        result_a = d_text_lineup(&tmpl, buf_a, 20,
+        result_a = d_text_lineup(&tmpl, buf_a, 12,
                                  NULL, "END", false, true);
 
         // _outdent_suffix = false
-        result_b = d_text_lineup(&tmpl, buf_b, 20,
+        result_b = d_text_lineup(&tmpl, buf_b, 12,
                                  NULL, "END", false, false);
 
-        // with _outdent_suffix true the last line still gets line_suffix
+        // with _outdent_suffix true the line_suffix ends at column 12
         test_outdent_true  = result_a &&
-                             D_TL_TEST_BUF_CONTAINS(buf_a, "END") &&
-                             D_TL_TEST_BUF_CONTAINS(buf_a, " \\");
+                             D_TL_TEST_BUF_EQUALS(buf_a,
+                                                  "aaabbbccc  \\\ndddeeeEND",
+                                                  22);
 
-        // with _outdent_suffix false the last line gets suffix only
+        // with _outdent_suffix false it follows the tokens
         test_outdent_false = result_b &&
-                             D_TL_TEST_BUF_CONTAINS(buf_b, "END");
+                             D_TL_TEST_BUF_EQUALS(buf_b,
+                                                  "aaabbbccc \\\ndddeeeEND",
+                                                  21);
 
         // test 5: both false → valid output
-        buf_a->pos = 0;
-        if (buf_a->buffer)
+        buf_a->count = 0;
+        if (buf_a->data)
         {
-            buf_a->buffer[0] = '\0';
+            buf_a->data[0] = '\0';
         }
 
         d_memset(&tmpl, 0, sizeof(tmpl));
@@ -1698,10 +1700,10 @@ bool d_tests_text_lineup_indent_outdent(struct dj_test_suite* _suite)
                           D_TL_TEST_BUF_CONTAINS(buf_a, "aaa");
 
         // test 6: both true → valid output
-        buf_b->pos = 0;
-        if (buf_b->buffer)
+        buf_b->count = 0;
+        if (buf_b->data)
         {
-            buf_b->buffer[0] = '\0';
+            buf_b->data[0] = '\0';
         }
 
         d_memset(&tmpl, 0, sizeof(tmpl));
@@ -1732,11 +1734,11 @@ bool d_tests_text_lineup_indent_outdent(struct dj_test_suite* _suite)
     D_TEST_CHECK_MSG(_suite,
                      "outdent_true",
                      test_outdent_true,
-                     "_outdent_suffix true: line_suffix on last");
+                     "_outdent_suffix true: line_suffix at width");
     D_TEST_CHECK_MSG(_suite,
                      "outdent_false",
                      test_outdent_false,
-                     "_outdent_suffix false: suffix only on last");
+                     "_outdent_suffix false: after the tokens");
     D_TEST_CHECK_MSG(_suite,
                      "both_false",
                      test_both_false,

@@ -5,15 +5,16 @@
 * path:      /tests/djinterp/cpp/text/test_output_harness.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // T4 verification harness — test_output (report -> multi-format bundle -> write).
 //
 // Compiles the REAL test_output.hpp against the REAL document_bundle /
-// output_packaging and stub engines (pdf_template / document<_Policy>) + a stub
-// test_document whose render_run_flow / render_run_tree emit recognizable
-// markers and count their invocations.  The real engines plug in unchanged at
-// the same named call sites; what is proven here is test_output's own logic:
+// output_packaging and stub engines (pdf_template / document<_Policy>) +
+// a stub test_document whose render_run_flow / render_run_tree emit
+// recognizable markers and count their invocations.  The real engines plug
+// in unchanged at the same named call sites; what is proven here is
+// test_output's own logic:
 //
 //   * format_extension maps every format to its document extension;
 //   * per-format dispatch: pdf + text/markdown take the FLOW skeleton, xml +

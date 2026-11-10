@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/text/text_template_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_TEXT_TEMPLATE_TESTS_STANDALONE_
@@ -18,7 +18,8 @@
 
 // djinterp
 #include "../../../../inc/djinterp/c/text/text_template.h"
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 
 /******************************************************************************

@@ -5,11 +5,12 @@
 * path:      /tests/djinterp/c/text/text_lineup_tests_string_array.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./text_lineup_tests.h"
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 
 /******************************************************************************
@@ -382,7 +383,8 @@ d_tests_text_lineup_string_array_generate_series
   - step == 0 returns NULL
   - inverted range (start > end with positive step) returns NULL
 */
-bool d_tests_text_lineup_string_array_generate_series(struct dj_test_suite* _suite)
+bool d_tests_text_lineup_string_array_generate_series(
+    struct dj_test_suite* _suite)
 {
     struct dj_string_array* arr;
     bool                   test_count;
@@ -563,7 +565,8 @@ d_tests_text_lineup_string_array_generate_series_capacity
   - additional_capacity of 0 behaves identically to generate_series
   - step == 0 still returns NULL
 */
-bool d_tests_text_lineup_string_array_generate_series_capacity(struct dj_test_suite* _suite)
+bool d_tests_text_lineup_string_array_generate_series_capacity(
+    struct dj_test_suite* _suite)
 {
     struct dj_string_array* arr;
     struct dj_string_array* arr_ref;

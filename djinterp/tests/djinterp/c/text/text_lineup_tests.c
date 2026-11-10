@@ -5,11 +5,12 @@
 * path:      /tests/djinterp/c/text/text_lineup_tests.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./text_lineup_tests.h"
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 
 /******************************************************************************
@@ -122,11 +123,11 @@ Parameter(s):
   _line_prefix:     per-line prefix string, or NULL.
   _line_suffix:     per-line suffix string, or NULL.
   _min_token_width: minimum column width applied to every token slot.
-  _flags:           bitmask of DBehaviorFlag values.
+  _flags:           bitmask of dj_text_lineup_flag values.
 Return:
-  A fully initialised dj_text_template value.
+  A fully initialised dj_text_lineup_template value.
 */
-struct dj_text_template d_tests_text_lineup_make_template(
+struct dj_text_lineup_template d_tests_text_lineup_make_template(
     struct dj_string_array* _tokens,
     const char*             _separator,
     bool                    _sep_before,
@@ -137,7 +138,7 @@ struct dj_text_template d_tests_text_lineup_make_template(
     uint32_t                _flags
 )
 {
-    struct dj_text_template tmpl;
+    struct dj_text_lineup_template tmpl;
 
     tmpl.tokens           = _tokens;
     tmpl.separator        = (char*)_separator;
@@ -160,7 +161,6 @@ struct dj_text_template d_tests_text_lineup_make_template(
 d_tests_text_lineup_run_all
   Master test runner for all text_lineup module tests.
   Tests the following:
-  - dj_text_buffer operations (Section I)
   - dj_string_array operations (Section II)
   - d_text_lineup formatting (Section III)
 */
@@ -182,7 +182,6 @@ bool d_tests_text_lineup_run_all(struct dj_test_suite* _suite)
     d_test_suite_block(_suite, "text_lineup Module Tests");
 
     // run all sections
-    d_tests_text_lineup_text_buffer_all(_suite);
     d_tests_text_lineup_string_array_all(_suite);
     d_tests_text_lineup_lineup_all(_suite);
 

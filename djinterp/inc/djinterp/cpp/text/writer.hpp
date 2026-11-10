@@ -28,7 +28,7 @@
 *   SINKS:
 *   A sink is any callable `(const char*, std::size_t)`. `string_sink`
 *   appends into a std::string; `stream_sink` writes into a std::ostream;
-*   `output_stream_sink` writes into any output stream (cpp/util/output): the
+*   `DOutputStreamSink` (cpp/util/output) writes into any output stream: the
 *   console, a file, a dj_string, a caller's array, several at once; a user
 *   lambda or a functional-style consumer works directly. File, console,
 *   string, and buffer destinations are all just different sinks.
@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/text/writer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -64,7 +64,6 @@ TABLE OF CONTENTS
     1.  Sinks over a stream
          1.  string_sink
          2.  stream_sink
-         3.  output_stream_sink
 2.  PRINTER FUNCTOR
     ---------------
     1.  Transforms (internal)
@@ -221,13 +220,6 @@ public:
 private:
     DOutputStream m_stream;
 };
-
-// 1.1.3
-// output_stream_sink
-//   type: a sink over the caller's own output stream, which must outlive it:
-// any destination a DOutputStream reaches. Copyable; it borrows the stream,
-// which keeps the failure (DOutputStreamSink, cpp/util/output).
-typedef DOutputStreamSink output_stream_sink;
 
 
 //==============================================================================
@@ -666,25 +658,25 @@ D_NODISCARD writer<stream_sink, Printer> stream_writer(
 // output_writer
 //   function: a writer bound to the caller's output stream -- the console, a
 // file, a dj_string, a caller's array, several at once. The returned writer
-// holds an `output_stream_sink`; the stream must outlive it, and keeps any
+// holds a `DOutputStreamSink`; the stream must outlive it, and keeps any
 // failure.
 template<typename Printer = printer<internal::to_string_fn>>
-D_NODISCARD writer<output_stream_sink, Printer>
+D_NODISCARD writer<DOutputStreamSink, Printer>
 output_writer(
     DOutputStream& _stream
 )
 {
-    return writer<output_stream_sink, Printer>(output_stream_sink(_stream));
+    return writer<DOutputStreamSink, Printer>(DOutputStreamSink(_stream));
 }
 
 template<typename Printer>
-D_NODISCARD writer<output_stream_sink, Printer> output_writer(
+D_NODISCARD writer<DOutputStreamSink, Printer> output_writer(
     DOutputStream& _stream,
     Printer        _printer
 )
 {
-    return writer<output_stream_sink, Printer>(
-        output_stream_sink(_stream), static_cast<Printer&&>(_printer));
+    return writer<DOutputStreamSink, Printer>(
+        DOutputStreamSink(_stream), static_cast<Printer&&>(_printer));
 }
 
 

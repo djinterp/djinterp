@@ -5,11 +5,12 @@
 * path:      /tests/djinterp/c/text/text_template_tests_utility.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./text_template_tests.h"
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 
 /******************************************************************************
@@ -69,18 +70,30 @@ bool d_tests_text_template_error_string(struct dj_test_suite* _suite)
 
     // gather all error strings
     s_success     = d_text_template_error_string(D_TEXT_TEMPLATE_SUCCESS);
-    s_null        = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_NULL_PARAM);
-    s_buffer      = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_BUFFER_TOO_SMALL);
-    s_key         = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_KEY_NOT_FOUND);
-    s_nest        = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_NESTING_TOO_DEEP);
-    s_alloc       = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED);
-    s_marker      = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_INVALID_MARKER);
-    s_interp      = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_INTERP_FAILED);
-    s_cycle       = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_CYCLE_DETECTED);
-    s_func        = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_FUNCTION_FAILED);
-    s_list_cb     = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_LIST_CALLBACK_FAILED);
-    s_list_render = d_text_template_error_string(D_TEXT_TEMPLATE_ERROR_LIST_ITEM_RENDER_FAILED);
-    s_unknown     = d_text_template_error_string((enum dj_text_template_error)999);
+    s_null        = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_NULL_PARAM);
+    s_buffer      = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_BUFFER_TOO_SMALL);
+    s_key         = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_KEY_NOT_FOUND);
+    s_nest        = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_NESTING_TOO_DEEP);
+    s_alloc       = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED);
+    s_marker      = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_INVALID_MARKER);
+    s_interp      = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_INTERP_FAILED);
+    s_cycle       = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_CYCLE_DETECTED);
+    s_func        = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_FUNCTION_FAILED);
+    s_list_cb     = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_LIST_CALLBACK_FAILED);
+    s_list_render = d_text_template_error_string(
+                        D_TEXT_TEMPLATE_ERROR_LIST_ITEM_RENDER_FAILED);
+    s_unknown     = d_text_template_error_string(
+                        (enum dj_text_template_error)999);
 
     // test 1: all non-NULL
     test_all_non_null = ( (s_success     != NULL) &&

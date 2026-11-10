@@ -5,7 +5,7 @@
 * (stream 1, step 6): a sink returns nothing, so a failed write is kept by
 * the stream it writes through, and ok() -- the sink's, the writer's, the
 * file printer's -- says so. string_sink and stream_sink write as they did;
-* a std::ostream gone bad, or one that throws, ends the sink; output_stream_sink
+* a std::ostream gone bad, or one that throws, ends the sink; DOutputStreamSink
 * writes into any output stream; file_printer reports a file that would not
 * open, and print_document_to_file returns whether the document reached the
 * file; a document's to_stream and to_file (cpp/util/document) return the
@@ -129,7 +129,7 @@ d_tests_writer_sinks
   - stream_sink over a std::ostream that refuses bytes is not ok after a
     write, and stays not ok; one that throws on badbit is the same, and
     nothing is thrown through the sink
-  - output_stream_sink writes into a caller's stream, and its ok() is the
+  - DOutputStreamSink writes into a caller's stream, and its ok() is the
     stream's
 */
 static void d_tests_writer_sinks()
@@ -187,7 +187,7 @@ static void d_tests_writer_sinks()
 
     D_TESTS_WRITER_CHECK(stream.attach_fixed(buffer, sizeof(buffer)));
 
-    djinterp::output_stream_sink to_stream(stream);
+    djinterp::DOutputStreamSink to_stream(stream);
 
     to_stream("fixed", 5);
     D_TESTS_WRITER_CHECK(to_stream.ok());

@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/cpp/util/document/document.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -188,8 +188,8 @@ public:
         DOutputStream& _stream
     ) const
     {
-        document_printer<output_stream_sink, Policy> _printer(
-            output_stream_sink(_stream), m_options, m_policy);
+        document_printer<DOutputStreamSink, Policy> _printer(
+            DOutputStreamSink(_stream), m_options, m_policy);
         _printer.print(m_writer.document());
 
         return _stream.is_valid();

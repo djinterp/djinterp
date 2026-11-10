@@ -25,7 +25,7 @@
 *   The sink is a template parameter whose only requirement is to be
 * callable as `sink(const char*, std::size_t)`. writer.hpp provides three
 * -- `string_sink` (append into an `xml_string_t`), `stream_sink` (write
-* into a `std::ostream`) and `output_stream_sink` (write into any output
+* into a `std::ostream`) and `DOutputStreamSink` (write into any output
 * stream) -- so file, console, string, and in-memory buffer destinations are
 * all just different sinks, not different printers. Any callable with that
 * signature (including a functional-style consumer) works directly.
@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/text/printer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -112,7 +112,7 @@ VII.  FILE PRINTER
 // djinterp
 #include "../djinterp.hpp"                   // framework root
 #include "./writer.hpp"                      // the sinks: string_sink,
-                                             // stream_sink, output_stream_sink
+                                             // stream_sink, DOutputStreamSink
 #include "./xml/xml.hpp"                     // node protocol traits,
                                              // xml_node_kind
 #include "../util/output/output_stream.hpp"  // DOutputStream: file_printer
@@ -155,7 +155,7 @@ struct print_options
 ///                  II.   OUTPUT SINKS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-//   The output sinks (`string_sink`, `stream_sink`, `output_stream_sink`) live
+//   The output sinks (`string_sink`, `stream_sink`, `DOutputStreamSink`) live
 // in `writer.hpp` -- the generic IO foundation this header includes -- because
 // a sink is an IO concept, not a printing-a-document concept. They remain in
 // the `djinterp` namespace, so existing references (e.g. in `node_to_string`
@@ -1074,8 +1074,8 @@ public:
         print_options _options = print_options()
     )
     {
-        document_printer<output_stream_sink> _printer(
-            output_stream_sink(m_stream),
+        document_printer<DOutputStreamSink> _printer(
+            DOutputStreamSink(m_stream),
             static_cast<print_options&&>(_options));
         _printer.print(_node);
 

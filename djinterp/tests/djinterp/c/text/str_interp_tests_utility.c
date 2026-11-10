@@ -5,11 +5,12 @@
 * path:      /tests/djinterp/c/text/str_interp_tests_utility.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./str_interp_tests.h"
-#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's C face
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest's
+                                                                // C face
 
 
 /******************************************************************************
@@ -52,10 +53,14 @@ bool d_tests_str_interp_error_string(struct dj_test_suite* _suite)
     // gather all error strings
     s_success   = d_str_interp_error_string(D_STR_INTERP_SUCCESS);
     s_null      = d_str_interp_error_string(D_STR_INTERP_ERROR_NULL_PARAM);
-    s_buffer    = d_str_interp_error_string(D_STR_INTERP_ERROR_BUFFER_TOO_SMALL);
-    s_not_found = d_str_interp_error_string(D_STR_INTERP_ERROR_SPECIFIER_NOT_FOUND);
-    s_too_many  = d_str_interp_error_string(D_STR_INTERP_ERROR_TOO_MANY_SPECIFIERS);
-    s_alloc     = d_str_interp_error_string(D_STR_INTERP_ERROR_ALLOCATION_FAILED);
+    s_buffer    = d_str_interp_error_string(
+                      D_STR_INTERP_ERROR_BUFFER_TOO_SMALL);
+    s_not_found = d_str_interp_error_string(
+                      D_STR_INTERP_ERROR_SPECIFIER_NOT_FOUND);
+    s_too_many  = d_str_interp_error_string(
+                      D_STR_INTERP_ERROR_TOO_MANY_SPECIFIERS);
+    s_alloc     = d_str_interp_error_string(
+                      D_STR_INTERP_ERROR_ALLOCATION_FAILED);
     s_unknown   = d_str_interp_error_string((enum dj_str_interp_error)999);
 
     // test 1: all non-NULL
