@@ -155,7 +155,7 @@ concept doctype_aware_document =
 
 
 // versioned_html_document
-//   concept: HTML document with an html_version accessor.
+//   concept: HTML document with an DHtmlVersion accessor.
 template<typename _Type>
 concept versioned_html_document =
        ( html_document_type<_Type> )
@@ -211,7 +211,7 @@ concept full_html_document =
 ///////////////////////////////////////////////////////////////////////////////
 
 // html_backend_type
-//   concept: satisfied by any type tagged with `html_backend_tag`
+//   concept: satisfied by any type tagged with `DHtmlBackendTag`
 // (i.e. any type for which `is_html_backend<T>::value` is true).
 template<typename _Type>
 concept html_backend_type =
@@ -221,7 +221,7 @@ concept html_backend_type =
 // complete_html_backend
 //   concept: an HTML backend that additionally exposes the full
 // nested-type-alias protocol AND a make_html_document factory.
-// Code that needs to instantiate `html_document<_Backend>` from
+// Code that needs to instantiate `DHtmlDocument<_Backend>` from
 // scratch should constrain on this concept.
 template<typename _Type>
 concept complete_html_backend =

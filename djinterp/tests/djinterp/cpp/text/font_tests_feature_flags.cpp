@@ -23,7 +23,7 @@ tests_ff_none_is_zero
   The empty feature set.
   Tests the following:
   - ff_none is exactly 0
-  - a font<ff_none> therefore enables no mixin
+  - a DFont<ff_none> therefore enables no mixin
 */
 bool tests_ff_none_is_zero()
 {
@@ -110,7 +110,7 @@ bool tests_ff_flags_are_distinct_powers_of_two()
 /*
 tests_ff_underlying_type_is_unsigned
   DFontFeat is declared `: unsigned`, which is what lets a raw OR of the
-enumerators be handed straight to font<>'s `unsigned _Feat` parameter.
+enumerators be handed straight to DFont<>'s `unsigned _Feat` parameter.
   Tests the following:
   - std::underlying_type_t<DFontFeat> is unsigned
   - DFontFeat is an enum, and an UNSCOPED one (it converts implicitly)
@@ -377,15 +377,15 @@ two names are interchangeable.  If a future flag is added to ff_all but not
 to ff_gui_rich, this test is the one that notices.
   Tests the following:
   - ff_all and ff_gui_rich are bit-identical
-  - font<ff_all> and font<ff_gui_rich> are therefore the same type
+  - DFont<ff_all> and DFont<ff_gui_rich> are therefore the same type
 */
 bool tests_ff_all_equals_gui_rich()
 {
     D_FT_CHECK(static_cast<unsigned>(ff_all) ==
                static_cast<unsigned>(ff_gui_rich));
 
-    D_FT_CHECK((std::is_same<font<ff_all,      probe_color>,
-                             font<ff_gui_rich, probe_color>>::value));
+    D_FT_CHECK((std::is_same<DFont<ff_all,     probe_color>,
+                             DFont<ff_gui_rich, probe_color>>::value));
 
     return true;
 }
@@ -421,7 +421,7 @@ bool tests_operator_or_combines_bits()
 /*
 tests_operator_or_yields_unsigned
   The overload returns `unsigned`, not DFontFeat - which is exactly why the
-result can be handed to font<>'s `unsigned _Feat` parameter with no cast at
+result can be handed to DFont<>'s `unsigned _Feat` parameter with no cast at
 the call site.
   Tests the following:
   - decltype(ff_a | ff_b) is unsigned
@@ -437,7 +437,7 @@ bool tests_operator_or_yields_unsigned()
                              unsigned>::value));
 
     // the whole point: it drops straight into the template parameter
-    using combined = font<ff_underline | ff_overline, probe_color>;
+    using combined = DFont<ff_underline | ff_overline, probe_color>;
 
     D_FT_CHECK(combined::has_underline);
     D_FT_CHECK(combined::has_overline);
@@ -615,7 +615,7 @@ bool tests_has_ff_on_aggregates()
 
 /*
 tests_has_ff_is_constexpr_and_noexcept
-  has_ff must fold at compile time - font<> calls it seventeen times in its
+  has_ff must fold at compile time - DFont<> calls it seventeen times in its
 own base-class list and again for every static has_* constant.
   Tests the following:
   - has_ff is usable in a static_assert

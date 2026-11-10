@@ -115,10 +115,10 @@ NS_DJINTERP
 namespace less {
 
 
-// less_string_t
+// DLessString
 //   type: alias for the string type used throughout the less
 // module.
-using less_string_t = ::djinterp::css::css_string_t;
+using DLessString = ::djinterp::css::DCssString;
 
 
 // D_LESS_VARIABLE_PREFIX
@@ -149,9 +149,9 @@ using less_string_t = ::djinterp::css::css_string_t;
 ///                II.   LESS DIALECT ENUM                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_dialect
+// DLessDialect
 //   enum: identifies the implementation / spec target.
-enum class less_dialect : re_std::uint8_t
+enum class DLessDialect : re_std::uint8_t
 {
     less_js,            // less.js (canonical implementation)
     less_node,          // less-node CLI (same engine, different host)
@@ -166,12 +166,12 @@ enum class less_dialect : re_std::uint8_t
 ///                III.   LESS RULE KIND ENUM                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_rule_kind
+// DLessRuleKind
 //   enum: discriminator for Less-specific rule kinds. The
 // standard CSS rule kinds remain reachable through the
 // inherited CSS layer; this enum captures the additions Less
 // introduces.
-enum class less_rule_kind : re_std::uint8_t
+enum class DLessRuleKind : re_std::uint8_t
 {
     // declarations
     variable_declaration,       // @name: value;
@@ -220,11 +220,11 @@ enum class less_rule_kind : re_std::uint8_t
 ///                IV.   LESS AT-RULE KIND ENUM                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_at_rule_kind
-//   enum: refines `css::css_at_rule_kind` with Less-specific
+// DLessAtRuleKind
+//   enum: refines `css::DCssAtRuleKind` with Less-specific
 // at-keywords. Less reuses CSS at-rules unchanged, so the
 // additions are limited.
-enum class less_at_rule_kind : re_std::uint8_t
+enum class DLessAtRuleKind : re_std::uint8_t
 {
     import_,                    // @import (with Less filter options)
     plugin,                     // @plugin (Less plugin import)
@@ -238,10 +238,10 @@ enum class less_at_rule_kind : re_std::uint8_t
 ///                V.   IMPORT OPTIONS / MERGE MODE                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_import_option
+// DLessImportOption
 //   enum: bitmask of options applicable to `@import` in Less.
 // Multiple flags may be combined.
-enum less_import_option : unsigned
+enum DLessImportOption : unsigned
 {
     lio_none      = 0u,
     lio_reference = 1u << 0,    // (reference) -- import without emit
@@ -254,11 +254,11 @@ enum less_import_option : unsigned
 };
 
 
-// less_merge_mode
+// DLessMergeMode
 //   enum: how a Less declaration carrying `+` or `+_` should
 // be merged with previously-encountered declarations sharing
 // the same property name.
-enum class less_merge_mode : re_std::uint8_t
+enum class DLessMergeMode : re_std::uint8_t
 {
     none,                       // no merge (default)
     comma,                      // `prop+: ...` -- comma-merge
@@ -270,10 +270,10 @@ enum class less_merge_mode : re_std::uint8_t
 ///                VI.   RULE CATEGORY CLASSIFICATION                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_rule_category
+// DLessRuleCategory
 //   enum: bitmask describing the categorical properties of a
 // Less rule kind. Backed by `unsigned`.
-enum less_rule_category : unsigned
+enum DLessRuleCategory : unsigned
 {
     lrc_none           = 0u,
     lrc_declaration    = 1u <<  0,  // declares a variable / mixin
@@ -295,10 +295,10 @@ enum less_rule_category : unsigned
 // kind.
 D_CONSTEXPR_INLINE
 unsigned less_category_for_rule_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
-    using K = less_rule_kind;
+    using K = DLessRuleKind;
     return (_k == K::variable_declaration)          ? (lrc_declaration)
          : (_k == K::property_variable)             ? (lrc_property_ref)
 
@@ -339,7 +339,7 @@ unsigned less_category_for_rule_kind(
 // call, parametric).
 D_CONSTEXPR_INLINE
 bool is_less_mixin_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
     return ((less_category_for_rule_kind(_k) & lrc_mixin) != 0u);
@@ -350,7 +350,7 @@ bool is_less_mixin_kind(
 //   function: true if the rule is an extension statement.
 D_CONSTEXPR_INLINE
 bool is_less_extension_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
     return ((less_category_for_rule_kind(_k) & lrc_extension) != 0u);
@@ -361,7 +361,7 @@ bool is_less_extension_kind(
 //   function: true if the rule carries a `when` guard.
 D_CONSTEXPR_INLINE
 bool is_less_guarded_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
     return ((less_category_for_rule_kind(_k) & lrc_guard) != 0u);
@@ -372,7 +372,7 @@ bool is_less_guarded_kind(
 //   function: true if the rule is namespace-related.
 D_CONSTEXPR_INLINE
 bool is_less_namespace_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
     return ((less_category_for_rule_kind(_k) & lrc_namespace) != 0u);
@@ -383,7 +383,7 @@ bool is_less_namespace_kind(
 //   function: true if the rule is @import or @plugin.
 D_CONSTEXPR_INLINE
 bool is_less_import_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
     return ((less_category_for_rule_kind(_k) & lrc_import) != 0u);
@@ -394,7 +394,7 @@ bool is_less_import_kind(
 //   function: true if the rule hosts nested rules.
 D_CONSTEXPR_INLINE
 bool is_less_grouping_kind(
-    less_rule_kind _k
+    DLessRuleKind _k
 )
 {
     return ((less_category_for_rule_kind(_k) & lrc_grouping) != 0u);
@@ -556,13 +556,13 @@ bool less_internal_streq(
 
 
 // less_at_rule_kind_from_name
-//   function: maps an at-keyword to its `less_at_rule_kind`.
+//   function: maps an at-keyword to its `DLessAtRuleKind`.
 D_CONSTEXPR_INLINE
-less_at_rule_kind less_at_rule_kind_from_name(
+DLessAtRuleKind less_at_rule_kind_from_name(
     const char* _name
 )
 {
-    using K = less_at_rule_kind;
+    using K = DLessAtRuleKind;
     return (!_name)                                                 ? K::unknown
          : (less_internal_streq(_name, at_keywords::import_))       ? K::import_
          : (less_internal_streq(_name, at_keywords::plugin))        ? K::plugin
@@ -572,14 +572,14 @@ less_at_rule_kind less_at_rule_kind_from_name(
 
 
 // name_from_less_at_rule_kind
-//   function: maps a `less_at_rule_kind` to its at-keyword
+//   function: maps a `DLessAtRuleKind` to its at-keyword
 // string.
 D_CONSTEXPR_INLINE
 const char* name_from_less_at_rule_kind(
-    less_at_rule_kind _k
+    DLessAtRuleKind _k
 )
 {
-    using K = less_at_rule_kind;
+    using K = DLessAtRuleKind;
     return (_k == K::import_) ? at_keywords::import_
          : (_k == K::plugin)  ? at_keywords::plugin
          : (_k == K::options) ? at_keywords::options
@@ -633,25 +633,25 @@ bool is_less_mixin_selector(
 ///                X.   BACKEND TAG DISPATCH                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_backend_tag
+// DLessBackendTag
 //   struct: empty base tag for all Less backend tag types.
-struct less_backend_tag
+struct DLessBackendTag
 {};
 
-// less_default_backend_tag
-struct less_default_backend_tag : less_backend_tag
+// DLessDefaultBackendTag
+struct DLessDefaultBackendTag : DLessBackendTag
 {};
 
-// less_lessjs_backend_tag
+// DLessLessjsBackendTag
 //   struct: tag identifying an adapter backend bound to
 // less.js (via N-API / IPC).
-struct less_lessjs_backend_tag : less_backend_tag
+struct DLessLessjsBackendTag : DLessBackendTag
 {};
 
-// less_cpp_backend_tag
+// DLessCppBackendTag
 //   struct: tag identifying an adapter backend bound to
 // less-cpp.
-struct less_cpp_backend_tag : less_backend_tag
+struct DLessCppBackendTag : DLessBackendTag
 {};
 
 
@@ -664,7 +664,7 @@ NS_INTERNAL
 
     // has_less_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
-    // `less_backend_tag` alias.
+    // `DLessBackendTag` alias.
     template<typename Type,
              typename = void>
     struct has_less_backend_tag_helper
@@ -687,7 +687,7 @@ namespace less {
 
 
 // is_less_backend
-//   trait: true if `Type` has a nested `less_backend_tag`
+//   trait: true if `Type` has a nested `DLessBackendTag`
 // type.
 template<typename    Type>
 struct is_less_backend

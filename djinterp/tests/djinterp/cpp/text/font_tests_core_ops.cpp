@@ -51,7 +51,7 @@ bool tests_fn_set_family()
     // nothing else moved
     D_FT_CHECK(f.style_name.empty());
     D_FT_CHECK_NEAR(f.size, 10.0f);
-    D_FT_CHECK(f.weight == font_weight::normal);
+    D_FT_CHECK(f.weight == DFontWeight::normal);
     D_FT_CHECK(f.slant  == DFontSlant::upright);
 
     return true;
@@ -76,7 +76,7 @@ bool tests_fn_set_style_name()
     D_FT_CHECK(f.style_name == "Bold Italic");
 
     // the enums are untouched: the string is a label, not a command
-    D_FT_CHECK(f.weight == font_weight::normal);
+    D_FT_CHECK(f.weight == DFontWeight::normal);
     D_FT_CHECK(f.slant  == DFontSlant::upright);
     D_FT_CHECK(!fn_is_bold(f));
     D_FT_CHECK(!fn_is_italic(f));
@@ -195,20 +195,20 @@ bool tests_fn_set_weight()
 {
     bare_font f;
 
-    fn_set_weight(f, font_weight::thin);
-    D_FT_CHECK(f.weight == font_weight::thin);
+    fn_set_weight(f, DFontWeight::thin);
+    D_FT_CHECK(f.weight == DFontWeight::thin);
     D_FT_CHECK(fn_effective_weight(f) == 100u);
 
-    fn_set_weight(f, font_weight::semi_bold);
-    D_FT_CHECK(f.weight == font_weight::semi_bold);
+    fn_set_weight(f, DFontWeight::semi_bold);
+    D_FT_CHECK(f.weight == DFontWeight::semi_bold);
     D_FT_CHECK(fn_effective_weight(f) == 600u);
 
-    fn_set_weight(f, font_weight::extra_black);
-    D_FT_CHECK(f.weight == font_weight::extra_black);
+    fn_set_weight(f, DFontWeight::extra_black);
+    D_FT_CHECK(f.weight == DFontWeight::extra_black);
     D_FT_CHECK(fn_effective_weight(f) == 950u);
 
-    fn_set_weight(f, font_weight::normal);
-    D_FT_CHECK(f.weight == font_weight::normal);
+    fn_set_weight(f, DFontWeight::normal);
+    D_FT_CHECK(f.weight == DFontWeight::normal);
     D_FT_CHECK(fn_effective_weight(f) == 400u);
 
     return true;
@@ -235,9 +235,9 @@ bool tests_fn_set_weight_clears_the_numeric_override()
     D_FT_CHECK(fn_effective_weight(f) == 850u);
 
     // the symbolic setter must sweep the override away
-    fn_set_weight(f, font_weight::light);
+    fn_set_weight(f, DFontWeight::light);
 
-    D_FT_CHECK(f.weight         == font_weight::light);
+    D_FT_CHECK(f.weight         == DFontWeight::light);
     D_FT_CHECK(f.weight_numeric == 0u);
     D_FT_CHECK(fn_effective_weight(f) == 300u);
 
@@ -260,11 +260,11 @@ bool tests_fn_set_weight_numeric()
 {
     bare_font f;
 
-    fn_set_weight(f, font_weight::normal);
+    fn_set_weight(f, DFontWeight::normal);
     fn_set_weight_numeric(f, 725u);
 
     D_FT_CHECK(f.weight_numeric == 725u);
-    D_FT_CHECK(f.weight         == font_weight::normal);   // still there
+    D_FT_CHECK(f.weight         == DFontWeight::normal);   // still there
     D_FT_CHECK(fn_effective_weight(f) == 725u);            // but overridden
 
     // a value that is not on the symbolic ladder at all
@@ -293,7 +293,7 @@ bool tests_fn_set_weight_numeric_zero_restores_the_symbolic_weight()
 {
     bare_font f;
 
-    fn_set_weight(f, font_weight::black);      // 900, symbolically
+    fn_set_weight(f, DFontWeight::black);      // 900, symbolically
     fn_set_weight_numeric(f, 250u);            // overridden to 250
 
     D_FT_CHECK(fn_effective_weight(f) == 250u);
@@ -302,7 +302,7 @@ bool tests_fn_set_weight_numeric_zero_restores_the_symbolic_weight()
     fn_set_weight_numeric(f, 0u);
 
     D_FT_CHECK(f.weight_numeric == 0u);
-    D_FT_CHECK(f.weight         == font_weight::black);
+    D_FT_CHECK(f.weight         == DFontWeight::black);
     D_FT_CHECK(fn_effective_weight(f) == 900u);
 
     // the effective weight is never the sentinel itself
@@ -322,7 +322,7 @@ bool tests_fn_effective_weight_prefers_the_numeric()
 {
     bare_font heavy_enum_light_numeric;
 
-    heavy_enum_light_numeric.weight         = font_weight::black;   // 900
+    heavy_enum_light_numeric.weight         = DFontWeight::black;   // 900
     heavy_enum_light_numeric.weight_numeric = 100u;                 // thin
 
     D_FT_CHECK(fn_effective_weight(heavy_enum_light_numeric) == 100u);
@@ -330,7 +330,7 @@ bool tests_fn_effective_weight_prefers_the_numeric()
 
     bare_font light_enum_heavy_numeric;
 
-    light_enum_heavy_numeric.weight         = font_weight::thin;    // 100
+    light_enum_heavy_numeric.weight         = DFontWeight::thin;    // 100
     light_enum_heavy_numeric.weight_numeric = 900u;                 // black
 
     D_FT_CHECK(fn_effective_weight(light_enum_heavy_numeric) == 900u);
@@ -347,13 +347,13 @@ tests_fn_effective_weight_falls_back_to_the_enum
 */
 bool tests_fn_effective_weight_falls_back_to_the_enum()
 {
-    const font_weight ladder[] =
+    const DFontWeight ladder[] =
     {
-        font_weight::thin,        font_weight::extra_light,
-        font_weight::light,       font_weight::normal,
-        font_weight::medium,      font_weight::semi_bold,
-        font_weight::bold,        font_weight::extra_bold,
-        font_weight::black,       font_weight::extra_black
+        DFontWeight::thin,        DFontWeight::extra_light,
+        DFontWeight::light,       DFontWeight::normal,
+        DFontWeight::medium,      DFontWeight::semi_bold,
+        DFontWeight::bold,        DFontWeight::extra_bold,
+        DFontWeight::black,       DFontWeight::extra_black
     };
 
     // every rung, with no override in play
@@ -384,7 +384,7 @@ bool tests_fn_effective_weight_honours_any_nonzero_numeric()
 {
     bare_font f;
 
-    fn_set_weight(f, font_weight::normal);
+    fn_set_weight(f, DFontWeight::normal);
 
     fn_set_weight_numeric(f, 1u);
 
@@ -462,14 +462,14 @@ bool tests_fn_set_bold_true()
 
     fn_set_bold(f, true);
 
-    D_FT_CHECK(f.weight == font_weight::bold);
+    D_FT_CHECK(f.weight == DFontWeight::bold);
     D_FT_CHECK(fn_effective_weight(f) == 700u);
     D_FT_CHECK(fn_is_bold(f));
 
     // idempotent
     fn_set_bold(f, true);
 
-    D_FT_CHECK(f.weight == font_weight::bold);
+    D_FT_CHECK(f.weight == DFontWeight::bold);
 
     return true;
 }
@@ -492,30 +492,30 @@ bool tests_fn_set_bold_false_forces_normal()
     fn_set_bold(f, true);
     fn_set_bold(f, false);
 
-    D_FT_CHECK(f.weight == font_weight::normal);
+    D_FT_CHECK(f.weight == DFontWeight::normal);
     D_FT_CHECK(!fn_is_bold(f));
 
     // the sharp case: black is not "extra bold", it is destroyed
     bare_font black;
 
-    fn_set_weight(black, font_weight::black);
+    fn_set_weight(black, DFontWeight::black);
     D_FT_CHECK(fn_is_bold(black));
 
     fn_set_bold(black, false);
 
-    D_FT_CHECK(black.weight == font_weight::normal);
-    D_FT_CHECK(black.weight != font_weight::black);
+    D_FT_CHECK(black.weight == DFontWeight::normal);
+    D_FT_CHECK(black.weight != DFontWeight::black);
     D_FT_CHECK(fn_effective_weight(black) == 400u);
 
     // and a weight BELOW normal is raised to it
     bare_font thin;
 
-    fn_set_weight(thin, font_weight::thin);
+    fn_set_weight(thin, DFontWeight::thin);
     D_FT_CHECK(!fn_is_bold(thin));
 
     fn_set_bold(thin, false);
 
-    D_FT_CHECK(thin.weight == font_weight::normal);   // not thin any more
+    D_FT_CHECK(thin.weight == DFontWeight::normal);   // not thin any more
     D_FT_CHECK(fn_effective_weight(thin) == 400u);
 
     return true;
@@ -572,26 +572,26 @@ bool tests_fn_is_bold_threshold_is_semi_bold()
 {
     bare_font f;
 
-    fn_set_weight(f, font_weight::medium);         // 500
+    fn_set_weight(f, DFontWeight::medium);         // 500
     D_FT_CHECK(!fn_is_bold(f));
 
-    fn_set_weight(f, font_weight::semi_bold);      // 600 - the boundary
+    fn_set_weight(f, DFontWeight::semi_bold);      // 600 - the boundary
     D_FT_CHECK(fn_is_bold(f));
 
-    fn_set_weight(f, font_weight::bold);           // 700
+    fn_set_weight(f, DFontWeight::bold);           // 700
     D_FT_CHECK(fn_is_bold(f));
 
-    fn_set_weight(f, font_weight::extra_bold);     // 800
+    fn_set_weight(f, DFontWeight::extra_bold);     // 800
     D_FT_CHECK(fn_is_bold(f));
 
-    fn_set_weight(f, font_weight::black);          // 900
+    fn_set_weight(f, DFontWeight::black);          // 900
     D_FT_CHECK(fn_is_bold(f));
 
-    fn_set_weight(f, font_weight::extra_black);    // 950
+    fn_set_weight(f, DFontWeight::extra_black);    // 950
     D_FT_CHECK(fn_is_bold(f));
 
     // the threshold really is semi_bold's number
-    D_FT_CHECK(weight_of(font_weight::semi_bold) == 600u);
+    D_FT_CHECK(weight_of(DFontWeight::semi_bold) == 600u);
 
     return true;
 }
@@ -604,11 +604,11 @@ tests_fn_is_bold_below_the_threshold
 */
 bool tests_fn_is_bold_below_the_threshold()
 {
-    const font_weight light_rungs[] =
+    const DFontWeight light_rungs[] =
     {
-        font_weight::thin,        font_weight::extra_light,
-        font_weight::light,       font_weight::normal,
-        font_weight::medium
+        DFontWeight::thin,        DFontWeight::extra_light,
+        DFontWeight::light,       DFontWeight::normal,
+        DFontWeight::medium
     };
 
     // none of the sub-600 rungs is bold
@@ -642,18 +642,18 @@ bool tests_fn_is_bold_reads_the_effective_weight()
 {
     bare_font f;
 
-    fn_set_weight(f, font_weight::thin);
+    fn_set_weight(f, DFontWeight::thin);
     fn_set_weight_numeric(f, 800u);
 
-    D_FT_CHECK(f.weight == font_weight::thin);   // the enum still says thin
+    D_FT_CHECK(f.weight == DFontWeight::thin);   // the enum still says thin
     D_FT_CHECK(fn_is_bold(f));                   // but the override rules
 
     bare_font g;
 
-    fn_set_weight(g, font_weight::black);
+    fn_set_weight(g, DFontWeight::black);
     fn_set_weight_numeric(g, 300u);
 
-    D_FT_CHECK(g.weight == font_weight::black);
+    D_FT_CHECK(g.weight == DFontWeight::black);
     D_FT_CHECK(!fn_is_bold(g));
 
     return true;
@@ -849,15 +849,15 @@ tests_fn_core_ops_are_generic_over_the_feature_set
 static_assert guard - they must work on ANY font, from the bare one to the
 fully-loaded one, and on any color type.
   Tests the following:
-  - the whole core setter family runs on font<ff_none>
-  - the same calls run on font<ff_all> and on a wide-color font
+  - the whole core setter family runs on DFont<ff_none>
+  - the same calls run on DFont<ff_all> and on a wide-color font
   - the results agree across all three
 */
 bool tests_fn_core_ops_are_generic_over_the_feature_set()
 {
     bare_font                        bare;
     full_font                        full;
-    font<ff_all, wide_color>         wide;
+    DFont<ff_all, wide_color>         wide;
 
     fn_set_family(bare, "Inter");
     fn_set_family(full, "Inter");
@@ -875,9 +875,9 @@ bool tests_fn_core_ops_are_generic_over_the_feature_set()
     fn_set_style_name(full, "Semibold");
     fn_set_style_name(wide, "Semibold");
 
-    fn_set_weight(bare, font_weight::semi_bold);
-    fn_set_weight(full, font_weight::semi_bold);
-    fn_set_weight(wide, font_weight::semi_bold);
+    fn_set_weight(bare, DFontWeight::semi_bold);
+    fn_set_weight(full, DFontWeight::semi_bold);
+    fn_set_weight(wide, DFontWeight::semi_bold);
 
     fn_set_italic(bare, true);
     fn_set_italic(full, true);

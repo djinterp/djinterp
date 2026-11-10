@@ -12,16 +12,16 @@
 // capability traits.
 //
 //   These traits are STRUCTURAL.  They ask "does this type have a member
-// called `underline`?", not "does this type derive from font<>?".  That is
+// called `underline`?", not "does this type derive from DFont<>?".  That is
 // the whole point - an adapter must be able to accept a Win32 LOGFONT, a
 // fontconfig pattern, or a bespoke struct, none of which has ever heard of
-// font.hpp.  So the tests here drive the traits from BOTH sides: font<>
+// font.hpp.  So the tests here drive the traits from BOTH sides: DFont<>
 // across its feature lattice, and duck-typed probes that share nothing with
 // it but a member name.
 //
-//   The probes also witness things a font<> structurally CANNOT.  Two traits
+//   The probes also witness things a DFont<> structurally CANNOT.  Two traits
 // are conjunctions (has_font_background, has_font_script_hint) and two are
-// disjunctions (has_font_decorations, has_font_backend_handles); a font<>
+// disjunctions (has_font_decorations, has_font_backend_handles); a DFont<>
 // always gets a whole mixin or none of it, so only a hand-built half-mixin
 // can tell a conjunction from a single detector.
 
@@ -42,7 +42,7 @@ changed underneath it.
   - font_family_t and font_style_name_t are std::string
   - font_size_t is float
   - font_size_unit_t is DFontSizeUnit
-  - font_weight_t is font_weight, font_weight_numeric_t is std::uint16_t
+  - font_weight_t is DFontWeight, font_weight_numeric_t is std::uint16_t
   - font_slant_t is DFontSlant
 */
 bool tests_detector_core_member_types()
@@ -53,12 +53,12 @@ bool tests_detector_core_member_types()
     D_FT_CHECK((std::is_same<font_size_t<bare_font>, float>::value));
     D_FT_CHECK((std::is_same<font_size_unit_t<bare_font>,
                              DFontSizeUnit>::value));
-    D_FT_CHECK((std::is_same<font_weight_t<bare_font>, font_weight>::value));
+    D_FT_CHECK((std::is_same<font_weight_t<bare_font>, DFontWeight>::value));
     D_FT_CHECK((std::is_same<font_weight_numeric_t<bare_font>,
                              std::uint16_t>::value));
     D_FT_CHECK((std::is_same<font_slant_t<bare_font>, DFontSlant>::value));
 
-    // and on a duck type that never met font<>
+    // and on a duck type that never met DFont<>
     D_FT_CHECK((std::is_same<font_family_t<duck_font>, std::string>::value));
     D_FT_CHECK((std::is_same<font_size_t<duck_font>, float>::value));
 
@@ -69,7 +69,7 @@ bool tests_detector_core_member_types()
 tests_detector_yields_the_declared_type
   A subtlety with teeth.  decltype of an UNPARENTHESISED member access names
 the member's declared type - it does NOT pick up a reference, and it does NOT
-pick up the const of the object.  So font_family_t<const font<>> is
+pick up the const of the object.  So font_family_t<const DFont<>> is
 std::string, not `const std::string&`.  If the detectors were ever rewritten
 with parentheses, every one of these would change type and quietly break the
 `is_detected_exact` style checks an adapter might build on them.
@@ -124,7 +124,7 @@ bool tests_detector_feature_member_types()
     D_FT_CHECK((std::is_same<font_line_height_t<full_font>,    float>::value));
 
     // axes: the enums
-    D_FT_CHECK((std::is_same<font_stretch_t<full_font>, font_stretch>::value));
+    D_FT_CHECK((std::is_same<font_stretch_t<full_font>, DFontStretch>::value));
     D_FT_CHECK((std::is_same<font_spacing_t<full_font>, DFontSpacing>::value));
 
     // color: the parameterised type, plus a bool flag
@@ -134,7 +134,7 @@ bool tests_detector_feature_member_types()
                              probe_color>::value));
     D_FT_CHECK((std::is_same<font_background_enabled_t<full_font>,
                              bool>::value));
-    D_FT_CHECK((std::is_same<font_foreground_t<font<ff_color, wide_color>>,
+    D_FT_CHECK((std::is_same<font_foreground_t<DFont<ff_color, wide_color>>,
                              wide_color>::value));
 
     // the lists
@@ -165,8 +165,8 @@ tests_detector_empty_returns_bool
   font_empty_t probes a CALL, not a member - and it probes it through a
 `const T&`, which is what makes it a check for a const-callable empty().
   Tests the following:
-  - font_empty_t<font<>> is bool
-  - it is detected on font<>
+  - font_empty_t<DFont<>> is bool
+  - it is detected on DFont<>
   - it is NOT detected on a type with no empty() at all
 */
 bool tests_detector_empty_returns_bool()
@@ -201,9 +201,9 @@ bool tests_detector_color_type_alias()
 {
     D_FT_CHECK((std::is_same<font_color_type_t<bare_font>,
                              probe_color>::value));
-    D_FT_CHECK((std::is_same<font_color_type_t<font<ff_color, wide_color>>,
+    D_FT_CHECK((std::is_same<font_color_type_t<DFont<ff_color, wide_color>>,
                              wide_color>::value));
-    D_FT_CHECK((std::is_same<font_color_type_t<font<>>, rgb>::value));
+    D_FT_CHECK((std::is_same<font_color_type_t<DFont<>>, rgb>::value));
 
     // clean_t strips the reference and the const
     D_FT_CHECK((std::is_same<font_color_type_t<const bare_font&>,
@@ -221,7 +221,7 @@ bool tests_detector_color_type_alias()
 /*
 tests_detectors_are_const_and_reference_tolerant
   The member detectors probe `declval<_Type&>()`, so a const or reference
-argument collapses harmlessly - has_font_family<const font<>&> is true.  That
+argument collapses harmlessly - has_font_family<const DFont<>&> is true.  That
 is worth knowing: an adapter constraining on `has_font_family<F>` need not
 strip cv-ref from F first.
   Tests the following:
@@ -412,10 +412,10 @@ bool tests_has_font_casing_traits_track_the_flags()
     D_FT_CHECK(!has_font_superscript_v<bare_font>);
 
     // individually gated
-    D_FT_CHECK(has_font_subscript_v<font<ff_subscript, probe_color>>);
-    D_FT_CHECK(!has_font_superscript_v<font<ff_subscript, probe_color>>);
-    D_FT_CHECK(has_font_superscript_v<font<ff_superscript, probe_color>>);
-    D_FT_CHECK(!has_font_subscript_v<font<ff_superscript, probe_color>>);
+    D_FT_CHECK(has_font_subscript_v<DFont<ff_subscript, probe_color>>);
+    D_FT_CHECK(!has_font_superscript_v<DFont<ff_subscript, probe_color>>);
+    D_FT_CHECK(has_font_superscript_v<DFont<ff_superscript, probe_color>>);
+    D_FT_CHECK(!has_font_subscript_v<DFont<ff_superscript, probe_color>>);
 
     return true;
 }
@@ -430,9 +430,9 @@ tests_has_font_casing_is_a_disjunction
 bool tests_has_font_casing_is_a_disjunction()
 {
     D_FT_CHECK(has_font_casing_v<small_caps_font_t>);
-    D_FT_CHECK(has_font_casing_v<font<ff_all_caps,    probe_color>>);
-    D_FT_CHECK(has_font_casing_v<font<ff_subscript,   probe_color>>);
-    D_FT_CHECK(has_font_casing_v<font<ff_superscript, probe_color>>);
+    D_FT_CHECK(has_font_casing_v<DFont<ff_all_caps,   probe_color>>);
+    D_FT_CHECK(has_font_casing_v<DFont<ff_subscript,  probe_color>>);
+    D_FT_CHECK(has_font_casing_v<DFont<ff_superscript, probe_color>>);
     D_FT_CHECK(has_font_casing_v<casing_font_t>);
     D_FT_CHECK(has_font_casing_v<full_font>);
 
@@ -550,13 +550,13 @@ tests_has_font_background_requires_both_members
 to REJECT a shape rather than accept one.  Its comment says the paired check
 "avoids false positives on types that carry only a nominal background field"
 - so a struct with a `background` and no `background_enabled` must NOT
-satisfy it.  A font<> can never witness this, because its background mixin
+satisfy it.  A DFont<> can never witness this, because its background mixin
 always supplies both; only a duck type can.
   Tests the following:
   - a background field with no enable flag does NOT satisfy the trait
   - an enable flag with no background field does NOT satisfy it
   - both together DO
-  - font<ff_background> supplies both, so it does
+  - DFont<ff_background> supplies both, so it does
   - the two halves are individually detectable, so the conjunction really is
     doing the work
 */
@@ -579,7 +579,7 @@ bool tests_has_font_background_requires_both_members()
     // both halves: accepted
     D_FT_CHECK(has_font_background_v<duck_background_paired>);
 
-    // and font<ff_background> always brings both
+    // and DFont<ff_background> always brings both
     D_FT_CHECK(has_font_background_v<background_font>);
     D_FT_CHECK(has_font_background_v<terminal_font>);
     D_FT_CHECK(!has_font_background_v<bare_font>);
@@ -627,7 +627,7 @@ to exist, even if one is empty at run time.
   - script_tag alone does NOT satisfy the trait
   - language_tag alone does NOT satisfy it
   - both together DO
-  - font<ff_script_hint> supplies both
+  - DFont<ff_script_hint> supplies both
 */
 bool tests_has_font_script_hint_requires_both_tags()
 {
@@ -681,7 +681,7 @@ bool tests_has_font_backend_traits_track_the_flags()
 
 /*
 tests_has_font_backend_handles_is_a_disjunction
-  The trait is an OR over the three handles - and because a font<> always
+  The trait is an OR over the three handles - and because a DFont<> always
 brings all three at once, the ONLY way to see that it really is an OR is with
 a duck type carrying exactly one of them.  A file-path-only struct must
 satisfy has_font_backend_handles while failing the other two individual
@@ -719,10 +719,10 @@ bool tests_has_font_backend_handles_is_a_disjunction()
 
 /*
 tests_has_font_color_type_alias_is_independent_of_ff_color
-  A sharp one.  `color_type` is declared in font<>'s BODY, not in a gated
+  A sharp one.  `color_type` is declared in DFont<>'s BODY, not in a gated
 mixin - so every font has it, including one with no color feature at all.
-has_font_color_type_alias<font<ff_none>> is therefore TRUE while
-has_font_color<font<ff_none>> is FALSE.  The two traits answer different
+has_font_color_type_alias<DFont<ff_none>> is therefore TRUE while
+has_font_color<DFont<ff_none>> is FALSE.  The two traits answer different
 questions ("can you name the color type?" vs "is there a color to paint?")
 and an adapter that conflated them would try to read a foreground that does
 not exist.

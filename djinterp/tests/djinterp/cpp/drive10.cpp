@@ -64,17 +64,17 @@ int main()
     pr.register_style("verdict.skip", skip);
     pr.set_zebra(pdf_color::from_rgb255(244, 245, 248));
 
-    pr.begin_document(doc_attributes());
+    pr.begin_document(DDocAttributes());
     render_report_document(rep, pr, opts);
     pr.end_document();
     const std::string pdf = pr.to_bytes();
     std::ofstream("full.pdf", std::ios::binary).write(pdf.data(), pdf.size());
 
     // --- the same composition, other dialects -------------------------------
-    for (document_format f : { document_format::html, document_format::text })
+    for (DDocumentFormat f : { DDocumentFormat::html, DDocumentFormat::text })
     {
-        document_dialect d = make_document_dialect(f);
-        d.renderer().begin_document(doc_attributes());
+        DDocumentDialect d = make_document_dialect(f);
+        d.renderer().begin_document(DDocAttributes());
         render_report_document(rep, d.renderer(), opts);
         d.renderer().end_document();
         std::ofstream(std::string("full.") + format_name(f)) << d.str();

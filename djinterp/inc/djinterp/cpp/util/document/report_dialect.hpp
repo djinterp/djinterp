@@ -6,11 +6,11 @@
 * foundation" pattern end to end: a construct is an operator id, a signature
 * entry (its structural flags + spelling), a builder, and a lowering to the
 * renderer's semantic verbs.  layout.hpp / layout_interpret.hpp name none of
-* these; this header defines them and registers them into a layout_signature.
+* these; this header defines them and registers them into a DLayoutSignature.
 *
 *   FIVE CONSTRUCTS.
 *     body       -- the document container (no lowering: emit its children)
-*     cover      -- a title page (lowers by DRIVING the existing title_page
+*     cover      -- a title page (lowers by DRIVING the existing DTitlePage
 *                   content model -- an existing construct becomes a lowering)
 *     clearpage  -- a page break (lowers to the renderer's page_break verb)
 *     toc        -- a table of contents (lowers by rendering the computed outline)
@@ -37,7 +37,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    OP IDS                             (report_op)
+I.    OP IDS                             (DReportOp)
       ----------------------------------------------
 
 II.   LOWERINGS                          (section / clearpage / toc / cover)
@@ -70,9 +70,9 @@ V.    DEMO                               (moved -> test_layout_suite.hpp)
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"         // NS_*, gates, D_NODISCARD
-#include "layout/layout_interpret.hpp"     // layout_doc, builders, signature, render pipeline
-#include "./templates/document_renderer.hpp"    // document_renderer, DPlainDocumentRenderer
-#include "./templates/title_page.hpp"           // title_page (cover lowers by driving it)
+#include "layout/layout_interpret.hpp"     // DLayoutDoc, builders, signature, render pipeline
+#include "./templates/document_renderer.hpp"    // DDocumentRenderer, DPlainDocumentRenderer
+#include "./templates/title_page.hpp"           // DTitlePage (cover lowers by driving it)
 
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -85,20 +85,20 @@ NS_DJINTERP
 ///             I.    OP IDS                                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// report_op
+// DReportOp
 //   enum: the constructs of this dialect, keyed by value.  A value key resolves
 // through the runtime signature (operator_signature::describe) and the value-
 // keyed lookup family; a fixed_string or type-tag key would serve a
 // self-describing or compile-time dialect instead.  Default-constructible and
 // equality-comparable, as the term asks of an op-id.
-enum class report_op
+enum class DReportOp
 {
     body,        // the document container
     cover,       // a title page
     clearpage,   // a page break
     toc,         // a table of contents
     section      // a numbered heading + children
-    // (content / table are LEAVES -- layout_atom::body_ref -- not ops)
+    // (content / table are LEAVES -- DLayoutAtom::body_ref -- not ops)
 };
 
 
@@ -116,10 +116,10 @@ enum class report_op
 // can.
 inline void
 section_lower(
-    const doc_attributes&             _bag,
-    const std::vector<render_action>& _children,
-    document_renderer&                _renderer,
-    const render_ctx&                 /*_ctx*/
+    const DDocAttributes&             _bag,
+    const std::vector<DRenderAction>& _children,
+    DDocumentRenderer&                _renderer,
+    const DRenderCtx&                 /*_ctx*/
 )
 {
     const std::string _title  = attr_or(_bag, std::string("title"));
@@ -128,7 +128,7 @@ section_lower(
     const std::size_t _level  =
         internal::parse_level(attr_or(_bag, std::string("level")));
 
-    doc_attributes _heading_attrs;
+    DDocAttributes _heading_attrs;
     _heading_attrs.set(doc_attr_style, std::string("section.heading"));
 
     // an anchor lets a linking dialect target this heading; text ignores it
@@ -155,10 +155,10 @@ section_lower(
 //   a page boundary -- the renderer's own verb; a continuous dialect ignores it.
 inline void
 clearpage_lower(
-    const doc_attributes&             /*_bag*/,
-    const std::vector<render_action>& /*_children*/,
-    document_renderer&                _renderer,
-    const render_ctx&                 /*_ctx*/
+    const DDocAttributes&             /*_bag*/,
+    const std::vector<DRenderAction>& /*_children*/,
+    DDocumentRenderer&                _renderer,
+    const DRenderCtx&                 /*_ctx*/
 )
 {
     _renderer.page_break();
@@ -169,24 +169,24 @@ clearpage_lower(
 // toc_lower
 //   a "Contents" heading, then one line per collected outline row, indented by
 // depth, carrying the row's anchor as a locator hint.  The rows were computed
-// from the numbered tree before emission (render_ctx::outline_rows).
+// from the numbered tree before emission (DRenderCtx::outline_rows).
 inline void
 toc_lower(
-    const doc_attributes&             /*_bag*/,
-    const std::vector<render_action>& /*_children*/,
-    document_renderer&                _renderer,
-    const render_ctx&                 _ctx
+    const DDocAttributes&             /*_bag*/,
+    const std::vector<DRenderAction>& /*_children*/,
+    DDocumentRenderer&                _renderer,
+    const DRenderCtx&                 _ctx
 )
 {
-    doc_attributes _title_attrs;
+    DDocAttributes _title_attrs;
     _title_attrs.set(doc_attr_style, std::string("toc.title"));
     _renderer.heading(std::size_t(1), std::string("Contents"), _title_attrs);
 
     for (std::size_t _i = 0; _i < _ctx.outline_rows.size(); ++_i)
     {
-        const outline_entry& _entry = _ctx.outline_rows[_i];
+        const DOutlineEntry& _entry = _ctx.outline_rows[_i];
 
-        doc_attributes _row_attrs;
+        DDocAttributes _row_attrs;
 
         // the cross-reference target for a linking dialect
         if (!_entry.anchor.empty())
@@ -211,20 +211,20 @@ toc_lower(
 }
 
 // cover_lower
-//   drives the EXISTING title_page content model -- an existing construct
+//   drives the EXISTING DTitlePage content model -- an existing construct
 // serving as a layout op's lowering.  Pulls title / subtitle / author / date
 // from the cover's own bag, falling back to the document metadata; and turns
-// OFF title_page's own page break, because pagination is the layout's to own
+// OFF DTitlePage's own page break, because pagination is the layout's to own
 // (a clearpage construct), not an embedded construct's.
 inline void
 cover_lower(
-    const doc_attributes&             _bag,
-    const std::vector<render_action>& /*_children*/,
-    document_renderer&                _renderer,
-    const render_ctx&                 _ctx
+    const DDocAttributes&             _bag,
+    const std::vector<DRenderAction>& /*_children*/,
+    DDocumentRenderer&                _renderer,
+    const DRenderCtx&                 _ctx
 )
 {
-    title_page _page;
+    DTitlePage _page;
 
     const std::string _title =
         attr_or(_bag, std::string("title"),
@@ -261,93 +261,93 @@ cover_lower(
 
 // body
 //   the document container -- the root a document is assembled under.
-D_NODISCARD inline layout_doc<report_op> body(
-    std::vector<layout_doc<report_op> > _children
+D_NODISCARD inline DLayoutDoc<DReportOp> body(
+    std::vector<DLayoutDoc<DReportOp> > _children
 )
 {
-    return apply_node<report_op, layout_atom>(
-        doc_attributes(),
-        report_op::body,
-        static_cast<std::vector<layout_doc<report_op> >&&>(_children));
+    return apply_node<DReportOp, DLayoutAtom>(
+        DDocAttributes(),
+        DReportOp::body,
+        static_cast<std::vector<DLayoutDoc<DReportOp> >&&>(_children));
 }
 
 // cover
 //   a title page -- _fields are cover metadata (subtitle / author / date /
 // title), stored in the node's bag for cover_lower to read.
-D_NODISCARD inline layout_doc<report_op> cover(
+D_NODISCARD inline DLayoutDoc<DReportOp> cover(
     std::initializer_list<std::pair<std::string, std::string> > _fields
 )
 {
-    doc_attributes _bag;
+    DDocAttributes _bag;
 
     for (const std::pair<std::string, std::string>& _field : _fields)
     {
         _bag.set(_field.first, _field.second);
     }
 
-    return apply_node<report_op, layout_atom>(
+    return apply_node<DReportOp, DLayoutAtom>(
         _bag,
-        report_op::cover,
-        std::vector<layout_doc<report_op> >());
+        DReportOp::cover,
+        std::vector<DLayoutDoc<DReportOp> >());
 }
 
 // clearpage
 //   force following content onto a new page.
-D_NODISCARD inline layout_doc<report_op> clearpage()
+D_NODISCARD inline DLayoutDoc<DReportOp> clearpage()
 {
-    return apply_node<report_op, layout_atom>(
-        doc_attributes(),
-        report_op::clearpage,
-        std::vector<layout_doc<report_op> >());
+    return apply_node<DReportOp, DLayoutAtom>(
+        DDocAttributes(),
+        DReportOp::clearpage,
+        std::vector<DLayoutDoc<DReportOp> >());
 }
 
 // toc
 //   a table of contents -- rendered from the outline computed at render time.
-D_NODISCARD inline layout_doc<report_op> toc()
+D_NODISCARD inline DLayoutDoc<DReportOp> toc()
 {
-    return apply_node<report_op, layout_atom>(
-        doc_attributes(),
-        report_op::toc,
-        std::vector<layout_doc<report_op> >());
+    return apply_node<DReportOp, DLayoutAtom>(
+        DDocAttributes(),
+        DReportOp::toc,
+        std::vector<DLayoutDoc<DReportOp> >());
 }
 
 // section
 //   a numbered, outlined heading titled _title, containing _children.
-D_NODISCARD inline layout_doc<report_op> section(
+D_NODISCARD inline DLayoutDoc<DReportOp> section(
     std::string                         _title,
-    std::vector<layout_doc<report_op> > _children
+    std::vector<DLayoutDoc<DReportOp> > _children
 )
 {
-    doc_attributes _bag;
+    DDocAttributes _bag;
     _bag.set(std::string("title"), static_cast<std::string&&>(_title));
 
-    return apply_node<report_op, layout_atom>(
+    return apply_node<DReportOp, DLayoutAtom>(
         _bag,
-        report_op::section,
-        static_cast<std::vector<layout_doc<report_op> >&&>(_children));
+        DReportOp::section,
+        static_cast<std::vector<DLayoutDoc<DReportOp> >&&>(_children));
 }
 
 // content
 //   a body-content leaf named _name -- the resolver answers it at render time.
-D_NODISCARD inline layout_doc<report_op> content(
+D_NODISCARD inline DLayoutDoc<DReportOp> content(
     std::string _name
 )
 {
-    return make_leaf_node<report_op, layout_atom>(
-        doc_attributes(),
-        layout_atom::body_ref(static_cast<std::string&&>(_name)));
+    return make_leaf_node<DReportOp, DLayoutAtom>(
+        DDocAttributes(),
+        DLayoutAtom::body_ref(static_cast<std::string&&>(_name)));
 }
 
 // table
 //   a table-content leaf named _name -- like content, resolved by name (the
 // resolver decides it renders a table).
-D_NODISCARD inline layout_doc<report_op> table(
+D_NODISCARD inline DLayoutDoc<DReportOp> table(
     std::string _name
 )
 {
-    return make_leaf_node<report_op, layout_atom>(
-        doc_attributes(),
-        layout_atom::body_ref(static_cast<std::string&&>(_name)));
+    return make_leaf_node<DReportOp, DLayoutAtom>(
+        DDocAttributes(),
+        DLayoutAtom::body_ref(static_cast<std::string&&>(_name)));
 }
 
 
@@ -357,25 +357,25 @@ D_NODISCARD inline layout_doc<report_op> table(
 
 // make_report_signature
 //   function: the described construct set of this dialect.  Each entry pairs an
-// op with its layout_descriptor: structural flags (starts_new_page / in_outline
+// op with its DLayoutDescriptor: structural flags (starts_new_page / in_outline
 // / numbered) drive the number and outline passes, spelling names it, and the
 // lowering drives emission.  body carries a null lowering (its default is to
 // emit its children).
-D_NODISCARD inline layout_signature<report_op> make_report_signature()
+D_NODISCARD inline DLayoutSignature<DReportOp> make_report_signature()
 {
-    layout_signature<report_op> _sig;
+    DLayoutSignature<DReportOp> _sig;
 
     //             op                     arity  page   toc    num    spelling      lowering
-    _sig.define(report_op::body,
-                layout_descriptor(0,      false, false, false, "body",      nullptr));
-    _sig.define(report_op::cover,
-                layout_descriptor(0,      false, false, false, "cover",     &cover_lower));
-    _sig.define(report_op::clearpage,
-                layout_descriptor(0,      true,  false, false, "clearpage", &clearpage_lower));
-    _sig.define(report_op::toc,
-                layout_descriptor(0,      false, false, false, "toc",       &toc_lower));
-    _sig.define(report_op::section,
-                layout_descriptor(0,      false, true,  true,  "section",   &section_lower));
+    _sig.define(DReportOp::body,
+                DLayoutDescriptor(0,      false, false, false, "body",      nullptr));
+    _sig.define(DReportOp::cover,
+                DLayoutDescriptor(0,      false, false, false, "cover",     &cover_lower));
+    _sig.define(DReportOp::clearpage,
+                DLayoutDescriptor(0,      true,  false, false, "clearpage", &clearpage_lower));
+    _sig.define(DReportOp::toc,
+                DLayoutDescriptor(0,      false, false, false, "toc",       &toc_lower));
+    _sig.define(DReportOp::section,
+                DLayoutDescriptor(0,      false, true,  true,  "section",   &section_lower));
 
     return _sig;
 }

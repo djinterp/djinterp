@@ -9,23 +9,23 @@
 *
 *   STORAGE MODEL:
 *   For the default backend, the storage type is the CSS default
-* node (`css::internal::css_default_node`). Less extension state
+* node (`css::internal::DCssDefaultNode`). Less extension state
 * fits into the same fields the CSS / Sass backends already use --
 * variable name stored in `property` (with `@` prefix), variable
 * value in `value`, mixin parameters in `prelude`, guard clause
 * appended to `prelude`, import options in `prelude`, etc.
 *
 *   FACADES:
-*   - `less_rule<Backend>`       extends `css::css_rule<Backend>`
-*   - `less_stylesheet<Backend>` extends `css::css_stylesheet<Backend>`
+*   - `DLessRule<Backend>`       extends `css::DCssRule<Backend>`
+*   - `DLessStylesheet<Backend>` extends `css::DCssStylesheet<Backend>`
 *
 *   ZERO ADDED MEMBERS:
-*   `less_rule<B>` adds NO members beyond `css_rule<B>`.
-*   `less_stylesheet<B>` adds NO members beyond `css_stylesheet<B>`.
+*   `DLessRule<B>` adds NO members beyond `DCssRule<B>`.
+*   `DLessStylesheet<B>` adds NO members beyond `DCssStylesheet<B>`.
 *   Memory layout matches the CSS bases exactly.
 *
 *   RENDERING:
-*   `less_stylesheet` exposes:
+*   `DLessStylesheet` exposes:
 *     - render_to_less_source  (Less source)
 *     - compile_to_css         (stub; real compilation belongs to
 *                               adapter backends bound to less.js
@@ -41,16 +41,16 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    less_rule<Backend>
+I.    DLessRule<Backend>
       -------------------
 
 II.   INTERNAL EMISSION HELPERS
       -------------------------
 
-III.  less_stylesheet<Backend>
+III.  DLessStylesheet<Backend>
       -------------------------
 
-IV.   less_default_backend
+IV.   DLessDefaultBackend
       --------------------
 
 V.    FREE HELPERS / FACTORIES
@@ -77,8 +77,8 @@ V.    FREE HELPERS / FACTORIES
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
 #include "../css_template.hpp"       // the CSS rule / stylesheet templates
-#include "./less.hpp"                // less_rule_kind, less_at_rule_kind,
-                                     // less_dialect, less_string_t, the
+#include "./less.hpp"                // DLessRuleKind, DLessAtRuleKind,
+                                     // DLessDialect, DLessString, the
                                      // default backend tag
 
 
@@ -88,40 +88,40 @@ namespace less {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   less_rule<Backend>                                 ///
+///                I.   DLessRule<Backend>                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_rule
-//   class: thin facade extending `css::css_rule<Backend>`
+// DLessRule
+//   class: thin facade extending `css::DCssRule<Backend>`
 // with Less-specific accessors. The Less kind discriminator is
 // derived from the underlying CSS rule kind plus inspection of
 // the property name (for variables) / selector shape (for
 // mixins) / at-keyword (for plugin and option directives) /
 // prelude content (for guards and imports).
 template<typename Backend>
-class less_rule
-:   public ::djinterp::css::css_rule<Backend>
+class DLessRule
+:   public ::djinterp::css::DCssRule<Backend>
 {
 public:
-    using base_type = ::djinterp::css::css_rule<Backend>;
+    using base_type = ::djinterp::css::DCssRule<Backend>;
     using node_type = typename base_type::node_type;
 
 
     /// constructors
 
-    less_rule()
+    DLessRule()
     :   base_type()
     {}
 
     explicit
-    less_rule(
+    DLessRule(
         node_type*  _node
     )
     :   base_type(_node)
     {}
 
     explicit
-    less_rule(
+    DLessRule(
         const base_type&    _css
     )
     :   base_type(_css)
@@ -130,43 +130,43 @@ public:
 
     /// Less kind dispatch
 
-    // less_rule_kind
+    // DLessRuleKind
     //   function: returns the Less-specific rule kind.
-    enum less_rule_kind
+    enum DLessRuleKind
     less_rule_kind() const
     {
         if (!this->valid())
         {
-            return less_rule_kind::unknown;
+            return DLessRuleKind::unknown;
         }
 
         // Variable declaration: a CSS declaration whose
         // property name begins with `@`.
         if ( (this->rule_kind() ==
-                ::djinterp::css::css_rule_kind::declaration_block) &&
+                ::djinterp::css::DCssRuleKind::declaration_block) &&
              is_less_variable_name(this->backend_handle()->property.c_str()) )
         {
             // Detached ruleset: the value is a `{ ... }` block.
             // The default backend cannot tell statically;
             // adapter backends override.
-            return less_rule_kind::variable_declaration;
+            return DLessRuleKind::variable_declaration;
         }
 
         // Property reference (Less 3.5+): `$name` inside a
         // value expression. Stored as a declaration with
         // property name beginning with `$`.
         if ( (this->rule_kind() ==
-                ::djinterp::css::css_rule_kind::declaration_block) &&
+                ::djinterp::css::DCssRuleKind::declaration_block) &&
              is_less_property_variable_name(
                  this->backend_handle()->property.c_str()) )
         {
-            return less_rule_kind::property_variable;
+            return DLessRuleKind::property_variable;
         }
 
         // Style rule whose selector looks like a mixin
         // callable -- `.name` or `#name`.
         if ( (this->rule_kind() ==
-                ::djinterp::css::css_rule_kind::style_rule) &&
+                ::djinterp::css::DCssRuleKind::style_rule) &&
              is_less_mixin_selector(this->selector().c_str()) )
         {
             // Distinguish definition from call by body presence
@@ -175,46 +175,46 @@ public:
             if (this->declaration_count() + this->rule_count() > 0)
             {
                 // body present -- definition
-                if (this->selector().find('(') != less_string_t::npos)
+                if (this->selector().find('(') != DLessString::npos)
                 {
-                    return less_rule_kind::parametric_mixin;
+                    return DLessRuleKind::parametric_mixin;
                 }
-                return less_rule_kind::mixin_definition;
+                return DLessRuleKind::mixin_definition;
             }
             // no body -- mixin call statement (rarely useful
             // when stored as a style_rule; included for
             // completeness)
-            return less_rule_kind::mixin_call;
+            return DLessRuleKind::mixin_call;
         }
 
         // At-rules: classify Less-specific keywords.
         if (this->is_at_rule())
         {
-            const less_at_rule_kind   ak =
+            const DLessAtRuleKind   ak =
                 less_at_rule_kind_from_name(
                     this->at_keyword().c_str());
-            if (ak == less_at_rule_kind::plugin)
+            if (ak == DLessAtRuleKind::plugin)
             {
-                return less_rule_kind::plugin_import;
+                return DLessRuleKind::plugin_import;
             }
-            if (ak == less_at_rule_kind::import_)
+            if (ak == DLessAtRuleKind::import_)
             {
                 // Less import always carries options syntax;
                 // distinguish "vanilla CSS import" from
                 // "Less import" by presence of option keywords
                 // in the prelude. Heuristic; adapter backends
                 // can override.
-                if (this->prelude().find('(') != less_string_t::npos)
+                if (this->prelude().find('(') != DLessString::npos)
                 {
-                    return less_rule_kind::import_with_options;
+                    return DLessRuleKind::import_with_options;
                 }
             }
         }
 
-        return less_rule_kind::unknown;
+        return DLessRuleKind::unknown;
     }
 
-    enum less_rule_kind
+    enum DLessRuleKind
     get_less_rule_kind() const
     {
         return this->less_rule_kind();
@@ -222,29 +222,29 @@ public:
 
     bool is_variable_declaration() const
     {
-        return ( this->less_rule_kind() == less_rule_kind::variable_declaration );
+        return ( this->less_rule_kind() == DLessRuleKind::variable_declaration );
     }
     bool is_mixin_definition() const
     {
         const auto k = this->less_rule_kind();
-        return ( (k == less_rule_kind::mixin_definition) ||
-                 (k == less_rule_kind::parametric_mixin) );
+        return ( (k == DLessRuleKind::mixin_definition) ||
+                 (k == DLessRuleKind::parametric_mixin) );
     }
     bool is_mixin_call() const
     {
-        return ( this->less_rule_kind() == less_rule_kind::mixin_call );
+        return ( this->less_rule_kind() == DLessRuleKind::mixin_call );
     }
     bool is_parametric_mixin() const
     {
-        return ( this->less_rule_kind() == less_rule_kind::parametric_mixin );
+        return ( this->less_rule_kind() == DLessRuleKind::parametric_mixin );
     }
     bool is_plugin_import() const
     {
-        return ( this->less_rule_kind() == less_rule_kind::plugin_import );
+        return ( this->less_rule_kind() == DLessRuleKind::plugin_import );
     }
     bool is_import_with_options() const
     {
-        return ( this->less_rule_kind() == less_rule_kind::import_with_options );
+        return ( this->less_rule_kind() == DLessRuleKind::import_with_options );
     }
 
 
@@ -253,23 +253,23 @@ public:
     // variable_name
     //   function: returns the variable name (including the
     // leading `@`). Only meaningful for variable declarations.
-    less_string_t variable_name() const
+    DLessString variable_name() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
         return this->backend_handle()->property;
     }
 
-    less_string_t get_variable_name() const
+    DLessString get_variable_name() const
     {
         return this->variable_name();
     }
 
     // set_variable_name
     void set_variable_name(
-        const less_string_t& _name
+        const DLessString& _name
     )
     {
         if (!this->valid())
@@ -278,7 +278,7 @@ public:
         }
         this->backend_handle()->property =
             ( (!_name.empty()) && (_name[0] != '@') )
-                ? less_string_t("@") + _name
+                ? DLessString("@") + _name
                 : _name;
     }
 
@@ -288,18 +288,18 @@ public:
     // mixin_selector
     //   function: returns the mixin selector portion (before
     // any parameter list).
-    less_string_t mixin_selector() const
+    DLessString mixin_selector() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
-        const less_string_t&    sel = this->selector();
+        const DLessString&      sel = this->selector();
         const std::size_t       p   = sel.find('(');
-        return (p == less_string_t::npos) ? sel : sel.substr(0, p);
+        return (p == DLessString::npos) ? sel : sel.substr(0, p);
     }
 
-    less_string_t get_mixin_selector() const
+    DLessString get_mixin_selector() const
     {
         return this->mixin_selector();
     }
@@ -307,26 +307,26 @@ public:
     // parameters
     //   function: returns the parameter-list source between
     // the parentheses on a mixin definition selector.
-    less_string_t parameters() const
+    DLessString parameters() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
-        const less_string_t&    sel  = this->selector();
+        const DLessString&      sel  = this->selector();
         const std::size_t       open = sel.find('(');
         // close on the matching ')' before any subsequent `when`
         const std::size_t       close = sel.rfind(')');
-        if ( (open == less_string_t::npos) ||
-             (close == less_string_t::npos) ||
+        if ( (open == DLessString::npos) ||
+             (close == DLessString::npos) ||
              (close <= open + 1) )
         {
-            return less_string_t();
+            return DLessString();
         }
         return sel.substr(open + 1, close - open - 1);
     }
 
-    less_string_t get_parameters() const
+    DLessString get_parameters() const
     {
         return this->parameters();
     }
@@ -334,7 +334,7 @@ public:
     // arguments
     //   function: alias of `parameters()` for mixin calls --
     // the syntactic form is identical.
-    less_string_t arguments() const
+    DLessString arguments() const
     {
         return this->parameters();
     }
@@ -346,24 +346,24 @@ public:
     //   function: returns the guard expression for a guarded
     // mixin. For a selector like `.dark(@color) when (lightness(
     // @color) < 50%)`, returns `lightness(@color) < 50%`.
-    less_string_t guard_clause() const
+    DLessString guard_clause() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
-        const less_string_t&    sel = this->selector();
+        const DLessString&      sel = this->selector();
         const std::size_t       w   = sel.find(" when ");
-        if (w == less_string_t::npos)
+        if (w == DLessString::npos)
         {
-            return less_string_t();
+            return DLessString();
         }
         // Skip "when ", grab the parenthesised condition.
         const std::size_t       after = w + 6;
         const std::size_t       open  = sel.find('(', after);
         const std::size_t       close = sel.rfind(')');
-        if ( (open == less_string_t::npos) ||
-             (close == less_string_t::npos) ||
+        if ( (open == DLessString::npos) ||
+             (close == DLessString::npos) ||
              (close <= open + 1) )
         {
             return sel.substr(after);
@@ -371,7 +371,7 @@ public:
         return sel.substr(open + 1, close - open - 1);
     }
 
-    less_string_t get_guard_clause() const
+    DLessString get_guard_clause() const
     {
         return this->guard_clause();
     }
@@ -385,7 +385,7 @@ public:
         {
             return false;
         }
-        return ( this->selector().find(" when ") != less_string_t::npos );
+        return ( this->selector().find(" when ") != DLessString::npos );
     }
 
 
@@ -395,28 +395,28 @@ public:
     //   function: returns the target of a `&:extend(target)`
     // pseudo. Returns empty if no extend is present in the
     // selector.
-    less_string_t extend_target() const
+    DLessString extend_target() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
-        const less_string_t&    sel = this->selector();
+        const DLessString&      sel = this->selector();
         const std::size_t       e   = sel.find(":extend(");
-        if (e == less_string_t::npos)
+        if (e == DLessString::npos)
         {
-            return less_string_t();
+            return DLessString();
         }
         const std::size_t       open  = e + 7;
         const std::size_t       close = sel.find(')', open);
-        if (close == less_string_t::npos)
+        if (close == DLessString::npos)
         {
-            return less_string_t();
+            return DLessString();
         }
-        less_string_t           inner = sel.substr(open + 1, close - open - 1);
+        DLessString           inner = sel.substr(open + 1, close - open - 1);
         // strip trailing " all" if present
         const std::size_t       all_at = inner.rfind(" all");
-        if ( (all_at != less_string_t::npos) &&
+        if ( (all_at != DLessString::npos) &&
              (all_at + 4 == inner.size()) )
         {
             inner.resize(all_at);
@@ -432,8 +432,8 @@ public:
         {
             return false;
         }
-        const less_string_t&    sel = this->selector();
-        return ( sel.find(" all)") != less_string_t::npos );
+        const DLessString&    sel = this->selector();
+        return ( sel.find(" all)") != DLessString::npos );
     }
 
 
@@ -441,22 +441,22 @@ public:
 
     // import_url
     //   function: returns the URL string from `@import 'name'`.
-    less_string_t import_url() const
+    DLessString import_url() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
-        const less_string_t&    pre = this->prelude();
+        const DLessString&    pre = this->prelude();
         // skip leading `(options)` group if present
         std::size_t             i   = 0;
         const std::size_t       n   = pre.size();
         if ( (i < n) && (pre[i] == '(') )
         {
             const std::size_t   close = pre.find(')', i);
-            if (close == less_string_t::npos)
+            if (close == DLessString::npos)
             {
-                return less_string_t();
+                return DLessString();
             }
             i = close + 1;
             while ( (i < n) && ((pre[i] == ' ') || (pre[i] == '\t')) )
@@ -466,14 +466,14 @@ public:
         }
         if (i >= n)
         {
-            return less_string_t();
+            return DLessString();
         }
         // strip surrounding quotes if present
         char    quote = pre[i];
         if ( (quote == '\'') || (quote == '"') )
         {
             const std::size_t   close = pre.find(quote, i + 1);
-            if (close == less_string_t::npos)
+            if (close == DLessString::npos)
             {
                 return pre.substr(i + 1);
             }
@@ -481,7 +481,7 @@ public:
         }
         // unquoted form (url(...)?); take rest until whitespace
         const std::size_t       sp = pre.find_first_of(" \t", i);
-        return (sp == less_string_t::npos) ? pre.substr(i)
+        return (sp == DLessString::npos)   ? pre.substr(i)
                                            : pre.substr(i, sp - i);
     }
 
@@ -493,46 +493,46 @@ public:
         {
             return lio_none;
         }
-        const less_string_t&    pre = this->prelude();
+        const DLessString&    pre = this->prelude();
         if (pre.empty() || (pre[0] != '('))
         {
             return lio_none;
         }
         const std::size_t       close = pre.find(')');
-        if (close == less_string_t::npos)
+        if (close == DLessString::npos)
         {
             return lio_none;
         }
-        const less_string_t     opts = pre.substr(1, close - 1);
+        const DLessString       opts = pre.substr(1, close - 1);
         unsigned                mask = lio_none;
-        if (opts.find("reference") != less_string_t::npos) mask |= lio_reference;
-        if (opts.find("inline")    != less_string_t::npos) mask |= lio_inline_;
-        if (opts.find("less")      != less_string_t::npos) mask |= lio_less;
-        if (opts.find("css")       != less_string_t::npos) mask |= lio_css;
-        if (opts.find("once")      != less_string_t::npos) mask |= lio_once;
-        if (opts.find("multiple")  != less_string_t::npos) mask |= lio_multiple;
-        if (opts.find("optional")  != less_string_t::npos) mask |= lio_optional;
+        if (opts.find("reference") != DLessString::npos) mask |= lio_reference;
+        if (opts.find("inline")    != DLessString::npos) mask |= lio_inline_;
+        if (opts.find("less")      != DLessString::npos) mask |= lio_less;
+        if (opts.find("css")       != DLessString::npos) mask |= lio_css;
+        if (opts.find("once")      != DLessString::npos) mask |= lio_once;
+        if (opts.find("multiple")  != DLessString::npos) mask |= lio_multiple;
+        if (opts.find("optional")  != DLessString::npos) mask |= lio_optional;
         return mask;
     }
 
     // plugin_url
     //   function: returns the URL from `@plugin 'name'`.
-    less_string_t plugin_url() const
+    DLessString plugin_url() const
     {
         if (!this->valid())
         {
-            return less_string_t();
+            return DLessString();
         }
-        const less_string_t&    pre = this->prelude();
+        const DLessString&    pre = this->prelude();
         if (pre.size() < 2)
         {
-            return less_string_t();
+            return DLessString();
         }
         char    quote = pre[0];
         if ( (quote == '\'') || (quote == '"') )
         {
             const std::size_t   close = pre.find(quote, 1);
-            if (close == less_string_t::npos)
+            if (close == DLessString::npos)
             {
                 return pre.substr(1);
             }
@@ -577,11 +577,11 @@ NS_INTERNAL
     inline
     void less_emit_rule_helper(
         std::ostream&                                 _out,
-        const ::djinterp::internal::css_default_node& _node,
+        const ::djinterp::internal::DCssDefaultNode&  _node,
         std::size_t                                   _depth
     )
     {
-        using K = ::djinterp::css::css_rule_kind;
+        using K = ::djinterp::css::DCssRuleKind;
 
         if (_node.rule_kind == K::comment)
         {
@@ -594,7 +594,7 @@ NS_INTERNAL
         {
             less_emit_indent_helper(_out, _depth);
             _out << _node.property << ": " << _node.value;
-            if (_node.importance == ::djinterp::css::css_importance::important)
+            if (_node.importance == ::djinterp::css::DCssImportance::important)
             {
                 _out << " !important";
             }
@@ -657,45 +657,45 @@ namespace less {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   less_stylesheet<Backend>                         ///
+///                III.   DLessStylesheet<Backend>                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_stylesheet
+// DLessStylesheet
 //   class: thin facade extending
-// `css::css_stylesheet<Backend>` with Less-specific metadata
+// `css::DCssStylesheet<Backend>` with Less-specific metadata
 // and emission. Adds NO data members beyond the CSS base.
 template<typename Backend>
-class less_stylesheet
-:   public ::djinterp::css::css_stylesheet<Backend>
+class DLessStylesheet
+:   public ::djinterp::css::DCssStylesheet<Backend>
 {
 public:
-    using base_type       = ::djinterp::css::css_stylesheet<Backend>;
+    using base_type       = ::djinterp::css::DCssStylesheet<Backend>;
     using stylesheet_type = typename base_type::stylesheet_type;
     using rule_node_type  = typename base_type::rule_node_type;
-    using rule_facade     = less_rule<Backend>;
+    using rule_facade     = DLessRule<Backend>;
 
 
     /// constructors
 
-    less_stylesheet()
+    DLessStylesheet()
     :   base_type()
     {
-        this->set_syntax_mode(::djinterp::css::css_syntax_mode::css);
+        this->set_syntax_mode(::djinterp::css::DCssSyntaxMode::css);
     }
 
 
     /// metadata
 
-    // less_dialect
+    // DLessDialect
     //   function: returns the configured dialect. Default
     // backend reports `less_js`; adapter backends can override.
-    enum less_dialect
+    enum DLessDialect
     less_dialect() const
     {
-        return less_dialect::less_js;
+        return DLessDialect::less_js;
     }
 
-    enum less_dialect
+    enum DLessDialect
     get_less_dialect() const
     {
         return this->less_dialect();
@@ -719,8 +719,8 @@ public:
     //   function: appends a variable declaration to the
     // stylesheet root (`@name: value;`).
     rule_facade add_variable(
-        const less_string_t& _name,
-        const less_string_t& _value
+        const DLessString& _name,
+        const DLessString& _value
     )
     {
         if (!this->backend_stylesheet().root)
@@ -728,10 +728,10 @@ public:
             return rule_facade();
         }
         std::unique_ptr<rule_node_type>     n(new rule_node_type);
-        n->rule_kind = ::djinterp::css::css_rule_kind::declaration_block;
+        n->rule_kind = ::djinterp::css::DCssRuleKind::declaration_block;
         n->property  = ( (!_name.empty()) && (_name[0] == '@') )
             ? _name
-            : less_string_t("@") + _name;
+            : DLessString("@") + _name;
         n->value = _value;
         rule_node_type* raw = n.get();
         const_cast<typename base_type::stylesheet_type&>(
@@ -742,9 +742,9 @@ public:
     // add_mixin
     //   function: appends a mixin definition.
     rule_facade add_mixin(
-        const less_string_t& _selector,
-        const less_string_t& _parameters = less_string_t(),
-        const less_string_t& _guard = less_string_t()
+        const DLessString& _selector,
+        const DLessString& _parameters = DLessString(),
+        const DLessString& _guard = DLessString()
     )
     {
         if (!this->backend_stylesheet().root)
@@ -752,10 +752,10 @@ public:
             return rule_facade();
         }
         std::unique_ptr<rule_node_type>     n(new rule_node_type);
-        n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
+        n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
         n->selector  = _selector;
         if ( (!_parameters.empty()) ||
-             (_selector.find('(') == less_string_t::npos) )
+             (_selector.find('(') == DLessString::npos) )
         {
             // Always emit parens for mixin definitions so the
             // round-trip is unambiguous.
@@ -778,11 +778,11 @@ public:
     // add_import
     //   function: appends `@import (opts) 'url';`.
     rule_facade add_import(
-        const less_string_t& _url,
+        const DLessString&   _url,
         unsigned             _options = lio_none
     )
     {
-        less_string_t   prelude;
+        DLessString     prelude;
         if (_options != lio_none)
         {
             prelude.push_back('(');
@@ -813,10 +813,10 @@ public:
     // add_plugin
     //   function: appends `@plugin 'url';`.
     rule_facade add_plugin(
-        const less_string_t& _url
+        const DLessString& _url
     )
     {
-        less_string_t   prelude = less_string_t("'") + _url + less_string_t("'");
+        DLessString   prelude = DLessString("'") + _url + DLessString("'");
         auto css_r = this->add_at_rule(at_keywords::plugin, prelude);
         return rule_facade(css_r.backend_handle());
     }
@@ -845,7 +845,7 @@ public:
         }
     }
 
-    less_string_t render_to_less_source() const
+    DLessString render_to_less_source() const
     {
         std::ostringstream  oss;
         this->render_to_less_source(oss);
@@ -870,29 +870,29 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.   less_default_backend                               ///
+///                IV.   DLessDefaultBackend                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// less_default_backend
+// DLessDefaultBackend
 //   struct: bundled in-memory backend for the Less facades.
 // Reuses the CSS default backend's storage types verbatim.
 // Exposes the CSS and Less backend tags so the same type
 // satisfies both protocols.
-struct less_default_backend
+struct DLessDefaultBackend
 {
-    using css_backend_tag  = ::djinterp::css::css_default_backend_tag;
-    using less_backend_tag = ::djinterp::less::less_default_backend_tag;
+    using css_backend_tag  = ::djinterp::css::DCssDefaultBackendTag;
+    using less_backend_tag = ::djinterp::less::DLessDefaultBackendTag;
 
-    using rule_type             = ::djinterp::internal::css_default_node;
-    using declaration_type      = ::djinterp::internal::css_default_node;
-    using stylesheet_type       = ::djinterp::internal::css_default_stylesheet;
-    using less_rule_type        = ::djinterp::internal::css_default_node;
-    using less_stylesheet_type  = ::djinterp::internal::css_default_stylesheet;
+    using rule_type             = ::djinterp::internal::DCssDefaultNode;
+    using declaration_type      = ::djinterp::internal::DCssDefaultNode;
+    using stylesheet_type       = ::djinterp::internal::DCssDefaultStylesheet;
+    using less_rule_type        = ::djinterp::internal::DCssDefaultNode;
+    using less_stylesheet_type  = ::djinterp::internal::DCssDefaultStylesheet;
 
     static
     stylesheet_type make_stylesheet()
     {
-        return ::djinterp::css::css_default_backend::make_stylesheet();
+        return ::djinterp::css::DCssDefaultBackend::make_stylesheet();
     }
 
     // make_less_stylesheet
@@ -914,9 +914,9 @@ struct less_default_backend
 // stylesheet facade for the given backend.
 template<typename Backend>
 inline
-less_stylesheet<Backend> make_less_stylesheet()
+DLessStylesheet<Backend> make_less_stylesheet()
 {
-    return less_stylesheet<Backend>();
+    return DLessStylesheet<Backend>();
 }
 
 
@@ -924,19 +924,19 @@ less_stylesheet<Backend> make_less_stylesheet()
 //   function: returns a new freestanding variable declaration.
 template<typename Backend>
 inline
-less_rule<Backend> make_variable(
-    const less_string_t& _name,
-    const less_string_t& _value
+DLessRule<Backend> make_variable(
+    const DLessString& _name,
+    const DLessString& _value
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind = ::djinterp::css::css_rule_kind::declaration_block;
+    n->rule_kind = ::djinterp::css::DCssRuleKind::declaration_block;
     n->property  = ( (!_name.empty()) && (_name[0] == '@') )
         ? _name
-        : less_string_t("@") + _name;
+        : DLessString("@") + _name;
     n->value = _value;
-    return less_rule<Backend>(n);
+    return DLessRule<Backend>(n);
 }
 
 
@@ -944,15 +944,15 @@ less_rule<Backend> make_variable(
 //   function: returns a new freestanding mixin definition.
 template<typename Backend>
 inline
-less_rule<Backend> make_mixin(
-    const less_string_t& _selector,
-    const less_string_t& _parameters = less_string_t(),
-    const less_string_t& _guard = less_string_t()
+DLessRule<Backend> make_mixin(
+    const DLessString& _selector,
+    const DLessString& _parameters = DLessString(),
+    const DLessString& _guard = DLessString()
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
+    n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
     n->selector  = _selector;
     n->selector += '(';
     n->selector += _parameters;
@@ -963,7 +963,7 @@ less_rule<Backend> make_mixin(
         n->selector += _guard;
         n->selector += ')';
     }
-    return less_rule<Backend>(n);
+    return DLessRule<Backend>(n);
 }
 
 
@@ -971,19 +971,19 @@ less_rule<Backend> make_mixin(
 //   function: returns a new freestanding mixin call statement.
 template<typename Backend>
 inline
-less_rule<Backend> make_mixin_call(
-    const less_string_t& _selector,
-    const less_string_t& _arguments = less_string_t()
+DLessRule<Backend> make_mixin_call(
+    const DLessString& _selector,
+    const DLessString& _arguments = DLessString()
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
-    n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
+    n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
     n->selector  = _selector;
     n->selector += '(';
     n->selector += _arguments;
     n->selector += ')';
-    return less_rule<Backend>(n);
+    return DLessRule<Backend>(n);
 }
 
 
@@ -991,16 +991,16 @@ less_rule<Backend> make_mixin_call(
 //   function: returns a new freestanding @import rule.
 template<typename Backend>
 inline
-less_rule<Backend> make_import(
-    const less_string_t& _url,
+DLessRule<Backend> make_import(
+    const DLessString&   _url,
     unsigned             _options = lio_none
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::import_;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
-    less_string_t&  pre = n->prelude;
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
+    DLessString&    pre = n->prelude;
     if (_options != lio_none)
     {
         pre.push_back('(');
@@ -1024,7 +1024,7 @@ less_rule<Backend> make_import(
     pre.push_back('\'');
     pre += _url;
     pre.push_back('\'');
-    return less_rule<Backend>(n);
+    return DLessRule<Backend>(n);
 }
 
 
@@ -1032,16 +1032,16 @@ less_rule<Backend> make_import(
 //   function: returns a new freestanding @plugin rule.
 template<typename Backend>
 inline
-less_rule<Backend> make_plugin(
-    const less_string_t& _url
+DLessRule<Backend> make_plugin(
+    const DLessString& _url
 )
 {
     using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::plugin;
-    n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
-    n->prelude    = less_string_t("'") + _url + less_string_t("'");
-    return less_rule<Backend>(n);
+    n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
+    n->prelude    = DLessString("'") + _url + DLessString("'");
+    return DLessRule<Backend>(n);
 }
 
 

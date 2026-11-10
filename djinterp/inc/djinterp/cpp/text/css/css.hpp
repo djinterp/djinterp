@@ -27,10 +27,10 @@
 *   structurally so any third-party AST can plug in.
 *
 *   LEVEL & MODULE GATING:
-*   The runtime `css_level` enum identifies the document's target
+*   The runtime `DCssLevel` enum identifies the document's target
 * CSS level (1, 2.1, 3 modules-by-module, 4 drafts). A full
 * compile-time `css_dialect<Flag>` template, mirroring
-* `html_dialect`, is a likely follow-on for static feature gating.
+* `DHtmlDialect`, is a likely follow-on for static feature gating.
 *
 *
 * path:      /inc/djinterp/cpp/text/css/css.hpp
@@ -125,15 +125,15 @@ NS_DJINTERP
 namespace css {
 
 
-// css_string_t
+// DCssString
 //   type: alias for the string type used throughout the css
 // module. `std::string` matches the rest of the framework.
-using css_string_t  = std::string;
+using DCssString  = std::string;
 
 
-// css_size_t
+// DCssSize
 //   type: alias for the size type used for counts and indices.
-using css_size_t    = std::size_t;
+using DCssSize    = std::size_t;
 
 
 // D_CSS_DEFAULT_INDENT
@@ -156,13 +156,13 @@ using css_size_t    = std::size_t;
 ///                II.   CSS LEVEL & SYNTAX MODE                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_level
+// DCssLevel
 //   enum: identifies the document's target CSS level. CSS3 is
 // modular -- "level 3" really means a particular module set --
 // but the coarse level tag is still useful for runtime
 // classification. CSS4 has no integrated spec; the value is
 // used for "currently-in-draft" features.
-enum class css_level : re_std::uint8_t
+enum class DCssLevel : re_std::uint8_t
 {
     css_1,
     css_2_1,
@@ -173,12 +173,12 @@ enum class css_level : re_std::uint8_t
 };
 
 
-// css_syntax_mode
+// DCssSyntaxMode
 //   enum: identifies dialect-level differences in source syntax
 // (vanilla CSS, SCSS, Sass-indented, Less, Stylus, native CSS
 // nesting). Drives parsing and emission rules; the AST itself
 // is the same shape across all dialects.
-enum class css_syntax_mode : re_std::uint8_t
+enum class DCssSyntaxMode : re_std::uint8_t
 {
     css,                // vanilla CSS
     scss,               // SCSS (curly-brace Sass)
@@ -196,11 +196,11 @@ enum class css_syntax_mode : re_std::uint8_t
 ///                III.   RULE KIND ENUM                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_rule_kind
+// DCssRuleKind
 //   enum: discriminator for top-level rule entries in a
 // stylesheet. Backed by `re_std::uint8_t`. The `unknown` value
 // covers proprietary and not-yet-modelled rule kinds.
-enum class css_rule_kind : re_std::uint8_t
+enum class DCssRuleKind : re_std::uint8_t
 {
     // top-level
     stylesheet,             // root container
@@ -211,7 +211,7 @@ enum class css_rule_kind : re_std::uint8_t
     comment,                // /* ... */
 
     // commonly accessed at-rule subkinds (also reachable via
-    // `at_rule` + `css_at_rule_kind`; pulled into the rule
+    // `at_rule` + `DCssAtRuleKind`; pulled into the rule
     // enum for convenient direct dispatch)
     media_rule,             // @media ...
     supports_rule,          // @supports ...
@@ -244,12 +244,12 @@ enum class css_rule_kind : re_std::uint8_t
 ///                IV.   AT-RULE KIND ENUM                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_at_rule_kind
-//   enum: refines `css_rule_kind::at_rule` with the specific
+// DCssAtRuleKind
+//   enum: refines `DCssRuleKind::at_rule` with the specific
 // at-keyword. Useful when a backend stores all at-rules under
 // a single `at_rule` discriminator and uses this enum to
 // further classify.
-enum class css_at_rule_kind : re_std::uint8_t
+enum class DCssAtRuleKind : re_std::uint8_t
 {
     media,
     supports,
@@ -278,11 +278,11 @@ enum class css_at_rule_kind : re_std::uint8_t
 ///                V.   DECLARATION ORIGIN / IMPORTANCE                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_origin
+// DCssOrigin
 //   enum: identifies the cascade origin of a declaration. Used
 // by adapter backends that surface origin to client code; the
 // default backend stores `author` for everything authored.
-enum class css_origin : re_std::uint8_t
+enum class DCssOrigin : re_std::uint8_t
 {
     user_agent,
     user,
@@ -294,9 +294,9 @@ enum class css_origin : re_std::uint8_t
 };
 
 
-// css_importance
+// DCssImportance
 //   enum: identifies whether a declaration carries `!important`.
-enum class css_importance : re_std::uint8_t
+enum class DCssImportance : re_std::uint8_t
 {
     normal,
     important
@@ -307,12 +307,12 @@ enum class css_importance : re_std::uint8_t
 ///                VI.   SELECTOR / COMBINATOR ENUMS                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_selector_kind
+// DCssSelectorKind
 //   enum: categorises a single simple selector. The default
 // backend stores selectors as opaque strings, but exposes this
 // enum for adapter backends that parse the selector grammar
 // (libcss, katana-parser, stylo).
-enum class css_selector_kind : re_std::uint8_t
+enum class DCssSelectorKind : re_std::uint8_t
 {
     type,                   // div
     universal,              // *
@@ -330,9 +330,9 @@ enum class css_selector_kind : re_std::uint8_t
 };
 
 
-// css_combinator
+// DCssSelectorCombinator
 //   enum: identifies a combinator between compound selectors.
-enum class css_combinator : re_std::uint8_t
+enum class DCssSelectorCombinator : re_std::uint8_t
 {
     none,                   // no combinator (compound)
     descendant,             // " " (whitespace)
@@ -345,10 +345,10 @@ enum class css_combinator : re_std::uint8_t
 };
 
 
-// css_attribute_match
+// DCssAttributeMatch
 //   enum: identifies the match operator inside an attribute
 // selector ([attr OP value]).
-enum class css_attribute_match : re_std::uint8_t
+enum class DCssAttributeMatch : re_std::uint8_t
 {
     exists,                 // [attr]
     equals,                 // [attr=value]
@@ -365,12 +365,12 @@ enum class css_attribute_match : re_std::uint8_t
 ///                VII.   VALUE TYPE ENUM                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_value_kind
+// DCssPropertyValueKind
 //   enum: identifies the syntactic category of a property
 // value. The default backend stores values as opaque strings,
 // but exposes this enum for adapter backends that classify
 // values during parsing.
-enum class css_value_kind : re_std::uint8_t
+enum class DCssPropertyValueKind : re_std::uint8_t
 {
     keyword,                // auto, none, inherit
     identifier,             // bare ident not classified as keyword
@@ -401,10 +401,10 @@ enum class css_value_kind : re_std::uint8_t
 ///                VIII.   RULE CATEGORY CLASSIFICATION                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_rule_category
+// DCssRuleCategory
 //   enum: bitmask describing the categorical properties of a
 // rule kind. Backed by `unsigned`.
-enum css_rule_category : unsigned
+enum DCssRuleCategory : unsigned
 {
     crc_none           = 0u,
     crc_root           = 1u <<  0,  // top-level container
@@ -428,10 +428,10 @@ enum css_rule_category : unsigned
 //   function: returns the category bitmask for a rule kind.
 D_CONSTEXPR_INLINE
 unsigned css_category_for_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
-    using K = css_rule_kind;
+    using K = DCssRuleKind;
     return (_k == K::stylesheet)            ? (crc_root | crc_grouping)
          : (_k == K::style_rule)            ? (crc_style | crc_nestable)
          : (_k == K::at_rule)               ? (crc_at)
@@ -481,7 +481,7 @@ unsigned css_category_for_rule_kind(
 //   function: true if the rule kind is an at-rule (any flavour).
 D_CONSTEXPR_INLINE
 bool is_at_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
     return ((css_category_for_rule_kind(_k) & crc_at) != 0u);
@@ -493,7 +493,7 @@ bool is_at_rule_kind(
 // @document, @starting-style.
 D_CONSTEXPR_INLINE
 bool is_conditional_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
     return ((css_category_for_rule_kind(_k) & crc_conditional) != 0u);
@@ -504,7 +504,7 @@ bool is_conditional_rule_kind(
 //   function: true if the rule kind hosts nested rules.
 D_CONSTEXPR_INLINE
 bool is_grouping_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
     return ((css_category_for_rule_kind(_k) & crc_grouping) != 0u);
@@ -517,7 +517,7 @@ bool is_grouping_rule_kind(
 // @font-face, @counter-style).
 D_CONSTEXPR_INLINE
 bool is_descriptor_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
     return ((css_category_for_rule_kind(_k) & crc_descriptor) != 0u);
@@ -530,7 +530,7 @@ bool is_descriptor_rule_kind(
 // at-rules qualify; descriptor at-rules do not.
 D_CONSTEXPR_INLINE
 bool is_nestable_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
     return ((css_category_for_rule_kind(_k) & crc_nestable) != 0u);
@@ -541,7 +541,7 @@ bool is_nestable_rule_kind(
 //   function: true for @keyframes and single keyframe rules.
 D_CONSTEXPR_INLINE
 bool is_keyframes_rule_kind(
-    css_rule_kind _k
+    DCssRuleKind _k
 )
 {
     return ((css_category_for_rule_kind(_k) & crc_keyframes) != 0u);
@@ -890,14 +890,14 @@ bool css_internal_streq(
 
 // at_rule_kind_from_name
 //   function: maps an at-keyword (without the leading `@`) to
-// its `css_at_rule_kind`. Returns `unknown` for unrecognised
+// its `DCssAtRuleKind`. Returns `unknown` for unrecognised
 // keywords.
 D_CONSTEXPR_INLINE
-css_at_rule_kind at_rule_kind_from_name(
+DCssAtRuleKind at_rule_kind_from_name(
     const char* _name
 )
 {
-    using K = css_at_rule_kind;
+    using K = DCssAtRuleKind;
     return (!_name)                                              ? K::unknown
          : (css_internal_streq(_name, at_rules::media))          ? K::media
          : (css_internal_streq(_name, at_rules::supports))       ? K::supports
@@ -923,14 +923,14 @@ css_at_rule_kind at_rule_kind_from_name(
 
 
 // name_from_at_rule_kind
-//   function: maps a `css_at_rule_kind` to its at-keyword
+//   function: maps a `DCssAtRuleKind` to its at-keyword
 // string (without the leading `@`).
 D_CONSTEXPR_INLINE
 const char* name_from_at_rule_kind(
-    css_at_rule_kind _k
+    DCssAtRuleKind _k
 )
 {
-    using K = css_at_rule_kind;
+    using K = DCssAtRuleKind;
     return (_k == K::media)               ? at_rules::media
          : (_k == K::supports)            ? at_rules::supports
          : (_k == K::keyframes)           ? at_rules::keyframes
@@ -955,16 +955,16 @@ const char* name_from_at_rule_kind(
 
 // rule_kind_from_at_rule_kind
 //   function: maps an at-rule subkind to the corresponding
-// dedicated `css_rule_kind` value (e.g.
-// `css_at_rule_kind::media` -> `css_rule_kind::media_rule`).
+// dedicated `DCssRuleKind` value (e.g.
+// `DCssAtRuleKind::media` -> `DCssRuleKind::media_rule`).
 // Returns `at_rule` for kinds without a dedicated rule kind.
 D_CONSTEXPR_INLINE
-css_rule_kind rule_kind_from_at_rule_kind(
-    css_at_rule_kind _k
+DCssRuleKind rule_kind_from_at_rule_kind(
+    DCssAtRuleKind _k
 )
 {
-    using A = css_at_rule_kind;
-    using R = css_rule_kind;
+    using A = DCssAtRuleKind;
+    using R = DCssRuleKind;
     return (_k == A::media)               ? R::media_rule
          : (_k == A::supports)            ? R::supports_rule
          : (_k == A::keyframes)           ? R::keyframes_rule
@@ -1004,36 +1004,36 @@ bool is_custom_property_name(
 ///                XIII.   BACKEND TAG DISPATCH                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_backend_tag
+// DCssBackendTag
 //   struct: empty base tag for all CSS backend tag types.
-struct css_backend_tag
+struct DCssBackendTag
 {};
 
-// css_default_backend_tag
+// DCssDefaultBackendTag
 //   struct: tag identifying the bundled in-memory backend.
-struct css_default_backend_tag : css_backend_tag
+struct DCssDefaultBackendTag : DCssBackendTag
 {};
 
-// css_libcss_backend_tag
+// DCssLibcssBackendTag
 //   struct: tag identifying a NetSurf libcss adapter backend.
-struct css_libcss_backend_tag : css_backend_tag
+struct DCssLibcssBackendTag : DCssBackendTag
 {};
 
-// css_katana_backend_tag
+// DCssKatanaBackendTag
 //   struct: tag identifying a katana-parser adapter backend.
-struct css_katana_backend_tag : css_backend_tag
+struct DCssKatanaBackendTag : DCssBackendTag
 {};
 
-// css_stylo_backend_tag
+// DCssStyloBackendTag
 //   struct: tag identifying a Servo / stylo-based adapter
 // backend.
-struct css_stylo_backend_tag : css_backend_tag
+struct DCssStyloBackendTag : DCssBackendTag
 {};
 
-// css_postcss_backend_tag
+// DCssPostcssBackendTag
 //   struct: tag identifying a PostCSS-bridge backend (e.g.
 // invoking a PostCSS pipeline through an FFI / IPC layer).
-struct css_postcss_backend_tag : css_backend_tag
+struct DCssPostcssBackendTag : DCssBackendTag
 {};
 
 
@@ -1046,7 +1046,7 @@ NS_INTERNAL
 
     // has_css_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
-    // `css_backend_tag` alias. Primary template (failure case).
+    // `DCssBackendTag` alias. Primary template (failure case).
     template<typename Type,
              typename = void>
     struct has_css_backend_tag_helper
@@ -1070,7 +1070,7 @@ namespace css {
 
 
 // is_css_backend
-//   trait: true if `Type` has a nested `css_backend_tag`
+//   trait: true if `Type` has a nested `DCssBackendTag`
 // type.
 template<typename    Type>
 struct is_css_backend
@@ -1504,7 +1504,7 @@ struct has_add_rule_method<Type, void_t<
 
 // has_css_level_method
 //   trait: true if `Type` exposes `level()` const returning a
-// `css_level` enum value.
+// `DCssLevel` enum value.
 template<typename Type, typename = void>
 struct has_css_level_method : std::false_type {};
 template<typename Type>
@@ -1710,11 +1710,11 @@ struct is_css_stylesheet_loose
 ///                X.   CLASSIFICATION STRUCTS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// css_declaration_class
+// DCssDeclarationClass
 //   struct: comprehensive classification of a declaration-
 // shaped type.
 template<typename Type>
-struct css_declaration_class
+struct DCssDeclarationClass
 {
     D_STATIC_CONSTEXPR bool is_decl         =
         is_css_declaration<Type>::value;
@@ -1733,11 +1733,11 @@ struct css_declaration_class
 };
 
 
-// css_rule_class
+// DCssRuleClass
 //   struct: comprehensive classification of a rule-shaped
 // type.
 template<typename Type>
-struct css_rule_class
+struct DCssRuleClass
 {
     D_STATIC_CONSTEXPR bool is_rule          =
         is_css_rule<Type>::value;
@@ -1768,11 +1768,11 @@ struct css_rule_class
 };
 
 
-// css_stylesheet_class
+// DCssStylesheetClass
 //   struct: comprehensive classification of a stylesheet-
 // shaped type.
 template<typename Type>
-struct css_stylesheet_class
+struct DCssStylesheetClass
 {
     D_STATIC_CONSTEXPR bool is_sheet         =
         is_css_stylesheet<Type>::value;
@@ -2140,7 +2140,7 @@ concept full_css_stylesheet =
 
 // css_backend_type
 //   concept: satisfied by any type tagged with
-// `css_backend_tag`.
+// `DCssBackendTag`.
 template<typename Type>
 concept css_backend_type =
     is_css_backend<Type>::value;
@@ -2192,7 +2192,7 @@ int css_channel_to_255(
 // becomes "#rrggbb"; an rgba becomes "rgba(r, g, b, a)"; every other
 // native model is routed through the rgb hub to "#rrggbb".
 inline
-css_string_t to_css_color(
+DCssString to_css_color(
     const ::djinterp::rgb& _c
 )
 {
@@ -2201,11 +2201,11 @@ css_string_t to_css_color(
                   css_channel_to_255(_c.r),
                   css_channel_to_255(_c.g),
                   css_channel_to_255(_c.b));
-    return css_string_t(buf);
+    return DCssString(buf);
 }
 
 inline
-css_string_t to_css_color(
+DCssString to_css_color(
     const ::djinterp::rgba& _c
 )
 {
@@ -2220,7 +2220,7 @@ template <typename Model,
           typename = typename std::enable_if<
               ::djinterp::is_color_model<Model>::value
               && !std::is_same<clean_t<Model>, ::djinterp::rgb>::value>::type>
-css_string_t
+DCssString
 to_css_color(
     const Model&            _c
 )
@@ -2230,19 +2230,19 @@ to_css_color(
 
 
 // to_css_font_family / size / weight / style
-//   functions: project a native djinterp::font onto the individual
+//   functions: project a native djinterp::DFont onto the individual
 // CSS font longhand values.
 template <unsigned Feat, typename Color>
-css_string_t to_css_font_family(
-    const ::djinterp::font<Feat, Color>& _f
+DCssString to_css_font_family(
+    const ::djinterp::DFont<Feat, Color>& _f
 )
 {
-    return _f.family.empty() ? css_string_t("inherit") : css_string_t(_f.family);
+    return _f.family.empty() ? DCssString("inherit") : DCssString(_f.family);
 }
 
 template <unsigned Feat, typename Color>
-css_string_t to_css_font_size(
-    const ::djinterp::font<Feat, Color>& _f
+DCssString to_css_font_size(
+    const ::djinterp::DFont<Feat, Color>& _f
 )
 {
     std::ostringstream os;
@@ -2251,23 +2251,23 @@ css_string_t to_css_font_size(
 }
 
 template <unsigned Feat, typename Color>
-css_string_t to_css_font_weight(
-    const ::djinterp::font<Feat, Color>& _f
+DCssString to_css_font_weight(
+    const ::djinterp::DFont<Feat, Color>& _f
 )
 {
-    return css_string_t(std::to_string(::djinterp::fn_effective_weight(_f)));
+    return DCssString(std::to_string(::djinterp::fn_effective_weight(_f)));
 }
 
 template <unsigned Feat, typename Color>
-css_string_t to_css_font_style(
-    const ::djinterp::font<Feat, Color>& _f
+DCssString to_css_font_style(
+    const ::djinterp::DFont<Feat, Color>& _f
 )
 {
     switch (_f.slant)
     {
-        case ::djinterp::DFontSlant::italic:  return css_string_t("italic");
-        case ::djinterp::DFontSlant::oblique: return css_string_t("oblique");
-        default:                              return css_string_t("normal");
+        case ::djinterp::DFontSlant::italic:  return DCssString("italic");
+        case ::djinterp::DFontSlant::oblique: return DCssString("oblique");
+        default:                              return DCssString("normal");
     }
 }
 
@@ -2277,13 +2277,13 @@ css_string_t to_css_font_style(
 // "[style] [weight] size family" (size and family are mandatory in
 // the shorthand; style/weight are emitted only when non-default).
 template <unsigned Feat, typename Color>
-css_string_t to_css_font(
-    const ::djinterp::font<Feat, Color>& _f
+DCssString to_css_font(
+    const ::djinterp::DFont<Feat, Color>& _f
 )
 {
     std::ostringstream os;
 
-    const css_string_t style = to_css_font_style(_f);
+    const DCssString style = to_css_font_style(_f);
     if (style != "normal") { os << style << " "; }
 
     const unsigned w = static_cast<unsigned>(::djinterp::fn_effective_weight(_f));

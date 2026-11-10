@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp]                                                layout_parse.hpp
 *
-*   The TEXTUAL construction surface -- a block-form DSL parsed into a layout_doc.
+*   The TEXTUAL construction surface -- a block-form DSL parsed into a DLayoutDoc.
 * A construct is a keyword, an optional quoted argument, optional key="value"
 * attributes, and an optional { ... } child block:
 *
@@ -14,7 +14,7 @@
 * The result is the SAME annotated term the other surfaces produce.
 *
 *   DIALECT-DRIVEN, NOTHING HARDCODED.  The grammar is configured by a
-* layout_grammar: which keywords are block constructs (keyword -> op), which are
+* DLayoutGrammar: which keywords are block constructs (keyword -> op), which are
 * content leaves (keyword -> atom kind), the root op, and where a positional
 * argument lands in the bag.  The parser names no construct; a dialect supplies
 * the table, exactly as the interpreter is driven by the signature.
@@ -71,7 +71,7 @@ IV.   ENTRY                               (parse_document)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"          // NS_*, gates, D_NODISCARD
-#include "./layout.hpp"                // layout_doc, layout_atom, apply_node,
+#include "./layout.hpp"                // DLayoutDoc, DLayoutAtom, apply_node,
                                        // make_leaf_node
 #include "../../../modules/parse/parse.hpp"    // parse_state, parse_result, DParseStatus, DParseStatus*
 
@@ -86,24 +86,24 @@ NS_DJINTERP
 ///             I.    LAYOUT GRAMMAR                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// layout_grammar
+// DLayoutGrammar
 //   struct: the dialect's parse configuration -- everything the generic parser
 // needs to turn keywords into constructs, and nothing construct-specific baked
 // in.  block_ops maps a keyword to its operator; leaf_words maps a keyword to
 // the atom kind of the content leaf it builds; root_op wraps the top level; and
 // arg_key names the bag entry a block's positional argument fills (a section's
-// title, typically).  Specialised to the default layout_atom, since parsing
+// title, typically).  Specialised to the default DLayoutAtom, since parsing
 // produces content references.
 template<typename OpId>
-struct layout_grammar
+struct DLayoutGrammar
 {
     std::vector<std::pair<std::string, OpId> >                  block_ops;
-    std::vector<std::pair<std::string, layout_atom::kind_t> >    leaf_words;
+    std::vector<std::pair<std::string, DLayoutAtom::kind_t> >    leaf_words;
     OpId                                                         root_op;
     std::string                                                  arg_key;
 
-    // layout_grammar (default)
-    layout_grammar()
+    // DLayoutGrammar (default)
+    DLayoutGrammar()
         : block_ops (),
           leaf_words(),
           root_op   (),
@@ -131,7 +131,7 @@ struct layout_grammar
     //   the atom kind for a leaf keyword via _out, or false when it is not one.
     D_NODISCARD bool leaf_kind_for(
         const std::string&   _keyword,
-        layout_atom::kind_t& _out
+        DLayoutAtom::kind_t& _out
     ) const
     {
         for (std::size_t _i = 0; _i < leaf_words.size(); ++_i)
@@ -258,22 +258,22 @@ NS_INTERNAL
 
     // make_leaf_atom
     //   helper: a content-leaf atom of the requested kind carrying _arg.
-    D_NODISCARD inline layout_atom make_leaf_atom(
-        layout_atom::kind_t _kind,
+    D_NODISCARD inline DLayoutAtom make_leaf_atom(
+        DLayoutAtom::kind_t _kind,
         const std::string&  _arg
     )
     {
-        if (_kind == layout_atom::kind_literal)
+        if (_kind == DLayoutAtom::kind_literal)
         {
-            return layout_atom::literal(_arg);
+            return DLayoutAtom::literal(_arg);
         }
 
-        if (_kind == layout_atom::kind_meta_ref)
+        if (_kind == DLayoutAtom::kind_meta_ref)
         {
-            return layout_atom::meta_ref(_arg);
+            return DLayoutAtom::meta_ref(_arg);
         }
 
-        return layout_atom::body_ref(_arg);
+        return DLayoutAtom::body_ref(_arg);
     }
 
 NS_END  // internal
@@ -288,9 +288,9 @@ NS_INTERNAL
     // (mutual recursion: a block may contain a brace-delimited sequence of
     //  blocks)
     template<typename OpId>
-    parse::parse_result<layout_doc<OpId> > parse_block(
+    parse::parse_result<DLayoutDoc<OpId> > parse_block(
         parse::parse_state<char>&   _state,
-        const layout_grammar<OpId>& _grammar
+        const DLayoutGrammar<OpId>& _grammar
     );
 
     // scan_attributes
@@ -300,7 +300,7 @@ NS_INTERNAL
     template<typename OpId>
     D_NODISCARD bool scan_attributes(
         parse::parse_state<char>& _state,
-        doc_attributes&           _bag,
+        DDocAttributes&           _bag,
         std::string&              _error,
         std::size_t&              _error_at
     )
@@ -343,13 +343,13 @@ NS_INTERNAL
     //   helper: a run of blocks.  When _braced, it is bracketed by { } and ends
     // at the matching }; otherwise it runs to end of input (the top level).
     template<typename OpId>
-    D_NODISCARD parse::parse_result<std::vector<layout_doc<OpId> > > parse_block_sequence(
+    D_NODISCARD parse::parse_result<std::vector<DLayoutDoc<OpId> > > parse_block_sequence(
         parse::parse_state<char>&   _state,
-        const layout_grammar<OpId>& _grammar,
+        const DLayoutGrammar<OpId>& _grammar,
         bool                        _braced
     )
     {
-        using vec_type = std::vector<layout_doc<OpId> >;
+        using vec_type = std::vector<DLayoutDoc<OpId> >;
         using out_type = parse::parse_result<vec_type>;
 
         vec_type _out;
@@ -397,7 +397,7 @@ NS_INTERNAL
                 }
             }
 
-            parse::parse_result<layout_doc<OpId> > _block =
+            parse::parse_result<DLayoutDoc<OpId> > _block =
                 parse_block<OpId>(_state, _grammar);
 
             if (!_block.ok())
@@ -417,12 +417,12 @@ NS_INTERNAL
     // the keyword against the grammar: a leaf keyword builds a content leaf; a
     // block keyword builds an application, its argument landing in bag[arg_key].
     template<typename OpId>
-    parse::parse_result<layout_doc<OpId> > parse_block(
+    parse::parse_result<DLayoutDoc<OpId> > parse_block(
         parse::parse_state<char>&   _state,
-        const layout_grammar<OpId>& _grammar
+        const DLayoutGrammar<OpId>& _grammar
     )
     {
-        using out_type = parse::parse_result<layout_doc<OpId> >;
+        using out_type = parse::parse_result<DLayoutDoc<OpId> >;
 
         std::size_t _start = _state.offset;
 
@@ -439,7 +439,7 @@ NS_INTERNAL
         bool        _has_arg = scan_string_literal(_state, _arg);
 
         // optional attributes
-        doc_attributes _bag;
+        DDocAttributes _bag;
         std::string    _attr_error;
         std::size_t    _attr_error_at = _state.offset;
 
@@ -450,7 +450,7 @@ NS_INTERNAL
         }
 
         // a content leaf?
-        layout_atom::kind_t _kind;
+        DLayoutAtom::kind_t _kind;
         if (_grammar.leaf_kind_for(_keyword, _kind))
         {
             if (!_has_arg)
@@ -461,7 +461,7 @@ NS_INTERNAL
             }
 
             return out_type(
-                make_leaf_node<OpId, layout_atom>(
+                make_leaf_node<OpId, DLayoutAtom>(
                     _bag, make_leaf_atom(_kind, _arg)));
         }
 
@@ -480,14 +480,14 @@ NS_INTERNAL
         }
 
         // optional child block
-        std::vector<layout_doc<OpId> > _children;
+        std::vector<DLayoutDoc<OpId> > _children;
 
         skip_spaces(_state);
 
         if ( (!_state.at_end()) &&
              (*_state.current() == '{') )
         {
-            parse::parse_result<std::vector<layout_doc<OpId> > > _seq =
+            parse::parse_result<std::vector<DLayoutDoc<OpId> > > _seq =
                 parse_block_sequence<OpId>(_state, _grammar, true);
 
             if (!_seq.ok())
@@ -499,10 +499,10 @@ NS_INTERNAL
         }
 
         return out_type(
-            apply_node<OpId, layout_atom>(
+            apply_node<OpId, DLayoutAtom>(
                 _bag,
                 *_op,
-                static_cast<std::vector<layout_doc<OpId> >&&>(_children)));
+                static_cast<std::vector<DLayoutDoc<OpId> >&&>(_children)));
     }
 
 NS_END  // internal
@@ -519,14 +519,14 @@ NS_END  // internal
 // the subframework's state so a caller may position or reuse it.
 template<typename OpId>
 D_NODISCARD
-parse::parse_result<layout_doc<OpId> > parse_document(
+parse::parse_result<DLayoutDoc<OpId> > parse_document(
     parse::parse_state<char>&   _state,
-    const layout_grammar<OpId>& _grammar
+    const DLayoutGrammar<OpId>& _grammar
 )
 {
-    using out_type = parse::parse_result<layout_doc<OpId> >;
+    using out_type = parse::parse_result<DLayoutDoc<OpId> >;
 
-    parse::parse_result<std::vector<layout_doc<OpId> > > _seq =
+    parse::parse_result<std::vector<DLayoutDoc<OpId> > > _seq =
         internal::parse_block_sequence<OpId>(_state, _grammar, false);
 
     if (!_seq.ok())
@@ -544,8 +544,8 @@ parse::parse_result<layout_doc<OpId> > parse_document(
     }
 
     return out_type(
-        apply_node<OpId, layout_atom>(
-            doc_attributes(),
+        apply_node<OpId, DLayoutAtom>(
+            DDocAttributes(),
             _grammar.root_op,
             _seq.value()));
 }
@@ -556,9 +556,9 @@ parse::parse_result<layout_doc<OpId> > parse_document(
 // the core overload above takes the state directly.
 template<typename OpId>
 D_NODISCARD
-parse::parse_result<layout_doc<OpId> > parse_document(
+parse::parse_result<DLayoutDoc<OpId> > parse_document(
     const std::string&          _src,
-    const layout_grammar<OpId>& _grammar
+    const DLayoutGrammar<OpId>& _grammar
 )
 {
     parse::parse_state<char> _state(_src.data(),

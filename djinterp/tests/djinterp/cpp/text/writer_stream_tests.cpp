@@ -4,9 +4,9 @@
 *   writer.hpp's sinks and printer.hpp's file printer on the output stream
 * (stream 1, step 6): a sink returns nothing, so a failed write is kept by
 * the stream it writes through, and ok() -- the sink's, the writer's, the
-* file printer's -- says so. string_sink and stream_sink write as they did;
+* file printer's -- says so. DStringSink and DStreamSink write as they did;
 * a std::ostream gone bad, or one that throws, ends the sink; DOutputStreamSink
-* writes into any output stream; file_printer reports a file that would not
+* writes into any output stream; DFilePrinter reports a file that would not
 * open, and print_document_to_file returns whether the document reached the
 * file; a document's to_stream and to_file (cpp/util/document) return the
 * same, and the document renderers -- plain, markdown, XML, HTML and the PDF
@@ -36,17 +36,17 @@
 #include "../../../../inc/djinterp/env/env.h"         // D_ENV_LANG_*
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     #include "../../../../inc/djinterp/cpp/text/printer.hpp"
-                                    // file_printer, node_to_string
+                                    // DFilePrinter, node_to_string
     #include "../../../../inc/djinterp/cpp/text/writer.hpp"
                                     // the sinks, the writers
     #include "../../../../inc/djinterp/cpp/util/output/output_stream.hpp"
                                     // DOutputStream
     #include "../../../../inc/djinterp/cpp/util/document/document.hpp"
-                                    // xml_document
+                                    // DXmlDocument
     #include "../../../../inc/djinterp/cpp/util/document/templates/markdown_document_renderer.hpp"
-                                    // markdown_document_renderer
+                                    // DMarkdownDocumentRenderer
     #include "../../../../inc/djinterp/cpp/util/document/templates/markup_document_renderer.hpp"
-                                    // xml_ and html_document_renderer
+                                    // xml_ and DHtmlDocumentRenderer
     #include "../../../../inc/djinterp/cpp/util/pdf/pdf_canvas_document_renderer.hpp"
                                     // DPdfCanvasDocumentRenderer
 #endif  // C++17
@@ -124,9 +124,9 @@ static void d_tests_writer_check(
 /*
 d_tests_writer_sinks
   Tests the following:
-  - string_sink appends, and stays ok
-  - stream_sink writes to a std::ostringstream, and stays ok
-  - stream_sink over a std::ostream that refuses bytes is not ok after a
+  - DStringSink appends, and stays ok
+  - DStreamSink writes to a std::ostringstream, and stays ok
+  - DStreamSink over a std::ostream that refuses bytes is not ok after a
     write, and stays not ok; one that throws on badbit is the same, and
     nothing is thrown through the sink
   - DOutputStreamSink writes into a caller's stream, and its ok() is the
@@ -135,7 +135,7 @@ d_tests_writer_sinks
 static void d_tests_writer_sinks()
 {
     std::string           text;
-    djinterp::string_sink to_text(text);
+    djinterp::DStringSink to_text(text);
 
     to_text("abc", 3);
     to_text("de", 2);
@@ -143,7 +143,7 @@ static void d_tests_writer_sinks()
     D_TESTS_WRITER_CHECK(to_text.ok());
 
     std::ostringstream    out;
-    djinterp::stream_sink to_out(out);
+    djinterp::DStreamSink to_out(out);
 
     to_out("xyz", 3);
     D_TESTS_WRITER_CHECK(out.str() == "xyz");
@@ -152,7 +152,7 @@ static void d_tests_writer_sinks()
     // a std::ostream that refuses: the failure is kept
     DTestsRefusingBuf     refusing;
     std::ostream          refused(&refusing);
-    djinterp::stream_sink to_refused(refused);
+    djinterp::DStreamSink to_refused(refused);
 
     D_TESTS_WRITER_CHECK(to_refused.ok());
     to_refused("lost", 4);
@@ -167,7 +167,7 @@ static void d_tests_writer_sinks()
 
     throwing.exceptions(std::ios::badbit);
 
-    djinterp::stream_sink to_throwing(throwing);
+    djinterp::DStreamSink to_throwing(throwing);
 
     try
     {
@@ -200,7 +200,7 @@ static void d_tests_writer_sinks()
 /*
 d_tests_writer_writers
   Tests the following:
-  - make_writer over a string_sink renders and appends, and its ok() is the
+  - make_writer over a DStringSink renders and appends, and its ok() is the
     sink's
   - stream_writer over a refusing std::ostream reports !ok() after a write
   - output_writer writes into a caller's stream
@@ -209,7 +209,7 @@ d_tests_writer_writers
 static void d_tests_writer_writers()
 {
     std::string text;
-    auto        to_text = djinterp::make_writer(djinterp::string_sink(text));
+    auto        to_text = djinterp::make_writer(djinterp::DStringSink(text));
 
     to_text.write("one").write(std::string(" two"));
     D_TESTS_WRITER_CHECK(text == "one two");
@@ -252,7 +252,7 @@ static void d_tests_writer_writers()
 /*
 d_tests_writer_file_printer
   Tests the following:
-  - file_printer prints a document as node_to_string does, and closes ok
+  - DFilePrinter prints a document as node_to_string does, and closes ok
   - print_document_to_file returns true, and writes the same bytes
   - a file that will not open: good(), print() and close() are false, and
     print_document_to_file returns false
@@ -267,7 +267,7 @@ static void d_tests_writer_file_printer()
 
     // print, close, read back
     {
-        djinterp::file_printer printer{ std::string(path) };
+        djinterp::DFilePrinter printer{ std::string(path) };
 
         D_TESTS_WRITER_CHECK(printer.good());
         D_TESTS_WRITER_CHECK(printer.print(root));
@@ -297,7 +297,7 @@ static void d_tests_writer_file_printer()
     (void)std::remove(path);
 
     // a file that will not open
-    djinterp::file_printer nowhere{ std::string("no_such_dir/t_writer.tmp") };
+    djinterp::DFilePrinter nowhere{ std::string("no_such_dir/t_writer.tmp") };
 
     D_TESTS_WRITER_CHECK(!nowhere.good());
     D_TESTS_WRITER_CHECK(!nowhere.print(root));
@@ -311,7 +311,7 @@ static void d_tests_writer_file_printer()
 /*
 d_tests_writer_document
   Tests the following:
-  - an xml_document's to_stream into a std::ostringstream writes what
+  - an DXmlDocument's to_stream into a std::ostringstream writes what
     to_string gives, and returns true; into a refusing std::ostream, false
   - to_stream into a DOutputStream over a std::string writes the same
   - to_file writes the same and returns true; to a file that will not open,
@@ -320,7 +320,7 @@ d_tests_writer_document
 static void d_tests_writer_document()
 {
     const char* const      path = "t_writer_document.tmp";
-    djinterp::xml_document doc;
+    djinterp::DXmlDocument doc;
 
     doc.root("a").append_child("b").append_child("c");
 
@@ -380,7 +380,7 @@ static bool d_tests_writer_render_to(
     Renderer& _renderer
 )
 {
-    const djinterp::doc_attributes none;
+    const djinterp::DDocAttributes none;
 
     _renderer.begin_document(none);
     _renderer.heading(1, "Report", none);
@@ -412,24 +412,24 @@ static bool d_tests_writer_render_to(
 /*
 d_tests_writer_renderers
   Tests the following:
-  - DPlainDocumentRenderer, markdown_document_renderer, xml_ and
-    html_document_renderer write their document to a stream with write_to,
+  - DPlainDocumentRenderer, DMarkdownDocumentRenderer, xml_ and
+    DHtmlDocumentRenderer write their document to a stream with write_to,
     and report a stream that refuses
   - DPdfCanvasDocumentRenderer's save_to writes what to_bytes gives
 */
 static void d_tests_writer_renderers()
 {
     djinterp::DPlainDocumentRenderer     plain;
-    djinterp::markdown_document_renderer markdown;
-    djinterp::xml_document_renderer      xml;
-    djinterp::html_document_renderer     html;
+    djinterp::DMarkdownDocumentRenderer  markdown;
+    djinterp::DXmlDocumentRenderer       xml;
+    djinterp::DHtmlDocumentRenderer      html;
 
     D_TESTS_WRITER_CHECK(d_tests_writer_render_to(plain));
     D_TESTS_WRITER_CHECK(d_tests_writer_render_to(markdown));
     D_TESTS_WRITER_CHECK(d_tests_writer_render_to(xml));
     D_TESTS_WRITER_CHECK(d_tests_writer_render_to(html));
 
-    const djinterp::doc_attributes       none;
+    const djinterp::DDocAttributes       none;
     djinterp::DPdfCanvasDocumentRenderer pdf;
 
     pdf.heading(1, "Report", none);

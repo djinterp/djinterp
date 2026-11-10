@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp]                                  markdown_document_renderer.hpp
 *
-*   The Markdown realisation of document_renderer, completing the string half of
+*   The Markdown realisation of DDocumentRenderer, completing the string half of
 * the dialect set (plain / markdown / xml / html).  A heading becomes a `##`
 * run, a list becomes `-` or `1.` at the right indent, and a table becomes a
 * GitHub-flavoured pipe table -- including the delimiter row, which is the one
@@ -35,7 +35,7 @@
 * columns are held only until the header is flushed.
 *
 *   PORTABILITY:
-*   C++11 baseline (matches document_renderer).  No third-party dependency and,
+*   C++11 baseline (matches DDocumentRenderer).  No third-party dependency and,
 * unlike the markup renderer, no escape-policy dependency either.
 *
 *
@@ -48,7 +48,7 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    markdown_document_renderer   (the renderer)
+I.    DMarkdownDocumentRenderer   (the renderer)
       -------------------------------------------
 */
 
@@ -68,8 +68,8 @@ I.    markdown_document_renderer   (the renderer)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"      // NS_*, D_NODISCARD, D_NOEXCEPT
-#include "./document_attributes.hpp"  // doc_attributes, attr_*, text_alignment
-#include "./document_renderer.hpp"    // document_renderer, D_OVERRIDE
+#include "./document_attributes.hpp"  // DDocAttributes, attr_*, DTextAlignment
+#include "./document_renderer.hpp"    // DDocumentRenderer, D_OVERRIDE
 #include "../../output/output_stream.hpp"  // DOutputStream: write_to
 
 
@@ -77,21 +77,21 @@ NS_DJINTERP
 
 
 // ===========================================================================
-// I.   markdown_document_renderer
+// I.   DMarkdownDocumentRenderer
 // ===========================================================================
 
-// markdown_document_renderer
-//   class: the Markdown realisation of document_renderer.  It accumulates a
+// DMarkdownDocumentRenderer
+//   class: the Markdown realisation of DDocumentRenderer.  It accumulates a
 // byte buffer of GitHub-flavoured Markdown: ATX headings, `-` / `N.` lists at
 // nesting indent, `---` rules, and pipe tables whose delimiter row carries each
 // column's alignment.
 //
 // Usage:
-//   markdown_document_renderer _r;
+//   DMarkdownDocumentRenderer _r;
 //   _table.render(_r);
 //   const std::string& _bytes = _r.str();
-class markdown_document_renderer
-    : public document_renderer
+class DMarkdownDocumentRenderer
+    : public DDocumentRenderer
 {
 public:
     // -- public type aliases -------------------------------------------------
@@ -100,7 +100,7 @@ public:
 
     // -- construction --------------------------------------------------------
 
-    markdown_document_renderer()
+    DMarkdownDocumentRenderer()
         : m_out(),
           m_ordered(),
           m_counter(),
@@ -147,7 +147,7 @@ public:
     void heading(
         size_type             _level,
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         size_type _l = (_level < size_type(1)) ? size_type(1) : _level;
@@ -170,7 +170,7 @@ public:
 
     void paragraph(
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         m_out += emphasised(_text, _attrs);
@@ -182,7 +182,7 @@ public:
     void key_value(
         const std::string&    _key,
         const std::string&    _value,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         m_out += "**";
@@ -196,7 +196,7 @@ public:
 
     void
     rule(
-        const doc_attributes& /*_attrs*/
+        const DDocAttributes& /*_attrs*/
     ) D_OVERRIDE
     {
         separate();
@@ -211,7 +211,7 @@ public:
     void
     vertical_space(
         double                /*_amount*/,
-        const doc_attributes& /*_attrs*/
+        const DDocAttributes& /*_attrs*/
     ) D_OVERRIDE
     {
         // Markdown has one unit of vertical space: the blank line
@@ -236,7 +236,7 @@ public:
     void
     begin_list(
         bool                  _ordered,
-        const doc_attributes& /*_attrs*/
+        const DDocAttributes& /*_attrs*/
     ) D_OVERRIDE
     {
         m_ordered.push_back(_ordered);
@@ -247,7 +247,7 @@ public:
 
     void list_item(
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         const size_type _depth = m_ordered.size();
@@ -300,7 +300,7 @@ public:
 
     void
     begin_table(
-        const doc_attributes& /*_attrs*/
+        const DDocAttributes& /*_attrs*/
     ) D_OVERRIDE
     {
         clear_table();
@@ -311,18 +311,18 @@ public:
 
     void table_column(
         const std::string&    _header,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         m_headers.push_back(escape_cell(_header));
-        m_aligns.push_back(attr_align(_attrs, text_alignment::left));
+        m_aligns.push_back(attr_align(_attrs, DTextAlignment::left));
 
         return;
     }
 
     void
     begin_row(
-        const doc_attributes& /*_attrs*/
+        const DDocAttributes& /*_attrs*/
     ) D_OVERRIDE
     {
         // the header and its delimiter row are flushed once, ahead of the
@@ -336,7 +336,7 @@ public:
 
     void cell(
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         m_row.push_back(emphasised_cell(_text, _attrs));
@@ -376,7 +376,7 @@ protected:
     // that only calls the defaults still produces valid Markdown.
     void write_line(
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     ) D_OVERRIDE
     {
         paragraph(_text, _attrs);
@@ -473,7 +473,7 @@ private:
     // the two presentation hints Markdown can actually spell.
     D_NODISCARD static std::string emphasised(
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     )
     {
         return wrap_emphasis(escape_inline(_text), _attrs);
@@ -483,7 +483,7 @@ private:
     //   the cell-safe counterpart of emphasised.
     D_NODISCARD static std::string emphasised_cell(
         const std::string&    _text,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     )
     {
         return wrap_emphasis(escape_cell(_text), _attrs);
@@ -494,7 +494,7 @@ private:
     // apply; an empty string is left bare so a run of `****` never appears.
     D_NODISCARD static std::string wrap_emphasis(
         const std::string&    _escaped,
-        const doc_attributes& _attrs
+        const DDocAttributes& _attrs
     )
     {
         // emphasising nothing produces stray delimiters
@@ -527,15 +527,15 @@ private:
     // table carries structurally.  `justify` has no Markdown spelling and
     // degrades to left.
     D_NODISCARD static const char* delimiter_for(
-        text_alignment _align
+        DTextAlignment _align
     ) D_NOEXCEPT
     {
         switch (_align)
         {
-            case text_alignment::center:  { return ":---:"; }
-            case text_alignment::right:   { return "---:";  }
-            case text_alignment::left:    { return ":---";  }
-            case text_alignment::justify: { return ":---";  }
+            case DTextAlignment::center:  { return ":---:"; }
+            case DTextAlignment::right:   { return "---:";  }
+            case DTextAlignment::left:    { return ":---";  }
+            case DTextAlignment::justify: { return ":---";  }
         }
 
         return ":---";
@@ -584,9 +584,9 @@ private:
 
         for (_i = size_type(0); _i < m_headers.size(); ++_i)
         {
-            const text_alignment _a = (_i < m_aligns.size())
+            const DTextAlignment _a = (_i < m_aligns.size())
                                           ? m_aligns[_i]
-                                          : text_alignment::left;
+                                          : DTextAlignment::left;
 
             m_out += ' ';
             m_out += delimiter_for(_a);
@@ -644,7 +644,7 @@ private:
     std::vector<bool>           m_ordered;    // open lists: ordered?
     std::vector<size_type>      m_counter;    // open lists: item counter
     std::vector<std::string>    m_headers;    // escaped column headers
-    std::vector<text_alignment> m_aligns;     // per-column alignment
+    std::vector<DTextAlignment> m_aligns;     // per-column alignment
     std::vector<std::string>    m_row;        // the row being assembled
     bool                        m_head_open;  // header + delimiter emitted?
 };

@@ -6,8 +6,8 @@
 * header adds the other three and shows every one lowering to the same document:
 *
 *     - functional / combinator   body(...), section(...)          [report_dialect.hpp]
-*     - procedural / cursor        report_document, open_section().content()
-*     - declarative / aggregate    document_spec{ ... } + to_layout   (the module_spec idiom)
+*     - procedural / cursor        DReportDocument, open_section().content()
+*     - declarative / aggregate    DDocumentSpec{ ... } + to_layout   (the module_spec idiom)
 *     - textual / parsed           parse_document(dsl, report_grammar())
 *
 * The interpreter is indifferent to which built the term; the check that all
@@ -26,10 +26,10 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    CURSOR SURFACE                      (report_document)
+I.    CURSOR SURFACE                      (DReportDocument)
       -----------------------------------------------------
 
-II.   AGGREGATE SURFACE                   (content_spec / section_spec / ... + to_layout)
+II.   AGGREGATE SURFACE                   (DContentSpec / DSectionSpec / ... + to_layout)
       -----------------------------------------------------------------------------------
 
 III.  TEXTUAL SURFACE                     (report_grammar)
@@ -55,10 +55,10 @@ IV.   EQUIVALENCE                         (moved -> test_layout_suite.hpp)
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"      // NS_*, gates, D_NODISCARD
-#include "./report_dialect.hpp"    // report_op, builders, make_report_signature, render_document
-#include "layout/layout_build.hpp"      // layout_cursor
-#include "layout/layout_spec.hpp"       // spec_node, to_layout
-#include "layout/layout_parse.hpp"      // layout_grammar, parse_document
+#include "./report_dialect.hpp"    // DReportOp, builders, make_report_signature, render_document
+#include "layout/layout_build.hpp"      // DLayoutCursor
+#include "layout/layout_spec.hpp"       // DSpecNode, to_layout
+#include "layout/layout_parse.hpp"      // DLayoutGrammar, parse_document
 
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -71,58 +71,58 @@ NS_DJINTERP
 ///             I.    CURSOR SURFACE                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// report_document
+// DReportDocument
 //   class: the procedural surface for the report dialect -- named methods over
-// the generic layout_cursor.  Open the document (the body root), add constructs
+// the generic DLayoutCursor.  Open the document (the body root), add constructs
 // imperatively, and build.  Sections nest via open_section / close_section;
 // everything else is a single call.  build() yields the same term the other
 // surfaces do.
 //
 // Usage:
-//   report_document _doc;
+//   DReportDocument _doc;
 //   _doc.cover({ {"author", "teer"} }).clearpage().toc();
 //   _doc.open_section("Intro").content("intro.body").close_section();
-//   layout_doc<report_op> _term = _doc.build();
-class report_document
-    : public layout_cursor<report_op>
+//   DLayoutDoc<DReportOp> _term = _doc.build();
+class DReportDocument
+    : public DLayoutCursor<DReportOp>
 {
 public:
-    report_document()
-        : layout_cursor<report_op>(report_op::body)
+    DReportDocument()
+        : DLayoutCursor<DReportOp>(DReportOp::body)
     {}
 
     // cover
     //   a title page carrying _fields (subtitle / author / date / title).
-    report_document& cover(
+    DReportDocument& cover(
         std::initializer_list<std::pair<std::string, std::string> > _fields
     )
     {
-        doc_attributes _bag;
+        DDocAttributes _bag;
 
         for (const std::pair<std::string, std::string>& _field : _fields)
         {
             _bag.set(_field.first, _field.second);
         }
 
-        open(report_op::cover, _bag);
+        open(DReportOp::cover, _bag);
         close();
 
         return (*this);
     }
 
     // clearpage
-    report_document& clearpage()
+    DReportDocument& clearpage()
     {
-        open(report_op::clearpage);
+        open(DReportOp::clearpage);
         close();
 
         return (*this);
     }
 
     // toc
-    report_document& toc()
+    DReportDocument& toc()
     {
-        open(report_op::toc);
+        open(DReportOp::toc);
         close();
 
         return (*this);
@@ -131,20 +131,20 @@ public:
     // open_section
     //   begin a section titled _title; content added until close_section nests
     // inside it.
-    report_document& open_section(
+    DReportDocument& open_section(
         std::string _title
     )
     {
-        doc_attributes _bag;
+        DDocAttributes _bag;
         _bag.set(std::string("title"), static_cast<std::string&&>(_title));
 
-        open(report_op::section, _bag);
+        open(DReportOp::section, _bag);
 
         return (*this);
     }
 
     // close_section
-    report_document& close_section()
+    DReportDocument& close_section()
     {
         close();
 
@@ -153,22 +153,22 @@ public:
 
     // content
     //   a body-content leaf named _name.
-    report_document& content(
+    DReportDocument& content(
         std::string _name
     )
     {
-        leaf(layout_atom::body_ref(static_cast<std::string&&>(_name)));
+        leaf(DLayoutAtom::body_ref(static_cast<std::string&&>(_name)));
 
         return (*this);
     }
 
     // table
     //   a table-content leaf named _name.
-    report_document& table(
+    DReportDocument& table(
         std::string _name
     )
     {
-        leaf(layout_atom::body_ref(static_cast<std::string&&>(_name)));
+        leaf(DLayoutAtom::body_ref(static_cast<std::string&&>(_name)));
 
         return (*this);
     }
@@ -179,111 +179,111 @@ public:
 ///             II.   AGGREGATE SURFACE                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 //   The data-literal surface -- typed aggregates, written with nested braces,
-// each converting to the generic spec_node so a braced child list may hold
+// each converting to the generic DSpecNode so a braced child list may hold
 // different construct specs at once.  This is the module_spec idiom applied to
 // documents.  `to_layout` (layout_spec.hpp) lowers the result.
 
-// content_spec
+// DContentSpec
 //   a body-content leaf named `name`.
-struct content_spec
+struct DContentSpec
 {
     std::string name;
 
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        return spec_node<report_op>::leaf(layout_atom::body_ref(name));
+        return DSpecNode<DReportOp>::leaf(DLayoutAtom::body_ref(name));
     }
 };
 
-// table_spec
+// DTableSpec
 //   a table-content leaf named `name`.
-struct table_spec
+struct DTableSpec
 {
     std::string name;
 
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        return spec_node<report_op>::leaf(layout_atom::body_ref(name));
+        return DSpecNode<DReportOp>::leaf(DLayoutAtom::body_ref(name));
     }
 };
 
-// break_spec
+// DBreakSpec
 //   a page break.
-struct break_spec
+struct DBreakSpec
 {
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        return spec_node<report_op>::branch(
-            report_op::clearpage, doc_attributes(), {});
+        return DSpecNode<DReportOp>::branch(
+            DReportOp::clearpage, DDocAttributes(), {});
     }
 };
 
-// toc_spec
+// DTocSpec
 //   a table of contents.
-struct toc_spec
+struct DTocSpec
 {
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        return spec_node<report_op>::branch(
-            report_op::toc, doc_attributes(), {});
+        return DSpecNode<DReportOp>::branch(
+            DReportOp::toc, DDocAttributes(), {});
     }
 };
 
-// cover_spec
+// DCoverSpec
 //   a title page carrying `fields`.
-struct cover_spec
+struct DCoverSpec
 {
     std::vector<std::pair<std::string, std::string> > fields;
 
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        doc_attributes _bag;
+        DDocAttributes _bag;
 
         for (std::size_t _i = 0; _i < fields.size(); ++_i)
         {
             _bag.set(fields[_i].first, fields[_i].second);
         }
 
-        return spec_node<report_op>::branch(report_op::cover, _bag, {});
+        return DSpecNode<DReportOp>::branch(DReportOp::cover, _bag, {});
     }
 };
 
-// section_spec
+// DSectionSpec
 //   a section titled `title` containing `children` (any mix of specs).
-struct section_spec
+struct DSectionSpec
 {
     std::string                      title;
-    std::vector<spec_node<report_op> > children;
+    std::vector<DSpecNode<DReportOp> > children;
 
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        doc_attributes _bag;
+        DDocAttributes _bag;
         _bag.set(std::string("title"), title);
 
-        return spec_node<report_op>::branch(report_op::section, _bag, children);
+        return DSpecNode<DReportOp>::branch(DReportOp::section, _bag, children);
     }
 };
 
-// document_spec
+// DDocumentSpec
 //   the whole document -- a body over `children`.  Lower with to_layout.
-struct document_spec
+struct DDocumentSpec
 {
-    std::vector<spec_node<report_op> > children;
+    std::vector<DSpecNode<DReportOp> > children;
 
-    operator spec_node<report_op>() const
+    operator DSpecNode<DReportOp>() const
     {
-        return spec_node<report_op>::branch(
-            report_op::body, doc_attributes(), children);
+        return DSpecNode<DReportOp>::branch(
+            DReportOp::body, DDocAttributes(), children);
     }
 };
 
 // to_layout
-//   convenience: lower a document_spec to the term (via its spec_node).
-D_NODISCARD inline layout_doc<report_op> to_layout(
-    const document_spec& _document
+//   convenience: lower a DDocumentSpec to the term (via its DSpecNode).
+D_NODISCARD inline DLayoutDoc<DReportOp> to_layout(
+    const DDocumentSpec& _document
 )
 {
-    return to_layout(static_cast<spec_node<report_op> >(_document));
+    return to_layout(static_cast<DSpecNode<DReportOp> >(_document));
 }
 
 
@@ -295,25 +295,25 @@ D_NODISCARD inline layout_doc<report_op> to_layout(
 //   function: the parse configuration for the report DSL -- the block keywords
 // and their ops, the content-leaf keywords, the body root, and the positional
 // argument key.  This is all parse_document needs; the parser names nothing.
-D_NODISCARD inline layout_grammar<report_op> report_grammar()
+D_NODISCARD inline DLayoutGrammar<DReportOp> report_grammar()
 {
-    layout_grammar<report_op> _grammar;
+    DLayoutGrammar<DReportOp> _grammar;
 
-    _grammar.root_op = report_op::body;
+    _grammar.root_op = DReportOp::body;
     _grammar.arg_key = "title";
 
     _grammar.block_ops = {
-        std::pair<std::string, report_op>("cover",     report_op::cover),
-        std::pair<std::string, report_op>("clearpage", report_op::clearpage),
-        std::pair<std::string, report_op>("toc",       report_op::toc),
-        std::pair<std::string, report_op>("section",   report_op::section)
+        std::pair<std::string, DReportOp>("cover",     DReportOp::cover),
+        std::pair<std::string, DReportOp>("clearpage", DReportOp::clearpage),
+        std::pair<std::string, DReportOp>("toc",       DReportOp::toc),
+        std::pair<std::string, DReportOp>("section",   DReportOp::section)
     };
 
     _grammar.leaf_words = {
-        std::pair<std::string, layout_atom::kind_t>(
-            "content", layout_atom::kind_body_ref),
-        std::pair<std::string, layout_atom::kind_t>(
-            "table",   layout_atom::kind_body_ref)
+        std::pair<std::string, DLayoutAtom::kind_t>(
+            "content", DLayoutAtom::kind_body_ref),
+        std::pair<std::string, DLayoutAtom::kind_t>(
+            "table",   DLayoutAtom::kind_body_ref)
     };
 
     return _grammar;

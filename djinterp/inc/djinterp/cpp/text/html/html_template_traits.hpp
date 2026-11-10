@@ -17,18 +17,18 @@
 *
 *   DETECTED PROTOCOLS:
 *
-*   html_element protocol:
+*   DHtmlElement protocol:
 *     An XML node whose name resolves to a known HTML element kind.
 *     Detected via XML traits + has_html_kind_method (or via a runtime
 *     name lookup wrapped by `is_html_element`).
 *
-*   html_document protocol:
+*   DHtmlDocument protocol:
 *     An XML document plus optional DOCTYPE / version / head / body
 *     accessors. The minimum bar is the XML document protocol; the
 *     advanced bar adds HTML-specific accessors.
 *
 *   html_backend protocol:
-*     A type tagged with `html_backend_tag` (detected by `is_html_backend`
+*     A type tagged with `DHtmlBackendTag` (detected by `is_html_backend`
 *     in `html.hpp`) plus the same nested-type-alias completeness check
 *     used by the XML backend protocol.
 *
@@ -89,7 +89,7 @@ namespace html {
 
 // has_html_kind_method
 //   trait: true if _Type exposes an `html_kind()` const method
-// returning an `html_element_kind` discriminator. This is the
+// returning an `DHtmlElementKind` discriminator. This is the
 // HTML-specific analogue of XML's `has_kind_method` and is what
 // lets generic code branch on element kind without reading the
 // tag-name string.
@@ -300,7 +300,7 @@ struct has_set_doctype_method<_Type, void_t<
 
 // has_html_version_method
 //   trait: true if _Type exposes `html_version()` const returning
-// an `html_version` enum value.
+// an `DHtmlVersion` enum value.
 template<typename _Type,
          typename = void>
 struct has_html_version_method : std::false_type
@@ -398,8 +398,8 @@ struct has_html_dom_shortcuts
 // element protocol (the type behaves like a tag-attribute-text
 // node); the HTML kind accessor is what marks the type as
 // HTML-aware. Library backends without an `html_kind()` method
-// can still be treated as HTML by wrapping them in `html_element`
-// (which derives from xml_node and adds the accessor).
+// can still be treated as HTML by wrapping them in `DHtmlElement`
+// (which derives from DXmlNode and adds the accessor).
 template<typename _Type>
 struct is_html_element
 {
@@ -421,11 +421,11 @@ struct is_html_element_loose
 };
 
 
-// html_element_class
+// DHtmlElementClass
 //   struct: comprehensive classification of an HTML-element-shaped
 // type. Aggregates XML node classification with HTML extensions.
 template<typename _Type>
-struct html_element_class
+struct DHtmlElementClass
 {
     // identity
     D_STATIC_CONSTEXPR bool is_html_elem      =
@@ -487,11 +487,11 @@ struct is_html_document_loose
 };
 
 
-// html_document_class
+// DHtmlDocumentClass
 //   struct: comprehensive classification of an HTML-document-shaped
 // type. Aggregates XML document classification with HTML extensions.
 template<typename _Type>
-struct html_document_class
+struct DHtmlDocumentClass
 {
     // identity
     D_STATIC_CONSTEXPR bool is_html_doc       =
@@ -576,8 +576,8 @@ struct has_make_html_document_method<_Type, void_t<
 // (every nested type alias plus the make_html_document factory).
 // Stronger than `is_html_backend` (which only checks for the
 // backend tag); used by code that needs to confidently
-// instantiate `html_element<_Backend>` and
-// `html_document<_Backend>`.
+// instantiate `DHtmlElement<_Backend>` and
+// `DHtmlDocument<_Backend>`.
 template<typename _Type>
 struct is_html_backend_complete
 {

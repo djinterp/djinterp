@@ -2,7 +2,7 @@
 * djinterp [cpp]                                                text_pattern.hpp
 *
 *   Marker-aware text pattern engine.  Given a template literal in the
-* same dialect as DTextTemplate (default markers: %key%), text_pattern
+* same dialect as DTextTemplate (default markers: %key%), DTextPattern
 * compiles the literal into an alternating sequence of literal and
 * capture segments and exposes the four pattern faces:
 *
@@ -12,7 +12,7 @@
 *     4. rewrite    — splice a new value for one key into existing text,
 *                     preserving every other capture.
 *
-*   text_pattern is the inverse of DTextTemplate: a single template
+*   DTextPattern is the inverse of DTextTemplate: a single template
 * literal is the canonical specification, and the two engines consume
 * it in opposite directions.  This lets the same literal drive both
 * generation (writing new files) and parsing (verifying existing ones).
@@ -29,7 +29,7 @@
 * literal between them) are malformed and rejected at compile time.
 *
 *   USAGE:
-*     text_pattern p(
+*     DTextPattern p(
 *         "path:      %relative_path%/%filename%.%fileext%");
 *
 *     // predicate face
@@ -46,7 +46,7 @@
 *     // renderer face
 *     DPatternCaptureMap<std::string, std::string> b;
 *     b.set("relative_path", "/inc/text");
-*     b.set("filename",      "text_pattern");
+*     b.set("filename",      "DTextPattern");
 *     b.set("fileext",       "hpp");
 *     std::string s = p.render(b);  // produces the path line
 *
@@ -139,30 +139,30 @@ NS_DJINTERP
 
 NS_INTERNAL
 
-    // text_pattern_segment_kind
-    //   enum: kind of a compiled segment within a text_pattern.
-    enum text_pattern_segment_kind : re_std::uint8_t
+    // DTextPatternSegmentKind
+    //   enum: kind of a compiled segment within a DTextPattern.
+    enum DTextPatternSegmentKind : re_std::uint8_t
     {
         text_pattern_segment_literal = 0,
         text_pattern_segment_capture = 1
     };
 
-    // text_pattern_segment
-    //   struct: a single segment of a compiled text_pattern.
+    // DTextPatternSegment
+    //   struct: a single segment of a compiled DTextPattern.
     // For literal segments, `text` is the literal to match.  For
     // capture segments, `text` is the key name.
-    struct text_pattern_segment
+    struct DTextPatternSegment
     {
-        text_pattern_segment_kind   kind;
+        DTextPatternSegmentKind     kind;
         std::string                 text;
 
-        text_pattern_segment()
+        DTextPatternSegment()
             : kind(text_pattern_segment_literal),
               text()
         {}
 
-        text_pattern_segment(
-            text_pattern_segment_kind _kind,
+        DTextPatternSegment(
+            DTextPatternSegmentKind   _kind,
             std::string               _text
         )
             : kind(_kind),
@@ -177,13 +177,13 @@ NS_END  // internal
 ///                III. TEXT PATTERN                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// text_pattern
+// DTextPattern
 //   class: marker-aware text pattern engine deriving from the
 // generic pattern<> CRTP base.  Compiles a template literal once
 // at construction; subsequent match / extract / render / rewrite
 // operations are O(n * s) where n is the input size and s is the
 // segment count.
-class text_pattern : public pattern<text_pattern>
+class DTextPattern : public pattern<DTextPattern>
 {
 public:
     using input_type        = std::string;
@@ -199,7 +199,7 @@ public:
     // =================================================================
 
     // default constructor — empty pattern
-    text_pattern()
+    DTextPattern()
         : m_literal (),
           m_prefix  (D_TEXT_PAT_DEFAULT_PREFIX),
           m_suffix  (D_TEXT_PAT_DEFAULT_SUFFIX),
@@ -209,7 +209,7 @@ public:
     {}
 
     // from literal (default markers)
-    explicit text_pattern(
+    explicit DTextPattern(
         std::string _literal
     )
         : m_literal (std::move(_literal)),
@@ -223,7 +223,7 @@ public:
     }
 
     // from literal + custom markers
-    text_pattern(
+    DTextPattern(
         std::string _literal,
         std::string _prefix,
         std::string _suffix
@@ -722,7 +722,7 @@ private:
     std::string                                 m_prefix;
     std::string                                 m_suffix;
     char                                        m_escape;
-    std::vector<internal::text_pattern_segment> m_segments;
+    std::vector<internal::DTextPatternSegment>  m_segments;
     DPatternStatus                              m_compile_status;
 };
 
@@ -732,7 +732,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 // concat
-//   function: produces a new text_pattern whose literal is the
+//   function: produces a new DTextPattern whose literal is the
 // concatenation of _left's and _right's literals.  Both
 // patterns must share the same marker configuration; if they
 // disagree, _left's markers are used.  This is the text-specific
@@ -740,12 +740,12 @@ private:
 // patterns the same way functions compose into pipelines.
 D_NODISCARD
 inline
-text_pattern concat(
-    const text_pattern& _left,
-    const text_pattern& _right
+DTextPattern concat(
+    const DTextPattern& _left,
+    const DTextPattern& _right
 )
 {
-    return text_pattern(_left.literal() + _right.literal(),
+    return DTextPattern(_left.literal() + _right.literal(),
                         _left.prefix(),
                         _left.suffix());
 }
@@ -756,49 +756,49 @@ text_pattern concat(
 ///////////////////////////////////////////////////////////////////////////////
 
 // make_pattern
-//   function: builds a text_pattern with default markers ("%").
+//   function: builds a DTextPattern with default markers ("%").
 D_NODISCARD
 inline
-text_pattern make_pattern(
+DTextPattern make_pattern(
     const std::string& _literal
 )
 {
-    return text_pattern(_literal);
+    return DTextPattern(_literal);
 }
 
 // make_curly_pattern
-//   function: builds a text_pattern using "{" / "}" as markers.
+//   function: builds a DTextPattern using "{" / "}" as markers.
 D_NODISCARD
 inline
-text_pattern make_curly_pattern(
+DTextPattern make_curly_pattern(
     const std::string& _literal
 )
 {
-    return text_pattern(_literal, "{", "}");
+    return DTextPattern(_literal, "{", "}");
 }
 
 // make_dollar_pattern
-//   function: builds a text_pattern using "${" / "}" as markers.
+//   function: builds a DTextPattern using "${" / "}" as markers.
 D_NODISCARD
 inline
-text_pattern make_dollar_pattern(
+DTextPattern make_dollar_pattern(
     const std::string& _literal
 )
 {
-    return text_pattern(_literal, "${", "}");
+    return DTextPattern(_literal, "${", "}");
 }
 
 // make_mustache_pattern
-//   function: builds a text_pattern using "{{" / "}}" as markers,
+//   function: builds a DTextPattern using "{{" / "}}" as markers,
 // matching Mustache / Handlebars convention and pairing with
 // make_mustache_template() in text_template.hpp.
 D_NODISCARD
 inline
-text_pattern make_mustache_pattern(
+DTextPattern make_mustache_pattern(
     const std::string& _literal
 )
 {
-    return text_pattern(_literal, "{{", "}}");
+    return DTextPattern(_literal, "{{", "}}");
 }
 
 

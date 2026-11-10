@@ -3,7 +3,7 @@
 *
 *   The foundational TEMPLATING module: a declarative document skeleton with
 * named slots, bound to data at render time and emitted through any
-* document_renderer.
+* DDocumentRenderer.
 *
 *   WHY IT IS NOT A PDF MODULE.  The old pdf_template conflated four jobs:
 * flow layout, token substitution, a named style registry, and an element list.
@@ -33,7 +33,7 @@
 * one back end.
 *
 *   PORTABILITY:
-*   C++11 baseline (document_renderer's floor).  The binding environment is a
+*   C++11 baseline (DDocumentRenderer's floor).  The binding environment is a
 * std::function, matching the rest of the document stack.
 *
 *
@@ -46,13 +46,13 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    BINDINGS                    (binding_env + map / chain helpers)
+I.    BINDINGS                    (DBindingEnv + map / chain helpers)
       ---------------------------------------------------------------
 
-II.   template_element            (the element vocabulary)
+II.   DTemplateElement            (the element vocabulary)
       ----------------------------------------------------
 
-III.  document_template           (the skeleton + its builders)
+III.  DDocumentTemplate           (the skeleton + its builders)
       ---------------------------------------------------------
 
 IV.   render_template             (bind + emit through a renderer)
@@ -78,8 +78,8 @@ IV.   render_template             (bind + emit through a renderer)
 // djinterp
 #include "../../djinterp.hpp"                    // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "../../text/text_template.hpp"          // DTextTemplate (the token layer)
-#include "./templates/document_attributes.hpp"   // doc_attributes, doc_attr_*
-#include "./templates/document_renderer.hpp"     // document_renderer
+#include "./templates/document_attributes.hpp"   // DDocAttributes, doc_attr_*
+#include "./templates/document_renderer.hpp"     // DDocumentRenderer
 
 
 NS_DJINTERP
@@ -89,25 +89,25 @@ NS_DJINTERP
 ///                I.   BINDINGS                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// binding_env
+// DBindingEnv
 //   type: name -> value.  A callable rather than a container so a caller may
 // project straight out of a live model (a report, an option set, a row) without
 // first flattening it into a map.  An unbound name yields the empty string,
 // which is what DTextTemplate's own lookup contract expects, so a partially
 // bound template renders rather than failing.
-using binding_env = std::function<std::string(const std::string&)>;
+using DBindingEnv = std::function<std::string(const std::string&)>;
 
 
 // map_bindings
-//   function: a binding_env over a flat map -- the simple case, and what a
+//   function: a DBindingEnv over a flat map -- the simple case, and what a
 // caller reaches for when the data is already assembled.
-D_NODISCARD inline binding_env map_bindings(
+D_NODISCARD inline DBindingEnv map_bindings(
     std::map<std::string, std::string> _values
 )
 {
     const std::map<std::string, std::string> _owned = std::move(_values);
 
-    return binding_env(
+    return DBindingEnv(
         [_owned](const std::string& _key) -> std::string
         {
             std::map<std::string, std::string>::const_iterator _it =
@@ -129,15 +129,15 @@ D_NODISCARD inline binding_env map_bindings(
 // a repeat block uses to expose an item's fields.  A lookup of
 // "<scope>.<field>" is answered by _inner with "<field>"; everything else falls
 // through to _outer.  Composable, so nested repeats nest their scopes.
-D_NODISCARD inline binding_env scoped_bindings(
+D_NODISCARD inline DBindingEnv scoped_bindings(
     const std::string& _scope,
-    binding_env        _inner,
-    binding_env        _outer
+    DBindingEnv        _inner,
+    DBindingEnv        _outer
 )
 {
     const std::string _prefix = _scope + ".";
 
-    return binding_env(
+    return DBindingEnv(
         [_prefix, _inner, _outer](const std::string& _key) -> std::string
         {
             // inside the scope: strip the prefix and ask the inner env
@@ -153,11 +153,11 @@ D_NODISCARD inline binding_env scoped_bindings(
 }
 
 
-// sequence_env
-//   type: a bound sequence -- how many items, and a binding_env for the _i-th.
+// DSequenceEnv
+//   type: a bound sequence -- how many items, and a DBindingEnv for the _i-th.
 // This is the shape a repeat element consumes.  A caller supplies it directly
 // from its own model; nothing is copied into the template.
-struct sequence_env
+struct DSequenceEnv
 {
     // count
     //   how many items the sequence yields.
@@ -165,16 +165,16 @@ struct sequence_env
 
     // at
     //   the bindings for item _i.  Called count() times, in order.
-    std::function<binding_env(std::size_t)> at;
+    std::function<DBindingEnv(std::size_t)> at;
 
-    sequence_env()
+    DSequenceEnv()
         : count(),
           at()
     {}
 
-    sequence_env(
+    DSequenceEnv(
         std::function<std::size_t()>            _count,
-        std::function<binding_env(std::size_t)> _at
+        std::function<DBindingEnv(std::size_t)> _at
     )
         : count(std::move(_count)),
           at(std::move(_at))
@@ -182,22 +182,22 @@ struct sequence_env
 };
 
 
-// sequence_lookup
+// DSequenceLookup
 //   type: sequence NAME -> the bound sequence.  A template names the sequences
-// it repeats over; the caller resolves them, exactly as binding_env resolves
+// it repeats over; the caller resolves them, exactly as DBindingEnv resolves
 // scalars.
-using sequence_lookup = std::function<sequence_env(const std::string&)>;
+using DSequenceLookup = std::function<DSequenceEnv(const std::string&)>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.  template_element                                    ///
+///                II.  DTemplateElement                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// element_kind
-//   enum: what an element emits.  Deliberately the document_renderer verb set
+// DElementKind
+//   enum: what an element emits.  Deliberately the DDocumentRenderer verb set
 // plus `repeat` and `slot` -- a template can say anything a renderer can hear,
 // and nothing it cannot.
-enum class element_kind
+enum class DElementKind
 {
     heading,
     paragraph,
@@ -212,15 +212,15 @@ enum class element_kind
 };
 
 
-// template_element
+// DTemplateElement
 //   struct: one element of a skeleton.  `text` / `secondary` are
 // token-bearing sources (interpolated at render time); `style` names a style the
 // renderer may resolve; `children` nest; `sequence` names the sequence a repeat
 // or table iterates.  Fields not meaningful for a kind are simply unused --
 // which keeps one flat type rather than a variant hierarchy over ten shapes.
-struct template_element
+struct DTemplateElement
 {
-    element_kind             kind;
+    DElementKind             kind;
 
     // text / secondary
     //   token-bearing sources.  `secondary` is the value half of a key_value,
@@ -256,12 +256,12 @@ struct template_element
     // attrs
     //   literal hints merged into every emission of this element -- alignment,
     // colour, width.  Not token-bearing: hints are structure, not content.
-    doc_attributes           attrs;
+    DDocAttributes           attrs;
 
-    std::vector<template_element> children;
+    std::vector<DTemplateElement> children;
 
-    template_element()
-        : kind(element_kind::paragraph),
+    DTemplateElement()
+        : kind(DElementKind::paragraph),
           text(),
           secondary(),
           style(),
@@ -277,27 +277,27 @@ struct template_element
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III. document_template                                   ///
+///                III. DDocumentTemplate                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// document_template
+// DDocumentTemplate
 //   class: the skeleton -- an element sequence plus the document's own frame
 // hints.  Built once and rendered many times against different bindings, which
 // is the whole point of holding it as data rather than as code.
-class document_template
+class DDocumentTemplate
 {
 public:
-    using element_list = std::vector<template_element>;
+    using element_list = std::vector<DTemplateElement>;
 
-    document_template()
+    DDocumentTemplate()
         : m_elements(),
           m_frame()
     {}
 
     // add
     //   append one element.
-    document_template& add(
-        const template_element& _element
+    DDocumentTemplate& add(
+        const DTemplateElement& _element
     )
     {
         m_elements.push_back(_element);
@@ -309,12 +309,12 @@ public:
     //   the hints handed to begin_document -- a title, a class, a page size
     // name.  Token-bearing values are NOT interpolated here; the frame is
     // structure.
-    D_NODISCARD doc_attributes& frame() D_NOEXCEPT
+    D_NODISCARD DDocAttributes& frame() D_NOEXCEPT
     {
         return m_frame;
     }
 
-    D_NODISCARD const doc_attributes& frame() const D_NOEXCEPT
+    D_NODISCARD const DDocAttributes& frame() const D_NOEXCEPT
     {
         return m_frame;
     }
@@ -331,7 +331,7 @@ public:
 
 private:
     element_list   m_elements;
-    doc_attributes m_frame;
+    DDocAttributes m_frame;
 };
 
 
@@ -342,15 +342,15 @@ private:
 // tmpl_heading / tmpl_paragraph / tmpl_key_value / ...
 //   functions: one per element kind, so a skeleton reads as a declaration
 // rather than as struct assignment.  Every `_text` argument is token-bearing.
-D_NODISCARD inline template_element tmpl_heading(
+D_NODISCARD inline DTemplateElement tmpl_heading(
     std::size_t        _level,
     const std::string& _text,
     const std::string& _style = std::string()
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind  = element_kind::heading;
+    _e.kind  = DElementKind::heading;
     _e.level = _level;
     _e.text  = _text;
     _e.style = _style;
@@ -358,29 +358,29 @@ D_NODISCARD inline template_element tmpl_heading(
     return _e;
 }
 
-D_NODISCARD inline template_element tmpl_paragraph(
+D_NODISCARD inline DTemplateElement tmpl_paragraph(
     const std::string& _text,
     const std::string& _style = std::string()
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind  = element_kind::paragraph;
+    _e.kind  = DElementKind::paragraph;
     _e.text  = _text;
     _e.style = _style;
 
     return _e;
 }
 
-D_NODISCARD inline template_element tmpl_key_value(
+D_NODISCARD inline DTemplateElement tmpl_key_value(
     const std::string& _key,
     const std::string& _value,
     const std::string& _style = std::string()
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind      = element_kind::key_value;
+    _e.kind      = DElementKind::key_value;
     _e.text      = _key;
     _e.secondary = _value;
     _e.style     = _style;
@@ -388,44 +388,44 @@ D_NODISCARD inline template_element tmpl_key_value(
     return _e;
 }
 
-D_NODISCARD inline template_element tmpl_rule()
+D_NODISCARD inline DTemplateElement tmpl_rule()
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind = element_kind::rule;
+    _e.kind = DElementKind::rule;
 
     return _e;
 }
 
-D_NODISCARD inline template_element tmpl_space(
+D_NODISCARD inline DTemplateElement tmpl_space(
     double _amount = 6.0
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind   = element_kind::space;
+    _e.kind   = DElementKind::space;
     _e.amount = _amount;
 
     return _e;
 }
 
-D_NODISCARD inline template_element tmpl_page_break()
+D_NODISCARD inline DTemplateElement tmpl_page_break()
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind = element_kind::page_break;
+    _e.kind = DElementKind::page_break;
 
     return _e;
 }
 
-D_NODISCARD inline template_element tmpl_list(
+D_NODISCARD inline DTemplateElement tmpl_list(
     bool                                 _ordered,
-    const std::vector<template_element>& _items
+    const std::vector<DTemplateElement>& _items
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind     = element_kind::list;
+    _e.kind     = DElementKind::list;
     _e.ordered  = _ordered;
     _e.children = _items;
 
@@ -436,15 +436,15 @@ D_NODISCARD inline template_element tmpl_list(
 //   function: emit _children once per item of the sequence named _sequence,
 // with each item's fields reachable as `<scope>.<field>`.  Scope defaults to
 // the sequence name, so `repeat("modules", ...)` exposes `{modules.name}`.
-D_NODISCARD inline template_element tmpl_repeat(
+D_NODISCARD inline DTemplateElement tmpl_repeat(
     const std::string&                   _sequence,
-    const std::vector<template_element>& _children,
+    const std::vector<DTemplateElement>& _children,
     const std::string&                   _scope = std::string()
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind     = element_kind::repeat;
+    _e.kind     = DElementKind::repeat;
     _e.sequence = _sequence;
     _e.scope    = _scope.empty() ? _sequence : _scope;
     _e.children = _children;
@@ -458,15 +458,15 @@ D_NODISCARD inline template_element tmpl_repeat(
 // come from the sequence named _sequence.  Each row's cells are the column
 // elements' `text` re-interpolated in that row's scope -- so a column is
 // declared once and serves both the header and every cell.
-D_NODISCARD inline template_element tmpl_table(
+D_NODISCARD inline DTemplateElement tmpl_table(
     const std::string&                   _sequence,
-    const std::vector<template_element>& _columns,
+    const std::vector<DTemplateElement>& _columns,
     const std::string&                   _scope = std::string()
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind     = element_kind::table;
+    _e.kind     = DElementKind::table;
     _e.sequence = _sequence;
     _e.scope    = _scope.empty() ? _sequence : _scope;
     _e.children = _columns;
@@ -477,16 +477,16 @@ D_NODISCARD inline template_element tmpl_table(
 // tmpl_column
 //   function: one column of a tmpl_table -- `_header` is the header text and
 // `_cell` the token-bearing cell source evaluated per row.
-D_NODISCARD inline template_element tmpl_column(
+D_NODISCARD inline DTemplateElement tmpl_column(
     const std::string& _header,
     const std::string& _cell,
-    text_alignment     _align = text_alignment::left,
+    DTextAlignment     _align = DTextAlignment::left,
     const std::string& _style = std::string()
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind      = element_kind::paragraph;   // a column is not itself emitted
+    _e.kind      = DElementKind::paragraph;   // a column is not itself emitted
     _e.text      = _header;
     _e.secondary = _cell;
     _e.style     = _style;
@@ -501,13 +501,13 @@ D_NODISCARD inline template_element tmpl_column(
 // express (a chart, a bespoke table, a nested document).  The renderer sees
 // whatever the slot emitter emits, so a template stays declarative without
 // having to grow a case for every irregular block.
-D_NODISCARD inline template_element tmpl_slot(
+D_NODISCARD inline DTemplateElement tmpl_slot(
     const std::string& _name
 )
 {
-    template_element _e;
+    DTemplateElement _e;
 
-    _e.kind = element_kind::slot;
+    _e.kind = DElementKind::slot;
     _e.text = _name;
 
     return _e;
@@ -518,24 +518,24 @@ D_NODISCARD inline template_element tmpl_slot(
 ///                IV.  render_template                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// slot_filler
+// DSlotFiller
 //   type: slot NAME -> what it emits.  Returns false when the name is unknown,
 // which leaves a graceful hole rather than a failure.
-using slot_filler =
-    std::function<bool(const std::string&, document_renderer&)>;
+using DSlotFiller =
+    std::function<bool(const std::string&, DDocumentRenderer&)>;
 
 
-// template_context
+// DTemplateContext
 //   struct: everything a render needs beyond the skeleton itself -- the
 // scalars, the sequences, and the slot fillers.  Held together so a nested
 // render (a repeat body) can rebind only the scalars and inherit the rest.
-struct template_context
+struct DTemplateContext
 {
-    binding_env     values;
-    sequence_lookup sequences;
-    slot_filler     slots;
+    DBindingEnv     values;
+    DSequenceLookup sequences;
+    DSlotFiller     slots;
 
-    template_context()
+    DTemplateContext()
         : values(),
           sequences(),
           slots()
@@ -551,7 +551,7 @@ NS_INTERNAL
     // and keeps one code path.
     D_NODISCARD inline std::string interpolate_helper(
         const std::string& _source,
-        const binding_env& _env
+        const DBindingEnv& _env
     )
     {
         // nothing to bind against: the source stands as literal text
@@ -576,11 +576,11 @@ NS_INTERNAL
 
     // element_attrs_helper
     //   helper: the element's literal hints plus its style name.
-    D_NODISCARD inline doc_attributes element_attrs_helper(
-        const template_element& _element
+    D_NODISCARD inline DDocAttributes element_attrs_helper(
+        const DTemplateElement& _element
     )
     {
-        doc_attributes _attrs = _element.attrs;
+        DDocAttributes _attrs = _element.attrs;
 
         // an unstyled element carries no style hint at all, rather than an
         // empty one a renderer would then try to resolve
@@ -600,9 +600,9 @@ NS_END  // internal
 // ahead of itself because repeat and list bodies recurse.
 inline
 void render_elements(
-    const std::vector<template_element>& _elements,
-    const template_context&              _context,
-    document_renderer&                   _renderer
+    const std::vector<DTemplateElement>& _elements,
+    const DTemplateContext&              _context,
+    DDocumentRenderer&                   _renderer
 );
 
 
@@ -614,9 +614,9 @@ NS_INTERNAL
     // the correct rendering of "no items" rather than an error.
     inline
     void render_repeat_helper(
-        const template_element& _element,
-        const template_context& _context,
-        document_renderer&      _renderer
+        const DTemplateElement& _element,
+        const DTemplateContext& _context,
+        DDocumentRenderer&      _renderer
     )
     {
         if (!_context.sequences)
@@ -624,7 +624,7 @@ NS_INTERNAL
             return;
         }
 
-        const sequence_env _sequence = _context.sequences(_element.sequence);
+        const DSequenceEnv _sequence = _context.sequences(_element.sequence);
 
         if ( (!_sequence.count) ||
              (!_sequence.at) )
@@ -636,7 +636,7 @@ NS_INTERNAL
 
         for (std::size_t _i = 0; _i < _n; ++_i)
         {
-            template_context _inner = _context;
+            DTemplateContext _inner = _context;
 
             _inner.values = scoped_bindings(_element.scope,
                                             _sequence.at(_i),
@@ -654,16 +654,16 @@ NS_INTERNAL
     // interpolated in the row's scope.
     inline
     void render_table_helper(
-        const template_element& _element,
-        const template_context& _context,
-        document_renderer&      _renderer
+        const DTemplateElement& _element,
+        const DTemplateContext& _context,
+        DDocumentRenderer&      _renderer
     )
     {
         _renderer.begin_table(_element.attrs);
 
         for (std::size_t _c = 0; _c < _element.children.size(); ++_c)
         {
-            const template_element& _col = _element.children[_c];
+            const DTemplateElement& _col = _element.children[_c];
 
             _renderer.table_column(
                 internal::interpolate_helper(_col.text, _context.values),
@@ -675,7 +675,7 @@ NS_INTERNAL
         if (_context.sequences &&
             (!_element.sequence.empty()))
         {
-            const sequence_env _sequence =
+            const DSequenceEnv _sequence =
                 _context.sequences(_element.sequence);
 
             if (_sequence.count && _sequence.at)
@@ -684,18 +684,18 @@ NS_INTERNAL
 
                 for (std::size_t _i = 0; _i < _n; ++_i)
                 {
-                    const binding_env _row =
+                    const DBindingEnv _row =
                         scoped_bindings(_element.scope,
                                         _sequence.at(_i),
                                         _context.values);
 
-                    _renderer.begin_row(doc_attributes());
+                    _renderer.begin_row(DDocAttributes());
 
                     for (std::size_t _c = 0;
                          _c < _element.children.size();
                          ++_c)
                     {
-                        const template_element& _col = _element.children[_c];
+                        const DTemplateElement& _col = _element.children[_c];
 
                         _renderer.cell(
                             internal::interpolate_helper(_col.secondary, _row),
@@ -721,20 +721,20 @@ NS_END  // internal
 // table recurse.
 inline
 void render_elements(
-    const std::vector<template_element>& _elements,
-    const template_context&              _context,
-    document_renderer&                   _renderer
+    const std::vector<DTemplateElement>& _elements,
+    const DTemplateContext&              _context,
+    DDocumentRenderer&                   _renderer
 )
 {
     for (std::size_t _i = 0; _i < _elements.size(); ++_i)
     {
-        const template_element& _e     = _elements[_i];
-        const doc_attributes    _attrs =
+        const DTemplateElement& _e     = _elements[_i];
+        const DDocAttributes    _attrs =
             internal::element_attrs_helper(_e);
 
         switch (_e.kind)
         {
-            case element_kind::heading:
+            case DElementKind::heading:
             {
                 _renderer.heading(
                     _e.level,
@@ -744,7 +744,7 @@ void render_elements(
                 break;
             }
 
-            case element_kind::paragraph:
+            case DElementKind::paragraph:
             {
                 _renderer.paragraph(
                     internal::interpolate_helper(_e.text, _context.values),
@@ -753,7 +753,7 @@ void render_elements(
                 break;
             }
 
-            case element_kind::key_value:
+            case DElementKind::key_value:
             {
                 _renderer.key_value(
                     internal::interpolate_helper(_e.text, _context.values),
@@ -764,28 +764,28 @@ void render_elements(
                 break;
             }
 
-            case element_kind::rule:
+            case DElementKind::rule:
             {
                 _renderer.rule(_attrs);
 
                 break;
             }
 
-            case element_kind::space:
+            case DElementKind::space:
             {
                 _renderer.vertical_space(_e.amount, _attrs);
 
                 break;
             }
 
-            case element_kind::page_break:
+            case DElementKind::page_break:
             {
                 _renderer.page_break();
 
                 break;
             }
 
-            case element_kind::list:
+            case DElementKind::list:
             {
                 _renderer.begin_list(_e.ordered, _attrs);
 
@@ -802,21 +802,21 @@ void render_elements(
                 break;
             }
 
-            case element_kind::table:
+            case DElementKind::table:
             {
                 internal::render_table_helper(_e, _context, _renderer);
 
                 break;
             }
 
-            case element_kind::repeat:
+            case DElementKind::repeat:
             {
                 internal::render_repeat_helper(_e, _context, _renderer);
 
                 break;
             }
 
-            case element_kind::slot:
+            case DElementKind::slot:
             {
                 // an unfilled slot is a hole, not a failure
                 if (_context.slots)
@@ -838,15 +838,15 @@ void render_elements(
 // opened and closed around it, so the result stands alone.
 //
 // Usage:
-//   html_document_renderer _r;
-//   template_context _ctx;
+//   DHtmlDocumentRenderer _r;
+//   DTemplateContext _ctx;
 //   _ctx.values = map_bindings({{"title", "Nightly"}});
 //   render_template(_skeleton, _ctx, _r);
 inline
 void render_template(
-    const document_template& _template,
-    const template_context&  _context,
-    document_renderer&       _renderer
+    const DDocumentTemplate& _template,
+    const DTemplateContext&  _context,
+    DDocumentRenderer&       _renderer
 )
 {
     _renderer.begin_document(_template.frame());

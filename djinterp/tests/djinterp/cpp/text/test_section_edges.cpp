@@ -24,14 +24,14 @@ struct ctx
 };
 
 
-using djinterp::binding_env;
-using djinterp::section;
+using djinterp::DBindingEnv;
+using djinterp::DSection;
 using djinterp::make_section;
 
 
 int main()
 {
-    binding_env<ctx> _env;
+    DBindingEnv<ctx> _env;
 
     _env.bind("v",
               [](const ctx& _c) -> std::string
@@ -42,7 +42,7 @@ int main()
     // 1. default-constructed section: count is 0 for every ctx; body never
     //    runs.
     {
-        section<ctx> _empty;
+        DSection<ctx> _empty;
         ctx          _here;
         int          _hits  = 0;
         int          _proxy = 0;
@@ -51,7 +51,7 @@ int main()
         assert(_empty.count(_here) == 0);
 
         _empty.for_each(_env, _here, _proxy,
-            [&](const binding_env<ctx>&, const ctx&, int&)
+            [&](const DBindingEnv<ctx>&, const ctx&, int&)
             {
                 ++_hits;
             });
@@ -63,7 +63,7 @@ int main()
     //    unchanged.  Useful as the degenerate "non-iterating section over
     //    the same focus" case.
     {
-        section<ctx> _no_refocus(
+        DSection<ctx> _no_refocus(
             [](const ctx&) -> std::size_t { return 3; },
             nullptr);
 
@@ -72,7 +72,7 @@ int main()
         std::vector<std::string>  _drawn;
 
         _no_refocus.for_each(_env, _here, _drawn,
-            [](const binding_env<ctx>&  _e,
+            [](const DBindingEnv<ctx>&  _e,
                const ctx&               _c,
                std::vector<std::string>& _acc)
             {
@@ -87,7 +87,7 @@ int main()
 
     // 3. count of zero (legitimate, not unbound): body is never invoked.
     {
-        section<ctx> _zero(
+        DSection<ctx> _zero(
             [](const ctx&) -> std::size_t { return 0; },
             [](const ctx& _c, std::size_t) -> ctx { return _c; });
 
@@ -99,7 +99,7 @@ int main()
         assert(_zero.count(_here) == 0);
 
         _zero.for_each(_env, _here, _proxy,
-            [&](const binding_env<ctx>&, const ctx&, int&)
+            [&](const DBindingEnv<ctx>&, const ctx&, int&)
             {
                 ++_hits;
             });
@@ -109,7 +109,7 @@ int main()
 
     // 4. refocus actually re-points: every iteration sees a DIFFERENT ctx.
     {
-        section<ctx> _bump(
+        DSection<ctx> _bump(
             [](const ctx&) -> std::size_t { return 4; },
             [](const ctx& _c, std::size_t _i) -> ctx
             {
@@ -124,7 +124,7 @@ int main()
         std::vector<std::string>  _drawn;
 
         _bump.for_each(_env, _here, _drawn,
-            [](const binding_env<ctx>&   _e,
+            [](const DBindingEnv<ctx>&   _e,
                const ctx&                _c,
                std::vector<std::string>& _acc)
             {
@@ -142,7 +142,7 @@ int main()
     {
         const auto _size_before = _env.size();
 
-        section<ctx> _s(
+        DSection<ctx> _s(
             [](const ctx&) -> std::size_t { return 5; },
             [](const ctx& _c, std::size_t) -> ctx { return _c; });
 
@@ -150,7 +150,7 @@ int main()
         int _proxy = 0;
 
         _s.for_each(_env, _here, _proxy,
-            [](const binding_env<ctx>&, const ctx&, int&)
+            [](const DBindingEnv<ctx>&, const ctx&, int&)
             {});
 
         assert(_env.size() == _size_before);

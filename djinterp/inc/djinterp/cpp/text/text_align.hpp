@@ -29,12 +29,12 @@
 NS_DJINTERP
 
 
-// text_alignment
+// DTextAlignment
 //   enum: horizontal text alignment for a column, cell, label, or flow of
 // wrapped lines. `justify` spreads inter-word space so both edges align and
 // is meaningful only for multi-line, wrapped content (e.g. PDF paragraphs);
 // single lines treat it as `left`.
-enum class text_alignment : re_std::uint8_t
+enum class DTextAlignment : re_std::uint8_t
 {
     left,
     center,

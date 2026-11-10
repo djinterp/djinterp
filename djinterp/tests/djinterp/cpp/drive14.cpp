@@ -31,10 +31,10 @@ int main()
         rep.modules.push_back(m);
     }
 
-    for (document_format f : { document_format::html, document_format::markdown })
+    for (DDocumentFormat f : { DDocumentFormat::html, DDocumentFormat::markdown })
     {
-        document_dialect d = make_document_dialect(f);
-        d.renderer().begin_document(doc_attributes());
+        DDocumentDialect d = make_document_dialect(f);
+        d.renderer().begin_document(DDocAttributes());
         render_test_report(rep, d.renderer());
         d.renderer().end_document();
         std::ofstream(std::string("layout.") + format_name(f)) << d.str();
@@ -43,7 +43,7 @@ int main()
 
     DPdfCanvasDocumentRenderer pr;
     pr.set_zebra(pdf_color::from_rgb255(244,245,248));
-    pr.begin_document(doc_attributes());
+    pr.begin_document(DDocAttributes());
     render_test_report(rep, pr);
     pr.end_document();
     const std::string b = pr.to_bytes();

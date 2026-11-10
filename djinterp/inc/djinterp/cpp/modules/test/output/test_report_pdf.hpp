@@ -131,7 +131,7 @@ D_NODISCARD inline std::string render_report_pdf_bytes_table(
 
     apply_report_pdf_palette(_renderer);
 
-    _renderer.begin_document(doc_attributes());
+    _renderer.begin_document(DDocAttributes());
 
     render_report_document(_report, _renderer, _opts);
 

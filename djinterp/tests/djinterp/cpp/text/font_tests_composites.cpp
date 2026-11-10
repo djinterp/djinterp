@@ -54,26 +54,26 @@ bool tests_is_font_like_across_the_lattice()
     D_FT_CHECK(is_font_like_v<full_font>);
 
     // and with a different color type
-    D_FT_CHECK(is_font_like_v<font<ff_none, wide_color>>);
-    D_FT_CHECK(is_font_like_v<font<ff_all,  DFontColor>>);
+    D_FT_CHECK(is_font_like_v<DFont<ff_none, wide_color>>);
+    D_FT_CHECK(is_font_like_v<DFont<ff_all, DFontColor>>);
 
     return true;
 }
 
 /*
 tests_is_font_like_on_a_duck_typed_struct
-  The point of the trait: a struct that shares NOTHING with font<> but the
+  The point of the trait: a struct that shares NOTHING with DFont<> but the
 four member names is still font-like.  This is what lets an adapter accept a
 LOGFONT-shaped or fontconfig-shaped type.
   Tests the following:
   - duck_font (family + size + weight + slant, no inheritance) is font-like
-  - it is NOT the same type as any font<>
+  - it is NOT the same type as any DFont<>
 */
 bool tests_is_font_like_on_a_duck_typed_struct()
 {
     D_FT_CHECK(is_font_like_v<duck_font>);
 
-    // it really is unrelated to font<>
+    // it really is unrelated to DFont<>
     D_FT_CHECK(!(std::is_base_of<bare_font, duck_font>::value));
     D_FT_CHECK(!(std::is_same<duck_font, bare_font>::value));
 
@@ -565,35 +565,35 @@ bool tests_is_font_rich_has_a_minimal_satisfying_set()
     D_FT_CHECK(!has_font_backend_handles_v<minimal_rich_font>);
 
     // drop the opentype conjunct -> not rich
-    using no_ot = font<ff_underline | ff_small_caps | ff_line_height
+    using no_ot = DFont<ff_underline | ff_small_caps | ff_line_height
                      | ff_color, probe_color>;
 
     D_FT_CHECK(!has_font_opentype_features_v<no_ot>);
     D_FT_CHECK(!is_font_rich_v<no_ot>);
 
     // drop the decoration conjunct -> not rich
-    using no_dec = font<ff_small_caps | ff_line_height | ff_color
+    using no_dec = DFont<ff_small_caps | ff_line_height | ff_color
                       | ff_opentype_features, probe_color>;
 
     D_FT_CHECK(!has_font_decorations_v<no_dec>);
     D_FT_CHECK(!is_font_rich_v<no_dec>);
 
     // drop the casing conjunct -> not rich
-    using no_cas = font<ff_underline | ff_line_height | ff_color
+    using no_cas = DFont<ff_underline | ff_line_height | ff_color
                       | ff_opentype_features, probe_color>;
 
     D_FT_CHECK(!has_font_casing_v<no_cas>);
     D_FT_CHECK(!is_font_rich_v<no_cas>);
 
     // drop the metrics conjunct -> not rich
-    using no_met = font<ff_underline | ff_small_caps | ff_color
+    using no_met = DFont<ff_underline | ff_small_caps | ff_color
                       | ff_opentype_features, probe_color>;
 
     D_FT_CHECK(!has_font_metrics_overrides_v<no_met>);
     D_FT_CHECK(!is_font_rich_v<no_met>);
 
     // drop the color conjunct -> not rich
-    using no_col = font<ff_underline | ff_small_caps | ff_line_height
+    using no_col = DFont<ff_underline | ff_small_caps | ff_line_height
                       | ff_opentype_features, probe_color>;
 
     D_FT_CHECK(!has_font_color_v<no_col>);

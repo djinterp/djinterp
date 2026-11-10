@@ -1,11 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp]                                                  title_page.hpp
 *
-*   A dialect-agnostic COVER PAGE for documents.  title_page is a pure content
+*   A dialect-agnostic COVER PAGE for documents.  DTitlePage is a pure content
 * model -- a title, an optional subtitle, an optional prominent banner (e.g. a
 * "PASSED" / "FAILED" verdict), and a list of labelled fields (author, date,
 * summary figures) -- with a single render() that streams the page through a
-* document_renderer.  Like every template here it knows no format: it emits a
+* DDocumentRenderer.  Like every template here it knows no format: it emits a
 * heading, some paragraphs, some key-values, spacing, and a trailing page break,
 * and lets the renderer decide realisation.  In PDF the title is large and
 * centred and the banner is coloured; in plain text it is a left-aligned block;
@@ -24,7 +24,7 @@
 * built-in heading / body styling.
 *
 *   PORTABILITY:
-*   C++11 baseline (matches document_renderer).
+*   C++11 baseline (matches DDocumentRenderer).
 *
 *
 * path:      /inc/djinterp/cpp/util/document/templates/title_page.hpp
@@ -39,7 +39,7 @@ TABLE OF CONTENTS
 I.    Emitted style names          (the shared style-name vocabulary)
       ---------------------------------------------------------------
 
-II.   title_page (class)
+II.   DTitlePage (class)
       ------------------
       a. construction / fields
       b. layout knobs
@@ -62,8 +62,8 @@ II.   title_page (class)
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
-#include "./document_attributes.hpp"    // doc_attributes, doc_attr_*, text_alignment
-#include "./document_renderer.hpp"      // document_renderer, DPlainDocumentRenderer
+#include "./document_attributes.hpp"    // DDocAttributes, doc_attr_*, DTextAlignment
+#include "./document_renderer.hpp"      // DDocumentRenderer, DPlainDocumentRenderer
 
 
 NS_DJINTERP
@@ -72,7 +72,7 @@ NS_DJINTERP
 // ===========================================================================
 // I.   Emitted style names
 // ===========================================================================
-//   The style-name hints title_page attaches to its blocks.  A producer may
+//   The style-name hints DTitlePage attaches to its blocks.  A producer may
 // register a renderer style under each of these names to theme the cover; any
 // left unregistered fall back to the renderer's own heading / body styling.
 
@@ -95,17 +95,17 @@ NS_DJINTERP
 
 
 // ===========================================================================
-// II.  title_page (class)
+// II.  DTitlePage (class)
 // ===========================================================================
 
-// title_page
+// DTitlePage
 //   class: a cover page as a content model -- title, subtitle, banner, and an
 // ordered list of labelled fields, plus a few layout knobs.  render() streams
-// it through a document_renderer; to_string() renders it through the plain
+// it through a DDocumentRenderer; to_string() renders it through the plain
 // renderer for text / debugging.
 //
 // Usage:
-//   title_page _p;
+//   DTitlePage _p;
 //   _p.set_title("djinterp Test Suite")
 //     .set_subtitle("nightly build")
 //     .set_author("teer")
@@ -114,7 +114,7 @@ NS_DJINTERP
 //     .add_field("Assertions", "412/412")
 //     .add_field("Pass rate",  "100.00%");
 //   _p.render(_renderer);
-class title_page
+class DTitlePage
 {
 public:
     // -- public type aliases -------------------------------------------------
@@ -124,10 +124,10 @@ public:
 
     // -- a. construction / fields --------------------------------------------
 
-    // title_page
+    // DTitlePage
     //   constructor: an empty cover -- no title, a trailing page break, and a
     // default top gap.
-    title_page()
+    DTitlePage()
         : m_title(),
           m_subtitle(),
           m_author(),
@@ -142,7 +142,7 @@ public:
     // set_title / set_subtitle / set_author / set_date
     //   the standard cover metadata; author and date are rendered as fields
     // when set.  Each returns *this for fluent assembly.
-    title_page& set_title(
+    DTitlePage& set_title(
         std::string _title
     )
     {
@@ -151,7 +151,7 @@ public:
         return *this;
     }
 
-    title_page& set_subtitle(
+    DTitlePage& set_subtitle(
         std::string _subtitle
     )
     {
@@ -160,7 +160,7 @@ public:
         return *this;
     }
 
-    title_page& set_author(
+    DTitlePage& set_author(
         std::string _author
     )
     {
@@ -169,7 +169,7 @@ public:
         return *this;
     }
 
-    title_page& set_date(
+    DTitlePage& set_date(
         std::string _date
     )
     {
@@ -182,7 +182,7 @@ public:
     //   a prominent line beneath the title (e.g. a verdict), rendered in
     // _style_name if the renderer knows it.  An empty banner emits nothing.
     // Returns *this.
-    title_page& set_banner(
+    DTitlePage& set_banner(
         std::string _banner,
         std::string _style_name = std::string()
     )
@@ -196,7 +196,7 @@ public:
     // add_field
     //   append a labelled field ("Assertions", "412/412"), rendered beneath the
     // banner.  Returns *this.
-    title_page& add_field(
+    DTitlePage& add_field(
         std::string _label,
         std::string _value
     )
@@ -213,7 +213,7 @@ public:
     // set_top_gap
     //   the blank space above the title (points, or the renderer's unit); a
     // renderer with no vertical-space notion ignores it.  Returns *this.
-    title_page& set_top_gap(
+    DTitlePage& set_top_gap(
         double _amount
     ) D_NOEXCEPT
     {
@@ -225,7 +225,7 @@ public:
     // set_page_break
     //   whether a page break is emitted after the cover so the body starts on
     // a fresh page (default true).  Returns *this.
-    title_page& set_page_break(
+    DTitlePage& set_page_break(
         bool _on
     ) D_NOEXCEPT
     {
@@ -241,14 +241,14 @@ public:
     // centred subtitle, the banner, then the fields (author / date first, then
     // the added fields), then an optional page break.
     void render(
-        document_renderer& _renderer
+        DDocumentRenderer& _renderer
     ) const
     {
         // a title page is not much use without a title, but render whatever is
         // present rather than assuming
         if (m_top_gap > 0.0)
         {
-            _renderer.vertical_space(m_top_gap, doc_attributes());
+            _renderer.vertical_space(m_top_gap, DDocAttributes());
         }
 
         if (!m_title.empty())
@@ -269,9 +269,9 @@ public:
         // the banner sits in its own vertical band
         if (!m_banner.empty())
         {
-            _renderer.vertical_space(k_banner_gap, doc_attributes());
+            _renderer.vertical_space(k_banner_gap, DDocAttributes());
             _renderer.paragraph(m_banner, centred(m_banner_style));
-            _renderer.vertical_space(k_banner_gap, doc_attributes());
+            _renderer.vertical_space(k_banner_gap, DDocAttributes());
         }
 
         // author and date lead the field block when present
@@ -318,11 +318,11 @@ private:
     // centred
     //   a hint bag carrying centre alignment and, when non-empty, _style as
     // the style name.  The small builder every block here shares.
-    D_NODISCARD static doc_attributes centred(
+    D_NODISCARD static DDocAttributes centred(
         const std::string& _style
     )
     {
-        doc_attributes _a;
+        DDocAttributes _a;
 
         _a.set(doc_attr_align, std::string("center"));
 

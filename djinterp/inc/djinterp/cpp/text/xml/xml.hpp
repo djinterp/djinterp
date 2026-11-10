@@ -36,10 +36,10 @@
 * getter-form (`get_name()`, `get_value()`) accessors are detected.
 *
 *   BACKEND MODEL:
-*   `xml_node` and `xml_document` are templated over a `Backend` type
+*   `DXmlNode` and `DXmlDocument` are templated over a `Backend` type
 * parameter. The backend is any type that satisfies the structural
 * protocol detected by `is_xml_backend`. A default in-memory backend
-* (`xml_default_backend`) is provided in `xml_template.hpp`.
+* (`DXmlDefaultBackend`) is provided in `xml_template.hpp`.
 *
 *   COMPAT:
 *   C++11: all traits via struct::value
@@ -59,26 +59,26 @@ TABLE OF CONTENTS
 =================
 I.    SHARED TYPES & CONSTANTS
       ------------------------
-      i.    xml_string_t
-      ii.   xml_size_t
+      i.    DXmlString
+      ii.   DXmlSize
       iii.  D_XML_DEFAULT_VERSION
       iv.   D_XML_DEFAULT_ENCODING
       v.    D_XML_DEFAULT_INDENT
 
 II.   CORE ENUMERATIONS
       -----------------
-      a. xml_node_kind
-      b. xml_encoding
-      c.    xml_standalone
+      a. DXmlNodeKind
+      b. DXmlEncoding
+      c.    DXmlStandalone
 
 III.  BACKEND TAG DISPATCH
       --------------------
-      a. xml_backend_tag
-      b. xml_default_backend_tag
-      c.    xml_libxmlpp_backend_tag
-            d. xml_pugixml_backend_tag
-            e. xml_tinyxml2_backend_tag
-            f. xml_rapidxml_backend_tag
+      a. DXmlBackendTag
+      b. DXmlDefaultBackendTag
+      c.    DXmlLibxmlppBackendTag
+            d. DXmlPugixmlBackendTag
+            e. DXmlTinyxml2BackendTag
+            f. DXmlRapidxmlBackendTag
 
 IV.   BACKEND TAG DETECTION
       ---------------------
@@ -123,7 +123,7 @@ IX.   NODE CLASSIFICATION
       -------------------
       a. is_xml_node
       b. is_xml_element
-      c.    xml_node_class
+      c.    DXmlNodeClass
 
 X.    DOCUMENT DETECTION
       ------------------
@@ -135,7 +135,7 @@ X.    DOCUMENT DETECTION
             f. has_write_method
             g. has_save_method
             h. is_xml_document
-      i.    xml_document_class
+      i.    DXmlDocumentClass
 
 XI.   BACKEND PROTOCOL DETECTION
       --------------------------
@@ -182,25 +182,25 @@ XIII. CONCEPTS (C++20)
 NS_DJINTERP
 
 
-// xml_string_t
+// DXmlString
 //   type: string type used for XML names, attribute values, text
 // content, and CDATA payloads. Defined as std::string by default;
 // define D_XML_STRING_TYPE before inclusion to override (e.g. with
 // std::u8string under C++20 or a small-string-optimised wrapper).
 #ifndef D_XML_STRING_TYPE
-    using xml_string_t = std::string;
+    using DXmlString = std::string;
 #else
-    using xml_string_t = D_XML_STRING_TYPE;
+    using DXmlString = D_XML_STRING_TYPE;
 #endif
 
 
-// xml_size_t
+// DXmlSize
 //   type: unsigned size type for XML counts (children, attributes,
 // document size). Defined as std::size_t by default.
 #ifndef D_XML_SIZE_TYPE
-    using xml_size_t = std::size_t;
+    using DXmlSize = std::size_t;
 #else
-    using xml_size_t = D_XML_SIZE_TYPE;
+    using DXmlSize = D_XML_SIZE_TYPE;
 #endif
 
 
@@ -230,12 +230,12 @@ NS_DJINTERP
 ///                  II.   CORE ENUMERATIONS                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// xml_node_kind
+// DXmlNodeKind
 //   enum: discriminator for the kind of an XML node. Modelled on the
 // W3C DOM Node.nodeType set, narrowed to the subset most XML
 // libraries agree on. Values are intentionally non-contiguous so new
 // kinds can be inserted without breaking existing serialisation.
-enum class xml_node_kind : re_std::uint8_t
+enum class DXmlNodeKind : re_std::uint8_t
 {
     element                = 1,
     attribute              = 2,
@@ -252,11 +252,11 @@ enum class xml_node_kind : re_std::uint8_t
 };
 
 
-// xml_encoding
+// DXmlEncoding
 //   enum: well-known character encodings used by XML documents.
 // Carry the literal string via `xml_encoding_name`; backends are
 // free to accept arbitrary encoding strings beyond this list.
-enum class xml_encoding : re_std::uint8_t
+enum class DXmlEncoding : re_std::uint8_t
 {
     utf_8,
     utf_16,
@@ -269,11 +269,11 @@ enum class xml_encoding : re_std::uint8_t
 };
 
 
-// xml_standalone
+// DXmlStandalone
 //   enum: tri-state for the XML declaration's `standalone`
 // attribute. `unspecified` means the attribute is omitted entirely
 // from the prolog.
-enum class xml_standalone : re_std::uint8_t
+enum class DXmlStandalone : re_std::uint8_t
 {
     unspecified,
     yes,
@@ -283,19 +283,19 @@ enum class xml_standalone : re_std::uint8_t
 
 // xml_encoding_name
 //   function: returns the canonical IANA-style string for an
-// `xml_encoding` value, or an empty string for `custom`.
+// `DXmlEncoding` value, or an empty string for `custom`.
 D_CONSTEXPR_INLINE
 const char* xml_encoding_name(
-    xml_encoding _enc
+    DXmlEncoding _enc
 )
 {
-    return (_enc == xml_encoding::utf_8)      ? "UTF-8"
-         : (_enc == xml_encoding::utf_16)     ? "UTF-16"
-         : (_enc == xml_encoding::utf_16_le)  ? "UTF-16LE"
-         : (_enc == xml_encoding::utf_16_be)  ? "UTF-16BE"
-         : (_enc == xml_encoding::utf_32)     ? "UTF-32"
-         : (_enc == xml_encoding::iso_8859_1) ? "ISO-8859-1"
-         : (_enc == xml_encoding::us_ascii)   ? "US-ASCII"
+    return (_enc == DXmlEncoding::utf_8)      ? "UTF-8"
+         : (_enc == DXmlEncoding::utf_16)     ? "UTF-16"
+         : (_enc == DXmlEncoding::utf_16_le)  ? "UTF-16LE"
+         : (_enc == DXmlEncoding::utf_16_be)  ? "UTF-16BE"
+         : (_enc == DXmlEncoding::utf_32)     ? "UTF-32"
+         : (_enc == DXmlEncoding::iso_8859_1) ? "ISO-8859-1"
+         : (_enc == DXmlEncoding::us_ascii)   ? "US-ASCII"
          :                                      "";
 }
 
@@ -304,39 +304,39 @@ const char* xml_encoding_name(
 ///                III.   BACKEND TAG DISPATCH                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// xml_backend_tag
+// DXmlBackendTag
 //   struct: empty base tag for all XML backend tag types. Roots
 // the tag hierarchy used by `is_xml_backend` and by adapter
-// specialisations of `xml_node` / `xml_document`.
-struct xml_backend_tag
+// specialisations of `DXmlNode` / `DXmlDocument`.
+struct DXmlBackendTag
 {};
 
-// xml_default_backend_tag
+// DXmlDefaultBackendTag
 //   struct: tag identifying the bundled in-memory backend defined
 // in `xml_template.hpp`.
-struct xml_default_backend_tag : xml_backend_tag
+struct DXmlDefaultBackendTag : DXmlBackendTag
 {};
 
-// xml_libxmlpp_backend_tag
+// DXmlLibxmlppBackendTag
 //   struct: tag identifying a libxml++-based backend. The adapter
 // itself lives in a separate header; this tag is provided here so
 // detection code never has to depend on libxml++ headers.
-struct xml_libxmlpp_backend_tag : xml_backend_tag
+struct DXmlLibxmlppBackendTag : DXmlBackendTag
 {};
 
-// xml_pugixml_backend_tag
+// DXmlPugixmlBackendTag
 //   struct: tag identifying a pugixml-based backend.
-struct xml_pugixml_backend_tag : xml_backend_tag
+struct DXmlPugixmlBackendTag : DXmlBackendTag
 {};
 
-// xml_tinyxml2_backend_tag
+// DXmlTinyxml2BackendTag
 //   struct: tag identifying a tinyxml2-based backend.
-struct xml_tinyxml2_backend_tag : xml_backend_tag
+struct DXmlTinyxml2BackendTag : DXmlBackendTag
 {};
 
-// xml_rapidxml_backend_tag
+// DXmlRapidxmlBackendTag
 //   struct: tag identifying a RapidXML-based backend.
-struct xml_rapidxml_backend_tag : xml_backend_tag
+struct DXmlRapidxmlBackendTag : DXmlBackendTag
 {};
 
 
@@ -374,7 +374,7 @@ NS_END  // internal
 
 // is_xml_backend
 //   trait: true if Type has a nested backend_tag type derived
-// from xml_backend_tag.
+// from DXmlBackendTag.
 template<typename Type>
 struct is_xml_backend
 {
@@ -627,7 +627,7 @@ struct has_attribute_count_method<Type, void_t<
 // is_xml_attribute
 //   trait: minimum protocol -- a name accessor and a value accessor.
 // This keeps the bar low so libxml++'s `Attribute`, pugixml's
-// `xml_attribute`, and our own `xml_attribute` all qualify.
+// `DXmlAttribute`, and our own `DXmlAttribute` all qualify.
 template<typename Type>
 struct is_xml_attribute
 {
@@ -861,12 +861,12 @@ struct is_xml_element
 };
 
 
-// xml_node_class
+// DXmlNodeClass
 //   struct: comprehensive classification of an XML-node-shaped
 // type. Aggregates every detection trait into one read-out so
 // generic code can branch on capabilities cheaply.
 template<typename Type>
-struct xml_node_class
+struct DXmlNodeClass
 {
     // identity
     D_STATIC_CONSTEXPR bool is_node       =
@@ -1061,11 +1061,11 @@ struct is_xml_document
 };
 
 
-// xml_document_class
+// DXmlDocumentClass
 //   struct: comprehensive classification of an XML-document-shaped
 // type. Aggregates every detection trait into one read-out.
 template<typename Type>
-struct xml_document_class
+struct DXmlDocumentClass
 {
     // identity
     D_STATIC_CONSTEXPR bool is_document    =
@@ -1362,8 +1362,8 @@ concept xml_backend_type =
 //   concept: constrains backends that expose the full set of
 // nested type aliases (node_type, attribute_type, document_type)
 // plus a make_document factory. This is the bar a backend must
-// clear to be plugged into `xml_node<Backend>` and
-// `xml_document<Backend>` without further specialisation.
+// clear to be plugged into `DXmlNode<Backend>` and
+// `DXmlDocument<Backend>` without further specialisation.
 template<typename Type>
 concept complete_xml_backend =
     ( xml_backend_type<Type>                 &&
