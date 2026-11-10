@@ -73,7 +73,7 @@
 * path:      /inc/djinterp/env/env_printer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -125,8 +125,8 @@ TABLE OF CONTENTS
     3.  Printing it
 */
 
-#ifndef DJINTERP_ENV_ENV_PRINTER_H
-#define DJINTERP_ENV_ENV_PRINTER_H 1
+#ifndef DJINTERP_ENV_PRINTER_H
+#define DJINTERP_ENV_PRINTER_H 1
 
 // std
 #include <stddef.h>  // size_t, NULL
@@ -1559,4 +1559,4 @@ d_env_print_file(
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_ENV_ENV_PRINTER_H
+#endif  // DJINTERP_ENV_PRINTER_H

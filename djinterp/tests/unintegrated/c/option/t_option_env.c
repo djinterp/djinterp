@@ -21,14 +21,14 @@
 * path:      /tests/unintegrated/c/option/t_option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.10.28
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <locale.h>   // setlocale, LC_NUMERIC
 #include <stdbool.h>  // bool
 #include <stdio.h>    // printf, snprintf
 #include <stdlib.h>   // setenv, unsetenv
-#include <string.h>   // memcmp, strcmp, strlen
+#include <string.h>   // memcmp, memcpy, strcmp, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/option/option_env.h"  // the environment
 // re_std
@@ -1651,6 +1651,363 @@ d_tests_option_env_rows(void)
     return;
 }
 
+// DEPTHS, NEVER
+//   constants: an int's named value, outside its range, as lane F's depth
+// guard has it; and an int's value ruled but not built.
+static const struct dj_option_env_name DEPTHS[] =
+{
+    { "unbounded", (int64_t)0xFFFFFFFFu }
+};
+
+static const struct dj_option_env_name NEVER[] =
+{
+    { "auto", -1 }
+};
+
+// D_TESTS_NAMED_ROWS, D_TESTS_NAMED_BAD
+//   constants: the rows the named-value tests declare -- lane F's depth
+// guard, one whose knob is the name, one with an unbuilt name -- and two rows
+// that cannot be declared.
+#define D_TESTS_KNOB_DEPTH     1000
+#define D_TESTS_KNOB_UNBOUNDED 0xFFFFFFFFu
+static const struct dj_option_env_var D_TESTS_NAMED_ROWS[] =
+{
+    D_OPTION_ENV_INT_RANGE_KNOB_NAMED("max_depth", D_TESTS_KNOB_DEPTH, 1,
+                                      65535, DEPTHS, "or unbounded"),
+    D_OPTION_ENV_INT_RANGE_KNOB_NAMED("open_depth", D_TESTS_KNOB_UNBOUNDED,
+                                      1, 65535, DEPTHS,
+                                      "a knob that is a name"),
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, "ruled_depth", DEPTHS, 1u, NEVER,
+                     1u, NULL, 5, 1, 9, 0.0, NULL, NULL,
+                     "auto is ruled, not built")
+};
+#undef D_TESTS_KNOB_DEPTH
+#undef D_TESTS_KNOB_UNBOUNDED
+
+static const struct dj_option_env_var D_TESTS_NAMED_BAD[] =
+{
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, "no_names", NULL, 1u, NULL, 0u,
+                     NULL, 5, 1, 9, 0.0, NULL, NULL, NULL),
+    D_OPTION_ENV_INT_RANGE_NAMED("outside", 0, 1, 9, DEPTHS, NULL)
+};
+
+/*
+d_tests_option_env_named_ints
+  Tests the following:
+  - an INT's named value is read by name, in any case, or by its number,
+    outside the range, from text and by value
+  - it is written back by its name, and d_option_env_text gives it; a value
+    with no name has no text and is written as a number
+  - the range still holds for every other value
+*/
+static void
+d_tests_option_env_named_ints(void)
+{
+    const int64_t                unbounded = (int64_t)0xFFFFFFFFu;
+    struct dj_tests_root_storage storage   = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    char                         text[32];
+
+    printf("  named int values: text and values\n");
+
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env,
+                                                      D_TESTS_NAMED_ROWS,
+                                                      3u).is_ok);
+
+    // the default, then the name, in any case, written back by name
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&env, 0u, 0u) == 1000);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_text(&env, 0u, 0u) == NULL);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&env, "max_depth=UnBounded")
+                             .is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&env, 0u, 0u) == unbounded);
+    (void)d_option_env_format(&env, 0u, 0u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "unbounded") == 0);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_text(&env, 0u, 0u) != NULL) &&
+                              (strcmp(d_option_env_text(&env, 0u, 0u),
+                                      "unbounded") == 0) );
+
+    // the range holds for every other value; the name's number is taken
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&env, "max_depth=65535").is_ok);
+    (void)d_option_env_format(&env, 0u, 0u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "65535") == 0);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_text(&env, 0u, 0u) == NULL);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_put(&env, "max_depth=65536"))
+        == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_put(&env, "max_depth=0"))
+        == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_put(&env, "max_depth=unbound"))
+        == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&env, "max_depth=4294967295")
+                             .is_ok);
+    (void)d_option_env_format(&env, 0u, 0u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "unbounded") == 0);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_int(&env, 0u, 0u, 12).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_set_int(&env, 0u, 0u, unbounded)
+                             .is_ok);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_set_int(&env, 0u, 0u, 70000))
+        == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+
+    return;
+}
+
+/*
+d_tests_option_env_named_rules
+  Tests the following:
+  - a named value read from the environment holds over the program's
+    binding, and carries its name
+  - a knob may be the named value, and the row's default reads as it
+  - an INT's unbuilt name is refused by name and by value
+  - a row naming no array of names, or with a default it does not accept,
+    is not declared
+*/
+static void
+d_tests_option_env_named_rules(void)
+{
+    const int64_t                unbounded = (int64_t)0xFFFFFFFFu;
+    struct dj_tests_root_storage storage   = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    struct dj_option_env_value   value;
+    char                         text[32];
+
+    printf("  named int values: sources, knobs, rules\n");
+
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env,
+                                                      D_TESTS_NAMED_ROWS,
+                                                      3u).is_ok);
+
+    // from the environment, over the program's binding
+#if defined(_WIN32)
+    (void)_putenv_s("DJNAMED_MAX_DEPTH", "unbounded");
+#else
+    (void)setenv("DJNAMED_MAX_DEPTH", "unbounded", 1);
+#endif
+    (void)d_option_env_set_int(&env, 0u, 0u, 12);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_import(&env, "DJNAMED_")
+                             .payload.value == 1u);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_get(&env, 0u, 0u, &value).is_ok) &&
+                              (value.integer == unbounded)                 &&
+                              (value.text != NULL)                         &&
+                              (strcmp(value.text, "unbounded") == 0)       &&
+                              (value.source ==
+                               D_OPTION_ENV_SOURCE_ENVIRONMENT) );
+
+    // a knob that is the name: the default reads as it, and keeps the knob
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_get(&env, 0u, 1u, &value).is_ok) &&
+                              (value.integer == unbounded)                 &&
+                              (value.source == D_OPTION_ENV_SOURCE_DEFAULT) );
+    (void)d_option_env_format(&env, 0u, 1u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "unbounded") == 0);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_var_at(&env, 1u) != NULL) &&
+                              (strcmp(d_option_env_var_at(&env, 1u)->knob,
+                                      "D_TESTS_KNOB_UNBOUNDED") == 0) );
+
+    // ruled, not built: refused by name and by value, unlike the unknown
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_put(&env, "ruled_depth=AUTO"))
+        == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_set_int(&env, 0u, 2u, -1))
+        == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_set_int(&env, 0u, 2u, -2))
+        == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&env, "ruled_depth=unbounded")
+                             .is_ok);
+
+    // rows that cannot be declared
+    D_TESTS_OPTION_ENV_CHECK(!d_option_env_declare(&env,
+                                                   &D_TESTS_NAMED_BAD[0])
+                             .is_ok);
+    D_TESTS_OPTION_ENV_CHECK(!d_option_env_declare(&env,
+                                                   &D_TESTS_NAMED_BAD[1])
+                             .is_ok);
+
+    return;
+}
+
+// D_TESTS_TRIP_ROWS
+//   constant: a row of every kind, for writing what loads back.
+static const struct dj_option_env_var D_TESTS_TRIP_ROWS[] =
+{
+    D_OPTION_ENV_BOOL("flag", 0, NULL),
+    D_OPTION_ENV_INT("count", 0, NULL),
+    D_OPTION_ENV_INT_RANGE_NAMED("depth", 1, 1, 9, DEPTHS, NULL),
+    D_OPTION_ENV_REAL("ratio", 0.0, NULL),
+    D_OPTION_ENV_TEXT("title", NULL, NULL),
+    D_OPTION_ENV_CHOICE("format", FORMATS, 0, NULL),
+    D_OPTION_ENV_FLAGS("bits", BITS, 0, NULL)
+};
+
+/*
+d_tests_option_env_trip
+  Writes a variable's value as d_option_env_format_quoted does, loads the
+  statement into a second frame as a script, as a settings file is read,
+  and says whether the same value came back: a real's bits, a text's bytes,
+  the others' integers.
+*/
+static bool
+d_tests_option_env_trip(
+    const struct dj_option_env* _from,
+    struct dj_option_env*       _to,
+    uint32_t                    _var
+)
+{
+    char                       statement[160];
+    struct dj_option_env_value want;
+    struct dj_option_env_value got;
+    const char* const          name = d_option_env_var_at(_from, _var)->name;
+    const size_t               size = strlen(name);
+    const size_t               room = sizeof(statement) - size - 1u;
+
+    memcpy(statement, name, size);
+    statement[size] = '=';
+
+    if ( (d_option_env_format_quoted(_from, 0u, _var, statement + size + 1u,
+                                     room) >= room)                     ||
+         (!d_option_env_load(_to, statement, NULL).is_ok)               ||
+         (!d_option_env_get(_from, 0u, _var, &want).is_ok)              ||
+         (!d_option_env_get(_to, 0u, _var, &got).is_ok) )
+    {
+        return false;
+    }
+
+    switch (want.kind)
+    {
+        case D_OPTION_ENV_KIND_REAL:
+            return (memcmp(&want.real, &got.real, sizeof(double)) == 0);
+        case D_OPTION_ENV_KIND_TEXT:
+            return ( (want.text != NULL) &&
+                     (got.text != NULL)  &&
+                     (strcmp(want.text, got.text) == 0) );
+        default:
+            return (want.integer == got.integer);
+    }
+}
+
+/*
+d_tests_option_env_round_trip
+  Tests the following:
+  - what d_option_env_format_quoted writes loads back as the same value for
+    every kind but TEXT: a bool, an int at both ends of int64_t, a named
+    int, reals to the last bit, a choice, flags, and flags of none
+*/
+static void
+d_tests_option_env_round_trip(void)
+{
+    static const double REALS[] = { 0.1, -2.5e-300, 1e300,
+                                    123456789.123456789, -0.0 };
+    struct dj_tests_root_storage from_storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_root_storage to_storage   = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         from;
+    struct dj_option_env         to;
+
+    printf("  writing what loads back: every kind\n");
+
+    (void)D_OPTION_ENV_VIEW(&from, from_storage);
+    (void)D_OPTION_ENV_VIEW(&to, to_storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&from,
+                                                      D_TESTS_TRIP_ROWS,
+                                                      7u).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&to, D_TESTS_TRIP_ROWS,
+                                                      7u).is_ok);
+
+    (void)d_option_env_set_bool(&from, 0u, 0u, true);
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 0u));
+    (void)d_option_env_set_int(&from, 0u, 1u, INT64_MIN);
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 1u));
+    (void)d_option_env_set_int(&from, 0u, 1u, INT64_MAX);
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 1u));
+    (void)d_option_env_put(&from, "depth=unbounded");
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 2u));
+    (void)d_option_env_set_int(&from, 0u, 2u, 7);
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 2u));
+
+    for (size_t i = 0u; i < sizeof(REALS) / sizeof(REALS[0]); ++i)
+    {
+        (void)d_option_env_set_real(&from, 0u, 3u, REALS[i]);
+        D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 3u));
+    }
+
+    (void)d_option_env_put(&from, "format=json");
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 5u));
+    (void)d_option_env_put(&from, "bits=a|b");
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 6u));
+    (void)d_option_env_set_int(&from, 0u, 6u, 0);
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 6u));
+
+    return;
+}
+
+/*
+d_tests_option_env_round_trip_text
+  Tests the following:
+  - text loads back as it was whatever it holds: spaces inside or at an end,
+    nothing, '#', ';', quotes, backslashes, line breaks, tabs, a control
+    character, bytes past ASCII, a leading '=' or '-'
+  - quotes only where they are needed: plain text, and text with a space
+    inside, are written as d_option_env_format writes them
+  - a null text writes nothing; a statement may have space around its '='
+*/
+static void
+d_tests_option_env_round_trip_text(void)
+{
+    static const char* const TEXTS[] =
+    {
+        "plain",       "two words",  " leading",      "trailing ", "",
+        "a # b",       "a; b",       "say \"hi\"",    "back\\slash",
+        "line\nbreak", "tab\tin",    "\x01" "ctl",    "\xC3\xBC" "ber",
+        "=equals",     "-dash"
+    };
+    struct dj_tests_root_storage from_storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_root_storage to_storage   = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         from;
+    struct dj_option_env         to;
+    char                         text[64];
+
+    printf("  writing what loads back: text\n");
+
+    (void)D_OPTION_ENV_VIEW(&from, from_storage);
+    (void)D_OPTION_ENV_VIEW(&to, to_storage);
+    (void)d_option_env_declare_all(&from, D_TESTS_TRIP_ROWS, 7u);
+    (void)d_option_env_declare_all(&to, D_TESTS_TRIP_ROWS, 7u);
+
+    for (size_t i = 0u; i < sizeof(TEXTS) / sizeof(TEXTS[0]); ++i)
+    {
+        (void)d_option_env_set_text(&from, 0u, 4u, TEXTS[i]);
+        D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_trip(&from, &to, 4u));
+    }
+
+    // quotes only where they are needed
+    (void)d_option_env_set_text(&from, 0u, 4u, "two words");
+    (void)d_option_env_format_quoted(&from, 0u, 4u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "two words") == 0);
+    (void)d_option_env_set_text(&from, 0u, 4u, "say \"hi\"\n");
+    (void)d_option_env_format_quoted(&from, 0u, 4u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "\"say \\\"hi\\\"\\n\"") == 0);
+    (void)d_option_env_format(&from, 0u, 4u, text, sizeof(text));
+    D_TESTS_OPTION_ENV_CHECK(strcmp(text, "say \"hi\"\n") == 0);
+
+    // a null text writes nothing; space around '='
+    (void)d_option_env_unset(&from, 0u, 4u);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_format_quoted(&from, 0u, 4u, text,
+                                                        sizeof(text)) == 0u);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_load(&to, "title = \" padded \"",
+                                               NULL).is_ok);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_text(&to, 0u, 4u) != NULL) &&
+                              (strcmp(d_option_env_text(&to, 0u, 4u),
+                                      " padded ") == 0) );
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_load(&to, "count = 5", NULL).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&to, 0u, 1u) == 5);
+
+    return;
+}
+
 /*
 d_tests_option_env_suggestions
   Tests the following:
@@ -1763,6 +2120,10 @@ main(void)
     d_tests_option_env_sources();
     d_tests_option_env_layered();
     d_tests_option_env_rows();
+    d_tests_option_env_named_ints();
+    d_tests_option_env_named_rules();
+    d_tests_option_env_round_trip();
+    d_tests_option_env_round_trip_text();
     d_tests_option_env_suggestions();
     d_tests_option_env_hot_path();
     d_tests_option_env_random();

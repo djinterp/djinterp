@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/cpp/option/option_set_compare.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -50,8 +50,8 @@ V.    option_set_value_eq            (parameterized value equality)
       -------------------------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_OPTION_SET_COMPARE_HPP
-#define DJINTERP_OPTION_OPTION_SET_COMPARE_HPP 1
+#ifndef DJINTERP_OPTION_SET_COMPARE_HPP
+#define DJINTERP_OPTION_SET_COMPARE_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -309,4 +309,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_OPTION_SET_COMPARE_HPP
+#endif  // DJINTERP_OPTION_SET_COMPARE_HPP

@@ -16,7 +16,7 @@
 * path:      /tests/unintegrated/cpp/option/t_option_env.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf
@@ -327,6 +327,88 @@ void overrides()
     return;
 }
 
+// DEPTHS, NAMED
+//   constants: an int's named value outside its range, and a row a knob
+// gives a default, declared from C++ as from C.
+#define T_OPTION_ENV_KNOB_DEPTH 1000
+const struct dj_option_env_name DEPTHS[] =
+{
+    { "unbounded", static_cast<int64_t>(0xFFFFFFFFu) }
+};
+
+const struct dj_option_env_var NAMED[] =
+{
+    D_OPTION_ENV_INT_RANGE_KNOB_NAMED("max_depth", T_OPTION_ENV_KNOB_DEPTH,
+                                      1, 65535, DEPTHS, "or unbounded")
+};
+#undef T_OPTION_ENV_KNOB_DEPTH
+
+// named
+//   test: an int's named value through the face: read by name, written back
+// by name, its text; the range for every other value.
+void named()
+{
+    D_OPTION_ENV_DECLARE(storage_type, 4, 2, 64);
+
+    static storage_type    storage;
+    struct dj_option_env   frame;
+
+    std::printf("  named int values\n");
+
+    D_TESTS_OPTION_ENV_CHECK(D_OPTION_ENV_VIEW(&frame, storage).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&frame, NAMED, 1u)
+                             .is_ok);
+
+    djinterp::DOptionEnvView env(&frame);
+
+    D_TESTS_OPTION_ENV_CHECK( (env.integer(0u) == 1000) &&
+                              (env.format(0u) == "1000") &&
+                              (env.text(0u) == D_NULLPTR) );
+    D_TESTS_OPTION_ENV_CHECK(env.put("max_depth=Unbounded"));
+    D_TESTS_OPTION_ENV_CHECK( (env.integer(0u) ==
+                               static_cast<int64_t>(0xFFFFFFFFu)) &&
+                              (env.format(0u) == "unbounded") &&
+                              (env.text(0u) != D_NULLPTR) &&
+                              (std::strcmp(env.text(0u), "unbounded") == 0) );
+    D_TESTS_OPTION_ENV_CHECK( (!env.put("max_depth=65536")) &&
+                              (env.put("max_depth=65535")) &&
+                              (env.format(0u) == "65535") );
+
+    return;
+}
+
+// quoted
+//   test: format_quoted through the face: text in quotes where it must be,
+// as format otherwise, and it loads back.
+void quoted()
+{
+    D_OPTION_ENV_DECLARE(storage_type, 16, 8, 256);
+
+    static storage_type    storage;
+    struct dj_option_env   frame;
+
+    std::printf("  writing what loads back\n");
+
+    D_TESTS_OPTION_ENV_CHECK(D_OPTION_ENV_VIEW(&frame, storage).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&frame, SCHEMA, 5u)
+                             .is_ok);
+
+    djinterp::DOptionEnvView env(&frame);
+    const uint32_t           title = env.find("title");
+
+    D_TESTS_OPTION_ENV_CHECK( (env.format_quoted(title) == "untitled") &&
+                              (env.format_quoted(env.find("color")) ==
+                               "auto") );
+    D_TESTS_OPTION_ENV_CHECK(env.load("title = \" a # b \""));
+    D_TESTS_OPTION_ENV_CHECK( (env.format(title) == " a # b ") &&
+                              (env.format_quoted(title) == "\" a # b \"") );
+    D_TESTS_OPTION_ENV_CHECK(env.load(("title=" + env.format_quoted(title))
+                                          .c_str()) &&
+                             (env.format(title) == " a # b "));
+
+    return;
+}
+
 }  // namespace
 
 
@@ -339,6 +421,8 @@ int main()
     view();
     owned();
     overrides();
+    named();
+    quoted();
 
     std::printf("%lu checks, %lu failed\n", g_checks, g_failures);
 

@@ -43,11 +43,26 @@ TEXT form is added when a lane first needs one.
   never accepted and ignored: a setting that changes nothing is a silent lie.
 - **A row with no knob** is a run-time option alone; that is fine where a
   compile-time default would mean nothing.
-- **A value with a name, outside the range** -- proposed for week 2: an INT
-  row may name values, which text may give by name and which are written
-  back by name, and a named value is taken even outside the range. Lane F's
-  depth guard needs it: 1 to 65535, or `unbounded`
-  (`D_PARSE_EXPR_DEPTH_UNBOUNDED`), and its knob may be either.
+- **A value with a name, outside the range**: an INT row may name values.
+  Text gives one by its name, ignoring case, or by its number; it is written
+  back by its name, and `d_option_env_text` gives the name; it is taken even
+  outside the range, which still holds for every other value. The knob may
+  be a named value too. Lane F's depth guard is the first:
+
+  ```c
+  static const struct dj_option_env_name D_PARSE_EXPR_DEPTHS[] =
+  {
+      { "unbounded", D_PARSE_EXPR_DEPTH_UNBOUNDED }
+  };
+
+  D_OPTION_ENV_INT_RANGE_KNOB_NAMED("expr_max_depth",
+                                    D_CFG_PARSE_EXPR_MAX_DEPTH, 1, 65535,
+                                    D_PARSE_EXPR_DEPTHS,
+                                    "1 to 65535, or unbounded")
+  ```
+
+  `D_OPTION_ENV_INT_RANGE_NAMED` is the same with a plain default. An INT's
+  `unbuilt` names are refused by name, as a choice's are.
 
 ## 2. A run-time option overrides it
 

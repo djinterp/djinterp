@@ -52,11 +52,11 @@
 * path:      /inc/djinterp/cpp/event/event_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
-#ifndef DJINTERP_EVENT_EVENT_COMMON_HPP
-#define DJINTERP_EVENT_EVENT_COMMON_HPP 1
+#ifndef DJINTERP_EVENT_COMMON_HPP
+#define DJINTERP_EVENT_COMMON_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
 // rule 5). The owner's ruling: compile at every level first; port to C++98
@@ -509,4 +509,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_EVENT_EVENT_COMMON_HPP
+#endif  // DJINTERP_EVENT_COMMON_HPP

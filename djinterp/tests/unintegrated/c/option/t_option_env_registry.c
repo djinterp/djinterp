@@ -17,7 +17,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -439,7 +439,7 @@ d_tests_registry_environment(void)
 /*
 d_tests_registry_bad_options
   Tests the following:
-  - not settings, and settings named badly
+  - not settings, and settings named badly; at stays where it was
 */
 static void
 d_tests_registry_bad_options(
@@ -456,6 +456,7 @@ d_tests_registry_bad_options(
     D_TESTS_REGISTRY_CHECK(d_option_env_registry_take_option(_registry, _argc,
                                                              _argv, &at,
                                                              NULL) == 0);
+    D_TESTS_REGISTRY_CHECK(at == 6);
     at = 7;
     D_TESTS_REGISTRY_CHECK(d_option_env_registry_take_option(_registry, _argc,
                                                              _argv, &at,
@@ -478,6 +479,7 @@ d_tests_registry_bad_options(
     D_TESTS_REGISTRY_CHECK(d_option_env_registry_take_option(_registry, _argc,
                                                              _argv, &at,
                                                              NULL) == -1);
+    D_TESTS_REGISTRY_CHECK(at == 10);
     at = 11;
     D_TESTS_REGISTRY_CHECK(d_option_env_registry_take_option(_registry, _argc,
                                                              _argv, &at,
@@ -495,6 +497,8 @@ d_tests_registry_command_line
   Tests the following:
   - "--set NAME=VALUE", "--NAME=VALUE", "--NAME", "--no-NAME", each bound
     from the command line
+  - at ends on the last argument read: "--set"'s value, or the argument
+    itself
   - an operand, "--", and a bare "-" are not settings; an unknown name, a
     flag of a kind that is not a bool, and "--set" with no value are -1
 */
@@ -543,6 +547,7 @@ d_tests_registry_command_line(void)
     D_TESTS_REGISTRY_CHECK(d_option_env_registry_take_option(&registry, argc,
                                                              argv, &at,
                                                              &result) == 1);
+    D_TESTS_REGISTRY_CHECK(at == 3);
     at = 4;
     D_TESTS_REGISTRY_CHECK(d_option_env_registry_take_option(&registry, argc,
                                                              argv, &at,

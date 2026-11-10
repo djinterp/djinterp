@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/cpp/option/option_record.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -34,8 +34,8 @@ TABLE OF CONTENTS
          1.  overlay
 */
 
-#ifndef DJINTERP_OPTION_OPTION_RECORD_HPP
-#define DJINTERP_OPTION_OPTION_RECORD_HPP 1
+#ifndef DJINTERP_OPTION_RECORD_HPP
+#define DJINTERP_OPTION_RECORD_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
@@ -297,4 +297,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_OPTION_RECORD_HPP
+#endif  // DJINTERP_OPTION_RECORD_HPP

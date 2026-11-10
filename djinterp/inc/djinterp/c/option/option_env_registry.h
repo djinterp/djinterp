@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/option/option_env_registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -52,8 +52,8 @@ TABLE OF CONTENTS
     3.  Did you mean
 */
 
-#ifndef DJINTERP_C_OPTION_OPTION_ENV_REGISTRY_H
-#define DJINTERP_C_OPTION_OPTION_ENV_REGISTRY_H 1
+#ifndef DJINTERP_C_OPTION_ENV_REGISTRY_H
+#define DJINTERP_C_OPTION_ENV_REGISTRY_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -275,7 +275,10 @@ struct dj_option_result d_option_env_registry_import(
  * @param[in,out] _registry  the registry.
  * @param[in]     _argc      the arguments' count.
  * @param[in]     _argv      the arguments.
- * @param[in,out] _at        the one to look at; moved past "--set"'s value.
+ * @param[in,out] _at        the one to look at; on return, the last one
+ *                           read: "--set"'s value after "--set NAME=VALUE",
+ *                           and unchanged otherwise, whatever the answer. The
+ *                           caller steps past it, as a for loop's ++ does.
  * @param[out]    _result    the binding's result when one was tried; may be
  *                           null.
  * @return 1 when it took a setting, 0 when the argument is not one -- an
@@ -318,4 +321,4 @@ D_EXTERN_C_END
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_C_OPTION_OPTION_ENV_REGISTRY_H
+#endif  // DJINTERP_C_OPTION_ENV_REGISTRY_H

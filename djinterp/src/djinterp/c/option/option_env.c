@@ -29,7 +29,7 @@
 * path:      /src/djinterp/c/option/option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env.h"  // corresponding header
 // std
@@ -692,9 +692,35 @@ d_option_env_init(
 }
 
 /**
+ * @brief Whether a value is one of a declaration's names: a choice's, or an
+ *        int's named value.
+ *
+ * @param[in] _var    the declaration.
+ * @param[in] _value  the value.
+ * @return 1 or 0.
+ */
+static int
+d_internal_option_env_is_named(
+    const struct dj_option_env_var* _var,
+    int64_t                         _value
+)
+{
+    for (uint32_t i = 0u; ( (_var->names != NULL) &&
+                            (i < _var->name_count) ); ++i)
+    {
+        if (_var->names[i].value == _value)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
  * @brief Whether a declaration is well formed: an identifier for a name and
  *        any alias, a known kind, names for a choice or flags, and a default
- *        the row itself accepts.
+ *        the row itself accepts: an int's within its range or named.
  *
  * @param[in] _var  the declaration.
  * @return 1 or 0.
@@ -710,7 +736,9 @@ d_internal_option_env_well_formed(
          (_var->kind < D_OPTION_ENV_KIND_BOOL)                       ||
          (_var->kind > D_OPTION_ENV_KIND_FLAGS)                      ||
          ( (_var->unbuilt == NULL) &&
-           (_var->unbuilt_count != 0u) ) )
+           (_var->unbuilt_count != 0u) )                             ||
+         ( (_var->names == NULL) &&
+           (_var->name_count != 0u) ) )
     {
         return 0;
     }
@@ -721,22 +749,13 @@ d_internal_option_env_well_formed(
             return ( (_var->integer == 0) ||
                      (_var->integer == 1) ) ? 1 : 0;
         case D_OPTION_ENV_KIND_INT:
-            return ( (_var->minimum <= _var->integer) &&
-                     (_var->integer <= _var->maximum) ) ? 1 : 0;
+            return ( ( (_var->minimum <= _var->integer) &&
+                       (_var->integer <= _var->maximum) ) ||
+                     (d_internal_option_env_is_named(_var,
+                                                     _var->integer) != 0) )
+                       ? 1 : 0;
         case D_OPTION_ENV_KIND_CHOICE:
-        {
-            uint32_t i = 0u;
-
-            while ( (_var->names != NULL)     &&
-                    (i < _var->name_count)    &&
-                    (_var->names[i].value != _var->integer) )
-            {
-                ++i;
-            }
-
-            return ( (_var->names != NULL) &&
-                     (i < _var->name_count) ) ? 1 : 0;
-        }
+            return d_internal_option_env_is_named(_var, _var->integer);
         case D_OPTION_ENV_KIND_FLAGS:
         {
             int64_t mask = 0;
@@ -1726,18 +1745,20 @@ d_internal_option_env_default(
 }
 
 /**
- * @brief A choice's value with its name for text, where it has one.
+ * @brief A choice's value, or an int's, with its name for text where it has
+ *        one; an int's value with no name has no text.
  *
  * @param[in]     _decl   the declaration.
  * @param[in,out] _value  the value.
  */
 static void
-d_internal_option_env_name_choice(
+d_internal_option_env_name_value(
     const struct dj_option_env_var* _decl,
     struct dj_option_env_value*     _value
 )
 {
-    if (_decl->kind != D_OPTION_ENV_KIND_CHOICE)
+    if ( (_decl->kind != D_OPTION_ENV_KIND_CHOICE) &&
+         (_decl->kind != D_OPTION_ENV_KIND_INT) )
     {
         return;
     }
@@ -1798,7 +1819,7 @@ d_option_env_get(
         d_internal_option_env_read(frame, cell, _value);
     }
 
-    d_internal_option_env_name_choice(decl, _value);
+    d_internal_option_env_name_value(decl, _value);
 
     return d_option_ok(_var);
 }
@@ -1866,7 +1887,8 @@ d_option_env_real(
 
 /*
 d_option_env_text
-  As d_option_env_get, one member; a choice's name; null for the rest.
+  As d_option_env_get, one member; a choice's name, or an int's where its
+  value has one; null for the rest.
 */
 const char*
 d_option_env_text(
@@ -1878,8 +1900,9 @@ d_option_env_text(
     struct dj_option_env_value value;
 
     return ( (d_option_env_get(_env, _scope, _var, &value).is_ok) &&
-             ( (value.kind == D_OPTION_ENV_KIND_TEXT) ||
-               (value.kind == D_OPTION_ENV_KIND_CHOICE) ) )
+             ( (value.kind == D_OPTION_ENV_KIND_TEXT)   ||
+               (value.kind == D_OPTION_ENV_KIND_CHOICE) ||
+               (value.kind == D_OPTION_ENV_KIND_INT) ) )
                ? value.text
                : NULL;
 }
@@ -2057,7 +2080,7 @@ d_option_env_layers(
             layer.shown = 0;
             d_internal_option_env_default(decl, &layer.value);
             d_internal_option_env_read(f, cell, &layer.value);
-            d_internal_option_env_name_choice(decl, &layer.value);
+            d_internal_option_env_name_value(decl, &layer.value);
             d_internal_option_env_insert_layer(_layers, count, capacity,
                                                &layer, cell, cells);
             ++count;
@@ -2079,9 +2102,9 @@ d_option_env_layers(
 //==============================================================================
 
 /**
- * @brief Whether a variable accepts an integer: an INT in its range, a
- *        CHOICE among its names, FLAGS among its bits; a value ruled but not
- *        built is refused by name.
+ * @brief Whether a variable accepts an integer: an INT in its range or among
+ *        its named values, a CHOICE among its names, FLAGS among its bits; a
+ *        value ruled but not built is refused by name.
  *
  * @param[in] _decl     the declaration.
  * @param[in] _integer  the value.
@@ -2098,10 +2121,23 @@ d_internal_option_env_accepts(
 
     if (_decl->kind == D_OPTION_ENV_KIND_INT)
     {
-        return ( (_integer >= _decl->minimum) &&
-                 (_integer <= _decl->maximum) )
-                   ? (int32_t)D_OPTION_STATUS_OK
-                   : (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+        // within the range, or named; an unbuilt name's value is refused
+        if ( ( (_integer >= _decl->minimum) &&
+               (_integer <= _decl->maximum) ) ||
+             (d_internal_option_env_is_named(_decl, _integer) != 0) )
+        {
+            return (int32_t)D_OPTION_STATUS_OK;
+        }
+
+        for (uint32_t i = 0u; i < _decl->unbuilt_count; ++i)
+        {
+            if (_decl->unbuilt[i].value == _integer)
+            {
+                return (int32_t)D_OPTION_STATUS_POLICY_REJECTED;
+            }
+        }
+
+        return (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
     }
 
     if ( (_decl->kind != D_OPTION_ENV_KIND_CHOICE) &&
@@ -2867,8 +2903,9 @@ d_internal_option_env_names(
 }
 
 /**
- * @brief Reads a choice: one of its names, ignoring case, or a number; an
- *        unbuilt name is told apart, so it can be refused by name.
+ * @brief Reads a choice, or an int: one of its names, ignoring case, or a
+ *        number; an unbuilt name is told apart, so it can be refused by name.
+ *        An int with no names reads a number alone.
  *
  * @param[in]  _decl   the variable.
  * @param[in]  _text   the text, trimmed.
@@ -3085,10 +3122,9 @@ d_internal_option_env_assign(
             value.integer = flag ? 1 : 0;
             break;
         case D_OPTION_ENV_KIND_INT:
-            status = (d_internal_option_env_read_int(text, size,
-                                                     &value.integer) != 0)
-                         ? (int32_t)D_OPTION_STATUS_OK
-                         : (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+            // a number, or one of the int's named values by its name
+            status = d_internal_option_env_read_choice(decl, text, size,
+                                                       &value.integer);
             break;
         case D_OPTION_ENV_KIND_REAL:
             status = (d_internal_option_env_read_real(text, size,
@@ -4099,9 +4135,9 @@ d_option_env_format(
                                                _capacity, &length);
             break;
         default:
-            // INT, and a CHOICE with no name for its value
-            if ( (value.kind == D_OPTION_ENV_KIND_CHOICE) &&
-                 (value.text != NULL) )
+            // INT and CHOICE: the value's name where it has one, else its
+            // number
+            if (value.text != NULL)
             {
                 d_internal_option_env_append(_buffer, _capacity, &length,
                                              value.text, strlen(value.text));
@@ -4115,6 +4151,137 @@ d_option_env_format(
 
             break;
     }
+
+    if (_capacity != 0u)
+    {
+        _buffer[(length < _capacity) ? length : (_capacity - 1u)] = '\0';
+    }
+
+    return length;
+}
+
+/**
+ * @brief Whether a text must be quoted to be read back as it is: empty,
+ *        with space at either end, or holding a statement's end (';', '#',
+ *        a line break), a quote, a backslash or another control character.
+ *
+ * @param[in] _text  the text.
+ * @return 1 or 0.
+ */
+static int
+d_internal_option_env_needs_quotes(
+    const char* _text
+)
+{
+    const size_t size = strlen(_text);
+
+    if ( (size == 0u)                                                 ||
+         (_text[0] == ' ')         || (_text[0] == '\t')              ||
+         (_text[size - 1u] == ' ') || (_text[size - 1u] == '\t') )
+    {
+        return 1;
+    }
+
+    for (size_t i = 0u; i < size; ++i)
+    {
+        const unsigned char c = (unsigned char)_text[i];
+
+        if ( (c == ';') || (c == '#') || (c == '"') || (c == '\\') ||
+             (c < 0x20u) || (c == 0x7Fu) )
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Appends a text in double quotes, with the escapes a quoted value
+ *        reads: \" \\ \n \r \t, and \xHH for any other control character.
+ *
+ * @param[out]    _buffer    the buffer; may be null when _capacity is 0.
+ * @param[in]     _capacity  its size.
+ * @param[in,out] _length    the text's length so far.
+ * @param[in]     _text      the text.
+ */
+static void
+d_internal_option_env_append_quoted(
+    char*       _buffer,
+    size_t      _capacity,
+    size_t*     _length,
+    const char* _text
+)
+{
+    static const char hex[] = "0123456789ABCDEF";
+
+    d_internal_option_env_append(_buffer, _capacity, _length, "\"", 1u);
+
+    for (const char* at = _text; *at != '\0'; ++at)
+    {
+        const unsigned char c         = (unsigned char)*at;
+        char                escape[4] = { '\\', '\0', '\0', '\0' };
+        size_t              size      = 2u;
+
+        switch (c)
+        {
+            case '"':  escape[1] = '"';  break;
+            case '\\': escape[1] = '\\'; break;
+            case '\n': escape[1] = 'n';  break;
+            case '\r': escape[1] = 'r';  break;
+            case '\t': escape[1] = 't';  break;
+            default:
+                if ( (c < 0x20u) || (c == 0x7Fu) )
+                {
+                    escape[1] = 'x';
+                    escape[2] = hex[c >> 4];
+                    escape[3] = hex[c & 0x0Fu];
+                    size      = 4u;
+                }
+                else
+                {
+                    escape[0] = (char)c;
+                    size      = 1u;
+                }
+
+                break;
+        }
+
+        d_internal_option_env_append(_buffer, _capacity, _length, escape,
+                                     size);
+    }
+
+    d_internal_option_env_append(_buffer, _capacity, _length, "\"", 1u);
+
+    return;
+}
+
+/*
+d_option_env_format_quoted
+  d_option_env_format's text, but a TEXT value in quotes when it needs them.
+*/
+size_t
+d_option_env_format_quoted(
+    const struct dj_option_env* _env,
+    uint32_t                    _scope,
+    uint32_t                    _var,
+    char*                       _buffer,
+    size_t                      _capacity
+)
+{
+    struct dj_option_env_value value;
+    size_t                     length = 0u;
+
+    if ( (!d_option_env_get(_env, _scope, _var, &value).is_ok) ||
+         (value.kind != D_OPTION_ENV_KIND_TEXT)                ||
+         (value.text == NULL)                                  ||
+         (d_internal_option_env_needs_quotes(value.text) == 0) )
+    {
+        return d_option_env_format(_env, _scope, _var, _buffer, _capacity);
+    }
+
+    d_internal_option_env_append_quoted(_buffer, _capacity, &length,
+                                        value.text);
 
     if (_capacity != 0u)
     {

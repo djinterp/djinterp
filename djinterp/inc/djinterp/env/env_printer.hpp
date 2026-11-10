@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/env/env_printer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -68,8 +68,8 @@ TABLE OF CONTENTS
     3.  In one call
 */
 
-#ifndef DJINTERP_ENV_ENV_PRINTER_HPP
-#define DJINTERP_ENV_ENV_PRINTER_HPP 1
+#ifndef DJINTERP_ENV_PRINTER_HPP
+#define DJINTERP_ENV_PRINTER_HPP 1
 
 // std
 #include <cstddef>  // std::size_t
@@ -956,4 +956,4 @@ NS_END  // djinterp
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_ENV_ENV_PRINTER_HPP
+#endif  // DJINTERP_ENV_PRINTER_HPP

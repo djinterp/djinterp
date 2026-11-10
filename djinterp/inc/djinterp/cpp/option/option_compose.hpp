@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/cpp/option/option_compose.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.03
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -61,8 +61,8 @@ IV.   compose_options             (build a set from empty in one statement)
       ---------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_OPTION_COMPOSE_HPP
-#define DJINTERP_OPTION_OPTION_COMPOSE_HPP 1
+#ifndef DJINTERP_OPTION_COMPOSE_HPP
+#define DJINTERP_OPTION_COMPOSE_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -257,4 +257,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_OPTION_COMPOSE_HPP
+#endif  // DJINTERP_OPTION_COMPOSE_HPP

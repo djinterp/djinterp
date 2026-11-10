@@ -43,7 +43,7 @@
 * path:      /inc/djinterp/cpp/option/option_set.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -71,8 +71,8 @@ VII.  concepts                   (C++20 analogs)
       ------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_OPTION_SET_HPP
-#define DJINTERP_OPTION_OPTION_SET_HPP 1
+#ifndef DJINTERP_OPTION_SET_HPP
+#define DJINTERP_OPTION_SET_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -712,4 +712,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_OPTION_SET_HPP
+#endif  // DJINTERP_OPTION_SET_HPP

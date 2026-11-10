@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/cpp/option/option_env.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -56,8 +56,8 @@ TABLE OF CONTENTS
     1.  DOptionEnvOverride
 */
 
-#ifndef DJINTERP_OPTION_OPTION_ENV_HPP
-#define DJINTERP_OPTION_OPTION_ENV_HPP 1
+#ifndef DJINTERP_OPTION_ENV_HPP
+#define DJINTERP_OPTION_ENV_HPP 1
 
 // std
 #include <cstddef>  // std::size_t
@@ -264,30 +264,25 @@ public:
         uint32_t _scope = D_OPTION_ENV_GLOBAL
     ) const
     {
-        char              small[64];
-        const std::size_t length = d_option_env_format(m_env,
-                                                       _scope,
-                                                       _var,
-                                                       small,
-                                                       sizeof(small));
+        return written(_var, _scope, false);
+    }
 
-        if (length == static_cast<std::size_t>(-1))
-        {
-            return std::string();
-        }
-
-        if (length < sizeof(small))
-        {
-            return std::string(small, length);
-        }
-
-        // too long for the stack: once more, into the string itself
-        std::string whole(length + 1u, '\0');
-
-        (void)d_option_env_format(m_env, _scope, _var, &whole[0], whole.size());
-        whole.resize(length);
-
-        return whole;
+    /**
+     * @brief The value in force as text that loads back as it is: as
+     *        format, but a TEXT value quoted where it must be
+     *        (d_option_env_format_quoted).
+     *
+     * @param[in] _var    the variable.
+     * @param[in] _scope  the scope.
+     * @return the text; empty for a variable that is not one.
+     */
+    D_NODISCARD
+    std::string format_quoted(
+        uint32_t _var,
+        uint32_t _scope = D_OPTION_ENV_GLOBAL
+    ) const
+    {
+        return written(_var, _scope, true);
     }
 
     // where the value in force came from: enum dj_option_env_source, DEFAULT
@@ -435,6 +430,69 @@ protected:
     int32_t               m_status;
 
 private:
+    /**
+     * @brief A value as text, by d_option_env_format or, when quoted,
+     *        d_option_env_format_quoted: on the stack, or once more into the
+     *        string itself when it is too long for it.
+     *
+     * @param[in] _var     the variable.
+     * @param[in] _scope   the scope.
+     * @param[in] _quoted  whether a TEXT value is quoted where it must be.
+     * @return the text; empty for a variable that is not one.
+     */
+    std::string written(
+        uint32_t _var,
+        uint32_t _scope,
+        bool     _quoted
+    ) const
+    {
+        char              small[64];
+        const std::size_t length = write(_var, _scope, _quoted, small,
+                                         sizeof(small));
+
+        if (length == static_cast<std::size_t>(-1))
+        {
+            return std::string();
+        }
+
+        if (length < sizeof(small))
+        {
+            return std::string(small, length);
+        }
+
+        std::string whole(length + 1u, '\0');
+
+        (void)write(_var, _scope, _quoted, &whole[0], whole.size());
+        whole.resize(length);
+
+        return whole;
+    }
+
+    /**
+     * @brief Writes a value as text into a buffer, as snprintf does.
+     *
+     * @param[in]  _var       the variable.
+     * @param[in]  _scope     the scope.
+     * @param[in]  _quoted    whether a TEXT value is quoted where it must be.
+     * @param[out] _buffer    where.
+     * @param[in]  _capacity  its size.
+     * @return the whole text's length, or (std::size_t)-1.
+     */
+    std::size_t write(
+        uint32_t    _var,
+        uint32_t    _scope,
+        bool        _quoted,
+        char*       _buffer,
+        std::size_t _capacity
+    ) const
+    {
+        return _quoted
+                   ? d_option_env_format_quoted(m_env, _scope, _var, _buffer,
+                                                _capacity)
+                   : d_option_env_format(m_env, _scope, _var, _buffer,
+                                         _capacity);
+    }
+
     /**
      * @brief A variable's id from a counted name.
      *
@@ -765,4 +823,4 @@ NS_END  // djinterp
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_OPTION_OPTION_ENV_HPP
+#endif  // DJINTERP_OPTION_ENV_HPP

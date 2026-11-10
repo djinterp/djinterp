@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/option/option_builder.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.27
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -54,8 +54,8 @@ III.  option_set_from_flat_t      (end-to-end pipeline alias)
       -------------------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_OPTION_BUILDER_HPP
-#define DJINTERP_OPTION_OPTION_BUILDER_HPP 1
+#ifndef DJINTERP_OPTION_BUILDER_HPP
+#define DJINTERP_OPTION_BUILDER_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -222,4 +222,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_OPTION_BUILDER_HPP
+#endif  // DJINTERP_OPTION_BUILDER_HPP

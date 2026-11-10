@@ -44,11 +44,11 @@
 * path:      /inc/djinterp/c/event/event.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
-#ifndef DJINTERP_C_EVENT_EVENT_H
-#define DJINTERP_C_EVENT_EVENT_H 1
+#ifndef DJINTERP_C_EVENT_H
+#define DJINTERP_C_EVENT_H 1
 
 // djinterp
 // ---- tier -2: the environment the configuration detects on ----
@@ -101,4 +101,4 @@
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_C_EVENT_EVENT_H
+#endif  // DJINTERP_C_EVENT_H

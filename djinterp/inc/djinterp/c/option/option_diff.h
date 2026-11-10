@@ -13,11 +13,11 @@
 * path:      /inc/djinterp/c/option/option_diff.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
-#ifndef DJINTERP_C_OPTION_OPTION_DIFF_H
-#define DJINTERP_C_OPTION_OPTION_DIFF_H 1
+#ifndef DJINTERP_C_OPTION_DIFF_H
+#define DJINTERP_C_OPTION_DIFF_H 1
 
 // djinterp
 #include "./option_override.h"
@@ -42,4 +42,4 @@
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_C_OPTION_OPTION_DIFF_H
+#endif  // DJINTERP_C_OPTION_DIFF_H

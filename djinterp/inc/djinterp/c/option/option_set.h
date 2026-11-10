@@ -36,11 +36,11 @@
 * path:      /inc/djinterp/c/option/option_set.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
-#ifndef DJINTERP_C_OPTION_OPTION_SET_H
-#define DJINTERP_C_OPTION_OPTION_SET_H 1
+#ifndef DJINTERP_C_OPTION_SET_H
+#define DJINTERP_C_OPTION_SET_H 1
 
 // std
 #include <stddef.h>
@@ -250,4 +250,4 @@ D_EXTERN_C_END
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_C_OPTION_OPTION_SET_H
+#endif  // DJINTERP_C_OPTION_SET_H

@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/c/option/option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -77,12 +77,15 @@ TABLE OF CONTENTS
          6.  D_OPTION_ENV_TEXT
          7.  D_OPTION_ENV_CHOICE
          8.  D_OPTION_ENV_FLAGS
+         9.  D_OPTION_ENV_INT_RANGE_NAMED
     3.  Declaring a variable from a knob
          1.  D_OPTION_ENV_BOOL_KNOB
          2.  D_OPTION_ENV_INT_KNOB
          3.  D_OPTION_ENV_INT_RANGE_KNOB
          4.  D_OPTION_ENV_CHOICE_KNOB
          5.  D_OPTION_ENV_FLAGS_KNOB
+         6.  D_OPTION_ENV_INT_RANGE_KNOB_NAMED
+         7.  D_OPTION_ENV_TEXT_KNOB
 2.  FRAMES
     ------
     1.  The frame
@@ -114,8 +117,8 @@ TABLE OF CONTENTS
          2.  D_OPTION_ENV_CACHE_INIT
 */
 
-#ifndef DJINTERP_C_OPTION_OPTION_ENV_H
-#define DJINTERP_C_OPTION_OPTION_ENV_H 1
+#ifndef DJINTERP_C_OPTION_ENV_H
+#define DJINTERP_C_OPTION_ENV_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -158,6 +161,9 @@ enum dj_option_env_kind
 // dj_option_env_name
 //   struct: one named value of a CHOICE or FLAGS variable: a choice's value,
 // or the bits a flag name stands for -- one bit, or several, as "all" does.
+// An INT may name values too, as "unbounded" for a depth guard: text may give
+// one by name, it is written back by name, and it is taken even outside the
+// INT's range.
 struct dj_option_env_name
 {
     const char* name;
@@ -175,7 +181,8 @@ struct dj_option_env_name
 // A name, and an alias, must be an identifier -- letters, digits,
 // underscores -- so it can be written in text and in a template.
 //   What a row accepts is checked on every binding: an INT within [minimum,
-// maximum]; a CHOICE's names, a FLAGS's bits. A name in `unbuilt` is ruled
+// maximum], or one of its named values; a CHOICE's names, a FLAGS's bits; and
+// a default must be one of these. A name in `unbuilt` is ruled
 // but not built: refused by name, with D_OPTION_STATUS_POLICY_REJECTED,
 // never accepted and ignored.
 struct dj_option_env_var
@@ -185,7 +192,8 @@ struct dj_option_env_var
     const char*                      alias;          // an older name, or null
     const char*                      knob;           // the default's D_CFG_*,
                                                      // or null
-    const struct dj_option_env_name* names;          // CHOICE and FLAGS
+    const struct dj_option_env_name* names;          // CHOICE and FLAGS; an
+                                                     // INT's named values
     const struct dj_option_env_name* unbuilt;        // ruled, not built; or
                                                      // null
     const char*                      text;           // TEXT's default
@@ -281,6 +289,18 @@ struct dj_option_env_var
                      sizeof(names) / sizeof((names)[0]), NULL, 0u, NULL, dflt, \
                      INT64_MIN, INT64_MAX, 0.0, NULL, NULL, help)
 
+// 1.2.9
+// D_OPTION_ENV_INT_RANGE_NAMED
+//   macro: an int variable that accepts [minimum, maximum], and the values an
+// array of struct dj_option_env_name names, inside the range or out of it.
+// Text gives a named value by its name, ignoring case, or by its number; it
+// is written back by its name. The default may be a named value.
+#define D_OPTION_ENV_INT_RANGE_NAMED(name, dflt, minimum, maximum, names,      \
+                                     help)                                     \
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, name, names,                       \
+                     sizeof(names) / sizeof((names)[0]), NULL, 0u, NULL, dflt, \
+                     minimum, maximum, 0.0, NULL, NULL, help)
+
 // 1.3    Declaring a variable from a knob
 //------------------------------------------------------------------------------
 //   The knob-and-option pattern's first half: the default IS the knob, and
@@ -326,6 +346,24 @@ struct dj_option_env_var
     D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_FLAGS, name, names,                     \
                      sizeof(names) / sizeof((names)[0]), NULL, 0u, NULL, knob, \
                      INT64_MIN, INT64_MAX, 0.0, NULL, #knob, help)
+
+// 1.3.6
+// D_OPTION_ENV_INT_RANGE_KNOB_NAMED
+//   macro: an int variable of a range with named values (1.2.9), whose
+// default is a knob; the knob may be one of the named values.
+#define D_OPTION_ENV_INT_RANGE_KNOB_NAMED(name, knob, minimum, maximum, names, \
+                                          help)                                \
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, name, names,                       \
+                     sizeof(names) / sizeof((names)[0]), NULL, 0u, NULL, knob, \
+                     minimum, maximum, 0.0, NULL, #knob, help)
+
+// 1.3.7
+// D_OPTION_ENV_TEXT_KNOB
+//   macro: a text variable whose default is a knob: a string literal, or
+// NULL.
+#define D_OPTION_ENV_TEXT_KNOB(name, knob, help)                               \
+    D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_TEXT, name, NULL, 0u, NULL, 0u, knob,   \
+                     0, INT64_MIN, INT64_MAX, 0.0, NULL, #knob, help)
 
 
 //==============================================================================
@@ -752,7 +790,7 @@ struct dj_option_result d_option_env_get(const struct dj_option_env* _env,
 
 // the value in force as one type, or 0 / null for a variable that does not
 // exist; bool is BOOL's, int is INT's, CHOICE's and FLAGS's, real is REAL's,
-// text is TEXT's and a CHOICE's name
+// text is TEXT's, a CHOICE's name, and an INT's name when its value has one
 bool        d_option_env_bool(const struct dj_option_env* _env,
                               uint32_t                    _scope,
                               uint32_t                    _var);
@@ -1024,7 +1062,7 @@ struct dj_option_result d_option_env_import(struct dj_option_env* _env,
 /**
  * @brief Writes the value in force as text d_option_env_assign reads back:
  *        "true", "-12", "0.5", the text, a choice's name, flags' names joined
- *        by '|'.
+ *        by '|', and an int's name for a value that has one ("unbounded").
  *
  * @note Writes as much as fits, always NUL-terminated when _capacity is not
  *       0, as snprintf does.
@@ -1042,6 +1080,31 @@ size_t d_option_env_format(const struct dj_option_env* _env,
                            uint32_t                    _var,
                            char*                       _buffer,
                            size_t                      _capacity);
+
+/**
+ * @brief Writes the value in force as d_option_env_format does, but a TEXT
+ *        value in double quotes, with d_option_env_load's escapes, where it
+ *        must be: empty, with space at either end, or holding ';', '#', a
+ *        line break, a quote, a backslash or another control character. A
+ *        statement of the name, '=' and this text loads back the same value,
+ *        for every kind: what a settings file, or a "get" a user pastes into
+ *        one, is written with.
+ *
+ * @note A null TEXT writes nothing, as d_option_env_format does: no
+ *       statement sets a TEXT to null, and "-name" unbinds instead.
+ *
+ * @param[in]  _env       the frame.
+ * @param[in]  _scope     the scope.
+ * @param[in]  _var       the variable.
+ * @param[out] _buffer    where; may be null when _capacity is 0.
+ * @param[in]  _capacity  its size.
+ * @return as d_option_env_format.
+ */
+size_t d_option_env_format_quoted(const struct dj_option_env* _env,
+                                  uint32_t                    _scope,
+                                  uint32_t                    _var,
+                                  char*                       _buffer,
+                                  size_t                      _capacity);
 
 // 3.6    Reading on a hot path
 //------------------------------------------------------------------------------
@@ -1088,4 +1151,4 @@ D_EXTERN_C_END
 
 #endif  // RE_STD_HAS_INT64
 
-#endif  // DJINTERP_C_OPTION_OPTION_ENV_H
+#endif  // DJINTERP_C_OPTION_ENV_H
