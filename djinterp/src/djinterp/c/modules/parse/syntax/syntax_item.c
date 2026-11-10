@@ -1163,6 +1163,57 @@ void d_internal_complete(
 
 
 /**
+ * @brief Reports whether a child opening an item is the braced body of the
+ *        label just before it: `case X:` then `{`.
+ *
+ * Only that brace stands on the label's level. A block further down the
+ * label's statements is one of them, and stands a level in, as they do (F24;
+ * dawk's `d_internal_down_a_case` until 11-11).
+ *
+ * @param[in] _b     the recognition in progress.
+ * @param[in] _s     the scope being walked.
+ * @param[in] _k     the new item's index.
+ * @param[in] _kind  the child's token kind.
+ * @return `true` if the child is a `{` whose item before it in the scope, a
+ *         braceless body passed over, is a label; `false` otherwise.
+ */
+static
+bool d_internal_label_body(
+    const struct dj_internal_build* _b,
+    const struct dj_internal_scope* _s,
+    uint32_t                        _k,
+    int                             _kind
+)
+{
+    const struct dj_syntax_item* const items = _b->out->items;
+
+    if (_kind != D_TOKEN_BRACE_OPEN)
+    {
+        return false;
+    }
+
+    // a scope's items are made together, so the one before it is near
+    for (uint32_t at = _k; at > 0u; )
+    {
+        const struct dj_syntax_item* const before = &items[--at];
+
+        if (before->scope != _s->opener)
+        {
+            break;
+        }
+
+        // a braceless body belongs to the item before it
+        if (before->parent == D_SYNTAX_NONE)
+        {
+            return (before->kind == D_SYNTAX_ITEM_LABEL);
+        }
+    }
+
+    return false;
+}
+
+
+/**
  * @brief Opens an item at a child.
  *
  * A braceless body sits one level inside its owner; an item under a `case`
@@ -1201,12 +1252,10 @@ uint32_t d_internal_open(
     item->parent = _parent;
     item->scope  = _s->opener;
 
-    // under a label a statement is indented a level, but a braced body is
-    // not: `case X:` then `{` on the label's column, its contents one in
-    const bool     compound = (kind == D_TOKEN_BRACE_OPEN);
-    const bool     indented = ( _s->under_label &&
-                                (!label)        &&
-                                (!compound) );
+    // under a label a statement is indented a level, but the label's own
+    // body is not: `case X:` then `{` on the label's column, its contents in
+    const bool     own_body = d_internal_label_body(_b, _s, k, kind);
+    const bool     indented = ( (_s->under_label) && (!label) && (!own_body) );
     const unsigned level    =
         (_parent != D_SYNTAX_NONE)
         ? (unsigned)_b->out->items[_parent].level + 1u

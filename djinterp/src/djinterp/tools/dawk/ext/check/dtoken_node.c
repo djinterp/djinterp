@@ -1298,56 +1298,6 @@ uint32_t d_internal_emit_directive(
 
 
 /**
- * @brief Reports whether an item is a block that stands down a case, among
- *        the statements under its label, rather than as the label's body.
- *
- * Parse sets every braced block under a label on the label's level, as the
- * label's own body stands: `case 2:` then `{`. A block after a statement of
- * the same case is one of that case's statements, and stands a level in.
- *
- * @param[in] _build  the build.
- * @param[in] _k      the item's index.
- * @return true for a block, under a label, whose item before it in its scope
- *         is no label; false otherwise.
- */
-static
-bool d_internal_down_a_case(
-    const struct dj_internal_build* _build,
-    uint32_t                        _k
-)
-{
-    const struct dj_syntax_item* const items = _build->items.items;
-    const struct dj_syntax_item* const item  = &items[_k];
-
-    if ( (item->kind != D_SYNTAX_ITEM_STATEMENT)                     ||
-         ((item->flags & D_SYNTAX_ITEM_FLAG_UNDER_LABEL) == 0u)      ||
-         (_build->tokens[item->first].kind != D_TOKEN_BRACE_OPEN) )
-    {
-        return false;
-    }
-
-    // a scope's items are recognized together, so the one before it is near
-    for (uint32_t at = _k; at > 0u; )
-    {
-        const struct dj_syntax_item* const before = &items[--at];
-
-        if (before->scope != item->scope)
-        {
-            break;
-        }
-
-        // a braceless body belongs to the item before it
-        if (before->parent == D_SYNTAX_NONE)
-        {
-            return (before->kind != D_SYNTAX_ITEM_LABEL);
-        }
-    }
-
-    return false;
-}
-
-
-/**
  * @brief Reports whether a namespace indents what it holds.
  *
  * Parse holds a namespace's items on the namespace's own level. The guide
@@ -1400,10 +1350,10 @@ bool d_internal_namespace_indents(
  *
  * @param[in] _build  the build.
  * @param[in] _k      the item's index.
- * @return one for each block down a case (d_internal_down_a_case) that is the
- *         item or holds it, and one for each namespace around it that indents
- *         what it holds: a `namespace` block (d_internal_namespace_indents) or
- *         a namespace macro (d_internal_macro_scopes).
+ * @return one for each namespace around the item that indents what it holds:
+ *         a `namespace` block (d_internal_namespace_indents) or a namespace
+ *         macro (d_internal_macro_scopes). A block down a case is parse's to
+ *         count (lane F's F24).
  */
 static
 unsigned d_internal_lift(
@@ -1422,8 +1372,6 @@ unsigned d_internal_lift(
             (item->parent != D_SYNTAX_NONE) ? item->parent
           : (item->scope != D_SYNTAX_NONE)  ? _build->items.item_of[item->scope]
                                             : D_SYNTAX_NONE;
-
-        lift += d_internal_down_a_case(_build, at) ? 1u : 0u;
 
         // the namespace holding it, which is never the item itself, and the
         // namespace macros around it in its scope

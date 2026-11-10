@@ -6,8 +6,9 @@
 * preprocessor conditionals open around a token (F20, F21), and the items of
 * C++ heads, template arguments and heads, class heads with base lists,
 * constructors' initializer lists, a macro's call in a template head, and
-* the namespace macros a caller names (F22, F23). dawk's fixtures are the
-* acceptance tests; these are parse's own.
+* the namespace macros a caller names (F22, F23), and the levels of what a
+* label holds (F24). dawk's fixtures are the acceptance tests; these are
+* parse's own.
 *   Each text is lexed as C or C++, grouped and recognized, and the token or
 * item at a named spelling held to what it must be.
 *   Two faces, chosen by DTEST_SPEC_MODE: the section translation units see
@@ -186,6 +187,7 @@ bool d_tests_syntax_cpp_initializers(void);
 bool d_tests_syntax_cpp_head_macros(void);
 bool d_tests_syntax_cpp_namespaces(void);
 bool d_tests_syntax_cpp_c_unchanged(void);
+bool d_tests_syntax_case_blocks(void);
 
 
 //==============================================================================
@@ -241,6 +243,15 @@ static const struct dj_test_case_spec d_tests_parse_syntax_cpp_rows[] =
       d_tests_syntax_cpp_c_unchanged }
 };
 
+// d_tests_parse_syntax_labels_rows
+//   constant: the labels block's rows.
+static const struct dj_test_case_spec d_tests_parse_syntax_labels_rows[] =
+{
+    { "d_tests_syntax_case_blocks",
+      "a label's own braced body, and blocks among its statements",
+      d_tests_syntax_case_blocks }
+};
+
 // d_tests_parse_syntax_blocks
 //   constant: the module's blocks.
 static const struct dj_test_block_spec d_tests_parse_syntax_blocks[] =
@@ -254,7 +265,12 @@ static const struct dj_test_block_spec d_tests_parse_syntax_blocks[] =
       "the items of C++ heads, and C's unchanged",
       d_tests_parse_syntax_cpp_rows,
       sizeof(d_tests_parse_syntax_cpp_rows) /
-          sizeof(d_tests_parse_syntax_cpp_rows[0]) }
+          sizeof(d_tests_parse_syntax_cpp_rows[0]) },
+    { "labels",
+      "the levels of what a case or a default holds",
+      d_tests_parse_syntax_labels_rows,
+      sizeof(d_tests_parse_syntax_labels_rows) /
+          sizeof(d_tests_parse_syntax_labels_rows[0]) }
 };
 
 // d_tests_parse_syntax_module
