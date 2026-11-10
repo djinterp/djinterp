@@ -4,14 +4,15 @@ Lane F, for agreement with lanes E, G and H and the math session by Friday
 2026-11-06. The design is the contract: anything that changes it after Friday
 goes back to the lanes it touches.
 
-**Status, Thursday 11-05.** The C core is built and tested in this delivery:
-term, signature, parser, diagnostics, folds, walks and the renderer, with
-every case of sections 6.3 and 6.4 in its suite (section 21 lists what is
-there, what is measured, and what building it changed in this text). Lanes
-E, G and H answered section 20 on 11-05; their answers are folded in, and
-decisions F15 to F19 came of them. Week 2 (Monday 11-09 to Friday 11-13)
-adds the scanner, the C++98 face, the bridge, the parity suite and the
-sub-parse, and moves the suites onto DTest 2.0.
+**Status, Wednesday 11-11.** The C core is built and tested: term,
+signature, parser with its sub-parse and hole modes, diagnostics, folds,
+walks, the renderer, the default scanner and the caller's scratch, with
+every case of sections 6.3 and 6.4 in its suite, now on DTest 2.0's C face
+(section 21 lists what is there, what is measured, and what building it
+changed in this text). Lanes E, G and H answered section 20 on 11-05 and
+since; their answers are folded in, and decisions F15 to F19 came of them.
+The owner ruled S190 for core v2 on 11-08. Friday 11-13 brings the C++98
+face, the bridge, the parity suite and the `parse` settings group.
 
 ## 0. What this settles
 
@@ -49,7 +50,7 @@ The rest of this document is how.
 | Client | Lane | What it needs from the core | Where it comes from |
 |---|---|---|---|
 | math's expression language | math session | the table above: roles by position, calls, indexing, transpose and factorial, bars, matrix literals with rows, chains, implied multiplication, errors at characters, a depth guard | `cpp/modules/math/expr/parse.hpp`; S190, S196, S201, S207, S209, S213 to S215, S243, S250, S252 |
-| the command language and its DSL | G | non-associative comparison (`a == b == c` refused), a command as a primary that takes the arguments after its verb, `|` and `;` as n-ary pipelines and sequences, spans for `d_cli_report_at`; in December, the grammar's own predicates (explicit `and`, `or`, `not` and comparisons over command primaries) and blocks `{ ... }` by the sub-parse, with no juxtaposition | `cpp/modules/parse/grammar/djinterp.peg`; `functional_cli.hpp`; cli-taken 80; lane G's `docs/djinterp/interp/DESIGN.md` |
+| the command language and its DSL | G | non-associative comparison (`a == b == c` refused), a command as a primary that takes the arguments after its verb, `|` and `;` as n-ary pipelines and sequences, spans for `d_cli_report_at`; in December, the grammar's own predicates (explicit `and`, `or`, `not` and comparisons over command primaries) and blocks `{ ... }` by the sub-parse, with no juxtaposition | `cpp/modules/parse/grammar/djinterp.peg`; `interp/spine.hpp`; cli-taken 80; lane G's `docs/djinterp/interp/DESIGN.md` |
 | bitwisedom's integer expressions | G | C's operators at C's precedence, calls `BIT(n)`, `GENMASK(h, l)`, positions for errors | `tools/bitwisedom/expr.hpp` |
 | dawk's awk expressions | H | concatenation by juxtaposition, which must ask whether the next token can begin an operand; non-associative relations; `>` not a comparison inside `print`'s list; `/re/` or division by where it stands; `cmd | getline`; `?:`; `++` both prefix and postfix | `tools/dawk/dparse.c` |
 | options, the registry, desc and logging | E | diagnostics in the message-code registry; knobs and options in E's pattern; nothing printed by the core | E's brief; the owner's standing rule on knobs and options |
@@ -189,7 +190,7 @@ pass after the parse (math's `piecewise`, a simplifier) writes a new term
 with these, as v1's rewrites write a new `expression`. Equality
 (`d_parse_expr_term_equal`, spans and `_GROUPED` ignored unless asked) and a
 digest (`d_parse_expr_term_digest`, 32-bit FNV-1a over the reachable nodes in
-order, week 2) serve the parity tests and caches.
+order, with the face on Friday 11-13) serve the parity tests and caches.
 
 ## 5. The signature
 
@@ -221,8 +222,8 @@ struct dj_parse_expr_op
   `a < b == c` in the CLI grammar). `chain` collects `a < b <= c` and joins
   its links with `join` (math: `and`).
 - **`_FLATTEN`** makes a repeated left-associative operator one n-ary node:
-  `a | b | c` is `pipe(a, b, c)`, as `functional_cli`'s pipeline is a
-  sequence.
+  `a | b | c` is `pipe(a, b, c)`, as the interpreter's pipeline
+  (`interp/spine.hpp`) is a sequence.
 - **`_WORD`** marks an operator spelled as a word (`and`, `mod`): the
   renderer spaces it, and it never starts a juxtaposed operand.
 - The algebraic flags (`_COMMUTATIVE`, `_ASSOCIATIVE`, `_IDEMPOTENT`) are
@@ -552,16 +553,17 @@ each in the suite with its term (section 21):
    `a && b in arr`, `a ~ b < c` (`match(a, lt(b, c))`), `a < b c`
    (`lt(a, concat(b, c))`), `a + b * c % d`.
 4. **`getline` in operand position**, a custom role with `_NO_JUXTAPOSE`:
-   `getline` and `getline var` now; `getline < file` and
-   `getline var < file` read the file at concatenation's floor, by the
-   sub-parse (6.5, week 2). The pipe form takes the same optional target.
+   `getline` and `getline var`; `getline < file` and `getline var < file`
+   read the file at concatenation's floor, by the sub-parse (6.5, built
+   11-10): `getline < f x` is `concat(getfile(f), x)`. The pipe form takes
+   the same optional target.
 5. **`print`'s mode is scoped.** The statement parser reads `print`'s list
    with `D_PARSE_EXPR_OPTION_STOP` in a mode without the relational `>`, so
    the list ends at `,`, `>`, `>>` or a `|` not followed by `getline` (whose
    role declines), and the statement parser reads the redirection. Inside
    brackets `>` compares again (`print (a > b)`): each mixfix names the mode
-   its holes are read in, `hole_mode`, 0 for the mode outside (F18, built in
-   week 2 with the sub-parse).
+   its holes are read in, `hole_mode`, 0 for the mode outside (F18, built
+   11-10 with the sub-parse).
 6. **`^` above a sign, its right operand free to begin with one**: `-2^2` is
    `neg(pow(2, 2))`, `2^-3` reads, `2^-3^2` is `pow(2, neg(pow(3, 2)))`.
 7. **A call only where `(` touches its name.** dawk's lexer makes the
@@ -602,12 +604,26 @@ pointer with a context, and each is optional.
   (the token is then read as if the role were not there; what it peeked
   stays peeked), or -1 for a failure it has reported. A node it returns must
   be of the term and within the guard.
-- **The sub-parse** (`d_parse_expr_sub`, week 2) reads one expression inside
-  a hook: `(parser, floor, mode, &node)`, the operators taken those that bind
-  tighter than `floor`, in `mode`, ending without an error at the first token
-  it cannot go on with, which the hook then peeks. `getline < file` reads the
-  file with the floor at concatenation. It counts against the depth guard
-  like any nesting, and its brackets scope its mode like any others (F18).
+- **The sub-parse** (`d_parse_expr_sub`, built 11-10) reads one expression
+  inside a hook: `(parser, floor, mode, &node)`, the operators taken those
+  that bind tighter than `floor` (`D_PARSE_EXPR_FLOOR_NONE` for every one),
+  in `mode`, ending without an error at the first token it cannot go on
+  with, which stays read for the hook to peek. `getline < file` reads the
+  file with the floor at concatenation: `getline < f x` is
+  `concat(getfile(f), x)`, and `f(getline < g, x)` ends the file at the
+  comma. The floor holds only while no bracket of the sub-parse's own is
+  open; inside one every operator is taken and every error is one, as in
+  the parse. It runs on the parse's own stacks behind a barrier, so it
+  allocates nothing of its own; it counts against the depth guard like any
+  nesting, and its errors against the allowance. A hook that ran a
+  sub-parse may not decline, since what it read cannot be read again: doing
+  so stops the parse with a bad-argument failure, as a token left read in
+  another mode does.
+- **Modes in brackets** (F18, built 11-10). A mixfix operator's `hole_mode`
+  is the mode its holes are read in, one bit, 0 for the mode outside it. The
+  parse switches to it at the opening part and back at the closing one; at
+  its last part when it has a tail, so a tail is read in the mode outside.
+  An end of input is read in any mode.
 - **`may_juxtapose`** (section 5.4).
 - **`check`** is called on each apply node as it is built, with its span; it
   may refuse it with a diagnostic of the language's domain. Math's `when` and
@@ -726,7 +742,12 @@ operand is folded once. An algebra that fails stops the fold and its failure
 is returned. Strict evaluation suits math's folds as they are (v1's `cata` is
 strict too); for the lazy case, `and`'s second operand or `piecewise`'s
 branches, there is the walk: depth first with an explicit stack, an `enter`
-that may skip a node's children, and a `leave`.
+that may skip a node's children (`D_PARSE_EXPR_WALK_SKIP`) or end the walk
+(`D_PARSE_EXPR_WALK_STOP`), and a `leave`. The command language skips a
+pipeline's later stages after its first failure, and `and`'s right side
+after a false left, so `f1 | b ; d` still runs `d`; it stops only to
+abandon a script (lane G's probe of 11-10, seven cases under ASan and
+UBSan).
 
 ## 9. Rendering
 
@@ -771,33 +792,63 @@ that reads as the same term.
 
 ## 10. The default scanner
 
-Most clients need no lexer of their own. `d_parse_expr_scan` (week 2) is a
-source for the common case: blanks skipped (newlines as a class of their own,
-where asked);
-names (`[A-Za-z_][A-Za-z0-9_]*`, and the bytes 0x80 and above, so UTF-8 names
-pass whole); numbers (digits, a point, an exponent); strings in `"` and `'`
-with backslash escapes; and every spelling the signature gives its operators
-and parts, longest first, so `<=` before `<` and `!=` before `!`. A word that
-is an operator's spelling (`and`) is the operator only where the next byte
-cannot continue a name. Math keeps its own lexer (its numbers are
-`decimal.h`'s grammar, S189); the CLI grammar has its own option shapes; the
-scanner is for bitwisedom, the templates, vparse's notations and tests.
+Most clients need no lexer of their own. `d_parse_expr_scan` (`scan.h`,
+built 11-10, behind `D_CFG_PARSE_EXPR_SCAN`) binds a source to a text, a
+sealed signature and a configuration of class numbers, the caller's, so it
+fills `dj_parse_expr_token` as any source does and brings no record or
+numbering of its own:
+
+- blanks are skipped; a newline is a token of `newline_class` where that is
+  not 0, a blank otherwise, and either way the next token carries
+  `D_PARSE_EXPR_TOKEN_LINE_BEFORE` (after any blank,
+  `D_PARSE_EXPR_TOKEN_SPACE_BEFORE`);
+- names (`[A-Za-z_]`, and the bytes 0x80 and above, so UTF-8 names pass
+  whole, then those and digits) are `name_class`;
+- numbers are digits, then a point and digits, then an exponent (`e` or
+  `E`, a sign, digits), each part only where a digit follows it, so `3.e`
+  is `3` then `.` then `e`: `number_class`;
+- strings in `"` or `'`, a backslash keeping the byte after it, are
+  `string_class`;
+- every spelling the signature gives an operator's token, a mixfix's parts
+  and a list's separators, and the words the caller adds for tokens only
+  its hooks read (`getline`, `|`), longest first, so `<=` before `<` and
+  `<<` before `<`; where two spell alike the caller's word comes first. A
+  spelling in word characters (`and`) is the token only as a whole name:
+  `android` is a name;
+- a byte that begins nothing, and a string never closed, is `stray_class`,
+  which the parser reports as unexpected; with 0 the source fails there.
+
+The source does not consult the position or the mode it is told, so a
+language whose tokens differ by either brings its own. Math keeps its own
+lexer (its numbers are `decimal.h`'s grammar, S189), and the command
+language its own reader (its option shapes and word parts, G's P1 to P8);
+the scanner is for bitwisedom, the templates, vparse's notations and tests.
 
 ## 11. Control: knobs and options
 
 Each setting that takes a default and an override is a knob that sets the
 default and an option that overrides it, the owner's rule, in lane E's
 knob-and-option pattern (agreed 11-05, its API frozen 11-13). Three are rows
-of a program-wide `parse` group: `expr_max_depth` (1 to 65535, or the named
-value `unbounded`), `expr_max_errors` (1 to 65535) and `expr_error_order`
-(`leftmost` or `structure_first`), each defaulting to its knob. So
-`DJINTERP_PARSE_EXPR_MAX_DEPTH=unbounded` and
+of a program-wide `parse` group, flat rows in a djin named `parse` (agreed
+with lane E 11-10: a scope in `option_env` is a context within a frame, not
+a group of names), each defaulting to its knob:
+
+- `expr_max_depth`: `D_OPTION_ENV_INT_RANGE_KNOB_NAMED`, 1 to 65535, with
+  the named value `unbounded` (`D_PARSE_EXPR_DEPTH_UNBOUNDED`), which lane E's
+  named INT rows bring in its window of 11-11;
+- `expr_max_errors`: `D_OPTION_ENV_INT_RANGE_KNOB`, 1 to 65535;
+- `expr_error_order`: `D_OPTION_ENV_CHOICE_KNOB` over `leftmost` (1) and
+  `structure_first` (2), the values `cfg_parse.h` gives the knob.
+
+So `DJINTERP_PARSE_EXPR_MAX_DEPTH=unbounded` and
 `--parse.expr_error_order=structure_first` work. An option of 0 means the
 setting in force, read through its cache when a parse starts; the group sits
 in a unit of parse's own, and a knob (`D_CFG_PARSE_SETTINGS`, default 1)
-compiles it out, 0 then meaning the knob again. Until week 2 builds it, 0
-means the knob. The group is written before a program starts its threads,
-and its header says so (promise 8).
+compiles it out, 0 then meaning the knob again. Until Friday 11-13 builds
+it, 0 means the knob. `D_PARSE_EXPR_OPTION_STOP` gets no row: it is a
+caller's choice per parse, not a setting. The group is registered
+(`d_parse_register`) before a program starts its threads, and its header
+says so (promise 8).
 
 | knob (`cfg_parse.h`) | default | option (`dj_parse_expr_options`) | what it is |
 |---|---|---|---|
@@ -806,17 +857,24 @@ and its header says so (promise 8).
 | `D_CFG_PARSE_EXPR_MAX_ERRORS` | 16 | `max_errors` | errors before the parse stops, 1 to 65535; 1 stops at the first met |
 | `D_CFG_PARSE_EXPR_ERROR_ORDER` | leftmost | `error_order` | which error is the error (section 7.3) |
 | `D_CFG_PARSE_EXPR_RENDER` | 1 | none | the renderer compiled in |
-| `D_CFG_PARSE_EXPR_SCAN` | 1 | none | the default scanner compiled in (week 2) |
+| `D_CFG_PARSE_EXPR_SCAN` | `D_CFG_PARSE_ALL`, else 1 | none | the default scanner compiled in (section 10) |
 | none | | `flags` | `D_PARSE_EXPR_OPTION_STOP`: end at a token the expression cannot go on with (F17) |
 
 A build without the heap is a full one: every structure has a fixed-storage
 initializer. The parser's stacks (operands, open operators, a chain's links)
 start in its own frame, 128, 64 and 32 deep, which holds what a person
 writes; with the heap they grow past that, and without it a parse that needs
-more stops at `capacity`. Week 2 adds the caller's scratch for those builds:
-a buffer passed in the options, sized by `d_parse_expr_scratch_size(tokens)`.
-`d_parse_expr_term_copy` needs scratch too, and without the heap copies
-nothing until then.
+more stops at `capacity`. The caller's scratch (built 11-10) is for those
+parses: `scratch` and `scratch_size` in the options, a buffer aligned as
+`malloc`'s, used when it is larger than the parser's own rooms and shared
+by no two parses at once. `d_parse_expr_scratch_size(tokens)` is the size
+that holds any parse of that many tokens: the stacks are carved from it in
+units of two operands, two open operators and a link, at least 64 units.
+The parser never frees or grows the caller's scratch; past it, the parse
+stops at `capacity` as before. `d_parse_expr_term_copy_with` copies a
+subtree with the caller's scratch for its marks and map, an index and a
+byte per node up to the root, `d_parse_expr_term_copy_scratch(root)` bytes,
+so a build without the heap copies too.
 
 No setting is thread-related: the core has no shared state, a sealed
 signature is read-only, and a parse writes only its own term, scratch and
@@ -830,7 +888,7 @@ the call (promise 3). Counts are 32 bits; a text of 4 GiB or more, or a term
 of more than 2^32 - 1 nodes, is `capacity`, not a wrap. `sizeof`, `offsetof`
 and `alignof` of the node, the token and the term are asserted in C and C++
 (promise 3's layout gate); the node's size and offsets are asserted now, the
-rest with the face in week 2.
+rest with the face on Friday 11-13.
 
 ## 13. The C++98 face
 
@@ -854,9 +912,9 @@ parity tests compare like with like.
   returning a `std::string` or writing through a functor.
 - `diagnostics`: a C++98 view over the sink: count, each record, its
   message, the error. The foundation's `diagnostic.hpp` is C++11-floored;
-  either its floor comes down to C++98 in week 2's polish (the better
+  either its floor comes down to C++98 in parse's polish (the better
   answer: one view at every level), or `expr` carries the C++98 view until it
-  does. Week 2 decides by what the port costs.
+  does. The face's window decides by what the port costs.
 
 Above C++98, and only as additions: move constructors and `noexcept` from
 C++11, lambdas and `std::initializer_list` tables for signatures from C++11,
@@ -874,7 +932,7 @@ from a v1 table, for a language moving its table.
 
 | suite | language | what it holds |
 |---|---|---|
-| `t_parse_expr_c` | C99 to C23 | signatures sealed and refused, each form, each role condition, each diagnostic with its span and note, recovery, the depth guard, folds, walks, rendering, the scanner, each fixed-storage form |
+| `parse_expr` (DTest's C face: `tests/.../parse/expr/expr_tests*`, leaf `build/.../parse/expr/`) | C99 to C23 | signatures sealed and refused, each form, each role condition, each diagnostic with its span and note, recovery, the depth guard, the sub-parse and hole modes, folds, walks, rendering, the scanner, the caller's scratch, each fixed-storage form |
 | `t_parse_expr_cpp` | C++98 strict to C++26 | the same through the face |
 | `t_parse_expr_parity` | C++98 to C++26 | each text of the corpus through the C API and the face: the same arena node for node, the same diagnostics (domain, code, span), the same render, the same fold |
 | `t_parse_expr_roundtrip` | C | 100,000 random terms over a test signature with every form, rendered, read back, compared; and random texts read and rendered, read again |
@@ -892,7 +950,7 @@ timed.
 
 **C core**, `inc/djinterp/c/modules/parse/expr/` and
 `src/djinterp/c/modules/parse/expr/`: `term.h`, `signature.h`, `parse.h`,
-`fold.h`, `render.h`, `scan.h` (week 2), and `expr.h`, the umbrella; the
+`fold.h`, `render.h`, `scan.h`, and `expr.h`, the umbrella; the
 sources share one header of their own, `expr_internal.h`, which holds the
 decision the parser and the renderer both make. **C++ face**,
 `inc/djinterp/cpp/modules/parse/expr/`: the same stems in `.hpp`, and
@@ -1018,20 +1076,34 @@ with its name.
 ### 17.2 Lane G: the command language, the DSL, bitwisedom
 
 Lane G agreed to core v2 for the command language on 11-05. Week 2: G
-builds its source (the reader, its P1 to P7) and its table on the C core as
-delivered. Week 3 (16 to 22): the two are joined, with lane F: the table of
+builds its source (the reader, its P1 to P8) and its table on the C core as
+delivered: 11-06's until Wednesday 11-11's window, which brings the scanner,
+the sub-parse and the caller's scratch. The reader fills
+`dj_parse_expr_token` itself, with its own classes; the scanner (section 10)
+has no record or numbering to share. Week 3 (16 to 22): the two are joined,
+with lane F: the table of
 `djinterp.peg`'s section III (`;` 10 and `|` 20 flattening, `or` 30 and
 `and` 40, which G flattens too, `not` 50 prefix, the comparisons 60
 non-associative), the command as a custom role on `WORD` in operand position
 building `cmd(verb, arg1, ..., argN)`, each word a leaf whose span is the
-word as written, groups. `functional_cli.hpp` then moves to lane G's
-interpreter module with its spine on v2's term. December, by Friday 12-04:
+word as written, groups. The spine moved to lane G's interpreter module
+as `interp/spine.hpp` (G's 11-09 r2, in Wednesday 11-11's window, with
+parse's `functional_cli.hpp` deleted in the same window); until the join it
+still includes parse's C++ combinators (`parse.hpp`, `parser/parser.hpp`,
+`primitives.hpp`, `parser/combinators.hpp`), and after it only core v2's
+headers. A pipeline's first failure skips its later stages (the walk's
+SKIP), and STOP ends the walk, which the interpreter uses only to abandon a
+script (lane G's request F5, met as section 8 has it; G's probe of 11-10).
+December, by Friday 12-04:
 the grammar's own predicates, explicit `and`, `or`, `not` and comparisons
 over command primaries, and blocks, `{ Sequence }` (G's P8), as an apply
 node among a command's arguments, read by the sub-parse with `}` among its
 ends; the language has no juxtaposition and no `if ... then ... else`.
-G drafts the edits to `djinterp.peg` and its ABNF and EBNF companions for
-P1 to P8 as a patch in Monday's delivery; lane F takes them in week 3.
+G drafted the edits to `djinterp.peg` and its ABNF and EBNF companions for
+P1 to P8 (a `NEWLINE` token, words of parts, `!Joins` on the shapes,
+numbers before short options, `{ }` as metacharacters, `Block`, and notes 7
+to 11 for the orders the ABNF and EBNF cannot state); parse delivers them in
+Wednesday 11-11's window.
 bitwisedom's integer expressions stay on their own parser in 0.8 and 0.9.
 
 Answered 11-05: `d_cli_report_at` takes a 1-based line and column, which
@@ -1043,21 +1115,39 @@ the interpreter's; this suite keeps its own CLI-like cases.
 ### 17.3 Lane H: dawk
 
 Section 6.4 shows awk's expressions on v2, with the eight constructs lane H's
-review of 11-05 found 6.4 missing; each is in the suite with its term, but
-`getline < file` and `print`'s scoped mode, which come with week 2's
-sub-parse and `hole_mode`. Lane H moves dawk's expressions onto core v2 in
-December, when awk becomes a dialect of the DSL, and until then dawk's
-suite is the reference core v2's awk table is checked against.
+review of 11-05 found 6.4 missing; each is in the suite with its term,
+`getline < file` and `print`'s scoped mode among them since the sub-parse
+and `hole_mode` were built on 11-10. Lane H moves dawk's expressions onto
+core v2 in December, when awk becomes a dialect of the DSL, and until then
+dawk's suite is the reference core v2's awk table is checked against.
+
+The syntax items dawk's checker reads are parse's too, outside core v2:
+`pp_of` (F20), the include guard recognized exactly (F21), the namespace
+macros a caller names (F22), C++ heads (F23; from 11-11 a macro's call in
+a template head is the head's, lane H's `net/client.hpp`), and, from 11-11,
+the level of a block among a label's statements (F24), which lands in one
+commit with lane H's removal of dawk's own correction
+(`d_internal_down_a_case`). Their suite is `parse_syntax`
+(`tests/.../parse/syntax/syntax_tests*`).
 
 ### 17.4 Lane E
 
 Answered 11-05: domain 4 and its ten codes are agreed, named as in 7.1; a
 note carries its error's code (done); section 11's settings are rows of a
-`parse` group in E's pattern (week 2, with option_env's named values); a
+`parse` group in E's pattern (Friday 11-13, on option_env's named INT rows,
+which E delivers 11-11; the rows as section 11 gives them, agreed 11-10); a
 describer for a signature (identity, state, each operator's spellings, role,
 precedence, association and arity, its bytes) in December, once desc's
 describer interface is frozen. The core logs nothing and prints nothing: the
 log reaches parse's diagnostics as a subscriber, through the sink's hook.
+For the code registry in week 3, E proposes (11-10) five shared syntax
+classes rather than one per code, graded rejected: `syntax.unexpected`
+(unexpected), `syntax.missing` (missing_operand), `syntax.unbalanced`
+(unclosed, unopened, mismatched), `syntax.ambiguous` (non_associative) and
+`syntax.arity` (arity); and `too_deep` as `quantity.depth`, rejected,
+`refused` as `resource.memory`, failed, `bad_signature` as
+`argument.invalid`, rejected. The code names stay parse's. Lane C is asked
+to agree by 11-13; parse's table follows.
 
 ## 18. Schedule
 
@@ -1065,9 +1155,8 @@ log reaches parse's diagnostics as a subscriber, through the sink's hook.
 |---|---|
 | Wed 11-04 | the C core built and tested (section 21); the 22 allocation sites checked |
 | Fri 11-06 | this design agreed; S190 and style #80 decided |
-| Mon 11-09 | the scanner; the sub-parse and `hole_mode` (F18); the caller's scratch; the C suite on DTest 2.0 |
-| Wed 11-11 | the C++98 face; the bridge; the parity suite; the round trip at 100,000 terms and the fuzz harness |
-| Fri 11-13 | interfaces agreed; the `parse` settings group on lane E's option_env; core v2's code to math, G and H; parse polish begins (the 14 C++ units and 1 C unit failing at every level; the 4 to gate below C++11; parse's long functions) |
+| Wed 11-11 | (Monday's, moved) the scanner; the sub-parse and `hole_mode` (F18); the caller's scratch; parse's four C suites on DTest 2.0's C face; F24 with lane H |
+| Fri 11-13 | (Wednesday's, moved) the C++98 face; the bridge; the parity suite; the round trip at 100,000 terms and the fuzz harness. Interfaces agreed; the `parse` settings group on lane E's option_env; parse polish begins (the 14 C++ units and 1 C unit failing at every level; the 4 to gate below C++11; parse's long functions; the stale `parse/vparse` copy retired) |
 | week 3 | parsegen's and vparse's notation readers on v2; the command grammar with lane G; vparse's long functions split |
 | week 4 | suites for parse's stable core, docs; the bison, flex and LLVM adapters' design note |
 | December | the DSL's hooks for lane G by 12-04; v1's climber retired once math has moved; a result flag saying every error could be mended by more input (a missing operand at the end, an unclosed bracket), for the interpreter's continuation prompt (lane G) |
@@ -1192,7 +1281,7 @@ the mode outside).** *For:* `print (a > b)` compares while `print a > b`
 redirects, by the table, and a sub-parse's mode reaches no further than its
 brackets. *Against:* one more field in the descriptor. *Alternative, every
 bracket restoring the parse's first mode:* wrong where the statement parser
-starts the parse in `print`'s mode, as dawk's would. (Built in week 2, with
+starts the parse in `print`'s mode, as dawk's would. (Built 11-10, with
 the sub-parse.)
 
 **F19. `peek` and `take` read in a mode of the hook's, and a hook may not
@@ -1204,64 +1293,82 @@ mode alone:* a raw block is not an expression. *Alternative, letting a hook
 change its source's state between takes:* the source then knows of hooks,
 and the parser must promise how far it reads ahead.
 
-## 20. What each lane is asked, by Friday 11-06
+## 20. What each lane is asked
 
-- **The math session:** S190 for core v2; whether the error order of 7.3
-  should be math's default (the option exists either way); the depth guard's
-  default (1000, or the bound chunk 33's probe measured), within F10's range;
-  whether F11's reading of `(1 + 2]` suits (it maps to `unbalanced` either
-  way, now at the `]` alone).
+By Friday 11-06, and where each stands:
+
+- **The math session:** S190 for core v2. *Ruled by the owner 11-08: core
+  v2; S209 and S252 follow it.* With chunk 46 (Thursday night or Friday):
+  whether the error order of 7.3 should be math's default (the option exists
+  either way); the depth guard's default (1000, or the bound chunk 33's
+  probe measured), within F10's range; whether F11's reading of `(1 + 2]`
+  suits (it maps to `unbalanced` either way, now at the `]` alone). The
+  first two become the knobs' and the settings group's defaults; until they
+  come, 1000 and `leftmost`.
 - **Lane G:** the two questions of 17.2; whether week 3 suits the command
-  grammar. *Answered 11-05 (17.2); F19 came of it.*
+  grammar. *Answered 11-05 (17.2); F19 came of it. 11-10: the grammar's
+  edits for P1 to P8, whole; the walk's skip meets its F5 (section 8).*
 - **Lane H:** whether awk's grammar has a construct 6.4 misses. *Answered
-  11-05: eight, now in 6.4 (F15 to F18 came of them).*
-- **Lane E:** the domain and codes of 17.4. *Answered 11-05 (17.4, 11).*
+  11-05: eight, now in 6.4 (F15 to F18 came of them). 11-08: F24 lands
+  with H's removal of `d_internal_down_a_case` (17.3).*
+- **Lane E:** the domain and codes of 17.4. *Answered 11-05 (17.4, 11), and
+  11-10: the settings rows of section 11, and the syntax classes of 17.4.*
 
 ## 21. The build in this delivery
+
+Wednesday 11-11's, over Friday 11-06's.
 
 ### 21.1 What is there
 
 | file | what |
 |---|---|
-| `inc/.../parse/expr/term.h`, `src/.../term.c` | the arena: fixed or heap storage, leaves, applications, holes, copy, verify, equality |
-| `inc/.../parse/expr/signature.h`, `src/.../signature.c` | operators of the four forms, chains, mixfix descriptors, juxtaposition, roles, sealing with its diagnostics, lookup |
-| `inc/.../parse/expr/parse.h`, `src/.../parse.c` | tokens and sources (the array source), the parser of section 6, the hook interface, `d_parse_expr_locate` |
+| `inc/.../parse/expr/term.h`, `src/.../term.c` | the arena: fixed or heap storage, leaves, applications, holes, copy (and `copy_with`, in the caller's scratch), verify, equality |
+| `inc/.../parse/expr/signature.h`, `src/.../signature.c` | operators of the four forms, chains, mixfix descriptors with their `hole_mode`, juxtaposition, roles, sealing with its diagnostics, lookup |
+| `inc/.../parse/expr/parse.h`, `src/.../parse.c` | tokens and sources (the array source), the parser of section 6, the hook interface and the sub-parse, the caller's scratch and `d_parse_expr_scratch_size`, `d_parse_expr_locate` |
+| `inc/.../parse/expr/scan.h`, `src/.../scan.c` | the default scanner of section 10 |
 | `inc/.../parse/expr/fold.h`, `src/.../fold.c` | the fold (marks, then arena order) and the walk (`enter`, `leave`, skip and stop) |
 | `inc/.../parse/expr/render.h`, `src/.../render.c` | the renderer, through a write function or into a buffer |
 | `inc/.../parse/expr/expr.h` | the umbrella |
 | `src/.../parse/expr/expr_internal.h` | the frame kinds and the one bracket decision the parser and the renderer share |
-| `inc/djinterp/config/.../cfg_parse.h` | the five knobs of section 11 that exist now, validated |
+| `inc/djinterp/config/.../cfg_parse.h` | the six knobs of section 11 that exist now, validated |
 | `inc/.../parse/diagnostic.h` | `D_PARSE_DIAG_DOMAIN_EXPR` (4) |
-| `tests/.../parse/expr/t_parse_expr.c` | the C suite: thirteen sections, every case of 6.3 and 6.4 (dawk's ladder and lane H's eight among them), every code of 7.1, recovery, both error orders, the guard, a full arena on caller storage, the stop option, a hook's own mode, the command language rendered back, 3,000 random round trips, the renderings named in 9, folds and walks, `locate` |
+| `tests/.../parse/expr/expr_tests*`, leaf `build/.../parse/expr/` | the C suite, `parse_expr`, on DTest 2.0's C face: five blocks, sixteen tests; every case of 6.3 and 6.4 (dawk's ladder and lane H's eight among them), every code of 7.1, recovery, both error orders, the guard, a full arena on caller storage, the stop option, the sub-parse and hole modes, a hook's own mode, the command language rendered back, 3,000 random round trips, the renderings named in 9, folds and walks, `locate`, the scanner, the caller's scratch |
+| `tests/.../parse/syntax/syntax_tests*`, `tests/.../parse/overflow/overflow_tests*`, leaves beside the expression suite's | parse's other two C suites on the same face: the syntax items (F20 to F24) and the allocation sites' refusals |
 
 ### 21.2 Measured
 
-- The suite passes at C99, C11, C17 and C23 with GCC under ASan and UBSan,
-  and with Clang under valgrind (no errors, no leaks).
-- 840,000 random terms (every form of math's table, depth 1 to 6) rendered
-  and read back as themselves: none failed.
-- Line coverage under the suite: 87.4% of the five sources (term 85%,
-  signature 91%, parse 91%, render 81%, fold 83%), against the core's floor
-  of 80%.
-- Each rule added on 11-05 fails its cases when taken out: without F15,
-  `$i++` reads as `field(postinc(i))` and `a b | getline` as
-  `concat(a, pipeget(b))`; without F16, `(i, j) in arr` does not parse.
+- The three suites pass at C99, C11, C17 and C23 with GCC under ASan and
+  UBSan, and with Clang under valgrind (no errors, no leaks): `parse_expr`
+  16 of 16, `parse_syntax` 12 of 12, `parse_overflow` 3 of 4 with one
+  skipped, the refusals that exist only where `size_t` is 32 bits.
+- Line coverage of the core's six sources under `parse_expr`: 89.8% (term
+  86%, signature 91%, parse 92%, fold 96%, render 81%, scan 97%), against
+  the floor of 80%.
+- Each rule added on 11-10 fails its cases when taken out: without the
+  sub-parse's barrier in the innermost bracket, `getline < f x` reads as
+  `getfile(concat(f, x))`; without longest-first, `x<<y` scans `<` `<`;
+  without the digit rule, `3.e` scans as one number; without F24, the
+  blocks among a label's statements stand a level out.
+- 11-05's measures stand: 840,000 random terms (every form of math's table,
+  depth 1 to 6) rendered and read back as themselves; each rule of 11-05
+  failing its cases when taken out.
 - Every header and source compiles at every C level and every C++ level, GCC
   and Clang, plain and testing, ISO strict C++98 included; and under the knob
-  matrix (heap off, renderer off, both, `D_CFG_PARSE_ALL` off, the other
-  knobs at their edges).
+  matrix (heap off, renderer off, scanner off, all three, `D_CFG_PARSE_ALL`
+  off, the guard at 1 and unbounded). With the scanner off, `parse_expr`
+  skips its scanner test and passes the rest.
 - A build without the heap reads a 10,001-token left chain and 40 nested
   groups in its own stack rooms, and stops a 5,001-deep right chain and 3,000
-  nested groups at `capacity`, with nothing overrun.
+  nested groups at `capacity`, with nothing overrun; with the caller's
+  scratch of `d_parse_expr_scratch_size`, it reads both.
 
 ### 21.3 Not yet
 
-The scanner (`scan.h`); `d_parse_expr_sub` and `hole_mode` (F18); the
-`parse` settings group (lane E's option_env); the caller's scratch for builds
-without the heap, and `d_parse_expr_scratch_size`; `d_parse_expr_term_digest`;
-the C++98 face, the bridge and the parity suite; the suites on DTest 2.0; the
-round trip at 100,000 terms and the fuzz harness as suites of their own; the
-token's and the term's layout asserts. All of it is week 2's (section 18).
+The `parse` settings group (lane E's option_env, Friday 11-13);
+`d_parse_expr_term_digest`; the C++98 face, the bridge and the parity suite
+(Friday 11-13); the round trip at 100,000 terms and the fuzz harness as
+suites of their own; the token's and the term's layout asserts, with the
+face.
 
 ### 21.4 What building it changed in this text
 
@@ -1283,6 +1390,18 @@ of Monday 11-02 sees what moved.
 - 9: the buffer form; the bracket rule over an operand's whole open edge,
   found by the round trip.
 - 11: the stack rooms of a build without the heap.
+
+And from building week 2's part, 11-10:
+
+- 6.5: the sub-parse's floor holds only while no bracket of its own is
+  open; it runs on the parse's stacks behind a barrier; a hook that ran one
+  may not decline.
+- 6.5: a mixfix's mode comes back at its last part, so a tail is read in
+  the mode outside; an end of input is read in any mode.
+- 10: a number's point and exponent only where a digit follows; the
+  caller's words first where two spell alike; the stray class.
+- 11: the caller's scratch in units, and `copy_with` for builds without the
+  heap.
 
 And from the lanes' review of 11-05:
 

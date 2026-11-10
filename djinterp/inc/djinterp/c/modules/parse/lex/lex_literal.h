@@ -44,8 +44,8 @@ TABLE OF CONTENTS
     2.  Decoding
 */
 
-#ifndef DJINTERP_C_PARSE_LEX_LEX_LITERAL_H
-#define DJINTERP_C_PARSE_LEX_LEX_LITERAL_H 1
+#ifndef DJINTERP_C_PARSE_LEX_LITERAL_H
+#define DJINTERP_C_PARSE_LEX_LITERAL_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -256,4 +256,4 @@ bool d_lex_literal_decode_token(
 
 #endif  // defined(INT64_MAX)
 
-#endif  // DJINTERP_C_PARSE_LEX_LEX_LITERAL_H
+#endif  // DJINTERP_C_PARSE_LEX_LITERAL_H

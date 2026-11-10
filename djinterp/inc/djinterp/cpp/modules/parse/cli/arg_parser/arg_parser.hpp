@@ -52,8 +52,8 @@ TABLE OF CONTENTS
     3.  Internals
 */
 
-#ifndef DJINTERP_PARSE_CLI_ARG_PARSER_ARG_PARSER_HPP
-#define DJINTERP_PARSE_CLI_ARG_PARSER_ARG_PARSER_HPP 1
+#ifndef DJINTERP_PARSE_CLI_ARG_PARSER_HPP
+#define DJINTERP_PARSE_CLI_ARG_PARSER_HPP 1
 
 // std
 #include <cstddef>    // std::size_t
@@ -990,4 +990,4 @@ void internal::passthrough(
 }  // namespace djinterp
 
 
-#endif  // DJINTERP_PARSE_CLI_ARG_PARSER_ARG_PARSER_HPP
+#endif  // DJINTERP_PARSE_CLI_ARG_PARSER_HPP

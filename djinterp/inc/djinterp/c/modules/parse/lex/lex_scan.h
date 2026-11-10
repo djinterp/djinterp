@@ -47,8 +47,8 @@ TABLE OF CONTENTS
     5.  Diagnostics
 */
 
-#ifndef DJINTERP_C_PARSE_LEX_LEX_SCAN_H
-#define DJINTERP_C_PARSE_LEX_LEX_SCAN_H 1
+#ifndef DJINTERP_C_PARSE_LEX_SCAN_H
+#define DJINTERP_C_PARSE_LEX_SCAN_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -294,4 +294,4 @@ int d_lex_error_severity(
 );
 
 
-#endif  // DJINTERP_C_PARSE_LEX_LEX_SCAN_H
+#endif  // DJINTERP_C_PARSE_LEX_SCAN_H

@@ -38,8 +38,8 @@
 *                                                            revised: 2026.10.02
 *******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PARSERS_CPP_CPP_HPP
-#define DJINTERP_PARSE_PARSERS_CPP_CPP_HPP 1
+#ifndef DJINTERP_PARSE_PARSERS_CPP_HPP
+#define DJINTERP_PARSE_PARSERS_CPP_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
 // rule 5). The owner's ruling: compile at every level first; port to C++98
@@ -463,4 +463,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_PARSE_PARSERS_CPP_CPP_HPP
+#endif  // DJINTERP_PARSE_PARSERS_CPP_HPP

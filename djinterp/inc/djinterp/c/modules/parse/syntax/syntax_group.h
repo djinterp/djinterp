@@ -38,8 +38,8 @@ TABLE OF CONTENTS
     2.  Classification
 */
 
-#ifndef DJINTERP_C_PARSE_SYNTAX_SYNTAX_GROUP_H
-#define DJINTERP_C_PARSE_SYNTAX_SYNTAX_GROUP_H 1
+#ifndef DJINTERP_C_PARSE_SYNTAX_GROUP_H
+#define DJINTERP_C_PARSE_SYNTAX_GROUP_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -142,4 +142,4 @@ int d_syntax_closer_for(
 );
 
 
-#endif  // DJINTERP_C_PARSE_SYNTAX_SYNTAX_GROUP_H
+#endif  // DJINTERP_C_PARSE_SYNTAX_GROUP_H

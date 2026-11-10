@@ -51,8 +51,8 @@ TABLE OF CONTENTS
     2.  Naming
 */
 
-#ifndef DJINTERP_C_PARSE_SYNTAX_SYNTAX_ITEM_H
-#define DJINTERP_C_PARSE_SYNTAX_SYNTAX_ITEM_H 1
+#ifndef DJINTERP_C_PARSE_SYNTAX_ITEM_H
+#define DJINTERP_C_PARSE_SYNTAX_ITEM_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -307,4 +307,4 @@ const char* d_syntax_statement_name(
 );
 
 
-#endif  // DJINTERP_C_PARSE_SYNTAX_SYNTAX_ITEM_H
+#endif  // DJINTERP_C_PARSE_SYNTAX_ITEM_H

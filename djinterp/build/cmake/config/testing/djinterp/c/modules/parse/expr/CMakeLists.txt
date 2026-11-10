@@ -2,14 +2,14 @@
 # djinterp [parse]                                                CMakeLists.txt
 #
 # Test leaf for expression core v2's C core (c/modules/parse/expr/).
-#   Builds tests/djinterp/c/modules/parse/expr/t_parse_expr.c with the core's
-# sources and the two parse units it stands on, diagnostic.c and storage.c,
-# in testing mode, once per C level from the C floor (C99) up, and runs each
-# as a test. The suite is a plain main until lane F's week 2 moves it to
-# DTest 2.0: it prints "[PASS]" or "[FAIL]" for each section and returns 0
-# only when every section passed, so a test fails on its exit status or on a
-# "[FAIL]" line. A level the compiler cannot select is left out, and the
-# configure step says so.
+#   Builds the suite in DTest 2.0's C face: the runner in this directory, the
+# section translation units of tests/djinterp/c/modules/parse/expr/
+# (expr_tests_*.c), the core's sources, the two parse units it stands on,
+# diagnostic.c and storage.c, and DTest's one source, test_suite.c, in testing
+# mode, once per C level from the C floor (C99) up, and runs each as a test.
+# The runner returns 0 only when every test passed or was skipped, so a test
+# fails on its exit status. A level the compiler cannot select is left out,
+# and the configure step says so.
 #   Plain CMake, as the foundation leaf beside parsegen is, so that the leaf
 # works both ways as it stands:
 #     cmake -S <this directory> -B <out> && cmake --build <out> && \
@@ -24,7 +24,7 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parse/expr/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.05
+#                                                            revised: 2026.11.10
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -60,12 +60,16 @@ option(DJINTERP_PARSE_EXPR_STRICT
        ON)
 
 set(_parse "${_root}/src/djinterp/c/modules/parse")
+set(_tests "${_root}/tests/djinterp/c/modules/parse/expr")
 file(GLOB _core CONFIGURE_DEPENDS "${_parse}/expr/*.c")
+file(GLOB _sections CONFIGURE_DEPENDS "${_tests}/expr_tests_*.c")
 set(_sources
-    "${_root}/tests/djinterp/c/modules/parse/expr/t_parse_expr.c"
+    "${CMAKE_CURRENT_LIST_DIR}/expr_tests_runner.c"
+    ${_sections}
     ${_core}
     "${_parse}/diagnostic.c"
-    "${_parse}/storage.c")
+    "${_parse}/storage.c"
+    "${_root}/src/djinterp/c/modules/test/test_suite.c")
 
 foreach(_level IN LISTS DJINTERP_PARSE_EXPR_C_LEVELS)
     if(NOT "c_std_${_level}" IN_LIST CMAKE_C_COMPILE_FEATURES)
@@ -91,7 +95,7 @@ foreach(_level IN LISTS DJINTERP_PARSE_EXPR_C_LEVELS)
         C_STANDARD          ${_level}
         C_STANDARD_REQUIRED ON
         C_EXTENSIONS        OFF)
-    target_include_directories(${_target} PRIVATE "${_root}/inc")
+    target_include_directories(${_target} PRIVATE "${_root}/inc" "${_tests}")
     target_compile_definitions(${_target} PRIVATE
         D_TESTING=1
         RE_STD_CFG_TESTING=1)
@@ -117,8 +121,6 @@ foreach(_level IN LISTS DJINTERP_PARSE_EXPR_C_LEVELS)
     endif()
 
     add_test(NAME ${_target} COMMAND ${_target})
-    set_tests_properties(${_target} PROPERTIES
-        FAIL_REGULAR_EXPRESSION "\\[FAIL\\]")
 
     # join the framework's aggregates (djinterp_add_test_subtree), which build
     # the test targets registered below them; standing alone, nothing reads

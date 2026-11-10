@@ -45,8 +45,8 @@ TABLE OF CONTENTS
     2.  Class predicates
 */
 
-#ifndef DJINTERP_C_PARSE_LEX_LEX_TOKEN_H
-#define DJINTERP_C_PARSE_LEX_LEX_TOKEN_H 1
+#ifndef DJINTERP_C_PARSE_LEX_TOKEN_H
+#define DJINTERP_C_PARSE_LEX_TOKEN_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -289,4 +289,4 @@ bool d_token_is_literal(
 );
 
 
-#endif  // DJINTERP_C_PARSE_LEX_LEX_TOKEN_H
+#endif  // DJINTERP_C_PARSE_LEX_TOKEN_H

@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/modules/parse/syntax/syntax_item.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"  // corresponding header
 // std
@@ -106,7 +106,10 @@ struct dj_internal_scratch
     uint32_t  assign_at;     // first `=`
     uint32_t  operator_at;   // an `operator` keyword
     uint32_t  provisional;   // end of a completed body, while waiting
+    uint32_t  head_name;     // a macro's call in a template head, its name
     uint16_t  seen;          // significant children so far
+    uint16_t  head_seen;     // children through a `template` head's `>`
+    uint16_t  fn_seen;       // children through the candidate's group
     uint8_t   state;
     uint8_t   saw_typedef;
     uint8_t   linkage;
@@ -119,6 +122,8 @@ struct dj_internal_scratch
     uint8_t   ctor_init;     // in an initializer list: 1 before an
                              // initializer's group, 2 after it
     uint8_t   scope_macro;   // a namespace macro, waiting for its arguments
+    uint8_t   head_call;     // the candidate is a name right after a
+                             // `template` head, perhaps a macro of the head's
 };
 
 // 1.3.2
@@ -600,6 +605,7 @@ uint32_t d_internal_new_item(
     scratch->assign_at   = D_SYNTAX_NONE;
     scratch->operator_at = D_SYNTAX_NONE;
     scratch->provisional = D_SYNTAX_NONE;
+    scratch->head_name   = D_SYNTAX_NONE;
 
     ++out->count;
 
@@ -641,7 +647,8 @@ void d_internal_set_scope(
  * a parameter group declares a function type; otherwise the declared name is
  * the last identifier before an initializer, a bitfield or the end, and an
  * identifier following a tag keyword is the tag and never the name.
- * Template arguments, and so a template head, are passed over.
+ * Template arguments, and so a template head, are passed over, and so is a
+ * macro's call the head holds (d_internal_head_call).
  *
  * @param[in,out] _b  the recognition in progress.
  * @param[in]     _k  the item's index.
@@ -655,6 +662,7 @@ void d_internal_declarator(
     struct dj_syntax_item* const item  = &_b->out->items[_k];
     const uint32_t              scope = item->scope;
     const uint32_t              end   = item->last + 1u;
+    const uint32_t              head  = _b->scratch[_k].head_name;
 
     uint32_t name      = D_SYNTAX_NONE;
     int      prev_kind = D_TOKEN_END;
@@ -668,6 +676,19 @@ void d_internal_declarator(
 
         if (d_internal_is_trivia(token))
         {
+            continue;
+        }
+
+        // a macro's call in the template head declares nothing: on to its
+        // group, which the step passes
+        if (at == head)
+        {
+            while ( (at < end) &&
+                    (_b->tokens[at].kind != D_TOKEN_PAREN_OPEN) )
+            {
+                at = d_internal_next_child(_b, at, scope, end);
+            }
+
             continue;
         }
 
@@ -1371,6 +1392,14 @@ bool d_internal_note_head(
 
     if (d_internal_angle_step(kind, prev_kind, &scratch->angle))
     {
+        // the `>` that closes a `template` head, counted as it will be
+        if ( (scratch->angle == 0u) && (scratch->head_seen == 0u) &&
+             (_b->tokens[_b->out->items[_k].first].kind ==
+              D_TOKEN_KW_TEMPLATE) )
+        {
+            scratch->head_seen = (uint16_t)(scratch->seen + 1u);
+        }
+
         return true;
     }
 
@@ -1401,6 +1430,63 @@ bool d_internal_note_head(
     }
 
     return false;
+}
+
+
+/**
+ * @brief Passes over a macro's call that belongs to a template head.
+ *
+ * A name and its parentheses right after a template head are taken at first
+ * for the item's name and parameters. They are the head's, a macro that
+ * states its constraint (`template<typename C> D_REQUIRES(C) class client`),
+ * where a class key follows the parentheses, or a name with parentheses of
+ * its own follows something after them (`D_REQUIRES(C) int d_run(int _a)`).
+ * The candidate is then dropped, so that the child is read as if the call
+ * were not there. A name whose parentheses something else follows
+ * directly, a templated constructor's `D_NOEXCEPT_IF(x)`, keeps them.
+ *
+ * @param[in,out] _b   the recognition in progress.
+ * @param[in]     _k   the item's index.
+ * @param[in]     _at  the child's token index.
+ */
+static
+void d_internal_head_call(
+    struct dj_internal_build* _b,
+    uint32_t                  _k,
+    uint32_t                  _at
+)
+{
+    struct dj_internal_scratch* const scratch = &_b->scratch[_k];
+    const int                        kind    = _b->tokens[_at].kind;
+
+    if ( (!scratch->head_call) ||
+         (scratch->fn_params == D_SYNTAX_NONE) ||
+         (scratch->prev == D_SYNTAX_NONE) )
+    {
+        return;
+    }
+
+    const bool class_key =
+        ( (d_internal_is_tag_keyword(kind)) &&
+          (scratch->prev == scratch->fn_params) );
+    const bool next_call =
+        ( (kind == D_TOKEN_PAREN_OPEN)                                &&
+          ( (_b->tokens[scratch->prev].kind == D_TOKEN_IDENTIFIER) ||
+            (scratch->operator_at != D_SYNTAX_NONE) )                 &&
+          ((uint32_t)scratch->seen > (uint32_t)scratch->fn_seen + 1u) &&
+          (scratch->assign_at == D_SYNTAX_NONE)                       &&
+          (scratch->ctor_init == 0u) );
+
+    if ( (class_key) || (next_call) )
+    {
+        scratch->head_name  = scratch->fn_name;
+        scratch->fn_params  = D_SYNTAX_NONE;
+        scratch->fn_name    = D_SYNTAX_NONE;
+        scratch->macro_head = 0u;
+        scratch->head_call  = 0u;
+    }
+
+    return;
 }
 
 
@@ -1436,6 +1522,8 @@ void d_internal_note(
         d_internal_step(scratch, _at);
         return;
     }
+
+    d_internal_head_call(_b, _k, _at);
 
     // the `=` of `operator=` is the operator's name, not an initializer
     if ( (kind == D_TOKEN_ASSIGN) && (!in_operator) &&
@@ -1503,6 +1591,10 @@ void d_internal_note(
             // in a class, where it heads a constructor
             scratch->fn_params  = _at;
             scratch->fn_name    = scratch->prev;
+            scratch->fn_seen    = (uint16_t)(scratch->seen + 1u);
+            scratch->head_call  =
+                ( (scratch->head_seen != 0u) &&
+                  (scratch->seen == scratch->head_seen + 1u) ) ? 1u : 0u;
             scratch->macro_head =
                 ( (scratch->seen == 1u) &&
                   (_s->mode != D_INTERNAL_MODE_MEMBERS) ) ? 1u : 0u;

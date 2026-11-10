@@ -12,11 +12,11 @@
 * path:      /inc/djinterp/c/modules/parse/expr/expr.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
-#ifndef DJINTERP_C_PARSE_EXPR_EXPR_H
-#define DJINTERP_C_PARSE_EXPR_EXPR_H 1
+#ifndef DJINTERP_C_PARSE_EXPR_H
+#define DJINTERP_C_PARSE_EXPR_H 1
 
 // djinterp
 #include "./term.h"       // the term
@@ -24,6 +24,7 @@
 #include "./parse.h"      // the parser
 #include "./fold.h"       // folds and walks
 #include "./render.h"     // the renderer
+#include "./scan.h"       // the default scanner
 
 
-#endif  // DJINTERP_C_PARSE_EXPR_EXPR_H
+#endif  // DJINTERP_C_PARSE_EXPR_H

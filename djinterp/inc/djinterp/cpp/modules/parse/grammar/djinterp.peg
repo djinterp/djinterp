@@ -19,12 +19,12 @@
 #  become normative notes attached to the grammar.                             #
 #                                                                              #
 #  TWO PHASES.  A lexical grammar turns characters into tokens (resolving the  #
-#  option shapes, the keyword/word distinction, and whitespace); a syntactic   #
-#  grammar turns the token sequence into a term.  This mirrors the             #
-#  implementation: the reader/lexer of functional_cli.hpp produces the tokens, #
-#  and the precedence-climbing parser of expression_parse.hpp -- driven by the #
-#  precedence table below, which is precisely the operator_signature           #
-#  (expression.hpp) -- produces the term.                                      #
+#  option shapes, the keyword/word distinction, quoting, line ends and         #
+#  whitespace); a syntactic grammar turns the token sequence into a term.      #
+#  This mirrors the implementation: the interpreter's source (the interp       #
+#  module) produces the tokens, and expression core v2 (parse/expr) builds the #
+#  term, driven by the precedence table below, which is its signature; a       #
+#  command and its arguments are read by the signature's command role.         #
 #                                                                              #
 #  NOTATION.                                                                   #
 #    A <- e   rule            e1 e2   sequence          e1 / e2  ordered choice #
@@ -37,125 +37,167 @@
 
 
 ################################################################################
-#  I.  LEXICAL GRAMMAR   (characters -> tokens)                                 #
+#  I.  LEXICAL GRAMMAR   (characters -> tokens)                                #
 #                                                                              #
 #  A token stream is produced by alternately discarding Skip and matching one  #
-#  Token.  Order in Token is significant: the option shapes and the operator   #
-#  keywords are tried before Word, so `--name`, `-xvf`, `and`, and `123` never #
-#  lex as bare words.  Word therefore captures exactly the identifiers, paths, #
-#  and operands that are neither an option, a keyword, nor a number.           #
+#  Token.  Order in Token is significant: the option shapes, the numbers and   #
+#  the operator keywords are tried before WORD, so `--name`, `-xvf`, `and`,    #
+#  `-1` and `123` never lex as bare words.  A token in a word's shape is that  #
+#  token only where a word would end: followed by a character that would       #
+#  continue a word (Joins), it is not, and the whole is a WORD -- `2file`,     #
+#  `-x.txt`, `a==b`, `andes`.  WORD therefore captures exactly the             #
+#  identifiers, paths, and operands that are neither an option, a keyword, nor #
+#  a number.                                                                   #
 ################################################################################
 
-Skip          <- (Blank / Newline / Comment)+
+Skip          <- (Blank / Comment / Continuation)+
 
-Token         <- LONG_OPTION
+Token         <- NEWLINE
+               / LONG_OPTION
                / TERMINATOR
+               / NUMBER
                / SHORT_OPTION
                / PIPE
                / SEMICOLON
                / LPAREN
                / RPAREN
+               / LBRACE
+               / RBRACE
                / COMPARE
                / AND / OR / NOT
-               / NUMBER
                / STRING
                / WORD
 
-#  ── option shapes (GNU) ──────────────────────────────────────────────────
-#  Longest match first: LONG_OPTION and TERMINATOR (both `--`) precede
-#  SHORT_OPTION (`-`), and a bare `--` (option terminator) is distinguished
-#  from `--name` by a following non-name character.
+#  ── line ends ───────────────────────────────────────────────────────────────
+#  A newline is a token, not trivia: the syntactic grammar reads it as `;`
+#  where a pipeline has just ended, and as a blank after an operator, an
+#  opening bracket, or another newline (note 7).  A backslash before a newline
+#  joins the two lines (Continuation).
 
-LONG_OPTION   <- "--" OptionName ("=" OptionValue)?      # --name , --name=value
-TERMINATOR    <- "--" &(Blank / Newline / EndOfInput)    # bare `--` ends options
-SHORT_OPTION  <- "-" [A-Za-z0-9]+                        # -x , bundled -xvf
+NEWLINE       <- Newline
+
+#  ── option shapes (GNU) ─────────────────────────────────────────────────────
+#  Longest match first: LONG_OPTION and TERMINATOR (both `--`) precede NUMBER
+#  and SHORT_OPTION (`-`), and a bare `--` (option terminator) is told from
+#  `--name` by what follows it.  A word that is wholly a number is a NUMBER,
+#  tried before SHORT_OPTION, so `-1` and `-1.5` are numbers; as a command's
+#  arguments both are handed to the command as written (note 10).  `--name=`
+#  is the option with the empty value.
+
+LONG_OPTION   <- "--" OptionName ("=" OptionValue?)? !Joins
+TERMINATOR    <- "--" !Joins                    # bare `--` ends options
+SHORT_OPTION  <- "-" [A-Za-z0-9]+ !Joins        # -x , bundled -xvf
 
 OptionName    <- NameChar+
-OptionValue   <- STRING / UnquotedValue
-UnquotedValue <- (!Blank !Newline ![|;()] .)+            # to whitespace / bracket / pipe / ';'
+OptionValue   <- WordPart+                      # to the end of the word
 
-#  ── operators & keywords ─────────────────────────────────────────────────
-#  A comparison operator is matched longest-first.  A keyword is a reserved
-#  word only when not immediately continued by a word character (so `andes`
-#  is a WORD, not `and` followed by `es`).
+#  ── operators & keywords ────────────────────────────────────────────────────
+#  An operator or a keyword spelled in word characters is that token only
+#  standing alone, not continued by a character of a word: `a==b` and `<b` are
+#  WORDs, as `andes` is.  A comparison operator is matched longest-first.
+#  Brackets, braces, `|` and `;` are never part of a word.
 
 PIPE          <- "|"
 SEMICOLON     <- ";"
 LPAREN        <- "("
 RPAREN        <- ")"
+LBRACE        <- "{"
+RBRACE        <- "}"
 
-COMPARE       <- "==" / "!=" / "=~" / "<=" / ">=" / "<" / ">"
+COMPARE       <- ("==" / "!=" / "=~" / "<=" / ">=" / "<" / ">") !Joins
 
-AND           <- "and" !WordChar
-OR            <- "or"  !WordChar
-NOT           <- "not" !WordChar
+AND           <- "and" !Joins
+OR            <- "or"  !Joins
+NOT           <- "not" !Joins
 
-#  ── literals & words ─────────────────────────────────────────────────────
+#  ── literals & words ────────────────────────────────────────────────────────
+#  A word is a run of parts -- bare characters, quoted strings and escaped
+#  characters -- joined as `sh` joins them: `--name="a b"c` is one word, whose
+#  value is `a bc` (note 8).  A word that is wholly one quoted part is a
+#  STRING, a literal (note 4).
 
-NUMBER        <- "-"? Digit+ ("." Digit+)?
-STRING        <- '"' (!'"' .)* '"'                       # double-quoted
-               / "'" (!"'" .)* "'"                       # single-quoted
-WORD          <- WordChar+                               # identifier / path / operand
+NUMBER        <- "-"? Digit+ ("." Digit+)? !Joins
+STRING        <- Quoted !Joins                  # "..." or '...', alone
+WORD          <- WordPart+                      # identifier / path / operand
 
-WordChar      <- !Blank !Newline ![|;()"'=] .            # any char but whitespace/meta
-NameChar      <- ![ \t\r\n|;()"'=] .
+WordPart      <- Quoted / Escaped / WordChar
+Quoted        <- '"' (DqEscape / !'"' .)* '"'   # double-quoted
+               / "'" (!"'" .)* "'"             # single-quoted: as written
+DqEscape      <- "\\" ["\\]                    # \" and \\ in double quotes
+Escaped       <- "\\" !Newline .               # a bare character, kept
+Joins         <- WordChar / ["'] / "\\" !Newline # what would continue a word
+
+WordChar      <- !Blank !Newline ![|;(){}"'\\] .  # `=` and `#` included
+NameChar      <- !Blank !Newline ![|;(){}"'\\=] .
 Digit         <- [0-9]
 
-#  ── trivia ───────────────────────────────────────────────────────────────
+#  ── trivia ──────────────────────────────────────────────────────────────────
+#  Trivia is discarded only between tokens, so a comment begins only where a
+#  token could: never inside a word (note 11).
 
 Blank         <- [ \t]
 Newline       <- "\r\n" / "\n" / "\r"
+Continuation  <- "\\" Newline                  # joins two lines
 Comment       <- "#" (!Newline .)*
-EndOfInput    <- !.
 
 
 ################################################################################
-#  II.  SYNTACTIC GRAMMAR   (tokens -> term)                                    #
+#  II.  SYNTACTIC GRAMMAR   (tokens -> term)                                   #
 #                                                                              #
-#  Runs over the token sequence (whitespace already removed).  Precedence is   #
-#  the rule cascade, weakest binder first: a Sequence is Pipelines joined by   #
-#  `;`, a Pipeline is OrExprs joined by `|`, and so on down to a Primary.      #
-#  The token names (LONG_OPTION, PIPE, AND, ...) are the terminals produced by #
-#  the lexical grammar above.                                                  #
+#  Runs over the token sequence (blanks and comments already removed; newlines #
+#  kept).  Precedence is the rule cascade, weakest binder first: a Sequence is #
+#  Pipelines joined by `;` or a newline, a Pipeline is OrExprs joined by `|`,  #
+#  and so on down to a Primary.  The token names (LONG_OPTION, PIPE, AND, ...) #
+#  are the terminals produced by the lexical grammar above.                    #
 ################################################################################
 
-Program       <- Sequence EndOfTokens
+Program       <- NL* Sequence? EndOfTokens
 
-#  sequence  (weakest)  --  `;` or a newline separates independent pipelines
-Sequence      <- Pipeline (SEMICOLON Pipeline)*
+#  sequence  (weakest)  --  `;` or a newline separates independent
+#  pipelines; one may also end the sequence (note 7)
+Sequence      <- Pipeline (Separator NL* Pipeline)* Separator? NL*
+Separator     <- SEMICOLON / NEWLINE
+NL            <- NEWLINE                       # a newline that is a blank
 
 #  pipeline  --  `|` threads the value produced by the left into the right
-Pipeline      <- OrExpr (PIPE OrExpr)*
+Pipeline      <- OrExpr (PIPE NL* OrExpr)*
 
 #  logical or / and  (left-associative)
-OrExpr        <- AndExpr (OR AndExpr)*
-AndExpr       <- NotExpr (AND NotExpr)*
+OrExpr        <- AndExpr (OR NL* AndExpr)*
+AndExpr       <- NotExpr (AND NL* NotExpr)*
 
 #  logical not  (prefix)
-NotExpr       <- NOT NotExpr
+NotExpr       <- NOT NL* NotExpr
                / Compare
 
 #  comparison / match  (non-associative: at most one per level -- `a == b == c`
 #  is rejected, parenthesize to nest)
-Compare       <- Primary (COMPARE Primary)?
+Compare       <- Primary (COMPARE NL* Primary)?
 
 #  primary  (strongest)
-Primary       <- LPAREN Sequence RPAREN                  # grouping
-               / Command                                 # a POSIX+GNU invocation
-               / Literal                                 # a bare value
+Primary       <- LPAREN NL* Sequence RPAREN       # grouping
+               / Command                         # a POSIX+GNU invocation
+               / Literal                         # a bare value
 
-#  ── command surface (POSIX + GNU) ─────────────────────────────────────────
-#  A command is a verb followed by options and operands.  Argument scanning is
-#  greedy; it stops at the first token that is not an option or operand -- an
-#  operator, a keyword, a bracket, or end of input -- because those are
-#  distinct token kinds, not words.
+#  ── command surface (POSIX + GNU) ───────────────────────────────────────────
+#  A command is a verb followed by options, operands and blocks.  Argument
+#  scanning is greedy; it stops at the first token that is not an option, an
+#  operand or a block -- an operator, a keyword, a closing bracket, a newline,
+#  or the end of input -- because those are distinct token kinds, not words.
+#  Each argument is handed to the command as written; the command's own parser
+#  decides what it means (`-ofile`, `--k=v`, `-xvf`).
 
 Command       <- Verb Argument*
 
 Argument      <- LONG_OPTION
                / TERMINATOR
                / SHORT_OPTION
+               / Block
                / Operand
+
+#  a block: a sequence handed to the command as one argument, which runs it
+#  as it says -- once for each item, or once (note 9)
+Block         <- LBRACE NL* Sequence? RBRACE
 
 Verb          <- WORD
 Operand       <- WORD / NUMBER / STRING
@@ -166,37 +208,39 @@ EndOfTokens   <- !.
 
 
 ################################################################################
-#  III.  PRECEDENCE & ASSOCIATIVITY                                             #
+#  III.  PRECEDENCE & ASSOCIATIVITY                                            #
 #                                                                              #
 #  The cascade above encodes precedence structurally; this table states it     #
-#  directly.  It is exactly the operator_signature the precedence-climbing      #
-#  parser and the renderer consume (expression.hpp): each row is one           #
-#  operator_descriptor keyed by its operator id.  Precedence increases with    #
-#  binding tightness (a larger number binds tighter).                          #
+#  directly.  It is the signature expression core v2 parses and renders with:  #
+#  each row is one operator.  Precedence increases with binding tightness (a   #
+#  larger number binds tighter).                                               #
 #                                                                              #
-#    operator        precedence   associativity   fixity     role              #
-#    ───────────────────────────────────────────────────────────────────────  #
-#    ;   (newline)       10          left           infix     sequence          #
-#    |                   20          left           infix     value pipeline     #
-#    or                  30          left           infix     logical or         #
-#    and                 40          left           infix     logical and        #
-#    not                 50          --             prefix    logical not        #
-#    == != =~            60          none           infix     equality / match   #
-#    <  <=  >  >=         60          none           infix     ordering           #
-#    ( ) command lit     --          --             --        primary            #
+#    operator            precedence   associativity  fixity    role            #
+#    ────────────────────────────────────────────────────────────────────────  #
+#    ;   (newline)       10           left           infix     sequence        #
+#    |                   20           left           infix     value pipeline  #
+#    or                  30           left           infix     logical or      #
+#    and                 40           left           infix     logical and     #
+#    not                 50           --             prefix    logical not     #
+#    == != =~            60           none           infix     equality / match#
+#    <  <=  >  >=        60           none           infix     ordering        #
+#    ( ) command lit     --           --             --        primary         #
+#    { }                 --           --             --        block argument  #
 #                                                                              #
 #  Comparisons share precedence 60 and are non-associative: mixing them        #
-#  without parentheses (e.g. `a < b == c`) is a syntax error.                   #
+#  without parentheses (e.g. `a < b == c`) is a syntax error.                  #
 ################################################################################
 
 
 ################################################################################
-#  IV.  NOTES                                                                   #
+#  IV.  NOTES                                                                  #
 #                                                                              #
 #  1.  Ordered choice / longest match.  Every `/` is committed: the first      #
 #      matching alternative wins with no backtracking past it.  The orderings  #
 #      that matter are called out where they occur -- LONG_OPTION / TERMINATOR #
-#      before SHORT_OPTION, and the COMPARE operators longest-first.           #
+#      before NUMBER before SHORT_OPTION, and the COMPARE operators            #
+#      longest-first -- and a token in a word's shape ends where a word ends   #
+#      (`!Joins`).                                                             #
 #                                                                              #
 #  2.  Value pipeline.  `|` is not textual: each stage receives the value the  #
 #      previous stage produced (PowerShell-flavored), and the pipeline         #
@@ -205,18 +249,57 @@ EndOfTokens   <- !.
 #                                                                              #
 #  3.  Commands as primaries.  The find-style predicate algebra is the boolean #
 #      and comparison operators applied to command primaries: `test -f x and   #
-#      test -x x`, `size > 100`.  A command's own options and operands are     #
-#      GNU-shaped (`--name`, `--name=value`, `-x`, bundled `-xvf`, the `--`    #
-#      terminator, positional operands).                                       #
+#      test -x x`, `size > 100`, and, item by item, inside a block: `ls |      #
+#      where { size > 100 }` (note 9).  A command's own options and operands   #
+#      are GNU-shaped (`--name`, `--name=value`, `-x`, bundled `-xvf`, the     #
+#      `--` terminator, positional operands).                                  #
 #                                                                              #
 #  4.  Words vs literals.  A bare word in primary position is a command (a     #
 #      verb, possibly nullary); numbers and quoted strings are literals.  To   #
-#      pass a word as a literal value, quote it.                               #
+#      pass a word as a literal value, quote it: a word that is wholly one     #
+#      quoted part is a STRING; joined with bare parts it is a WORD (note 8).  #
 #                                                                              #
-#  5.  Keywords.  `and`, `or`, `not` are reserved only at a word boundary;     #
-#      `android` is a WORD.  They are distinct token kinds, so command         #
-#      argument scanning stops at them naturally.                              #
+#  5.  Keywords.  `and`, `or`, `not` are reserved only standing alone;         #
+#      `android` and `and=1` are WORDs.  They are distinct token kinds, so     #
+#      command argument scanning stops at them naturally; a command or an      #
+#      operand named `and` is quoted.                                          #
 #                                                                              #
 #  6.  Grouping.  `( ... )` contains a full Sequence, so any construct may be  #
 #      parenthesized to override the precedence cascade.                       #
+#                                                                              #
+#  7.  Newlines.  Where a pipeline has just ended, a newline separates, as `;` #
+#      does; after an operator, an opening bracket or brace, or another        #
+#      newline, it is a blank, so a pipeline or a predicate continues on the   #
+#      next line after its operator.  A separator may end a sequence, inside   #
+#      brackets and braces too: `(a;)` is `(a)`.  A backslash before a newline #
+#      joins the two lines.  In expression core v2's terms, the source reads a #
+#      newline as `;` in operator position and as nothing in operand position, #
+#      and drops a separator before a closing bracket, a closing brace or the  #
+#      end.                                                                    #
+#                                                                              #
+#  8.  Quoting.  As `sh` quotes: in single quotes every character is itself;   #
+#      in double quotes `\"` is a quote and `\\` a backslash, and any other    #
+#      backslash is itself; outside quotes a backslash keeps the next          #
+#      character as it is.  The parts of a word join: `--name="a b"c` is one   #
+#      word, `--name=a bc`.  A token's span is the word as written, quotes and #
+#      all; its value is the word with its quoting taken out.                  #
+#                                                                              #
+#  9.  Blocks.  `{ ... }` holds a Sequence that the command takes as one       #
+#      argument and runs as it says: once for each item of its input (`where`, #
+#      `each`, `sort-by`), or once.  A djin may declare a command's block raw: #
+#      its text, from after the `{` to the `}` that closes it, is one token,   #
+#      read by that djin's own dialect -- for awk, a `}` in a string, a        #
+#      regular expression or a comment does not close it -- and this grammar   #
+#      does not apply inside: `awk run { print $1 } | count`.                  #
+#                                                                              #
+#  10. Numbers and options.  A word that is wholly a number is a NUMBER, `-1`  #
+#      and `-1.5` among them, and is compared numerically (`size > -1`); as a  #
+#      command's argument it is handed over as written, so `ls -1` and `head   #
+#      -5` are unchanged.  `-1x` is a SHORT_OPTION, `2file` and `-x.txt`       #
+#      WORDs.                                                                  #
+#                                                                              #
+#  11. Comments.  `#` begins a comment only where a token could begin: at the  #
+#      start of the input, or after a blank, a newline or a token such as `;`  #
+#      or `)` -- never inside a word, so `C#`, `a#b`, `"x"#y` and              #
+#      `http://h/p#frag` are words, as in `sh`.                                #
 ################################################################################

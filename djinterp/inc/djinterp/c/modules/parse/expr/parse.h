@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/parse.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -38,6 +38,7 @@ TABLE OF CONTENTS
          2.  D_PARSE_EXPR_DEPTH_UNBOUNDED, D_PARSE_EXPR_ERRORS_MAX
          3.  Status
          4.  Option flags
+         5.  D_PARSE_EXPR_FLOOR_NONE
 2.  TYPES
     -----
     1.  Tokens and sources
@@ -152,6 +153,12 @@ enum dj_parse_expr_diag
 // Inside an open bracket it is still an error: the bracket is never closed.
 #define D_PARSE_EXPR_OPTION_STOP        0x01u
 
+// 1.3.5
+// D_PARSE_EXPR_FLOOR_NONE
+//   constant: a sub-parse's floor that holds no operator back: it reads on
+// until a token it cannot go on with.
+#define D_PARSE_EXPR_FLOOR_NONE         (-2147483647 - 1)
+
 
 //==============================================================================
 // 2.  TYPES
@@ -223,7 +230,12 @@ typedef bool (*dj_parse_expr_check_fn)(
 // `modes` is a set of these bits, so a hook that reads in a mode of its own
 // gives another bit (2, 4, ...). `text`, where given, is the source text, for
 // the messages' quotations and the default renderer; `source_id` goes into
-// every span.
+// every span. `scratch`, where given, is `scratch_size` bytes of the
+// caller's, aligned as malloc's, which the parser's stacks start in when it
+// holds more than their own rooms in its frame: with the heap they grow past
+// it, and without the heap a scratch of d_parse_expr_scratch_size(tokens)
+// lets a parse of that many tokens finish. It must not be shared by two
+// parses at once.
 struct dj_parse_expr_options
 {
     uint32_t               max_depth;
@@ -237,6 +249,8 @@ struct dj_parse_expr_options
     size_t                 text_length;
     dj_parse_expr_check_fn check;
     void*                  check_ctx;
+    void*                  scratch;
+    size_t                 scratch_size;
 };
 
 // 2.2.3
@@ -309,6 +323,15 @@ int  d_parse_expr_parse(const struct dj_parse_expr_signature* _signature,
                         struct dj_parse_diag_sink*            _sink,
                         struct dj_parse_expr_result*          _result);
 
+/**
+ * @brief The scratch a parse of a number of tokens needs, so that its
+ *        stacks never run out.
+ *
+ * @param[in] _tokens  the tokens the source will give, the end not counted.
+ * @return the bytes, or 0 where the count's size does not fit a size_t.
+ */
+size_t d_parse_expr_scratch_size(uint32_t _tokens);
+
 // 3.3    The hook interface
 //------------------------------------------------------------------------------
 // for a custom role's hook alone, while the parser is running it
@@ -346,6 +369,36 @@ int      d_parse_expr_take(struct dj_parse_expr_parser* _parser,
                            uint8_t                      _position,
                            uint32_t                     _mode,
                            struct dj_parse_expr_token*  _out);
+/**
+ * @brief Reads one expression inside a hook: a sub-parse (design 6.5).
+ *
+ * The operators it takes are those that bind tighter than `_floor`, while no
+ * bracket of its own is open; it ends without an error at the first token it
+ * cannot go on with, which stays read, for the hook to peek. Inside its own
+ * brackets every operator is taken and every error is one, as in the parse.
+ * Its nesting counts against the depth guard, and its errors against the
+ * parse's allowance. `getline < file` reads the file with the floor at
+ * concatenation's precedence.
+ *
+ * @param[in,out] _parser  the parser that called the hook.
+ * @param[in]     _floor   the precedence an operator must bind tighter than,
+ *                         or D_PARSE_EXPR_FLOOR_NONE.
+ * @param[in]     _mode    the mode to read it in, one bit; 0 for the
+ *                         parse's own. A mixfix inside it reads its holes in
+ *                         its `hole_mode`, as in the parse.
+ * @param[out]    _node    the expression's node, of the parser's term.
+ * @return 1 with the node, which may hold holes where operands were missing
+ *         (each reported); -1 where the parse stopped (its allowance spent,
+ *         a fatal failure), or a token the hook left was read in another
+ *         mode than `_mode`.
+ * @note A hook that ran a sub-parse may not decline (return 0): the tokens
+ *       it read cannot be read again. Doing so stops the parse with a
+ *       bad-argument failure, as a token left in another mode does.
+ */
+int      d_parse_expr_sub(struct dj_parse_expr_parser* _parser,
+                          int32_t                      _floor,
+                          uint32_t                     _mode,
+                          uint32_t*                    _node);
 /**
  * @brief The term the parser is building.
  *

@@ -24,6 +24,7 @@
 *                                 D_PARSE_MACHINE_STEP_LIMIT
 *           parse/c/expr/...     -> D_INTERNAL_PARSE_EXPR_HEAP /
 *                                 D_INTERNAL_PARSE_EXPR_RENDER /
+*                                 D_INTERNAL_PARSE_EXPR_SCAN /
 *                                 D_CFG_PARSE_EXPR_MAX_DEPTH /
 *                                 D_CFG_PARSE_EXPR_MAX_ERRORS /
 *                                 D_CFG_PARSE_EXPR_ERROR_ORDER
@@ -34,7 +35,7 @@
 * path:      /inc/djinterp/config/c/modules/parse/cfg_parse.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H
@@ -184,6 +185,19 @@
 #   endif
 #endif
 
+// 1.3.5
+// D_CFG_PARSE_EXPR_SCAN
+//   brief: 1 compiles expression core v2's default scanner, a source that
+// reads names, numbers, strings and the signature's spellings from a text;
+// 0 leaves a client to bring its own source. Default 1.
+#ifndef D_CFG_PARSE_EXPR_SCAN
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_EXPR_SCAN        D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_EXPR_SCAN        1
+#   endif
+#endif
+
 
 // 1.4    Validation
 //------------------------------------------------------------------------------
@@ -213,6 +227,9 @@
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_PARSE_EXPR_RENDER)
 #   error "D_CFG_PARSE_EXPR_RENDER must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_EXPR_SCAN)
+#   error "D_CFG_PARSE_EXPR_SCAN must be 0 or 1"
 #endif
 
 
@@ -444,6 +461,16 @@
 #   define D_INTERNAL_PARSE_EXPR_RENDER     1
 #else
 #   define D_INTERNAL_PARSE_EXPR_RENDER     0
+#endif
+
+// 3.1.10
+// D_INTERNAL_PARSE_EXPR_SCAN
+//   brief: 1 when expression core v2's default scanner is compiled. Computed
+// from D_CFG_PARSE_EXPR_SCAN; read by expr/scan.h and scan.c.
+#if D_CFG_IS_ON(D_CFG_PARSE_EXPR_SCAN)
+#   define D_INTERNAL_PARSE_EXPR_SCAN       1
+#else
+#   define D_INTERNAL_PARSE_EXPR_SCAN       0
 #endif
 
 // 3.2    Aggregate consequences

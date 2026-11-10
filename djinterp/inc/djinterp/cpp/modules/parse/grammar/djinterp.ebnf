@@ -7,15 +7,19 @@
    EBNF has no lookahead operator.  The syntactic grammar below is unaffected --
    its alternatives are distinguished by disjoint leading token kinds -- but a
    few lexical decisions are conventions stated in the notes, not structure:
-     (a) tokens are lexed by MAXIMAL MUNCH (a token is as long as it can be);
-     (b) where lexical alternatives share a prefix, the order in djinterp.peg is
-         the priority: long-option / terminator before short-option, and the
-         comparison operators longest-first;
+     (a) tokens are lexed by MAXIMAL MUNCH (a token is as long as it can be),
+         which is also what ends a token in a word's shape where a word ends:
+         '2file', '-x.txt' and 'a==b' are words;
+     (b) where lexical alternatives share a prefix and a length, the order in
+         djinterp.peg is the priority: long-option / terminator before number
+         before short-option, string before word, and the comparison
+         operators longest-first;
      (c) 'and' / 'or' / 'not' are reserved only as whole words -- by (a),
-         'android' is one word.
+         'android' is one word;
+     (d) a newline is a token, a separator or a blank by where it stands.
    Character-set exclusions ("any character except ...") use EBNF's exception
    operator ( - ) and are exact.  Precedence is the rule cascade, unchanged,
-   and equals the operator_signature table in djinterp.peg.
+   and equals the table in djinterp.peg.
 
    NOTATION (ISO 14977):
      =  defines a rule      ,  concatenation      |  alternation
@@ -30,21 +34,24 @@
       so the unordered '|' is exact here.  Precedence is the cascade: weakest
       binder (sequence) first, strongest (primary) last.                        *)
 
-program     = sequence ;
+program     = { nl }, [ sequence ] ;
 
-sequence    = pipeline, { ";", pipeline } ;                (* ; weakest *)
+sequence    = pipeline, { separator, { nl }, pipeline },
+              [ separator ], { nl } ;                      (* ; weakest *)
+separator   = ";" | newlineToken ;
+nl          = newlineToken ;                    (* a newline that is a blank *)
 
-pipeline    = orExpr, { "|", orExpr } ;                    (* | threads a value *)
+pipeline    = orExpr, { "|", { nl }, orExpr } ;            (* | threads a value *)
 
-orExpr      = andExpr, { "or", andExpr } ;
-andExpr     = notExpr, { "and", notExpr } ;
+orExpr      = andExpr, { "or", { nl }, andExpr } ;
+andExpr     = notExpr, { "and", { nl }, notExpr } ;
 
-notExpr     = "not", notExpr
+notExpr     = "not", { nl }, notExpr
             | compare ;
 
-compare     = primary, [ compareOp, primary ] ;            (* non-associative *)
+compare     = primary, [ compareOp, { nl }, primary ] ;    (* non-associative *)
 
-primary     = "(", sequence, ")"
+primary     = "(", { nl }, sequence, ")"
             | command
             | literal ;
 
@@ -53,10 +60,13 @@ command     = verb, { argument } ;
 argument    = longOption
             | terminator
             | shortOption
+            | block
             | operand ;
 
-longOption  = "--", optionName, [ "=", optionValue ] ;
-terminator  = "--" ;                     (* only when not followed by a name char — note (b) *)
+block       = "{", { nl }, [ sequence ], "}" ;             (* note (h) *)
+
+longOption  = "--", optionName, [ "=", [ optionValue ] ] ;
+terminator  = "--" ;                  (* only when no name character follows *)
 shortOption = "-", shortChar, { shortChar } ;
 
 verb        = word ;
@@ -70,24 +80,28 @@ compareOp   = "==" | "!=" | "=~" | "<=" | ">=" | "<" | ">" ;
       The exception operator writes the character sets directly.  Maximal munch
       and lexical priority are the notes (a),(b),(c).                           *)
 
-optionName    = nameChar, { nameChar } ;
-optionValue   = string | unquotedValue ;
-unquotedValue = valueChar, { valueChar } ;
+newlineToken  = newline ;
 
-word          = wordChar, { wordChar } ;
+optionName    = nameChar, { nameChar } ;
+optionValue   = wordPart, { wordPart } ;
+
+word          = wordPart, { wordPart } ;
+wordPart      = quoted | escaped | wordChar ;
 
 number        = [ "-" ], digit, { digit }, [ ".", digit, { digit } ] ;
 
-string        = '"', { character - '"' }, '"'
+string        = quoted ;                                   (* alone: note (a) *)
+quoted        = '"', { dqEscape | ( character - '"' ) }, '"'
               | "'", { character - "'" }, "'" ;
+dqEscape      = "\", ( '"' | "\" ) ;                       (* note (f) *)
+escaped       = "\", ( character - newline ) ;             (* outside quotes *)
 
 shortChar     = letter | digit ;
 
-nameChar      = character - ( blank | newline | metaChar ) ;
-wordChar      = nameChar ;
-valueChar     = character - ( blank | newline | "|" | ";" | "(" | ")" ) ;
+nameChar      = wordChar - "=" ;
+wordChar      = character - ( blank | newline | metaChar ) ;
 
-metaChar      = "|" | ";" | "(" | ")" | '"' | "'" | "=" ;
+metaChar      = "|" | ";" | "(" | ")" | "{" | "}" | '"' | "'" | "\" ;
 
 letter        = ? one ASCII letter, A-Z or a-z ? ;
 digit         = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
@@ -95,20 +109,41 @@ blank         = " " | ? one horizontal tab ? ;
 newline       = ? one line terminator: LF, CR, or CRLF ? ;
 character     = ? any one character of the input ? ;
 
+continuation  = "\", newline ;                             (* joins two lines *)
+
 
 (* ─── Notes ─────────────────────────────────────────────────────────────────
-   (a) Maximal munch: each token consumes as many characters as possible.
-   (b) Lexical priority where a prefix is shared: "--" followed by a name is a
-       longOption; a bare "--" (no following name character) is the terminator;
-       "-" followed by letters/digits is a shortOption. Comparison operators are
+   (a) Maximal munch: each token consumes as many characters as possible, so a
+       token in a word's shape that a word character, a quote or a backslash
+       follows is part of a longer word: '2file', '-x.txt', 'a==b', '"a"b'.
+       A string is a quoted part alone.
+   (b) Lexical priority where a prefix and a length are shared: "--" followed
+       by a name is a longOption; a bare "--" (no following name character)
+       is the terminator; a word that is wholly a number is a number, so '-1'
+       and '-1.5' are numbers; "-" followed by letters/digits is a
+       shortOption; a quoted part alone is a string. Comparison operators are
        matched longest-first, so "<=" is one token, never "<" then "=".
    (c) Reserved words: 'and', 'or', 'not' are operators only as whole words;
-       by (a), 'android' is a single word.
+       by (a), 'android' and 'and=1' are single words.
    (d) Comparisons are non-associative -- 'compare' admits at most one operator
        -- so 'a == b == c' is a syntax error; parenthesize to nest.
    (e) '|' (pipeline) binds looser than 'or'/'and', so 'a and b | c' groups as
-       '(a and b) | c'. The full precedence order is the cascade above, tabulated
-       (with associativity and fixity) as the operator_signature in djinterp.peg.
-   (f) A line comment runs from '#' to end of line and is skipped together with
-       whitespace; this is a lexer convention, omitted from the grammar.
+       '(a and b) | c'. The full precedence order is the cascade above,
+       tabulated (with associativity and fixity) in djinterp.peg.
+   (f) Quoting, as sh quotes: single-quoted characters are themselves; in
+       double quotes, by (a), a backslash before a quote or a backslash is an
+       escape, and any other backslash is itself; outside quotes, a backslash
+       keeps the next character. A word's parts join: '--name="a b"c' is one
+       word, whose value is '--name=a bc'.
+   (g) Newlines: where a pipeline has just ended, a newline separates, as ';'
+       does; after an operator, an opening bracket or brace, or another
+       newline, it is a blank (nl). A separator may end a sequence. Blanks, a
+       line comment from '#' to the end of the line, and a continuation
+       (a backslash before a newline) are skipped between tokens -- never
+       inside one, so 'C#' and 'a#b' are words; this is a lexer convention,
+       omitted from the grammar.
+   (h) A block is a sequence a command takes as one argument. A djin may
+       declare a command's block raw: its text, to the '}' that closes it, is
+       one token, read by the djin's own dialect, and this grammar does not
+       apply inside it.
    ─────────────────────────────────────────────────────────────────────────── *)

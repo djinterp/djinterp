@@ -19,8 +19,8 @@
 *                                                            revised: 2026.10.02
 *******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PARSERS_CPP_CPP_PARSER_HPP
-#define DJINTERP_PARSE_PARSERS_CPP_CPP_PARSER_HPP 1
+#ifndef DJINTERP_PARSE_PARSERS_CPP_PARSER_HPP
+#define DJINTERP_PARSE_PARSERS_CPP_PARSER_HPP 1
 
 // D_INTERNAL_PARSE_LIBCLANG
 //   detection: defined when libclang's C API, <clang-c/Index.h>, can be
@@ -114,4 +114,4 @@ NS_END  // djinterp
 
 #endif  // D_INTERNAL_PARSE_LIBCLANG
 
-#endif  // DJINTERP_PARSE_PARSERS_CPP_CPP_PARSER_HPP
+#endif  // DJINTERP_PARSE_PARSERS_CPP_PARSER_HPP

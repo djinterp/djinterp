@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/signature.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/signature.h"  // corresponding header
 // std
@@ -587,6 +587,12 @@ d_internal_expr_mixfix_problem(
            (!d_internal_expr_sig_op(_signature, m->rows_op)) ) )
     {
         return "a list's row operators are not defined";
+    }
+
+    // a hole's mode is one mode: a single bit, or 0 for the mode outside
+    if ( (m->hole_mode & (m->hole_mode - 1u)) != 0u )
+    {
+        return "a mixfix's hole mode is more than one mode";
     }
 
     // a transparent operator is a group: one hole, no lead, no tail, no rows;

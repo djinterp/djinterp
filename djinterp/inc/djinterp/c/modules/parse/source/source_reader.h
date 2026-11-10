@@ -43,8 +43,8 @@ TABLE OF CONTENTS
     4.  Position
 */
 
-#ifndef DJINTERP_C_PARSE_SOURCE_SOURCE_READER_H
-#define DJINTERP_C_PARSE_SOURCE_SOURCE_READER_H 1
+#ifndef DJINTERP_C_PARSE_SOURCE_READER_H
+#define DJINTERP_C_PARSE_SOURCE_READER_H 1
 
 // std
 #include <stdbool.h>  // bool
@@ -256,4 +256,4 @@ uint32_t d_reader_column(
 );
 
 
-#endif  // DJINTERP_C_PARSE_SOURCE_SOURCE_READER_H
+#endif  // DJINTERP_C_PARSE_SOURCE_READER_H

@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/signature.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -180,7 +180,9 @@ TABLE OF CONTENTS
 // other hole holds one operand. `tail`: an operand follows the last part, at
 // the operator's precedence. Where rows are seen, each row is a `row_op`
 // node and the whole a `rows_op` node. The spellings are what the renderer
-// writes for each part and separator; none is copied.
+// writes for each part and separator; none is copied. `hole_mode` is the
+// parse mode its holes are read in, one bit, 0 for the mode outside it; the
+// mode outside comes back at its last part, so a tail is read in it (F18).
 struct dj_parse_expr_mixfix
 {
     uint8_t     lead;
@@ -197,6 +199,7 @@ struct dj_parse_expr_mixfix
     uint32_t    rows_op;
     uint16_t    min_items;
     uint16_t    max_items;
+    uint32_t    hole_mode;
 };
 
 // 2.1.2

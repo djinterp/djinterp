@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/term.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -269,11 +269,38 @@ uint32_t d_parse_expr_term_hole(struct dj_parse_expr_term* _term,
  * @param[in]     _node  the subtree's root in `_from`.
  * @return the copy's root in `_to`, or D_PARSE_EXPR_NO_NODE when `_node` is
  *         not in `_from` or `_to` is full and cannot grow.
- * @note A node a chain shares is copied once and shared in the copy too.
+ * @note A node a chain shares is copied once and shared in the copy too. Its
+ *       scratch is from the heap: a build without the heap copies with
+ *       d_parse_expr_term_copy_with.
  */
 uint32_t d_parse_expr_term_copy(struct dj_parse_expr_term*       _to,
                                 const struct dj_parse_expr_term* _from,
                                 uint32_t                         _node);
+/**
+ * @brief Copies as d_parse_expr_term_copy does, in the caller's scratch.
+ *
+ * @param[in,out] _to       the term to copy into.
+ * @param[in]     _from     the term to copy from.
+ * @param[in]     _node     the subtree's root in `_from`.
+ * @param[in]     _scratch  d_parse_expr_term_copy_scratch(_node) bytes or
+ *                          more, aligned as malloc's.
+ * @param[in]     _size     its size in bytes.
+ * @return the copy's root in `_to`, or D_PARSE_EXPR_NO_NODE where `_node` is
+ *         not in `_from`, the scratch is too small, or `_to` is full.
+ */
+uint32_t d_parse_expr_term_copy_with(struct dj_parse_expr_term*       _to,
+                                     const struct dj_parse_expr_term* _from,
+                                     uint32_t                         _node,
+                                     void*                            _scratch,
+                                     size_t                           _size);
+/**
+ * @brief The scratch d_parse_expr_term_copy_with needs to copy a subtree.
+ *
+ * @param[in] _node  the subtree's root.
+ * @return the bytes: one index and one byte per node up to the root; 0 where
+ *         they do not fit a size_t.
+ */
+size_t   d_parse_expr_term_copy_scratch(uint32_t _node);
 
 // 2.3    Observing
 //------------------------------------------------------------------------------

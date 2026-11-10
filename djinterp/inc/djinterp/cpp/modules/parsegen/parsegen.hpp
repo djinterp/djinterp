@@ -14,8 +14,8 @@
 *                                                            revised: 2026.10.04
 *******************************************************************************/
 
-#ifndef DJINTERP_PARSEGEN_PARSEGEN_HPP
-#define DJINTERP_PARSEGEN_PARSEGEN_HPP 1
+#ifndef DJINTERP_PARSEGEN_HPP
+#define DJINTERP_PARSEGEN_HPP 1
 
 // djinterp
 #include "../../djinterp.hpp"  // framework root
@@ -33,4 +33,4 @@
 #endif  // NS_PARSEGEN
 
 
-#endif  // DJINTERP_PARSEGEN_PARSEGEN_HPP
+#endif  // DJINTERP_PARSEGEN_HPP

@@ -26,7 +26,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/parse.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // corresponding header
 // std
@@ -65,7 +65,8 @@
 // operands begin (a lead's or a left operand's included); `part` the next
 // part a mixfix awaits; `items` the items its list has finished; `row_base`
 // where its current row began; `links` where a chain's links begin; `offset`
-// where its node's span will begin; `token` the operator's token's span.
+// where its node's span will begin; `token` the operator's token's span;
+// `outer_mode` a mixfix's mode outside it, which its last part restores.
 struct dj_internal_expr_frame
 {
     const struct dj_parse_expr_op* op;
@@ -81,6 +82,7 @@ struct dj_internal_expr_frame
     uint32_t                       offset;
     uint32_t                       token_offset;
     uint32_t                       token_length;
+    uint32_t                       outer_mode;
 };
 
 // dj_internal_expr_link
@@ -96,7 +98,14 @@ struct dj_internal_expr_link
 // 1.2    The parser
 //------------------------------------------------------------------------------
 // dj_parse_expr_parser
-//   struct: a parse in progress. The hook interface takes it opaquely.
+//   struct: a parse in progress. The hook interface takes it opaquely. A
+// sub-parse runs on the same stacks above a barrier: `frame_floor` is the
+// first frame it owns, `floor` the precedence an operator must bind tighter
+// than at its top, `subs` how many are running; `sub_done` ends one at a
+// token it cannot go on with, and `sub_ran` says a hook ran one.
+// `current_mode` is the mode the token at hand was read in. Each stack's
+// `home` is where it began, its own room or the caller's scratch: never the
+// heap's, so never freed or grown in place.
 struct dj_parse_expr_parser
 {
     const struct dj_parse_expr_signature* sig;
@@ -120,6 +129,7 @@ struct dj_parse_expr_parser
     dj_parse_expr_check_fn                check;
     void*                                 check_ctx;
     struct dj_parse_expr_token            current;
+    uint32_t                              current_mode;
     bool                                  has_current;
     struct dj_parse_expr_token            peeked;
     uint32_t                              peeked_mode;
@@ -135,6 +145,18 @@ struct dj_parse_expr_parser
     struct dj_internal_expr_link*         links;
     uint32_t                              link_count;
     uint32_t                              link_capacity;
+    const void*                           home_nodes;
+    const void*                           home_starts;
+    const void*                           home_ends;
+    const void*                           home_frames;
+    const void*                           home_links;
+    void*                                 scratch;
+    size_t                                scratch_size;
+    uint32_t                              frame_floor;
+    int32_t                               floor;
+    uint32_t                              subs;
+    bool                                  sub_done;
+    bool                                  sub_ran;
     uint32_t                              local_nodes[
                                               D_INTERNAL_EXPR_LOCAL_OPERANDS];
     uint32_t                              local_starts[
@@ -537,13 +559,13 @@ d_internal_expr_push_operand(
     void*    starts      = _p->starts;
     void*    ends        = _p->ends;
     bool     room        = (
-        (d_internal_expr_stack_room(&nodes, _p->local_nodes,
+        (d_internal_expr_stack_room(&nodes, _p->home_nodes,
                                     _p->operand_count, &nodes_room,
                                     sizeof(uint32_t))) &&
-        (d_internal_expr_stack_room(&starts, _p->local_starts,
+        (d_internal_expr_stack_room(&starts, _p->home_starts,
                                     _p->operand_count, &starts_room,
                                     sizeof(uint32_t))) &&
-        (d_internal_expr_stack_room(&ends, _p->local_ends,
+        (d_internal_expr_stack_room(&ends, _p->home_ends,
                                     _p->operand_count, &ends_room,
                                     sizeof(uint32_t))) );
 
@@ -599,7 +621,7 @@ d_internal_expr_push_frame(
 
     // make room, or stop
     if (!d_internal_expr_stack_room(&data,
-                                    _p->local_frames,
+                                    _p->home_frames,
                                     _p->frame_count,
                                     &_p->frame_capacity,
                                     sizeof(struct dj_internal_expr_frame)))
@@ -611,6 +633,17 @@ d_internal_expr_push_frame(
 
     _p->frames                    = (struct dj_internal_expr_frame*)data;
     _p->frames[_p->frame_count++] = *_frame;
+
+    // a mixfix's holes are read in its mode, until its last part (F18)
+    if (_frame->kind == D_INTERNAL_EXPR_FRAME_MIXFIX)
+    {
+        _p->frames[_p->frame_count - 1u].outer_mode = _p->mode;
+
+        if (_frame->op->mixfix.hole_mode != 0u)
+        {
+            _p->mode = _frame->op->mixfix.hole_mode;
+        }
+    }
 
     return true;
 }
@@ -636,7 +669,7 @@ d_internal_expr_push_link(
 
     // make room, or stop
     if (!d_internal_expr_stack_room(&data,
-                                    _p->local_links,
+                                    _p->home_links,
                                     _p->link_count,
                                     &_p->link_capacity,
                                     sizeof(struct dj_internal_expr_link)))
@@ -677,14 +710,16 @@ d_internal_expr_current(
 
     if (_p->has_peeked)
     {
-        _p->current     = _p->peeked;
-        _p->has_current = true;
-        _p->has_peeked  = false;
+        _p->current      = _p->peeked;
+        _p->current_mode = _p->peeked_mode;
+        _p->has_current  = true;
+        _p->has_peeked   = false;
 
         return &_p->current;
     }
 
     memset(&_p->current, 0, sizeof(_p->current));
+    _p->current_mode = _p->mode;
 
     const int got = _p->source->next(_p->source->ctx,
                                      _position,
@@ -1185,7 +1220,7 @@ d_internal_expr_reduce_for(
     const struct dj_parse_expr_token* _token
 )
 {
-    while ( (_p->frame_count > 0u) &&
+    while ( (_p->frame_count > _p->frame_floor) &&
             (!_p->stopped) )
     {
         const struct dj_internal_expr_frame* f =
@@ -1245,7 +1280,7 @@ d_internal_expr_innermost(
     const struct dj_parse_expr_parser* _p
 )
 {
-    for (uint32_t i = _p->frame_count; i > 0u; --i)
+    for (uint32_t i = _p->frame_count; i > _p->frame_floor; --i)
     {
         if (_p->frames[i - 1u].kind == D_INTERNAL_EXPR_FRAME_MIXFIX)
         {
@@ -1392,6 +1427,7 @@ d_internal_expr_close_mixfix(
     const struct dj_parse_expr_mixfix* m = &f.op->mixfix;
 
     --_p->frame_count;
+    _p->mode = f.outer_mode;
 
     // a transparent operator is a group of one item; a list of others is its
     // node
@@ -1491,6 +1527,7 @@ d_internal_expr_next_part(
         }
 
         f->kind      = D_INTERNAL_EXPR_FRAME_TAIL;
+        _p->mode     = f->outer_mode;
         _p->position = D_PARSE_EXPR_OPERAND;
 
         return;
@@ -1640,6 +1677,29 @@ d_internal_expr_is_structural(
 
 
 /**
+ * @brief Whether the parser holds a token, peeked or at hand, that was read
+ *        in another mode than one: it cannot be read again in that one. The
+ *        end is the end in every mode.
+ *
+ * @param[in] _p     the parser.
+ * @param[in] _mode  the mode.
+ * @return true where it does.
+ */
+static bool
+d_internal_expr_left_in(
+    const struct dj_parse_expr_parser* _p,
+    uint32_t                           _mode
+)
+{
+    return ( ( (_p->has_peeked)                              &&
+               (_p->peeked_mode != _mode)                    &&
+               (_p->peeked.cls != D_PARSE_EXPR_CLASS_END) )  ||
+             ( (_p->has_current)                             &&
+               (_p->current_mode != _mode)                   &&
+               (_p->current.cls != D_PARSE_EXPR_CLASS_END) ) );
+}
+
+/**
  * @brief Runs a custom role's hook.
  *
  * @param[in,out] _p      the parser.
@@ -1658,15 +1718,22 @@ d_internal_expr_run_custom(
 {
     const struct dj_parse_expr_token token = _p->current;
     uint32_t                         out   = D_PARSE_EXPR_NO_NODE;
+    const bool                       ran   = _p->sub_ran;
 
     d_internal_expr_advance(_p);
+    _p->sub_ran = false;
 
     const int built = _role->custom(_role->custom_ctx, _p, &token, _left,
                                     &out);
+    const bool subparsed = _p->sub_ran;
 
-    // a token the hook read in another mode, and left, cannot be read again
-    if ( (_p->has_peeked) &&
-         (_p->peeked_mode != _p->mode) &&
+    _p->sub_ran = ran;
+
+    // a token the hook, or its sub-parse, read in another mode and left
+    // cannot be read again (the end is the end in any); nor can a hook that
+    // read on decline
+    if ( ( (d_internal_expr_left_in(_p, _p->mode))                     ||
+           ( (subparsed) && (built == 0) ) )                            &&
          (!_p->stopped) )
     {
         d_internal_expr_fatal(_p,
@@ -1674,7 +1741,8 @@ d_internal_expr_run_custom(
                               (uint16_t)D_PARSE_DIAG_BAD_ARGUMENT,
                               _p->peeked.offset,
                               "a custom role left a token it read in "
-                              "another mode");
+                              "another mode, or declined after a "
+                              "sub-parse");
 
         return -1;
     }
@@ -1682,8 +1750,9 @@ d_internal_expr_run_custom(
     // declined: the token is read again as if the role were not there
     if (built == 0)
     {
-        _p->current     = token;
-        _p->has_current = true;
+        _p->current      = token;
+        _p->current_mode = _p->mode;
+        _p->has_current  = true;
 
         return 0;
     }
@@ -1789,8 +1858,9 @@ d_internal_expr_closes_empty(
     const struct dj_parse_expr_token*  _token
 )
 {
-    // the top frame is the list itself, nothing read in it yet
-    if (_p->frame_count == 0u)
+    // the top frame is the list itself, nothing read in it yet, and this
+    // parse's, not an enclosing one's
+    if (_p->frame_count <= _p->frame_floor)
     {
         return false;
     }
@@ -1806,6 +1876,43 @@ d_internal_expr_closes_empty(
              ((f->flags & D_INTERNAL_EXPR_FRAME_ROWS) == 0u)           &&
              (_p->operand_count == f->row_base)                        &&
              (_token->cls == m->part[1]) );
+}
+
+/**
+ * @brief Whether the expression ends, without an error, at a token it cannot
+ *        go on with: by the stop option (F17), or in a sub-parse.
+ *
+ * @param[in] _p  the parser.
+ * @return true where it does.
+ */
+static bool
+d_internal_expr_stops(
+    const struct dj_parse_expr_parser* _p
+)
+{
+    return ( ((_p->flags & D_PARSE_EXPR_OPTION_STOP) != 0u) ||
+             (_p->subs > 0u) );
+}
+
+/**
+ * @brief Whether a sub-parse's floor holds an operator back: at the
+ *        sub-parse's top, with no bracket of its own open, an operator that
+ *        binds no tighter than the floor ends it.
+ *
+ * @param[in] _p   the parser.
+ * @param[in] _op  the operator.
+ * @return true where it does.
+ */
+static bool
+d_internal_expr_held(
+    const struct dj_parse_expr_parser* _p,
+    const struct dj_parse_expr_op*     _op
+)
+{
+    return ( (_p->subs > 0u)                                       &&
+             (_op)                                                 &&
+             (_op->precedence <= _p->floor)                        &&
+             (d_internal_expr_innermost(_p) == D_PARSE_EXPR_NO_NODE) );
 }
 
 /**
@@ -1942,7 +2049,7 @@ d_internal_expr_step_operand(
     // the expression stops, a token with no role in either position
     if ( (_token->cls == D_PARSE_EXPR_CLASS_END)                    ||
          (d_internal_expr_is_structural(_p, _token->cls, false))    ||
-         ( ((_p->flags & D_PARSE_EXPR_OPTION_STOP) != 0u) &&
+         ( (d_internal_expr_stops(_p)) &&
            (!d_internal_expr_has_role(_p, _token,
                                       D_PARSE_EXPR_OPERATOR)) ) )
     {
@@ -2176,10 +2283,18 @@ d_internal_expr_operator_roles(
             continue;
         }
 
+        const struct dj_parse_expr_op* op =
+            d_parse_expr_find_op(_p->sig, role->op);
+
+        // an operator a sub-parse's floor holds back ends the sub-parse
+        if (d_internal_expr_held(_p, op))
+        {
+            continue;
+        }
+
         if (role->kind == D_PARSE_EXPR_ROLE_CUSTOM)
         {
-            const struct dj_parse_expr_op* bound =
-                d_parse_expr_find_op(_p->sig, role->op);
+            const struct dj_parse_expr_op* bound = op;
 
             // a role that names its operator is given the operand that
             // operator would take: `$i++` hands `++` the `$i`
@@ -2199,9 +2314,6 @@ d_internal_expr_operator_roles(
 
             continue;
         }
-
-        const struct dj_parse_expr_op* op =
-            d_parse_expr_find_op(_p->sig, role->op);
 
         if (op->form == D_PARSE_EXPR_FORM_INFIX)
         {
@@ -2260,8 +2372,10 @@ d_internal_expr_juxtapose(
                      ((op->flags & D_PARSE_EXPR_OP_WORD) == 0u) ) );
     }
 
-    // and the language must agree
-    if ( (!begins) ||
+    // and the language must agree, and a sub-parse's floor allow it
+    if ( (!begins)                                                        ||
+         (d_internal_expr_held(_p, d_parse_expr_find_op(_p->sig,
+                                                        _p->sig->juxtapose))) ||
          ( (_p->sig->may_juxtapose) &&
            (!_p->sig->may_juxtapose(_p->sig->juxtapose_ctx, _p->term,
                                     _p->nodes[_p->operand_count - 1u],
@@ -2343,7 +2457,7 @@ d_internal_expr_outer_part(
     uint32_t                           _class
 )
 {
-    for (uint32_t i = _m; i > 0u; --i)
+    for (uint32_t i = _m; i > _p->frame_floor; --i)
     {
         const struct dj_internal_expr_frame* f = &_p->frames[i - 1u];
 
@@ -2373,7 +2487,7 @@ d_internal_expr_finish(
     bool reported = false;
 
     while ( (!_p->stopped) &&
-            (_p->frame_count > 0u) )
+            (_p->frame_count > _p->frame_floor) )
     {
         const uint32_t m = d_internal_expr_innermost(_p);
 
@@ -2412,7 +2526,15 @@ d_internal_expr_finish(
         }
     }
 
-    _p->stopped = true;
+    // a sub-parse ends; the parse itself stops
+    if (_p->subs > 0u)
+    {
+        _p->sub_done = true;
+    }
+    else
+    {
+        _p->stopped = true;
+    }
 
     return;
 }
@@ -2491,7 +2613,7 @@ d_internal_expr_no_role(
     // the end; or, where the expression stops, a token it cannot go on with,
     // unless it closes something of another kind inside a bracket
     if ( (_token->cls == D_PARSE_EXPR_CLASS_END)                    ||
-         ( ((_p->flags & D_PARSE_EXPR_OPTION_STOP) != 0u) &&
+         ( (d_internal_expr_stops(_p)) &&
            ( (_m == D_PARSE_EXPR_NO_NODE) || (!closes) ) ) )
     {
         d_internal_expr_finish(_p, _token);
@@ -2622,6 +2744,65 @@ d_internal_expr_settings(
     _p->text_length = (o->text) ? o->text_length : 0u;
     _p->check       = o->check;
     _p->check_ctx   = o->check_ctx;
+    _p->scratch     = o->scratch;
+    _p->scratch_size = (o->scratch) ? o->scratch_size : 0u;
+
+    return;
+}
+
+/**
+ * @brief The bytes one unit of scratch holds: two operands, two open
+ *        operators and a chain's link.
+ *
+ * @return the unit's size.
+ */
+static size_t
+d_internal_expr_scratch_unit(void)
+{
+    return ( (2u * 3u * sizeof(uint32_t))                 +
+             (2u * sizeof(struct dj_internal_expr_frame)) +
+             sizeof(struct dj_internal_expr_link) );
+}
+
+/**
+ * @brief Moves the stacks into the caller's scratch, cut into whole units:
+ *        the open operators first, then the links, then the operands' three
+ *        arrays, each array's stride a multiple of the one before's
+ *        alignment. A scratch that holds less than the own rooms is left.
+ *
+ * @param[in,out] _p  the parser, its stacks in their own rooms.
+ */
+static void
+d_internal_expr_scratch_rooms(
+    struct dj_parse_expr_parser* _p
+)
+{
+    const size_t units = (_p->scratch) ? (_p->scratch_size /
+                                          d_internal_expr_scratch_unit())
+                                       : 0u;
+
+    // enough for more than the rooms the parser has: as many links as it
+    // keeps, and twice that of the rest
+    if ( (units < (size_t)D_INTERNAL_EXPR_LOCAL_FRAMES)  ||
+         (units > (size_t)0x7FFFFFFFu) )
+    {
+        return;
+    }
+
+    unsigned char* at = (unsigned char*)_p->scratch;
+
+    _p->frames           = (struct dj_internal_expr_frame*)(void*)at;
+    at                  += 2u * units * sizeof(struct dj_internal_expr_frame);
+    _p->links            = (struct dj_internal_expr_link*)(void*)at;
+    at                  += units * sizeof(struct dj_internal_expr_link);
+    _p->nodes            = (uint32_t*)(void*)at;
+    at                  += 2u * units * sizeof(uint32_t);
+    _p->starts           = (uint32_t*)(void*)at;
+    at                  += 2u * units * sizeof(uint32_t);
+    _p->ends             = (uint32_t*)(void*)at;
+    _p->operand_capacity = (uint32_t)(2u * units);
+    _p->frame_capacity   = (uint32_t)(2u * units);
+    _p->link_capacity    = (uint32_t)units;
 
     return;
 }
@@ -2648,6 +2829,15 @@ d_internal_expr_rooms(
     _p->links            = _p->local_links;
     _p->link_capacity    = D_INTERNAL_EXPR_LOCAL_LINKS;
 
+    // the caller's scratch, where it holds more than the own rooms
+    d_internal_expr_scratch_rooms(_p);
+
+    _p->home_nodes       = _p->nodes;
+    _p->home_starts      = _p->starts;
+    _p->home_ends        = _p->ends;
+    _p->home_frames      = _p->frames;
+    _p->home_links       = _p->links;
+
     return;
 }
 
@@ -2663,27 +2853,27 @@ d_internal_expr_release_stacks(
 {
 #if (D_INTERNAL_PARSE_EXPR_HEAP == 1)
     // each stack that left the parser's own array
-    if (_p->nodes != _p->local_nodes)
+    if ((const void*)_p->nodes != _p->home_nodes)
     {
         free(_p->nodes);
     }
 
-    if (_p->starts != _p->local_starts)
+    if ((const void*)_p->starts != _p->home_starts)
     {
         free(_p->starts);
     }
 
-    if (_p->ends != _p->local_ends)
+    if ((const void*)_p->ends != _p->home_ends)
     {
         free(_p->ends);
     }
 
-    if (_p->frames != _p->local_frames)
+    if ((const void*)_p->frames != _p->home_frames)
     {
         free(_p->frames);
     }
 
-    if (_p->links != _p->local_links)
+    if ((const void*)_p->links != _p->home_links)
     {
         free(_p->links);
     }
@@ -2692,6 +2882,70 @@ d_internal_expr_release_stacks(
 #endif  // D_INTERNAL_PARSE_EXPR_HEAP
 
     return;
+}
+
+/**
+ * @brief Reads the token at hand in the position the parse is in, until the
+ *        end has closed everything (a sub-parse's: until it cannot go on), or
+ *        the parse is stopped.
+ *
+ * @param[in,out] _p  the parser.
+ */
+static void
+d_internal_expr_run(
+    struct dj_parse_expr_parser* _p
+)
+{
+    while ( (!_p->stopped) &&
+            (!_p->sub_done) )
+    {
+        const struct dj_parse_expr_token token =
+            *d_internal_expr_current(_p, _p->position);
+
+        if (_p->stopped)
+        {
+            break;
+        }
+
+        if (_p->position == D_PARSE_EXPR_OPERAND)
+        {
+            d_internal_expr_step_operand(_p, &token);
+        }
+        else
+        {
+            d_internal_expr_step_operator(_p, &token);
+        }
+    }
+
+    return;
+}
+
+/*
+d_parse_expr_scratch_size
+  Units of two operands, two open operators and a link: a parse of `_tokens`
+tokens holds at most one operand and one open operator per token, a hole for
+each missing operand, and a link per token, with two units to spare.
+*/
+size_t
+d_parse_expr_scratch_size(
+    uint32_t _tokens
+)
+{
+    size_t units = 0u;
+    size_t bytes = 0u;
+
+    // a size that does not fit is none
+    if ( (d_ckd_add(&units, (size_t)_tokens, 2u))                         ||
+         (d_ckd_mul(&bytes, units, d_internal_expr_scratch_unit())) )
+    {
+        return 0u;
+    }
+
+    // and never less than the rooms a scratch must pass to be used
+    return (units < (size_t)D_INTERNAL_EXPR_LOCAL_FRAMES)
+           ? (size_t)D_INTERNAL_EXPR_LOCAL_FRAMES *
+             d_internal_expr_scratch_unit()
+           : bytes;
 }
 
 /*
@@ -2751,25 +3005,8 @@ d_parse_expr_parse(
 
     const uint32_t floor = p.operand_count;
 
-    while (!p.stopped)
-    {
-        const struct dj_parse_expr_token token =
-            *d_internal_expr_current(&p, p.position);
-
-        if (p.stopped)
-        {
-            break;
-        }
-
-        if (p.position == D_PARSE_EXPR_OPERAND)
-        {
-            d_internal_expr_step_operand(&p, &token);
-        }
-        else
-        {
-            d_internal_expr_step_operator(&p, &token);
-        }
-    }
+    p.floor = D_PARSE_EXPR_FLOOR_NONE;
+    d_internal_expr_run(&p);
 
     // one operand at the floor is the whole expression
     if ( (!p.fatal) &&
@@ -2820,9 +3057,17 @@ d_parse_expr_peek(
 
     const uint32_t mode = (_mode != 0u) ? _mode : _parser->mode;
 
+    // the token a sub-parse ended at is the next one, read already
+    if (_parser->has_current)
+    {
+        _parser->peeked      = _parser->current;
+        _parser->peeked_mode = _parser->current_mode;
+        _parser->has_peeked  = true;
+        _parser->has_current = false;
+    }
+
     // a token read in one mode is not the next in another
-    if ( (_parser->has_peeked) &&
-         (_parser->peeked_mode != mode) )
+    if (d_internal_expr_left_in(_parser, mode))
     {
         return -1;
     }
@@ -2882,6 +3127,83 @@ d_parse_expr_take(
     }
 
     return got;
+}
+
+/*
+d_parse_expr_sub
+  A sub-parse is the parse's own loop over the same stacks and term, above a
+barrier: the frames below it are the enclosing parse's, and the reductions,
+the finish and the search for a part stop there. It ends where the stop
+option would, at a token it cannot go on with, or at an operator its floor
+holds back; that token stays read, for the hook to peek. Its mode is set for
+its length, and its brackets scope theirs (F18).
+*/
+int
+d_parse_expr_sub(
+    struct dj_parse_expr_parser* _parser,
+    int32_t                      _floor,
+    uint32_t                     _mode,
+    uint32_t*                    _node
+)
+{
+    // a parser going on, somewhere for the node, and one mode
+    if ( (!_parser)                         ||
+         (!_node)                           ||
+         (_parser->stopped)                 ||
+         ((_mode & (_mode - 1u)) != 0u) )
+    {
+        return -1;
+    }
+
+    struct dj_parse_expr_parser* const p     = _parser;
+    const uint32_t                     mode  = (_mode != 0u) ? _mode : p->mode;
+    const uint32_t                     base  = p->operand_count;
+    const uint32_t                     saved_frames   = p->frame_floor;
+    const int32_t                      saved_floor    = p->floor;
+    const uint32_t                     saved_mode     = p->mode;
+    const uint8_t                      saved_position = p->position;
+
+    // a token the hook left in another mode cannot be read in this one
+    if (d_internal_expr_left_in(p, mode))
+    {
+        d_internal_expr_fatal(p,
+                              (uint16_t)D_PARSE_DIAG_DOMAIN_CORE,
+                              (uint16_t)D_PARSE_DIAG_BAD_ARGUMENT,
+                              (p->has_peeked) ? p->peeked.offset
+                                              : p->current.offset,
+                              "a sub-parse was asked for in a mode other "
+                              "than its next token's");
+
+        return -1;
+    }
+
+    p->frame_floor = p->frame_count;
+    p->floor       = _floor;
+    p->mode        = mode;
+    p->position    = D_PARSE_EXPR_OPERAND;
+    p->sub_ran     = true;
+    ++p->subs;
+
+    d_internal_expr_run(p);
+
+    --p->subs;
+    p->sub_done    = false;
+    p->frame_floor = saved_frames;
+    p->floor       = saved_floor;
+    p->mode        = saved_mode;
+    p->position    = saved_position;
+
+    // one operand above the barrier is the expression; it is the hook's now
+    if ( (p->stopped)                    ||
+         (p->operand_count != base + 1u) )
+    {
+        return -1;
+    }
+
+    *_node           = p->nodes[base];
+    p->operand_count = base;
+
+    return 1;
 }
 
 /*

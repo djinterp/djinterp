@@ -51,8 +51,8 @@ TABLE OF CONTENTS
          1.  dj_parsegen_diag_domain
 */
 
-#ifndef DJINTERP_C_PARSEGEN_PARSEGEN_H
-#define DJINTERP_C_PARSEGEN_PARSEGEN_H 1
+#ifndef DJINTERP_C_PARSEGEN_H
+#define DJINTERP_C_PARSEGEN_H 1
 
 // djinterp
 #include "../../djinterp.h"                    // framework root
@@ -109,4 +109,4 @@ enum dj_parsegen_diag_domain
 };
 
 
-#endif  // DJINTERP_C_PARSEGEN_PARSEGEN_H
+#endif  // DJINTERP_C_PARSEGEN_H

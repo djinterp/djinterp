@@ -94,8 +94,8 @@ TABLE OF CONTENTS
          2.  d_arg_parser_clear_definition_error
 */
 
-#ifndef DJINTERP_C_PARSE_CLI_ARG_PARSER_ARG_PARSER_H
-#define DJINTERP_C_PARSE_CLI_ARG_PARSER_ARG_PARSER_H 1
+#ifndef DJINTERP_C_PARSE_CLI_ARG_PARSER_H
+#define DJINTERP_C_PARSE_CLI_ARG_PARSER_H 1
 
 // std
 #include <stddef.h>                          // size_t, wchar_t
@@ -925,4 +925,4 @@ void d_arg_parser_clear_definition_error(
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_PARSE_CLI_ARG_PARSER_ARG_PARSER_H
+#endif  // DJINTERP_C_PARSE_CLI_ARG_PARSER_H

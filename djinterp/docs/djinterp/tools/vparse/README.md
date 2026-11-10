@@ -16,9 +16,9 @@
 > | `build/cmake/djinterp/tools/cli/DjinterpCli.cmake` | `build/cmake/config/djinterp/tools/cli/DjinterpCli.cmake` |
 > | `src/djinterp/parse/cli/arg_parser/c/` | `src/djinterp/c/modules/parse/cli/arg_parser/` |
 > | `inc/`, `src/`, `tests/djinterp/parsegen/vparse` | the same under `djinterp/cpp/modules/parsegen/vparse` |
+> | `inc/djinterp/parsegen/vparse/vparse-AGENTS.md` | `docs/djinterp/tools/vparse/vparse-AGENTS.md`, beside this file (restored 2026-11-11, with a table of its own) |
 >
-> `vparse-AGENTS.md`, the library's guide, and the kit's `README.md` and
-> `GRAMMAR.md` it points to are not in the tree either.
+> The kit's `README.md` and `GRAMMAR.md` it points to are not in the tree.
 
 vparse is djinterp's parser generator as a program and a window over one
 model.

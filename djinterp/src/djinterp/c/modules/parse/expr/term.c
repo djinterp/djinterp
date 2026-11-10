@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/term.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/term.h"  // corresponding header
 // std
@@ -463,7 +463,6 @@ d_parse_expr_term_apply(
                                        _length);
 }
 
-#if (D_INTERNAL_PARSE_EXPR_HEAP == 1)
 /**
  * @brief Marks the nodes a root reaches.
  *
@@ -575,13 +574,68 @@ d_internal_expr_copy_marked(
 
     return _map[_root];
 }
-#endif  // D_INTERNAL_PARSE_EXPR_HEAP
+
+/*
+d_parse_expr_term_copy_scratch
+  One index and one byte per node up to the root, the indices first, so that
+they are aligned where the scratch is.
+*/
+size_t
+d_parse_expr_term_copy_scratch(
+    uint32_t _node
+)
+{
+    size_t nodes = 0u;
+    size_t bytes = 0u;
+
+    // a size that does not fit is none
+    if ( (d_ckd_add(&nodes, (size_t)_node, 1u))                       ||
+         (d_ckd_mul(&bytes, nodes, sizeof(uint32_t) + 1u)) )
+    {
+        return 0u;
+    }
+
+    return bytes;
+}
+
+/*
+d_parse_expr_term_copy_with
+  Two passes, a mark from the root down and a copy from 0 up, each linear, in
+the caller's scratch: no allocation but the copy's own nodes.
+*/
+uint32_t
+d_parse_expr_term_copy_with(
+    struct dj_parse_expr_term*       _to,
+    const struct dj_parse_expr_term* _from,
+    uint32_t                         _node,
+    void*                            _scratch,
+    size_t                           _size
+)
+{
+    // both terms, a node of `_from`, and room for the marks and the map
+    if ( (!_to)                                                       ||
+         (!_from)                                                     ||
+         (_to == _from)                                               ||
+         (_node >= _from->node_count)                                 ||
+         (!_scratch)                                                  ||
+         (_size < d_parse_expr_term_copy_scratch(_node))              ||
+         (d_parse_expr_term_copy_scratch(_node) == 0u) )
+    {
+        return D_PARSE_EXPR_NO_NODE;
+    }
+
+    uint32_t*      map  = (uint32_t*)_scratch;
+    unsigned char* mark = (unsigned char*)(map + (size_t)_node + 1u);
+
+    d_internal_expr_mark_reached(_from, _node, mark);
+
+    return d_internal_expr_copy_marked(_to, _from, _node, mark, map);
+}
 
 /*
 d_parse_expr_term_copy
-  Two passes, a mark from the root down and a copy from 0 up, each linear. The
-scratch is one byte and one index per node up to the root, from the heap; a
-build without the heap copies nothing.
+  As d_parse_expr_term_copy_with, its scratch from the heap; a build without
+the heap copies nothing, and copies with d_parse_expr_term_copy_with.
 */
 uint32_t
 d_parse_expr_term_copy(

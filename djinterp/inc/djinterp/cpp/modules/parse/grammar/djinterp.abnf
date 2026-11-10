@@ -7,16 +7,20 @@
 ; choice with longest match; ABNF alternation (/) is UNORDERED and ABNF has
 ; neither a lookahead nor an exception operator.  As with the EBNF companion,
 ; the syntactic grammar is exact (its alternatives begin with disjoint token
-; kinds); three lexical decisions are conventions stated in the notes:
-;   (a) tokens are lexed by MAXIMAL MUNCH;
-;   (b) lexical priority follows djinterp.peg (long-option / terminator before
-;       short-option; comparison operators longest-first);
-;   (c) 'and' / 'or' / 'not' are reserved only as whole words.
+; kinds); four lexical decisions are conventions stated in the notes:
+;   (a) tokens are lexed by MAXIMAL MUNCH, which is also what ends a token in
+;       a word's shape where a word ends ('2file', '-x.txt', 'a==b' are words);
+;   (b) lexical priority, among tokens of one length, follows djinterp.peg
+;       (long-option / terminator before number before short-option; string
+;       before word; comparison operators longest-first);
+;   (c) 'and' / 'or' / 'not' are reserved only as whole words;
+;   (d) a newline is a token, read as a separator or as a blank by where it
+;       stands (note (g)).
 ; Character-set exclusions, which ABNF cannot write as a subtraction, are given
-; as explicit code-point ranges (the visible ASCII range minus the seven
+; as explicit code-point ranges (the visible ASCII range minus the nine
 ; metacharacters, plus the non-ASCII range).  All string terminals are
 ; case-sensitive (%s..., RFC 7405).  Precedence is the cascade below, tabulated
-; as the operator_signature in djinterp.peg.
+; as the signature in djinterp.peg.
 ;
 ; ALPHABET.  Terminals range over the input's characters (Unicode scalar
 ; values, in practice UTF-8).  Core rules ALPHA, DIGIT, DQUOTE, WSP, CRLF are
@@ -27,21 +31,24 @@
 ; --- Syntactic grammar (over tokens) ----------------------------------------
 ;     Selected by leading token kind, so the unordered / is exact here.
 
-program      = sequence
+program      = *nl [ sequence ]
 
-sequence     = pipeline *( ";" pipeline )                 ; ; weakest
+sequence     = pipeline *( separator *nl pipeline ) [ separator ] *nl
+                                                          ; ; weakest
+separator    = ";" / newline-token
+nl           = newline-token                ; a newline that is a blank
 
-pipeline     = or-expr *( "|" or-expr )                   ; | threads a value
+pipeline     = or-expr *( "|" *nl or-expr )               ; | threads a value
 
-or-expr      = and-expr *( %s"or" and-expr )
-and-expr     = not-expr *( %s"and" not-expr )
+or-expr      = and-expr *( %s"or" *nl and-expr )
+and-expr     = not-expr *( %s"and" *nl not-expr )
 
-not-expr     = %s"not" not-expr
+not-expr     = %s"not" *nl not-expr
              / compare
 
-compare      = primary [ compare-op primary ]             ; non-associative
+compare      = primary [ compare-op *nl primary ]         ; non-associative
 
-primary      = "(" sequence ")"
+primary      = "(" *nl sequence ")"
              / command
              / literal
 
@@ -50,9 +57,12 @@ command      = verb *argument
 argument     = long-option
              / terminator
              / short-option
+             / block
              / operand
 
-long-option  = "--" option-name [ "=" option-value ]
+block        = "{" *nl [ sequence ] "}"                   ; note (h)
+
+long-option  = "--" option-name [ "=" [ option-value ] ]
 terminator   = "--"                    ; only when not followed by a name char - note (b)
 short-option = "-" 1*short-char
 
@@ -65,52 +75,80 @@ compare-op   = "==" / "!=" / "=~" / "<=" / ">=" / "<" / ">"
 
 ; --- Lexical grammar (over characters) --------------------------------------
 
+newline-token = newline
+
 option-name   = 1*name-char
-option-value  = string / 1*value-char
-word          = 1*word-char
+option-value  = 1*word-part
+word          = 1*word-part
+word-part     = quoted / escaped / word-char
 
 number        = [ "-" ] 1*DIGIT [ "." 1*DIGIT ]
 
-string        = DQUOTE *dquote-char DQUOTE
+string        = quoted                                    ; alone - note (a)
+quoted        = DQUOTE *( dq-escape / dquote-char ) DQUOTE
               / "'"    *squote-char "'"
+dq-escape     = "\" ( DQUOTE / "\" )                      ; note (f)
+escaped       = "\" escaped-char                          ; outside quotes
 
 short-char    = ALPHA / DIGIT
 
-; word-char / name-char: any character except space, controls, and the seven
-; metacharacters  " ' ( ) ; = |  (excluded code points 22 27 28 29 3B 3D 7C),
-; plus any non-ASCII character.
-word-char     = %x21 / %x23-26 / %x2A-3A / %x3C / %x3E-7B / %x7D-7E / non-ascii
-name-char     = word-char
+; word-char: any character except space, controls, and the nine
+; metacharacters  " ' ( ) ; \ { | }  (excluded code points 22 27 28 29 3B 5C
+; 7B 7C 7D), plus any non-ASCII character; '=' and '#' are word characters.
+; name-char: a word-char other than '=' (3D).
+word-char     = %x21 / %x23-26 / %x2A-3A / %x3C-5B / %x5D-7A / %x7E / non-ascii
+name-char     = %x21 / %x23-26 / %x2A-3A / %x3C / %x3E-5B / %x5D-7A / %x7E
+              / non-ascii
 
-; value-char: an unquoted option value, running up to whitespace, a pipe, a
-; ';', or a bracket (excluded code points 28 29 3B 7C), plus non-ASCII.  Quotes
-; and '=' are permitted inside an unquoted value.
-value-char    = %x21-27 / %x2A-3A / %x3C-7B / %x7D-7E / non-ascii
-
-; a quoted value holds any character but its own delimiter (tab permitted)
-dquote-char   = %x09 / %x20-21 / %x23-7E / non-ascii       ; not %x22 (")
-squote-char   = %x09 / %x20-26 / %x28-7E / non-ascii       ; not %x27 (')
+; a quoted part holds any character but its own delimiter, newlines included;
+; in double quotes, a backslash before a quote or a backslash escapes it
+dquote-char   = %x09-0A / %x0D / %x20-21 / %x23-7E / non-ascii   ; not %x22 (")
+squote-char   = %x09-0A / %x0D / %x20-26 / %x28-7E / non-ascii   ; not %x27 (')
+escaped-char  = %x09 / %x20-7E / non-ascii                ; not a newline
 
 non-ascii     = %x80-10FFFF                                ; UTF-8 code points
 
-; trivia: whitespace and comments are skipped between tokens
-skip          = 1*( WSP / CRLF / comment )
+newline       = CRLF / %x0A / %x0D
+
+; trivia: blanks, comments and line continuations are skipped between tokens
+skip          = 1*( WSP / continuation / comment )
+continuation  = "\" newline                               ; joins two lines
 comment       = "#" *( %x09 / %x20-7E / non-ascii )        ; '#' to end of line
 
 
 ; --- Notes ------------------------------------------------------------------
-; (a) Maximal munch: each token consumes as many characters as possible.
-; (b) Lexical priority where a prefix is shared: "--" followed by a name char
-;     is a long-option; a bare "--" (no following name char) is the terminator;
-;     "-" followed by letters/digits is a short-option. Comparison operators are
-;     matched longest-first, so "<=" is one token, never "<" then "=".
-; (c) Reserved words: 'and', 'or', 'not' are operators only as whole words; by
-;     (a), 'android' is a single word.
+; (a) Maximal munch: each token consumes as many characters as possible, so a
+;     token in a word's shape that a word character, a quote or a backslash
+;     follows is not that token but part of a longer word: '2file', '-x.txt',
+;     'a==b', 'android', '"a"b'. A string is a quoted part alone.
+; (b) Lexical priority where a prefix is shared and the lengths are equal:
+;     "--" followed by a name is a long-option; a bare "--" (no following name
+;     char) is the terminator; a word that is wholly a number is a number, so
+;     '-1' and '-1.5' are numbers; "-" followed by letters/digits is a
+;     short-option; a quoted part alone is a string, not a word. Comparison
+;     operators are matched longest-first, so "<=" is one token, never "<"
+;     then "=".
+; (c) Reserved words: 'and', 'or', 'not' are operators only as whole words;
+;     by (a), 'android' and 'and=1' are single words.
 ; (d) Comparisons are non-associative -- 'compare' admits at most one operator
 ;     -- so 'a == b == c' is a syntax error; parenthesize to nest.
 ; (e) '|' (pipeline) binds looser than 'or'/'and', so 'a and b | c' groups as
 ;     '(a and b) | c'. The full precedence order (with associativity and fixity)
-;     is the operator_signature table in djinterp.peg.
-; (f) String terminals are case-sensitive; the %s prefix (RFC 7405) is shown on
+;     is the table in djinterp.peg.
+; (f) Quoting, as sh quotes: single-quoted characters are themselves; in double
+;     quotes, by (a), a backslash before a quote or a backslash is an escape,
+;     and any other backslash is itself; outside quotes, a backslash keeps the
+;     next character. A word's parts join: '--name="a b"c' is one word whose
+;     value is '--name=a bc'.
+; (g) Newlines: where a pipeline has just ended, a newline separates, as ';'
+;     does; after an operator, an opening bracket or brace, or another
+;     newline, it is a blank (nl). A separator may end a sequence. A backslash
+;     before a newline joins the lines. A comment begins only where a token
+;     could, never inside a word: 'C#' and 'a#b' are words.
+; (h) A block is a sequence a command takes as one argument. A djin may
+;     declare a command's block raw: its text, to the '}' that closes it, is
+;     one token, read by the djin's own dialect, and this grammar does not
+;     apply inside it.
+; (i) String terminals are case-sensitive; the %s prefix (RFC 7405) is shown on
 ;     the keywords and would apply equally to every literal here.
 ; ============================================================================
