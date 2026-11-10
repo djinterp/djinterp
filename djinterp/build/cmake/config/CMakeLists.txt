@@ -145,20 +145,48 @@ add_library(djinterp_c_runtime STATIC
 )
 
 # ---------------------------------------------------------------------------
-# Compression backends.  env_compress.c and the core/util compress/archive TUs
-# call into whatever codec libraries their headers detect (zlib, brotli, bzip2,
-# and optionally zstd/lz4/xz).  Link the ones present; skip silently if absent.
-# PUBLIC so every test exe that links djinterp_c_runtime inherits them.
+# Compression backends.  compress_common.c (in the runtime) and the
+# compress/archive TUs call every codec whose header env_compress.h detects
+# (zlib, bzip2, xz, zstd, lz4, brotli), so a header found without its library
+# would fail at link time.  Each library CMake finds is linked; for each one
+# it does not, the codec's knob in cfg_compress.h is set off, which that
+# header supports ("turning one OFF while it is installed").  Both are PUBLIC,
+# so every unit that links djinterp_c_runtime sees the same choice.
 find_package(ZLIB)
 if(ZLIB_FOUND)
     target_link_libraries(djinterp_c_runtime PUBLIC ZLIB::ZLIB)
+else()
+    target_compile_definitions(djinterp_c_runtime PUBLIC
+        D_CFG_COMPRESS_CODEC_DEFLATE=0)
 endif()
-foreach(_codec brotlienc brotlidec brotlicommon bz2 zstd lz4 lzma)
-    find_library(DJINTERP_CODEC_${_codec} ${_codec})
-    if(DJINTERP_CODEC_${_codec})
-        target_link_libraries(djinterp_c_runtime PUBLIC ${DJINTERP_CODEC_${_codec}})
+foreach(_codec bz2:BZIP2 lzma:LZMA zstd:ZSTD lz4:LZ4)
+    string(REPLACE ":" ";" _codec "${_codec}")
+    list(GET _codec 0 _lib)
+    list(GET _codec 1 _knob)
+    find_library(DJINTERP_CODEC_${_lib} ${_lib})
+    if(DJINTERP_CODEC_${_lib})
+        target_link_libraries(djinterp_c_runtime PUBLIC
+            ${DJINTERP_CODEC_${_lib}})
+    else()
+        target_compile_definitions(djinterp_c_runtime PUBLIC
+            D_CFG_COMPRESS_CODEC_${_knob}=0)
     endif()
 endforeach()
+# brotli is three libraries: all three, or the codec is off
+set(_brotli_libs "")
+foreach(_lib brotlienc brotlidec brotlicommon)
+    find_library(DJINTERP_CODEC_${_lib} ${_lib})
+    if(DJINTERP_CODEC_${_lib})
+        list(APPEND _brotli_libs ${DJINTERP_CODEC_${_lib}})
+    endif()
+endforeach()
+list(LENGTH _brotli_libs _brotli_count)
+if(_brotli_count EQUAL 3)
+    target_link_libraries(djinterp_c_runtime PUBLIC ${_brotli_libs})
+else()
+    target_compile_definitions(djinterp_c_runtime PUBLIC
+        D_CFG_COMPRESS_CODEC_BROTLI=0)
+endif()
 
 
 target_include_directories(djinterp_c_runtime PUBLIC
@@ -187,3 +215,15 @@ endif()
 # djinterp_add_test_subtree() (aggregate).  Recursion is handled by the
 # subtree helper, so this root only needs to enter the top of the tree.
 add_subdirectory(testing)
+
+
+# -----------------------------------------------------------------------------
+# 5. the benchmarks (off by default)
+# -----------------------------------------------------------------------------
+#   tests/bench holds timing programs, not tests: they report figures and
+# never fail.  -DDJINTERP_BUILD_BENCHMARKS=ON builds them, best with
+# -DCMAKE_BUILD_TYPE=Release, since their figures are meant at -O2.
+option(DJINTERP_BUILD_BENCHMARKS "build the benchmarks under tests/bench" OFF)
+if(DJINTERP_BUILD_BENCHMARKS)
+    add_subdirectory(bench)
+endif()

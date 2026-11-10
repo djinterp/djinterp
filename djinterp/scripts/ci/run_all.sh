@@ -16,8 +16,11 @@
 #               unit at every rung, plain and in testing mode, with GCC and
 #               Clang (with --quick, the lowest and the highest rungs only,
 #               plain)
-#     ckd       scripts/ci/check_ckd.sh, the checked-arithmetic kit and the
-#               container overflow fixes
+#     ckd       scripts/ci/check_ckd.sh, the checked-arithmetic kit, the
+#               container overflow fixes and the template overflow suite
+#     ostream   scripts/ci/check_ostream.sh, the output stream's suites and
+#               harnesses at every language level (with --quick, the lowest
+#               and the highest)
 #     found.    the parse/parsegen foundation's script, with --matrix
 #     leaves    the CMake test leaves that stand alone (parse expr, parse
 #               overflow, the foundation), configured, built and run with
@@ -39,7 +42,7 @@
 # path:      /scripts/ci/run_all.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.05
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 set -u
 
@@ -108,6 +111,13 @@ fi
 
 step ckd "^(FAIL|SKIP|NOTE)|^check_ckd" env ALLOW_SKIP=1 \
     bash scripts/ci/check_ckd.sh
+
+if [[ $quick -eq 1 ]]; then
+    step ostream "^  (FAIL|skip)|passed, " env C_STD_LIST="c99 c2x" \
+        CXX_STD_LIST="c++98-strict c++26" bash scripts/ci/check_ostream.sh
+else
+    step ostream "^  (FAIL|skip)|passed, " bash scripts/ci/check_ostream.sh
+fi
 
 foundation=build/cmake/config/testing/djinterp/c/modules/parsegen/foundation
 step foundation "$totals" bash "$foundation/run_foundation_tests.sh" --matrix

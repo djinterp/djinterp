@@ -20,6 +20,12 @@
 #         the container sources under AddressSanitizer and
 #         UndefinedBehaviorSanitizer, as C at C99, C11, C17 and C23, with GCC
 #         and Clang, at the best tier and at the portable one.
+#     tests/djinterp/c/text/text_template_overflow_tests.c
+#         lane D's DTest suite for text_template.c's overflow fixes (it
+#         includes text_template.c), with its runner, built with the units
+#         it stands on under the same sanitizers, in the same
+#         configurations as the container harness. It passes when it exits
+#         0 with DTest's "result: PASSED".
 # Every unit is compiled with the ladders' flags: -pedantic-errors
 # -Werror=undef -Wall -Wextra -Werror -D_XOPEN_SOURCE=700, and for ISO strict
 # C++98 -DD_CFG_ENV_ISO_STRICT=1 -DRE_STD_CFG_ISO_STRICT=1.
@@ -48,7 +54,7 @@
 # path:      /scripts/ci/check_ckd.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-#                                                            revised: 2026.11.05
+#                                                            revised: 2026.11.09
 #*******************************************************************************
 set -u
 
@@ -82,6 +88,13 @@ container_srcs="src/djinterp/c/container/array/array_common.c"
 container_srcs="$container_srcs src/djinterp/c/container/vector/vector_common.c"
 container_srcs="$container_srcs src/djinterp/c/memory/dmemory.c"
 container_srcs="$container_srcs src/djinterp/c/djinterp.c"
+text_runner="build/cmake/config/testing/djinterp/c/text/text_template_overflow"
+text_runner="$text_runner/text_template_overflow_tests_runner.c"
+text_src="$text_runner tests/djinterp/c/text/text_template_overflow_tests.c"
+text_srcs="src/djinterp/c/text/str_interp.c src/djinterp/c/string_fn.c"
+text_srcs="$text_srcs src/djinterp/c/memory/dmemory.c"
+text_srcs="$text_srcs src/djinterp/c/djinterp.c"
+text_srcs="$text_srcs src/djinterp/c/modules/test/test_suite.c"
 
 # std_ok COMPILER LANG STD: whether the compiler accepts the level
 std_ok()
@@ -175,6 +188,10 @@ for i in "${!cc_list[@]}"; do
             echo "overflow|$label|$cmd|$overflow_src|$container_srcs" \
                 >> "$work/jobs"
             expected=$((expected + 1))
+            text_cmd="$cmd -Itests/djinterp/c/text"
+            echo "dtest|$label text|$text_cmd|$text_src|$text_srcs" \
+                >> "$work/jobs"
+            expected=$((expected + 1))
         done
     done
     if [[ -z "$cxx" ]] || ! command -v "$cxx" > /dev/null 2>&1 ||
@@ -240,7 +257,7 @@ done
 link=""
 [[ -n "$objs" ]] && link="-x none $objs"
 # shellcheck disable=SC2086
-if ! log="$($cmd "$src" $link -lm -o "$exe" 2>&1)"; then
+if ! log="$($cmd $src $link -lm -o "$exe" 2>&1)"; then
     first="$(grep -m1 -E 'error|undefined' <<< "$log" | cut -c1-200)"
     echo "FAIL $label: build: $first"
     rm -f "$exe"*; exit 0
@@ -250,6 +267,17 @@ out="$(ASAN_OPTIONS=allocator_may_return_null=1 timeout 600 "$exe" 2>&1)"
 status=$?
 rm -f "$exe"
 last="$(tail -n 1 <<< "$out")"
+if [[ "$kind" == dtest ]]; then
+    # a DTest suite: its report ends "result:  PASSED"; say its counts
+    if [[ $status -ne 0 || ! "$last" =~ result:\ +PASSED$ ]]; then
+        first="$(grep -m1 -E 'FAIL|ERROR' <<< "$out" | cut -c1-200)"
+        echo "FAIL $label: exit $status: $first"
+        exit 0
+    fi
+    counts="$(grep -m1 -E '^  tests:' <<< "$out" | sed 's/^ *//')"
+    echo "ok   $label: $counts"
+    exit 0
+fi
 if [[ $status -ne 0 || ! "$last" =~ \ 0\ failed$ ]]; then
     first="$(grep -m1 -E 'FAIL|ERROR' <<< "$out" | cut -c1-200)"
     echo "FAIL $label: exit $status: $first"

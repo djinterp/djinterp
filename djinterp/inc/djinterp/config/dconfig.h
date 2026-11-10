@@ -110,6 +110,7 @@
 // then text's template formatter over it
 #include "djinterp/config/c/util/ostream/cfg_ostream.h"
 #include "djinterp/config/c/text/cfg_ostream_template.h"
+#include "djinterp/config/c/text/cfg_ostream_format.h"
 // options: the C environment source, then the C++ options
 #include "djinterp/config/c/option/cfg_option_env.h"
 #include "djinterp/config/cpp/option/cfg_option.h"
