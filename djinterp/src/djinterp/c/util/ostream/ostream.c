@@ -1167,7 +1167,9 @@ d_ostream_write_size(
 d_ostream_write_hex
   The digits are produced backwards into a local array as wide as the widest
 size_t, then written once. A width outside 1 to that many digits asks for no
-padding.
+padding. The padding stops at the first index the width keeps, which the
+array always holds, so the bound is plain to the compiler as well (GCC's
+-Wstringop-overflow could not see it in a count of digits written).
 */
 int32_t
 d_ostream_write_hex(
@@ -1192,7 +1194,9 @@ d_ostream_write_hex(
     if ( (_digits > 0) &&
          ((size_t)_digits <= most) )
     {
-        while ((most - at) < (size_t)_digits)
+        const size_t first = most - (size_t)_digits;
+
+        while (at > first)
         {
             --at;
             text[at] = '0';

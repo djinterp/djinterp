@@ -1,0 +1,14 @@
+# machine: Intel(R) Xeon(R) Processor @ 2.30GHz, 2 vCPU; gcc 13.3, -O2
+# bench_template.c, best of 7 runs; this run's figures, a second run within 10%
+One line: two spaces, a label padded to 9, two spaces, a value
+by hand, through the stream            12.8 ns
+template, width 9                      46.0 ns
+template, width from a field           51.1 ns
+snprintf("%s  %-*s  %s\n")            49.7 ns
+compiling that template                83.8 ns
+
+The environment printer, this C unit's report, every section
+as text                                3.69 us
+as JSON                                3.90 us
+made and configured by a script        2.51 us
+sizeof(struct d_env_printer)          10992 bytes

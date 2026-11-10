@@ -15,7 +15,8 @@ The database lane's tests moved here on 2026.10.26 (git keeps their history
 as renames); the output stream's, its template engine's, the machine
 environment's and the environment printer's joined them from the stream's
 delivery of 2026.10.29, landed on the restructured layout by lanes D and E in
-November.
+November. The stream's seven (lane D's) went into DTest on 2026.11.09; where
+each went is under "Ported" below.
 
 ## What is here
 
@@ -30,13 +31,6 @@ November.
 | `cpp/db/t_database.cpp` | cpp/db's vocabulary: values, types, the shared parts | the CI scripts |
 | `cpp/db/t_db_face_cost.cpp` | the faces' cost against the C calls, at -O2 | `scripts/check_db_face_cost.py` |
 | `cpp/db/database_tests*.{hpp,cpp}` | the older cpp/db suite, by sections | CMake `database_tests` (its runner is in `build/cmake/config/testing/djinterp/cpp/db/database`) |
-| `c/util/ostream/t_ostream.c` | the output stream's kernel (`c/util/ostream/ostream.h`), its destinations and cursors, its doubles and printf (`c/text/ostream_format.h`), and a differential test of random operations on every kind of destination against a byte array | `scripts/ci/check_ostream.sh`; CMake `ostream_c_tests` |
-| `c/text/t_ostream_template.c` | the template engine (`c/text/ostream_template.h`): values, one value's formatting, the conversions, every compile error, running templates; integers and reals against snprintf at random | `scripts/ci/check_ostream.sh`; CMake `ostream_template_c_tests` |
-| `cpp/util/output/t_output_stream.cpp` | the stream's C++ face and its std adapters (`cpp/util/output`), with its doubles and printf (`cpp/text/output_format.hpp`), C++98 to C++26 | `scripts/ci/check_ostream.sh`; CMake `output_stream_cpp_tests` |
-| `c/util/pdf/t_pdf_stream.c` | the PDF writer's numbers on the stream (the decimal-point ruling): `d_pdf_num` and `d_pdf_set_color` against snprintf at random and under `de_DE.UTF-8` and `ps_AF.UTF-8`, snprintf's contract, and `d_pdf_document_save_to` with a table from before the slot | `scripts/ci/check_ostream.sh` |
-| `cpp/util/pdf/t_pdf_stream.cpp` | the C++ PDF writer against the C one at random under both locales, and `DPdfDocument::save_to`; C++17 and up | `scripts/ci/check_ostream.sh` |
-| `cpp/text/t_writer_stream.cpp` | `writer.hpp`'s sinks and writers, `printer.hpp`'s `file_printer` and a document's `to_stream`/`to_file` on the stream: failed writes kept and reported by `ok()`; C++17 and up | `scripts/ci/check_ostream.sh` |
-| `c/text/t_text_template_overflow.c` | `text_template.c`'s two allocation sizes, checked with `d_ckd_mul`: includes the unit to reach its static growth; run under ASan | proposed for `scripts/ci/check_ckd.sh` |
 | `c/t_dstring_grow.c` | `d_string_internal_grow` with a request above `SIZE_MAX / 2`, which once looped for ever; run with `ASAN_OPTIONS=allocator_may_return_null=1` under ASan | proposed for `scripts/ci/check_ckd.sh` |
 
 Lanes A and E add their own rows: the machine environment and the
@@ -67,12 +61,24 @@ checked-arithmetic and container overflow tests (`c/t_dckdint.c`,
   its own, named for the run.
 - `t_sqlite_core.cpp` keeps its files in the folder its first argument
   names (`.` without one); the CI scripts pass `.` to every cpp/db harness.
-- The stream's harnesses write their temporary files into the working
-  folder and remove them; `t_ostream.c` checks doubles under `de_DE.UTF-8`
-  and `ps_AF.UTF-8` where those locales are installed, and says so where
-  they are not.
 - What each group tests is in the comment above it ("Tests the following:
   ...").
+
+## Ported
+
+| Was here | Now, in DTest's C face | Its CMake target |
+|---|---|---|
+| `c/util/ostream/t_ostream.c` | `tests/djinterp/c/util/ostream/ostream_tests.c` | `c_ostream_tests` |
+| `c/text/t_ostream_template.c` | `tests/djinterp/c/text/ostream_template_tests.c` | `c_ostream_template_tests` |
+| `c/text/t_text_template_overflow.c` | `tests/djinterp/c/text/text_template_overflow_tests.c` | `c_text_template_overflow_tests` |
+| `c/util/pdf/t_pdf_stream.c` | `tests/djinterp/c/util/pdf/pdf_stream_tests.c` | `c_pdf_stream_tests` |
+| `cpp/util/output/t_output_stream.cpp` | `tests/djinterp/cpp/util/output/output_stream_tests.cpp` | `output_stream_tests` |
+| `cpp/util/pdf/t_pdf_stream.cpp` | `tests/djinterp/cpp/util/pdf/pdf_stream_tests.cpp` | `pdf_stream_tests` |
+| `cpp/text/t_writer_stream.cpp` | `tests/djinterp/cpp/text/writer_stream_tests.cpp` | `writer_stream_tests` |
+
+Each group of checks became a test, and each check is recorded against it,
+so the counts are the programs' own. `scripts/ci/check_ostream.sh` runs all
+seven at every language level.
 
 ## When one is ported
 

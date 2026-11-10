@@ -1,0 +1,40 @@
+# machine: Intel(R) Xeon(R) Processor @ 2.10GHz, 2 vCPU; gcc 13.3, -O2
+kernel of 2026.10.28
+floor: char array, by hand            0.35 ns
+write_char                            2.07 ns
+cursor_put                            0.36 ns
+write_cstr("abcdefgh")                1.01 ns
+cursor_write(8 bytes)                 0.36 ns
+write_long(i)                         9.17 ns
+printf("%d,%d;")                     82.20 ns
+d_string: write_cstr(8 bytes)         8.23 ns
+d_string: write_char                  1.31 ns
+
+kernel of 2026.10.07
+floor: char array, by hand            0.36 ns
+write_char                            6.37 ns
+write_cstr("abcdefgh")                8.94 ns
+write_long(i)                        12.79 ns
+printf("%d,%d;")                     89.85 ns
+d_string: write_cstr(8 bytes)        24.43 ns
+d_string: write_char                 15.08 ns
+
+C library (glibc), to /dev/null
+fputc                                 3.19 ns
+putc_unlocked                         2.32 ns
+fwrite(8 bytes)                      10.54 ns
+fprintf("%ld")                       43.77 ns
+snprintf("%ld") to a buffer          42.77 ns
+fprintf("%d,%d;")                    81.23 ns
+
+C++ (13.3.0), to /dev/null or a discarding stream
+std::ofstream::put                          6.56 ns
+std::ofstream << char                       6.38 ns
+DOutputStream << char                       1.17 ns
+DOutputCursor *it++ = c                     0.41 ns
+std::ostream(DOutputStreambuf) << c         6.69 ns
+std::ofstream << long                      28.66 ns
+DOutputStream << long                       9.33 ns
+std::to_chars(long) to an array             8.10 ns
+std::format_to(back_inserter) {},{};      116.58 ns
+std::format_to(DOutputCursor) {},{};      117.52 ns

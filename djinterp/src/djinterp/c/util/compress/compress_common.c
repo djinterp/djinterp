@@ -42,7 +42,7 @@
 * path:      /src/djinterp/c/util/compress/compress_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -1829,20 +1829,25 @@ d_internal_store_compress(
     return d_internal_emit(_sink, _in, _in_size);
 }
 
-#if D_INTERNAL_COMPRESS_ZLIB_LEAF
+// D_INTERNAL_COMPRESS_ANY_LEAF
+//   resolved: 1 when a library leaf is compiled, so the helper they share is.
+#define D_INTERNAL_COMPRESS_ANY_LEAF                                          \
+    ( D_INTERNAL_COMPRESS_ZLIB_LEAF || D_INTERNAL_COMPRESS_BZIP2 ||           \
+      D_INTERNAL_COMPRESS_LZMA || D_INTERNAL_COMPRESS_BROTLI_ENCODE ||        \
+      D_INTERNAL_COMPRESS_BROTLI_DECODE )
 
-// zlib
-#include <zlib.h>
+#if D_INTERNAL_COMPRESS_ANY_LEAF
 
 /*
 d_internal_unconst
   Drop a const qualifier through a union.
 
-  zlib before 1.2.5.2 declares next_in as a non-const Bytef*, so a const input
-cannot be assigned to it directly.  A cast would work and would also silence a
-genuine diagnostic everywhere else in the file; routing it through a union
-confines the conversion to one named, commented function that a reader can
-audit.  The bytes are never written through the result.
+  zlib before 1.2.5.2 declares next_in as a non-const Bytef*, and bzip2's
+next_in is a char*, so a const input cannot be assigned to either directly.  A
+cast would work and would also silence a genuine diagnostic everywhere else in
+the file; routing it through a union confines the conversion to one named,
+commented function that a reader can audit.  The bytes are never written
+through the result.
 
 Parameter(s):
   _p: the pointer to unqualify.
@@ -1865,6 +1870,13 @@ void* d_internal_unconst(
 
     return u.out;
 }
+
+#endif  // D_INTERNAL_COMPRESS_ANY_LEAF
+
+#if D_INTERNAL_COMPRESS_ZLIB_LEAF
+
+// zlib
+#include <zlib.h>
 
 /*
 d_internal_zlib_window_bits
@@ -2075,6 +2087,663 @@ d_internal_zlib_decompress(
 #endif  // zlib family
 
 
+#if D_INTERNAL_COMPRESS_BZIP2
+
+// bzip2
+#include <bzlib.h>  // BZ2_bz*
+#include <limits.h>  // UINT_MAX
+
+/*
+d_internal_bzip2_status
+  Translate a libbz2 failure into the kernel's status.
+
+Parameter(s):
+  _rc: a BZ_* result that is not a success.
+Return:
+  The matching mechanical or formal status.
+*/
+static enum dj_pack_status
+d_internal_bzip2_status(
+    int _rc
+)
+{
+    switch (_rc)
+    {
+        case BZ_MEM_ERROR:        { return D_PACK_STATUS_NO_MEMORY; }
+        case BZ_DATA_ERROR:
+        case BZ_DATA_ERROR_MAGIC: { return D_PACK_STATUS_CORRUPT_INPUT; }
+        case BZ_UNEXPECTED_EOF:   { return D_PACK_STATUS_TRUNCATED_INPUT; }
+        case BZ_PARAM_ERROR:      { return D_PACK_STATUS_INVALID_ARGUMENT; }
+        default:                  { return D_PACK_STATUS_BACKEND_ERROR; }
+    }
+}
+
+/*
+d_internal_bzip2_feed
+  Give libbz2 the next run of input when it has taken the last. Its counts are
+unsigned int, so an input past UINT_MAX goes in several runs.
+
+Parameter(s):
+  _bz:   the stream.
+  _next: the input not yet given; advanced.
+  _left: how much of it; reduced.
+*/
+static void
+d_internal_bzip2_feed(
+    bz_stream*            _bz,
+    const unsigned char** _next,
+    size_t*               _left
+)
+{
+    if ( (_bz->avail_in == 0u) &&
+         (*_left != 0u) )
+    {
+        const size_t run = (*_left > (size_t)UINT_MAX) ? (size_t)UINT_MAX
+                                                       : *_left;
+
+        _bz->next_in  = (char*)d_internal_unconst(*_next);
+        _bz->avail_in = (unsigned int)run;
+        *_next       += run;
+        *_left       -= run;
+    }
+
+    return;
+}
+
+/*
+d_internal_bzip2_compress
+  The bzip2 compress leaf: the block size (bzip2's own level), the work factor
+and the verbosity, from the resolved options.
+
+Parameter(s):
+  _in:      the input bytes.
+  _in_size: how many.
+  _options: a resolved option set.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK, or a status describing the failure.
+*/
+static enum dj_pack_status
+d_internal_bzip2_compress(
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink
+)
+{
+    char                 stage[D_INTERNAL_COMPRESS_CHUNK];
+    bz_stream            bz;
+    const unsigned char* next   = (const unsigned char*)_in;
+    size_t               left   = _in_size;
+    enum dj_pack_status  status = D_PACK_STATUS_OK;
+    int                  rc;
+
+    memset(&bz, 0, sizeof(bz));
+
+    rc = BZ2_bzCompressInit(
+        &bz,
+        (int)d_compress_options_knob_get(_options,
+                                         D_COMPRESS_KNOB_BZIP2_BLOCK_SIZE_100K),
+        (int)d_compress_options_knob_get(_options,
+                                         D_COMPRESS_KNOB_BZIP2_VERBOSITY),
+        (int)d_compress_options_knob_get(_options,
+                                         D_COMPRESS_KNOB_BZIP2_WORK_FACTOR));
+
+    if (rc != BZ_OK)
+    {
+        return d_internal_bzip2_status(rc);
+    }
+
+    for (;;)
+    {
+        d_internal_bzip2_feed(&bz, &next, &left);
+
+        bz.next_out  = stage;
+        bz.avail_out = (unsigned int)sizeof(stage);
+
+        // BZ_FINISH once the last run is given; libbz2 takes what is left
+        rc = BZ2_bzCompress(&bz, (left == 0u) ? BZ_FINISH : BZ_RUN);
+
+        if ( (rc != BZ_RUN_OK)    &&
+             (rc != BZ_FINISH_OK) &&
+             (rc != BZ_STREAM_END) )
+        {
+            status = d_internal_bzip2_status(rc);
+            break;
+        }
+
+        status = d_internal_emit(_sink, stage,
+                                 sizeof(stage) - (size_t)bz.avail_out);
+
+        if ( (status != D_PACK_STATUS_OK) ||
+             (rc == BZ_STREAM_END) )
+        {
+            break;
+        }
+    }
+
+    (void)BZ2_bzCompressEnd(&bz);
+
+    return status;
+}
+
+/*
+d_internal_bzip2_decompress
+  The bzip2 decompress leaf. The first stream is decoded; bytes after it are
+not read, as the DEFLATE leaf leaves a second gzip member.
+
+Parameter(s):
+  _in:      the compressed bytes.
+  _in_size: how many.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK; D_PACK_STATUS_CORRUPT_INPUT when the stream is malformed;
+D_PACK_STATUS_TRUNCATED_INPUT when it ends early.
+*/
+static enum dj_pack_status
+d_internal_bzip2_decompress(
+    const void*         _in,
+    size_t              _in_size,
+    struct dj_pack_sink _sink
+)
+{
+    char                 stage[D_INTERNAL_COMPRESS_CHUNK];
+    bz_stream            bz;
+    const unsigned char* next   = (const unsigned char*)_in;
+    size_t               left   = _in_size;
+    enum dj_pack_status  status = D_PACK_STATUS_OK;
+    int                  rc;
+
+    memset(&bz, 0, sizeof(bz));
+
+    rc = BZ2_bzDecompressInit(&bz, 0, 0);
+
+    if (rc != BZ_OK)
+    {
+        return d_internal_bzip2_status(rc);
+    }
+
+    for (;;)
+    {
+        d_internal_bzip2_feed(&bz, &next, &left);
+
+        bz.next_out  = stage;
+        bz.avail_out = (unsigned int)sizeof(stage);
+
+        rc = BZ2_bzDecompress(&bz);
+
+        if ( (rc != BZ_OK) &&
+             (rc != BZ_STREAM_END) )
+        {
+            status = d_internal_bzip2_status(rc);
+            break;
+        }
+
+        const size_t produced = sizeof(stage) - (size_t)bz.avail_out;
+
+        status = d_internal_emit(_sink, stage, produced);
+
+        if ( (status != D_PACK_STATUS_OK) ||
+             (rc == BZ_STREAM_END) )
+        {
+            break;
+        }
+
+        // every byte given, nothing more made, and no end: it stops short
+        if ( (bz.avail_in == 0u) &&
+             (left == 0u) &&
+             (produced == 0u) )
+        {
+            status = D_PACK_STATUS_TRUNCATED_INPUT;
+            break;
+        }
+    }
+
+    (void)BZ2_bzDecompressEnd(&bz);
+
+    return status;
+}
+
+#endif  // bzip2
+
+#if D_INTERNAL_COMPRESS_LZMA
+
+// xz
+#include <lzma.h>  // lzma_*
+
+/*
+d_internal_xz_status
+  Translate a liblzma failure into the kernel's status.
+
+Parameter(s):
+  _rc: an lzma_ret that is neither LZMA_OK nor LZMA_STREAM_END.
+Return:
+  The matching mechanical or formal status.
+*/
+static enum dj_pack_status
+d_internal_xz_status(
+    lzma_ret _rc
+)
+{
+    switch (_rc)
+    {
+        case LZMA_MEM_ERROR:
+        case LZMA_MEMLIMIT_ERROR:     { return D_PACK_STATUS_NO_MEMORY; }
+        case LZMA_FORMAT_ERROR:
+        case LZMA_DATA_ERROR:         { return D_PACK_STATUS_CORRUPT_INPUT; }
+        case LZMA_BUF_ERROR:          { return D_PACK_STATUS_TRUNCATED_INPUT; }
+        case LZMA_OPTIONS_ERROR:      { return D_PACK_STATUS_INVALID_ARGUMENT; }
+        case LZMA_UNSUPPORTED_CHECK:  { return D_PACK_STATUS_UNSUPPORTED; }
+        default:                      { return D_PACK_STATUS_BACKEND_ERROR; }
+    }
+}
+
+/*
+d_internal_xz_set
+  Copy one resolved LZMA knob into liblzma's options, unless it is UNSET, in
+which case the preset's value stands.
+
+Parameter(s):
+  _options: a resolved option set.
+  _knob:    the knob.
+  _field:   the field it sets.
+Return:
+  1 when the knob was set, 0 when it was UNSET.
+*/
+static int
+d_internal_xz_set(
+    const struct dj_compress_options* _options,
+    enum dj_compress_knob             _knob,
+    uint32_t*                         _field
+)
+{
+    const int32_t value = d_compress_options_knob_get(_options, _knob);
+
+    if (value == D_COMPRESS_KNOB_UNSET)
+    {
+        return 0;
+    }
+
+    *_field = (uint32_t)value;
+
+    return 1;
+}
+
+/*
+d_internal_xz_encoder
+  Start an xz encoder: the preset from the generic level and the extreme flag,
+the integrity check, and, where any LZMA2 knob is set, the preset's options
+with those knobs over them. One thread: the knob for more is pinned, and a
+request for more is refused rather than ignored.
+
+Parameter(s):
+  _strm:    the stream, LZMA_STREAM_INIT.
+  _options: a resolved option set.
+Return:
+  D_PACK_STATUS_OK, or a status describing the failure.
+*/
+static enum dj_pack_status
+d_internal_xz_encoder(
+    lzma_stream*                      _strm,
+    const struct dj_compress_options* _options
+)
+{
+    lzma_options_lzma lz;
+    lzma_filter       filters[2];
+    lzma_mode         mode   = LZMA_MODE_NORMAL;
+    lzma_match_finder mf     = LZMA_MF_BT4;
+    uint32_t          scalar = 0u;
+    int               custom = 0;
+    const int32_t     level  = d_compress_resolve_level(
+        D_CODEC_ID_XZ,
+        d_compress_options_knob_get(_options, D_COMPRESS_KNOB_LEVEL));
+    const uint32_t    preset = (uint32_t)level |
+        ( (d_compress_options_knob_get(_options,
+                                       D_COMPRESS_KNOB_LZMA_EXTREME) > 0)
+              ? LZMA_PRESET_EXTREME : 0u );
+    const lzma_check  check  = (lzma_check)d_compress_options_knob_get(
+        _options, D_COMPRESS_KNOB_LZMA_CHECK);
+
+    if (d_compress_options_knob_get(_options, D_COMPRESS_KNOB_LZMA_THREADS)
+            > 1)
+    {
+        return D_PACK_STATUS_UNSUPPORTED;
+    }
+    if (lzma_lzma_preset(&lz, preset))
+    {
+        return D_PACK_STATUS_INVALID_ARGUMENT;
+    }
+
+    custom |= d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_DICT_SIZE,
+                                &lz.dict_size);
+    custom |= d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_LC, &lz.lc);
+    custom |= d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_LP, &lz.lp);
+    custom |= d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_PB, &lz.pb);
+    custom |= d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_NICE_LEN,
+                                &lz.nice_len);
+    custom |= d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_DEPTH,
+                                &lz.depth);
+
+    if (d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_MODE, &scalar))
+    {
+        mode    = (lzma_mode)scalar;
+        lz.mode = mode;
+        custom  = 1;
+    }
+    if (d_internal_xz_set(_options, D_COMPRESS_KNOB_LZMA_MF, &scalar))
+    {
+        mf     = (lzma_match_finder)scalar;
+        lz.mf  = mf;
+        custom = 1;
+    }
+
+    if (!custom)
+    {
+        const lzma_ret rc = lzma_easy_encoder(_strm, preset, check);
+
+        return (rc == LZMA_OK) ? D_PACK_STATUS_OK : d_internal_xz_status(rc);
+    }
+
+    filters[0].id      = LZMA_FILTER_LZMA2;
+    filters[0].options = &lz;
+    filters[1].id      = LZMA_VLI_UNKNOWN;
+    filters[1].options = NULL;
+
+    const lzma_ret rc = lzma_stream_encoder(_strm, filters, check);
+
+    return (rc == LZMA_OK) ? D_PACK_STATUS_OK : d_internal_xz_status(rc);
+}
+
+/*
+d_internal_xz_run
+  Drive an xz stream over the whole input to its end, emitting as it goes.
+
+Parameter(s):
+  _strm:    a started encoder or decoder.
+  _in:      the input bytes.
+  _in_size: how many.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK, or a status describing the failure; a decoder whose input
+ends before its stream does reports D_PACK_STATUS_TRUNCATED_INPUT.
+*/
+static enum dj_pack_status
+d_internal_xz_run(
+    lzma_stream*        _strm,
+    const void*         _in,
+    size_t              _in_size,
+    struct dj_pack_sink _sink
+)
+{
+    uint8_t             stage[D_INTERNAL_COMPRESS_CHUNK];
+    enum dj_pack_status status = D_PACK_STATUS_OK;
+
+    _strm->next_in  = (const uint8_t*)_in;
+    _strm->avail_in = _in_size;
+
+    for (;;)
+    {
+        _strm->next_out  = stage;
+        _strm->avail_out = sizeof(stage);
+
+        const lzma_ret rc = lzma_code(_strm, LZMA_FINISH);
+
+        if ( (rc != LZMA_OK) &&
+             (rc != LZMA_STREAM_END) )
+        {
+            status = d_internal_xz_status(rc);
+            break;
+        }
+
+        status = d_internal_emit(_sink, stage,
+                                 sizeof(stage) - _strm->avail_out);
+
+        if ( (status != D_PACK_STATUS_OK) ||
+             (rc == LZMA_STREAM_END) )
+        {
+            break;
+        }
+    }
+
+    lzma_end(_strm);
+
+    return status;
+}
+
+/*
+d_internal_xz_compress
+  The xz compress leaf.
+
+Parameter(s):
+  _in:      the input bytes.
+  _in_size: how many.
+  _options: a resolved option set.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK, or a status describing the failure.
+*/
+static enum dj_pack_status
+d_internal_xz_compress(
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink
+)
+{
+    lzma_stream               strm   = LZMA_STREAM_INIT;
+    const enum dj_pack_status status = d_internal_xz_encoder(&strm, _options);
+
+    if (status != D_PACK_STATUS_OK)
+    {
+        lzma_end(&strm);
+
+        return status;
+    }
+
+    return d_internal_xz_run(&strm, _in, _in_size, _sink);
+}
+
+/*
+d_internal_xz_decompress
+  The xz decompress leaf: one .xz stream, with no memory limit beyond the
+machine's, and every integrity check liblzma knows verified.
+
+Parameter(s):
+  _in:      the compressed bytes.
+  _in_size: how many.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK; D_PACK_STATUS_CORRUPT_INPUT when the stream is malformed;
+D_PACK_STATUS_TRUNCATED_INPUT when it ends early.
+*/
+static enum dj_pack_status
+d_internal_xz_decompress(
+    const void*         _in,
+    size_t              _in_size,
+    struct dj_pack_sink _sink
+)
+{
+    lzma_stream    strm = LZMA_STREAM_INIT;
+    const lzma_ret rc   = lzma_stream_decoder(&strm, UINT64_MAX, 0u);
+
+    if (rc != LZMA_OK)
+    {
+        lzma_end(&strm);
+
+        return d_internal_xz_status(rc);
+    }
+
+    return d_internal_xz_run(&strm, _in, _in_size, _sink);
+}
+
+#endif  // xz
+
+#if D_INTERNAL_COMPRESS_BROTLI_ENCODE
+
+// brotli: the encoder
+#include <brotli/encode.h>  // BrotliEncoder*
+
+/*
+d_internal_brotli_compress
+  The brotli compress leaf: quality (brotli's own level), window, block size,
+mode and the large-window extension, from the resolved options.
+
+Parameter(s):
+  _in:      the input bytes.
+  _in_size: how many.
+  _options: a resolved option set.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK, or a status describing the failure.
+*/
+static enum dj_pack_status
+d_internal_brotli_compress(
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink
+)
+{
+    static const struct
+    {
+        enum dj_compress_knob     knob;
+        BrotliEncoderParameter    parameter;
+    }
+    knobs[] =
+    {
+        { D_COMPRESS_KNOB_BROTLI_QUALITY,      BROTLI_PARAM_QUALITY },
+        { D_COMPRESS_KNOB_BROTLI_WINDOW_BITS,  BROTLI_PARAM_LGWIN },
+        { D_COMPRESS_KNOB_BROTLI_BLOCK_BITS,   BROTLI_PARAM_LGBLOCK },
+        { D_COMPRESS_KNOB_BROTLI_MODE,         BROTLI_PARAM_MODE },
+        { D_COMPRESS_KNOB_BROTLI_LARGE_WINDOW, BROTLI_PARAM_LARGE_WINDOW }
+    };
+    uint8_t               stage[D_INTERNAL_COMPRESS_CHUNK];
+    BrotliEncoderState*   state  = BrotliEncoderCreateInstance(NULL, NULL,
+                                                               NULL);
+    const uint8_t*        next   = (const uint8_t*)_in;
+    size_t                left   = _in_size;
+    enum dj_pack_status   status = D_PACK_STATUS_OK;
+
+    if (state == NULL)
+    {
+        return D_PACK_STATUS_NO_MEMORY;
+    }
+
+    for (size_t i = 0u; i < (sizeof(knobs) / sizeof(knobs[0])); ++i)
+    {
+        const int32_t value = d_compress_options_knob_get(_options,
+                                                          knobs[i].knob);
+
+        if ( (value != D_COMPRESS_KNOB_UNSET) &&
+             (!BrotliEncoderSetParameter(state, knobs[i].parameter,
+                                         (uint32_t)value)) )
+        {
+            BrotliEncoderDestroyInstance(state);
+
+            return D_PACK_STATUS_INVALID_ARGUMENT;
+        }
+    }
+
+    do
+    {
+        uint8_t* out  = stage;
+        size_t   room = sizeof(stage);
+
+        if (!BrotliEncoderCompressStream(state, BROTLI_OPERATION_FINISH,
+                                         &left, &next, &room, &out, NULL))
+        {
+            status = D_PACK_STATUS_BACKEND_ERROR;
+            break;
+        }
+
+        status = d_internal_emit(_sink, stage, sizeof(stage) - room);
+    }
+    while ( (status == D_PACK_STATUS_OK) &&
+            (!BrotliEncoderIsFinished(state)) );
+
+    BrotliEncoderDestroyInstance(state);
+
+    return status;
+}
+
+#endif  // brotli encoder
+
+#if D_INTERNAL_COMPRESS_BROTLI_DECODE
+
+// brotli: the decoder
+#include <brotli/decode.h>  // BrotliDecoder*
+
+/*
+d_internal_brotli_decompress
+  The brotli decompress leaf. It accepts the large-window extension, so a
+stream made with brotli.large_window decodes as well as a standard one.
+
+Parameter(s):
+  _in:      the compressed bytes.
+  _in_size: how many.
+  _sink:    the destination.
+Return:
+  D_PACK_STATUS_OK; D_PACK_STATUS_CORRUPT_INPUT when the stream is malformed;
+D_PACK_STATUS_TRUNCATED_INPUT when it ends early.
+*/
+static enum dj_pack_status
+d_internal_brotli_decompress(
+    const void*         _in,
+    size_t              _in_size,
+    struct dj_pack_sink _sink
+)
+{
+    uint8_t             stage[D_INTERNAL_COMPRESS_CHUNK];
+    BrotliDecoderState* state  = BrotliDecoderCreateInstance(NULL, NULL,
+                                                             NULL);
+    const uint8_t*      next   = (const uint8_t*)_in;
+    size_t              left   = _in_size;
+    enum dj_pack_status status = D_PACK_STATUS_OK;
+
+    if (state == NULL)
+    {
+        return D_PACK_STATUS_NO_MEMORY;
+    }
+
+    (void)BrotliDecoderSetParameter(state,
+                                    BROTLI_DECODER_PARAM_LARGE_WINDOW,
+                                    1u);
+
+    for (;;)
+    {
+        uint8_t* out  = stage;
+        size_t   room = sizeof(stage);
+
+        const BrotliDecoderResult rc = BrotliDecoderDecompressStream(
+            state, &left, &next, &room, &out, NULL);
+
+        status = d_internal_emit(_sink, stage, sizeof(stage) - room);
+
+        if ( (status != D_PACK_STATUS_OK) ||
+             (rc == BROTLI_DECODER_RESULT_SUCCESS) )
+        {
+            break;
+        }
+        if (rc == BROTLI_DECODER_RESULT_ERROR)
+        {
+            status = D_PACK_STATUS_CORRUPT_INPUT;
+            break;
+        }
+        if (rc == BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT)
+        {
+            status = D_PACK_STATUS_TRUNCATED_INPUT;
+            break;
+        }
+    }
+
+    BrotliDecoderDestroyInstance(state);
+
+    return status;
+}
+
+#endif  // brotli decoder
+
+
 // =============================================================================
 // X.   TRANSFORMS
 // =============================================================================
@@ -2166,6 +2835,30 @@ d_compress_to_sink(
             break;
         }
 #endif
+#if D_INTERNAL_COMPRESS_BZIP2
+        case D_CODEC_ID_BZIP2:
+        {
+            status = d_internal_bzip2_compress(_in, _in_size, &resolved,
+                                               counted);
+            break;
+        }
+#endif
+#if D_INTERNAL_COMPRESS_LZMA
+        case D_CODEC_ID_XZ:
+        {
+            status = d_internal_xz_compress(_in, _in_size, &resolved,
+                                            counted);
+            break;
+        }
+#endif
+#if D_INTERNAL_COMPRESS_BROTLI_ENCODE
+        case D_CODEC_ID_BROTLI:
+        {
+            status = d_internal_brotli_compress(_in, _in_size, &resolved,
+                                                counted);
+            break;
+        }
+#endif
         default:
         {
             status = D_PACK_STATUS_UNAVAILABLE;
@@ -2220,37 +2913,53 @@ d_decompress_to_sink(
         return D_PACK_STATUS_UNAVAILABLE;
     }
 
+    if (_codec == D_CODEC_ID_STORE)
+    {
+        status = d_internal_emit(_sink, _in, _in_size);
+
+        if ( (status == D_PACK_STATUS_OK) &&
+             (_out_size != NULL) )
+        {
+            *_out_size = _in_size;
+        }
+
+        return status;
+    }
+
+    // a tee, so the produced size is known whatever the caller's sink does
+    struct dj_internal_tee tally;
+    struct dj_pack_sink    counted = d_internal_tee_bind(&tally, _sink);
+
     switch (_codec)
     {
-        case D_CODEC_ID_STORE:
-        {
-            status = d_internal_emit(_sink, _in, _in_size);
-
-            if ( (status == D_PACK_STATUS_OK) &&
-                 (_out_size != NULL) )
-            {
-                *_out_size = _in_size;
-            }
-
-            return status;
-        }
 #if D_INTERNAL_COMPRESS_ZLIB_LEAF
         case D_CODEC_ID_DEFLATE:
         case D_CODEC_ID_ZLIB:
         case D_CODEC_ID_GZIP:
         {
-            struct dj_internal_tee tally;
-            struct dj_pack_sink    counted =
-                d_internal_tee_bind(&tally, _sink);
-
             status = d_internal_zlib_decompress(_codec, _in, _in_size,
                                                 counted);
-
-            if ( (status == D_PACK_STATUS_OK) &&
-                 (_out_size != NULL) )
-            {
-                *_out_size = tally.total;
-            }
+            break;
+        }
+#endif
+#if D_INTERNAL_COMPRESS_BZIP2
+        case D_CODEC_ID_BZIP2:
+        {
+            status = d_internal_bzip2_decompress(_in, _in_size, counted);
+            break;
+        }
+#endif
+#if D_INTERNAL_COMPRESS_LZMA
+        case D_CODEC_ID_XZ:
+        {
+            status = d_internal_xz_decompress(_in, _in_size, counted);
+            break;
+        }
+#endif
+#if D_INTERNAL_COMPRESS_BROTLI_DECODE
+        case D_CODEC_ID_BROTLI:
+        {
+            status = d_internal_brotli_decompress(_in, _in_size, counted);
             break;
         }
 #endif
@@ -2259,6 +2968,12 @@ d_decompress_to_sink(
             status = D_PACK_STATUS_UNAVAILABLE;
             break;
         }
+    }
+
+    if ( (status == D_PACK_STATUS_OK) &&
+         (_out_size != NULL) )
+    {
+        *_out_size = tally.total;
     }
 
     return status;

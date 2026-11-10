@@ -3,9 +3,10 @@
 *
 *   Number formatting onto a DOutputStream: the C++ face of
 * c/text/ostream_format.h. A double in the C locale's form, whatever the
-* program's locale -- write_double(os, value) and os << value -- and
-* printf-formatted text, write_formatted(os, format, ...), which follows the
-* locale as printf does. The names are the C functions' own
+* program's locale -- write_double(os, value) and os << value -- a double in a
+* locale the caller names for one call, write_double(os, value, locale) over a
+* DOutputLocale, and printf-formatted text, write_formatted(os, format, ...),
+* which follows the locale as printf does. The names are the C functions' own
 * (d_ostream_write_double, d_ostream_printf), and stay clear of writer.hpp's
 * print(value, printer).
 *
@@ -29,7 +30,7 @@
 * path:      /inc/djinterp/cpp/text/output_format.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 /*
@@ -39,6 +40,9 @@ TABLE OF CONTENTS
     -----------------
     1.  Doubles
     2.  printf
+    3.  Locales
+         1.  DOutputLocale
+         2.  write_double in a locale
 */
 
 #ifndef DJINTERP_TEXT_OUTPUT_FORMAT_HPP
@@ -132,6 +136,154 @@ inline bool write_formatted(
     va_end(args);
 
     return result != 0;
+}
+
+
+// 1.3    Locales
+//------------------------------------------------------------------------------
+// 1.3.1
+// DOutputLocale
+//   class: a numeric locale a double is written in for one call, over the C
+// tier's dj_ostream_locale, which it makes and releases. Not copyable; moved
+// from C++11. Read-only once made, so threads may share one.
+class DOutputLocale
+{
+public:
+    /**
+     * @brief The C form, as write_double(_os, _value) writes.
+     */
+    DOutputLocale() D_NOEXCEPT
+    {
+        (void)d_ostream_locale_init(&m_locale, "C");
+    }
+
+    /**
+     * @brief A named locale; ok() says whether it could be made.
+     *
+     * @param[in] _name  a locale's name, as setlocale takes it; "" for the
+     *                   one the environment names.
+     */
+    explicit DOutputLocale(
+        const char* _name
+    ) D_NOEXCEPT
+    {
+        (void)d_ostream_locale_init(&m_locale, _name);
+    }
+
+    /**
+     * @brief Releases the platform's locale object.
+     */
+    ~DOutputLocale()
+    {
+        d_ostream_locale_close(&m_locale);
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    /**
+     * @brief Takes _other's locale. C++11 and later, ADDITIVE.
+     *
+     * @param[in,out] _other  the locale to take; left no locale.
+     */
+    DOutputLocale(
+        DOutputLocale&& _other
+    ) D_NOEXCEPT
+        : m_locale(_other.m_locale)
+    {
+        _other.m_locale.handle = D_NULLPTR;
+        _other.m_locale.is_c   = 0;
+    }
+
+    /**
+     * @brief Releases this locale, then takes _other's. C++11 and later,
+     *        ADDITIVE.
+     *
+     * @param[in,out] _other  the locale to take; left no locale.
+     * @return *this.
+     */
+    DOutputLocale& operator=(
+        DOutputLocale&& _other
+    ) D_NOEXCEPT
+    {
+        if (this != &_other)
+        {
+            d_ostream_locale_close(&m_locale);
+            m_locale               = _other.m_locale;
+            _other.m_locale.handle = D_NULLPTR;
+            _other.m_locale.is_c   = 0;
+        }
+
+        return *this;
+    }
+#endif  // D_MOVE_ENABLED
+
+    /**
+     * @brief Whether this is a locale: the C form, or a named locale that
+     *        could be made. A write with one that is not is refused.
+     *
+     * @return true when it is.
+     */
+    D_NODISCARD bool ok() const D_NOEXCEPT
+    {
+        return ( (m_locale.is_c != 0) ||
+                 (m_locale.handle != D_NULLPTR) );
+    }
+
+    /**
+     * @brief The C tier's locale, for d_ostream_write_double_l.
+     *
+     * @return the locale; valid while this object lives.
+     */
+    D_NODISCARD const struct dj_ostream_locale* get() const D_NOEXCEPT
+    {
+        return &m_locale;
+    }
+
+    /**
+     * @brief Whether this build can make a named locale.
+     *
+     * @return true when it can; otherwise only the C form is available.
+     */
+    static bool named_supported() D_NOEXCEPT
+    {
+        return d_ostream_locale_named() != 0;
+    }
+
+private:
+    D_DELETED_FN(DOutputLocale(const DOutputLocale& _other))
+    D_DELETED_FN(DOutputLocale& operator=(const DOutputLocale& _other))
+
+    struct dj_ostream_locale m_locale;
+};
+
+// 1.3.2
+/**
+ * @brief Writes a double in a locale: its decimal point, and nothing else of
+ *        it. The program's locale is neither read nor changed.
+ *
+ * @note A locale that is not ok() is refused, and recorded in the stream as
+ *       D_OSTREAM_INVALID: a choice that would change nothing is not taken
+ *       silently.
+ *
+ * @param[in,out] _os         the stream.
+ * @param[in]     _value      the value.
+ * @param[in]     _locale     the locale.
+ * @param[in]     _style      'g', 'f' or 'e', as printf's conversions.
+ * @param[in]     _precision  printf's precision; negative for its default, 6.
+ * @return true while the stream is healthy, as DOutputStream::write().
+ */
+inline bool write_double(
+    DOutputStream&       _os,
+    double               _value,
+    const DOutputLocale& _locale,
+    char                 _style     = 'g',
+    int32_t              _precision = -1
+) D_NOEXCEPT
+{
+    return d_ostream_write_double_l(_os.get(),
+                                    _value,
+                                    _style,
+                                    _precision,
+                                    _locale.get()) != 0;
 }
 
 

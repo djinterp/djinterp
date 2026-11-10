@@ -25,7 +25,7 @@
 * path:      /inc/djinterp/config/c/util/compress/cfg_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_UTIL_COMPRESS_CFG_COMPRESS_H
@@ -282,10 +282,21 @@ TABLE OF CONTENTS
       D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_LZMA) )
 #define D_INTERNAL_COMPRESS_ZSTD                                               \
     ( D_ENV_COMPRESSION_HAVE_ZSTD &&                                           \
-      D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_ZSTD) )
+      D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_ZSTD) &&                                \
+      D_INTERNAL_COMPRESS_ZSTD_LEAF )
 #define D_INTERNAL_COMPRESS_LZ4                                                \
     ( D_ENV_COMPRESSION_HAVE_LZ4 &&                                            \
-      D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_LZ4) )
+      D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_LZ4) &&                                 \
+      D_INTERNAL_COMPRESS_LZ4_LEAF )
+
+// D_INTERNAL_COMPRESS_ZSTD_LEAF / _LZ4_LEAF
+//   brief: 1 when compress_common.c has the codec's leaf. Neither has one yet,
+// so neither codec is available whatever is detected: a codec the kernel
+// reports available must round-trip, and one it cannot run is UNAVAILABLE,
+// said up front rather than after the call (lane D, 2026.11.09). Each becomes
+// 1 with its leaf.
+#define D_INTERNAL_COMPRESS_ZSTD_LEAF  0
+#define D_INTERNAL_COMPRESS_LZ4_LEAF   0
 #define D_INTERNAL_COMPRESS_BROTLI                                             \
     ( D_ENV_COMPRESSION_HAVE_BROTLI &&                                         \
       D_CFG_IS_ON(D_CFG_COMPRESS_CODEC_BROTLI) )
