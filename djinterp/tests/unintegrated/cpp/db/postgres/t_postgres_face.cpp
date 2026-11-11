@@ -3,7 +3,7 @@
 *
 *   The C++ face of the PostgreSQL layer, postgres_face.hpp, compiled as C++
 * at every level from ISO strict C++98 to C++26 and driven against a server.
-* The layer's harness, t_postgres.c, tests what each function does; this
+* The layer's suite, postgres_tests.c, tests what each function does; this
 * tests what the face adds -- ownership, a failed connection's reason,
 * string and list and text conversion, statements and rows, the guards, the
 * static members, from C++11 moves and the f forms, and the forms each later
@@ -13,7 +13,7 @@
 * and samples every module, each member being generated from its C
 * prototype, its arguments in the C order. The summary names the level forms
 * the build had.
-*   The server is the one t_postgres.c reaches, by the same settings
+*   The server is the one postgres_tests.c reaches, by the same settings
 * (DJINTERP_TEST_POSTGRES_HOST, _PORT, _USER, _PASSWORD, _DATABASE). The
 * test works in a schema of its own, and drops it. Without a server only the
 * static checks run, unless DJINTERP_TEST_POSTGRES_REQUIRED is 1. Over a
@@ -29,7 +29,7 @@
 * path:      /tests/unintegrated/cpp/db/postgres/t_postgres_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // _WIN32_WINNT
 //   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked

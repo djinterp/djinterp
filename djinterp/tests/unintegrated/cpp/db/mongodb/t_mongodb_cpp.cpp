@@ -10,7 +10,7 @@
 * do not exist; and that the extern "C" linkage meets the C objects the
 * sources compile to.
 *   The checks that need no server always run. A session against one runs
-* when DJINTERP_TEST_MONGODB_URI, as for t_mongodb.c, reaches one;
+* when DJINTERP_TEST_MONGODB_URI, as for mongodb_tests.c, reaches one;
 * DJINTERP_TEST_MONGODB_REQUIRED=1 makes a deployment that cannot be reached
 * a failure. Below the 64-bit floor the layer's headers declare no
 * connection, and this test checks nothing. Over a layer built without the
@@ -25,7 +25,7 @@
 * path:      /tests/unintegrated/cpp/db/mongodb/t_mongodb_cpp.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.10.28
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <cstddef>  // std::size_t

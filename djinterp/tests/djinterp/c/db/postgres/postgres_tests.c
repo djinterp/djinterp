@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [c]                                                      t_postgres.c
+* djinterp [test]                                               postgres_tests.c
 *
-*   Conformance harness for djinterp's PostgreSQL convenience layer: every
+*   Conformance tests for djinterp's PostgreSQL convenience layer: every
 * function in c/db/postgres/postgres_*.h, its success paths, its documented
 * failures and its argument checks, against a live server -- PostgreSQL from
 * 10 -- through whichever libpq it is linked with. Where the answer depends on
 * the server, the check asks the server's version and expects the matching
-* answer, so one harness passes on every server the layer supports.
+* answer, so one suite passes on every server the layer supports.
 *   Each d_postgres_supports answer is also checked against the server itself,
 * by running SQL that needs the feature: a version table that drifts from the
 * truth fails here, not in a program.
@@ -20,22 +20,22 @@
 * _USER (postgres), _PASSWORD (none) and _DATABASE (postgres) say where; the
 * user needs to be a superuser, as the postgres user of a fresh server or of
 * the official container image is, since the harness creates databases and
-* extensions and checkpoints. The harness fails, saying why, when it cannot
-* connect.
+* extensions and checkpoints. Its first test fails, saying why, when it
+* cannot connect.
 *
-*   Build (from the repo root), at any language level from C99, against libpq
-* -- or let scripts/ci/check_db_postgres.sh, which runs it across compilers,
-* standards, libpq builds and servers:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc                                 \
-*        -I"$(pg_config --includedir)"                                        \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/postgres/postgres_*.c     \
-*        tests/unintegrated/c/db/postgres/t_postgres.c -lpq -o t_postgres
+*   Build: CMake's c_postgres_tests, or scripts/ci/check_db_postgres.sh, which
+* runs it across compilers, standards and releases. By hand, from the repo root,
+* at any language level from C99: this file and its runner,
+* postgres_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/postgres/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/postgres, against libpq.
 *
 *
-* path:      /tests/unintegrated/c/db/postgres/t_postgres.c
+* path:      /tests/djinterp/c/db/postgres/postgres_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // _WIN32_WINNT
 //   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
@@ -64,11 +64,12 @@
     #define D_CFG_ENV_USING_POSTGRESQL 1
 #endif  // D_CFG_ENV_USING_POSTGRESQL
 
+#include "./postgres_tests.h"  // corresponding header
 // std
 #include <limits.h>  // INT_MAX
 #include <locale.h>  // setlocale, LC_NUMERIC
 #include <math.h>    // INFINITY, NAN, isinf, isnan
-#include <stdio.h>   // printf, snprintf
+#include <stdio.h>   // snprintf
 #include <stdlib.h>  // getenv, setenv, strtoul
 #include <string.h>  // memcmp, memset, strcmp, strlen, strncmp, strstr
 #include <time.h>    // time
@@ -95,10 +96,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_options
 //   setting: where the server is, from the environment.
@@ -157,7 +159,8 @@ int d_tests_postgres_poll(
 
 /*
 d_tests_postgres_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_postgres_expect(
@@ -166,14 +169,30 @@ void d_tests_postgres_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_postgres_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_postgres_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -208,13 +227,15 @@ void d_tests_postgres_expect_result(
     {
         (void)d_postgres_result_sqlstate(_result, got);
         (void)d_postgres_result_sqlstate(_expected, want);
-        printf("    got %d (%s), expected %d (%s): %s\n",
-               _result,
-               got,
-               _expected,
-               want,
-               (_result > 0) ? d_postgres_error_message(_db)
-                             : d_postgres_result_message(_result));
+        (void)d_test_suite_note(g_suite,
+                                "got %d (%s), expected %d (%s): %s",
+                                _result,
+                                got,
+                                _expected,
+                                want,
+                                (_result > 0)
+                                    ? d_postgres_error_message(_db)
+                                    : d_postgres_result_message(_result));
     }
 
     return;
@@ -538,11 +559,12 @@ struct pg_conn* d_tests_postgres_connect(
     // a connection, or a reason
     if (d_postgres_connect(&options, &db, &reason) != 0)
     {
-        printf("  cannot connect to %s:%u as %s: %s\n",
-               options.host,
-               options.port,
-               options.user,
-               (reason) ? reason : "no reason given");
+        (void)d_test_suite_note(g_suite,
+                                "cannot connect to %s:%u as %s: %s",
+                                options.host,
+                                options.port,
+                                options.user,
+                                (reason) ? reason : "no reason given");
     }
 
     d_db_free(reason);
@@ -683,10 +705,12 @@ bool d_tests_postgres_text_is(
     // say what came instead
     if (!same)
     {
-        printf("    %s: got %s, expected %s\n",
-               _sql,
-               (result != 0) ? "a failure" : (text) ? text : "NULL",
-               (_expected) ? _expected : "NULL");
+        (void)d_test_suite_note(g_suite,
+                                "%s: got %s, expected %s",
+                                _sql,
+                                (result != 0) ? "a failure"
+                                              : (text) ? text : "NULL",
+                                (_expected) ? _expected : "NULL");
     }
 
     d_db_free(text);
@@ -927,7 +951,7 @@ void d_tests_postgres_db_common(void)
     struct dj_db_name_list   names   = { 0u, NULL };
     struct dj_db_column_list columns = { 0u, NULL };
 
-    printf("db_common\n");
+    d_tests_postgres_start("db_common", "db_common");
 
     D_TESTS_POSTGRES_CHECK(D_DB_OK == 0);
     D_TESTS_POSTGRES_CHECK(D_DB_INVALID_ARGUMENT < 0);
@@ -977,7 +1001,7 @@ void d_tests_postgres_sqlstates(void)
                               sizeof(d_tests_postgres_conditions[0]);
     char         spelled[6] = "";
 
-    printf("postgres_common: SQLSTATEs\n");
+    d_tests_postgres_start("postgres_common", "SQLSTATEs");
 
     for (size_t i = 0u; i < count; ++i)
     {
@@ -1032,7 +1056,7 @@ d_tests_postgres_messages
 static
 void d_tests_postgres_messages(void)
 {
-    printf("postgres_common: messages\n");
+    d_tests_postgres_start("postgres_common", "messages");
 
     D_TESTS_POSTGRES_CHECK(
         strcmp(d_postgres_result_message(D_DB_INVALID_ARGUMENT),
@@ -1102,8 +1126,10 @@ void d_tests_postgres_client(void)
 {
     const int library = PQlibVersion();
 
-    printf("postgres_common: client (libpq %d)\n",
-           d_postgres_client_version_number());
+    d_tests_postgres_start("postgres_common", "client");
+    (void)d_test_suite_note(g_suite,
+                            "libpq %d",
+                            d_postgres_client_version_number());
 
     D_TESTS_POSTGRES_CHECK(d_postgres_client_version_number() == library);
     D_TESTS_POSTGRES_CHECK(d_postgres_client_version_number() >=
@@ -1162,8 +1188,10 @@ void d_tests_postgres_versions(void)
 {
     struct pg_conn* const db = d_tests_postgres_connect(NULL);
 
-    printf("postgres_common: versions (%s)\n",
-           (db) ? d_postgres_server_version(db) : "no server");
+    d_tests_postgres_start("postgres_common", "versions");
+    (void)d_test_suite_note(g_suite,
+                            "%s",
+                            (db) ? d_postgres_server_version(db) : "no server");
 
     // nothing more without a server
     if (!db)
@@ -1220,7 +1248,7 @@ void d_tests_postgres_features(void)
     const size_t    count      = sizeof(d_tests_postgres_probes) /
                                  sizeof(d_tests_postgres_probes[0]);
 
-    printf("postgres_common: features\n");
+    d_tests_postgres_start("postgres_common", "features");
 
     // nothing more without a server
     if (!db)
@@ -1241,10 +1269,12 @@ void d_tests_postgres_features(void)
 
         if (works != supports)
         {
-            printf("    feature %d: supports says %d, the server %d\n",
-                   (int)probe->feature,
-                   (int)supports,
-                   (int)works);
+            (void)d_test_suite_note(g_suite,
+                                    "feature %d: supports says %d, the server "
+                                    "%d",
+                                    (int)probe->feature,
+                                    (int)supports,
+                                    (int)works);
         }
     }
 
@@ -1275,7 +1305,7 @@ void d_tests_postgres_feature_statements(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_common: features outside transactions\n");
+    d_tests_postgres_start("postgres_common", "features outside transactions");
 
     // nothing more without a server
     if (!db)
@@ -1315,7 +1345,7 @@ void d_tests_postgres_reported_parameters(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
-    printf("postgres_common: reported parameters\n");
+    d_tests_postgres_start("postgres_common", "reported parameters");
 
     // nothing more without a server
     if (!db)
@@ -1367,7 +1397,7 @@ void d_tests_postgres_errors(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_common: errors\n");
+    d_tests_postgres_start("postgres_common", "errors");
 
     // nothing more without a server
     if (!db)
@@ -1418,7 +1448,7 @@ void d_tests_postgres_own_results(void)
                                                   sizeof(schema));
     struct dj_postgres_statement* statement  = NULL;
 
-    printf("postgres_common: own results\n");
+    d_tests_postgres_start("postgres_common", "own results");
 
     D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(NULL, D_DB_UNSUPPORTED));
     D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(
@@ -1565,7 +1595,7 @@ void d_tests_postgres_float_digits(void)
                                    g_options.password, g_options.database,
                                    "-c application_name=d_tests_digits" };
 
-    printf("postgres_connection: extra_float_digits\n");
+    d_tests_postgres_start("postgres_connection", "extra_float_digits");
 
     // nothing more without a server
     if (!db)
@@ -1627,7 +1657,7 @@ void d_tests_postgres_connecting(void)
     struct pg_conn* db     = NULL;
     char*           reason = NULL;
 
-    printf("postgres_connection: connecting\n");
+    d_tests_postgres_start("postgres_connection", "connecting");
 
     D_TESTS_POSTGRES_OK(db, d_postgres_connect(&g_options, &db, &reason));
     D_TESTS_POSTGRES_CHECK(db != NULL);
@@ -1667,7 +1697,7 @@ void d_tests_postgres_connect_failures(void)
     char*                     reason  = NULL;
     struct dj_postgres_options options = g_options;
 
-    printf("postgres_connection: failures\n");
+    d_tests_postgres_start("postgres_connection", "failures");
 
     options.password = "certainly not the password";
     D_TESTS_POSTGRES_RESULT(db,
@@ -1759,7 +1789,7 @@ void d_tests_postgres_connect_defaults(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
-    printf("postgres_connection: defaults\n");
+    d_tests_postgres_start("postgres_connection", "defaults");
 
     // nothing more without a server
     if (!db)
@@ -1826,7 +1856,7 @@ void d_tests_postgres_connect_strings(void)
     char*           reason    = NULL;
     char            text[512] = "";
 
-    printf("postgres_connection: connection strings\n");
+    d_tests_postgres_start("postgres_connection", "connection strings");
 
     d_tests_postgres_conninfo(text, sizeof(text), "");
     D_TESTS_POSTGRES_OK(db, d_postgres_connect_string(text, &db, &reason));
@@ -1905,7 +1935,7 @@ void d_tests_postgres_connect_with(void)
     const char*     name_word[1] = { "dbname" };
     const char*     name_value[1] = { NULL };
 
-    printf("postgres_connection: keywords beside a string\n");
+    d_tests_postgres_start("postgres_connection", "keywords beside a string");
 
     snprintf(port, sizeof(port), "%u", g_options.port);
     keywords[0]   = "host";
@@ -2111,7 +2141,7 @@ void d_tests_postgres_liveness(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
-    printf("postgres_connection: liveness\n");
+    d_tests_postgres_start("postgres_connection", "liveness");
 
     // nothing more without a server
     if (!db)
@@ -2186,7 +2216,7 @@ void d_tests_postgres_lost_connections(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
-    printf("postgres_connection: lost connections\n");
+    d_tests_postgres_start("postgres_connection", "lost connections");
 
     // nothing more without a server
     if (!db)
@@ -2387,7 +2417,8 @@ void d_tests_postgres_connect_nonblocking(void)
                                              g_options.database,
                                              "-c application_name=d_nb" };
 
-    printf("postgres_connection: connecting without blocking\n");
+    d_tests_postgres_start("postgres_connection",
+                           "connecting without blocking");
 
     memset(&pending, 0x5a, sizeof(pending));
     (void)snprintf(port, sizeof(port), "%u", g_options.port);
@@ -2637,7 +2668,7 @@ void d_tests_postgres_connect_timeouts(void)
     const char*         values[]   = { "127.0.0.1", port, "2", "disable" };
     const int           mute       = socket(AF_INET, SOCK_STREAM, 0);
 
-    printf("postgres_connection: deadlines without blocking\n");
+    d_tests_postgres_start("postgres_connection", "deadlines without blocking");
 
     memset(&address, 0, sizeof(address));
     address.sin_family      = AF_INET;
@@ -2774,7 +2805,7 @@ void d_tests_postgres_reconnects(void)
                                        g_options.database,
                                        "-c application_name=d_reset" };
 
-    printf("postgres_connection: resets\n");
+    d_tests_postgres_start("postgres_connection", "resets");
 
     (void)snprintf(port, sizeof(port), "%u", g_options.port);
     D_TESTS_POSTGRES_OK(NULL, d_postgres_connect_with(NULL,
@@ -2937,7 +2968,7 @@ void d_tests_postgres_cancels(void)
     char*                  reason  = NULL;
     struct dj_db_pending    pending;
 
-    printf("postgres_connection: cancelling\n");
+    d_tests_postgres_start("postgres_connection", "cancelling");
 
     // nothing more without a server
     if ( (!db) ||
@@ -2963,7 +2994,8 @@ void d_tests_postgres_cancels(void)
     {
         int result = D_DB_WAIT;
 
-        printf("  without blocking, libpq 17's\n");
+        (void)d_test_suite_note(g_suite,
+                                "without blocking, libpq 17's");
 
         D_TESTS_POSTGRES_CHECK(d_tests_postgres_sleeping(db, watcher));
         D_TESTS_POSTGRES_RESULT(db,
@@ -3075,7 +3107,7 @@ void d_tests_postgres_statements(void)
                                                               sizeof(schema));
     volatile const double zero       = 0.0;
 
-    printf("postgres_query: statements\n");
+    d_tests_postgres_start("postgres_query", "statements");
 
     // nothing more without a server
     if (!db)
@@ -3138,7 +3170,7 @@ void d_tests_postgres_scripts(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_query: scripts\n");
+    d_tests_postgres_start("postgres_query", "scripts");
 
     // nothing more without a server
     if (!db)
@@ -3191,7 +3223,7 @@ void d_tests_postgres_copies(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_query: COPY\n");
+    d_tests_postgres_start("postgres_query", "COPY");
 
     // nothing more without a server
     if (!db)
@@ -3276,7 +3308,7 @@ void d_tests_postgres_changes(void)
                                                         sizeof(schema));
     int64_t         n          = -1;
 
-    printf("postgres_query: rows changed\n");
+    d_tests_postgres_start("postgres_query", "rows changed");
 
     // nothing more without a server
     if (!db)
@@ -3331,7 +3363,7 @@ void d_tests_postgres_integers(void)
     struct pg_conn* db = d_tests_postgres_connect(NULL);
     int64_t         v  = 0;
 
-    printf("postgres_query: integers\n");
+    d_tests_postgres_start("postgres_query", "integers");
 
     // nothing more without a server
     if (!db)
@@ -3395,7 +3427,7 @@ void d_tests_postgres_doubles(void)
     double            v        = 0.0;
     const char* const locales[] = { "C", "de_DE.UTF-8", "ps_AF.UTF-8" };
 
-    printf("postgres_query: doubles\n");
+    d_tests_postgres_start("postgres_query", "doubles");
 
     // nothing more without a server
     if (!db)
@@ -3461,7 +3493,7 @@ void d_tests_postgres_text(void)
     const char* const weird        =
         "it's a \\ \"test\" \xc3\xa9\xe2\x82\xac";
 
-    printf("postgres_query: text\n");
+    d_tests_postgres_start("postgres_query", "text");
 
     // nothing more without a server
     if (!db)
@@ -3506,7 +3538,7 @@ void d_tests_postgres_bools(void)
     struct pg_conn* db = d_tests_postgres_connect(NULL);
     bool            b  = false;
 
-    printf("postgres_query: booleans\n");
+    d_tests_postgres_start("postgres_query", "booleans");
 
     // nothing more without a server
     if (!db)
@@ -3564,7 +3596,7 @@ void d_tests_postgres_rows_values(void)
     struct dj_db_rows rows       = { 0u, 0u, NULL, NULL };
     struct dj_db_rows marker     = { 7u, 7u, NULL, NULL };
 
-    printf("postgres_query: rows\n");
+    d_tests_postgres_start("postgres_query", "rows");
 
     // nothing more without a server
     if (!db)
@@ -3816,7 +3848,7 @@ void d_tests_postgres_rows_types(void)
     struct pg_conn*  db    = d_tests_postgres_connect(NULL);
     struct dj_db_rows rows  = { 0u, 0u, NULL, NULL };
 
-    printf("postgres_query: column types\n");
+    d_tests_postgres_start("postgres_query", "column types");
 
     // nothing more without a server
     if (!db)
@@ -3844,13 +3876,15 @@ void d_tests_postgres_rows_types(void)
         // say which type was misread, beyond the line
         if (!typed)
         {
-            printf("    %s read as %s (%s)\n",
-                   expected[i].declared,
-                   (rows.column_count == 1u)
-                       ? d_db_type_name(rows.columns[0].type)
-                       : "nothing",
-                   (rows.column_count == 1u) ? rows.columns[0].type_name
-                                             : "");
+            (void)d_test_suite_note(g_suite,
+                                    "%s read as %s (%s)",
+                                    expected[i].declared,
+                                    (rows.column_count == 1u)
+                                        ? d_db_type_name(rows.columns[0].type)
+                                        : "nothing",
+                                    (rows.column_count == 1u)
+                                        ? rows.columns[0].type_name
+                                        : "");
         }
 
         D_TESTS_POSTGRES_CHECK(typed);
@@ -3896,7 +3930,7 @@ void d_tests_postgres_rows_params(void)
     int64_t            number   = 0;
     bool               flag     = false;
 
-    printf("postgres_query: rows with parameters\n");
+    d_tests_postgres_start("postgres_query", "rows with parameters");
 
     memset(&rows, 0, sizeof(rows));
 
@@ -4005,7 +4039,7 @@ void d_tests_postgres_quoting_names(void)
                                                         sizeof(schema));
     char*           quoted     = d_postgres_quote_identifier("a\"b");
 
-    printf("postgres_query: quoting names\n");
+    d_tests_postgres_start("postgres_query", "quoting names");
 
     D_TESTS_POSTGRES_CHECK( (quoted) && (strcmp(quoted, "\"a\"\"b\"") == 0) );
     d_db_free(quoted);
@@ -4090,7 +4124,7 @@ void d_tests_postgres_quoting_values(void)
     char*           quoted  = NULL;
     char            sql[64] = "";
 
-    printf("postgres_query: quoting values\n");
+    d_tests_postgres_start("postgres_query", "quoting values");
 
     // nothing more without a server
     if (!db)
@@ -4143,7 +4177,7 @@ void d_tests_postgres_query_arguments(void)
     bool             b    = false;
     struct dj_db_rows rows = { 0u, 0u, NULL, NULL };
 
-    printf("postgres_query: arguments\n");
+    d_tests_postgres_start("postgres_query", "arguments");
 
     D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(NULL, "SELECT 1"),
                             D_DB_INVALID_ARGUMENT);
@@ -4231,7 +4265,7 @@ void d_tests_postgres_preparing(void)
     struct dj_postgres_statement* statement  = NULL;
     char*                        name       = NULL;
 
-    printf("postgres_statement: preparing\n");
+    d_tests_postgres_start("postgres_statement", "preparing");
 
     // nothing more without a server
     if (!db)
@@ -4383,7 +4417,7 @@ void d_tests_postgres_binding(void)
     unsigned char                bytes[]    = { 0x00, 0x01, 0x00 };
     int64_t                      changes    = 0;
 
-    printf("postgres_statement: binding\n");
+    d_tests_postgres_start("postgres_statement", "binding");
 
     // nothing more without a server
     if (!db)
@@ -4567,7 +4601,7 @@ void d_tests_postgres_running(void)
     const int64_t                left       = 1;
 #endif
 
-    printf("postgres_statement: running\n");
+    d_tests_postgres_start("postgres_statement", "running");
 
     // nothing more without a server
     if (!db)
@@ -4711,7 +4745,7 @@ void d_tests_postgres_statement_arguments(void)
     struct dj_db_rows             rows      = { 0u, 0u, NULL, NULL };
     int64_t                      changes   = 0;
 
-    printf("postgres_statement: arguments\n");
+    d_tests_postgres_start("postgres_statement", "arguments");
 
     statement = (struct dj_postgres_statement*)&g_options;
     D_TESTS_POSTGRES_RESULT(db, d_postgres_prepare(NULL, &statement,
@@ -4791,7 +4825,7 @@ void d_tests_postgres_closing_by_name(void)
                                  "pg_catalog.pg_prepared_statements WHERE "
                                  "name LIKE 'p_close%'";
 
-    printf("postgres_statement: closing by name\n");
+    d_tests_postgres_start("postgres_statement", "closing by name");
 
     // nothing more without a server
     if (!db)
@@ -4896,7 +4930,7 @@ void d_tests_postgres_cursors(void)
     const int                    busy       =
         D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
 
-    printf("postgres_statement: rows a few at a time\n");
+    d_tests_postgres_start("postgres_statement", "rows a few at a time");
 
     // nothing more without a server
     if (!db)
@@ -5194,7 +5228,7 @@ void d_tests_postgres_large_objects(void)
     const int                    undefined  =
         d_postgres_result_from_sqlstate("42704");
 
-    printf("postgres_protocol: large objects\n");
+    d_tests_postgres_start("postgres_protocol", "large objects");
 
     // nothing more without a server, or memory
     if ( (!db)    ||
@@ -5338,7 +5372,7 @@ void d_tests_postgres_databases(void)
     struct dj_db_name_list names    = { 0u, NULL };
     char                  name[96] = "";
 
-    printf("postgres_database: databases\n");
+    d_tests_postgres_start("postgres_database", "databases");
 
     // nothing more without a server
     if (!db)
@@ -5396,7 +5430,7 @@ void d_tests_postgres_database_transactions(void)
     struct pg_conn* db       = d_tests_postgres_connect(NULL);
     char            name[96] = "";
 
-    printf("postgres_database: databases and transactions\n");
+    d_tests_postgres_start("postgres_database", "databases and transactions");
 
     // nothing more without a server
     if (!db)
@@ -5448,7 +5482,7 @@ void d_tests_postgres_drop_force(void)
     struct pg_conn* other    = NULL;
     char            name[96] = "";
 
-    printf("postgres_database: dropping with FORCE\n");
+    d_tests_postgres_start("postgres_database", "dropping with FORCE");
 
     // nothing more without a server
     if (!db)
@@ -5512,7 +5546,7 @@ void d_tests_postgres_schemas(void)
     struct dj_db_name_list names    = { 0u, NULL };
     char                  name[96] = "";
 
-    printf("postgres_database: schemas\n");
+    d_tests_postgres_start("postgres_database", "schemas");
 
     // nothing more without a server
     if (!db)
@@ -5573,7 +5607,7 @@ void d_tests_postgres_temporary_schema(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_database: the temporary schema\n");
+    d_tests_postgres_start("postgres_database", "the temporary schema");
 
     // nothing more without a server
     if (!db)
@@ -5617,7 +5651,7 @@ void d_tests_postgres_current_schema(void)
                                                         sizeof(schema));
     char*           name       = NULL;
 
-    printf("postgres_database: the current schema\n");
+    d_tests_postgres_start("postgres_database", "the current schema");
 
     // nothing more without a server
     if (!db)
@@ -5736,7 +5770,7 @@ void d_tests_postgres_extensions(void)
                                                               sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("postgres_database: extensions\n");
+    d_tests_postgres_start("postgres_database", "extensions");
 
     // nothing more without a server
     if (!db)
@@ -5761,7 +5795,9 @@ void d_tests_postgres_extensions(void)
     }
     else
     {
-        printf("    (citext is not available: its checks are skipped)\n");
+        (void)d_test_suite_note(g_suite,
+                                "(citext is not available: its checks are "
+                                "skipped)");
     }
 
     d_tests_postgres_end(db, schema);
@@ -5781,13 +5817,18 @@ void d_tests_postgres_extension_cascade(void)
 {
     struct pg_conn* db = d_tests_postgres_connect(NULL);
 
-    printf("postgres_database: extensions that need others\n");
+    d_tests_postgres_start("postgres_database", "extensions that need others");
 
-    // nothing more without a server, or without contrib's earthdistance
-    if ( (!db) ||
-         (!d_tests_postgres_extension_available(db, "earthdistance")) )
+    // nothing more without a server
+    if (!db)
     {
-        printf("    (earthdistance is not available: skipped)\n");
+        return;
+    }
+
+    // nor without contrib's earthdistance
+    if (!d_tests_postgres_extension_available(db, "earthdistance"))
+    {
+        (void)d_test_suite_skip(g_suite, "earthdistance is not available");
         d_postgres_close(db);
 
         return;
@@ -5826,7 +5867,7 @@ void d_tests_postgres_database_arguments(void)
     struct dj_db_name_list names  = { 0u, NULL };
     bool                  exists = true;
 
-    printf("postgres_database: arguments\n");
+    d_tests_postgres_start("postgres_database", "arguments");
 
     D_TESTS_POSTGRES_RESULT(db, d_postgres_has_database_s(db, NULL, &exists),
                             D_DB_INVALID_ARGUMENT);
@@ -5892,7 +5933,7 @@ void d_tests_postgres_table_existence(void)
                                                         sizeof(schema));
     bool            exists     = false;
 
-    printf("postgres_schema: table existence\n");
+    d_tests_postgres_start("postgres_schema", "table existence");
 
     // nothing more without a server
     if (!db)
@@ -5944,7 +5985,7 @@ void d_tests_postgres_table_creation(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: table creation\n");
+    d_tests_postgres_start("postgres_schema", "table creation");
 
     // nothing more without a server
     if (!db)
@@ -6002,7 +6043,7 @@ void d_tests_postgres_table_drops(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: table drops\n");
+    d_tests_postgres_start("postgres_schema", "table drops");
 
     // nothing more without a server
     if (!db)
@@ -6051,7 +6092,7 @@ void d_tests_postgres_table_renames(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: table renames\n");
+    d_tests_postgres_start("postgres_schema", "table renames");
 
     // nothing more without a server
     if (!db)
@@ -6096,7 +6137,7 @@ void d_tests_postgres_table_rows(void)
                                                         sizeof(schema));
     int64_t         count      = -1;
 
-    printf("postgres_schema: table rows\n");
+    d_tests_postgres_start("postgres_schema", "table rows");
 
     // nothing more without a server
     if (!db)
@@ -6153,7 +6194,7 @@ void d_tests_postgres_table_listing(void)
                                                               sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("postgres_schema: table listing\n");
+    d_tests_postgres_start("postgres_schema", "table listing");
 
     // nothing more without a server
     if (!db)
@@ -6210,7 +6251,7 @@ void d_tests_postgres_null_schema(void)
     char            path[200]  = "";
     int64_t         count      = 0;
 
-    printf("postgres_schema: the NULL schema\n");
+    d_tests_postgres_start("postgres_schema", "the NULL schema");
 
     // nothing more without a server
     if (!db)
@@ -6259,7 +6300,7 @@ void d_tests_postgres_table_arguments(void)
     bool                  exists = true;
     int64_t               count  = 0;
 
-    printf("postgres_schema: table arguments\n");
+    d_tests_postgres_start("postgres_schema", "table arguments");
 
     D_TESTS_POSTGRES_RESULT(db, d_postgres_has_table_s(NULL, NULL, "t",
                                                        &exists),
@@ -6315,7 +6356,7 @@ void d_tests_postgres_creation_arguments(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: creation arguments\n");
+    d_tests_postgres_start("postgres_schema", "creation arguments");
 
     D_TESTS_POSTGRES_RESULT(db,
                             d_postgres_create_table(db, NULL, "t",
@@ -6371,7 +6412,7 @@ void d_tests_postgres_described_types(void)
         sizeof(d_tests_postgres_every_type) /
         sizeof(d_tests_postgres_every_type[0]);
 
-    printf("postgres_schema: described types\n");
+    d_tests_postgres_start("postgres_schema", "described types");
 
     // nothing more without a server
     if (!db)
@@ -6400,10 +6441,11 @@ void d_tests_postgres_described_types(void)
 
         if (!same)
         {
-            printf("    column %s: %s, expected %s\n",
-                   columns.columns[i].name,
-                   columns.columns[i].type,
-                   d_tests_postgres_every_type_sql[i]);
+            (void)d_test_suite_note(g_suite,
+                                    "column %s: %s, expected %s",
+                                    columns.columns[i].name,
+                                    columns.columns[i].type,
+                                    d_tests_postgres_every_type_sql[i]);
         }
     }
 
@@ -6464,7 +6506,7 @@ void d_tests_postgres_described_attributes(void)
         sizeof(d_tests_postgres_every_type) /
         sizeof(d_tests_postgres_every_type[0]);
 
-    printf("postgres_schema: described attributes\n");
+    d_tests_postgres_start("postgres_schema", "described attributes");
 
     // nothing more without a server
     if (!db)
@@ -6517,7 +6559,7 @@ void d_tests_postgres_described_keys(void)
                                                                 sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("postgres_schema: described keys\n");
+    d_tests_postgres_start("postgres_schema", "described keys");
 
     // nothing more without a server
     if (!db)
@@ -6641,7 +6683,7 @@ void d_tests_postgres_described_refusals(void)
     const size_t    count      = sizeof(d_tests_postgres_refused) /
                                  sizeof(d_tests_postgres_refused[0]);
 
-    printf("postgres_schema: described refusals\n");
+    d_tests_postgres_start("postgres_schema", "described refusals");
 
     // nothing more without a server
     if (!db)
@@ -6732,7 +6774,7 @@ void d_tests_postgres_defaults(void)
                                                                 sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("postgres_schema: defaults\n");
+    d_tests_postgres_start("postgres_schema", "defaults");
 
     // nothing more without a server
     if (!db)
@@ -6791,7 +6833,7 @@ void d_tests_postgres_default_values(void)
         sizeof(d_tests_postgres_default_reads[0]);
     char                    sql[256]   = "";
 
-    printf("postgres_schema: what defaults read as\n");
+    d_tests_postgres_start("postgres_schema", "what defaults read as");
 
     // nothing more without a server
     if (!db)
@@ -6852,7 +6894,7 @@ void d_tests_postgres_column_existence(void)
                                                         sizeof(schema));
     bool            exists     = false;
 
-    printf("postgres_schema: column existence\n");
+    d_tests_postgres_start("postgres_schema", "column existence");
 
     // nothing more without a server
     if (!db)
@@ -6910,7 +6952,7 @@ void d_tests_postgres_column_additions(void)
         NULL, 0u
     };
 
-    printf("postgres_schema: column additions\n");
+    d_tests_postgres_start("postgres_schema", "column additions");
 
     // nothing more without a server
     if (!db)
@@ -6959,7 +7001,7 @@ void d_tests_postgres_column_removals(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: column renames and drops\n");
+    d_tests_postgres_start("postgres_schema", "column renames and drops");
 
     // nothing more without a server
     if (!db)
@@ -7016,7 +7058,7 @@ void d_tests_postgres_column_listing(void)
                                                                 sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("postgres_schema: column listing\n");
+    d_tests_postgres_start("postgres_schema", "column listing");
 
     // nothing more without a server
     if (!db)
@@ -7076,7 +7118,7 @@ void d_tests_postgres_column_arguments(void)
         "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
-    printf("postgres_schema: column arguments\n");
+    d_tests_postgres_start("postgres_schema", "column arguments");
 
     D_TESTS_POSTGRES_RESULT(db, d_postgres_has_column_s(db, NULL, "t", NULL,
                                                         &exists),
@@ -7132,7 +7174,7 @@ void d_tests_postgres_indexes(void)
                                                               sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("postgres_schema: indexes\n");
+    d_tests_postgres_start("postgres_schema", "indexes");
 
     // nothing more without a server
     if (!db)
@@ -7220,7 +7262,7 @@ void d_tests_postgres_index_forms(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: index forms\n");
+    d_tests_postgres_start("postgres_schema", "index forms");
 
     // nothing more without a server
     if (!db)
@@ -7284,7 +7326,7 @@ void d_tests_postgres_index_changes(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: index drops\n");
+    d_tests_postgres_start("postgres_schema", "index drops");
 
     // nothing more without a server
     if (!db)
@@ -7339,7 +7381,7 @@ void d_tests_postgres_views(void)
                                                               sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("postgres_schema: views\n");
+    d_tests_postgres_start("postgres_schema", "views");
 
     // nothing more without a server
     if (!db)
@@ -7397,7 +7439,7 @@ void d_tests_postgres_view_settling(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: views settled in transactions\n");
+    d_tests_postgres_start("postgres_schema", "views settled in transactions");
 
     // nothing more without a server
     if (!db)
@@ -7456,7 +7498,7 @@ void d_tests_postgres_view_changes(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_schema: view replacements and drops\n");
+    d_tests_postgres_start("postgres_schema", "view replacements and drops");
 
     // nothing more without a server
     if (!db)
@@ -7520,7 +7562,7 @@ void d_tests_postgres_triggers(void)
     char                  on_t[200]  = "";
     char                  on_u[200]  = "";
 
-    printf("postgres_schema: triggers\n");
+    d_tests_postgres_start("postgres_schema", "triggers");
 
     // nothing more without a server
     if (!db)
@@ -7585,7 +7627,7 @@ void d_tests_postgres_trigger_changes(void)
     const char*     def        = "BEFORE INSERT ON t FOR EACH ROW "
                                  "EXECUTE PROCEDURE t_audit()";
 
-    printf("postgres_schema: trigger changes\n");
+    d_tests_postgres_start("postgres_schema", "trigger changes");
 
     // nothing more without a server
     if (!db)
@@ -7652,7 +7694,7 @@ void d_tests_postgres_sequences(void)
                                                               sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("postgres_schema: sequences\n");
+    d_tests_postgres_start("postgres_schema", "sequences");
 
     // nothing more without a server
     if (!db)
@@ -7711,7 +7753,7 @@ void d_tests_postgres_sequence_values(void)
                                                         sizeof(schema));
     int64_t         value      = 0;
 
-    printf("postgres_schema: sequence values\n");
+    d_tests_postgres_start("postgres_schema", "sequence values");
 
     // nothing more without a server
     if (!db)
@@ -7762,7 +7804,7 @@ void d_tests_postgres_last_values(void)
                                                         sizeof(schema));
     int64_t         value      = 99;
 
-    printf("postgres_schema: last values\n");
+    d_tests_postgres_start("postgres_schema", "last values");
 
     // nothing more without a server
     if (!db)
@@ -7836,7 +7878,8 @@ void d_tests_postgres_object_arguments(void)
     struct dj_db_name_list names  = { 0u, NULL };
     bool                  exists = true;
 
-    printf("postgres_schema: index, view, trigger and sequence arguments\n");
+    d_tests_postgres_start("postgres_schema",
+                           "index, view, trigger and sequence arguments");
 
     D_TESTS_POSTGRES_RESULT(db, d_postgres_has_index_s(db, NULL, NULL, &exists),
                             D_DB_INVALID_ARGUMENT);
@@ -7906,7 +7949,7 @@ void d_tests_postgres_transactions(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_transaction: transactions\n");
+    d_tests_postgres_start("postgres_transaction", "transactions");
 
     // nothing more without a server
     if (!db)
@@ -7994,7 +8037,7 @@ void d_tests_postgres_failed_transactions(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_transaction: failed transactions\n");
+    d_tests_postgres_start("postgres_transaction", "failed transactions");
 
     // nothing more without a server
     if (!db)
@@ -8071,7 +8114,7 @@ void d_tests_postgres_transaction_modes(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_transaction: modes\n");
+    d_tests_postgres_start("postgres_transaction", "modes");
 
     // nothing more without a server
     if (!db)
@@ -8153,7 +8196,7 @@ void d_tests_postgres_savepoints(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_transaction: savepoints\n");
+    d_tests_postgres_start("postgres_transaction", "savepoints");
 
     // nothing more without a server
     if (!db)
@@ -8216,7 +8259,7 @@ void d_tests_postgres_transactional_ddl(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_transaction: schema changes roll back\n");
+    d_tests_postgres_start("postgres_transaction", "schema changes roll back");
 
     // nothing more without a server
     if (!db)
@@ -8265,7 +8308,7 @@ void d_tests_postgres_search_path(void)
     char*           path          = NULL;
     char            expected[200] = "";
 
-    printf("postgres_settings: the search path\n");
+    d_tests_postgres_start("postgres_settings", "the search path");
 
     // nothing more without a server
     if (!db)
@@ -8321,7 +8364,7 @@ void d_tests_postgres_timeouts(void)
     struct pg_conn* other      = d_tests_postgres_connect(NULL);
     unsigned        ms         = 1u;
 
-    printf("postgres_settings: timeouts\n");
+    d_tests_postgres_start("postgres_settings", "timeouts");
 
     // nothing more without a server
     if ( (!db) || (!other) )
@@ -8378,7 +8421,7 @@ void d_tests_postgres_isolation(void)
     struct pg_conn*           db    = d_tests_postgres_connect(NULL);
     enum dj_postgres_isolation level = D_POSTGRES_ISOLATION_READ_UNCOMMITTED;
 
-    printf("postgres_settings: isolation\n");
+    d_tests_postgres_start("postgres_settings", "isolation");
 
     // nothing more without a server
     if (!db)
@@ -8429,7 +8472,7 @@ void d_tests_postgres_encoding_and_zone(void)
     struct pg_conn* db   = d_tests_postgres_connect(NULL);
     char*           text = NULL;
 
-    printf("postgres_settings: encoding and time zone\n");
+    d_tests_postgres_start("postgres_settings", "encoding and time zone");
 
     // nothing more without a server
     if (!db)
@@ -8487,7 +8530,7 @@ void d_tests_postgres_parameters(void)
     struct pg_conn* db    = d_tests_postgres_connect(NULL);
     char*           value = NULL;
 
-    printf("postgres_settings: parameters\n");
+    d_tests_postgres_start("postgres_settings", "parameters");
 
     // nothing more without a server
     if (!db)
@@ -8553,7 +8596,7 @@ void d_tests_postgres_upkeep(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_maintenance: vacuum and analyze\n");
+    d_tests_postgres_start("postgres_maintenance", "vacuum and analyze");
 
     // nothing more without a server
     if (!db)
@@ -8612,7 +8655,7 @@ void d_tests_postgres_reindex_checkpoint(void)
                                                         schema,
                                                         sizeof(schema));
 
-    printf("postgres_maintenance: reindex and checkpoint\n");
+    d_tests_postgres_start("postgres_maintenance", "reindex and checkpoint");
 
     // nothing more without a server
     if (!db)
@@ -8663,7 +8706,7 @@ void d_tests_postgres_sizes(void)
     int64_t         by_name    = 0;
     int64_t         current    = 0;
 
-    printf("postgres_maintenance: sizes\n");
+    d_tests_postgres_start("postgres_maintenance", "sizes");
 
     // nothing more without a server
     if (!db)
@@ -8713,7 +8756,7 @@ void d_tests_postgres_upkeep_arguments(void)
     struct pg_conn* db   = d_tests_postgres_connect(NULL);
     int64_t         size = 0;
 
-    printf("postgres_maintenance: arguments\n");
+    d_tests_postgres_start("postgres_maintenance", "arguments");
 
     D_TESTS_POSTGRES_RESULT(db, d_postgres_vacuum(db, "s", NULL, 0u),
                             D_DB_INVALID_ARGUMENT);
@@ -8772,7 +8815,7 @@ void d_tests_postgres_copy_in(void)
                                                         sizeof(schema));
     int64_t         changes    = -1;
 
-    printf("postgres_protocol: copying rows in\n");
+    d_tests_postgres_start("postgres_protocol", "copying rows in");
 
     // nothing more without a server
     if (!db)
@@ -8905,7 +8948,7 @@ void d_tests_postgres_notifications(void)
     char*           payload    = NULL;
     int             pid        = 0;
 
-    printf("postgres_protocol: notifications\n");
+    d_tests_postgres_start("postgres_protocol", "notifications");
 
     // nothing more without a server
     if ( (!listener) ||
@@ -9045,7 +9088,7 @@ void d_tests_postgres_sent_statements(void)
     long             waits      = 0;
     int              consumed   = 0;
 
-    printf("postgres_protocol: statements sent\n");
+    d_tests_postgres_start("postgres_protocol", "statements sent");
 
     memset(&rows, 0, sizeof(rows));
 
@@ -9227,7 +9270,7 @@ void d_tests_postgres_chunked_rows(void)
     size_t           total      = 0u;
     size_t           last       = 0u;
 
-    printf("postgres_protocol: rows a few at a time\n");
+    d_tests_postgres_start("postgres_protocol", "rows a few at a time");
 
     // nothing more without a server
     if (!db)
@@ -9366,7 +9409,7 @@ void d_tests_postgres_pipelines(void)
     int              consumed   = 0;
     unsigned long    waits      = 0u;
 
-    printf("postgres_protocol: pipelines\n");
+    d_tests_postgres_start("postgres_protocol", "pipelines");
 
     // nothing more without a server
     if (!db)
@@ -9722,7 +9765,8 @@ void d_tests_postgres_sent_without_blocking(void)
     const size_t        large      = (size_t)16u * 1024u * 1024u;
     char* const         sql        = (char*)malloc(large + 64u);
 
-    printf("postgres_protocol: statements sent without blocking\n");
+    d_tests_postgres_start("postgres_protocol",
+                           "statements sent without blocking");
 
     memset(&rows, 0, sizeof(rows));
 
@@ -9854,7 +9898,9 @@ void d_tests_postgres_sent_without_blocking(void)
                                 db,
                                 &pending,
                                 &waits));
-    printf("  16 MiB written in %d wait(s)\n", waits);
+    (void)d_test_suite_note(g_suite,
+                            "16 MiB written in %d wait(s)",
+                            waits);
     D_TESTS_POSTGRES_CHECK(PQisnonblocking(db) == 0);
     D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
                                 d_postgres_next_result_start(db,
@@ -10264,7 +10310,7 @@ void d_tests_postgres_statements_without_blocking(void)
     const int                    busy       =
         D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
 
-    printf("postgres_statement: without blocking\n");
+    d_tests_postgres_start("postgres_statement", "without blocking");
 
     memset(&rows, 0, sizeof(rows));
 
@@ -10417,9 +10463,11 @@ void d_tests_postgres_statements_without_blocking(void)
                        "SELECT count(*) FROM pg_catalog.pg_prepared_statements "
                        "WHERE name = '%s' AND statement LIKE '%%stale%%'",
                        (name) ? name : "x");
-        printf("  a stale name %s\n",
-               (d_tests_postgres_int(db, sql) == 0) ? "dropped"
-                                                    : "not met this time");
+        (void)d_test_suite_note(g_suite,
+                                "a stale name %s",
+                                (d_tests_postgres_int(db, sql) == 0)
+                                    ? "dropped"
+                                    : "not met this time");
         D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_query(
                                     d_postgres_execute_start(second,
                                                              &pending),
@@ -10700,36 +10748,49 @@ static void (* const d_tests_postgres_all[])(void) =
 };
 
 /*
-main
-  Connects once to name the run, runs every test and reports; the exit
-status is 0 only if every check passed. Without a server to reach, it says
-how to name one, and fails.
+d_tests_postgres
+  The suite's section: connects once to name the run, then runs every test,
+in the order of the headers. Without a server to reach, its one test fails
+and says how to name one.
 */
-int main(void)
+void d_tests_postgres(
+    struct dj_test_suite* _suite
+)
 {
     const size_t    count = sizeof(d_tests_postgres_all) /
                             sizeof(d_tests_postgres_all[0]);
     struct pg_conn* setup = NULL;
 
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "postgres");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/postgres against a PostgreSQL server");
     d_tests_postgres_configure();
     setup = d_tests_postgres_connect(NULL);
 
     // a server to test against
-    if (!setup)
-    {
-        printf("no server: set DJINTERP_TEST_POSTGRES_HOST, _PORT, _USER, "
-               "_PASSWORD or _DATABASE\n");
+    (void)d_test_suite_test(_suite, "a server to test against");
 
-        return 1;
+    if (!D_TEST_CHECK(_suite, setup != NULL))
+    {
+        (void)d_test_suite_note(_suite,
+                                "no server: set DJINTERP_TEST_POSTGRES_HOST, "
+                                "_PORT, _USER, _PASSWORD or _DATABASE");
+        g_suite = NULL;
+
+        return;
     }
 
     snprintf(g_run,
              sizeof(g_run),
              "d_tests_postgres_%d",
              d_postgres_backend_pid(setup));
-    printf("server %s; libpq %d\n",
-           d_postgres_server_version(setup),
-           d_postgres_client_version_number());
+    (void)d_test_suite_note(_suite,
+                            "server %s; libpq %d",
+                            d_postgres_server_version(setup),
+                            d_postgres_client_version_number());
     d_postgres_close(setup);
 
     for (size_t i = 0u; i < count; ++i)
@@ -10737,7 +10798,7 @@ int main(void)
         d_tests_postgres_all[i]();
     }
 
-    printf("%d checks, %d failed\n", g_checks, g_failures);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

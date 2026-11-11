@@ -3,8 +3,8 @@
 *
 *   The C++ face of the SQLite layer, sqlite_face.hpp, compiled as C++ at
 * every level from ISO strict C++98 to C++26 and driven against in-memory
-* databases and a file in the directory it is given. The layer's harness,
-* t_sqlite.c, tests what each function does; this tests what the face adds
+* databases and a file in the directory it is given. The layer's suite,
+* sqlite_tests.c, tests what each function does; this tests what the face adds
 * -- ownership, string and list and text conversion, statements and rows,
 * the guards, the static members, from C++11 moves and the f forms, and the
 * forms each later level adds where the compiler has them: std::optional
@@ -26,7 +26,7 @@
 * path:      /tests/unintegrated/cpp/db/sqlite/t_sqlite_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf, std::remove

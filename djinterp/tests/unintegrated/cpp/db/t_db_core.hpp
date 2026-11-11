@@ -17,7 +17,7 @@
 * path:      /tests/unintegrated/cpp/db/t_db_core.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CORE_DB_T_DB_CORE_HPP
@@ -1824,7 +1824,7 @@ await_running
 asked every 20 milliseconds for five seconds on a connection of _make's: a
 cancel the server receives before it has begun a statement is lost --
 MariaDB discards a KILL QUERY that comes between statements -- so the check
-of cancel() waits until the statement runs, as t_mariadb.c's does.
+of cancel() waits until the statement runs, as mariadb_tests.c's does.
 */
 template<typename Connection,
          typename Make>

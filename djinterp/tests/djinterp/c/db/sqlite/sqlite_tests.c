@@ -1,39 +1,40 @@
 /*******************************************************************************
-* djinterp [c]                                                        t_sqlite.c
+* djinterp [test]                                                 sqlite_tests.c
 *
-*   Conformance harness for djinterp's SQLite convenience layer: every
+*   Conformance tests for djinterp's SQLite convenience layer: every
 * function in c/db/sqlite/sqlite_*.h and c/db/db_common.h, its success paths,
 * its documented failures and its argument checks, against whatever SQLite it
 * is linked with. Where the answer depends on the library -- a feature 3.25.0
 * added, a refusal before 3.15.0 -- the check asks the library's version and
-* expects the matching answer, so one harness passes on every release from
+* expects the matching answer, so one suite passes on every release from
 * the floor, 3.7.17, onward.
 *   Each d_sqlite_supports answer is also checked against the library itself,
 * by running SQL that needs the feature: a version table that drifts from the
 * truth fails here, not in a program.
 *   The tests follow the headers, section by section, and each starts from a
 * connection of its own, so a failure belongs to the function it names. Files
-* go in the directory given as the first argument, "." by default, and are
-* removed before and after.
+* go in the directory DJINTERP_TEST_SQLITE_DIRECTORY names, "." by default,
+* and are removed before and after.
 *
-*   Build (from the repo root), at any language level from C99, against an
-* SQLite amalgamation or a system library -- or let scripts/ci/check_db_sqlite.sh,
-* which runs it across compilers, standards and SQLite releases:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc -I<sqlite3.h's directory>       \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/sqlite/sqlite_[a-z]*.c    \
-*        tests/unintegrated/c/db/sqlite/t_sqlite.c <sqlite3.c, or -lsqlite3>  \
-*        -o t_sqlite
+*   Build: CMake's c_sqlite_tests, or scripts/ci/check_db_sqlite.sh, which runs
+* it across compilers, standards and releases. By hand, from the repo root, at
+* any language level from C99: this file and its runner, sqlite_tests_runner.c
+* in the CMake leaf (build/cmake/config/testing/djinterp/c/db/sqlite/), with
+* DTest's C face (src/djinterp/c/modules/test/test_suite.c), db_*.c and the
+* layer's sources, and -Iinc -Itests/djinterp/c/db/sqlite, against an SQLite
+* amalgamation or a system library.
 *
 *
-* path:      /tests/unintegrated/c/db/sqlite/t_sqlite.c
+* path:      /tests/djinterp/c/db/sqlite/sqlite_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
+#include "./sqlite_tests.h"  // corresponding header
 // std
 #include <limits.h>  // INT_MAX
 #include <math.h>    // NAN
-#include <stdio.h>   // FILE, fopen, fputs, printf, remove, snprintf
+#include <stdio.h>   // FILE, fopen, fputs, remove, snprintf
 #include <stdlib.h>  // getenv
 #include <string.h>  // memcmp, memset, strchr, strcmp, strlen, strstr
 #if !defined(_WIN32)
@@ -51,10 +52,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_directory
 //   setting: where the tests make their files.
@@ -62,7 +64,8 @@ static const char* g_directory = ".";
 
 /*
 d_tests_sqlite_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_sqlite_expect(
@@ -71,14 +74,30 @@ void d_tests_sqlite_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_sqlite_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_sqlite_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -568,7 +587,7 @@ void d_tests_sqlite_db_common(void)
     struct dj_db_name_list   names   = { 0u, NULL };
     struct dj_db_column_list columns = { 0u, NULL };
 
-    printf("db_common\n");
+    d_tests_sqlite_start("db_common", "db_common");
 
     D_TESTS_SQLITE_CHECK(D_DB_OK == 0);
     D_TESTS_SQLITE_CHECK(D_DB_UNSUPPORTED < 0);
@@ -699,7 +718,7 @@ void d_tests_sqlite_integer_conversions(void)
     struct dj_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
     int64_t           out   = 0;
 
-    printf("db_common: integer conversions\n");
+    d_tests_sqlite_start("db_common", "integer conversions");
 
     value = d_tests_sqlite_value(D_DB_VALUE_INTEGER, INT64_MIN, 0.0, NULL);
     D_TESTS_SQLITE_CHECK( (d_db_value_int64(&value, &out) == D_DB_OK) &&
@@ -755,7 +774,9 @@ void d_tests_sqlite_integer_conversions(void)
         // say which text was read, beyond the line
         if (d_db_value_int64(&value, &out) != D_DB_MISMATCH)
         {
-            printf("  text \"%s\" read as an integer\n", refused[i]);
+            (void)d_test_suite_note(g_suite,
+                                    "text \"%s\" read as an integer",
+                                    refused[i]);
         }
 
         D_TESTS_SQLITE_CHECK(d_db_value_int64(&value, &out) == D_DB_MISMATCH);
@@ -797,7 +818,7 @@ void d_tests_sqlite_real_conversions(void)
     struct dj_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
     double            out   = 0.0;
 
-    printf("db_common: real conversions\n");
+    d_tests_sqlite_start("db_common", "real conversions");
 
     value = d_tests_sqlite_value(D_DB_VALUE_REAL, 0, 0.1, NULL);
     D_TESTS_SQLITE_CHECK( (d_db_value_double(&value, &out) == D_DB_OK) &&
@@ -855,7 +876,9 @@ void d_tests_sqlite_real_conversions(void)
         // say which text was read, beyond the line
         if (d_db_value_double(&value, &out) != D_DB_MISMATCH)
         {
-            printf("  text \"%s\" read as a number\n", refused[i]);
+            (void)d_test_suite_note(g_suite,
+                                    "text \"%s\" read as a number",
+                                    refused[i]);
         }
 
         D_TESTS_SQLITE_CHECK(d_db_value_double(&value, &out) ==
@@ -902,7 +925,7 @@ void d_tests_sqlite_bool_conversions(void)
     struct dj_db_value value = { D_DB_VALUE_NULL, 0u, { 0 } };
     bool              out   = false;
 
-    printf("db_common: boolean conversions\n");
+    d_tests_sqlite_start("db_common", "boolean conversions");
 
     value = d_tests_sqlite_value(D_DB_VALUE_INTEGER, 0, 0.0, NULL);
     D_TESTS_SQLITE_CHECK( (d_db_value_bool(&value, &out) == D_DB_OK) &&
@@ -969,7 +992,7 @@ void d_tests_sqlite_rows_reading(void)
     struct dj_db_rows empty = { 0u, 0u, NULL, NULL };
     size_t           index = 0u;
 
-    printf("db_common: reading rows\n");
+    d_tests_sqlite_start("db_common", "reading rows");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(
@@ -1057,9 +1080,11 @@ void d_tests_sqlite_versions(void)
     const int minor   = (library / 1000) % 1000;
     const int patch   = library % 1000;
 
-    printf("sqlite_common: versions (SQLite %s, compiled against %d)\n",
-           d_sqlite_library_version(),
-           d_sqlite_header_version_number());
+    d_tests_sqlite_start("sqlite_common", "versions");
+    (void)d_test_suite_note(g_suite,
+                            "SQLite %s, compiled against %d",
+                            d_sqlite_library_version(),
+                            d_sqlite_header_version_number());
 
     D_TESTS_SQLITE_CHECK(strlen(d_sqlite_library_version()) > 0u);
     D_TESTS_SQLITE_CHECK(
@@ -1101,7 +1126,7 @@ void d_tests_sqlite_features(void)
     const size_t count = sizeof(d_tests_sqlite_probes) /
                          sizeof(d_tests_sqlite_probes[0]);
 
-    printf("sqlite_common: features\n");
+    d_tests_sqlite_start("sqlite_common", "features");
 
     for (size_t i = 0u; i < count; ++i)
     {
@@ -1113,11 +1138,13 @@ void d_tests_sqlite_features(void)
         // say which feature disagreed, beyond the line
         if (claimed != works)
         {
-            printf("  feature %d: supports says %d, SQL says %d (%s)\n",
-                   (int)probe->feature,
-                   (int)claimed,
-                   (int)works,
-                   probe->sql);
+            (void)d_test_suite_note(g_suite,
+                                    "feature %d: supports says %d, SQL says %d "
+                                    "(%s)",
+                                    (int)probe->feature,
+                                    (int)claimed,
+                                    (int)works,
+                                    probe->sql);
         }
 
         D_TESTS_SQLITE_CHECK(claimed == works);
@@ -1151,7 +1178,7 @@ d_tests_sqlite_messages
 static
 void d_tests_sqlite_messages(void)
 {
-    printf("sqlite_common: result messages\n");
+    d_tests_sqlite_start("sqlite_common", "result messages");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_result_message(D_DB_UNSUPPORTED) != NULL);
     D_TESTS_SQLITE_CHECK(
@@ -1186,7 +1213,7 @@ void d_tests_sqlite_errors(void)
 {
     struct sqlite3* db = NULL;
 
-    printf("sqlite_common: error messages\n");
+    d_tests_sqlite_start("sqlite_common", "error messages");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_exec(db, "SELECT * FROM no_such_table") ==
@@ -1227,7 +1254,7 @@ void d_tests_sqlite_opening(void)
     int      timeout         = -1;
     bool     keys            = false;
 
-    printf("sqlite_connection: opening and closing\n");
+    d_tests_sqlite_start("sqlite_connection", "opening and closing");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_opening.db");
     d_tests_sqlite_path(text_path, sizeof(text_path), "t_sqlite_text.db");
@@ -1296,7 +1323,7 @@ void d_tests_sqlite_opening_with(void)
                                   D_SQLITE_OPEN_CREATE;
     const char*    default_vfs  = sqlite3_vfs_find(NULL)->zName;
 
-    printf("sqlite_connection: opening with flags\n");
+    d_tests_sqlite_start("sqlite_connection", "opening with flags");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_with.db");
     d_tests_sqlite_path(linked, sizeof(linked), "t_sqlite_with_link.db");
@@ -1435,7 +1462,7 @@ void d_tests_sqlite_apply_defaults(void)
     int      timeout = -1;
     bool     keys    = true;
 
-    printf("sqlite_connection: applying defaults\n");
+    d_tests_sqlite_start("sqlite_connection", "applying defaults");
 
     D_TESTS_SQLITE_CHECK(sqlite3_open(":memory:", &db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_get_foreign_keys(db, &keys) == SQLITE_OK);
@@ -1465,7 +1492,7 @@ void d_tests_sqlite_location(void)
     sqlite3* db         = NULL;
     sqlite3* reader     = NULL;
 
-    printf("sqlite_connection: location and access\n");
+    d_tests_sqlite_start("sqlite_connection", "location and access");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_location.db");
     d_tests_sqlite_remove_all(path);
@@ -1507,7 +1534,7 @@ void d_tests_sqlite_rows_changed(void)
 {
     sqlite3* db = NULL;
 
-    printf("sqlite_connection: rows changed\n");
+    d_tests_sqlite_start("sqlite_connection", "rows changed");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(
@@ -1533,8 +1560,9 @@ d_tests_sqlite_extensions
   - supports says what the library has, the build being one that calls it
   - a library that is not there: SQLITE_ERROR, and SQLite's words for it
   - with the test extension (DJINTERP_TEST_SQLITE_EXTENSION, which
-    scripts/ci/check_db_sqlite.sh builds): loaded by its default entry point, its
-    function there; by a named one, its second function too; an entry point
+    scripts/ci/check_db_sqlite.sh builds): loaded by its default entry
+    point, its function there; by a named one, its second function too; an
+    entry point
     it does not have, refused with words; from 3.13.0, SQL's load_extension
     still off after a load, and on once enable_load_extension turns it on,
     and the C API loading again once it is turned off; before 3.13.0, the
@@ -1549,9 +1577,12 @@ void d_tests_sqlite_extensions(void)
     char*             message   = NULL;
     sqlite3*          db        = NULL;
 
-    printf("sqlite_connection: extensions (%s)\n",
-           ( (extension) && (extension[0] != '\0') ) ? extension
-                                                     : "none built");
+    d_tests_sqlite_start("sqlite_connection", "extensions");
+    (void)d_test_suite_note(g_suite,
+                            "%s",
+                            ( (extension) && (extension[0] != '\0') )
+                                ? extension
+                                : "none built");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION) ==
                          (sqlite3_compileoption_used("OMIT_LOAD_EXTENSION") ==
@@ -1693,7 +1724,7 @@ void d_tests_sqlite_connection_arguments(void)
 {
     sqlite3* db = NULL;
 
-    printf("sqlite_connection: arguments\n");
+    d_tests_sqlite_start("sqlite_connection", "arguments");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open(NULL, &db) == SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(d_sqlite_open("unused.db", NULL) == SQLITE_MISUSE);
@@ -1725,7 +1756,7 @@ d_tests_sqlite_statements
 static
 void d_tests_sqlite_statements(void)
 {
-    printf("sqlite_query: running statements\n");
+    d_tests_sqlite_start("sqlite_query", "running statements");
 
     sqlite3* const db = d_tests_sqlite_open_values();
 
@@ -1769,7 +1800,7 @@ d_tests_sqlite_dialects
 static
 void d_tests_sqlite_dialects(void)
 {
-    printf("sqlite_query: format dialects\n");
+    d_tests_sqlite_start("sqlite_query", "format dialects");
 
     sqlite3* const db      = d_tests_sqlite_open_values();
     const double   precise = 0.1234567890123;
@@ -1867,7 +1898,7 @@ d_tests_sqlite_numbers
 static
 void d_tests_sqlite_numbers(void)
 {
-    printf("sqlite_query: single numbers\n");
+    d_tests_sqlite_start("sqlite_query", "single numbers");
 
     sqlite3* const db     = d_tests_sqlite_open_values();
     int64_t        number = 0;
@@ -1926,7 +1957,7 @@ d_tests_sqlite_text
 static
 void d_tests_sqlite_text(void)
 {
-    printf("sqlite_query: single text\n");
+    d_tests_sqlite_start("sqlite_query", "single text");
 
     sqlite3* const db     = d_tests_sqlite_open_values();
     int64_t        marker = 0;
@@ -1992,7 +2023,7 @@ void d_tests_sqlite_changes_counted(void)
     sqlite3* const db      = d_tests_sqlite_open_people();
     int64_t        changes = -1;
 
-    printf("sqlite_query: rows changed\n");
+    d_tests_sqlite_start("sqlite_query", "rows changed");
 
     D_TESTS_SQLITE_CHECK(
         (d_sqlite_exec_changes(db,
@@ -2133,7 +2164,7 @@ void d_tests_sqlite_rows_values(void)
     sqlite3* const   db   = d_tests_sqlite_open_values();
     struct dj_db_rows rows = { 0u, 0u, NULL, NULL };
 
-    printf("sqlite_query: rows\n");
+    d_tests_sqlite_start("sqlite_query", "rows");
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_query_rows(db,
@@ -2328,7 +2359,7 @@ void d_tests_sqlite_rows_types(void)
     sqlite3*         db    = NULL;
     struct dj_db_rows rows  = { 0u, 0u, NULL, NULL };
 
-    printf("sqlite_query: column types\n");
+    d_tests_sqlite_start("sqlite_query", "column types");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
 
@@ -2351,11 +2382,12 @@ void d_tests_sqlite_rows_types(void)
         // say which declared type was misread, beyond the line
         if (!typed)
         {
-            printf("  declared \"%s\" read as %s\n",
-                   expected[i].declared,
-                   (rows.column_count == 1u)
-                       ? d_db_type_name(rows.columns[0].type)
-                       : "nothing");
+            (void)d_test_suite_note(g_suite,
+                                    "declared \"%s\" read as %s",
+                                    expected[i].declared,
+                                    (rows.column_count == 1u)
+                                        ? d_db_type_name(rows.columns[0].type)
+                                        : "nothing");
         }
 
         D_TESTS_SQLITE_CHECK(typed);
@@ -2389,7 +2421,7 @@ void d_tests_sqlite_rows_statements(void)
     struct dj_db_rows rows   = { 0u, 0u, NULL, NULL };
     struct dj_db_rows marker = { 7u, 7u, NULL, NULL };
 
-    printf("sqlite_query: one statement\n");
+    d_tests_sqlite_start("sqlite_query", "one statement");
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_query_rows(db,
@@ -2459,7 +2491,7 @@ void d_tests_sqlite_quoting(void)
 {
     char* text = NULL;
 
-    printf("sqlite_query: quoting\n");
+    d_tests_sqlite_start("sqlite_query", "quoting");
 
     text = d_sqlite_quote_identifier("a\"b");
     D_TESTS_SQLITE_CHECK( (text) && (strcmp(text, "\"a\"\"b\"") == 0) );
@@ -2494,7 +2526,7 @@ void d_tests_sqlite_query_arguments(void)
     char*            text   = NULL;
     struct dj_db_rows rows   = { 0u, 0u, NULL, NULL };
 
-    printf("sqlite_query: arguments\n");
+    d_tests_sqlite_start("sqlite_query", "arguments");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_exec(NULL, "SELECT 1") == SQLITE_MISUSE);
@@ -2568,7 +2600,7 @@ void d_tests_sqlite_preparing(void)
     size_t               index     = 0u;
     int64_t              changes   = 0;
 
-    printf("sqlite_statement: preparing\n");
+    d_tests_sqlite_start("sqlite_statement", "preparing");
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_prepare(db,
@@ -2688,7 +2720,7 @@ void d_tests_sqlite_binding(void)
     unsigned char        bytes[]   = { 0x00, 0x01, 0x00 };
     int64_t              changes   = 0;
 
-    printf("sqlite_statement: binding\n");
+    d_tests_sqlite_start("sqlite_statement", "binding");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(
@@ -2846,7 +2878,7 @@ void d_tests_sqlite_running(void)
     struct dj_db_rows     marker    = { 7u, 7u, NULL, NULL };
     int64_t              changes   = -1;
 
-    printf("sqlite_statement: running\n");
+    d_tests_sqlite_start("sqlite_statement", "running");
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_exec(db, "CREATE TABLE k(id INTEGER PRIMARY KEY, v)") ==
@@ -2963,7 +2995,7 @@ void d_tests_sqlite_cursors(void)
     struct dj_db_rows     rows   = { 0u, 0u, NULL, NULL };
     struct dj_db_rows     marker = { 7u, 7u, NULL, NULL };
 
-    printf("sqlite_statement: rows a few at a time\n");
+    d_tests_sqlite_start("sqlite_statement", "rows a few at a time");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(
@@ -3151,7 +3183,7 @@ void d_tests_sqlite_statement_locks(void)
     struct sqlite3_stmt* statement  = NULL;
     struct dj_db_rows     rows       = { 0u, 0u, NULL, NULL };
 
-    printf("sqlite_statement: locks\n");
+    d_tests_sqlite_start("sqlite_statement", "locks");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_locks.db");
 
@@ -3242,7 +3274,7 @@ void d_tests_sqlite_statement_arguments(void)
     size_t               index     = 0u;
     int64_t              changes   = 0;
 
-    printf("sqlite_statement: arguments\n");
+    d_tests_sqlite_start("sqlite_statement", "arguments");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     statement = (struct sqlite3_stmt*)&index;
@@ -3327,7 +3359,7 @@ void d_tests_sqlite_attached(void)
     struct dj_db_name_list names          = { 0u, NULL };
     bool                  exists         = true;
 
-    printf("sqlite_database: attached databases\n");
+    d_tests_sqlite_start("sqlite_database", "attached databases");
 
     d_tests_sqlite_path(aux_path, sizeof(aux_path), "t_sqlite_aux.db");
     d_tests_sqlite_remove_all(aux_path);
@@ -3391,7 +3423,7 @@ void d_tests_sqlite_database_files(void)
     char                     path[1024]      = "";
     char                     companion[1100] = "";
 
-    printf("sqlite_database: database files\n");
+    d_tests_sqlite_start("sqlite_database", "database files");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_database.db");
     d_tests_sqlite_remove_all(path);
@@ -3470,7 +3502,7 @@ void d_tests_sqlite_serialization(void)
     void*    bytes      = NULL;
     size_t   size       = 0u;
 
-    printf("sqlite_database: databases as bytes\n");
+    d_tests_sqlite_start("sqlite_database", "databases as bytes");
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_supports(D_SQLITE_FEATURE_SERIALIZE) == supported);
@@ -3619,7 +3651,7 @@ void d_tests_sqlite_database_arguments(void)
     sqlite3* db     = NULL;
     bool     exists = true;
 
-    printf("sqlite_database: arguments\n");
+    d_tests_sqlite_start("sqlite_database", "arguments");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(!d_sqlite_has_database(NULL, "main"));
@@ -3672,7 +3704,7 @@ d_tests_sqlite_table_existence
 static
 void d_tests_sqlite_table_existence(void)
 {
-    printf("sqlite_schema: tables, existence\n");
+    d_tests_sqlite_start("sqlite_schema", "tables, existence");
 
     sqlite3* const db     = d_tests_sqlite_open_schemas();
     bool           exists = true;
@@ -3722,7 +3754,7 @@ d_tests_sqlite_table_changes
 static
 void d_tests_sqlite_table_changes(void)
 {
-    printf("sqlite_schema: tables, changes\n");
+    d_tests_sqlite_start("sqlite_schema", "tables, changes");
 
     sqlite3* const db = d_tests_sqlite_open_schemas();
 
@@ -3762,7 +3794,7 @@ d_tests_sqlite_table_rows
 static
 void d_tests_sqlite_table_rows(void)
 {
-    printf("sqlite_schema: tables, rows\n");
+    d_tests_sqlite_start("sqlite_schema", "tables, rows");
 
     sqlite3* const db    = d_tests_sqlite_open_schemas();
     int64_t        count = -1;
@@ -3814,7 +3846,7 @@ d_tests_sqlite_table_listing
 static
 void d_tests_sqlite_table_listing(void)
 {
-    printf("sqlite_schema: tables, listing\n");
+    d_tests_sqlite_start("sqlite_schema", "tables, listing");
 
     sqlite3* const        db    = d_tests_sqlite_open_schemas();
     struct dj_db_name_list names = { 0u, NULL };
@@ -3860,7 +3892,7 @@ d_tests_sqlite_table_arguments
 static
 void d_tests_sqlite_table_arguments(void)
 {
-    printf("sqlite_schema: tables, arguments\n");
+    d_tests_sqlite_start("sqlite_schema", "tables, arguments");
 
     sqlite3* const        db    = d_tests_sqlite_open_schemas();
     struct dj_db_name_list names = { 0u, NULL };
@@ -3910,7 +3942,7 @@ void d_tests_sqlite_described_types(void)
     const size_t count = sizeof(d_tests_sqlite_every_type) /
                          sizeof(d_tests_sqlite_every_type[0]);
 
-    printf("sqlite_schema: described tables, types\n");
+    d_tests_sqlite_start("sqlite_schema", "described tables, types");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list columns = { 0u, NULL };
@@ -3949,7 +3981,7 @@ void d_tests_sqlite_described_constraints(void)
     const size_t count = sizeof(d_tests_sqlite_every_type) /
                          sizeof(d_tests_sqlite_every_type[0]);
 
-    printf("sqlite_schema: described tables, constraints\n");
+    d_tests_sqlite_start("sqlite_schema", "described tables, constraints");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list columns = { 0u, NULL };
@@ -4005,7 +4037,7 @@ d_tests_sqlite_described_keys
 static
 void d_tests_sqlite_described_keys(void)
 {
-    printf("sqlite_schema: described tables, keys\n");
+    d_tests_sqlite_start("sqlite_schema", "described tables, keys");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list columns = { 0u, NULL };
@@ -4140,7 +4172,7 @@ void d_tests_sqlite_described_refusals(void)
         d_tests_sqlite_composite[0], d_tests_sqlite_composite[1]
     };
 
-    printf("sqlite_schema: described tables, refusals\n");
+    d_tests_sqlite_start("sqlite_schema", "described tables, refusals");
 
     sqlite3* const db = d_tests_sqlite_open_schemas();
 
@@ -4191,7 +4223,7 @@ void d_tests_sqlite_described_options(void)
     };
     const size_t count = sizeof(strict_types) / sizeof(strict_types[0]);
 
-    printf("sqlite_schema: described tables, options\n");
+    d_tests_sqlite_start("sqlite_schema", "described tables, options");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list columns = { 0u, NULL };
@@ -4248,7 +4280,7 @@ void d_tests_sqlite_column_existence(void)
         "k2", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 0u
     };
 
-    printf("sqlite_schema: columns, existence and adding\n");
+    d_tests_sqlite_start("sqlite_schema", "columns, existence and adding");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list columns = { 0u, NULL };
@@ -4307,7 +4339,7 @@ void d_tests_sqlite_column_kinds(void)
         "price", D_DB_TYPE_DECIMAL, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
-    printf("sqlite_schema: columns, kinds\n");
+    d_tests_sqlite_start("sqlite_schema", "columns, kinds");
 
     sqlite3* const                 db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list        columns = { 0u, NULL };
@@ -4371,7 +4403,7 @@ d_tests_sqlite_column_changes
 static
 void d_tests_sqlite_column_changes(void)
 {
-    printf("sqlite_schema: columns, changes\n");
+    d_tests_sqlite_start("sqlite_schema", "columns, changes");
 
     sqlite3* const          db      = d_tests_sqlite_open_schemas();
     struct dj_db_column_list columns = { 0u, NULL };
@@ -4408,7 +4440,7 @@ d_tests_sqlite_column_arguments
 static
 void d_tests_sqlite_column_arguments(void)
 {
-    printf("sqlite_schema: columns, arguments\n");
+    d_tests_sqlite_start("sqlite_schema", "columns, arguments");
 
     sqlite3* const db     = d_tests_sqlite_open_schemas();
     bool           exists = true;
@@ -4446,7 +4478,7 @@ d_tests_sqlite_indexes
 static
 void d_tests_sqlite_indexes(void)
 {
-    printf("sqlite_schema: indexes\n");
+    d_tests_sqlite_start("sqlite_schema", "indexes");
 
     sqlite3* const        db    = d_tests_sqlite_open_people();
     struct dj_db_name_list names = { 0u, NULL };
@@ -4510,7 +4542,7 @@ d_tests_sqlite_views
 static
 void d_tests_sqlite_views(void)
 {
-    printf("sqlite_schema: views\n");
+    d_tests_sqlite_start("sqlite_schema", "views");
 
     sqlite3* const        db    = d_tests_sqlite_open_people();
     struct dj_db_name_list names = { 0u, NULL };
@@ -4555,7 +4587,7 @@ d_tests_sqlite_triggers
 static
 void d_tests_sqlite_triggers(void)
 {
-    printf("sqlite_schema: triggers\n");
+    d_tests_sqlite_start("sqlite_schema", "triggers");
 
     sqlite3* const        db    = d_tests_sqlite_open_people();
     struct dj_db_name_list names = { 0u, NULL };
@@ -4606,7 +4638,8 @@ right.
 static
 void d_tests_sqlite_object_arguments(void)
 {
-    printf("sqlite_schema: indexes, views, triggers, arguments\n");
+    d_tests_sqlite_start("sqlite_schema",
+                         "indexes, views, triggers, arguments");
 
     sqlite3* const        db     = d_tests_sqlite_open_people();
     struct dj_db_name_list names  = { 0u, NULL };
@@ -4663,7 +4696,7 @@ void d_tests_sqlite_transactions(void)
 {
     sqlite3* db = NULL;
 
-    printf("sqlite_transaction: transactions\n");
+    d_tests_sqlite_start("sqlite_transaction", "transactions");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_exec(db, "CREATE TABLE t(a)") == SQLITE_OK);
@@ -4725,7 +4758,7 @@ void d_tests_sqlite_savepoints(void)
 {
     sqlite3* db = NULL;
 
-    printf("sqlite_transaction: savepoints\n");
+    d_tests_sqlite_start("sqlite_transaction", "savepoints");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_exec(db, "CREATE TABLE t(a)") == SQLITE_OK);
@@ -4784,7 +4817,7 @@ void d_tests_sqlite_connection_settings(void)
     bool     enabled = false;
     int      timeout = -1;
 
-    printf("sqlite_settings: connection settings\n");
+    d_tests_sqlite_start("sqlite_settings", "connection settings");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_set_foreign_keys(db, false) == SQLITE_OK);
@@ -4824,7 +4857,7 @@ void d_tests_sqlite_journal_modes(void)
     sqlite3*                   db         = NULL;
     enum dj_sqlite_journal_mode mode       = D_SQLITE_JOURNAL_OFF;
 
-    printf("sqlite_settings: journal modes\n");
+    d_tests_sqlite_start("sqlite_settings", "journal modes");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(
@@ -4877,7 +4910,7 @@ void d_tests_sqlite_synchronous(void)
     sqlite3*                  db    = NULL;
     enum dj_sqlite_synchronous level = D_SQLITE_SYNCHRONOUS_OFF;
 
-    printf("sqlite_settings: synchronous\n");
+    d_tests_sqlite_start("sqlite_settings", "synchronous");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
 
@@ -4920,7 +4953,7 @@ d_tests_sqlite_version_numbers
 static
 void d_tests_sqlite_version_numbers(void)
 {
-    printf("sqlite_settings: version numbers\n");
+    d_tests_sqlite_start("sqlite_settings", "version numbers");
 
     sqlite3* const db     = d_tests_sqlite_open_schemas();
     int32_t        number = 0;
@@ -4963,7 +4996,7 @@ d_tests_sqlite_pragmas
 static
 void d_tests_sqlite_pragmas(void)
 {
-    printf("sqlite_settings: any pragma\n");
+    d_tests_sqlite_start("sqlite_settings", "any pragma");
 
     sqlite3* const db   = d_tests_sqlite_open_schemas();
     char*          text = NULL;
@@ -5019,7 +5052,7 @@ void d_tests_sqlite_upkeep(void)
     char copy_path[1024] = "";
     bool ok              = false;
 
-    printf("sqlite_maintenance: upkeep\n");
+    d_tests_sqlite_start("sqlite_maintenance", "upkeep");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_upkeep.db");
     d_tests_sqlite_path(copy_path, sizeof(copy_path), "t_sqlite_copy.db");
@@ -5070,7 +5103,7 @@ void d_tests_sqlite_checkpoints(void)
 {
     char path[1024] = "";
 
-    printf("sqlite_maintenance: checkpoints\n");
+    d_tests_sqlite_start("sqlite_maintenance", "checkpoints");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_checkpoints.db");
 
@@ -5118,7 +5151,7 @@ void d_tests_sqlite_backups(void)
     char     text_path[1024] = "";
     sqlite3* other           = NULL;
 
-    printf("sqlite_maintenance: backups\n");
+    d_tests_sqlite_start("sqlite_maintenance", "backups");
 
     d_tests_sqlite_path(path, sizeof(path), "t_sqlite_backups.db");
     d_tests_sqlite_path(copy_path, sizeof(copy_path), "t_sqlite_backup.db");
@@ -5170,7 +5203,7 @@ void d_tests_sqlite_maintenance_arguments(void)
 {
     sqlite3* db = NULL;
 
-    printf("sqlite_maintenance: arguments\n");
+    d_tests_sqlite_start("sqlite_maintenance", "arguments");
 
     D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_vacuum(NULL, NULL) == SQLITE_MISUSE);
@@ -5274,33 +5307,41 @@ d_tests_sqlite_all[] =
 };
 
 /*
-main
-  Runs every test and reports; the exit status is 0 only if every check
-passed.
+d_tests_sqlite
+  The suite's section: every test, in the order of the headers. Files go in
+the directory DJINTERP_TEST_SQLITE_DIRECTORY names, "." when it names none,
+and are removed before and after.
 */
-int main(
-    int    _argc,
-    char** _argv
+void d_tests_sqlite(
+    struct dj_test_suite* _suite
 )
 {
-    const size_t count = sizeof(d_tests_sqlite_all) /
-                         sizeof(d_tests_sqlite_all[0]);
+    const size_t      count     = sizeof(d_tests_sqlite_all) /
+                                  sizeof(d_tests_sqlite_all[0]);
+    const char* const directory = getenv("DJINTERP_TEST_SQLITE_DIRECTORY");
+
+    g_suite = _suite;
+    g_block = NULL;
 
     // the directory for the files the tests make
-    if (_argc > 1)
+    if ( (directory) &&
+         (directory[0] != '\0') )
     {
-        g_directory = _argv[1];
+        g_directory = directory;
     }
+
+    (void)d_test_suite_module(_suite, "sqlite");
+    (void)d_test_suite_describe(_suite, "c/db/sqlite against SQLite");
+    (void)d_test_suite_note(_suite,
+                            "SQLite %s",
+                            sqlite3_libversion());
 
     for (size_t i = 0u; i < count; ++i)
     {
         d_tests_sqlite_all[i]();
     }
 
-    printf("%d checks, %d failed (SQLite %s)\n",
-           g_checks,
-           g_failures,
-           sqlite3_libversion());
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  t_sqlite_stubs.c
+* djinterp [test]                                           sqlite_stubs_tests.c
 *
 *   The SQLite layer built without SQLite (D_CFG_SQLITE 0): every function
 * answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or NULL where
@@ -7,20 +7,21 @@
 * every other output alone. Building and linking it at all proves the stubs
 * need neither sqlite3.h nor the library.
 *
-*   Build (from the repo root), at any language level from C99, with no SQLite
-* -- or let scripts/ci/check_db_sqlite.sh do it, given `stubs`:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_SQLITE=0               \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/sqlite/sqlite_[a-z]*.c    \
-*        tests/unintegrated/c/db/sqlite/t_sqlite_stubs.c -o t_sqlite_stubs
+*   Build: CMake's c_sqlite_stubs_tests, or scripts/ci/check_db_sqlite.sh, given
+* `stubs`. By hand, from the repo root, at any language level from C99: this
+* file and its runner, sqlite_stubs_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/sqlite/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/sqlite -DD_CFG_SQLITE=0, linking nothing else.
 *
 *
-* path:      /tests/unintegrated/c/db/sqlite/t_sqlite_stubs.c
+* path:      /tests/djinterp/c/db/sqlite/sqlite_stubs_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
+#include "./sqlite_stubs_tests.h"  // corresponding header
 // std
-#include <stdio.h>   // printf
 #include <string.h>  // memset, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/sqlite/sqlite.h"  // unit under test
@@ -32,14 +33,16 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 /*
 d_tests_sqlite_stubs_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_sqlite_stubs_expect(
@@ -48,14 +51,30 @@ void d_tests_sqlite_stubs_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_sqlite_stubs_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_sqlite_stubs_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -97,7 +116,7 @@ void d_tests_sqlite_stubs_common(void)
     struct dj_db_rows  rows   = { 0u, 0u, NULL, NULL };
     struct dj_db_value value  = { D_DB_VALUE_NULL, 0u, { 0 } };
 
-    printf("sqlite_common\n");
+    d_tests_sqlite_stubs_start("sqlite_common", "sqlite_common");
 
     D_TESTS_SQLITE_STUBS_CHECK(strcmp(d_sqlite_library_version(), "") == 0);
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_library_version_number() == 0);
@@ -156,7 +175,7 @@ void d_tests_sqlite_stubs_connection(void)
     int             marker = 0;
     struct sqlite3* db     = (struct sqlite3*)&marker;
 
-    printf("sqlite_connection\n");
+    d_tests_sqlite_stubs_start("sqlite_connection", "sqlite_connection");
 
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_open("t.db", &db));
     D_TESTS_SQLITE_STUBS_CHECK(db == NULL);
@@ -208,7 +227,7 @@ void d_tests_sqlite_stubs_query(void)
     char*            text   = (char*)&number;
     struct dj_db_rows rows   = { 7u, 7u, NULL, NULL };
 
-    printf("sqlite_query\n");
+    d_tests_sqlite_stubs_start("sqlite_query", "sqlite_query");
 
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_exec(db, "SELECT 1"));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_execf(db, "SELECT %d", 1));
@@ -263,7 +282,7 @@ void d_tests_sqlite_stubs_statement(void)
     int64_t              changes   = 42;
     struct dj_db_rows     rows      = { 7u, 7u, NULL, NULL };
 
-    printf("sqlite_statement\n");
+    d_tests_sqlite_stubs_start("sqlite_statement", "sqlite_statement");
 
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(
         d_sqlite_prepare(db, &statement, "SELECT 1"));
@@ -320,7 +339,7 @@ void d_tests_sqlite_stubs_database(void)
     struct dj_db_name_list names  = { 7u, NULL };
     bool                  exists = true;
 
-    printf("sqlite_database\n");
+    d_tests_sqlite_stubs_start("sqlite_database", "sqlite_database");
 
     D_TESTS_SQLITE_STUBS_CHECK(!d_sqlite_has_database(db, "main"));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(
@@ -370,7 +389,7 @@ void d_tests_sqlite_stubs_tables(void)
     int64_t                 count   = 42;
     bool                    exists  = true;
 
-    printf("sqlite_schema: tables and columns\n");
+    d_tests_sqlite_stubs_start("sqlite_schema", "tables and columns");
 
     D_TESTS_SQLITE_STUBS_CHECK(!d_sqlite_has_table(db, NULL, "t"));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(
@@ -424,7 +443,7 @@ void d_tests_sqlite_stubs_objects(void)
     struct dj_db_name_list names  = { 7u, NULL };
     bool                  exists = true;
 
-    printf("sqlite_schema: indexes, views, triggers\n");
+    d_tests_sqlite_stubs_start("sqlite_schema", "indexes, views, triggers");
 
     D_TESTS_SQLITE_STUBS_CHECK(!d_sqlite_has_index(db, NULL, "i"));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(
@@ -473,7 +492,7 @@ void d_tests_sqlite_stubs_transaction(void)
 {
     struct sqlite3* db = NULL;
 
-    printf("sqlite_transaction\n");
+    d_tests_sqlite_stubs_start("sqlite_transaction", "sqlite_transaction");
 
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(
         d_sqlite_begin_transaction(db, D_SQLITE_TRANSACTION_DEFERRED));
@@ -504,7 +523,7 @@ void d_tests_sqlite_stubs_settings(void)
     int32_t                    number  = 42;
     char*                      text    = NULL;
 
-    printf("sqlite_settings\n");
+    d_tests_sqlite_stubs_start("sqlite_settings", "sqlite_settings");
 
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_set_foreign_keys(db, false));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_get_foreign_keys(db, &enabled));
@@ -550,7 +569,7 @@ void d_tests_sqlite_stubs_maintenance(void)
     struct sqlite3* db = NULL;
     bool            ok = true;
 
-    printf("sqlite_maintenance\n");
+    d_tests_sqlite_stubs_start("sqlite_maintenance", "sqlite_maintenance");
 
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_vacuum(db, NULL));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_vacuum_into(db, NULL, "c.db"));
@@ -576,12 +595,21 @@ void d_tests_sqlite_stubs_maintenance(void)
 //==============================================================================
 
 /*
-main
-  Runs every test and reports; the exit status is 0 only if every check
-passed.
+d_tests_sqlite_stubs
+  The suite's section: every test of the layer built without SQLite, in
+the order of the headers.
 */
-int main(void)
+void d_tests_sqlite_stubs(
+    struct dj_test_suite* _suite
+)
 {
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "sqlite_stubs");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/sqlite built without SQLite");
+
     d_tests_sqlite_stubs_common();
     d_tests_sqlite_stubs_connection();
     d_tests_sqlite_stubs_query();
@@ -593,9 +621,7 @@ int main(void)
     d_tests_sqlite_stubs_settings();
     d_tests_sqlite_stubs_maintenance();
 
-    printf("%d checks, %d failed (built without SQLite)\n",
-           g_checks,
-           g_failures);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

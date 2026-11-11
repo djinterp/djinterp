@@ -10,7 +10,7 @@
 * extern "C" linkage meets the C objects the sources compile to.
 *   The checks that need no server always run. A session against one runs
 * when the harness's settings reach one (DJINTERP_TEST_POSTGRES_HOST, _PORT,
-* _USER, _PASSWORD, _DATABASE, as for t_postgres.c);
+* _USER, _PASSWORD, _DATABASE, as for postgres_tests.c);
 * DJINTERP_TEST_POSTGRES_REQUIRED=1 makes a server that cannot be reached a
 * failure. Below the 64-bit floor the layer's headers compile to nothing, and
 * so does this test. Over a layer built without libpq (D_CFG_POSTGRES 0), it
@@ -23,7 +23,7 @@
 * path:      /tests/unintegrated/cpp/db/postgres/t_postgres_cpp.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <cstddef>  // std::size_t

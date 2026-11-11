@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 t_mongodb_stubs.c
+* djinterp [test]                                          mongodb_stubs_tests.c
 *
 *   The MongoDB layer built without the driver (D_CFG_MONGODB 0): every
 * function answers as such a build must -- D_DB_UNSUPPORTED, or false, 0, ""
@@ -9,22 +9,22 @@
 * results need no driver and work as they always do. Building and linking it
 * at all proves the stubs need neither mongoc.h nor a library.
 *
-*   Build (from the repo root), at any language level from C99, without the
-* driver -- or let scripts/ci/check_db_mongodb.sh do it, given `stubs`:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_MONGODB=0              \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/mongodb/mongodb_*.c       \
-*        tests/unintegrated/c/db/mongodb/t_mongodb_stubs.c -o t_mongodb_stubs
-* The stubs take no lock, so the build needs neither src/djinterp/c/sync/
-* dmutex.c, which the layer with the driver links, nor threads.
+*   Build: CMake's c_mongodb_stubs_tests, or scripts/ci/check_db_mongodb.sh,
+* given `stubs`. By hand, from the repo root, at any language level from C99:
+* this file and its runner, mongodb_stubs_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/mongodb/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/mongodb -DD_CFG_MONGODB=0, linking nothing
+* else.
 *
 *
-* path:      /tests/unintegrated/c/db/mongodb/t_mongodb_stubs.c
+* path:      /tests/djinterp/c/db/mongodb/mongodb_stubs_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.10.28
+*                                                            revised: 2026.11.10
 *******************************************************************************/
+#include "./mongodb_stubs_tests.h"  // corresponding header
 // std
-#include <stdio.h>   // printf
 #include <string.h>  // memcmp, memset, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/mongodb/mongodb.h"  // under test
@@ -36,10 +36,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_marker
 //   object: whose address stands in for a handle, a cursor and a stream,
@@ -54,7 +55,8 @@ static int g_marker = 0;
 
 /*
 d_tests_mongodb_stubs_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_mongodb_stubs_expect(
@@ -63,14 +65,30 @@ void d_tests_mongodb_stubs_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_mongodb_stubs_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_mongodb_stubs_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -155,7 +173,7 @@ void d_tests_mongodb_stubs_results(void)
     const int bson = (int)(D_MONGODB_CLIENT_ERRORS +
                            (D_MONGODB_DOMAIN_BSON + 1) * 65536 + 2);
 
-    printf("results\n");
+    d_tests_mongodb_stubs_start("results", "results");
 
     D_TESTS_MONGODB_STUBS_CHECK(
         !d_mongodb_result_is_client(D_MONGODB_ERROR_DUPLICATE_KEY));
@@ -216,7 +234,7 @@ void d_tests_mongodb_stubs_common(void)
     struct dj_mongodb* const db    = d_tests_mongodb_stubs_handle();
     char*                   reply = D_TESTS_MONGODB_STUBS_TEXT;
 
-    printf("common\n");
+    d_tests_mongodb_stubs_start("common", "common");
 
     D_TESTS_MONGODB_STUBS_CHECK(strcmp(d_mongodb_client_version(), "") == 0);
     D_TESTS_MONGODB_STUBS_CHECK(d_mongodb_client_version_number() == 0ul);
@@ -274,7 +292,7 @@ void d_tests_mongodb_stubs_connection(void)
     const struct dj_mongodb_setting setting = { D_MONGODB_SETTING_APP_NAME,
                                                0ul, "t", NULL };
 
-    printf("connection\n");
+    d_tests_mongodb_stubs_start("connection", "connection");
 
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(d_mongodb_connect(&options, &db));
     D_TESTS_MONGODB_STUBS_CHECK(db == NULL);
@@ -325,7 +343,7 @@ void d_tests_mongodb_stubs_query(void)
     char*                   reply   = D_TESTS_MONGODB_STUBS_TEXT;
     struct dj_db_rows        rows;
 
-    printf("query\n");
+    d_tests_mongodb_stubs_start("query", "query");
 
     memset(&rows, 0x5A, sizeof(rows));
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(d_mongodb_exec(db, NULL,
@@ -373,7 +391,7 @@ void d_tests_mongodb_stubs_document(void)
     struct dj_mongodb_write_counts counts   = { 7, 7, 7, 7, 7 };
     struct dj_db_rows              rows;
 
-    printf("document\n");
+    d_tests_mongodb_stubs_start("document", "document");
 
     memset(&rows, 0x5A, sizeof(rows));
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(d_mongodb_insert_one(db, NULL, "c",
@@ -443,7 +461,7 @@ void d_tests_mongodb_stubs_bulk(void)
     struct dj_mongodb* const       db     = d_tests_mongodb_stubs_handle();
     struct dj_mongodb_write_counts counts = { 7, 7, 7, 7, 7 };
 
-    printf("bulk\n");
+    d_tests_mongodb_stubs_start("bulk", "bulk");
 
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(
         d_mongodb_bulk_write(db, NULL, "c",
@@ -487,7 +505,7 @@ void d_tests_mongodb_stubs_cursor(void)
     char*                                 token   = D_TESTS_MONGODB_STUBS_TEXT;
     struct dj_db_rows                      rows;
 
-    printf("cursor\n");
+    d_tests_mongodb_stubs_start("cursor", "cursor");
 
     memset(&rows, 0x5A, sizeof(rows));
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(
@@ -550,7 +568,7 @@ void d_tests_mongodb_stubs_database(void)
     char*                   name   = D_TESTS_MONGODB_STUBS_TEXT;
     struct dj_db_name_list   names;
 
-    printf("database\n");
+    d_tests_mongodb_stubs_start("database", "database");
 
     memset(&names, 0x5A, sizeof(names));
     D_TESTS_MONGODB_STUBS_CHECK(!d_mongodb_has_database(db, "d"));
@@ -585,7 +603,7 @@ void d_tests_mongodb_stubs_schema(void)
     struct dj_db_name_list   names;
     struct dj_db_rows        rows;
 
-    printf("schema\n");
+    d_tests_mongodb_stubs_start("schema", "schema");
 
     memset(&names, 0x5A, sizeof(names));
     memset(&rows, 0x5A, sizeof(rows));
@@ -651,7 +669,7 @@ void d_tests_mongodb_stubs_transaction(void)
 {
     struct dj_mongodb* const db = d_tests_mongodb_stubs_handle();
 
-    printf("transaction\n");
+    d_tests_mongodb_stubs_start("transaction", "transaction");
 
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(d_mongodb_begin_transaction(db));
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(
@@ -681,7 +699,7 @@ void d_tests_mongodb_stubs_settings(void)
     struct dj_mongodb* const db      = d_tests_mongodb_stubs_handle();
     char*                   concern = D_TESTS_MONGODB_STUBS_TEXT;
 
-    printf("settings\n");
+    d_tests_mongodb_stubs_start("settings", "settings");
 
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(
         d_mongodb_set_read_concern(db, "{\"level\": \"majority\"}"));
@@ -722,7 +740,7 @@ void d_tests_mongodb_stubs_gridfs(void)
     size_t                  size = 7u;
     struct dj_db_rows        rows;
 
-    printf("gridfs\n");
+    d_tests_mongodb_stubs_start("gridfs", "gridfs");
 
     memset(&rows, 0x5A, sizeof(rows));
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(
@@ -763,7 +781,7 @@ void d_tests_mongodb_stubs_maintenance(void)
     bool                    valid  = false;
     char*                   report = D_TESTS_MONGODB_STUBS_TEXT;
 
-    printf("maintenance\n");
+    d_tests_mongodb_stubs_start("maintenance", "maintenance");
 
     D_TESTS_MONGODB_STUBS_UNSUPPORTED(
         d_mongodb_collection_size(db, NULL, "c", &bytes));
@@ -786,12 +804,21 @@ void d_tests_mongodb_stubs_maintenance(void)
 //==============================================================================
 
 /*
-main
-  Runs every test and reports; the exit status is 0 only if every check
-passed.
+d_tests_mongodb_stubs
+  The suite's section: every test of the layer built without the driver, in
+the order of the headers.
 */
-int main(void)
+void d_tests_mongodb_stubs(
+    struct dj_test_suite* _suite
+)
 {
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "mongodb_stubs");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/mongodb built without the driver");
+
     d_tests_mongodb_stubs_results();
     d_tests_mongodb_stubs_common();
     d_tests_mongodb_stubs_connection();
@@ -806,9 +833,7 @@ int main(void)
     d_tests_mongodb_stubs_gridfs();
     d_tests_mongodb_stubs_maintenance();
 
-    printf("%d checks, %d failed (built without the driver)\n",
-           g_checks,
-           g_failures);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

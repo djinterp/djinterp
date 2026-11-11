@@ -5,7 +5,7 @@
 # Builds djinterp's SQLite layer (c/db/db_*.c, c/db/sqlite/) and runs its
 # harnesses against every SQLite given, with every compiler, at every
 # language level, and fails if any build or run fails:
-#     t_sqlite.c         the C harness, at each C standard, with
+#     sqlite_tests.c     the C suite, at each C standard, with
 #                        -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_sqlite_cpp.cpp   the C++ consumer, at each C++ standard, ISO strict
 #                        C++98 included, linked against the layer built as C
@@ -18,22 +18,29 @@
 #     t_database.cpp     core/db's vocabulary and utilities, each from
 #                        C++17, core/db's floor, built with core/db's sources
 #                        over the layer built as C
-# The harnesses load an extension, t_sqlite_extension.c, built here as a
-# shared library once per compiler and SQLite, where its sqlite3ext.h is
-# found (the amalgamation's directory, or the compiler's own paths), and
-# named to them in DJINTERP_TEST_SQLITE_EXTENSION; where it cannot be built,
-# they check what fails without it, and say so.
+# The C suite and the harnesses load an extension, sqlite_extension.c,
+# built here as a shared library once per compiler and SQLite, where its
+# sqlite3ext.h is found (the amalgamation's directory, or the compiler's own
+# paths), and named to them in DJINTERP_TEST_SQLITE_EXTENSION; where it
+# cannot be built, they check what fails without it, and say so.
 # Each SQLite is an amalgamation -- a directory holding sqlite3.c and
 # sqlite3.h, which scripts/ci/fetch_sqlite.sh makes from a release tag -- built
 # once per compiler, or the word `system`, for the installed library and header.
-# The harness asks the library's version for every check whose answer depends
-# on it, so one harness covers every release from the floor, 3.7.17. The word
+# The suite asks the library's version for every check whose answer depends
+# on it, so one suite covers every release from the floor, 3.7.17. The word
 # `stubs` builds the layer without SQLite (D_CFG_SQLITE=0), runs
-# t_sqlite_stubs.c in place of t_sqlite.c, and links no SQLite at all. A C++
-# standard a compiler does not have -- C++26 before GCC 14 and Clang 17 --
-# is skipped, and said to be.
+# sqlite_stubs_tests.c in place of sqlite_tests.c, and links no SQLite at
+# all. A C++ standard a compiler does not have -- C++26 before GCC 14 and
+# Clang 17 -- is skipped, and said to be.
+#   The C suites are DTest's: tests/djinterp/c/db/sqlite/sqlite_tests.c and
+# sqlite_stubs_tests.c, each built with its runner, in the CMake leaf
+# (build/cmake/config/testing/djinterp/c/db/sqlite/), and DTest's C face, and
+# run with --failures --no-table, so that a failure's log ends with what
+# failed.
 #   Every compile defines _XOPEN_SOURCE=700, as the ladders do. Each run
-# happens in a fresh directory, which the harness fills and empties.
+# happens in a fresh directory, which the suite or harness fills and
+# empties: the C suite's by default, the C++ harnesses' named to them as
+# their argument, `.`.
 #
 #   usage:   scripts/ci/check_db_sqlite.sh [<amalgamation directory> | system |
 #                                   stubs] ...  (no argument: system)
@@ -60,7 +67,7 @@
 # path:      /scripts/ci/check_db_sqlite.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-#                                                            revised: 2026.10.26
+#                                                            revised: 2026.11.10
 #*******************************************************************************
 set -u
 
@@ -85,6 +92,9 @@ layer=(src/djinterp/c/db/db_*.c src/djinterp/c/db/sqlite/sqlite_*.c)
 core=(src/djinterp/cpp/db/database.cpp
       src/djinterp/cpp/db/database_statement.cpp
       src/djinterp/cpp/db/sqlite/sqlite.cpp)
+suites=tests/djinterp/c/db/sqlite
+leaf=build/cmake/config/testing/djinterp/c/db/sqlite
+dtest=src/djinterp/c/modules/test/test_suite.c
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
 passed=0
 failed=0
@@ -222,19 +232,29 @@ check_misuse() {
     misuse_case "$1" "$2" 4 2017 "nodiscard" -Werror
 }
 
-# run_in_fresh_dir <binary> <log>
-#   runs a harness in an empty directory, through the runner if one is set,
-# with the extension built for its compiler and SQLite, where there is one
-# (DJINTERP_TEST_SQLITE_EXTENSION, as build_extension last left it).
+# suite_counts <log>
+#   a DTest report's counts, for a PASS line: "<n> checks (<m> failed)".
+suite_counts() {
+    sed -n 's/^  checks: *\([0-9]*\) (\(.*\))$/\1 checks (\2)/p' "$1" |
+        tail -n 1
+}
+
+# run_in_fresh_dir <binary> <log> [<argument> ...]
+#   runs a harness, or a suite, in an empty directory, through the runner if
+# one is set, with the extension built for its compiler and SQLite, where
+# there is one (DJINTERP_TEST_SQLITE_EXTENSION, as build_extension last left
+# it).
 run_in_fresh_dir() {
-    local dir
+    local binary="$1" log="$2" dir
     dir="$(mktemp -d "$tmp/run.XXXXXX")"
+    shift 2
     ( cd "$dir" &&
-      DJINTERP_TEST_SQLITE_EXTENSION="$extension" $runner "$1" . ) >> "$2" 2>&1
+      DJINTERP_TEST_SQLITE_EXTENSION="$extension" $runner "$binary" "$@" ) \
+        >> "$log" 2>&1
 }
 
 # build_extension <c compiler> <tag> [<flag> ...]
-#   builds t_sqlite_extension.c as a shared library for the compiler and the
+#   builds sqlite_extension.c as a shared library for the compiler and the
 # SQLite the tag names, once, with the flags that find its sqlite3ext.h, and
 # sets `extension` to its path; to "" where it cannot be built.
 build_extension() {
@@ -242,13 +262,13 @@ build_extension() {
     shift 2
     is_mingw "$cc" && suffix=".dll"
     [[ "$(uname -s)" == Darwin ]] && suffix=".dylib"
-    local out="$tmp/ext-$tag-$cc/t_sqlite_extension$suffix"
+    local out="$tmp/ext-$tag-$cc/sqlite_extension$suffix"
 
     extension=""
     if [[ ! -f "$out" && ! -f "$out.log" ]]; then
         mkdir -p "$(dirname "$out")"
         if ! "$cc" -shared -fPIC -O1 -w "$@" \
-                 tests/unintegrated/c/db/sqlite/t_sqlite_extension.c -o "$out" \
+                 "$suites/sqlite_extension.c" -o "$out" \
                  > "$out.log" 2>&1; then
             rm -f "$out"
             report SKIP "sqlite=$tag cc=$cc extension (it does not build)"
@@ -264,11 +284,12 @@ extension=""
 for sqlite in "$@"; do
     tag="system"
     flags=()
-    harness=tests/unintegrated/c/db/sqlite/t_sqlite.c
+    suite=("$suites/sqlite_tests.c" "$leaf/sqlite_tests_runner.c")
     if [[ "$sqlite" == stubs ]]; then
         tag="stubs"
         flags=(-DD_CFG_SQLITE=0)
-        harness=tests/unintegrated/c/db/sqlite/t_sqlite_stubs.c
+        suite=("$suites/sqlite_stubs_tests.c"
+               "$leaf/sqlite_stubs_tests_runner.c")
     elif [[ "$sqlite" != system ]]; then
         if [[ ! -f "$sqlite/sqlite3.c" || ! -f "$sqlite/sqlite3.h" ]]; then
             echo "no amalgamation in $sqlite" >&2
@@ -313,18 +334,18 @@ for sqlite in "$@"; do
         [[ "$sqlite" != stubs ]] &&
             build_extension "$cc" "$tag" ${flags[@]+"${flags[@]}"}
 
-        # the C harness, at each standard
+        # the C suite, at each standard
         for std in $c_standards; do
             name="sqlite=$tag cc=$cc std=$std"
-            binary="$tmp/t_sqlite-$tag-$cc-$std$exe"
-            log="$tmp/t_sqlite-$tag-$cc-$std.log"
+            binary="$tmp/sqlite_tests-$tag-$cc-$std$exe"
+            log="$tmp/sqlite_tests-$tag-$cc-$std.log"
             if "$cc" $(std_flags "$std") "${warnings[@]}" $extra \
-                    -D_XOPEN_SOURCE=700 -Iinc ${flags[@]+"${flags[@]}"} \
-                    "${layer[@]}" "$harness" \
-                    ${library[@]+"${library[@]}"} -o "$binary" \
+                    -D_XOPEN_SOURCE=700 -Iinc -I"$suites" \
+                    ${flags[@]+"${flags[@]}"} "${layer[@]}" "${suite[@]}" \
+                    "$dtest" ${library[@]+"${library[@]}"} -o "$binary" \
                     > "$log" 2>&1 &&
-               run_in_fresh_dir "$binary" "$log"; then
-                report PASS "$name: $(tail -n 1 "$log")"
+               run_in_fresh_dir "$binary" "$log" --failures --no-table; then
+                report PASS "$name: $(suite_counts "$log")"
             else
                 report FAIL "$name" "$log"
             fi
@@ -400,7 +421,7 @@ for sqlite in "$@"; do
                         "$objects"/*.o ${library[@]+"${library[@]}"} \
                         -o "$binary" \
                         > "$log" 2>&1 &&
-                   run_in_fresh_dir "$binary" "$log"; then
+                   run_in_fresh_dir "$binary" "$log" .; then
                     report PASS "$name: $(tail -n 1 "$log")"
                 else
                     report FAIL "$name" "$log"
@@ -428,7 +449,7 @@ for sqlite in "$@"; do
                         "${sources[@]}" "$objects"/*.o \
                         ${library[@]+"${library[@]}"} -o "$binary" \
                         > "$log" 2>&1 &&
-                   run_in_fresh_dir "$binary" "$log"; then
+                   run_in_fresh_dir "$binary" "$log" .; then
                     report PASS "$name: $(tail -n 1 "$log")"
                 else
                     report FAIL "$name" "$log"

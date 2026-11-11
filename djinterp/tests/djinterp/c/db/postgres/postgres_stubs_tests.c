@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                t_postgres_stubs.c
+* djinterp [test]                                         postgres_stubs_tests.c
 *
 *   The PostgreSQL layer built without libpq (D_CFG_POSTGRES 0): every function
 * answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or NULL where
@@ -8,20 +8,22 @@
 * need no library and work as they always do. Building and linking it at all
 * proves the stubs need neither libpq-fe.h nor a library.
 *
-*   Build (from the repo root), at any language level from C99, without libpq
-* -- or let scripts/ci/check_db_postgres.sh do it, given `stubs`:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_POSTGRES=0             \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/postgres/postgres_*.c     \
-*        tests/unintegrated/c/db/postgres/t_postgres_stubs.c -o t_postgres_stubs
+*   Build: CMake's c_postgres_stubs_tests, or scripts/ci/check_db_postgres.sh,
+* given `stubs`. By hand, from the repo root, at any language level from C99:
+* this file and its runner, postgres_stubs_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/postgres/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/postgres -DD_CFG_POSTGRES=0, linking nothing
+* else.
 *
 *
-* path:      /tests/unintegrated/c/db/postgres/t_postgres_stubs.c
+* path:      /tests/djinterp/c/db/postgres/postgres_stubs_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
+#include "./postgres_stubs_tests.h"  // corresponding header
 // std
-#include <stdio.h>   // printf
 #include <string.h>  // memset, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/postgres/postgres.h"  // under test
@@ -33,10 +35,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_marker
 //   object: whose address stands in for a connection, which a build without
@@ -45,7 +48,8 @@ static int g_marker = 0;
 
 /*
 d_tests_postgres_stubs_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_postgres_stubs_expect(
@@ -54,14 +58,30 @@ void d_tests_postgres_stubs_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_postgres_stubs_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_postgres_stubs_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -99,7 +119,7 @@ void d_tests_postgres_stubs_common(void)
     struct pg_conn* const db          = (struct pg_conn*)(void*)&g_marker;
     char                  sqlstate[6] = "";
 
-    printf("postgres_common\n");
+    d_tests_postgres_stubs_start("postgres_common", "postgres_common");
 
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_client_version_number() == 0);
     D_TESTS_POSTGRES_STUBS_CHECK(
@@ -166,7 +186,7 @@ void d_tests_postgres_stubs_connection(void)
     const char* const         keywords[1] = { "application_name" };
     const char* const         values[1]   = { "d_tests" };
 
-    printf("postgres_connection\n");
+    d_tests_postgres_stubs_start("postgres_connection", "postgres_connection");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_connect(&options, &db,
                                                           &reason));
@@ -234,7 +254,7 @@ void d_tests_postgres_stubs_nonblocking(void)
     const char* const            keywords[1] = { "application_name" };
     const char* const            values[1]   = { "d_tests" };
 
-    printf("postgres_connection: without blocking\n");
+    d_tests_postgres_stubs_start("postgres_connection", "without blocking");
 
     memset(&pending, 0x5a, sizeof(pending));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_connect_start(NULL,
@@ -315,7 +335,9 @@ void d_tests_postgres_stubs_sent_and_statements(void)
     struct dj_db_pending                pending;
     int64_t                            changes   = 7;
 
-    printf("postgres_protocol, postgres_statement: without blocking\n");
+    (void)d_test_suite_note(g_suite,
+                            "postgres_protocol, postgres_statement: without "
+                            "blocking");
 
     memset(&pending, 0x5a, sizeof(pending));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_send_query_start(marker,
@@ -395,7 +417,7 @@ void d_tests_postgres_stubs_query(void)
     bool                  b     = true;
     struct dj_db_rows      rows  = { 7u, 7u, NULL, NULL };
 
-    printf("postgres_query\n");
+    d_tests_postgres_stubs_start("postgres_query", "postgres_query");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_exec(db, "SELECT 1"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_execf(db, "SELECT %d", 1));
@@ -456,7 +478,7 @@ void d_tests_postgres_stubs_statement(void)
     int64_t                      changes   = 7;
     struct dj_db_rows             rows      = { 7u, 7u, NULL, NULL };
 
-    printf("postgres_statement\n");
+    d_tests_postgres_stubs_start("postgres_statement", "postgres_statement");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_prepare(db, &statement, "SELECT 1"));
@@ -517,7 +539,7 @@ void d_tests_postgres_stubs_database(void)
     bool                  exists = true;
     char*                 name   = NULL;
 
-    printf("postgres_database\n");
+    d_tests_postgres_stubs_start("postgres_database", "postgres_database");
 
     D_TESTS_POSTGRES_STUBS_CHECK(!d_postgres_has_database(db, "d"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_has_database_s(db, "d",
@@ -570,7 +592,7 @@ void d_tests_postgres_stubs_tables(void)
         "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
-    printf("postgres_schema: tables and columns\n");
+    d_tests_postgres_stubs_start("postgres_schema", "tables and columns");
 
     D_TESTS_POSTGRES_STUBS_CHECK(!d_postgres_has_table(db, NULL, "t"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_has_table_s(db, NULL, "t",
@@ -629,7 +651,8 @@ void d_tests_postgres_stubs_objects(void)
     bool                  exists = true;
     int64_t               value  = 7;
 
-    printf("postgres_schema: indexes, views, triggers and sequences\n");
+    d_tests_postgres_stubs_start("postgres_schema",
+                                 "indexes, views, triggers and sequences");
 
     D_TESTS_POSTGRES_STUBS_CHECK(!d_postgres_has_index(db, NULL, "i"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_has_index_s(db, NULL, "i",
@@ -688,7 +711,8 @@ void d_tests_postgres_stubs_transaction(void)
 {
     struct pg_conn* const db = (struct pg_conn*)(void*)&g_marker;
 
-    printf("postgres_transaction\n");
+    d_tests_postgres_stubs_start("postgres_transaction",
+                                 "postgres_transaction");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_begin_transaction(db, D_POSTGRES_TRANSACTION_DEFAULT));
@@ -723,7 +747,7 @@ void d_tests_postgres_stubs_settings(void)
     unsigned                  ms    = 7u;
     enum dj_postgres_isolation level = D_POSTGRES_ISOLATION_SERIALIZABLE;
 
-    printf("postgres_settings\n");
+    d_tests_postgres_stubs_start("postgres_settings", "postgres_settings");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_set_search_path(db, "a"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_get_search_path(db, &text));
@@ -766,7 +790,8 @@ void d_tests_postgres_stubs_maintenance(void)
     struct pg_conn* const db    = (struct pg_conn*)(void*)&g_marker;
     int64_t               bytes = 7;
 
-    printf("postgres_maintenance\n");
+    d_tests_postgres_stubs_start("postgres_maintenance",
+                                 "postgres_maintenance");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_vacuum(db, NULL, NULL, 0u));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_analyze(db, NULL, NULL));
@@ -800,7 +825,7 @@ void d_tests_postgres_stubs_protocol(void)
     unsigned int          oid     = 7u;
     struct dj_db_rows      rows    = { 7u, 7u, NULL, NULL };
 
-    printf("postgres_protocol\n");
+    d_tests_postgres_stubs_start("postgres_protocol", "postgres_protocol");
 
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_copy_in_start(db, "COPY t FROM STDIN"));
@@ -840,12 +865,21 @@ void d_tests_postgres_stubs_protocol(void)
 //==============================================================================
 
 /*
-main
-  Runs every test and reports; the exit status is 0 only if every check
-passed.
+d_tests_postgres_stubs
+  The suite's section: every test of the layer built without libpq, in
+the order of the headers.
 */
-int main(void)
+void d_tests_postgres_stubs(
+    struct dj_test_suite* _suite
+)
 {
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "postgres_stubs");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/postgres built without libpq");
+
     d_tests_postgres_stubs_common();
     d_tests_postgres_stubs_connection();
     d_tests_postgres_stubs_nonblocking();
@@ -860,9 +894,7 @@ int main(void)
     d_tests_postgres_stubs_maintenance();
     d_tests_postgres_stubs_protocol();
 
-    printf("%d checks, %d failed (built without libpq)\n",
-           g_checks,
-           g_failures);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

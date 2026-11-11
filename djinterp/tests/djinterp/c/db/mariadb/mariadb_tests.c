@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [c]                                                       t_mariadb.c
+* djinterp [test]                                                mariadb_tests.c
 *
-*   Conformance harness for djinterp's MariaDB/MySQL convenience layer: every
+*   Conformance tests for djinterp's MariaDB/MySQL convenience layer: every
 * function in c/db/mariadb/mariadb_*.h, its success paths, its documented
 * failures and its argument checks, against a live server -- MariaDB from
 * 10.3 or MySQL from 5.7 -- through whichever client it is linked with. Where
 * the answer depends on the server, the check asks the server's flavor and
-* version and expects the matching answer, so one harness passes on every
+* version and expects the matching answer, so one suite passes on every
 * server the layer supports.
 *   Each d_mariadb_supports answer is also checked against the server itself,
 * by running SQL that needs the feature: a version table that drifts from the
@@ -18,21 +18,23 @@
 *
 *   Server: DJINTERP_TEST_MARIADB_HOST (default 127.0.0.1), _PORT (3306),
 * _USER (root), _PASSWORD (none) and _SOCKET (none) say where; the user needs
-* every privilege on databases named d_tests_mariadb_%. The harness fails,
-* saying why, when it cannot connect.
+* every privilege on databases named d_tests_mariadb_%. Its first test
+* fails, saying why, when it cannot connect.
 *
-*   Build (from the repo root), at any language level from C99, against
-* Connector/C or libmysqlclient -- or let scripts/ci/check_db_mariadb.sh, which
-* runs it across compilers, standards, clients and servers:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc                                 \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/mariadb/mariadb_*.c       \
-*        tests/unintegrated/c/db/mariadb/t_mariadb.c -lmariadb -o t_mariadb
+*   Build: CMake's c_mariadb_tests, or scripts/ci/check_db_mariadb.sh, which
+* runs it across compilers, standards and releases. By hand, from the repo root,
+* at any language level from C99: this file and its runner,
+* mariadb_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/mariadb/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/mariadb, against Connector/C or
+* libmysqlclient.
 *
 *
-* path:      /tests/unintegrated/c/db/mariadb/t_mariadb.c
+* path:      /tests/djinterp/c/db/mariadb/mariadb_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // _WIN32_WINNT
 //   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
@@ -61,10 +63,12 @@
     #define D_CFG_ENV_USING_MARIADB 1
 #endif  // D_CFG_ENV_USING_MARIADB
 
+#include "./mariadb_tests.h"  // corresponding header
 // std
 #include <limits.h>  // INT_MAX, UINT_MAX
 #include <locale.h>  // setlocale, LC_NUMERIC
-#include <stdio.h>   // printf, snprintf
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // snprintf, vsnprintf
 #include <stdlib.h>  // free, getenv, malloc, strtoul
 #include <string.h>  // memcmp, memcpy, memset, strcmp, strlen, strstr
 #include <time.h>    // time
@@ -91,10 +95,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_options
 //   setting: where the server is, from the environment.
@@ -164,7 +169,8 @@ int d_tests_mariadb_poll(
 
 /*
 d_tests_mariadb_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_mariadb_expect(
@@ -173,14 +179,30 @@ void d_tests_mariadb_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_mariadb_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_mariadb_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -210,11 +232,13 @@ void d_tests_mariadb_expect_result(
     // the result, and what the connection says of it
     if (_result != _expected)
     {
-        printf("    got %d, expected %d: %s\n",
-               _result,
-               _expected,
-               (_result > 0) ? d_mariadb_error_message(_db)
-                             : d_mariadb_result_message(_result));
+        (void)d_test_suite_note(g_suite,
+                                "got %d, expected %d: %s",
+                                _result,
+                                _expected,
+                                (_result > 0)
+                                    ? d_mariadb_error_message(_db)
+                                    : d_mariadb_result_message(_result));
     }
 
     return;
@@ -492,10 +516,11 @@ struct dj_mariadb* d_tests_mariadb_connect(
                                &db,
                                NULL) != 0)
     {
-        printf("  cannot connect to %s:%u as %s\n",
-               options.host,
-               options.port,
-               options.user);
+        (void)d_test_suite_note(g_suite,
+                                "cannot connect to %s:%u as %s",
+                                options.host,
+                                options.port,
+                                options.user);
     }
 
     return db;
@@ -649,10 +674,12 @@ bool d_tests_mariadb_text_is(
     // say what came instead
     if (!same)
     {
-        printf("    %s: got %s, expected %s\n",
-               _sql,
-               (result != 0) ? "a failure" : (text) ? text : "NULL",
-               (_expected) ? _expected : "NULL");
+        (void)d_test_suite_note(g_suite,
+                                "%s: got %s, expected %s",
+                                _sql,
+                                (result != 0) ? "a failure"
+                                              : (text) ? text : "NULL",
+                                (_expected) ? _expected : "NULL");
     }
 
     d_db_free(text);
@@ -980,6 +1007,38 @@ d_tests_mariadb_client_has(
 }
 
 /*
+d_tests_mariadb_append
+  Appends formatted text to a note being built, and gives back how much it
+added: never more than is left, so the note is cut rather than overrun.
+*/
+static
+size_t d_tests_mariadb_append(
+    char*       _text,
+    size_t      _used,
+    size_t      _size,
+    const char* _format,
+    ...
+)
+{
+    va_list arguments;
+    int     wrote = 0;
+
+    // a full note takes nothing more
+    if (_used + 1u >= _size)
+    {
+        return 0u;
+    }
+
+    va_start(arguments, _format);
+    wrote = vsnprintf(_text + _used, _size - _used, _format, arguments);
+    va_end(arguments);
+
+    return (wrote < 0)                              ? 0u
+         : ((size_t)wrote >= _size - _used)          ? (_size - _used - 1u)
+                                                     : (size_t)wrote;
+}
+
+/*
 d_tests_mariadb_tracked
   Whether the session's changes of a kind, as the layer reads them, are the
 `_count` entries given, in their order; says what came instead when not.
@@ -1006,22 +1065,31 @@ d_tests_mariadb_tracked(
         same = (strcmp(entries.names[i], _expected[i]) == 0);
     }
 
-    // say what came instead
+    // say what came instead, in one note
     if (!same)
     {
-        printf("    kind %d:", (int)_kind);
+        char   text[512] = "";
+        size_t used      = 0u;
+
+        used += d_tests_mariadb_append(text, used, sizeof(text), "kind %d:",
+                                       (int)_kind);
 
         if (result != 0)
         {
-            printf(" a failure, %d", result);
+            used += d_tests_mariadb_append(text, used, sizeof(text),
+                                           " a failure, %d", result);
         }
 
         for (size_t i = 0u; (result == 0) && (i < entries.count); ++i)
         {
-            printf(" <%s>", entries.names[i]);
+            used += d_tests_mariadb_append(text, used, sizeof(text), " <%s>",
+                                           entries.names[i]);
         }
 
-        printf(" (expected %lu)\n", (unsigned long)_count);
+        (void)d_test_suite_note(g_suite,
+                                "%s (expected %lu)",
+                                text,
+                                (unsigned long)_count);
     }
 
     d_db_name_list_free(&entries);
@@ -1048,7 +1116,7 @@ void d_tests_mariadb_db_common(void)
     struct dj_db_name_list   names   = { 0u, NULL };
     struct dj_db_column_list columns = { 0u, NULL };
 
-    printf("db_common\n");
+    d_tests_mariadb_start("db_common", "db_common");
 
     D_TESTS_MARIADB_CHECK(D_DB_OK == 0);
     D_TESTS_MARIADB_CHECK(D_DB_INVALID_ARGUMENT < 0);
@@ -1096,9 +1164,12 @@ d_tests_mariadb_client
 static
 void d_tests_mariadb_client(void)
 {
-    printf("mariadb_common: client (%s, %s)\n",
-           d_mariadb_client_version(),
-           (d_mariadb_client_is_mariadb()) ? "MariaDB's" : "Oracle's");
+    d_tests_mariadb_start("mariadb_common", "client");
+    (void)d_test_suite_note(g_suite,
+                            "%s, %s",
+                            d_mariadb_client_version(),
+                            (d_mariadb_client_is_mariadb()) ? "MariaDB's"
+                                                            : "Oracle's");
 
     D_TESTS_MARIADB_CHECK(strlen(d_mariadb_client_version()) > 0u);
     D_TESTS_MARIADB_CHECK(
@@ -1125,8 +1196,10 @@ void d_tests_mariadb_versions(void)
 {
     struct dj_mariadb* const db = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_common: versions (%s)\n",
-           (db) ? d_mariadb_server_version(db) : "no server");
+    d_tests_mariadb_start("mariadb_common", "versions");
+    (void)d_test_suite_note(g_suite,
+                            "%s",
+                            (db) ? d_mariadb_server_version(db) : "no server");
 
     // nothing more without a server
     if (!db)
@@ -1195,7 +1268,7 @@ void d_tests_mariadb_version_comparisons(void)
     const unsigned              minor   = (unsigned)((version / 100ul) % 100ul);
     const unsigned              patch   = (unsigned)(version % 100ul);
 
-    printf("mariadb_common: version comparisons\n");
+    d_tests_mariadb_start("mariadb_common", "version comparisons");
 
     D_TESTS_MARIADB_CHECK(
         d_mariadb_server_at_least(db, flavor, major, minor, patch));
@@ -1262,7 +1335,7 @@ void d_tests_mariadb_features(void)
                                     sizeof(d_tests_mariadb_probes[0]);
     struct dj_mariadb* const db    = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_common: features\n");
+    d_tests_mariadb_start("mariadb_common", "features");
 
     for (size_t i = 0u; (db) && (i < count); ++i)
     {
@@ -1279,17 +1352,20 @@ void d_tests_mariadb_features(void)
         if ( (claimed != works) &&
              (!unbuilt) )
         {
-            printf("  feature %d: supports says %d, SQL says %d (%s)\n",
-                   (int)probe->feature,
-                   (int)claimed,
-                   (int)works,
-                   probe->sql);
+            (void)d_test_suite_note(g_suite,
+                                    "feature %d: supports says %d, SQL says %d "
+                                    "(%s)",
+                                    (int)probe->feature,
+                                    (int)claimed,
+                                    (int)works,
+                                    probe->sql);
         }
 
         if (unbuilt)
         {
-            printf("  Galera: in the release, left out of this Windows "
-                   "build\n");
+            (void)d_test_suite_note(g_suite,
+                                    "Galera: in the release, left out of this "
+                                    "Windows build");
         }
 
         D_TESTS_MARIADB_CHECK( (claimed == works) ||
@@ -1332,7 +1408,7 @@ void d_tests_mariadb_feature_behaviors(void)
                                           "INSERT INTO f_check VALUES (0)") !=
                                       0) );
 
-    printf("mariadb_common: features by behavior\n");
+    d_tests_mariadb_start("mariadb_common", "features by behavior");
 
     D_TESTS_MARIADB_CHECK(made);
     D_TESTS_MARIADB_CHECK(
@@ -1367,7 +1443,7 @@ d_tests_mariadb_messages
 static
 void d_tests_mariadb_messages(void)
 {
-    printf("mariadb_common: result messages\n");
+    d_tests_mariadb_start("mariadb_common", "result messages");
 
     D_TESTS_MARIADB_CHECK(
         strcmp(d_mariadb_result_message(0), "success") == 0);
@@ -1408,7 +1484,7 @@ void d_tests_mariadb_errors(void)
 {
     struct dj_mariadb* const db = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_common: the client's handle and errors\n");
+    d_tests_mariadb_start("mariadb_common", "the client's handle and errors");
 
     // nothing more without a server
     if (!db)
@@ -1473,7 +1549,7 @@ void d_tests_mariadb_connecting(void)
     char*                    charset = NULL;
     int                      result  = 0;
 
-    printf("mariadb_connection: connecting\n");
+    d_tests_mariadb_start("mariadb_connection", "connecting");
 
     D_TESTS_MARIADB_OK(NULL, d_mariadb_connect(&g_options, &db));
     D_TESTS_MARIADB_CHECK(db != NULL);
@@ -1552,7 +1628,7 @@ void d_tests_mariadb_connecting_with(void)
     unsigned int            seconds = 7u;
     int                     result  = 0;
 
-    printf("mariadb_connection: connecting with settings\n");
+    d_tests_mariadb_start("mariadb_connection", "connecting with settings");
 
     d_mariadb_close(probe);
 
@@ -1895,7 +1971,7 @@ void d_tests_mariadb_client_options(void)
     char*                   value   = NULL;
     int                     result  = 0;
 
-    printf("mariadb_connection: options of the clients'\n");
+    d_tests_mariadb_start("mariadb_connection", "options of the clients'");
 
     d_mariadb_close(probe);
 
@@ -2099,7 +2175,7 @@ void d_tests_mariadb_options_read_back(void)
     const bool        reads   = ( (!d_mariadb_client_is_mariadb()) ||
                                   (mysql_get_client_version() >= 30000ul) );
 
-    printf("mariadb_connection: options read back\n");
+    d_tests_mariadb_start("mariadb_connection", "options read back");
 
     D_TESTS_MARIADB_RESULT(NULL,
                            d_mariadb_connect_with(&g_options, settings, 1u,
@@ -2193,7 +2269,7 @@ void d_tests_mariadb_server_public_key(void)
         { D_MARIADB_SETTING_GET_SERVER_PUBLIC_KEY, 0ul, NULL, NULL }
     };
 
-    printf("mariadb_connection: the server's public key\n");
+    d_tests_mariadb_start("mariadb_connection", "the server's public key");
 
     // nothing more without a connection
     if (!db)
@@ -2207,7 +2283,8 @@ void d_tests_mariadb_server_public_key(void)
                             "WHERE PLUGIN_NAME = 'caching_sha2_password' "
                             "AND PLUGIN_STATUS = 'ACTIVE'") != 1)
     {
-        printf("  skipped: the server has no caching_sha2_password\n");
+        (void)d_test_suite_skip(g_suite,
+                                "the server has no caching_sha2_password");
         d_mariadb_close(db);
 
         return;
@@ -2299,7 +2376,7 @@ void d_tests_mariadb_adopting(void)
     struct dj_mariadb* db     = NULL;
     MYSQL* const      native = d_tests_mariadb_native();
 
-    printf("mariadb_connection: adopting and closing\n");
+    d_tests_mariadb_start("mariadb_connection", "adopting and closing");
 
     D_TESTS_MARIADB_CHECK(
         (native) &&
@@ -2354,7 +2431,7 @@ void d_tests_mariadb_changing_user(void)
     struct dj_mariadb_statement* statement  = NULL;
     int64_t                     changes    = 0;
 
-    printf("mariadb_connection: changing user\n");
+    d_tests_mariadb_start("mariadb_connection", "changing user");
 
     db = d_tests_mariadb_begin("change", schema, sizeof(schema));
 
@@ -2430,7 +2507,7 @@ void d_tests_mariadb_resetting(void)
     int64_t                     changes    = 0;
     bool                        can        = false;
 
-    printf("mariadb_connection: resetting the session\n");
+    d_tests_mariadb_start("mariadb_connection", "resetting the session");
 
     db  = d_tests_mariadb_begin("reset", schema, sizeof(schema));
     can = d_mariadb_supports(db, D_MARIADB_FEATURE_RESET_CONNECTION);
@@ -2565,7 +2642,7 @@ void d_tests_mariadb_liveness(void)
     struct dj_mariadb* const db    = d_tests_mariadb_connect(NULL);
     struct dj_mariadb* const other = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_connection: liveness\n");
+    d_tests_mariadb_start("mariadb_connection", "liveness");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_ping(db));
     D_TESTS_MARIADB_CHECK(
@@ -2634,7 +2711,7 @@ void d_tests_mariadb_rows_changed(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_connection: rows changed\n");
+    d_tests_mariadb_start("mariadb_connection", "rows changed");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec(db,
@@ -2688,7 +2765,7 @@ void d_tests_mariadb_statements(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_query: statements\n");
+    d_tests_mariadb_start("mariadb_query", "statements");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "CREATE TABLE s (a INT)"));
     D_TESTS_MARIADB_RESULT(db,
@@ -2749,7 +2826,7 @@ void d_tests_mariadb_scripts(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_query: scripts\n");
+    d_tests_mariadb_start("mariadb_query", "scripts");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -2798,7 +2875,7 @@ void d_tests_mariadb_integers(void)
     struct dj_mariadb* const db     = d_tests_mariadb_connect(NULL);
     int64_t                 number = 0;
 
-    printf("mariadb_query: integers\n");
+    d_tests_mariadb_start("mariadb_query", "integers");
 
     D_TESTS_MARIADB_CHECK(d_tests_mariadb_int(db, "SELECT 42") == 42);
     D_TESTS_MARIADB_CHECK(
@@ -2863,7 +2940,7 @@ void d_tests_mariadb_doubles(void)
     int64_t                 number = 0;
     double                  real   = 2.0;
 
-    printf("mariadb_query: doubles\n");
+    d_tests_mariadb_start("mariadb_query", "doubles");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_query_double(db, &real, "SELECT 1.5"));
     D_TESTS_MARIADB_CHECK(real == 1.5);
@@ -2905,7 +2982,9 @@ void d_tests_mariadb_doubles(void)
     }
     else
     {
-        printf("  (no locale with a comma for its point; skipped)\n");
+        (void)d_test_suite_note(g_suite,
+                                "(no locale with a comma for its point; "
+                                "skipped)");
     }
 
     d_mariadb_close(db);
@@ -2930,7 +3009,7 @@ void d_tests_mariadb_text(void)
     char*                   text     = NULL;
     char                    sentinel = '\0';
 
-    printf("mariadb_query: text\n");
+    d_tests_mariadb_start("mariadb_query", "text");
 
     D_TESTS_MARIADB_CHECK(
         d_tests_mariadb_text_is(db,
@@ -2983,7 +3062,7 @@ void d_tests_mariadb_changes_counted(void)
                                                          sizeof(schema));
     int64_t           changes    = -1;
 
-    printf("mariadb_query: rows changed\n");
+    d_tests_mariadb_start("mariadb_query", "rows changed");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec(db,
@@ -3074,7 +3153,7 @@ void d_tests_mariadb_rows_values(void)
     struct dj_db_rows  rows       = { 0u, 0u, NULL, NULL };
     struct dj_db_rows  marker     = { 7u, 7u, NULL, NULL };
 
-    printf("mariadb_query: rows\n");
+    d_tests_mariadb_start("mariadb_query", "rows");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec(db,
@@ -3306,7 +3385,7 @@ void d_tests_mariadb_rows_types(void)
                                                          sizeof(schema));
     struct dj_db_rows  rows       = { 0u, 0u, NULL, NULL };
 
-    printf("mariadb_query: column types\n");
+    d_tests_mariadb_start("mariadb_query", "column types");
 
     for (size_t i = 0u; i < count; ++i)
     {
@@ -3329,13 +3408,15 @@ void d_tests_mariadb_rows_types(void)
         // say which column was misread, beyond the line
         if (!typed)
         {
-            printf("    %s read as %s (%s)\n",
-                   expected[i].declared,
-                   (rows.column_count == 1u)
-                       ? d_db_type_name(rows.columns[0].type)
-                       : "nothing",
-                   (rows.column_count == 1u) ? rows.columns[0].type_name
-                                             : "");
+            (void)d_test_suite_note(g_suite,
+                                    "%s read as %s (%s)",
+                                    expected[i].declared,
+                                    (rows.column_count == 1u)
+                                        ? d_db_type_name(rows.columns[0].type)
+                                        : "nothing",
+                                    (rows.column_count == 1u)
+                                        ? rows.columns[0].type_name
+                                        : "");
         }
 
         D_TESTS_MARIADB_CHECK(typed);
@@ -3382,7 +3463,7 @@ void d_tests_mariadb_quoting_names(void)
 {
     char* quoted = d_mariadb_quote_identifier("plain");
 
-    printf("mariadb_query: quoting names\n");
+    d_tests_mariadb_start("mariadb_query", "quoting names");
 
     D_TESTS_MARIADB_CHECK( (quoted) && (strcmp(quoted, "`plain`") == 0) );
     d_db_free(quoted);
@@ -3413,7 +3494,7 @@ void d_tests_mariadb_quoting_values(void)
     char*                   quoted  = NULL;
     char*                   text    = NULL;
 
-    printf("mariadb_query: quoting values\n");
+    d_tests_mariadb_start("mariadb_query", "quoting values");
 
     // as each SQL mode reads them
     for (int mode = 0; mode < 2; ++mode)
@@ -3472,7 +3553,7 @@ void d_tests_mariadb_query_arguments(void)
     const double            zero   = 0.0;
     struct dj_db_rows        rows   = { 0u, 0u, NULL, NULL };
 
-    printf("mariadb_query: arguments\n");
+    d_tests_mariadb_start("mariadb_query", "arguments");
 
     D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(NULL, "SELECT 1"),
                            D_DB_INVALID_ARGUMENT);
@@ -3572,7 +3653,7 @@ void d_tests_mariadb_query_attributes(void)
     const bool               can    =
         d_mariadb_supports(db, D_MARIADB_FEATURE_QUERY_ATTRIBUTES);
 
-    printf("mariadb_query: query attributes\n");
+    d_tests_mariadb_start("mariadb_query", "query attributes");
 
     D_TESTS_MARIADB_CHECK(
         can ==
@@ -3599,8 +3680,9 @@ void d_tests_mariadb_query_attributes(void)
         // say why the values cannot be read back, where they cannot
         if (!readable)
         {
-            printf("    the server has no query_attributes component: the "
-                   "values go unread\n");
+            (void)d_test_suite_note(g_suite,
+                                    "the server has no query_attributes "
+                                    "component: the values go unread");
         }
 
         // one attribute, for one query
@@ -3728,7 +3810,7 @@ void d_tests_mariadb_preparing(void)
     struct dj_mariadb*           other      = d_tests_mariadb_connect(schema);
     struct dj_mariadb_statement* statement  = NULL;
 
-    printf("mariadb_statement: preparing\n");
+    d_tests_mariadb_start("mariadb_statement", "preparing");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec(db, "CREATE TABLE p (a INT, b TEXT)"));
@@ -3820,7 +3902,7 @@ void d_tests_mariadb_binding(void)
     unsigned char               bytes[]    = { 0x00, 0x01, 0x00 };
     int64_t                     changes    = 0;
 
-    printf("mariadb_statement: binding\n");
+    d_tests_mariadb_start("mariadb_statement", "binding");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec(db,
@@ -3947,7 +4029,7 @@ void d_tests_mariadb_running(void)
     int64_t                     changes    = -1;
     static char                 longest[70001] = "";
 
-    printf("mariadb_statement: running\n");
+    d_tests_mariadb_start("mariadb_statement", "running");
 
     memset(longest, 'x', sizeof(longest) - 1u);
     longest[sizeof(longest) - 1u] = '\0';
@@ -4096,7 +4178,7 @@ void d_tests_mariadb_cursors(void)
     char                        after[32]  = "";
     static char                 longest[70001] = "";
 
-    printf("mariadb_statement: rows a few at a time\n");
+    d_tests_mariadb_start("mariadb_statement", "rows a few at a time");
 
     memset(longest, 'x', sizeof(longest) - 1u);
     longest[sizeof(longest) - 1u] = '\0';
@@ -4359,7 +4441,7 @@ void d_tests_mariadb_cursor_closing(void)
     int64_t                     changes  = 0;
     MYSQL* const                native   = d_tests_mariadb_native();
 
-    printf("mariadb_statement: a run open at closing\n");
+    d_tests_mariadb_start("mariadb_statement", "a run open at closing");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_prepare(db, &running,
@@ -4452,7 +4534,7 @@ void d_tests_mariadb_statement_arguments(void)
     struct dj_db_rows            marker    = { 7u, 7u, NULL, NULL };
     int64_t                     changes   = 0;
 
-    printf("mariadb_statement: arguments\n");
+    d_tests_mariadb_start("mariadb_statement", "arguments");
 
     statement = (struct dj_mariadb_statement*)&g_options;
     D_TESTS_MARIADB_RESULT(db, d_mariadb_prepare(NULL, &statement,
@@ -4541,7 +4623,7 @@ void d_tests_mariadb_databases(void)
     char                    name[96] = "";
     bool                    exists   = true;
 
-    printf("mariadb_database: databases\n");
+    d_tests_mariadb_start("mariadb_database", "databases");
 
     d_tests_mariadb_schema_name(name, sizeof(name), "dbs");
     D_TESTS_MARIADB_OK(db, d_mariadb_drop_database(db, name, D_DB_IF_EXISTS));
@@ -4611,7 +4693,7 @@ void d_tests_mariadb_current_database(void)
     char              upper[96] = "";
     char*             current   = NULL;
 
-    printf("mariadb_database: the current database\n");
+    d_tests_mariadb_start("mariadb_database", "the current database");
 
     // by case, where the server matches by case
     for (size_t i = 0u; name[i] != '\0'; ++i)
@@ -4666,7 +4748,7 @@ void d_tests_mariadb_database_arguments(void)
     bool                    exists  = true;
     char*                   current = NULL;
 
-    printf("mariadb_database: arguments\n");
+    d_tests_mariadb_start("mariadb_database", "arguments");
 
     D_TESTS_MARIADB_CHECK(!d_mariadb_has_database(NULL, "mysql"));
     D_TESTS_MARIADB_CHECK(!d_mariadb_has_database(db, NULL));
@@ -4730,7 +4812,7 @@ void d_tests_mariadb_table_existence(void)
     struct dj_mariadb* elsewhere  = d_tests_mariadb_connect(NULL);
     bool              exists     = false;
 
-    printf("mariadb_schema: table existence\n");
+    d_tests_mariadb_start("mariadb_schema", "table existence");
 
     D_TESTS_MARIADB_CHECK(!d_mariadb_has_table(db, NULL, "t"));
     D_TESTS_MARIADB_OK(db,
@@ -4795,7 +4877,7 @@ void d_tests_mariadb_table_creation(void)
                                                          sizeof(schema));
     struct dj_mariadb* elsewhere  = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_schema: table creation\n");
+    d_tests_mariadb_start("mariadb_schema", "table creation");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_create_table_sql(db, NULL, "t", "a INT", 0u));
@@ -4852,7 +4934,7 @@ void d_tests_mariadb_table_renames(void)
                                                          sizeof(schema));
     struct dj_mariadb* elsewhere  = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_schema: table renames and drops\n");
+    d_tests_mariadb_start("mariadb_schema", "table renames and drops");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -4899,7 +4981,7 @@ void d_tests_mariadb_table_rows(void)
                                                          sizeof(schema));
     int64_t           count      = -1;
 
-    printf("mariadb_schema: table rows\n");
+    d_tests_mariadb_start("mariadb_schema", "table rows");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -4947,7 +5029,7 @@ void d_tests_mariadb_table_listing(void)
                                                              sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("mariadb_schema: table listing\n");
+    d_tests_mariadb_start("mariadb_schema", "table listing");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_list_tables(db, NULL, &names));
     D_TESTS_MARIADB_CHECK( (names.count == 0u) && (names.names != NULL) &&
@@ -5001,7 +5083,7 @@ void d_tests_mariadb_table_arguments(void)
     int64_t                 count  = 0;
     bool                    exists = true;
 
-    printf("mariadb_schema: table arguments\n");
+    d_tests_mariadb_start("mariadb_schema", "table arguments");
 
     D_TESTS_MARIADB_CHECK(!d_mariadb_has_table(NULL, NULL, "t"));
     D_TESTS_MARIADB_RESULT(db, d_mariadb_has_table_s(db, "", "t", &exists),
@@ -5045,7 +5127,7 @@ void d_tests_mariadb_creation_arguments(void)
 {
     struct dj_mariadb* const db = d_tests_mariadb_connect(NULL);
 
-    printf("mariadb_schema: table creation arguments\n");
+    d_tests_mariadb_start("mariadb_schema", "table creation arguments");
 
     D_TESTS_MARIADB_RESULT(db,
                            d_mariadb_create_table(db, NULL, "t",
@@ -5140,7 +5222,7 @@ void d_tests_mariadb_described_types(void)
                                              sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("mariadb_schema: described types\n");
+    d_tests_mariadb_start("mariadb_schema", "described types");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_list_columns(db, NULL, "every", &columns));
     D_TESTS_MARIADB_CHECK(columns.count == count);
@@ -5156,10 +5238,11 @@ void d_tests_mariadb_described_types(void)
 
         if (strcmp(columns.columns[i].type, expected) != 0)
         {
-            printf("    column %s: %s, expected %s\n",
-                   columns.columns[i].name,
-                   columns.columns[i].type,
-                   expected);
+            (void)d_test_suite_note(g_suite,
+                                    "column %s: %s, expected %s",
+                                    columns.columns[i].name,
+                                    columns.columns[i].type,
+                                    expected);
         }
 
         D_TESTS_MARIADB_CHECK(strcmp(columns.columns[i].type, expected) == 0);
@@ -5190,7 +5273,7 @@ void d_tests_mariadb_described_attributes(void)
                                              sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("mariadb_schema: described attributes\n");
+    d_tests_mariadb_start("mariadb_schema", "described attributes");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_list_columns(db, NULL, "every", &columns));
 
@@ -5258,7 +5341,7 @@ void d_tests_mariadb_described_keys(void)
                                                                sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("mariadb_schema: described keys\n");
+    d_tests_mariadb_start("mariadb_schema", "described keys");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_create_table(db,
@@ -5391,7 +5474,7 @@ void d_tests_mariadb_described_refusals(void)
                                                           sizeof(schema));
     struct dj_db_column own        = d_tests_mariadb_refused[0][0];
 
-    printf("mariadb_schema: described refusals\n");
+    d_tests_mariadb_start("mariadb_schema", "described refusals");
 
     for (size_t i = 0u; i < count; ++i)
     {
@@ -5444,12 +5527,14 @@ bool d_tests_mariadb_read_default(
     // what the default was, and what it read
     if (!same)
     {
-        printf("    default of %s: %s reads %s, expected %s\n",
-               _read[0],
-               ( (column) && (column->default_sql) ) ? column->default_sql
-                                                     : "none",
-               (text) ? text : "NULL",
-               _read[2]);
+        (void)d_test_suite_note(g_suite,
+                                "default of %s: %s reads %s, expected %s",
+                                _read[0],
+                                ( (column) && (column->default_sql) )
+                                    ? column->default_sql
+                                    : "none",
+                                (text) ? text : "NULL",
+                                _read[2]);
     }
 
     d_db_free(text);
@@ -5477,7 +5562,7 @@ void d_tests_mariadb_defaults(void)
                                                                sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("mariadb_schema: defaults as SQL\n");
+    d_tests_mariadb_start("mariadb_schema", "defaults as SQL");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_create_table_sql(db,
@@ -5519,7 +5604,7 @@ void d_tests_mariadb_default_kinds(void)
     struct dj_db_column_list        columns    = { 0u, NULL };
     const struct dj_db_column_info* column     = NULL;
 
-    printf("mariadb_schema: kinds of default\n");
+    d_tests_mariadb_start("mariadb_schema", "kinds of default");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_create_table_sql(db,
@@ -5566,7 +5651,7 @@ void d_tests_mariadb_column_existence(void)
                                                          sizeof(schema));
     bool              exists     = false;
 
-    printf("mariadb_schema: column existence\n");
+    d_tests_mariadb_start("mariadb_schema", "column existence");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -5613,7 +5698,7 @@ void d_tests_mariadb_column_additions(void)
                                             D_DB_COLUMN_AUTO_INCREMENT,
                                             NULL, 0u, 0u, NULL, 0u };
 
-    printf("mariadb_schema: column additions\n");
+    d_tests_mariadb_start("mariadb_schema", "column additions");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -5666,7 +5751,7 @@ void d_tests_mariadb_column_removals(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_schema: column renames and drops\n");
+    d_tests_mariadb_start("mariadb_schema", "column renames and drops");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -5741,7 +5826,7 @@ void d_tests_mariadb_column_redefinitions(void)
                                             NULL, 0u, 0u, NULL, 0u };
     struct dj_db_column_list  columns    = { 0u, NULL };
 
-    printf("mariadb_schema: column redefinitions\n");
+    d_tests_mariadb_start("mariadb_schema", "column redefinitions");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_exec_script(db,
@@ -5824,7 +5909,7 @@ void d_tests_mariadb_column_listing(void)
                                                                sizeof(schema));
     struct dj_db_column_list columns    = { 0u, NULL };
 
-    printf("mariadb_schema: column listing\n");
+    d_tests_mariadb_start("mariadb_schema", "column listing");
 
     D_TESTS_MARIADB_RESULT(db,
                            d_mariadb_list_columns(db, NULL, "none", &columns),
@@ -5905,7 +5990,7 @@ void d_tests_mariadb_column_arguments(void)
                                          0u, NULL, 0u };
     bool                     exists  = true;
 
-    printf("mariadb_schema: column arguments\n");
+    d_tests_mariadb_start("mariadb_schema", "column arguments");
 
     D_TESTS_MARIADB_CHECK(!d_mariadb_has_column(NULL, NULL, "t", "a"));
     D_TESTS_MARIADB_RESULT(db,
@@ -6000,7 +6085,7 @@ void d_tests_mariadb_indexes(void)
     struct dj_db_name_list names      = { 0u, NULL };
     bool                  exists     = false;
 
-    printf("mariadb_schema: indexes\n");
+    d_tests_mariadb_start("mariadb_schema", "indexes");
 
     D_TESTS_MARIADB_CHECK(d_mariadb_has_index(db, NULL, "ix_bc", "t"));
     D_TESTS_MARIADB_CHECK(d_mariadb_has_index(db, NULL, "IX_BC", "t"));
@@ -6039,7 +6124,7 @@ void d_tests_mariadb_index_changes(void)
                                            sizeof(schema));
     struct dj_db_name_list names      = { 0u, NULL };
 
-    printf("mariadb_schema: index changes\n");
+    d_tests_mariadb_start("mariadb_schema", "index changes");
 
     D_TESTS_MARIADB_RESULT(db,
                            d_mariadb_create_index(db, NULL, "ix_bc", "t", "c",
@@ -6122,7 +6207,7 @@ void d_tests_mariadb_views(void)
     struct dj_db_name_list names      = { 0u, NULL };
     bool                  exists     = false;
 
-    printf("mariadb_schema: views\n");
+    d_tests_mariadb_start("mariadb_schema", "views");
 
     D_TESTS_MARIADB_CHECK(d_mariadb_has_view(db, NULL, "v_two"));
     D_TESTS_MARIADB_CHECK(!d_mariadb_has_view(db, NULL, "t"));
@@ -6159,7 +6244,7 @@ void d_tests_mariadb_view_changes(void)
                                                                sizeof(schema));
     int               result     = 0;
 
-    printf("mariadb_schema: view changes\n");
+    d_tests_mariadb_start("mariadb_schema", "view changes");
 
     D_TESTS_MARIADB_RESULT(db,
                            d_mariadb_create_view(db, NULL, "v_two",
@@ -6239,7 +6324,7 @@ void d_tests_mariadb_triggers(void)
     struct dj_db_name_list names      = { 0u, NULL };
     bool                  exists     = false;
 
-    printf("mariadb_schema: triggers\n");
+    d_tests_mariadb_start("mariadb_schema", "triggers");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "INSERT INTO t VALUES (1)"));
     D_TESTS_MARIADB_CHECK(d_tests_mariadb_int(db, "SELECT a FROM t") == 2);
@@ -6287,7 +6372,7 @@ void d_tests_mariadb_trigger_changes(void)
                                        schema,
                                        sizeof(schema));
 
-    printf("mariadb_schema: trigger changes\n");
+    d_tests_mariadb_start("mariadb_schema", "trigger changes");
 
     D_TESTS_MARIADB_RESULT(db,
                            d_mariadb_create_trigger(db, NULL, "tr_add",
@@ -6327,7 +6412,7 @@ void d_tests_mariadb_index_arguments(void)
     struct dj_db_name_list   names  = { 0u, NULL };
     bool                    exists = true;
 
-    printf("mariadb_schema: index arguments\n");
+    d_tests_mariadb_start("mariadb_schema", "index arguments");
 
     D_TESTS_MARIADB_RESULT(db, d_mariadb_has_index_s(db, NULL, "i", NULL,
                                                      &exists),
@@ -6372,7 +6457,7 @@ void d_tests_mariadb_view_trigger_arguments(void)
     struct dj_db_name_list   names  = { 0u, NULL };
     bool                    exists = true;
 
-    printf("mariadb_schema: view and trigger arguments\n");
+    d_tests_mariadb_start("mariadb_schema", "view and trigger arguments");
 
     D_TESTS_MARIADB_RESULT(db, d_mariadb_has_view_s(db, "", "v", &exists),
                            D_DB_INVALID_ARGUMENT);
@@ -6428,7 +6513,7 @@ void d_tests_mariadb_transactions(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_transaction: transactions\n");
+    d_tests_mariadb_start("mariadb_transaction", "transactions");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "CREATE TABLE t (a INT)"));
     D_TESTS_MARIADB_CHECK(!d_mariadb_in_transaction(db));
@@ -6475,7 +6560,7 @@ void d_tests_mariadb_transaction_modes(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_transaction: transaction modes\n");
+    d_tests_mariadb_start("mariadb_transaction", "transaction modes");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "CREATE TABLE t (a INT)"));
     D_TESTS_MARIADB_OK(db,
@@ -6530,7 +6615,7 @@ void d_tests_mariadb_savepoints(void)
                                                          schema,
                                                          sizeof(schema));
 
-    printf("mariadb_transaction: savepoints\n");
+    d_tests_mariadb_start("mariadb_transaction", "savepoints");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "CREATE TABLE t (a INT)"));
     D_TESTS_MARIADB_OK(db,
@@ -6587,7 +6672,7 @@ void d_tests_mariadb_autocommit(void)
                                                          sizeof(schema));
     bool              enabled    = false;
 
-    printf("mariadb_settings: autocommit\n");
+    d_tests_mariadb_start("mariadb_settings", "autocommit");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "CREATE TABLE t (a INT)"));
     D_TESTS_MARIADB_OK(db, d_mariadb_get_autocommit(db, &enabled));
@@ -6627,7 +6712,7 @@ void d_tests_mariadb_isolation_and_waits(void)
     enum dj_mariadb_isolation level   = D_MARIADB_ISOLATION_SERIALIZABLE;
     unsigned                 seconds = 0u;
 
-    printf("mariadb_settings: isolation and lock waits\n");
+    d_tests_mariadb_start("mariadb_settings", "isolation and lock waits");
 
     for (int i = D_MARIADB_ISOLATION_READ_UNCOMMITTED;
          i <= D_MARIADB_ISOLATION_SERIALIZABLE;
@@ -6683,7 +6768,8 @@ void d_tests_mariadb_next_isolation(void)
                                                                 sizeof(schema));
     struct dj_mariadb* const  other      = d_tests_mariadb_connect(schema);
 
-    printf("mariadb_settings: the next transaction's isolation\n");
+    d_tests_mariadb_start("mariadb_settings",
+                          "the next transaction's isolation");
 
     D_TESTS_MARIADB_OK(db,
                        d_mariadb_set_isolation_level(
@@ -6757,7 +6843,7 @@ void d_tests_mariadb_session_settings(void)
     struct dj_mariadb* const db   = d_tests_mariadb_connect(NULL);
     char*                   text = NULL;
 
-    printf("mariadb_settings: session settings\n");
+    d_tests_mariadb_start("mariadb_settings", "session settings");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_set_charset(db, "latin1"));
     D_TESTS_MARIADB_OK(db, d_mariadb_get_charset(db, &text));
@@ -6829,7 +6915,7 @@ void d_tests_mariadb_variables(void)
         "", "1a", "a b", "a;b", "@@a", "a.b", "a-b", "a`b"
     };
 
-    printf("mariadb_settings: any variable\n");
+    d_tests_mariadb_start("mariadb_settings", "any variable");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_set_variable(db, "wait_timeout", "1234"));
     D_TESTS_MARIADB_OK(db, d_mariadb_get_variable(db, "wait_timeout", &text));
@@ -6904,7 +6990,7 @@ void d_tests_mariadb_session_tracking(void)
     struct dj_db_name_list    entries    = { 7u, NULL };
     bool                     can        = false;
 
-    printf("mariadb_settings: the session's changes\n");
+    d_tests_mariadb_start("mariadb_settings", "the session's changes");
 
     db  = d_tests_mariadb_begin("tracking", schema, sizeof(schema));
     can = d_mariadb_supports(db, D_MARIADB_FEATURE_SESSION_TRACKING);
@@ -7129,7 +7215,7 @@ void d_tests_mariadb_upkeep(void)
     uint64_t          second     = 1u;
     uint64_t          third      = 0u;
 
-    printf("mariadb_maintenance: upkeep\n");
+    d_tests_mariadb_start("mariadb_maintenance", "upkeep");
 
     D_TESTS_MARIADB_OK(db, d_mariadb_analyze_table(db, NULL, "m"));
     D_TESTS_MARIADB_OK(db, d_mariadb_optimize_table(db, schema, "m"));
@@ -7165,7 +7251,7 @@ void d_tests_mariadb_upkeep_refusals(void)
     bool              ok         = true;
     uint64_t          checksum   = 7u;
 
-    printf("mariadb_maintenance: upkeep refusals\n");
+    d_tests_mariadb_start("mariadb_maintenance", "upkeep refusals");
 
     D_TESTS_MARIADB_RESULT(db, d_mariadb_analyze_table(db, NULL, "none"),
                            D_DB_NOT_FOUND);
@@ -7505,7 +7591,7 @@ void d_tests_mariadb_connect_nonblocking(void)
     const struct dj_mariadb_setting* given   = NULL;
     int64_t                        number   = 0;
 
-    printf("mariadb_connection: connecting without blocking\n");
+    d_tests_mariadb_start("mariadb_connection", "connecting without blocking");
 
     memset(&pending, 0x5a, sizeof(pending));
 
@@ -7767,7 +7853,7 @@ void d_tests_mariadb_sent_nonblocking(void)
     const size_t        large      = (size_t)4u * 1024u * 1024u;
     char* const         sql        = (char*)malloc(large + 64u);
 
-    printf("mariadb_query: statements sent without blocking\n");
+    d_tests_mariadb_start("mariadb_query", "statements sent without blocking");
 
     memset(&rows, 0, sizeof(rows));
 
@@ -8156,7 +8242,7 @@ void d_tests_mariadb_statements_nonblocking(void)
     struct dj_db_rows            all;
     int64_t                     changes    = -1;
 
-    printf("mariadb_statement: without blocking\n");
+    d_tests_mariadb_start("mariadb_statement", "without blocking");
 
     memset(&rows, 0, sizeof(rows));
     memset(&all, 0, sizeof(all));
@@ -8516,7 +8602,7 @@ void d_tests_mariadb_session_nonblocking(void)
     int64_t                        number     = 0;
     char*                          current    = NULL;
 
-    printf("mariadb_connection: the session without blocking\n");
+    d_tests_mariadb_start("mariadb_connection", "the session without blocking");
 
     const struct dj_mariadb_setting* given = d_tests_mariadb_plain_first(
                                                 two,
@@ -8902,8 +8988,11 @@ void d_tests_mariadb_tls_nonblocking(void)
     struct dj_db_pending pending;
     struct dj_db_rows    rows;
 
-    printf("mariadb_common: calls that do not block, over TLS (%s)\n",
-           (can) ? "carried" : "refused");
+    d_tests_mariadb_start("mariadb_common",
+                          "calls that do not block, over TLS");
+    (void)d_test_suite_note(g_suite,
+                            "%s",
+                            (can) ? "carried" : "refused");
 
     memset(&rows, 0, sizeof(rows));
     D_TESTS_MARIADB_CHECK(can == d_tests_mariadb_tls_expected());
@@ -8926,8 +9015,11 @@ void d_tests_mariadb_tls_nonblocking(void)
         return;
     }
 
-    printf("  %s\n", (d_tests_mariadb_tls_under(db)) ? "under TLS"
-                                                     : "the server has no TLS");
+    (void)d_test_suite_note(g_suite,
+                            "%s",
+                            (d_tests_mariadb_tls_under(db))
+                                ? "under TLS"
+                                : "the server has no TLS");
 
     // carried: SQL sent and read over the connection as it is
     if (can)
@@ -9035,7 +9127,7 @@ void d_tests_mariadb_cancels(void)
     char*               reason    = NULL;
     struct dj_db_pending pending;
 
-    printf("mariadb_connection: cancelling\n");
+    d_tests_mariadb_start("mariadb_connection", "cancelling");
 
     // nothing more without a server, or a client that can send without
     // blocking
@@ -9152,7 +9244,8 @@ void d_tests_mariadb_without_blocking(void)
 
     if (g_plain_count != 0u)
     {
-        printf("  (the tests that follow connect without TLS)\n");
+        (void)d_test_suite_note(g_suite,
+                                "(the tests that follow connect without TLS)");
     }
 
     d_tests_mariadb_connect_nonblocking();
@@ -9255,36 +9348,50 @@ static void (* const d_tests_mariadb_all[])(void) =
 };
 
 /*
-main
-  Connects once to name the run, runs every test and reports; the exit
-status is 0 only if every check passed. Without a server to reach, it says
-how to name one, and fails.
+d_tests_mariadb
+  The suite's section: connects once to name the run, then runs every test,
+in the order of the headers. Without a server to reach, its one test fails
+and says how to name one.
 */
-int main(void)
+void d_tests_mariadb(
+    struct dj_test_suite* _suite
+)
 {
-    const size_t      count = sizeof(d_tests_mariadb_all) /
-                              sizeof(d_tests_mariadb_all[0]);
+    const size_t       count = sizeof(d_tests_mariadb_all) /
+                               sizeof(d_tests_mariadb_all[0]);
     struct dj_mariadb* setup = NULL;
 
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "mariadb");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/mariadb against a MariaDB or MySQL "
+                                "server");
     d_tests_mariadb_configure();
     setup = d_tests_mariadb_connect(NULL);
 
     // a server to test against
-    if (!setup)
-    {
-        printf("no server: set DJINTERP_TEST_MARIADB_HOST, _PORT, _USER, "
-               "_PASSWORD or _SOCKET\n");
+    (void)d_test_suite_test(_suite, "a server to test against");
 
-        return 1;
+    if (!D_TEST_CHECK(_suite, setup != NULL))
+    {
+        (void)d_test_suite_note(_suite,
+                                "no server: set DJINTERP_TEST_MARIADB_HOST, "
+                                "_PORT, _USER, _PASSWORD or _SOCKET");
+        g_suite = NULL;
+
+        return;
     }
 
     snprintf(g_run,
              sizeof(g_run),
              "d_tests_mariadb_%lu",
              d_mariadb_connection_id(setup));
-    printf("server %s; client %s\n",
-           d_mariadb_server_version(setup),
-           d_mariadb_client_version());
+    (void)d_test_suite_note(_suite,
+                            "server %s; client %s",
+                            d_mariadb_server_version(setup),
+                            d_mariadb_client_version());
     d_mariadb_close(setup);
 
     for (size_t i = 0u; i < count; ++i)
@@ -9292,7 +9399,7 @@ int main(void)
         d_tests_mariadb_all[i]();
     }
 
-    printf("%d checks, %d failed\n", g_checks, g_failures);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

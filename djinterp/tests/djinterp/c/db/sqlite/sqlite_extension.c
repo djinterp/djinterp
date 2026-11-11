@@ -1,20 +1,22 @@
 /*******************************************************************************
-* djinterp [tests]                                          t_sqlite_extension.c
+* djinterp [test]                                             sqlite_extension.c
 *
-*   A loadable SQLite extension, for the harnesses' checks of extension
-* loading: it adds one SQL function, d_tests_answer(), which returns 42. It
-* has two entry points: SQLite's default, sqlite3_extension_init, which a
-* load that names none finds, and d_tests_sqlite_extension_init, which also
-* adds d_tests_named(), returning 7, for a load that names its own.
+*   A loadable SQLite extension, for the checks of extension loading in
+* c/db/sqlite's suite and in the C++ harnesses over the layer: it adds one SQL
+* function, d_tests_answer(), which returns 42. It has two entry points:
+* SQLite's default, sqlite3_extension_init, which a load that names none finds,
+* and d_tests_sqlite_extension_init, which also adds d_tests_named(), returning
+* 7, for a load that names its own.
 *   Build: as a shared library, against the SQLite whose sqlite3ext.h it
-* includes; scripts/ci/check_db_sqlite.sh does, and hands its path to the
-* harnesses in DJINTERP_TEST_SQLITE_EXTENSION.
+* includes; scripts/ci/check_db_sqlite.sh does, and hands its path to the tests
+* in DJINTERP_TEST_SQLITE_EXTENSION. CMake does not build it, so the CTest run
+* checks what fails without one.
 *
 *
-* path:      /tests/unintegrated/c/db/sqlite/t_sqlite_extension.c
+* path:      /tests/djinterp/c/db/sqlite/sqlite_extension.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.21
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <stddef.h>  // NULL

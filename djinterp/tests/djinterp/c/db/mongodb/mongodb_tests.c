@@ -1,13 +1,13 @@
 /*******************************************************************************
-* djinterp [c]                                                       t_mongodb.c
+* djinterp [test]                                                mongodb_tests.c
 *
-*   Conformance harness for djinterp's MongoDB convenience layer: every
+*   Conformance tests for djinterp's MongoDB convenience layer: every
 * function in c/db/mongodb/mongodb_*.h, its success paths, its documented
 * failures and its argument checks, against a live deployment -- MongoDB from
 * 4.2, a replica set -- through whichever driver it is linked with, 1.21 and
 * later of either line. Where the answer depends on the server or the
 * driver, the check asks the handle the server's version, or the layer the
-* driver's, and expects the matching answer, so one harness passes on every
+* driver's, and expects the matching answer, so one suite passes on every
 * pair the layer supports.
 *   Each d_mongodb_supports answer is also checked against the server
 * itself, by doing what needs the feature: a version table that drifts from
@@ -23,25 +23,23 @@
 * connection string carries the password, so give it in the environment
 * only, never in a file. DJINTERP_TEST_MONGODB_STANDALONE_URI, optional,
 * names a standalone server, on which the checks that need one run: that a
-* transaction and a change stream are D_DB_UNSUPPORTED there. The harness
+* transaction and a change stream are D_DB_UNSUPPORTED there. Its first test
 * fails, saying why, when it cannot connect.
 *
-*   Build (from the repo root), at any language level from C99, against the
-* driver -- or let scripts/ci/check_db_mongodb.sh, which runs it across
-* compilers, standards, drivers and servers:
-*     cc -std=c99 -D_XOPEN_SOURCE=700 -Wall -Wextra -Werror                   \
-*        $(pkg-config --cflags libmongoc-1.0)                                  \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/mongodb/mongodb_*.c       \
-*        src/djinterp/c/sync/dmutex.c                                         \
-*        tests/unintegrated/c/db/mongodb/t_mongodb.c                          \
-*        $(pkg-config --libs libmongoc-1.0) -lpthread -o t_mongodb
-*     (mongoc2 in place of libmongoc-1.0 for the 2.x line)
+*   Build: CMake's c_mongodb_tests, or scripts/ci/check_db_mongodb.sh, which
+* runs it across compilers, standards and releases. By hand, from the repo root,
+* at any language level from C99: this file and its runner,
+* mongodb_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/mongodb/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/mongodb, against the MongoDB C driver and
+* libbson.
 *
 *
-* path:      /tests/unintegrated/c/db/mongodb/t_mongodb.c
+* path:      /tests/djinterp/c/db/mongodb/mongodb_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // WIN32_LEAN_AND_MEAN, NOMINMAX
 //   knobs (Windows'): <windows.h>, which mongoc.h includes through
@@ -64,8 +62,9 @@
     #define D_CFG_ENV_USING_MONGODB 1
 #endif  // D_CFG_ENV_USING_MONGODB
 
+#include "./mongodb_tests.h"  // corresponding header
 // std
-#include <stdio.h>   // printf, snprintf, fopen, fwrite, fread, remove
+#include <stdio.h>   // snprintf, fopen, fwrite, fread, remove
 #include <stdlib.h>  // getenv
 #include <string.h>  // memcmp, memset, strcmp, strlen, strncmp, strstr
 // djinterp
@@ -80,12 +79,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures, g_skipped
-//   counters: the checks run, those that failed, and the groups skipped for
-// want of what they need.
-static int g_checks   = 0;
-static int g_failures = 0;
-static int g_skipped  = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_uri, g_standalone
 //   settings: the deployment's connection string, and a standalone server's,
@@ -105,7 +103,8 @@ static char g_unreached[256] = "";
 
 /*
 d_tests_mongodb_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_mongodb_expect(
@@ -114,14 +113,30 @@ void d_tests_mongodb_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_mongodb_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_mongodb_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -151,13 +166,15 @@ void d_tests_mongodb_expect_result(
     // the result, its domain and code, and what the handle says
     if (_result != _expected)
     {
-        printf("    got %d (domain %u, code %u), expected %d: %s [%s]\n",
-               _result,
-               d_mongodb_result_domain(_result),
-               d_mongodb_result_code(_result),
-               _expected,
-               d_mongodb_error_message(_db),
-               d_mongodb_result_message(_result));
+        (void)d_test_suite_note(g_suite,
+                                "got %d (domain %u, code %u), expected %d: "
+                                "%s [%s]",
+                                _result,
+                                d_mongodb_result_domain(_result),
+                                d_mongodb_result_code(_result),
+                                _expected,
+                                d_mongodb_error_message(_db),
+                                d_mongodb_result_message(_result));
     }
 
     return;
@@ -219,7 +236,9 @@ struct dj_mongodb* d_tests_mongodb_connect(
     // a handle, or a reason
     if (d_mongodb_connect_with(&options, NULL, 0u, &db, &reason) != 0)
     {
-        printf("  cannot connect: %s\n", (reason) ? reason : "no reason");
+        (void)d_test_suite_note(g_suite,
+                                "cannot connect: %s",
+                                (reason) ? reason : "no reason");
         snprintf(g_unreached,
                  sizeof(g_unreached),
                  "%s",
@@ -320,9 +339,10 @@ bool d_tests_mongodb_contains(
     // what was there instead
     if (!found)
     {
-        printf("    %.300s\n    does not hold %s\n",
-               (_text) ? _text : "(null)",
-               _part);
+        (void)d_test_suite_note(g_suite,
+                                "%.300s\n    does not hold %s",
+                                (_text) ? _text : "(null)",
+                                _part);
     }
 
     return found;
@@ -346,9 +366,10 @@ bool d_tests_mongodb_rows_hold(
         }
     }
 
-    printf("    no row of %lu holds %s\n",
-           (unsigned long)_rows->row_count,
-           _part);
+    (void)d_test_suite_note(g_suite,
+                            "no row of %lu holds %s",
+                            (unsigned long)_rows->row_count,
+                            _part);
 
     return false;
 }
@@ -428,7 +449,9 @@ bool d_tests_mongodb_driver_at_least(
 
 /*
 d_tests_mongodb_skip
-  Says a group, or a part of one, is skipped, and why.
+  Says a group, or a part of one, is skipped, and why: the test open is
+marked skipped, so a deployment without the feature passes nothing it did
+not run.
 */
 static
 void d_tests_mongodb_skip(
@@ -436,8 +459,11 @@ void d_tests_mongodb_skip(
     const char* _why
 )
 {
-    ++g_skipped;
-    printf("  skipped: %s (%s)\n", _what, _why);
+    (void)d_test_suite_note(g_suite,
+                            "skipped: %s (%s)",
+                            _what,
+                            _why);
+    (void)d_test_suite_skip(g_suite, _why);
 
     return;
 }
@@ -469,7 +495,7 @@ void d_tests_mongodb_results(void)
     const int bson   = D_MONGODB_CLIENT_ERRORS +
                        ((D_MONGODB_DOMAIN_BSON + 1) * 65536) + 2;
 
-    printf("results\n");
+    d_tests_mongodb_start("results", "results");
 
     // what is not packed
     D_TESTS_MONGODB_CHECK(!d_mongodb_result_is_client(0));
@@ -592,7 +618,7 @@ void d_tests_mongodb_library(void)
     unsigned minor = 0u;
     unsigned patch = 0u;
 
-    printf("library\n");
+    d_tests_mongodb_start("library", "library");
 
     // the versions
     D_TESTS_MONGODB_CHECK(strcmp(d_mongodb_client_version(),
@@ -651,7 +677,7 @@ void d_tests_mongodb_server(void)
     char*                   reply = NULL;
     char                    quoted[80];
 
-    printf("server\n");
+    d_tests_mongodb_start("server", "server");
 
     // a handle to ask
     if (!db)
@@ -666,11 +692,12 @@ void d_tests_mongodb_server(void)
     const unsigned      minor  = (unsigned)((number / 100ul) % 100ul);
     const unsigned      patch  = (unsigned)(number % 100ul);
 
-    printf("  server %s (%lu), wire %d, driver %s\n",
-           d_mongodb_server_version(db),
-           number,
-           d_mongodb_server_wire_version(db),
-           d_mongodb_client_version());
+    (void)d_test_suite_note(g_suite,
+                            "server %s (%lu), wire %d, driver %s",
+                            d_mongodb_server_version(db),
+                            number,
+                            d_mongodb_server_wire_version(db),
+                            d_mongodb_client_version());
 
     // the version, as buildInfo writes it
     D_TESTS_MONGODB_OK(db, d_mongodb_command(db,
@@ -739,10 +766,11 @@ bool d_tests_mongodb_try(
     if ( (_claimed) &&
          (_result != 0) )
     {
-        printf("    %s: %d, %s\n",
-               _what,
-               _result,
-               d_mongodb_error_message(_db));
+        (void)d_test_suite_note(g_suite,
+                                "%s: %d, %s",
+                                _what,
+                                _result,
+                                d_mongodb_error_message(_db));
     }
 
     return (_result == 0);
@@ -783,7 +811,7 @@ void d_tests_mongodb_features(void)
     struct dj_mongodb_options       options = { NULL, NULL, NULL, NULL,
                                                0u,   NULL, NULL, NULL };
 
-    printf("features\n");
+    d_tests_mongodb_start("features", "features");
 
     if (!db)
     {
@@ -840,9 +868,10 @@ void d_tests_mongodb_features(void)
     // the server's word, where it disagrees with the layer's
     if ((result == 323) != claim)
     {
-        printf("    stable API: %d, %s\n",
-               result,
-               (api) ? d_mongodb_error_message(api) : "");
+        (void)d_test_suite_note(g_suite,
+                                "stable API: %d, %s",
+                                result,
+                                (api) ? d_mongodb_error_message(api) : "");
     }
 
     d_mongodb_close(api);
@@ -918,7 +947,7 @@ void d_tests_mongodb_errors(void)
                                                           sizeof(name));
     char*                   reply = NULL;
 
-    printf("errors\n");
+    d_tests_mongodb_start("errors", "errors");
 
     if (!db)
     {
@@ -1030,7 +1059,7 @@ void d_tests_mongodb_connect_fields(void)
 {
     mongoc_uri_t* const uri = mongoc_uri_new(g_uri);
 
-    printf("connect: fields\n");
+    d_tests_mongodb_start("connect", "fields");
 
     // the string, read apart
     if ( (!uri) ||
@@ -1109,7 +1138,7 @@ void d_tests_mongodb_connect_failures(void)
         { D_MONGODB_SETTING_SERVER_SELECTION_TIMEOUT, 400ul, NULL, NULL }
     };
 
-    printf("connect: failures\n");
+    d_tests_mongodb_start("connect", "failures");
 
     // arguments
     D_TESTS_MONGODB_RESULT(NULL,
@@ -1243,7 +1272,7 @@ void d_tests_mongodb_connect_settings(void)
 
     mongoc_uri_destroy(named);
 
-    printf("connect: settings\n");
+    d_tests_mongodb_start("connect", "settings");
 
     // the layer's defaults
     D_TESTS_MONGODB_OK(NULL, d_mongodb_connect_with(&options, NULL, 0u, &db,
@@ -1472,7 +1501,7 @@ void d_tests_mongodb_adopt(void)
     bson_t            reply;
     bson_error_t      error;
 
-    printf("adopt\n");
+    d_tests_mongodb_start("adopt", "adopt");
 
     // owned
     D_TESTS_MONGODB_CHECK(client != NULL);
@@ -1545,7 +1574,8 @@ void d_tests_mongodb_latest_write(void)
     char*                         given  = NULL;
     struct dj_mongodb_write_counts counts = { 0, 0, 0, 0, 0 };
 
-    printf("latest write\n");
+    (void)d_test_suite_note(g_suite,
+                            "latest write");
 
     if (!db)
     {
@@ -1648,7 +1678,7 @@ void d_tests_mongodb_commands(void)
     char*                   reply   = NULL;
     struct dj_db_rows        rows;
 
-    printf("commands\n");
+    d_tests_mongodb_start("commands", "commands");
 
     if (!db)
     {
@@ -1825,7 +1855,7 @@ void d_tests_mongodb_json(void)
                                                          sizeof(name));
     struct dj_db_rows        rows;
 
-    printf("json\n");
+    d_tests_mongodb_start("json", "json");
 
     if (!db)
     {
@@ -1898,10 +1928,11 @@ void d_tests_mongodb_json(void)
             if (d_mongodb_result_domain(result) !=
                 (unsigned)(D_MONGODB_DOMAIN_BSON + BSON_ERROR_JSON))
             {
-                printf("    %s: %d, %s\n",
-                       NOT_JSON[i],
-                       result,
-                       d_mongodb_error_message(db));
+                (void)d_test_suite_note(g_suite,
+                                        "%s: %d, %s",
+                                        NOT_JSON[i],
+                                        result,
+                                        d_mongodb_error_message(db));
             }
         }
     }
@@ -1977,7 +2008,8 @@ void d_tests_mongodb_query_rows(void)
     char                    many[16384];
     int                     used = 0;
 
-    printf("query rows\n");
+    (void)d_test_suite_note(g_suite,
+                            "query rows");
 
     if (!db)
     {
@@ -2075,7 +2107,7 @@ void d_tests_mongodb_insert(void)
     int64_t                 inserted = -1;
     struct dj_db_rows        rows;
 
-    printf("insert\n");
+    d_tests_mongodb_start("insert", "insert");
 
     if (!db)
     {
@@ -2195,7 +2227,7 @@ void d_tests_mongodb_find(void)
                                                          sizeof(name));
     struct dj_db_rows        rows;
 
-    printf("find\n");
+    d_tests_mongodb_start("find", "find");
 
     if (!db)
     {
@@ -2322,7 +2354,7 @@ void d_tests_mongodb_find_keyed(void)
     struct dj_db_rows        again;
     char*                   id   = NULL;
 
-    printf("find_keyed\n");
+    d_tests_mongodb_start("find_keyed", "find_keyed");
 
     if (!db)
     {
@@ -2478,7 +2510,7 @@ void d_tests_mongodb_update(void)
     struct dj_mongodb_write_counts counts = { 0, 0, 0, 0, 0 };
     struct dj_db_rows              rows;
 
-    printf("update\n");
+    d_tests_mongodb_start("update", "update");
 
     if (!db)
     {
@@ -2606,7 +2638,8 @@ void d_tests_mongodb_delete_count(void)
     int64_t                 count = -1;
     struct dj_db_rows        rows;
 
-    printf("delete and count\n");
+    (void)d_test_suite_note(g_suite,
+                            "delete and count");
 
     if (!db)
     {
@@ -2731,7 +2764,7 @@ void d_tests_mongodb_aggregate(void)
                                                          sizeof(name));
     struct dj_db_rows        rows;
 
-    printf("aggregate\n");
+    d_tests_mongodb_start("aggregate", "aggregate");
 
     if (!db)
     {
@@ -2825,7 +2858,8 @@ void d_tests_mongodb_find_and_modify(void)
     struct dj_db_rows        rows;
     char*                   id   = NULL;
 
-    printf("find and modify\n");
+    (void)d_test_suite_note(g_suite,
+                            "find and modify");
 
     if (!db)
     {
@@ -2979,7 +3013,7 @@ void d_tests_mongodb_bulk(void)
     struct dj_mongodb_write_counts counts = { 0, 0, 0, 0, 0 };
     char*                         reply  = NULL;
 
-    printf("bulk\n");
+    d_tests_mongodb_start("bulk", "bulk");
 
     if (!db)
     {
@@ -3274,7 +3308,7 @@ void d_tests_mongodb_cursors(void)
     int                      used   = 0;
     size_t                   seen   = 0u;
 
-    printf("cursors\n");
+    d_tests_mongodb_start("cursors", "cursors");
 
     if (!db)
     {
@@ -3517,7 +3551,8 @@ void d_tests_mongodb_change_streams(void)
     char*                           token        = NULL;
     struct dj_db_rows                rows;
 
-    printf("change streams\n");
+    (void)d_test_suite_note(g_suite,
+                            "change streams");
 
     if (!db)
     {
@@ -3666,7 +3701,7 @@ void d_tests_mongodb_databases(void)
     char*                   current = NULL;
     struct dj_db_name_list   names;
 
-    printf("databases\n");
+    d_tests_mongodb_start("databases", "databases");
 
     if (!db)
     {
@@ -3795,7 +3830,7 @@ void d_tests_mongodb_collections(void)
     char*                   info   = NULL;
     struct dj_db_name_list   names;
 
-    printf("collections\n");
+    d_tests_mongodb_start("collections", "collections");
 
     if (!db)
     {
@@ -3961,7 +3996,7 @@ void d_tests_mongodb_views(void)
     struct dj_db_name_list   names;
     struct dj_db_rows        rows;
 
-    printf("views\n");
+    d_tests_mongodb_start("views", "views");
 
     if (!db)
     {
@@ -4086,7 +4121,7 @@ void d_tests_mongodb_indexes(void)
     struct dj_db_name_list   names;
     struct dj_db_rows        rows;
 
-    printf("indexes\n");
+    d_tests_mongodb_start("indexes", "indexes");
 
     if (!db)
     {
@@ -4247,7 +4282,7 @@ void d_tests_mongodb_transactions(void)
                                                             sizeof(name));
     struct dj_mongodb*       watcher = NULL;
 
-    printf("transactions\n");
+    d_tests_mongodb_start("transactions", "transactions");
 
     if (!db)
     {
@@ -4398,7 +4433,7 @@ void d_tests_mongodb_settings(void)
     char*                   text = NULL;
     struct dj_db_rows        rows;
 
-    printf("settings\n");
+    d_tests_mongodb_start("settings", "settings");
 
     if (!db)
     {
@@ -4567,7 +4602,8 @@ void d_tests_mongodb_document_format(void)
                                                          sizeof(name));
     struct dj_db_rows        rows;
 
-    printf("document format\n");
+    (void)d_test_suite_note(g_suite,
+                            "document format");
 
     if (!db)
     {
@@ -4678,7 +4714,8 @@ void d_tests_mongodb_time_limit(void)
     const bool              counts = (d_mongodb_server_version_number(db) >=
                                       40400ul);
 
-    printf("time limit\n");
+    (void)d_test_suite_note(g_suite,
+                            "time limit");
 
     if (!db)
     {
@@ -4842,7 +4879,7 @@ void d_tests_mongodb_gridfs(void)
     size_t                  size   = 0u;
     struct dj_db_rows        rows;
 
-    printf("gridfs\n");
+    d_tests_mongodb_start("gridfs", "gridfs");
 
     if (!db)
     {
@@ -5027,7 +5064,7 @@ void d_tests_mongodb_maintenance(void)
     bool                    valid  = false;
     char*                   report = NULL;
 
-    printf("maintenance\n");
+    d_tests_mongodb_start("maintenance", "maintenance");
 
     if (!db)
     {
@@ -5124,7 +5161,7 @@ void d_tests_mongodb_standalone(void)
     struct dj_mongodb_change_stream* stream =
         (struct dj_mongodb_change_stream*)&db;
 
-    printf("standalone\n");
+    d_tests_mongodb_start("standalone", "standalone");
 
     // a standalone server, where one is named
     if (!g_standalone)
@@ -5220,19 +5257,27 @@ static void (* const d_tests_mongodb_all[])(void) =
 };
 
 /*
-main
-  Names the run, checks the deployment can be reached, runs every test and
-reports; the exit status is 0 only if every check passed. Without a
-deployment to reach, it says how to name one, and fails.
+d_tests_mongodb
+  The suite's section: names the run, checks the deployment can be reached,
+then runs every test, in the order of the headers. Without a deployment to
+reach, its one test fails and says how to name one.
 */
-int main(void)
+void d_tests_mongodb(
+    struct dj_test_suite* _suite
+)
 {
-    const size_t      count = sizeof(d_tests_mongodb_all) /
-                              sizeof(d_tests_mongodb_all[0]);
-    char              oid[25];
-    bson_oid_t        run;
+    const size_t       count = sizeof(d_tests_mongodb_all) /
+                               sizeof(d_tests_mongodb_all[0]);
+    char               oid[25];
+    bson_oid_t         run;
     struct dj_mongodb* setup = NULL;
 
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "mongodb");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/mongodb against a MongoDB deployment");
     g_uri        = d_tests_mongodb_setting("DJINTERP_TEST_MONGODB_URI", g_uri);
     g_standalone = d_tests_mongodb_setting(
                        "DJINTERP_TEST_MONGODB_STANDALONE_URI",
@@ -5241,20 +5286,27 @@ int main(void)
 
     // a deployment to test against: none named, or the one named, which
     // cannot be connected to, and why
-    if (!setup)
+    (void)d_test_suite_test(_suite, "a deployment to test against");
+
+    if (!D_TEST_CHECK(_suite, setup != NULL))
     {
         if (getenv("DJINTERP_TEST_MONGODB_URI"))
         {
-            printf("no deployment: cannot connect to "
-                   "DJINTERP_TEST_MONGODB_URI's: %s\n",
-                   g_unreached);
+            (void)d_test_suite_note(_suite,
+                                    "no deployment: cannot connect to "
+                                    "DJINTERP_TEST_MONGODB_URI's: %s",
+                                    g_unreached);
         }
         else
         {
-            printf("no deployment: set DJINTERP_TEST_MONGODB_URI\n");
+            (void)d_test_suite_note(_suite,
+                                    "no deployment: set "
+                                    "DJINTERP_TEST_MONGODB_URI");
         }
 
-        return 1;
+        g_suite = NULL;
+
+        return;
     }
 
     d_mongodb_close(setup);
@@ -5262,17 +5314,12 @@ int main(void)
     bson_oid_to_string(&run, oid);
     snprintf(g_run, sizeof(g_run), "dtm%s", oid);
 
-    // each group, its report out before the next begins
     for (size_t i = 0u; i < count; ++i)
     {
         d_tests_mongodb_all[i]();
-        fflush(stdout);
     }
 
-    printf("%d checks, %d failed, %d skipped\n",
-           g_checks,
-           g_failures,
-           g_skipped);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 t_mariadb_stubs.c
+* djinterp [test]                                          mariadb_stubs_tests.c
 *
 *   The MariaDB layer built without a client library (D_CFG_MARIADB 0): every
 * function answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or
@@ -7,20 +7,22 @@
 * failure, and leaves every other output alone. Building and linking it at
 * all proves the stubs need neither mysql.h nor a library.
 *
-*   Build (from the repo root), at any language level from C99, with no client
-* -- or let scripts/ci/check_db_mariadb.sh do it, given `stubs`:
-*     cc -std=c99 -Wall -Wextra -Werror -Iinc -DD_CFG_MARIADB=0              \
-*        src/djinterp/c/db/db_*.c src/djinterp/c/db/mariadb/mariadb_*.c       \
-*        tests/unintegrated/c/db/mariadb/t_mariadb_stubs.c -o t_mariadb_stubs
+*   Build: CMake's c_mariadb_stubs_tests, or scripts/ci/check_db_mariadb.sh,
+* given `stubs`. By hand, from the repo root, at any language level from C99:
+* this file and its runner, mariadb_stubs_tests_runner.c in the CMake leaf
+* (build/cmake/config/testing/djinterp/c/db/mariadb/), with DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), db_*.c and the layer's sources,
+* and -Iinc -Itests/djinterp/c/db/mariadb -DD_CFG_MARIADB=0, linking nothing
+* else.
 *
 *
-* path:      /tests/unintegrated/c/db/mariadb/t_mariadb_stubs.c
+* path:      /tests/djinterp/c/db/mariadb/mariadb_stubs_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
+#include "./mariadb_stubs_tests.h"  // corresponding header
 // std
-#include <stdio.h>   // printf
 #include <string.h>  // memset, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb.h"  // unit under test
@@ -32,10 +34,11 @@
 // HARNESS
 //==============================================================================
 
-// g_checks, g_failures
-//   counters: the checks run, and those that failed.
-static int g_checks   = 0;
-static int g_failures = 0;
+// g_suite, g_block
+//   state: the suite every check and note goes to, set by the entry point,
+// and the block open last, so the tests of one header share its block.
+static struct dj_test_suite* g_suite = NULL;
+static const char*           g_block = NULL;
 
 // g_marker
 //   object: whose address stands in for a handle, which a build without a
@@ -44,7 +47,8 @@ static int g_marker = 0;
 
 /*
 d_tests_mariadb_stubs_expect
-  Counts one check, and prints it when it fails.
+  Records one check, with what was checked and where, against the test
+open last.
 */
 static
 void d_tests_mariadb_stubs_expect(
@@ -53,14 +57,30 @@ void d_tests_mariadb_stubs_expect(
     int         _line
 )
 {
-    ++g_checks;
+    (void)d_test_suite_check(g_suite, _ok, _what, __FILE__, _line);
 
-    // report a failure with what was being checked, and where
-    if (!_ok)
+    return;
+}
+
+/*
+d_tests_mariadb_stubs_start
+  Opens a test, and the block of the header it tests when that changes.
+*/
+static
+void d_tests_mariadb_stubs_start(
+    const char* _block,
+    const char* _test
+)
+{
+    // a test of another header opens that header's block
+    if ( (!g_block) ||
+         (strcmp(g_block, _block) != 0) )
     {
-        ++g_failures;
-        printf("  FAIL line %d: %s\n", _line, _what);
+        (void)d_test_suite_block(g_suite, _block);
+        g_block = _block;
     }
+
+    (void)d_test_suite_test(g_suite, _test);
 
     return;
 }
@@ -98,7 +118,7 @@ void d_tests_mariadb_stubs_common(void)
 {
     struct dj_mariadb* const db = (struct dj_mariadb*)(void*)&g_marker;
 
-    printf("mariadb_common\n");
+    d_tests_mariadb_stubs_start("mariadb_common", "mariadb_common");
 
     D_TESTS_MARIADB_STUBS_CHECK(strcmp(d_mariadb_client_version(), "") == 0);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_client_version_number() == 0ul);
@@ -161,7 +181,7 @@ void d_tests_mariadb_stubs_connection(void)
     char*                          status  = (char*)(void*)&g_marker;
     unsigned int                   number  = 0u;
 
-    printf("mariadb_connection\n");
+    d_tests_mariadb_stubs_start("mariadb_connection", "mariadb_connection");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_connect(&options, &made));
     D_TESTS_MARIADB_STUBS_CHECK(made == NULL);
@@ -241,7 +261,9 @@ void d_tests_mariadb_stubs_nonblocking(void)
         { D_MARIADB_SETTING_CONNECT_TIMEOUT, 2ul, NULL, NULL }
     };
 
-    printf("mariadb_connection, _query, _statement: without blocking\n");
+    (void)d_test_suite_note(g_suite,
+                            "mariadb_connection, _query, _statement: without "
+                            "blocking");
 
     memset(&pending, 0x5a, sizeof(pending));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_connect_start(NULL,
@@ -411,7 +433,7 @@ void d_tests_mariadb_stubs_query(void)
     char*                   text   = (char*)(void*)&g_marker;
     struct dj_db_rows        rows   = { 7u, 7u, NULL, NULL };
 
-    printf("mariadb_query\n");
+    d_tests_mariadb_stubs_start("mariadb_query", "mariadb_query");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_exec(db, "SELECT 1"));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_execf(db, "SELECT %d", 1));
@@ -471,7 +493,7 @@ void d_tests_mariadb_stubs_statement(void)
     int64_t                     changes   = 7;
     struct dj_db_rows            rows      = { 7u, 7u, NULL, NULL };
 
-    printf("mariadb_statement\n");
+    d_tests_mariadb_stubs_start("mariadb_statement", "mariadb_statement");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_prepare(db, &statement, "SELECT 1"));
@@ -529,7 +551,7 @@ void d_tests_mariadb_stubs_database(void)
     char*                   current = (char*)(void*)&g_marker;
     bool                    exists  = true;
 
-    printf("mariadb_database\n");
+    d_tests_mariadb_stubs_start("mariadb_database", "mariadb_database");
 
     D_TESTS_MARIADB_STUBS_CHECK(!d_mariadb_has_database(db, "mysql"));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
@@ -566,7 +588,7 @@ void d_tests_mariadb_stubs_tables(void)
     int64_t                  count   = 7;
     bool                     exists  = true;
 
-    printf("mariadb_schema: tables and columns\n");
+    d_tests_mariadb_stubs_start("mariadb_schema", "tables and columns");
 
     D_TESTS_MARIADB_STUBS_CHECK(!d_mariadb_has_table(db, NULL, "t"));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
@@ -622,7 +644,8 @@ void d_tests_mariadb_stubs_objects(void)
     struct dj_db_name_list   names  = { 3u, NULL };
     bool                    exists = true;
 
-    printf("mariadb_schema: indexes, views and triggers\n");
+    d_tests_mariadb_stubs_start("mariadb_schema",
+                                "indexes, views and triggers");
 
     D_TESTS_MARIADB_STUBS_CHECK(!d_mariadb_has_index(db, NULL, "i", "t"));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
@@ -674,7 +697,7 @@ void d_tests_mariadb_stubs_transaction(void)
 {
     struct dj_mariadb* const db = (struct dj_mariadb*)(void*)&g_marker;
 
-    printf("mariadb_transaction\n");
+    d_tests_mariadb_stubs_start("mariadb_transaction", "mariadb_transaction");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_begin_transaction(db, D_MARIADB_TRANSACTION_READ_WRITE));
@@ -707,7 +730,7 @@ void d_tests_mariadb_stubs_settings(void)
     char*                    text    = (char*)(void*)&g_marker;
     struct dj_db_name_list    entries = { 7u, NULL };
 
-    printf("mariadb_settings\n");
+    d_tests_mariadb_stubs_start("mariadb_settings", "mariadb_settings");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_set_autocommit(db, false));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_get_autocommit(db, &enabled));
@@ -756,7 +779,7 @@ void d_tests_mariadb_stubs_maintenance(void)
     bool                    ok       = true;
     uint64_t                checksum = 7u;
 
-    printf("mariadb_maintenance\n");
+    d_tests_mariadb_stubs_start("mariadb_maintenance", "mariadb_maintenance");
 
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_analyze_table(db, NULL, "t"));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_optimize_table(db, NULL, "t"));
@@ -771,12 +794,21 @@ void d_tests_mariadb_stubs_maintenance(void)
 }
 
 /*
-main
-  Runs every test and reports; the exit status is 0 only if every check
-passed.
+d_tests_mariadb_stubs
+  The suite's section: every test of the layer built without a client, in
+the order of the headers.
 */
-int main(void)
+void d_tests_mariadb_stubs(
+    struct dj_test_suite* _suite
+)
 {
+    g_suite = _suite;
+    g_block = NULL;
+
+    (void)d_test_suite_module(_suite, "mariadb_stubs");
+    (void)d_test_suite_describe(_suite,
+                                "c/db/mariadb built without a client");
+
     d_tests_mariadb_stubs_common();
     d_tests_mariadb_stubs_connection();
     d_tests_mariadb_stubs_nonblocking();
@@ -789,9 +821,7 @@ int main(void)
     d_tests_mariadb_stubs_settings();
     d_tests_mariadb_stubs_maintenance();
 
-    printf("%d checks, %d failed (built without a client)\n",
-           g_checks,
-           g_failures);
+    g_suite = NULL;
 
-    return (g_failures == 0) ? 0 : 1;
+    return;
 }

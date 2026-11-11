@@ -6,7 +6,7 @@
 # its harnesses through every client given, with every compiler, at every
 # language level, against the server the environment names, and fails if any
 # build or run fails:
-#     t_mariadb.c         the C harness, at each C standard, with
+#     mariadb_tests.c     the C suite, at each C standard, with
 #                         -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_mariadb_cpp.cpp   the C++ consumer, at each C++ standard, ISO strict
 #                         C++98 included, linked against the layer built as C
@@ -26,18 +26,27 @@
 # found by mysql_config or pkg-config; `custom` for one the environment
 # describes (CLIENT_CFLAGS, CLIENT_LIBS, CLIENT_LIBRARY_PATH); or `stubs`,
 # which builds the layer without a client (D_CFG_MARIADB=0), runs
-# t_mariadb_stubs.c in place of t_mariadb.c, and needs no server. Each
-# harness asks the server its flavor and version for every check whose
-# answer depends on them, so one harness covers MariaDB from 10.3 and MySQL
+# mariadb_stubs_tests.c in place of mariadb_tests.c, and needs no server.
+# Each test asks the server its flavor and version for every check whose
+# answer depends on them, so one suite covers MariaDB from 10.3 and MySQL
 # from 5.7.
+# The C suites are DTest's: tests/djinterp/c/db/mariadb/mariadb_tests.c and
+# mariadb_stubs_tests.c, each built with its runner, in the CMake leaf
+# (build/cmake/config/testing/djinterp/c/db/mariadb/), and DTest's C face, and
+# run with --failures --no-table, so that a failure's log ends with what
+# failed.
+#   Over a client, the white-box suite of checked sizes,
+# mariadb_sizes_tests.c, is built and run as well, at each C standard: it
+# includes mariadb_query.c, which its build leaves out of the layer's sources.
 #   Every compile defines _XOPEN_SOURCE=700, as the ladders do.
 #
 #   usage:   scripts/ci/check_db_mariadb.sh [mariadb | mysql | custom | stubs] ...
 #            (no argument: mariadb)
 #   env:     DJINTERP_TEST_MARIADB_HOST, _PORT, _USER, _PASSWORD, _SOCKET
-#                          the server, as t_mariadb.c reads them; a client run
-#                          sets DJINTERP_TEST_MARIADB_REQUIRED=1, so that the
-#                          C++ consumer and the face fail without one too
+#                          the server, as mariadb_tests.c reads them; a
+#                          client run sets DJINTERP_TEST_MARIADB_REQUIRED=1,
+#                          so that the C++ consumer and the face fail
+#                          without one too
 #            CLIENT_CFLAGS, CLIENT_LIBS
 #                          the `custom` client's compile and link flags
 #            CLIENT_LIBRARY_PATH
@@ -63,7 +72,7 @@
 # path:      /scripts/ci/check_db_mariadb.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-#                                                            revised: 2026.10.26
+#                                                            revised: 2026.11.10
 #*******************************************************************************
 set -u
 
@@ -91,6 +100,15 @@ core=(src/djinterp/cpp/db/database.cpp
       src/djinterp/cpp/db/mysql/mysql_common.cpp
       src/djinterp/cpp/db/mariadb/mariadb.cpp
       src/djinterp/cpp/db/mysql/mysql.cpp)
+# the layer but mariadb_query.c, which the sizes suite includes
+rest=()
+for source in "${layer[@]}"; do
+    [[ "$source" == */mariadb_query.c ]] || rest+=("$source")
+done
+suites=tests/djinterp/c/db/mariadb
+leaf=build/cmake/config/testing/djinterp/c/db/mariadb
+dtest=src/djinterp/c/modules/test/test_suite.c
+sizes=("$suites/mariadb_sizes_tests.c" "$leaf/mariadb_sizes_tests_runner.c")
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
 passed=0
 failed=0
@@ -257,14 +275,24 @@ check_misuse() {
     misuse_case "$1" "$2" 4 2017 "nodiscard" -Werror
 }
 
-# run_harness <binary> <log>
-#   runs a harness through the runner, if one is set, with the client's
-# shared library findable.
+# suite_counts <log>
+#   a DTest report's counts, for a PASS line: "<n> checks (<m> failed)".
+suite_counts() {
+    sed -n 's/^  checks: *\([0-9]*\) (\(.*\))$/\1 checks (\2)/p' "$1" |
+        tail -n 1
+}
+
+# run_harness <binary> <log> [<argument> ...]
+#   runs a harness, or a suite, through the runner, if one is set, with the
+# client's shared library findable.
 run_harness() {
+    local binary="$1" log="$2"
     local ld="${library_path}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
     local dyld="${library_path}${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
 
-    LD_LIBRARY_PATH="$ld" DYLD_LIBRARY_PATH="$dyld" $runner "$1" >> "$2" 2>&1
+    shift 2
+    LD_LIBRARY_PATH="$ld" DYLD_LIBRARY_PATH="$dyld" $runner "$binary" "$@" \
+        >> "$log" 2>&1
 }
 
 # ${flags[@]+"${flags[@]}"} below expands an empty array to nothing under
@@ -283,11 +311,12 @@ for client in "$@"; do
     fi
 
     flags=()
-    harness=tests/unintegrated/c/db/mariadb/t_mariadb.c
+    suite=("$suites/mariadb_tests.c" "$leaf/mariadb_tests_runner.c")
     library_path=""
     if [[ "$client" == stubs ]]; then
         flags=(-DD_CFG_MARIADB=0)
-        harness=tests/unintegrated/c/db/mariadb/t_mariadb_stubs.c
+        suite=("$suites/mariadb_stubs_tests.c"
+               "$leaf/mariadb_stubs_tests_runner.c")
     else
         # the client's own words for its headers and library
         read -r -a flags <<< "$cflags"
@@ -302,17 +331,34 @@ for client in "$@"; do
             exit 2
         fi
 
-        # the C harness, at each standard
+        # the C suite, at each standard
         for std in $c_standards; do
             name="client=$client cc=$cc std=$std"
-            binary="$tmp/t_mariadb-$client-$cc-$std$exe"
-            log="$tmp/t_mariadb-$client-$cc-$std.log"
+            binary="$tmp/mariadb_tests-$client-$cc-$std$exe"
+            log="$tmp/mariadb_tests-$client-$cc-$std.log"
             if "$cc" $(std_flags "$std") "${warnings[@]}" $extra \
-                    -D_XOPEN_SOURCE=700 -Iinc ${flags[@]+"${flags[@]}"} \
-                    "${layer[@]}" "$harness" $libs -lm -o "$binary" \
-                    > "$log" 2>&1 &&
-               run_harness "$binary" "$log"; then
-                report PASS "$name: $(tail -n 1 "$log")"
+                    -D_XOPEN_SOURCE=700 -Iinc -I"$suites" \
+                    ${flags[@]+"${flags[@]}"} "${layer[@]}" "${suite[@]}" \
+                    "$dtest" $libs -lm -o "$binary" > "$log" 2>&1 &&
+               run_harness "$binary" "$log" --failures --no-table; then
+                report PASS "$name: $(suite_counts "$log")"
+            else
+                report FAIL "$name" "$log"
+            fi
+        done
+
+        # the checked sizes, over a client, at each standard
+        [[ "$client" == stubs ]] && continue
+        for std in $c_standards; do
+            name="client=$client cc=$cc std=$std sizes"
+            binary="$tmp/mariadb_sizes_tests-$client-$cc-$std$exe"
+            log="$tmp/mariadb_sizes_tests-$client-$cc-$std.log"
+            if "$cc" $(std_flags "$std") "${warnings[@]}" $extra \
+                    -D_XOPEN_SOURCE=700 -Iinc -I"$suites" \
+                    ${flags[@]+"${flags[@]}"} "${rest[@]}" "${sizes[@]}" \
+                    "$dtest" $libs -lm -o "$binary" > "$log" 2>&1 &&
+               run_harness "$binary" "$log" --failures --no-table; then
+                report PASS "$name: $(suite_counts "$log")"
             else
                 report FAIL "$name" "$log"
             fi

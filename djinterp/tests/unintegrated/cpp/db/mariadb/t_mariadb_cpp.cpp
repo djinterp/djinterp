@@ -10,7 +10,7 @@
 * extern "C" linkage meets the C objects the sources compile to.
 *   The checks that need no server always run. A session against one runs
 * when the harness's settings reach one (DJINTERP_TEST_MARIADB_HOST, _PORT,
-* _USER, _PASSWORD, _SOCKET, as for t_mariadb.c); DJINTERP_TEST_MARIADB_
+* _USER, _PASSWORD, _SOCKET, as for mariadb_tests.c); DJINTERP_TEST_MARIADB_
 * REQUIRED=1 makes a server that cannot be reached a failure. Below the 64-bit
 * floor the layer's headers compile to nothing, and so does this test. Over a
 * layer built without a client (D_CFG_MARIADB 0), it checks that no
@@ -23,7 +23,7 @@
 * path:      /tests/unintegrated/cpp/db/mariadb/t_mariadb_cpp.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <cstddef>  // std::size_t

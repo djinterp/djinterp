@@ -6,7 +6,7 @@
 # harnesses through every driver given, with every compiler, at every
 # language level, against the deployment the environment names, and fails
 # if any build or run fails:
-#     t_mongodb.c          the C harness, at each C standard, with
+#     mongodb_tests.c      the C suite, at each C standard, with
 #                          -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_mongodb_cpp.cpp    the C++ consumer, at each C++ standard, ISO strict
 #                          C++98 included, linked against the layer built as C
@@ -24,11 +24,16 @@
 # found as mongoc2; `custom` for one the environment describes
 # (CLIENT_CFLAGS, CLIENT_LIBS, CLIENT_LIBRARY_PATH), a driver built from
 # source, say; or `stubs`, which builds the layer without the driver
-# (D_CFG_MONGODB=0), runs t_mongodb_stubs.c in place of t_mongodb.c, and
-# needs no deployment. Over a driver the layer guards its log handler with
-# dmutex.c, which those builds compile, and link with the platform's
-# threads. Each harness asks the server its version for every check whose
-# answer depends on it, so one harness covers MongoDB from 4.2.
+# (D_CFG_MONGODB=0), runs mongodb_stubs_tests.c in place of mongodb_tests.c,
+# and needs no deployment. Over a driver the layer guards its log handler
+# with dmutex.c, which those builds compile, and link with the platform's
+# threads. Each test asks the server its version for every check whose
+# answer depends on it, so one suite covers MongoDB from 4.2.
+# The C suites are DTest's: tests/djinterp/c/db/mongodb/mongodb_tests.c and
+# mongodb_stubs_tests.c, each built with its runner, in the CMake leaf
+# (build/cmake/config/testing/djinterp/c/db/mongodb/), and DTest's C face, and
+# run with --failures --no-table, so that a failure's log ends with what
+# failed.
 #   Every compile defines _XOPEN_SOURCE=700, as the ladders do.
 #
 #   usage:   scripts/ci/check_db_mongodb.sh [libmongoc | mongoc2 | custom | stubs] ...
@@ -38,7 +43,7 @@
 #                          string, which carries the password: give it here
 #                          only, never in a file; a client run sets
 #                          DJINTERP_TEST_MONGODB_REQUIRED=1, so that every
-#                          harness fails without one
+#                          harness fails without one, as the C suite does
 #            DJINTERP_TEST_MONGODB_STANDALONE_URI
 #                          a standalone server, for the checks that need one
 #                                                         (default: none)
@@ -67,7 +72,7 @@
 # path:      /scripts/ci/check_db_mongodb.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-#                                                            revised: 2026.10.28
+#                                                            revised: 2026.11.10
 #*******************************************************************************
 set -u
 
@@ -92,6 +97,9 @@ fi
 core=(src/djinterp/cpp/db/database.cpp
       src/djinterp/cpp/db/database_statement.cpp
       src/djinterp/cpp/db/mongodb/mongodb.cpp)
+suites=tests/djinterp/c/db/mongodb
+leaf=build/cmake/config/testing/djinterp/c/db/mongodb
+dtest=src/djinterp/c/modules/test/test_suite.c
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
 passed=0
 failed=0
@@ -254,14 +262,24 @@ check_misuse() {
     misuse_case "$1" "$2" 6 2020 "face::savepoint guards a face"
 }
 
-# run_harness <binary> <log>
-#   runs a harness through the runner, if one is set, with the client's
-# shared library findable.
+# suite_counts <log>
+#   a DTest report's counts, for a PASS line: "<n> checks (<m> failed)".
+suite_counts() {
+    sed -n 's/^  checks: *\([0-9]*\) (\(.*\))$/\1 checks (\2)/p' "$1" |
+        tail -n 1
+}
+
+# run_harness <binary> <log> [<argument> ...]
+#   runs a harness, or a suite, through the runner, if one is set, with the
+# client's shared library findable.
 run_harness() {
+    local binary="$1" log="$2"
     local ld="${library_path}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
     local dyld="${library_path}${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
 
-    LD_LIBRARY_PATH="$ld" DYLD_LIBRARY_PATH="$dyld" $runner "$1" >> "$2" 2>&1
+    shift 2
+    LD_LIBRARY_PATH="$ld" DYLD_LIBRARY_PATH="$dyld" $runner "$binary" "$@" \
+        >> "$log" 2>&1
 }
 
 # build_layer <c compiler> <directory>
@@ -312,11 +330,12 @@ for client in "$@"; do
 
     flags=()
     layer=(src/djinterp/c/db/db_*.c src/djinterp/c/db/mongodb/mongodb_*.c)
-    harness=tests/unintegrated/c/db/mongodb/t_mongodb.c
+    suite=("$suites/mongodb_tests.c" "$leaf/mongodb_tests_runner.c")
     library_path=""
     if [[ "$client" == stubs ]]; then
         flags=(-DD_CFG_MONGODB=0)
-        harness=tests/unintegrated/c/db/mongodb/t_mongodb_stubs.c
+        suite=("$suites/mongodb_stubs_tests.c"
+               "$leaf/mongodb_stubs_tests_runner.c")
     else
         # the client's own words for its headers and library, and the lock
         read -r -a flags <<< "$cflags"
@@ -333,17 +352,17 @@ for client in "$@"; do
             exit 2
         fi
 
-        # the C harness, at each standard
+        # the C suite, at each standard
         for std in $c_standards; do
             name="client=$client cc=$cc std=$std"
-            binary="$tmp/t_mongodb-$client-$cc-$std$exe"
-            log="$tmp/t_mongodb-$client-$cc-$std.log"
+            binary="$tmp/mongodb_tests-$client-$cc-$std$exe"
+            log="$tmp/mongodb_tests-$client-$cc-$std.log"
             if "$cc" $(std_flags "$std") "${warnings[@]}" $extra \
-                    -D_XOPEN_SOURCE=700 -Iinc ${flags[@]+"${flags[@]}"} \
-                    "${layer[@]}" "$harness" $libs -lm -o "$binary" \
-                    > "$log" 2>&1 &&
-               run_harness "$binary" "$log"; then
-                report PASS "$name: $(tail -n 1 "$log")"
+                    -D_XOPEN_SOURCE=700 -Iinc -I"$suites" \
+                    ${flags[@]+"${flags[@]}"} "${layer[@]}" "${suite[@]}" \
+                    "$dtest" $libs -lm -o "$binary" > "$log" 2>&1 &&
+               run_harness "$binary" "$log" --failures --no-table; then
+                report PASS "$name: $(suite_counts "$log")"
             else
                 report FAIL "$name" "$log"
             fi
