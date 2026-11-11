@@ -1,7 +1,7 @@
 # The djinterp command-line kit
 
-> **Where this file is, what its paths mean, and what has changed (lane G,
-> 2026-11-09).** This is the kit's README as it stood before the
+> **Where this file is, what its paths mean, and what has changed
+> (2026-11-09).** This is the kit's README as it stood before the
 > restructure of 2026-11-03, which deleted it with `parse/cli/` (afb60e61);
 > it is restored from that commit's parent, here, beside the kit's
 > `GRAMMAR.md` (ruling rs c). It is kept as written but for what the kit's

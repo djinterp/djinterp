@@ -17,11 +17,11 @@
 * path:      /inc/djinterp/tools/ui/ui.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.18
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
-#ifndef DJINTERP_TOOLS_UI_UI_HPP
-#define DJINTERP_TOOLS_UI_UI_HPP 1
+#ifndef DJINTERP_TOOLS_UI_HPP
+#define DJINTERP_TOOLS_UI_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
 // rule 5); its module's floor is C++11, but math/geometry/geometry_common.hpp,
@@ -31,21 +31,21 @@
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp [ui]
-#include "./types.hpp"
-#include "./colormap.hpp"
-#include "./state.hpp"
-#include "./config.hpp"
-#include "./scene.hpp"
-#include "./lod.hpp"
-#include "./coordinate_mapper.hpp"
-#include "./lens.hpp"
-#include "./lenses/slice.hpp"
-#include "./lenses/heatmap.hpp"
-#include "./draw.hpp"
-#include "./visualization.hpp"
-#include "./sources/visit_source.hpp"
-#include "./export/svg.hpp"
+#include "./types.hpp"                 // scalar, colours, the shared types
+#include "./colormap.hpp"              // colour ramps over [0, 1]
+#include "./state.hpp"                 // the state space and its sources
+#include "./config.hpp"                // a visualization's configuration
+#include "./scene.hpp"                 // the scene a lens produces
+#include "./lod.hpp"                   // level of detail, focus and context
+#include "./coordinate_mapper.hpp"     // coordinate systems at run time
+#include "./lens.hpp"                  // the lens contract
+#include "./lenses/slice.hpp"          // the slice lens
+#include "./lenses/heatmap.hpp"        // the heatmap lens
+#include "./draw.hpp"                  // project_scene, layout_field
+#include "./visualization.hpp"         // the top-level handle
+#include "./sources/visit_source.hpp"  // a source that counts visits
+#include "./export/svg.hpp"            // a draw list as SVG
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_TOOLS_UI_UI_HPP
+#endif  // DJINTERP_TOOLS_UI_HPP

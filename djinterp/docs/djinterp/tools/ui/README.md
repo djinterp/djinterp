@@ -1,6 +1,6 @@
 # djinterp::ui — multidimensional visualization framework
 
-> **Where this file is, and what its paths mean (lane G, 2026-11-09).**
+> **Where this file is, and what its paths mean (2026-11-09).**
 > This is `djinterp::ui`'s README as it stood before the restructure of
 > 2026-11-03, which deleted it from `inc/djinterp/ui/` (afb60e61); it is
 > restored from that commit's parent to `docs/djinterp/tools/ui/` (ruling

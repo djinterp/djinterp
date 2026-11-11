@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/tools/cli/cli_program.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -71,8 +71,8 @@ TABLE OF CONTENTS
     6.  Internals
 */
 
-#ifndef DJINTERP_TOOLS_CLI_CLI_PROGRAM_HPP
-#define DJINTERP_TOOLS_CLI_CLI_PROGRAM_HPP 1
+#ifndef DJINTERP_TOOLS_CLI_PROGRAM_HPP
+#define DJINTERP_TOOLS_CLI_PROGRAM_HPP 1
 
 // std
 #include <cstddef>    // std::size_t
@@ -1017,4 +1017,4 @@ int internal::work_function(
 }  // namespace djinterp
 
 
-#endif  // DJINTERP_TOOLS_CLI_CLI_PROGRAM_HPP
+#endif  // DJINTERP_TOOLS_CLI_PROGRAM_HPP

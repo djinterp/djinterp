@@ -7,17 +7,18 @@
 * stopped at the first failure -- so that joining its legs to expression core
 * v2 changes only what the design says it changes (docs/djinterp/interp/
 * DESIGN.md, sections 3 and 4). The splitting of `-xvf` into three flags,
-* which G-D2 takes out, is held here as the spine does it today.
+* which decision 2 takes out, is held here as the spine does it today.
 *   A suite is a table of sections, each a function that checks one thing
 * and says which check failed, the runner a loop over the table that prints
-* each verdict and the totals. It is a plain main until DTest 2.0 has a
-* leaf for it; below C++11, where the spine is empty, it has no sections.
+* each verdict and the totals. It is a plain main, built by its leaf, until
+* it moves onto DTest's C face with the interpreter's skeleton; below C++11,
+* where the spine is empty, it has no sections.
 *
 *
 * path:      /tests/djinterp/cpp/modules/interp/spine_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.09
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf

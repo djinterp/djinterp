@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/tools/cli/cli_plugin.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -37,8 +37,8 @@ TABLE OF CONTENTS
     2.  DPluginModule
 */
 
-#ifndef DJINTERP_TOOLS_CLI_CLI_PLUGIN_HPP
-#define DJINTERP_TOOLS_CLI_CLI_PLUGIN_HPP 1
+#ifndef DJINTERP_TOOLS_CLI_PLUGIN_HPP
+#define DJINTERP_TOOLS_CLI_PLUGIN_HPP 1
 
 // std
 #include <string>  // std::string
@@ -321,4 +321,4 @@ const ::dj_cli_module& DPluginModule::get() const D_NOEXCEPT
 }  // namespace djinterp
 
 
-#endif  // DJINTERP_TOOLS_CLI_CLI_PLUGIN_HPP
+#endif  // DJINTERP_TOOLS_CLI_PLUGIN_HPP

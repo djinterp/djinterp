@@ -1,6 +1,6 @@
 # Visualization framework — roadmap
 
-> **Where this file is (lane G, 2026-11-09).** This is `djinterp::ui`'s
+> **Where this file is (2026-11-09).** This is `djinterp::ui`'s
 > roadmap as it stood before the restructure of 2026-11-03, which deleted it
 > from `inc/djinterp/ui/` (afb60e61); it is restored from that commit's
 > parent beside the framework's README (ruling rs c), kept as written. The

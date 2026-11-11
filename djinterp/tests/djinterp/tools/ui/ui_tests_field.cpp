@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/tools/ui/ui_tests_field.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.23
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "ui_tests.hpp"  // corresponding header
 // std
@@ -30,7 +30,7 @@ ui::scene wide_scene()
 
     for (int i = 0; i < 40; ++i)
     {
-        char label[8];
+        char label[16];  // room for any int, which the compiler checks
         std::snprintf(label, sizeof(label), "%03d", i);
         positions.push_back(label);
     }
@@ -78,9 +78,9 @@ bool tests_field_picking()
         return false;
     }
 
-    for (std::uint32_t row = 0; row < 3; ++row)
+    for (re_std::uint32_t row = 0; row < 3; ++row)
     {
-        for (std::uint32_t col = 0; col < 5; ++col)
+        for (re_std::uint32_t col = 0; col < 5; ++col)
         {
             ui::field_cell cell;
             cell.col = col;

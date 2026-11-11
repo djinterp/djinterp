@@ -275,6 +275,164 @@ NS_INTERNAL
         return;
     }
 
+    // cell_color
+    //   helper: the colour cell _index draws in. Selection (persistent)
+    // outranks hover and a lens's highlight (transient), and both outrank the
+    // cell's own colour. An unmarked cell fades with its distance behind the
+    // focal point, over _config.gridlines.fade_distance world units (0
+    // disables the fade); _eye is the camera's eye, computed once per scene.
+    D_NODISCARD inline rgba cell_color(
+        const render_cell&    _cell,
+        std::size_t           _index,
+        const vec<3, scalar>& _eye,
+        const camera<scalar>& _camera,
+        const config&         _config,
+        std::size_t           _hover,
+        std::size_t           _selected
+    )
+    {
+        const scalar fade_span = _config.gridlines.fade_distance;
+        rgba         color     = _cell.color;
+
+        if (_cell.highlighted || (_index == _hover))
+        {
+            color = _config.interaction.highlight_color;
+        }
+
+        if (_index == _selected)
+        {
+            color = _config.interaction.selection_color;
+        }
+
+        bool marked = (_cell.highlighted  ||
+                       (_index == _hover) ||
+                       (_index == _selected));
+
+        if ((fade_span > static_cast<scalar>(0)) && !marked)
+        {
+            scalar dist = (_cell.position - _eye).length();
+
+            scalar fade = static_cast<scalar>(1) -
+                          (dist - _camera.m_distance) / fade_span;
+
+            fade = (fade < static_cast<scalar>(0)) ? static_cast<scalar>(0)
+                 : (fade > static_cast<scalar>(1)) ? static_cast<scalar>(1)
+                 :                                   fade;
+
+            color.a = static_cast<channel_t>(color.a * fade);
+        }
+
+        return color;
+    }
+
+    // append_cell
+    //   helper: appends one cell, as a wireframe cube in _color: its twelve
+    // edges to _segments, and its six translucent faces to _quads when
+    // _config.shape.filled. Each primitive carries its own depth, for the
+    // sort project_scene does over every cell.
+    inline
+    void append_cell(
+        std::vector<draw_segment>& _segments,
+        std::vector<draw_quad>&    _quads,
+        const render_cell&         _cell,
+        rgba                       _color,
+        const camera<scalar>&      _camera,
+        const viewport<scalar>&    _viewport,
+        const config&              _config
+    )
+    {
+        const scalar half = _cell.size * static_cast<scalar>(0.5);
+
+        // the eight projected corners (and their depths) and the cell's centre
+        const render3d::projected_box<scalar> box =
+            render3d::project_box(_camera,
+                                  _viewport,
+                                  _cell.position,
+                                  vec<3, scalar>(half, half, half));
+
+        vec<2, scalar> corner[8];
+
+        for (std::size_t i = 0; i < 8; ++i)
+        {
+            corner[i] = vec<2, scalar>(box.m_corners[i][0],
+                                       box.m_corners[i][1]);
+        }
+
+        if (_config.shape.filled)
+        {
+            for (std::size_t f = 0; f < render3d::box_faces.size(); ++f)
+            {
+                const auto& face = render3d::box_faces[f];
+
+                draw_quad q;
+                q.a     = corner[face[0]];
+                q.b     = corner[face[1]];
+                q.c     = corner[face[2]];
+                q.d     = corner[face[3]];
+                q.color = _color;
+                q.depth = render3d::face_depth(box, f);
+                _quads.push_back(q);
+            }
+        }
+
+        for (const auto& edge : render3d::box_edges)
+        {
+            draw_segment seg;
+            seg.a         = corner[edge[0]];
+            seg.b         = corner[edge[1]];
+            seg.color     = _color;
+            seg.thickness = _config.gridlines.thickness;
+            seg.depth     = box.m_center[2];
+            _segments.push_back(seg);
+        }
+
+        return;
+    }
+
+    // append_path
+    //   helper: appends the scene's path to _out, one segment per pair of
+    // nodes in their averaged colour, in front of everything already there.
+    // A path of fewer than two nodes draws nothing.
+    inline
+    void append_path(
+        draw_list&              _out,
+        const render_path&      _path,
+        const camera<scalar>&   _camera,
+        const viewport<scalar>& _viewport
+    )
+    {
+        if (_path.nodes.size() < 2)
+        {
+            return;
+        }
+
+        std::vector<vec<2, scalar>> screen(_path.nodes.size());
+
+        for (std::size_t i = 0; i < _path.nodes.size(); ++i)
+        {
+            vec<3, scalar> s = project_point(_camera,
+                                             _viewport,
+                                             _path.nodes[i].position);
+            screen[i] = vec<2, scalar>(s[0], s[1]);
+        }
+
+        scalar front = -std::numeric_limits<scalar>::infinity();
+
+        for (std::size_t i = 0; (i + 1) < _path.nodes.size(); ++i)
+        {
+            draw_segment seg;
+            seg.a         = screen[i];
+            seg.b         = screen[i + 1];
+            seg.color     = average_color(_path.nodes[i].color,
+                                          _path.nodes[i + 1].color);
+            seg.thickness = _path.thickness;
+            seg.depth     = front;
+            _out.segments.push_back(seg);
+        }
+
+        return;
+    }
+
 NS_END  // internal
 
 // project_scene
@@ -290,96 +448,28 @@ D_NODISCARD inline draw_list project_scene(
     std::size_t             _selected = no_cell
 )
 {
-    // depth fade: unmarked cells dim with distance behind the focal point, over
-    // a span of gridlines.fade_distance world units (0 disables)
-    const vec<3, scalar> eye       = _camera.eye();
-    const scalar         focus_d   = _camera.m_distance;
-    const scalar         fade_span = _config.gridlines.fade_distance;
-    const bool           do_fade   = (fade_span > static_cast<scalar>(0));
-
+    const vec<3, scalar>      eye = _camera.eye();
     std::vector<draw_segment> cell_segments;
     std::vector<draw_quad>    face_quads;
 
     for (std::size_t c = 0; c < _scene.cells.size(); ++c)
     {
-        const render_cell& cell = _scene.cells[c];
-        const scalar       half = cell.size * static_cast<scalar>(0.5);
+        const render_cell& cell  = _scene.cells[c];
+        const rgba         color = internal::cell_color(cell,
+                                                        c,
+                                                        eye,
+                                                        _camera,
+                                                        _config,
+                                                        _hover,
+                                                        _selected);
 
-        // the eight projected corners (and their depths) and the cell's centre
-        const render3d::projected_box<scalar> box =
-            render3d::project_box(_camera,
-                                  _viewport,
-                                  cell.position,
-                                  vec<3, scalar>(half, half, half));
-
-        vec<2, scalar> corner[8];
-
-        for (std::size_t i = 0; i < 8; ++i)
-        {
-            corner[i] = vec<2, scalar>(box.m_corners[i][0],
-                                       box.m_corners[i][1]);
-        }
-
-        scalar depth = box.m_center[2];
-
-        // selection (persistent) outranks hover / lens-highlight (transient),
-        // and both outrank the cell's own colour
-        rgba color = cell.color;
-
-        if (cell.highlighted || (c == _hover))
-        {
-            color = _config.interaction.highlight_color;
-        }
-
-        if (c == _selected)
-        {
-            color = _config.interaction.selection_color;
-        }
-
-        bool marked = (cell.highlighted || (c == _hover) || (c == _selected));
-
-        if (do_fade && !marked)
-        {
-            scalar dist = (cell.position - eye).length();
-
-            scalar fade = static_cast<scalar>(1) -
-                          (dist - focus_d) / fade_span;
-
-            fade = (fade < static_cast<scalar>(0)) ? static_cast<scalar>(0)
-                 : (fade > static_cast<scalar>(1)) ? static_cast<scalar>(1)
-                 :                                   fade;
-
-            color.a = static_cast<channel_t>(color.a * fade);
-        }
-
-        // translucent faces, behind the wireframe, depth-sorted globally below
-        if (_config.shape.filled)
-        {
-            for (std::size_t f = 0; f < render3d::box_faces.size(); ++f)
-            {
-                const auto& face = render3d::box_faces[f];
-
-                draw_quad q;
-                q.a     = corner[face[0]];
-                q.b     = corner[face[1]];
-                q.c     = corner[face[2]];
-                q.d     = corner[face[3]];
-                q.color = color;
-                q.depth = render3d::face_depth(box, f);
-                face_quads.push_back(q);
-            }
-        }
-
-        for (const auto& edge : render3d::box_edges)
-        {
-            draw_segment seg;
-            seg.a         = corner[edge[0]];
-            seg.b         = corner[edge[1]];
-            seg.color     = color;
-            seg.thickness = _config.gridlines.thickness;
-            seg.depth     = depth;
-            cell_segments.push_back(seg);
-        }
+        internal::append_cell(cell_segments,
+                              face_quads,
+                              cell,
+                              color,
+                              _camera,
+                              _viewport,
+                              _config);
     }
 
     // back to front (larger depth first)
@@ -416,34 +506,7 @@ D_NODISCARD inline draw_list project_scene(
                         cell_segments.end());
 
     // the path, drawn on top of every cell
-    const render_path& p = _scene.path;
-
-    if (p.nodes.size() >= 2)
-    {
-        std::vector<vec<2, scalar>> screen(p.nodes.size());
-
-        for (std::size_t i = 0; i < p.nodes.size(); ++i)
-        {
-            vec<3, scalar> s = internal::project_point(_camera,
-                                                       _viewport,
-                                                       p.nodes[i].position);
-            screen[i] = vec<2, scalar>(s[0], s[1]);
-        }
-
-        scalar front = -std::numeric_limits<scalar>::infinity();
-
-        for (std::size_t i = 0; (i + 1) < p.nodes.size(); ++i)
-        {
-            draw_segment seg;
-            seg.a         = screen[i];
-            seg.b         = screen[i + 1];
-            seg.color     = internal::average_color(p.nodes[i].color,
-                                                    p.nodes[i + 1].color);
-            seg.thickness = p.thickness;
-            seg.depth     = front;
-            out.segments.push_back(seg);
-        }
-    }
+    internal::append_path(out, _scene.path, _camera, _viewport);
 
     return out;
 }
@@ -785,6 +848,279 @@ NS_INTERNAL
         return;
     }
 
+    // append_caption
+    //   helper: one caption line of a field panel, at height _y.
+    inline
+    void append_caption(
+        draw_list&         _out,
+        scalar             _y,
+        const std::string& _text,
+        const rgba&        _color
+    )
+    {
+        draw_label lab;
+        lab.position = vec<2, scalar>(0.0, _y);
+        lab.text     = _text;
+        lab.color    = _color;
+        _out.labels.push_back(lab);
+
+        return;
+    }
+
+    // append_captions
+    //   helper: a field panel's captions along its top -- the value range,
+    // then the axis names -- as _style asks for them; returns the height they
+    // take, with the padding below them, or 0 when there are none.
+    D_NODISCARD inline scalar append_captions(
+        draw_list&             _out,
+        const axis_decoration* _xd,
+        const axis_decoration* _yd,
+        const field_scale&     _scale,
+        const field_style&     _style,
+        scalar                 _line_height
+    )
+    {
+        scalar top = 0.0;
+
+        if (_style.show_range)
+        {
+            append_caption(_out,
+                           top,
+                           "range " + format_value(_scale.low) + " to " +
+                               format_value(_scale.high),
+                           _style.text);
+            top += _line_height;
+        }
+
+        if ( (_style.show_titles) &&
+             ( ((_xd) && (!_xd->label.empty())) ||
+               ((_yd) && (!_yd->label.empty())) ) )
+        {
+            append_caption(_out,
+                           top,
+                           "x: " + (_xd ? _xd->label : std::string()) +
+                               "    y: " +
+                               (_yd ? _yd->label : std::string()),
+                           _style.text);
+            top += _line_height;
+        }
+
+        return (top > 0.0) ? (top + _style.padding) : top;
+    }
+
+    // widest_tick
+    //   helper: the width of an axis's widest tick label, 0 for no axis.
+    D_NODISCARD inline scalar widest_tick(
+        const axis_decoration* _axis,
+        const text_metrics&    _text
+    )
+    {
+        scalar widest = 0.0;
+
+        if (_axis)
+        {
+            for (const std::string& t : _axis->tick_labels)
+            {
+                widest = std::max(widest, _text.measure(t));
+            }
+        }
+
+        return widest;
+    }
+
+    // append_field_grid
+    //   helper: a field panel's grid at _out.grid_min: its backdrop, its
+    // coloured cells, and hairlines between cells of _cell_width by
+    // _cell_height where those are 4 or more wide.
+    inline
+    void append_field_grid(
+        field_layout&       _out,
+        const scalar_field& _field,
+        const field_scale&  _scale,
+        const field_style&  _style,
+        scalar              _cell_width,
+        scalar              _cell_height
+    )
+    {
+        if (_style.backdrop.a > 0.0f)
+        {
+            draw_rect back;
+            back.min   = _out.grid_min;
+            back.max   = _out.grid_min + _out.grid_size;
+            back.color = _style.backdrop;
+            _out.list.rects.push_back(back);
+        }
+
+        for (const draw_rect& r : project_field(_field, _out.grid_size,
+                                                _scale).rects)
+        {
+            _out.list.rects.push_back(offset_rect(r, _out.grid_min));
+        }
+
+        // hairlines only where cells are wide enough to separate
+        if (!( (_style.grid.a > 0.0f) &&
+               (_cell_width >= 4.0)   &&
+               (_cell_height >= 4.0) ))
+        {
+            return;
+        }
+
+        for (re_std::uint32_t i = 1; i < _field.width; ++i)
+        {
+            draw_segment seg;
+            seg.a     = _out.grid_min + vec<2, scalar>(_cell_width * i, 0.0);
+            seg.b     = _out.grid_min + vec<2, scalar>(_cell_width * i,
+                                                       _out.grid_size[1]);
+            seg.color = _style.grid;
+            _out.list.segments.push_back(seg);
+        }
+
+        for (re_std::uint32_t j = 1; j < _field.height; ++j)
+        {
+            draw_segment seg;
+            seg.a     = _out.grid_min + vec<2, scalar>(0.0, _cell_height * j);
+            seg.b     = _out.grid_min + vec<2, scalar>(_out.grid_size[0],
+                                                       _cell_height * j);
+            seg.color = _style.grid;
+            _out.list.segments.push_back(seg);
+        }
+
+        return;
+    }
+
+    // append_column_labels
+    //   helper: the column labels under a field panel's grid, every n-th
+    // where they would collide.
+    inline
+    void append_column_labels(
+        field_layout&          _out,
+        const scalar_field&    _field,
+        const axis_decoration& _xd,
+        scalar                 _widest,
+        const field_style&     _style,
+        const text_metrics&    _text,
+        scalar                 _cell_width
+    )
+    {
+        const scalar      pad  = _style.padding;
+        const std::size_t step = std::max<std::size_t>(
+            1, static_cast<std::size_t>(std::ceil((_widest + pad) /
+                                                  _cell_width)));
+
+        for (std::size_t i = 0;
+             (i < _field.width) && (i < _xd.tick_labels.size());
+             i += step)
+        {
+            const std::string& t  = _xd.tick_labels[i];
+            const scalar       cx = _out.grid_min[0] +
+                                    ((static_cast<scalar>(i) + 0.5) *
+                                     _cell_width);
+
+            draw_label lab;
+            lab.position = vec<2, scalar>(cx - (_text.measure(t) * 0.5),
+                                          _out.grid_min[1] +
+                                              _out.grid_size[1] +
+                                              (pad * 0.5));
+            lab.text     = t;
+            lab.color    = _style.text;
+            _out.list.labels.push_back(lab);
+        }
+
+        return;
+    }
+
+    // append_row_labels
+    //   helper: the row labels left of a field panel's grid, ending at _left
+    // less the padding, every n-th where they would collide.
+    inline
+    void append_row_labels(
+        field_layout&          _out,
+        const scalar_field&    _field,
+        const axis_decoration& _yd,
+        scalar                 _left,
+        const field_style&     _style,
+        const text_metrics&    _text,
+        scalar                 _cell_height
+    )
+    {
+        const scalar      lh   = _text.line_height;
+        const std::size_t step = std::max<std::size_t>(
+            1, static_cast<std::size_t>(std::ceil(lh / _cell_height)));
+
+        for (std::size_t j = 0;
+             (j < _field.height) && (j < _yd.tick_labels.size());
+             j += step)
+        {
+            const std::string& t  = _yd.tick_labels[j];
+            const scalar       cy =
+                _out.grid_min[1] +
+                ((static_cast<scalar>(_field.height - 1u - j) + 0.5) *
+                 _cell_height);
+
+            draw_label lab;
+            lab.position = vec<2, scalar>(_left - _style.padding -
+                                              _text.measure(t),
+                                          cy - (lh * 0.5));
+            lab.text     = t;
+            lab.color    = _style.text;
+            _out.list.labels.push_back(lab);
+        }
+
+        return;
+    }
+
+    // append_field_overlay
+    //   helper: _overlay over a field panel's grid: its marks, filled or
+    // outlined, then its trail through the centres of the cells it names.
+    // Marks outside the field are skipped.
+    inline
+    void append_field_overlay(
+        field_layout&        _out,
+        const scalar_field&  _field,
+        const field_overlay& _overlay
+    )
+    {
+        for (const field_mark& m : _overlay.marks)
+        {
+            if ( (m.cell.col >= _field.width) ||
+                 (m.cell.row >= _field.height) )
+            {
+                continue;
+            }
+
+            draw_rect r = offset_rect(
+                field_cell_rect(_field, _out.grid_size, m.cell),
+                _out.grid_min);
+
+            if (m.filled)
+            {
+                r.color = m.color;
+                _out.list.rects.push_back(r);
+            }
+            else
+            {
+                outline(_out.list, r, m.color, m.thickness);
+            }
+        }
+
+        for (std::size_t i = 1; i < _overlay.trail.size(); ++i)
+        {
+            const field_cell& a  = _overlay.trail[i - 1];
+            const field_cell& b  = _overlay.trail[i];
+            const draw_rect   ra = field_cell_rect(_field, _out.grid_size, a);
+            const draw_rect   rb = field_cell_rect(_field, _out.grid_size, b);
+
+            draw_segment seg;
+            seg.a         = _out.grid_min + ((ra.min + ra.max) * 0.5);
+            seg.b         = _out.grid_min + ((rb.min + rb.max) * 0.5);
+            seg.color     = _overlay.trail_color;
+            seg.thickness = _overlay.trail_thickness;
+            _out.list.segments.push_back(seg);
+        }
+
+        return;
+    }
+
 NS_END  // internal
 
 // layout_field
@@ -825,63 +1161,18 @@ D_NODISCARD inline field_layout layout_field(
     const axis_decoration* yd    = (_scene.axes.size() > 1) ? &_scene.axes[1]
                                                             : nullptr;
 
-    const auto caption = [&out, &_style](scalar _y, const std::string& _t)
-    {
-        draw_label lab;
-        lab.position = vec<2, scalar>(0.0, _y);
-        lab.text     = _t;
-        lab.color    = _style.text;
-        out.list.labels.push_back(lab);
-
-        return;
-    };
-
-    // ---- captions along the top ----
-    scalar top = 0.0;
-
-    if (_style.show_range)
-    {
-        caption(top, "range " + internal::format_value(_scale.low) + " to " +
-                         internal::format_value(_scale.high));
-        top += lh;
-    }
-
-    if ( (_style.show_titles) &&
-         ( ((xd) && (!xd->label.empty())) ||
-           ((yd) && (!yd->label.empty())) ) )
-    {
-        caption(top, "x: " + (xd ? xd->label : std::string()) + "    y: " +
-                         (yd ? yd->label : std::string()));
-        top += lh;
-    }
-
-    if (top > 0.0)
-    {
-        top += pad;
-    }
-
-    // ---- margins for the tick labels ----
-    scalar widest_y = 0.0;
-    scalar widest_x = 0.0;
-
-    if (yd)
-    {
-        for (const std::string& t : yd->tick_labels)
-        {
-            widest_y = std::max(widest_y, _text.measure(t));
-        }
-    }
-
-    if (xd)
-    {
-        for (const std::string& t : xd->tick_labels)
-        {
-            widest_x = std::max(widest_x, _text.measure(t));
-        }
-    }
-
-    const scalar left   = (widest_y > 0.0) ? (widest_y + (pad * 2.0)) : 0.0;
-    const scalar bottom = (widest_x > 0.0) ? (lh + pad) : 0.0;
+    // ---- captions along the top, and margins for the tick labels ----
+    const scalar top      = internal::append_captions(out.list,
+                                                      xd,
+                                                      yd,
+                                                      _scale,
+                                                      _style,
+                                                      lh);
+    const scalar widest_y = internal::widest_tick(yd, _text);
+    const scalar widest_x = internal::widest_tick(xd, _text);
+    const scalar left     = (widest_y > 0.0) ? (widest_y + (pad * 2.0))
+                                             : 0.0;
+    const scalar bottom   = (widest_x > 0.0) ? (lh + pad) : 0.0;
 
     out.grid_min  = vec<2, scalar>(left, top);
     out.grid_size = vec<2, scalar>(std::max(1.0, _canvas[0] - left),
@@ -892,133 +1183,26 @@ D_NODISCARD inline field_layout layout_field(
     const scalar ch = out.grid_size[1] / static_cast<scalar>(
                           std::max<re_std::uint32_t>(1u, field.height));
 
-    // ---- the grid: backdrop, cells, hairlines ----
-    if (_style.backdrop.a > 0.0f)
-    {
-        draw_rect back;
-        back.min   = out.grid_min;
-        back.max   = out.grid_min + out.grid_size;
-        back.color = _style.backdrop;
-        out.list.rects.push_back(back);
-    }
+    // ---- the grid, its labels, and the overlay over them ----
+    internal::append_field_grid(out, field, _scale, _style, cw, ch);
 
-    for (const draw_rect& r : project_field(field, out.grid_size,
-                                            _scale).rects)
-    {
-        out.list.rects.push_back(internal::offset_rect(r, out.grid_min));
-    }
-
-    // hairlines only where cells are wide enough to separate
-    if ( (_style.grid.a > 0.0f) &&
-         (cw >= 4.0) &&
-         (ch >= 4.0) )
-    {
-        for (re_std::uint32_t i = 1; i < field.width; ++i)
-        {
-            draw_segment seg;
-            seg.a     = out.grid_min + vec<2, scalar>(cw * i, 0.0);
-            seg.b     = out.grid_min + vec<2, scalar>(cw * i,
-                                                      out.grid_size[1]);
-            seg.color = _style.grid;
-            out.list.segments.push_back(seg);
-        }
-
-        for (re_std::uint32_t j = 1; j < field.height; ++j)
-        {
-            draw_segment seg;
-            seg.a     = out.grid_min + vec<2, scalar>(0.0, ch * j);
-            seg.b     = out.grid_min + vec<2, scalar>(out.grid_size[0],
-                                                      ch * j);
-            seg.color = _style.grid;
-            out.list.segments.push_back(seg);
-        }
-    }
-
-    // ---- column labels, every n-th if they would collide ----
     if (xd)
     {
-        const std::size_t step = std::max<std::size_t>(
-            1, static_cast<std::size_t>(std::ceil((widest_x + pad) / cw)));
-
-        for (std::size_t i = 0;
-             (i < field.width) && (i < xd->tick_labels.size());
-             i += step)
-        {
-            const std::string& t  = xd->tick_labels[i];
-            const scalar       cx = out.grid_min[0] +
-                                    ((static_cast<scalar>(i) + 0.5) * cw);
-
-            draw_label lab;
-            lab.position = vec<2, scalar>(cx - (_text.measure(t) * 0.5),
-                                          out.grid_min[1] + out.grid_size[1] +
-                                              (pad * 0.5));
-            lab.text     = t;
-            lab.color    = _style.text;
-            out.list.labels.push_back(lab);
-        }
+        internal::append_column_labels(out,
+                                       field,
+                                       *xd,
+                                       widest_x,
+                                       _style,
+                                       _text,
+                                       cw);
     }
 
-    // ---- row labels, every n-th if they would collide ----
     if (yd)
     {
-        const std::size_t step = std::max<std::size_t>(
-            1, static_cast<std::size_t>(std::ceil(lh / ch)));
-
-        for (std::size_t j = 0;
-             (j < field.height) && (j < yd->tick_labels.size());
-             j += step)
-        {
-            const std::string& t  = yd->tick_labels[j];
-            const scalar       cy =
-                out.grid_min[1] +
-                ((static_cast<scalar>(field.height - 1u - j) + 0.5) * ch);
-
-            draw_label lab;
-            lab.position = vec<2, scalar>(left - pad - _text.measure(t),
-                                          cy - (lh * 0.5));
-            lab.text     = t;
-            lab.color    = _style.text;
-            out.list.labels.push_back(lab);
-        }
+        internal::append_row_labels(out, field, *yd, left, _style, _text, ch);
     }
 
-    // ---- overlay: marks, then the trail over them ----
-    for (const field_mark& m : _overlay.marks)
-    {
-        if ( (m.cell.col >= field.width) ||
-             (m.cell.row >= field.height) )
-        {
-            continue;
-        }
-
-        draw_rect r = internal::offset_rect(
-            field_cell_rect(field, out.grid_size, m.cell), out.grid_min);
-
-        if (m.filled)
-        {
-            r.color = m.color;
-            out.list.rects.push_back(r);
-        }
-        else
-        {
-            internal::outline(out.list, r, m.color, m.thickness);
-        }
-    }
-
-    for (std::size_t i = 1; i < _overlay.trail.size(); ++i)
-    {
-        const field_cell& a = _overlay.trail[i - 1];
-        const field_cell& b = _overlay.trail[i];
-        const draw_rect   ra = field_cell_rect(field, out.grid_size, a);
-        const draw_rect   rb = field_cell_rect(field, out.grid_size, b);
-
-        draw_segment seg;
-        seg.a         = out.grid_min + ((ra.min + ra.max) * 0.5);
-        seg.b         = out.grid_min + ((rb.min + rb.max) * 0.5);
-        seg.color     = _overlay.trail_color;
-        seg.thickness = _overlay.trail_thickness;
-        out.list.segments.push_back(seg);
-    }
+    internal::append_field_overlay(out, field, _overlay);
 
     return out;
 }

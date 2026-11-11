@@ -10,11 +10,11 @@
 * path:      /inc/djinterp/tools/cli/cli.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
-#ifndef DJINTERP_TOOLS_CLI_CLI_HPP
-#define DJINTERP_TOOLS_CLI_CLI_HPP 1
+#ifndef DJINTERP_TOOLS_CLI_HPP
+#define DJINTERP_TOOLS_CLI_HPP 1
 
 // djinterp
 #include "../../cpp/modules/parse/cli/arg_parser/arg_parser.hpp"  // the argument parser's
@@ -30,4 +30,4 @@
 #include "./cli_program.hpp"                          // the program
 
 
-#endif  // DJINTERP_TOOLS_CLI_CLI_HPP
+#endif  // DJINTERP_TOOLS_CLI_HPP

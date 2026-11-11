@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/tools/cli/cli_edit.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.25
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -37,8 +37,8 @@ TABLE OF CONTENTS
     3.  Writing
 */
 
-#ifndef DJINTERP_TOOLS_CLI_CLI_EDIT_HPP
-#define DJINTERP_TOOLS_CLI_CLI_EDIT_HPP 1
+#ifndef DJINTERP_TOOLS_CLI_EDIT_HPP
+#define DJINTERP_TOOLS_CLI_EDIT_HPP 1
 
 // std
 #include <string>  // std::string
@@ -297,4 +297,4 @@ const ::dj_cli_edit& edit::record() const D_NOEXCEPT
 }  // namespace djinterp
 
 
-#endif  // DJINTERP_TOOLS_CLI_CLI_EDIT_HPP
+#endif  // DJINTERP_TOOLS_CLI_EDIT_HPP

@@ -1,7 +1,7 @@
 # The djinterp command line
 
-> **Where this file is, what its paths mean, and what has changed (lane G,
-> 2026-11-09).** This is the kit's grammar as it stood before the
+> **Where this file is, what its paths mean, and what has changed
+> (2026-11-09).** This is the kit's grammar as it stood before the
 > restructure of 2026-11-03, which deleted it with `parse/cli/` (afb60e61);
 > it is restored from that commit's parent. Ruling rs c puts a doc about a
 > whole module in `docs/djinterp/<module>/`, so it is here, beside the
@@ -17,8 +17,8 @@
 >
 > Section 11, vparse's grammar, is older than vparse's README of
 > 2026.10.27 (`docs/djinterp/tools/vparse/README.md`), whose command line is
-> the one vparse has; lane F brings section 11 up to it. Sections 10 and 11
-> are bitwisedom's and vparse's; the rest is every program's.
+> the one vparse has, and section 11 is to be brought up to it. Sections 10
+> and 11 are bitwisedom's and vparse's; the rest is every program's.
 
 One grammar for every djinterp program -- `bitwisedom`, `vparse`, and the
 ones after them -- written so that the same command line means the same

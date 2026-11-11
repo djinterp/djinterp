@@ -8,10 +8,10 @@
 * term into an effect -- threading a value through a `|` pipeline and
 * short-circuiting on the first failure.
 *   It was parse's functional_cli.hpp, and moved here, to the interpreter's
-* module, as agreed with lane F (docs/djinterp/interp/DESIGN.md, G-D1). It
-* runs the subset of djinterp.peg it always ran -- commands joined by `|` --
-* until its legs are joined to expression core v2 (DESIGN.md, section 3);
-* its namespace is the interpreter's, djinterp::interp.
+* module (docs/djinterp/interp/DESIGN.md, decision 1). It runs the subset of
+* djinterp.peg it always ran -- commands joined by `|` -- until its legs are
+* joined to expression core v2 (DESIGN.md, section 3); its namespace is the
+* interpreter's, djinterp::interp.
 *
 *   THE SPINE, END TO END.
 *     line / argv  --reader-->  Σ*            (a vector of arg_tokens)
@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/modules/interp/spine.hpp
 * link(s):   ch-command.tex, ch-behavior.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
