@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -80,6 +80,7 @@
 #include "djinterp/config/cpp/functional/cfg_functional.h"
 #include "djinterp/config/cpp/text/cfg_text.h"
 #include "djinterp/config/cpp/util/cli/cfg_cli_option.h"
+#include "djinterp/config/cpp/util/sort/cfg_sort.h"
 // c/event: the shared knobs, then each part's
 #include "djinterp/config/c/event/cfg_event_common.h"
 #include "djinterp/config/c/event/cfg_event.h"

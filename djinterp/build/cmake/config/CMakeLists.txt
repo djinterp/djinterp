@@ -142,6 +142,11 @@ add_library(djinterp_c_runtime STATIC
     # the archive kernel the report runner packs through (d_archive_create_to_sink,
     # d_archive_extract and their kin), which three runners failed to link without
     "${DJINTERP_SRC_ROOT}/djinterp/c/util/archive/archive_common.c"
+    # the default memory source printf's heap fallback in ostream_format.c
+    # draws from (d_mem_source_default), and the common layer it calls into;
+    # both need only libc
+    "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_source.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_common.c"
 )
 
 # ---------------------------------------------------------------------------
