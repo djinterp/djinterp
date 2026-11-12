@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -31,14 +31,14 @@ TABLE OF CONTENTS
          7.  D_KEYWORD_FILESYS
          8.  D_KEYWORD_FUNCTIONAL
          9.  D_KEYWORD_INTERNAL
-         10. D_KEYWORD_MATH
-         11. D_KEYWORD_MESSAGE
-         12. D_KEYWORD_OPTION
-         13. D_KEYWORD_SYNC
-         14. D_KEYWORD_TEST
-         15. D_KEYWORD_TESTING
-         16. D_KEYWORD_TEXT
-         17. D_KEYWORD_UI
+         10. D_KEYWORD_INTERP
+         11. D_KEYWORD_MATH
+         12. D_KEYWORD_MESSAGE
+         13. D_KEYWORD_OPTION
+         14. D_KEYWORD_SYNC
+         15. D_KEYWORD_TEST
+         16. D_KEYWORD_TESTING
+         17. D_KEYWORD_TEXT
          18. D_KEYWORD_WARNING
 2.  FUNDAMENTAL TYPES
     -----------------
@@ -185,13 +185,19 @@ TABLE OF CONTENTS
 #define D_KEYWORD_INTERNAL           internal
 
 // 1.2.10
+// D_KEYWORD_INTERP
+//   keyword: resolves to `interp`.
+// Used for the interpreter: its module and its namespace (NS_INTERP).
+#define D_KEYWORD_INTERP             interp
+
+// 1.2.11
 // D_KEYWORD_MATH
 //   keyword: resolves to `math`.
 // used for variables, macros, namespaces, etc. that pertain to the `math`
 // submodule.
 #define D_KEYWORD_MATH               math
 
-// 1.2.11
+// 1.2.12
 // D_KEYWORD_MESSAGE
 //   keyword: resolves to `message`.
 // Used for variables, macros, namespaces, etc. that convey (usually string-
@@ -199,7 +205,7 @@ TABLE OF CONTENTS
 // (but not limited to) debugging and error-handling.
 #define D_KEYWORD_MESSAGE            message
 
-// 1.2.12
+// 1.2.13
 // D_KEYWORD_OPTION
 //   keyword: resolves to `option`.
 // Used for code pertaining to the options subframework, where key-value pairs
@@ -207,37 +213,31 @@ TABLE OF CONTENTS
 // more.
 #define D_KEYWORD_OPTION             option
 
-// 1.2.13
+// 1.2.14
 // D_KEYWORD_SYNC
 //   keyword: resolves to `sync`.
 // Used for code involving synchronization, coordination, or ordered access
 // between operations.
 #define D_KEYWORD_SYNC               sync
 
-// 1.2.14
+// 1.2.15
 // D_KEYWORD_TEST
 //   keyword: resolves to `test`.
 // Used to specify that a unit of code is part of unit testing.
 #define D_KEYWORD_TEST               test
 
-// 1.2.15
+// 1.2.16
 // D_KEYWORD_TESTING
 //   keyword: resolves to `testing`.
 // Used to signify that a code segment pertains to unit testing.
 #define D_KEYWORD_TESTING            testing
 
-// 1.2.16
+// 1.2.17
 // D_KEYWORD_TEXT
 //   keyword: resolves to `text`.
 // Used to specify that a unit of code has to do with textual functionality,
 // including (but not limited to) converting, encoding, and processing text.
 #define D_KEYWORD_TEXT               text
-
-// 1.2.17
-// D_KEYWORD_UI
-//   keyword: resolves to `ui`.
-// Used to specify that a unit of code is part of the user interface.
-#define D_KEYWORD_UI                 ui
 
 // 1.2.18
 // D_KEYWORD_WARNING

@@ -60,7 +60,7 @@
 # path:      /scripts/ci/check_style.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.09
+#                                                            revised: 2026.11.11
 #*******************************************************************************
 import argparse
 import collections
@@ -404,7 +404,8 @@ def collect(paths, changed):
     for item in paths or ['inc', 'src', 'tests']:
         full = os.path.join(TREE, item)
         if os.path.isfile(full):
-            files.append(rel(full))
+            if full.endswith(EXTENSIONS):
+                files.append(rel(full))
             continue
         for directory, names, entries in os.walk(full):
             names.sort()

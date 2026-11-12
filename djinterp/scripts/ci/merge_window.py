@@ -43,7 +43,7 @@
 # path:      /scripts/ci/merge_window.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.06
+#                                                            revised: 2026.11.11
 #*******************************************************************************
 import argparse
 import os
@@ -323,7 +323,18 @@ def main():
                 if os.path.isfile(full):
                     os.remove(full)
             if options.commit:
-                git(['add', '-A', '--'] + rels + removed)
+                # the paths go through standard input: a zip of several
+                # hundred files passes Windows' limit on a command line
+                listed = ''.join(path + '\0' for path in rels + removed)
+                result = subprocess.run(['git', '--literal-pathspecs', 'add',
+                                         '-A', '--pathspec-from-file=-',
+                                         '--pathspec-file-nul'], cwd=TREE,
+                                        input=listed.encode('utf-8'),
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+                if result.returncode != 0:
+                    raise RuntimeError('git add: %s' % result.stderr.decode(
+                        'utf-8', 'replace').strip())
                 staged = subprocess.run(['git', 'diff', '--cached', '--quiet'],
                                         cwd=TREE)
                 if staged.returncode == 0:

@@ -7,9 +7,10 @@
 # <cinttypes> itself. A C file includes re_std's cstdint/dstdint.h, a C++
 # file cstdint/cstdint.hpp. dstdint.h, which wraps the system's header, and
 # its conformance harness, which compares against it, are the two files the
-# rule exempts.
-#   Some files still include the system's headers, and their lanes sweep
-# them. --known holds a run to that list: a file the list has is allowed, a
+# rule exempts, with bitwisedom's platform checks, which compile against the
+# platform's own headers alone.
+#   Some files still include the system's headers, until they are swept.
+# --known holds a run to that list: a file the list has is allowed, a
 # new one fails the run, and a file on the list that no longer includes one
 # is reported so that its line can go. --write-known records a run's files
 # as the list.
@@ -27,7 +28,7 @@
 # path:      /scripts/ci/check_stdint_includes.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.05
+#                                                            revised: 2026.11.11
 #*******************************************************************************
 import argparse
 import os
@@ -41,6 +42,10 @@ DIRECT = re.compile(r'^\s*#\s*include\s*<(stdint\.h|cstdint|inttypes\.h|'
                     r'cinttypes)>', re.M)
 EXEMPT = {'inc/re_std/c/cstdint/dstdint.h',
           'tests/re_std/c/cstdint/t_dstdint.c'}
+# bitwisedom's platform checks compile against the platform's own headers
+# alone (check_platform.cmake gives them nothing of djinterp), so they may
+# include <stdint.h> as the platform has it
+EXEMPT_DIRS = ('tests/djinterp/tools/bitwisedom/platform/',)
 
 
 def main():
@@ -64,7 +69,7 @@ def main():
                     continue
                 path = os.path.join(directory, entry)
                 name = os.path.relpath(path, tree).replace(os.sep, '/')
-                if name in EXEMPT:
+                if name in EXEMPT or name.startswith(EXEMPT_DIRS):
                     continue
                 with open(path, encoding='utf-8', errors='replace') as handle:
                     headers = DIRECT.findall(handle.read())

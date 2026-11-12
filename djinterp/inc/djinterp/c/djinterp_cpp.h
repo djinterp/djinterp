@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/c/djinterp_cpp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.27
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_C_DJINTERP_CPP_H
@@ -148,12 +148,18 @@
 #define NS_INTERNAL                 D_NAMESPACE(D_KEYWORD_INTERNAL)
 
 // 1.2.10
+// NS_INTERP
+//   namespace: the `interp` namespace, the interpreter's. Should be
+// closed with `NS_END`.
+#define NS_INTERP                   D_NAMESPACE(D_KEYWORD_INTERP)
+
+// 1.2.11
 // NS_MATH
 //   namespace: the `math` namespace for mathematical
 // utilities.
 #define NS_MATH                     D_NAMESPACE(D_KEYWORD_MATH)
 
-// 1.2.11
+// 1.2.12
 // NS_MESSAGE
 //   namespace: the `message` namespace for variables, macros,
 // and types that convey (usually string-based) human-readable
@@ -161,24 +167,24 @@
 // error-handling.
 #define NS_MESSAGE                  D_NAMESPACE(D_KEYWORD_MESSAGE)
 
-// 1.2.12
+// 1.2.13
 // NS_PARADIGM
 //   namespace: resolves to `namespace paradigm {`
 // This namespace contains common software patterns or idioms.
 #define NS_PARADIGM                 D_NAMESPACE(D_KEYWORD_PARADIGM)
 
-// 1.2.13
+// 1.2.14
 // NS_TEST
 //   namespace: the `test` namespace for unit testing
 // utilities.
 #define NS_TEST                     D_NAMESPACE(D_KEYWORD_TEST)
 
-// 1.2.14
+// 1.2.15
 // NS_TESTING
 //   namespace: the `testing` namespace for holding unit tests.
 #define NS_TESTING                  D_NAMESPACE(D_KEYWORD_TESTING)
 
-// 1.2.15
+// 1.2.16
 // NS_TRAITS
 //   namespace: the `traits` namespace for the compile-time
 // trait surface of a subsystem (e.g. djinterp::container::traits).
