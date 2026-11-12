@@ -167,10 +167,6 @@ inc/djinterp/cpp/modules/math/expr/evaluate.hpp	B	1
 inc/djinterp/cpp/modules/math/expr/function.hpp	B	1
 inc/djinterp/cpp/modules/math/expression.hpp	B	1
 inc/djinterp/cpp/modules/math/numeric_compare.hpp	B	1
-inc/djinterp/cpp/modules/parse/vparse/machine.hpp	B	1
-inc/djinterp/cpp/modules/parse/vparse/machine.hpp	G	2
-inc/djinterp/cpp/modules/parse/vparse/peg.hpp	B	1
-inc/djinterp/cpp/modules/parse/vparse/peg.hpp	G	2
 inc/djinterp/cpp/modules/parsegen/vparse/session.hpp	B	1
 inc/djinterp/cpp/modules/test/archive/test_archive.hpp	B	1
 inc/djinterp/cpp/modules/test/archive/test_archive_options.hpp	B	1
@@ -451,11 +447,6 @@ src/djinterp/cpp/modules/math/math.cpp	B	1
 src/djinterp/cpp/modules/math/math_concepts.cpp	B	1
 src/djinterp/cpp/modules/math/math_traits.cpp	B	1
 src/djinterp/cpp/modules/math/numeric_compare.cpp	B	2
-src/djinterp/cpp/modules/parse/vparse/adapter.cpp	B	1
-src/djinterp/cpp/modules/parse/vparse/gen.cpp	B	1
-src/djinterp/cpp/modules/parse/vparse/notation.cpp	B	1
-src/djinterp/cpp/modules/parse/vparse/peg.cpp	B	1
-src/djinterp/cpp/modules/parsegen/peg.cpp	B	1
 src/djinterp/cpp/modules/parsegen/vparse/adapter.cpp	B	1
 src/djinterp/cpp/modules/parsegen/vparse/gen.cpp	B	1
 src/djinterp/cpp/modules/parsegen/vparse/notation.cpp	B	1
@@ -1296,11 +1287,6 @@ tests/djinterp/cpp/modules/parse/parse_tests_parseable.cpp	B	1
 tests/djinterp/cpp/modules/parse/parse_tests_result.cpp	B	1
 tests/djinterp/cpp/modules/parse/parse_tests_state.cpp	B	1
 tests/djinterp/cpp/modules/parse/parse_tests_status.cpp	B	1
-tests/djinterp/cpp/modules/parse/vparse/vparse_tests.hpp	B	1
-tests/djinterp/cpp/modules/parse/vparse/vparse_tests_captures.cpp	B	1
-tests/djinterp/cpp/modules/parse/vparse/vparse_tests_generate.cpp	B	1
-tests/djinterp/cpp/modules/parse/vparse/vparse_tests_notation.cpp	B	1
-tests/djinterp/cpp/modules/parse/vparse/vparse_tests_rebase.cpp	B	1
 tests/djinterp/cpp/modules/parsegen/vparse/vparse_tests.hpp	B	1
 tests/djinterp/cpp/modules/parsegen/vparse/vparse_tests_captures.cpp	B	1
 tests/djinterp/cpp/modules/parsegen/vparse/vparse_tests_generate.cpp	B	1

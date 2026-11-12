@@ -17,7 +17,6 @@ inc/djinterp/c/util/kv.h	stdint.h
 inc/djinterp/c/util/lookup.h	stdint.h
 inc/djinterp/c/util/type_info_common.h	stdint.h
 inc/djinterp/cpp/modules/net/web.hpp	cstdint
-inc/djinterp/cpp/modules/parse/parsers/cpp/c.hpp	cstdint
 inc/djinterp/tools/dawk/dawk.h	stdint.h
 inc/djinterp/tools/dawk/dbanner.h	stdint.h
 inc/djinterp/tools/dawk/dcascade.h	stdint.h
