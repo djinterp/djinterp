@@ -42,30 +42,37 @@
 * path:      /tests/djinterp/cpp/util/compress/compress_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COMPRESS_
 #define DJINTERP_TESTS_COMPRESS_ 1
 
+// std
+#include <cstdio>  // std::printf
 // djinterp
-#include "../../../../../inc/djinterp/cpp/util/compress/compress.hpp"        // the facade under test
-#include "../../../../../inc/djinterp/cpp/modules/test/compress/test_compress.hpp"   // shared compression-testing helpers
+#include "../../../../../inc/djinterp/cpp/util/compress/compress.hpp"
+                                        // the facade under test
+#include "djinterp/cpp/modules/test/compress/test_compress.hpp"
+                                        // shared compression-testing helpers
 
 
 // D_CP_CHECK
 //   macro: the section suites' assertion primitive.  Evaluates _cond and, if
-// it is false, returns false from the enclosing bool() test function
-// immediately (short-circuiting the rest of that test).  Unique two-letter
-// prefix (CP) so it never collides with a co-compiled suite's macro.
-#define D_CP_CHECK(_cond)                                                       \
+// it is false, prints the condition and where it is, then returns false from
+// the enclosing bool() test function (short-circuiting the rest of that
+// test).  Unique two-letter prefix (CP) so it never collides with a
+// co-compiled suite's macro.
+#define D_CP_CHECK(_cond)                                                      \
     do                                                                         \
-    {                                                                         \
-        if (!(_cond))                                                         \
-        {                                                                     \
-            return false;                                                     \
-        }                                                                     \
-    }                                                                         \
+    {                                                                          \
+        if (!(_cond))                                                          \
+        {                                                                      \
+            std::printf("      [check] FAIL: %s  (%s:%d)\n",                   \
+                        #_cond, __FILE__, __LINE__);                           \
+            return false;                                                      \
+        }                                                                      \
+    }                                                                          \
     while (false)
 
 
@@ -110,10 +117,10 @@ bool tests_compress_roundtrip_signatures();
 bool tests_compress_api_template_dispatch();
 bool tests_compress_api_invalid_argument_compress();
 bool tests_compress_api_invalid_argument_decompress();
-bool tests_compress_api_out_of_range_unavailable();
+bool tests_compress_api_out_of_range_invalid();
 bool tests_compress_api_decompress_garbage();
 bool tests_compress_api_decompress_garbage_brotli();
-bool tests_compress_api_deflate_bad_level();
+bool tests_compress_api_bad_level_invalid();
 bool tests_compress_api_zlib_truncated();
 
 // -- compress_tests_options.cpp -----------------------------------------------

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_bridge.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -26,38 +26,38 @@ bool tests_sort_dispatch_algorithm_traits()
     // names -- the traits block is a view onto the tag, not a second copy of
     // the answer.
     result.check((std::is_same<
-        sort_algorithm_traits<sort_algorithm::bubble>::tag,
-        bubble_sort_tag>::value));
+        sort_algorithm_traits<DSortAlgorithm::bubble>::tag,
+        DBubbleSortTag>::value));
     result.check((std::is_same<
-        sort_algorithm_traits<sort_algorithm::selection>::tag,
-        selection_sort_tag>::value));
+        sort_algorithm_traits<DSortAlgorithm::selection>::tag,
+        DSelectionSortTag>::value));
     result.check((std::is_same<
-        sort_algorithm_traits<sort_algorithm::insertion>::tag,
-        insertion_sort_tag>::value));
+        sort_algorithm_traits<DSortAlgorithm::insertion>::tag,
+        DInsertionSortTag>::value));
     result.check((std::is_same<
-        sort_algorithm_traits<sort_algorithm::merge>::tag,
-        merge_sort_tag>::value));
+        sort_algorithm_traits<DSortAlgorithm::merge>::tag,
+        DMergeSortTag>::value));
     result.check((std::is_same<
-        sort_algorithm_traits<sort_algorithm::quick>::tag,
-        quick_sort_tag>::value));
+        sort_algorithm_traits<DSortAlgorithm::quick>::tag,
+        DQuickSortTag>::value));
     result.check((std::is_same<
-        sort_algorithm_traits<sort_algorithm::heap>::tag,
-        heap_sort_tag>::value));
+        sort_algorithm_traits<DSortAlgorithm::heap>::tag,
+        DHeapSortTag>::value));
 
-    result.check(sort_algorithm_traits<sort_algorithm::bubble>::is_stable ==
-                 bubble_sort_tag::is_stable);
+    result.check(sort_algorithm_traits<DSortAlgorithm::bubble>::is_stable ==
+                 DBubbleSortTag::is_stable);
     result.check(
-        sort_algorithm_traits<sort_algorithm::selection>::is_in_place ==
-        selection_sort_tag::is_in_place);
+        sort_algorithm_traits<DSortAlgorithm::selection>::is_in_place ==
+        DSelectionSortTag::is_in_place);
     result.check(
-        sort_algorithm_traits<sort_algorithm::insertion>::is_adaptive ==
-        insertion_sort_tag::is_adaptive);
-    result.check(sort_algorithm_traits<sort_algorithm::merge>::is_in_place ==
-                 merge_sort_tag::is_in_place);
-    result.check(sort_algorithm_traits<sort_algorithm::quick>::is_stable ==
-                 quick_sort_tag::is_stable);
-    result.check(sort_algorithm_traits<sort_algorithm::heap>::is_adaptive ==
-                 heap_sort_tag::is_adaptive);
+        sort_algorithm_traits<DSortAlgorithm::insertion>::is_adaptive ==
+        DInsertionSortTag::is_adaptive);
+    result.check(sort_algorithm_traits<DSortAlgorithm::merge>::is_in_place ==
+                 DMergeSortTag::is_in_place);
+    result.check(sort_algorithm_traits<DSortAlgorithm::quick>::is_stable ==
+                 DQuickSortTag::is_stable);
+    result.check(sort_algorithm_traits<DSortAlgorithm::heap>::is_adaptive ==
+                 DHeapSortTag::is_adaptive);
 
     return result.ok();
 }
@@ -71,26 +71,26 @@ bool tests_sort_dispatch_algorithm_tag_alias()
     //   algorithm_tag_t is the enumerator-to-tag direction of the join.
     // Composed with tag::value it has to be the identity, which is the
     // property that keeps the compile-time and run-time surfaces in step.
-    result.check((std::is_same<algorithm_tag_t<sort_algorithm::bubble>,
-                               bubble_sort_tag>::value));
-    result.check((std::is_same<algorithm_tag_t<sort_algorithm::selection>,
-                               selection_sort_tag>::value));
-    result.check((std::is_same<algorithm_tag_t<sort_algorithm::insertion>,
-                               insertion_sort_tag>::value));
-    result.check((std::is_same<algorithm_tag_t<sort_algorithm::merge>,
-                               merge_sort_tag>::value));
-    result.check((std::is_same<algorithm_tag_t<sort_algorithm::quick>,
-                               quick_sort_tag>::value));
-    result.check((std::is_same<algorithm_tag_t<sort_algorithm::heap>,
-                               heap_sort_tag>::value));
+    result.check((std::is_same<algorithm_tag_t<DSortAlgorithm::bubble>,
+                               DBubbleSortTag>::value));
+    result.check((std::is_same<algorithm_tag_t<DSortAlgorithm::selection>,
+                               DSelectionSortTag>::value));
+    result.check((std::is_same<algorithm_tag_t<DSortAlgorithm::insertion>,
+                               DInsertionSortTag>::value));
+    result.check((std::is_same<algorithm_tag_t<DSortAlgorithm::merge>,
+                               DMergeSortTag>::value));
+    result.check((std::is_same<algorithm_tag_t<DSortAlgorithm::quick>,
+                               DQuickSortTag>::value));
+    result.check((std::is_same<algorithm_tag_t<DSortAlgorithm::heap>,
+                               DHeapSortTag>::value));
 
     // round trip: tag -> enumerator -> tag
-    result.check(algorithm_tag_t<bubble_sort_tag::value>::value ==
-                 sort_algorithm::bubble);
-    result.check(algorithm_tag_t<merge_sort_tag::value>::value ==
-                 sort_algorithm::merge);
-    result.check(algorithm_tag_t<heap_sort_tag::value>::value ==
-                 sort_algorithm::heap);
+    result.check(algorithm_tag_t<DBubbleSortTag::value>::value ==
+                 DSortAlgorithm::bubble);
+    result.check(algorithm_tag_t<DMergeSortTag::value>::value ==
+                 DSortAlgorithm::merge);
+    result.check(algorithm_tag_t<DHeapSortTag::value>::value ==
+                 DSortAlgorithm::heap);
 
     return result.ok();
 }
@@ -104,35 +104,35 @@ bool tests_sort_dispatch_properties_of()
 
     //   properties_of is the run-time face of the same table.  Every
     // enumerator must produce exactly its tag's values.
-    properties = properties_of(sort_algorithm::bubble);
-    result.check(properties.is_stable == bubble_sort_tag::is_stable);
-    result.check(properties.is_in_place == bubble_sort_tag::is_in_place);
-    result.check(properties.is_adaptive == bubble_sort_tag::is_adaptive);
+    properties = properties_of(DSortAlgorithm::bubble);
+    result.check(properties.is_stable == DBubbleSortTag::is_stable);
+    result.check(properties.is_in_place == DBubbleSortTag::is_in_place);
+    result.check(properties.is_adaptive == DBubbleSortTag::is_adaptive);
 
-    properties = properties_of(sort_algorithm::selection);
-    result.check(properties.is_stable == selection_sort_tag::is_stable);
-    result.check(properties.is_in_place == selection_sort_tag::is_in_place);
-    result.check(properties.is_adaptive == selection_sort_tag::is_adaptive);
+    properties = properties_of(DSortAlgorithm::selection);
+    result.check(properties.is_stable == DSelectionSortTag::is_stable);
+    result.check(properties.is_in_place == DSelectionSortTag::is_in_place);
+    result.check(properties.is_adaptive == DSelectionSortTag::is_adaptive);
 
-    properties = properties_of(sort_algorithm::insertion);
-    result.check(properties.is_stable == insertion_sort_tag::is_stable);
-    result.check(properties.is_in_place == insertion_sort_tag::is_in_place);
-    result.check(properties.is_adaptive == insertion_sort_tag::is_adaptive);
+    properties = properties_of(DSortAlgorithm::insertion);
+    result.check(properties.is_stable == DInsertionSortTag::is_stable);
+    result.check(properties.is_in_place == DInsertionSortTag::is_in_place);
+    result.check(properties.is_adaptive == DInsertionSortTag::is_adaptive);
 
-    properties = properties_of(sort_algorithm::merge);
-    result.check(properties.is_stable == merge_sort_tag::is_stable);
-    result.check(properties.is_in_place == merge_sort_tag::is_in_place);
-    result.check(properties.is_adaptive == merge_sort_tag::is_adaptive);
+    properties = properties_of(DSortAlgorithm::merge);
+    result.check(properties.is_stable == DMergeSortTag::is_stable);
+    result.check(properties.is_in_place == DMergeSortTag::is_in_place);
+    result.check(properties.is_adaptive == DMergeSortTag::is_adaptive);
 
-    properties = properties_of(sort_algorithm::quick);
-    result.check(properties.is_stable == quick_sort_tag::is_stable);
-    result.check(properties.is_in_place == quick_sort_tag::is_in_place);
-    result.check(properties.is_adaptive == quick_sort_tag::is_adaptive);
+    properties = properties_of(DSortAlgorithm::quick);
+    result.check(properties.is_stable == DQuickSortTag::is_stable);
+    result.check(properties.is_in_place == DQuickSortTag::is_in_place);
+    result.check(properties.is_adaptive == DQuickSortTag::is_adaptive);
 
-    properties = properties_of(sort_algorithm::heap);
-    result.check(properties.is_stable == heap_sort_tag::is_stable);
-    result.check(properties.is_in_place == heap_sort_tag::is_in_place);
-    result.check(properties.is_adaptive == heap_sort_tag::is_adaptive);
+    properties = properties_of(DSortAlgorithm::heap);
+    result.check(properties.is_stable == DHeapSortTag::is_stable);
+    result.check(properties.is_in_place == DHeapSortTag::is_in_place);
+    result.check(properties.is_adaptive == DHeapSortTag::is_adaptive);
 
     return result.ok();
 }
@@ -143,20 +143,20 @@ bool tests_sort_dispatch_name_of()
 {
     verdict result;
 
-    result.check(names_equal(name_of(sort_algorithm::bubble),
-                             bubble_sort_tag::name()));
-    result.check(names_equal(name_of(sort_algorithm::selection),
-                             selection_sort_tag::name()));
-    result.check(names_equal(name_of(sort_algorithm::insertion),
-                             insertion_sort_tag::name()));
-    result.check(names_equal(name_of(sort_algorithm::merge),
-                             merge_sort_tag::name()));
-    result.check(names_equal(name_of(sort_algorithm::quick),
-                             quick_sort_tag::name()));
-    result.check(names_equal(name_of(sort_algorithm::heap),
-                             heap_sort_tag::name()));
+    result.check(names_equal(name_of(DSortAlgorithm::bubble),
+                             DBubbleSortTag::name()));
+    result.check(names_equal(name_of(DSortAlgorithm::selection),
+                             DSelectionSortTag::name()));
+    result.check(names_equal(name_of(DSortAlgorithm::insertion),
+                             DInsertionSortTag::name()));
+    result.check(names_equal(name_of(DSortAlgorithm::merge),
+                             DMergeSortTag::name()));
+    result.check(names_equal(name_of(DSortAlgorithm::quick),
+                             DQuickSortTag::name()));
+    result.check(names_equal(name_of(DSortAlgorithm::heap),
+                             DHeapSortTag::name()));
 
-    result.check(names_equal(name_of(sort_algorithm::quick), "quick_sort"));
+    result.check(names_equal(name_of(DSortAlgorithm::quick), "quick_sort"));
 
     return result.ok();
 }
@@ -189,9 +189,9 @@ bool tests_sort_dispatch_unrecognised_enumerator()
     //   The name is not one of the six, so a caller comparing against them
     // cannot be fooled.
     result.check(!names_equal(name_of(unrecognised_algorithm()),
-                              bubble_sort_tag::name()));
+                              DBubbleSortTag::name()));
     result.check(!names_equal(name_of(unrecognised_algorithm()),
-                              quick_sort_tag::name()));
+                              DQuickSortTag::name()));
 
     return result.ok();
 }

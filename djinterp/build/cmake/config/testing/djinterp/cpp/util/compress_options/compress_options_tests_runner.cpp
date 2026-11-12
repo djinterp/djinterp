@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                          compress_options_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                              compress_options_tests_runner.cpp
 *
 *   Entry point for the compress_options.hpp unit-test suite.  It includes the
 * test header and calls every tests_* function the section translation units
@@ -8,10 +8,12 @@
 * vocabulary under test pulls in no backend - so nothing else is linked.  Exits
 * non-zero if any test fails.
 *
+*
 * path:      /build/cmake/config/testing/djinterp/cpp/util/compress_options/compress_options_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.21
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
+*                                                            revised: 2026.11.10
+*******************************************************************************/
 
 // std
 #include <cstdio>
@@ -97,7 +99,7 @@ int main()
     D_CO_RUN(tests_compress_options_aggregate_independence);
     D_CO_RUN(tests_compress_options_aggregate_value_semantics);
     D_CO_RUN(tests_compress_options_aggregate_layout);
-    D_CO_RUN(tests_compress_options_aggregate_minus_one_sentinels);
+    D_CO_RUN(tests_compress_options_aggregate_unset_sentinel);
 
     std::printf("passed: %d   failed: %d\n", g_passed, g_failed);
     return (g_failed == 0) ? 0 : 1;

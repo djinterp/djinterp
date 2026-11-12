@@ -1,15 +1,16 @@
-/******************************************************************************
-* djinterp [test]                          sort_view_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                                     sort_view_tests_runner.cpp
 *
-*   main() for the sort_view_tests executable.  Defines DTEST_SPEC_MODE so the suite
-* header presents its spec-provider face (no fixtures compiled here), builds
-* the option set, and hands the spec to run_module.
+*   main() for the sort_view_tests executable.  Defines DTEST_SPEC_MODE so the
+* suite header presents its spec-provider face (no fixtures compiled here),
+* builds the option set, and hands the spec to run_module.
 *
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/util/sort/sort_view/sort_view_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
+*                                                            revised: 2026.11.12
+*******************************************************************************/
 
 #define DTEST_SPEC_MODE   // suite exposes its spec provider, not its fixtures
 
@@ -33,6 +34,7 @@ int main()
     return dt::run_module(
         tt::sort_view_spec(),
         "sort_view.hpp unit tests",
-        "the dataflow bridge: sort terminals draining a lazy view pipeline",
+        "the dataflow bridge: sort terminals draining a lazy view "
+        "pipeline",
         opts);
 }

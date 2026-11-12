@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_monoid_tests_merge.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -30,7 +30,7 @@ bool tests_sort_monoid_merge_interleaves()
     // consulted on every step, alternating the source.
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(odds, 3),
                                                        ints_of(evens, 3),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(expected, 6)));
 
@@ -40,7 +40,7 @@ bool tests_sort_monoid_merge_interleaves()
     // left-only merge would never take.
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(evens, 3),
                                                        ints_of(odds, 3),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(expected, 6)));
 
@@ -52,7 +52,7 @@ bool tests_sort_monoid_merge_interleaves()
 
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(low, 2),
                                                        ints_of(high, 2),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(low_high, 4)));
 
@@ -60,7 +60,7 @@ bool tests_sort_monoid_merge_interleaves()
     // times before the left is touched.
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(high, 2),
                                                        ints_of(low, 2),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(low_high, 4)));
 
@@ -87,20 +87,20 @@ bool tests_sort_monoid_merge_empty_operands()
     // symmetric ones.
     merged = ::djinterp::internal::merge_sorted_helper(nothing,
                                                        ints_of(values, 4),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(values, 4)));
 
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(values, 4),
                                                        nothing,
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(values, 4)));
 
     //   Two empty operands: every loop is skipped and the result is empty.
     merged = ::djinterp::internal::merge_sorted_helper(nothing,
                                                        nothing,
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(merged.empty());
 
@@ -124,7 +124,7 @@ bool tests_sort_monoid_merge_exhaustion_tails()
     merged = ::djinterp::internal::merge_sorted_helper(
         ints_of(single_low, 1),
         ints_of(long_high, 5),
-        less<int>());
+        std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(expected_ab, 6)));
 
@@ -133,7 +133,7 @@ bool tests_sort_monoid_merge_exhaustion_tails()
     merged = ::djinterp::internal::merge_sorted_helper(
         ints_of(long_high, 5),
         ints_of(single_low, 1),
-        less<int>());
+        std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(expected_ab, 6)));
 
@@ -145,7 +145,7 @@ bool tests_sort_monoid_merge_exhaustion_tails()
 
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(a_side, 2),
                                                        ints_of(b_side, 2),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(expected, 4)));
 
@@ -157,13 +157,13 @@ bool tests_sort_monoid_merge_exhaustion_tails()
 
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(one, 1),
                                                        ints_of(many, 8),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(many_then, 9)));
 
     merged = ::djinterp::internal::merge_sorted_helper(ints_of(many, 8),
                                                        ints_of(one, 1),
-                                                       less<int>());
+                                                       std::less<int>());
 
     result.check(ranges_equal(merged, ints_of(many_then, 9)));
 

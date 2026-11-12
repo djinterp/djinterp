@@ -1,7 +1,7 @@
 ################################################################################
-# djinterp [test]                                                  CMakeLists.txt
+# djinterp [test]                                                 CMakeLists.txt
 #
-#   Test leaf for the djinterp/core/util archive_options vocabulary.
+#   Test leaf for the cpp/util/archive archive_options vocabulary.
 #
 #     archive_options_tests   archive_options.hpp vocabulary + what the facade
 #                             actually honours
@@ -20,11 +20,12 @@
 # duplicated the target name (fatal once util/ gains an aggregate) and named a
 # source that does not exist.
 #
-# path: /build/cmake/config/testing/djinterp/core/util/archive_options/
+# path: /build/cmake/config/testing/djinterp/cpp/util/archive_options/
 #       CMakeLists.txt
+# author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.10
 ################################################################################
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util/archive")
 set(_src_dir   "${DJINTERP_SRC_ROOT}/djinterp/cpp/util")
 
 file(GLOB _sections CONFIGURE_DEPENDS
@@ -35,8 +36,10 @@ djinterp_add_test_executable(archive_options_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/archive_options_tests_runner.cpp"
         ${_sections}
-        "${_src_dir}/archive.cpp"
-        "${_src_dir}/compress.cpp"
+        "${_src_dir}/archive/archive.cpp"
+        "${_src_dir}/compress/compress.cpp"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/util"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/util/archive"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/util/compress"
         "${_tests_dir}")

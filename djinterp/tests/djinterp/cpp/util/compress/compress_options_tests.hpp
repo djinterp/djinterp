@@ -44,7 +44,7 @@
 * path:      /tests/djinterp/cpp/util/compress/compress_options_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COMPRESS_OPTIONS_
@@ -52,25 +52,32 @@
 
 // std
 #include <cstddef>
+#include <cstdio>       // std::printf
 #include <type_traits>
 // djinterp
-#include "../../../../../inc/djinterp/cpp/djinterp.hpp"            // NS_DJINTERP etc. - MUST precede the header
-#include "../../../../../inc/djinterp/cpp/util/compress/compress_options.hpp"    // the vocabulary under test
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
+#include "../../../../../inc/djinterp/cpp/util/compress/compress_options.hpp"
+                                    // the vocabulary under test
+// re_std
+#include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // INT32_MIN
 
 
 // D_CO_CHECK
 //   macro: the section suites' assertion primitive.  Evaluates _cond and, if it
-// is false, returns false from the enclosing bool() test function immediately.
-// Unique two-letter prefix (CO == Compress Options) so it never collides with a
-// co-compiled suite's macro (e.g. the compress suite's D_CP_CHECK).
-#define D_CO_CHECK(_cond)                                                       \
+// is false, prints the condition and where it is, then returns false from the
+// enclosing bool() test function.  Unique two-letter prefix (CO == Compress
+// Options) so it never collides with a co-compiled suite's macro (e.g. the
+// compress suite's D_CP_CHECK).
+#define D_CO_CHECK(_cond)                                                      \
     do                                                                         \
-    {                                                                         \
-        if (!(_cond))                                                         \
-        {                                                                     \
-            return false;                                                     \
-        }                                                                     \
-    }                                                                         \
+    {                                                                          \
+        if (!(_cond))                                                          \
+        {                                                                      \
+            std::printf("      [check] FAIL: %s  (%s:%d)\n",                   \
+                        #_cond, __FILE__, __LINE__);                           \
+            return false;                                                      \
+        }                                                                      \
+    }                                                                          \
     while (false)
 
 
@@ -88,8 +95,8 @@ NS_TESTING
 // trivially copyable (memcpy-safe), standard-layout (predictable field order,
 // no reordering), trivially destructible, and non-polymorphic (no vtable).
 // This is exactly the header's "POD-ish" claim; note it does NOT require
-// is_trivial, because the structs have user-provided constructors that install
-// their sentinels.
+// is_trivial, because compress_options has a user-provided constructor that
+// runs d_compress_options_init.
 template<typename _T>
 inline
 bool pod_ish_layout()
@@ -163,7 +170,7 @@ bool tests_compress_options_aggregate_subobjects_defaulted();
 bool tests_compress_options_aggregate_independence();
 bool tests_compress_options_aggregate_value_semantics();
 bool tests_compress_options_aggregate_layout();
-bool tests_compress_options_aggregate_minus_one_sentinels();
+bool tests_compress_options_aggregate_unset_sentinel();
 
 
 NS_END  // testing

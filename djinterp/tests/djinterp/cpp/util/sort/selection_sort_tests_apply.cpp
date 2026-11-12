@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/selection_sort_tests_apply.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -62,7 +62,7 @@ bool tests_selection_sort_apply_ordering_battery()
 {
     verdict result;
 
-    verify_battery_reference(&selection_apply_ints, less<int>(), result);
+    verify_battery_reference(&selection_apply_ints, std::less<int>(), result);
 
     return result.ok();
 }
@@ -104,7 +104,7 @@ bool tests_selection_sort_apply_comparison_count()
             ::djinterp::internal::selection_sort_apply(
                 data.begin(),
                 data.end(),
-                make_counting(less<int>(), &comparisons));
+                make_counting(std::less<int>(), &comparisons));
 
             result.check(comparisons == expected);
         }
@@ -161,7 +161,7 @@ bool tests_selection_sort_apply_swap_bound()
             values = tracked_values(data);
             result.check(is_sorted_range(values.begin(),
                                          values.end(),
-                                         less<int>()));
+                                         std::less<int>()));
         }
     }
 

@@ -64,7 +64,7 @@
 * path:      /inc/djinterp/c/util/archive/archive_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -201,7 +201,9 @@ enum dj_codec_id d_format_default_codec(
 // dj_zip_method
 //   enum: the per-entry ZIP compression method; values are the method codes
 // the ZIP specification puts in the local header, so the mapping to the wire
-// is the identity.
+// is the identity.  `lzma` is named so a reader can report it, but neither the
+// writer nor the reader handles it (D_PACK_STATUS_UNSUPPORTED): ZIP's LZMA is
+// a raw LZMA1 stream, which the codec set does not make.
 enum dj_zip_method
 {
     D_ZIP_METHOD_STORE   = 0,
@@ -226,9 +228,12 @@ enum dj_zip_encryption
 };
 
 // dj_tar_format
-//   enum: the tar flavour a writer emits.  `ustar` is the dependency-free
-// built-in and the portability floor; `pax` is required for a path longer than
-// 255 bytes or a timestamp outside the ustar octal range.
+//   enum: the tar flavour a writer emits.  `pax`, the default, is ustar with a
+// pax extended header for each member whose name, size or timestamp ustar
+// cannot hold, and none for the rest; `ustar` is strict, and refuses such a
+// member with D_PACK_STATUS_UNSUPPORTED.  The built-in writer does not write
+// `gnu` or `v7` (D_PACK_STATUS_UNSUPPORTED); the reader reads all four,
+// GNU long names included.
 enum dj_tar_format
 {
     D_TAR_FORMAT_USTAR = 0,
@@ -444,8 +449,8 @@ struct dj_archive_layout
 //   dj_archive_options CANNOT be densely packed and must not be asserted as
 // though it were.  It mixes int32_t knobs with pointer-bearing text spans, and
 // a span's alignment is the pointer's: a block of five int32_t followed by a
-// dj_pack_text puts the span at offset 24 on LP64, not 20, because four bytes of
-// padding are inserted to align it.  An assertion that pinned the span to 20
+// dj_pack_text puts the span at offset 24 on LP64, not 20, because four bytes
+// of padding are inserted to align it.  An assertion that pinned the span to 20
 // would hold on no data model at all, and one that pinned it to 24 would hold
 // on LP64 and fail on ILP32 -- a per-tier assertion is not an invariant.
 //
@@ -753,6 +758,20 @@ int d_format_detect(
 //
 //   d_archive_extract_entry pulls a single member by name without materialising
 // the rest, for the common case of reading one file out of a container.
+//
+//   STAGED CREATE is the third region, for the writes that need scratch
+// memory the kernel does not allocate:
+//     1. d_archive_stage_size reports how big a stage these members need.
+//        tar.gz needs its tar's size: the tar is written there, then
+//        compressed from there.  ZIP can use a stage to compress each member
+//        once instead of three times.  Every other format reports 0.
+//     2. d_archive_create_staged (buffer) or d_archive_create_staged_to_sink
+//        (sink) writes the container, using the stage.
+//   A stage shorter than the size reported is D_PACK_STATUS_INVALID_ARGUMENT,
+// so D_PACK_STATUS_BUFFER_TOO_SMALL keeps its one meaning: the output.  The
+// unstaged create calls report tar.gz as D_PACK_STATUS_UNSUPPORTED.  Reading
+// needs no stage in any format: a tar.gz is inflated straight through the
+// tar reader.
 
 enum dj_pack_status d_archive_bound(
     enum dj_format_id                _format,
@@ -775,6 +794,34 @@ enum dj_pack_status d_archive_create_to_sink(
     const struct dj_archive_entry*   _entries,
     size_t                           _entry_count,
     const struct dj_archive_options* _options,
+    struct dj_pack_sink              _sink,
+    size_t*                          _out_size
+);
+enum dj_pack_status d_archive_stage_size(
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
+    size_t                           _entry_count,
+    const struct dj_archive_options* _options,
+    size_t*                          _out_stage_size
+);
+enum dj_pack_status d_archive_create_staged(
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
+    size_t                           _entry_count,
+    const struct dj_archive_options* _options,
+    void*                            _stage,
+    size_t                           _stage_capacity,
+    void*                            _out,
+    size_t                           _out_capacity,
+    size_t*                          _out_size
+);
+enum dj_pack_status d_archive_create_staged_to_sink(
+    enum dj_format_id                _format,
+    const struct dj_archive_entry*   _entries,
+    size_t                           _entry_count,
+    const struct dj_archive_options* _options,
+    void*                            _stage,
+    size_t                           _stage_capacity,
     struct dj_pack_sink              _sink,
     size_t*                          _out_size
 );

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_view_tests_terminals.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -24,20 +24,20 @@ bool tests_sort_view_default_terminal_applies()
     std::vector<int> expected;
     std::size_t      i;
 
-    ::djinterp::internal::sort_default_terminal terminal(
-        sort_algorithm::quick);
+    ::djinterp::internal::DSortDefaultTerminal terminal(
+        DSortAlgorithm::quick);
 
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   The terminal drains the upstream view into a vector and orders it
     // with the element type's DEFAULT comparator -- ascending.  Driving
     // apply() directly, rather than through operator|, isolates the terminal
     // from the pipe machinery.
     result.check(ranges_equal(
-        terminal.apply(source | ::djinterp::views::transform(identity_int())),
+        terminal.apply(source | ::djinterp::transform(identity_int())),
         expected));
 
     //   The upstream is not disturbed: the terminal owns the vector it
@@ -56,10 +56,10 @@ bool tests_sort_view_default_terminal_applies()
         expected[i] = -expected[i];
     }
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     result.check(ranges_equal(
-        terminal.apply(source | ::djinterp::views::transform(negate_int())),
+        terminal.apply(source | ::djinterp::transform(negate_int())),
         expected));
     result.check(expected[0] == -9);
     result.check(expected[6] == -1);
@@ -75,33 +75,33 @@ bool tests_sort_view_with_terminal_applies()
     std::vector<int> source;
     std::vector<int> expected;
 
-    ::djinterp::internal::sort_with_terminal<greater<int> > descending(
-        greater<int>(), sort_algorithm::quick);
+    ::djinterp::internal::DSortWithTerminal<std::greater<int> > descending(
+        std::greater<int>(), DSortAlgorithm::quick);
 
-    ::djinterp::internal::sort_with_terminal<less<int> > ascending(
-        less<int>(), sort_algorithm::merge);
+    ::djinterp::internal::DSortWithTerminal<std::less<int> > ascending(
+        std::less<int>(), DSortAlgorithm::merge);
 
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
-    //   sort_with_terminal carries an explicit comparator, stored by value.
+    //   DSortWithTerminal carries an explicit comparator, stored by value.
     result.check(ranges_equal(
-        descending.apply(source | ::djinterp::views::transform(identity_int())),
+        descending.apply(source | ::djinterp::transform(identity_int())),
         expected));
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     result.check(ranges_equal(
-        ascending.apply(source | ::djinterp::views::transform(identity_int())),
+        ascending.apply(source | ::djinterp::transform(identity_int())),
         expected));
 
     //   The terminal is const-callable and reusable: applying it twice must
     // give the same answer, which it would not if apply() consumed or
     // mutated the stored comparator.
     result.check(ranges_equal(
-        ascending.apply(source | ::djinterp::views::transform(identity_int())),
+        ascending.apply(source | ::djinterp::transform(identity_int())),
         expected));
 
     return result.ok();
@@ -116,33 +116,33 @@ bool tests_sort_view_terminal_algorithm_selection()
     std::vector<int> expected;
     std::size_t      i;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
-    //   The stored algorithm is forwarded to sorter<dynamic_algorithm>, so
+    //   The stored algorithm is forwarded to DSorter<DDynamicAlgorithm>, so
     // every enumerator must work and all six must agree on the answer.
     for (i = 0; i < 6; ++i)
     {
         result.check(ranges_equal(
-            ::djinterp::internal::sort_default_terminal(every[i]).apply(
-                source | ::djinterp::views::transform(identity_int())),
+            ::djinterp::internal::DSortDefaultTerminal(every[i]).apply(
+                source | ::djinterp::transform(identity_int())),
             expected));
 
         result.check(ranges_equal(
-            ::djinterp::internal::sort_with_terminal<less<int> >(
-                less<int>(), every[i]).apply(
-                    source | ::djinterp::views::transform(identity_int())),
+            ::djinterp::internal::DSortWithTerminal<std::less<int> >(
+                std::less<int>(), every[i]).apply(
+                    source | ::djinterp::transform(identity_int())),
             expected));
     }
 
@@ -151,9 +151,9 @@ bool tests_sort_view_terminal_algorithm_selection()
     // A caller who casts a bad integer gets their data unsorted rather than
     // a diagnostic, so the behaviour is pinned here.
     result.check(ranges_equal(
-        ::djinterp::internal::sort_default_terminal(
+        ::djinterp::internal::DSortDefaultTerminal(
             unrecognised_view_algorithm()).apply(
-                source | ::djinterp::views::transform(identity_int())),
+                source | ::djinterp::transform(identity_int())),
         view_sample()));
 
     return result.ok();
@@ -167,33 +167,34 @@ bool tests_sort_view_terminal_empty_pipeline()
     std::vector<int> empty;
     std::vector<int> single;
 
-    ::djinterp::internal::sort_default_terminal terminal(
-        sort_algorithm::quick);
+    ::djinterp::internal::DSortDefaultTerminal terminal(
+        DSortAlgorithm::quick);
 
-    ::djinterp::internal::sort_with_terminal<greater<int> > descending(
-        greater<int>(), sort_algorithm::heap);
+    ::djinterp::internal::DSortWithTerminal<std::greater<int> > descending(
+        std::greater<int>(), DSortAlgorithm::heap);
 
     //   A pipeline that yields nothing produces an empty vector, and the
-    // sorter is handed an empty range -- the case that would fault if
+    // DSorter is handed an empty range -- the case that would fault if
     // quicksort's short-range guard were missing.
     result.check(
-        terminal.apply(empty | ::djinterp::views::transform(identity_int())).empty());
+        terminal.apply(empty | ::djinterp::transform(identity_int())).empty());
     result.check(
-        descending.apply(empty | ::djinterp::views::transform(identity_int())).empty());
+        descending.apply(empty |
+                         ::djinterp::transform(identity_int())).empty());
 
     //   One element.
     single.push_back(3);
 
     result.check(
-        terminal.apply(single | ::djinterp::views::transform(identity_int())).size() ==
+        terminal.apply(single | ::djinterp::transform(identity_int())).size() ==
         1);
     result.check(
-        terminal.apply(single | ::djinterp::views::transform(identity_int()))[0] == 3);
+        terminal.apply(single | ::djinterp::transform(identity_int()))[0] == 3);
 
     //   A filter that rejects everything is the same empty case reached
     // through a longer pipeline.
     result.check(terminal.apply(
-        view_sample_storage() | ::djinterp::views::filter(is_negative())).empty());
+        view_sample_storage() | ::djinterp::filter(is_negative())).empty());
 
     return result.ok();
 }
@@ -211,30 +212,30 @@ bool tests_sort_view_terminal_is_recognised()
     // A trailing-return-type body is used precisely so the probe -- which
     // instantiates only the signature -- never touches the body.
     result.check(
-        is_terminal<::djinterp::internal::sort_default_terminal>::value);
+        is_terminal<::djinterp::internal::DSortDefaultTerminal>::value);
     result.check(
         is_terminal<
-            ::djinterp::internal::sort_with_terminal<less<int> > >::value);
+            ::djinterp::internal::DSortWithTerminal<std::less<int> > >::value);
     result.check(
         is_terminal<
-            ::djinterp::internal::sort_with_terminal<
-                greater<int> > >::value);
+            ::djinterp::internal::DSortWithTerminal<
+                std::greater<int> > >::value);
 
     //   And the factories return exactly those terminal types.
     result.check((std::is_same<
         decltype(sorted()),
-        ::djinterp::internal::sort_default_terminal>::value));
+        ::djinterp::internal::DSortDefaultTerminal>::value));
     result.check((std::is_same<
-        decltype(sorted(sort_algorithm::heap)),
-        ::djinterp::internal::sort_default_terminal>::value));
+        decltype(sorted(DSortAlgorithm::heap)),
+        ::djinterp::internal::DSortDefaultTerminal>::value));
     result.check((std::is_same<
-        decltype(sorted_by(less<int>())),
-        ::djinterp::internal::sort_with_terminal<less<int> > >::value));
+        decltype(sorted_by(std::less<int>())),
+        ::djinterp::internal::DSortWithTerminal<std::less<int> > >::value));
 
     //   A type that is not a terminal is rejected, so the trait is
     // discriminating rather than vacuously true.
     result.check(!is_terminal<int>::value);
-    result.check(!is_terminal<less<int> >::value);
+    result.check(!is_terminal<std::less<int> >::value);
 
     return result.ok();
 }

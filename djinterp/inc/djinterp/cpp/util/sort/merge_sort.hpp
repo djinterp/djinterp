@@ -45,7 +45,7 @@
 * path:      /inc/djinterp/cpp/util/sort/merge_sort.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_SORT_MERGE_SORT_HPP
@@ -205,9 +205,9 @@ void merge_sort(
     typedef typename std::iterator_traits<RandomIterator>::value_type
         value_type;
 
-    merge_sort(_first,
-               _last,
-               std::less<value_type>());
+    ::djinterp::merge_sort(_first,
+                           _last,
+                           std::less<value_type>());
 
     return;
 }
@@ -268,9 +268,9 @@ void merge_sort_ordered(
 {
     internal::DOrderComparator<Comparator> wrapped(_comparator, _order);
 
-    merge_sort(_first,
-               _last,
-               wrapped);
+    ::djinterp::merge_sort(_first,
+                           _last,
+                           wrapped);
 
     return;
 }

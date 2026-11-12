@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_entry.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -27,64 +27,67 @@ bool tests_sort_dispatch_entry_compile_time_forms()
     expected_ascending = shape_random(64);
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
 
     expected_descending = shape_random(64);
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
-    //   Form A1: sort<tag>(first, last, comp).
+    //   Form A1: sort(tag(), first, last, comp).
     data = shape_random(64);
-    sort<merge_sort_tag>(data.begin(), data.end(), greater<int>());
+    sort(DMergeSortTag(), data.begin(), data.end(), std::greater<int>());
     result.check(data == expected_descending);
 
-    //   Form A2: sort<tag>(first, last) -- default comparator.
+    //   Form A2: sort(tag(), first, last) -- default comparator.
     data = shape_random(64);
-    sort<heap_sort_tag>(data.begin(), data.end());
+    sort(DHeapSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
 
-    //   Form A3: sort<tag>(first, last, comp, order).
+    //   Form A3: sort(tag(), first, last, comp, order).
     data = shape_random(64);
-    sort<insertion_sort_tag>(data.begin(),
-                             data.end(),
-                             less<int>(),
-                             sort_order::descending);
+    sort(DInsertionSortTag(),
+         data.begin(),
+         data.end(),
+         std::less<int>(),
+         sort_order::descending);
     result.check(data == expected_descending);
 
     data = shape_random(64);
-    sort<insertion_sort_tag>(data.begin(),
-                             data.end(),
-                             less<int>(),
-                             sort_order::ascending);
+    sort(DInsertionSortTag(),
+         data.begin(),
+         data.end(),
+         std::less<int>(),
+         sort_order::ascending);
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    sort<insertion_sort_tag>(data.begin(),
-                             data.end(),
-                             less<int>(),
-                             sort_order::none);
+    sort(DInsertionSortTag(),
+         data.begin(),
+         data.end(),
+         std::less<int>(),
+         sort_order::none);
     result.check(data == expected_ascending);
 
     //   All six tags reach an algorithm through the free compile-time form.
     data = shape_random(64);
-    sort<bubble_sort_tag>(data.begin(), data.end());
+    sort(DBubbleSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    sort<selection_sort_tag>(data.begin(), data.end());
+    sort(DSelectionSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    sort<insertion_sort_tag>(data.begin(), data.end());
+    sort(DInsertionSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    sort<merge_sort_tag>(data.begin(), data.end());
+    sort(DMergeSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    sort<quick_sort_tag>(data.begin(), data.end());
+    sort(DQuickSortTag(), data.begin(), data.end());
     result.check(data == expected_ascending);
 
     return result.ok();
@@ -101,26 +104,26 @@ bool tests_sort_dispatch_entry_runtime_forms()
     std::size_t      comparisons;
     std::size_t      i;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
     expected_ascending = shape_random(64);
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
 
     expected_descending = shape_random(64);
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
-    //   Form B2: sort(algorithm, first, last).  The leading sort_algorithm
+    //   Form B2: sort(algorithm, first, last).  The leading DSortAlgorithm
     // is what tells the overload set to take the run-time family; because
     // the enumeration is scoped there is no conversion by which this could
     // be mistaken for the compile-time sort(first, last, comp).
@@ -135,7 +138,7 @@ bool tests_sort_dispatch_entry_runtime_forms()
     for (i = 0; i < 6; ++i)
     {
         data = shape_random(64);
-        sort(every[i], data.begin(), data.end(), greater<int>());
+        sort(every[i], data.begin(), data.end(), std::greater<int>());
         result.check(data == expected_descending);
     }
 
@@ -146,7 +149,7 @@ bool tests_sort_dispatch_entry_runtime_forms()
         sort(every[i],
              data.begin(),
              data.end(),
-             less<int>(),
+             std::less<int>(),
              sort_order::descending);
         result.check(data == expected_descending);
 
@@ -154,7 +157,7 @@ bool tests_sort_dispatch_entry_runtime_forms()
         sort(every[i],
              data.begin(),
              data.end(),
-             less<int>(),
+             std::less<int>(),
              sort_order::ascending);
         result.check(data == expected_ascending);
     }
@@ -167,7 +170,7 @@ bool tests_sort_dispatch_entry_runtime_forms()
     sort(unrecognised_algorithm(),
          data.begin(),
          data.end(),
-         make_counting(less<int>(), &comparisons));
+         make_counting(std::less<int>(), &comparisons));
 
     result.check(ranges_equal(data, shape_random(64)));
     result.check(comparisons == 0);
@@ -180,7 +183,7 @@ bool tests_sort_dispatch_entry_runtime_forms()
     sort(unrecognised_algorithm(),
          data.begin(),
          data.end(),
-         less<int>(),
+         std::less<int>(),
          sort_order::descending);
     result.check(ranges_equal(data, shape_random(64)));
 
@@ -199,7 +202,7 @@ bool tests_sort_dispatch_entry_default_tag()
     std::size_t      foreign_comparisons;
 
     //   sort(first, last, comp) with no explicit tag must be exactly
-    // sort<default_sort_tag>(first, last, comp).  Identical output is not
+    // sort(DDefaultSortTag(), first, last, comp).  Identical output is not
     // enough to show that -- every correct sort of ints produces identical
     // output -- so the comparison COUNT is checked too.  Two different
     // algorithms would essentially never agree on it.
@@ -217,12 +220,12 @@ bool tests_sort_dispatch_entry_default_tag()
     // WHICH sort, it does not supply a tag.
     ::djinterp::sort(defaulted.begin(),
                      defaulted.end(),
-                     make_counting(less<int>(), &defaulted_comparisons));
+                     make_counting(std::less<int>(), &defaulted_comparisons));
 
-    sort<default_sort_tag>(
-        named.begin(),
-        named.end(),
-        make_counting(less<int>(), &named_comparisons));
+    sort(DDefaultSortTag(),
+         named.begin(),
+         named.end(),
+         make_counting(std::less<int>(), &named_comparisons));
 
     result.check(ranges_equal(defaulted, named));
     result.check(defaulted_comparisons == named_comparisons);
@@ -232,10 +235,10 @@ bool tests_sort_dispatch_entry_default_tag()
     // same input disagrees.
     named = shape_random(256);
 
-    sort<bubble_sort_tag>(
-        named.begin(),
-        named.end(),
-        make_counting(less<int>(), &foreign_comparisons));
+    sort(DBubbleSortTag(),
+         named.begin(),
+         named.end(),
+         make_counting(std::less<int>(), &foreign_comparisons));
 
     result.check(foreign_comparisons != defaulted_comparisons);
 
@@ -244,7 +247,7 @@ bool tests_sort_dispatch_entry_default_tag()
     named     = shape_random(64);
 
     ::djinterp::sort(defaulted.begin(), defaulted.end());
-    sort<default_sort_tag>(named.begin(), named.end());
+    sort(DDefaultSortTag(), named.begin(), named.end());
 
     result.check(ranges_equal(defaulted, named));
 
@@ -253,17 +256,18 @@ bool tests_sort_dispatch_entry_default_tag()
 
     ::djinterp::sort(defaulted.begin(),
                      defaulted.end(),
-                     less<int>(),
+                     std::less<int>(),
                      sort_order::descending);
-    sort<default_sort_tag>(named.begin(),
-                           named.end(),
-                           less<int>(),
-                           sort_order::descending);
+    sort(DDefaultSortTag(),
+         named.begin(),
+         named.end(),
+         std::less<int>(),
+         sort_order::descending);
 
     result.check(ranges_equal(defaulted, named));
     result.check(is_sorted_range(defaulted.begin(),
                                  defaulted.end(),
-                                 greater<int>()));
+                                 std::greater<int>()));
 
     return result.ok();
 }
@@ -275,52 +279,52 @@ bool tests_sort_dispatch_entry_battery()
     verdict result;
 
     //   The compile-time free form, every tag, over the whole corpus.
-    verify_battery_reference(&free_sort_ints<bubble_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&free_sort_ints<DBubbleSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&free_sort_ints<selection_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&free_sort_ints<DSelectionSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&free_sort_ints<insertion_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&free_sort_ints<DInsertionSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&free_sort_ints<merge_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&free_sort_ints<DMergeSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&free_sort_ints<quick_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&free_sort_ints<DQuickSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&free_sort_ints<heap_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&free_sort_ints<DHeapSortTag>,
+                             std::less<int>(),
                              result);
 
-    //   The run-time free form and the dynamic sorter, likewise.  These go
+    //   The run-time free form and the dynamic DSorter, likewise.  These go
     // through the functor adapters, because the selector is a value rather
     // than a template argument.
     verify_battery_reference(
-        free_runtime_sort_adapter(sort_algorithm::bubble),
-        less<int>(),
+        free_runtime_sort_adapter(DSortAlgorithm::bubble),
+        std::less<int>(),
         result);
     verify_battery_reference(
-        free_runtime_sort_adapter(sort_algorithm::merge),
-        less<int>(),
+        free_runtime_sort_adapter(DSortAlgorithm::merge),
+        std::less<int>(),
         result);
     verify_battery_reference(
-        free_runtime_sort_adapter(sort_algorithm::heap),
-        less<int>(),
+        free_runtime_sort_adapter(DSortAlgorithm::heap),
+        std::less<int>(),
         result);
 
     verify_battery_reference(
-        dynamic_sorter_adapter(sort_algorithm::selection),
-        less<int>(),
+        dynamic_sorter_adapter(DSortAlgorithm::selection),
+        std::less<int>(),
         result);
     verify_battery_reference(
-        dynamic_sorter_adapter(sort_algorithm::insertion),
-        less<int>(),
+        dynamic_sorter_adapter(DSortAlgorithm::insertion),
+        std::less<int>(),
         result);
     verify_battery_reference(
-        dynamic_sorter_adapter(sort_algorithm::quick),
-        less<int>(),
+        dynamic_sorter_adapter(DSortAlgorithm::quick),
+        std::less<int>(),
         result);
 
     return result.ok();
@@ -336,30 +340,30 @@ bool tests_sort_dispatch_entry_pointer_iterators()
     // raw pointers as well as over vector iterators.  This is the check that
     // would catch a stray dependence on a class-type iterator anywhere in
     // the chain from sort() down to the algorithm.
-    verify_battery_raw(&free_sort_ints_raw<bubble_sort_tag>,
-                       less<int>(),
+    verify_battery_raw(&free_sort_ints_raw<DBubbleSortTag>,
+                       std::less<int>(),
                        result);
-    verify_battery_raw(&free_sort_ints_raw<selection_sort_tag>,
-                       less<int>(),
+    verify_battery_raw(&free_sort_ints_raw<DSelectionSortTag>,
+                       std::less<int>(),
                        result);
-    verify_battery_raw(&free_sort_ints_raw<insertion_sort_tag>,
-                       less<int>(),
+    verify_battery_raw(&free_sort_ints_raw<DInsertionSortTag>,
+                       std::less<int>(),
                        result);
-    verify_battery_raw(&free_sort_ints_raw<merge_sort_tag>,
-                       less<int>(),
+    verify_battery_raw(&free_sort_ints_raw<DMergeSortTag>,
+                       std::less<int>(),
                        result);
-    verify_battery_raw(&free_sort_ints_raw<quick_sort_tag>,
-                       less<int>(),
+    verify_battery_raw(&free_sort_ints_raw<DQuickSortTag>,
+                       std::less<int>(),
                        result);
-    verify_battery_raw(&free_sort_ints_raw<heap_sort_tag>,
-                       less<int>(),
+    verify_battery_raw(&free_sort_ints_raw<DHeapSortTag>,
+                       std::less<int>(),
                        result);
 
-    verify_battery_raw(free_runtime_sort_adapter(sort_algorithm::quick),
-                       less<int>(),
+    verify_battery_raw(free_runtime_sort_adapter(DSortAlgorithm::quick),
+                       std::less<int>(),
                        result);
-    verify_battery_raw(dynamic_sorter_adapter(sort_algorithm::merge),
-                       less<int>(),
+    verify_battery_raw(dynamic_sorter_adapter(DSortAlgorithm::merge),
+                       std::less<int>(),
                        result);
 
     return result.ok();

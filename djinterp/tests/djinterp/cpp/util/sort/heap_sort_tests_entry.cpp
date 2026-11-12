@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/heap_sort_tests_entry.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -23,7 +23,7 @@ bool tests_heap_sort_entry_default()
     std::vector<int> through_entry;
     std::vector<int> through_apply;
 
-    verify_battery_reference(&heap_sort_ints, less<int>(), result);
+    verify_battery_reference(&heap_sort_ints, std::less<int>(), result);
 
     through_entry = shape_random(64);
     through_apply = through_entry;
@@ -44,11 +44,11 @@ bool tests_heap_sort_entry_comparator()
     std::vector<int> data;
     std::size_t      comparisons;
 
-    //   Under greater<int> the "max-heap" is a min-heap on the values, so
+    //   Under std::greater<int> the "max-heap" is a min-heap on the values, so
     // the descending battery also proves the heap logic is expressed purely
     // through the comparator rather than through a baked-in ordering.
     verify_battery_reference(&heap_sort_ints_descending,
-                             greater<int>(),
+                             std::greater<int>(),
                              result);
 
     data        = shape_random(48);
@@ -56,10 +56,10 @@ bool tests_heap_sort_entry_comparator()
 
     heap_sort(data.begin(),
               data.end(),
-              make_counting(less<int>(), &comparisons));
+              make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons > 0);
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }
@@ -75,7 +75,7 @@ bool tests_heap_sort_entry_ordered()
     std::vector<int> expected_ascending;
     std::vector<int> expected_descending;
 
-    //   heap_sort_ordered takes a real sort_order, so unlike the bubble,
+    //   heap_sort_ordered takes a real sort_order::value, so unlike the bubble,
     // selection and insertion entry points it can simply be called.
     ascending_out       = shape_random(64);
     descending_out      = ascending_out;
@@ -85,26 +85,26 @@ bool tests_heap_sort_entry_ordered()
 
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
     heap_sort_ordered(ascending_out.begin(),
                       ascending_out.end(),
-                      less<int>(),
+                      std::less<int>(),
                       sort_order::ascending);
 
     heap_sort_ordered(descending_out.begin(),
                       descending_out.end(),
-                      less<int>(),
+                      std::less<int>(),
                       sort_order::descending);
 
     //   sort_order::none is not "leave it alone": DOrderComparator special
     // cases descending only, so none behaves exactly as ascending does.
     heap_sort_ordered(none_out.begin(),
                       none_out.end(),
-                      less<int>(),
+                      std::less<int>(),
                       sort_order::none);
 
     result.check(ranges_equal(ascending_out, expected_ascending));
@@ -125,7 +125,7 @@ bool tests_heap_sort_entry_instability()
     verdict                  result;
     std::vector<DKeyedValue> witness;
 
-    //   heap_sort_traits and heap_sort_tag both claim is_stable == false.
+    //   heap_sort_traits and DHeapSortTag both claim is_stable == false.
     // The claim has a concrete witness:
     //
     //     input   (2,0) (2,1) (1,2)
@@ -161,7 +161,7 @@ bool tests_heap_sort_entry_pointer_iterators()
 {
     verdict result;
 
-    verify_battery_raw(&heap_sort_ints_raw, less<int>(), result);
+    verify_battery_raw(&heap_sort_ints_raw, std::less<int>(), result);
 
     return result.ok();
 }

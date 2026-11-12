@@ -6,22 +6,23 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     test_heap_sort_traits.cpp   heap_sort_traits -- the compile-time
+*     heap_sort_tests_traits.cpp  heap_sort_traits -- the compile-time
 *                                 property block
-*     test_heap_sort_sift.cpp     heap_parent / heap_left_child /
-*                                 heap_sift_down -- the index arithmetic and
-*                                 every exit from the sift loop
-*     test_heap_sort_apply.cpp    internal::heap_sort_apply -- heapify then
+*     heap_sort_tests_sift.cpp    heap_parent / heap_left_child /
+*                                 heap_larger_child / heap_sift_down -- the
+*                                 index arithmetic, the tie rule, every exit
+*                                 from the sift loop, and agreement with a
+*                                 swapping sift
+*     heap_sort_tests_apply.cpp   internal::heap_sort_apply -- heapify then
 *                                 extract
-*     test_heap_sort_cpp98.cpp    internal::heap_sort_apply_98
-*     test_heap_sort_entry.cpp    the public heap_sort / heap_sort_ordered
+*     heap_sort_tests_entry.cpp   the public heap_sort / heap_sort_ordered
 *                                 entry points
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/heap_sort_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_HEAP_SORT_TESTS_
@@ -35,9 +36,10 @@
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/util/sort/heap_sort.hpp"
 #endif  // !DTEST_SPEC_MODE
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
 #endif  // DTEST_SPEC_MODE
                                                        // the traits cross-check
 // djinterp [test]
@@ -77,7 +79,7 @@ void heap_sift_ints(
     ::djinterp::internal::heap_sift_down(_first,
                                          _size,
                                          _root,
-                                         less<int>());
+                                         std::less<int>());
 
     return;
 }
@@ -92,41 +94,7 @@ void heap_apply_ints(
 {
     ::djinterp::internal::heap_sort_apply(_first,
                                           _last,
-                                          less<int>());
-
-    return;
-}
-
-// heap_apply_98_ints
-//   helper: the C++98 hint-parameter driver over vector<int> iterators.
-inline
-void heap_apply_98_ints(
-    std::vector<int>::iterator _first,
-    std::vector<int>::iterator _last
-)
-{
-    ::djinterp::internal::heap_sort_apply_98(
-        _first,
-        _last,
-        less<int>(),
-        static_cast<std::ptrdiff_t*>(nullptr));
-
-    return;
-}
-
-// heap_apply_98_keyed
-//   helper: the C++98 driver under the key-only comparator.
-inline
-void heap_apply_98_keyed(
-    std::vector<DKeyedValue>::iterator _first,
-    std::vector<DKeyedValue>::iterator _last
-)
-{
-    ::djinterp::internal::heap_sort_apply_98(
-        _first,
-        _last,
-        keyed_value_less(),
-        static_cast<std::ptrdiff_t*>(nullptr));
+                                          std::less<int>());
 
     return;
 }
@@ -145,14 +113,14 @@ void heap_sort_ints(
 }
 
 // heap_sort_ints_descending
-//   helper: the three-argument public entry point under greater<int>.
+//   helper: the three-argument public entry point under std::greater<int>.
 inline
 void heap_sort_ints_descending(
     std::vector<int>::iterator _first,
     std::vector<int>::iterator _last
 )
 {
-    heap_sort(_first, _last, greater<int>());
+    heap_sort(_first, _last, std::greater<int>());
 
     return;
 }
@@ -186,7 +154,7 @@ void heap_sort_keyed(
 
 // heap_sort_keyed_ordered_ascending
 //   helper: heap_sort_ordered with sort_order::ascending.  Heap sort's
-// ordered entry point takes a real sort_order, so it needs no probe.
+// ordered entry point takes a real sort_order::value, so it needs no probe.
 inline
 void heap_sort_keyed_ordered_ascending(
     std::vector<DKeyedValue>::iterator _first,
@@ -212,21 +180,19 @@ void heap_sort_keyed_ordered_ascending(
 // traits -- heap_sort_traits
 bool tests_heap_sort_traits_values();
 
-// sift -- heap_parent / heap_left_child / heap_sift_down
+// sift -- heap_parent / heap_left_child / heap_larger_child / heap_sift_down
 bool tests_heap_sort_index_arithmetic();
 bool tests_heap_sort_sift_down_leaf_exit();
 bool tests_heap_sort_sift_down_missing_right_child();
 bool tests_heap_sort_sift_down_already_satisfied();
 bool tests_heap_sort_sift_down_cascade();
+bool tests_heap_sort_larger_child_ties();
+bool tests_heap_sort_sift_down_matches_swapping_sift();
 
 // apply -- internal::heap_sort_apply
 bool tests_heap_sort_apply_degenerate_ranges();
 bool tests_heap_sort_apply_ordering_battery();
 bool tests_heap_sort_apply_heap_invariant();
-
-// cpp98 -- internal::heap_sort_apply_98
-bool tests_heap_sort_cpp98_ordering_battery();
-bool tests_heap_sort_cpp98_parity_with_apply();
 
 // entry -- heap_sort / heap_sort_ordered
 bool tests_heap_sort_entry_comparator();
@@ -239,6 +205,143 @@ bool tests_heap_sort_entry_pointer_iterators();
 
 #ifdef DTEST_SPEC_MODE
 
+// heap_sort_traits_block
+//   provider: the "traits" block of heap_sort_spec.
+inline
+dt::block_spec heap_sort_traits_block()
+{
+    return dt::block_spec
+    {
+        "traits",
+        "heap_sort_traits",
+        {
+            {
+                "heap_sort_traits_values",
+                "values",
+                &tests_heap_sort_traits_values
+            }
+        }
+    };
+}
+
+// heap_sort_sift_block
+//   provider: the "sift" block of heap_sort_spec.
+inline
+dt::block_spec heap_sort_sift_block()
+{
+    return dt::block_spec
+    {
+        "sift",
+        "heap_parent / heap_left_child / heap_larger_child / "
+        "heap_sift_down",
+        {
+            {
+                "heap_sort_index_arithmetic",
+                "index arithmetic",
+                &tests_heap_sort_index_arithmetic
+            },
+            {
+                "heap_sort_sift_down_leaf_exit",
+                "down leaf exit",
+                &tests_heap_sort_sift_down_leaf_exit
+            },
+            {
+                "heap_sort_sift_down_missing_right_child",
+                "down missing right child",
+                &tests_heap_sort_sift_down_missing_right_child
+            },
+            {
+                "heap_sort_sift_down_already_satisfied",
+                "down already satisfied",
+                &tests_heap_sort_sift_down_already_satisfied
+            },
+            {
+                "heap_sort_sift_down_cascade",
+                "down cascade",
+                &tests_heap_sort_sift_down_cascade
+            },
+            {
+                "heap_sort_larger_child_ties",
+                "larger child: ties",
+                &tests_heap_sort_larger_child_ties
+            },
+            {
+                "heap_sort_sift_down_matches_swapping_sift",
+                "matches a swapping sift",
+                &tests_heap_sort_sift_down_matches_swapping_sift
+            }
+        }
+    };
+}
+
+// heap_sort_apply_block
+//   provider: the "apply" block of heap_sort_spec.
+inline
+dt::block_spec heap_sort_apply_block()
+{
+    return dt::block_spec
+    {
+        "apply",
+        "internal::heap_sort_apply",
+        {
+            {
+                "heap_sort_apply_degenerate_ranges",
+                "degenerate ranges",
+                &tests_heap_sort_apply_degenerate_ranges
+            },
+            {
+                "heap_sort_apply_ordering_battery",
+                "ordering battery",
+                &tests_heap_sort_apply_ordering_battery
+            },
+            {
+                "heap_sort_apply_heap_invariant",
+                "heap invariant",
+                &tests_heap_sort_apply_heap_invariant
+            }
+        }
+    };
+}
+
+// heap_sort_entry_block
+//   provider: the "entry" block of heap_sort_spec.
+inline
+dt::block_spec heap_sort_entry_block()
+{
+    return dt::block_spec
+    {
+        "entry",
+        "heap_sort / heap_sort_ordered",
+        {
+            {
+                "heap_sort_entry_comparator",
+                "comparator",
+                &tests_heap_sort_entry_comparator
+            },
+            {
+                "heap_sort_entry_default",
+                "default",
+                &tests_heap_sort_entry_default
+            },
+            {
+                "heap_sort_entry_ordered",
+                "ordered",
+                &tests_heap_sort_entry_ordered
+            },
+            {
+                "heap_sort_entry_instability",
+                "instability",
+                &tests_heap_sort_entry_instability
+            },
+            {
+                "heap_sort_entry_pointer_iterators",
+                "pointer iterators",
+                &tests_heap_sort_entry_pointer_iterators
+            }
+        }
+    };
+}
+
 // heap_sort_spec
 //   provider: the module spec for this suite, handed to run_module by
 // heap_sort_tests_runner.cpp.
@@ -248,125 +351,14 @@ dt::module_spec heap_sort_spec()
     return dt::module_spec
     {
         "heap_sort.hpp",
-        "heap sort: the implicit-heap index arithmetic, sift-down, the "
-        "two-phase driver, the C++98 variant, the published traits, and the "
-        "public entry points.",
+        "heap sort: the implicit-heap index arithmetic, the hole-moving "
+        "sift-down and its tie rule, the two-phase driver, the published "
+        "traits, and the public entry points.",
         {
-            dt::block_spec
-            {
-                "traits",
-                "heap_sort_traits",
-                {
-                    {
-                        "heap_sort_traits_values",
-                        "values",
-                        &tests_heap_sort_traits_values
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "sift",
-                "heap_parent / heap_left_child / heap_sift_down",
-                {
-                    {
-                        "heap_sort_index_arithmetic",
-                        "index arithmetic",
-                        &tests_heap_sort_index_arithmetic
-                    },
-                    {
-                        "heap_sort_sift_down_leaf_exit",
-                        "down leaf exit",
-                        &tests_heap_sort_sift_down_leaf_exit
-                    },
-                    {
-                        "heap_sort_sift_down_missing_right_child",
-                        "down missing right child",
-                        &tests_heap_sort_sift_down_missing_right_child
-                    },
-                    {
-                        "heap_sort_sift_down_already_satisfied",
-                        "down already satisfied",
-                        &tests_heap_sort_sift_down_already_satisfied
-                    },
-                    {
-                        "heap_sort_sift_down_cascade",
-                        "down cascade",
-                        &tests_heap_sort_sift_down_cascade
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "apply",
-                "internal::heap_sort_apply",
-                {
-                    {
-                        "heap_sort_apply_degenerate_ranges",
-                        "degenerate ranges",
-                        &tests_heap_sort_apply_degenerate_ranges
-                    },
-                    {
-                        "heap_sort_apply_ordering_battery",
-                        "ordering battery",
-                        &tests_heap_sort_apply_ordering_battery
-                    },
-                    {
-                        "heap_sort_apply_heap_invariant",
-                        "heap invariant",
-                        &tests_heap_sort_apply_heap_invariant
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "cpp98",
-                "internal::heap_sort_apply_98",
-                {
-                    {
-                        "heap_sort_cpp98_ordering_battery",
-                        "ordering battery",
-                        &tests_heap_sort_cpp98_ordering_battery
-                    },
-                    {
-                        "heap_sort_cpp98_parity_with_apply",
-                        "parity with apply",
-                        &tests_heap_sort_cpp98_parity_with_apply
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "entry",
-                "heap_sort / heap_sort_ordered",
-                {
-                    {
-                        "heap_sort_entry_comparator",
-                        "comparator",
-                        &tests_heap_sort_entry_comparator
-                    },
-                    {
-                        "heap_sort_entry_default",
-                        "default",
-                        &tests_heap_sort_entry_default
-                    },
-                    {
-                        "heap_sort_entry_ordered",
-                        "ordered",
-                        &tests_heap_sort_entry_ordered
-                    },
-                    {
-                        "heap_sort_entry_instability",
-                        "instability",
-                        &tests_heap_sort_entry_instability
-                    },
-                    {
-                        "heap_sort_entry_pointer_iterators",
-                        "pointer iterators",
-                        &tests_heap_sort_entry_pointer_iterators
-                    }
-                }
-            }
+            heap_sort_traits_block(),
+            heap_sort_sift_block(),
+            heap_sort_apply_block(),
+            heap_sort_entry_block()
         }
     };
 }

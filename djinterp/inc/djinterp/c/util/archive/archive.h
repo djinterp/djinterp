@@ -55,7 +55,7 @@
 * path:      /inc/djinterp/c/util/archive/archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -92,7 +92,7 @@ VII.  ITERATION                 (entries, formats)
 // djinterp
 #include "../sink_common.h"          // dj_pack_text/bytes_from_* -- section I
 #include "./archive_common.h"       // the kernel this is notation over
-#include "../compress/compress.h"             // D_PACK_OK / D_PACK_TRY / D_CODEC
+#include "../compress/compress.h"            // D_PACK_OK / D_PACK_TRY / D_CODEC
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 
@@ -170,7 +170,8 @@ VII.  ITERATION                 (entries, formats)
     d_pack_text_from_span((_lit), D_INTERNAL_PACK_LITERAL_LEN(_lit))
 
 // D_TEXT_SPAN
-//   macro: a dj_pack_text over an explicit pointer and length, as an expression.
+//   macro: a dj_pack_text over an explicit pointer and length, as an
+// expression.
 #define D_TEXT_SPAN(_p, _n)                                                    \
     d_pack_text_from_span((_p), (size_t)(_n))
 
@@ -188,7 +189,8 @@ VII.  ITERATION                 (entries, formats)
     d_pack_bytes_from_span((_p), (size_t)(_n))
 
 // D_BYTES_LITERAL
-//   macro: a dj_pack_bytes over a string literal's characters, as an expression.
+//   macro: a dj_pack_bytes over a string literal's characters, as an
+// expression.
 #define D_BYTES_LITERAL(_lit)                                                  \
     d_pack_bytes_from_span((_lit), D_INTERNAL_PACK_LITERAL_LEN(_lit))
 
@@ -199,8 +201,8 @@ VII.  ITERATION                 (entries, formats)
     d_pack_bytes_from_span((const void*)0, (size_t)0)
 
 // D_BYTES_ARRAY
-//   macro: a dj_pack_bytes over the whole of array _arr, size taken from its own
-// declaration.  Passing a pointer where an array was meant is caught by
+//   macro: a dj_pack_bytes over the whole of array _arr, size taken from its
+// own declaration.  Passing a pointer where an array was meant is caught by
 // D_ARRAY_STATIC_SIZE rather than silently yielding a size of 1.
 #define D_BYTES_ARRAY(_arr)                                                    \
     d_pack_bytes_from_span((_arr), D_ARRAY_STATIC_SIZE(_arr))
@@ -273,7 +275,7 @@ VII.  ITERATION                 (entries, formats)
 // D_ARCHIVE_ENTRY_FULL
 //   macro: the general entry builder, as an expression.
 #define D_ARCHIVE_ENTRY_FULL(_name, _data, _size, _is_dir, _mode, _mtime)      \
-    ((struct dj_archive_entry)D_ARCHIVE_ENTRY_FULL_INIT(                        \
+    ((struct dj_archive_entry)D_ARCHIVE_ENTRY_FULL_INIT(                       \
         (_name), (_data), (_size), (_is_dir), (_mode), (_mtime)))
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
@@ -519,7 +521,9 @@ d_internal_format_from_any(
 // first one's output has to live somewhere.  Making the caller name that place
 // is what lets the C face support tar_gz at all -- the alternative was to have
 // only the C++ face support it, which the parity oracle reports as a
-// divergence between the two faces, because it is one.
+// divergence between the two faces, because it is one.  A _stage shorter than
+// D_ARCHIVE_MEASURE_TAR_GZ reports is D_PACK_STATUS_INVALID_ARGUMENT; a short
+// _out is D_PACK_STATUS_BUFFER_TOO_SMALL with the requirement in *_out_size.
 #define D_ARCHIVE_CREATE_TAR_GZ(_list, _stage, _out, _out_size)                \
     d_archive_create_staged(D_FORMAT_ID_TAR_GZ,                                \
                             (_list), D_ARRAY_STATIC_SIZE(_list), NULL,         \
@@ -528,11 +532,11 @@ d_internal_format_from_any(
 
 // D_ARCHIVE_MEASURE_TAR_GZ
 //   macro: how many bytes the intermediate tar will need, so a caller can size
-// the staging buffer before committing to one.
+// the staging buffer before committing to one.  Exact, and runs no codec.
 #define D_ARCHIVE_MEASURE_TAR_GZ(_list, _out_size)                             \
-    d_archive_create_staged(D_FORMAT_ID_TAR_GZ,                                \
-                            (_list), D_ARRAY_STATIC_SIZE(_list), NULL,         \
-                            NULL, (size_t)0, NULL, (size_t)0, (_out_size))
+    d_archive_stage_size(D_FORMAT_ID_TAR_GZ,                                   \
+                         (_list), D_ARRAY_STATIC_SIZE(_list), NULL,            \
+                         (_out_size))
 
 // D_ARCHIVE_MEASURE_EXTRACT
 //   macro: fill _layout with the entry count and arena size _in would require.
@@ -583,7 +587,7 @@ d_internal_format_from_any(
 // D_FOR_EACH_FORMAT
 //   macro: iterate _var over every format the framework names.
 #define D_FOR_EACH_FORMAT(_var)                                                \
-    for (enum dj_format_id _var = D_FORMAT_ID_ZIP;                              \
+    for (enum dj_format_id _var = D_FORMAT_ID_ZIP;                             \
          (int)_var < D_FORMAT_ID_COUNT;                                        \
          _var = (enum dj_format_id)((int)_var + 1))
 
@@ -604,7 +608,7 @@ d_internal_format_from_any(
 // extract call filled in.  Reads the count from the layout rather than from a
 // separate variable, which is where a hand-written loop drifts.
 #define D_FOR_EACH_ENTRY(_var, _entries, _layout)                              \
-    for (const struct dj_archive_entry* _var = (_entries);                      \
+    for (const struct dj_archive_entry* _var = (_entries);                     \
          _var < ((_entries) + (_layout)->entry_count);                         \
          ++_var)
 

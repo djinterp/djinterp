@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/selection_sort_tests_entry.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -23,7 +23,7 @@ bool tests_selection_sort_entry_default()
     std::vector<int> through_entry;
     std::vector<int> through_apply;
 
-    verify_battery_reference(&selection_sort_ints, less<int>(), result);
+    verify_battery_reference(&selection_sort_ints, std::less<int>(), result);
 
     through_entry = shape_random(64);
     through_apply = through_entry;
@@ -45,7 +45,7 @@ bool tests_selection_sort_entry_comparator()
     std::size_t      comparisons;
 
     verify_battery_reference(&selection_sort_ints_descending,
-                             greater<int>(),
+                             std::greater<int>(),
                              result);
 
     data        = shape_random(48);
@@ -53,10 +53,10 @@ bool tests_selection_sort_entry_comparator()
 
     selection_sort(data.begin(),
                    data.end(),
-                   make_counting(less<int>(), &comparisons));
+                   make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons == ((48 * 47) / 2));
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }
@@ -74,12 +74,11 @@ bool tests_selection_sort_entry_ordered()
 
     typedef std::vector<int>::iterator iterator_type;
 
-    //   DEFECT: selection_sort_ordered declares its fourth parameter as
-    // `bool` yet hands it to internal::DOrderComparator, which takes a
-    // sort_order.  The template cannot be instantiated with a sort_order
-    // argument, so this check is expected to FAIL until the parameter type
-    // is corrected.
-    callable = selection_ordered_probe<iterator_type, less<int> >::value;
+    //   selection_sort_ordered takes its direction as sort_order::value, the
+    // shape all six *_sort_ordered entry points share.  The probe asks
+    // overload resolution rather than naming the call, so a signature that
+    // drifted would fail this check instead of the suite's build.
+    callable = selection_ordered_probe<iterator_type, std::less<int> >::value;
 
     result.check(callable);
 
@@ -90,24 +89,24 @@ bool tests_selection_sort_entry_ordered()
 
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
     selection_call_ordered(
         ascending_out.begin(),
         ascending_out.end(),
-        less<int>(),
+        std::less<int>(),
         sort_order::ascending,
-        selection_ordered_probe<iterator_type, less<int> >());
+        selection_ordered_probe<iterator_type, std::less<int> >());
 
     selection_call_ordered(
         descending_out.begin(),
         descending_out.end(),
-        less<int>(),
+        std::less<int>(),
         sort_order::descending,
-        selection_ordered_probe<iterator_type, less<int> >());
+        selection_ordered_probe<iterator_type, std::less<int> >());
 
     if (callable)
     {
@@ -125,7 +124,7 @@ bool tests_selection_sort_entry_instability()
     verdict                  result;
     std::vector<DKeyedValue> witness;
 
-    //   selection_sort_tag advertises is_stable == false.  That is not a
+    //   DSelectionSortTag advertises is_stable == false.  That is not a
     // vague caveat: the long-range exchange has a concrete witness.
     //
     //     input   (2,0) (2,1) (1,2)
@@ -160,7 +159,7 @@ bool tests_selection_sort_entry_pointer_iterators()
 {
     verdict result;
 
-    verify_battery_raw(&selection_sort_ints_raw, less<int>(), result);
+    verify_battery_raw(&selection_sort_ints_raw, std::less<int>(), result);
 
     return result.ok();
 }

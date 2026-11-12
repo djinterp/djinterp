@@ -6,31 +6,30 @@
 * suite's translation units share.
 *
 *   sections (one .cpp each):
-*     test_sort_common_order.cpp             sort_order -- the enumerators and
-*                                            the pinned underlying type
-*     test_sort_common_comparators.cpp       less / greater -- strict weak
-*                                            ordering on built-ins and on a
-*                                            user type
-*     test_sort_common_order_comparator.cpp  internal::DOrderComparator -- the
-*                                            run-time direction flip, both
-*                                            branches and the heterogeneous
-*                                            call operator
-*     test_sort_common_aliases.cpp           default_comparator /
-*                                            default_comparator_t and the
-*                                            include guard
-*     test_sort_common_algebra.cpp           the functional comparator algebra
-*                                            this header pulls in, exercised
-*                                            through the sort entry points
+*     sort_common_tests_order.cpp             sort_order -- the enumerators,
+*                                             their parity with the C
+*                                             module's dj_sort_order, and the
+*                                             C++98 shape
+*     sort_common_tests_order_comparator.cpp  internal::DOrderComparator --
+*                                             the run-time direction flip,
+*                                             both branches, mixed operand
+*                                             types, a non-const comparator
+*                                             and a greedy one
+*     sort_common_tests_algebra.cpp           the functional comparator
+*                                             algebra, driven through a sort
+*                                             entry point
+*     sort_common_tests_header.cpp            the include guard
 *
-*   The algebra section is deliberately the ONLY place the suites depend on
-* functional/comparator.hpp's spelling.  If that header's surface differs from
-* what sort_common.hpp documents, exactly one translation unit needs touching.
+*   The algebra section is the ONLY place the suite depends on
+* functional/comparator.hpp's spelling.  sort_common.hpp does not include that
+* header -- a caller who sorts with the algebra includes it -- so this suite
+* does, for that one section.
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_common_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_SORT_COMMON_TESTS_
@@ -38,7 +37,7 @@
 
 // std
 #include <cstddef>
-#include <cstdint>
+#include <functional>
 #include <type_traits>
 #include <vector>
 // djinterp
@@ -46,12 +45,15 @@
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/util/sort/sort_common.hpp"
 #include "../../../../../inc/djinterp/cpp/util/sort/insertion_sort.hpp"
+#include "../../../../../inc/djinterp/cpp/functional/comparator.hpp"
+#include "../../../../../inc/djinterp/c/util/sort/sort_common.h"
 // djinterp [test]
 #include "sort_support.hpp"
 #endif  // !DTEST_SPEC_MODE
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
 #endif  // DTEST_SPEC_MODE
 
 
@@ -76,9 +78,9 @@ namespace dt = ::djinterp::test;
 ///////////////////////////////////////////////////////////////////////////////
 
 // DBoxedInt
-//   struct: a user-defined type with operator< and operator> but no other
-// ordering support, used to prove that less / greater reach the operators of
-// an arbitrary type rather than only built-ins.
+//   struct: a user-defined type with operator< and no other ordering support,
+// used to prove that the comparator trait reaches the operator of an arbitrary
+// type rather than only built-ins.
 struct DBoxedInt
 {
     int value;
@@ -102,22 +104,11 @@ DBoxedInt make_boxed(
 //   function: ordering on the boxed value.
 inline
 bool operator<(
-    const DBoxedInt& _a,
-    const DBoxedInt& _b
+    const DBoxedInt& _left,
+    const DBoxedInt& _right
 )
 {
-    return (_a.value < _b.value);
-}
-
-// operator>
-//   function: the reverse ordering on the boxed value.
-inline
-bool operator>(
-    const DBoxedInt& _a,
-    const DBoxedInt& _b
-)
-{
-    return (_a.value > _b.value);
+    return (_left.value < _right.value);
 }
 
 // DEvenFirst
@@ -128,51 +119,106 @@ bool operator>(
 struct DEvenFirst
 {
     bool operator()(
-        int _a,
-        int _b
+        int _left,
+        int _right
     ) const
     {
-        return ( ((_a % 2) == 0) &&
-                 ((_b % 2) != 0) );
+        return ( ((_left % 2) == 0) &&
+                 ((_right % 2) != 0) );
     }
 };
 
-// keyed_tag_less
+// DKeyedTagLess
 //   struct: orders DKeyedValue by TAG rather than key.  Used as the
 // tie-breaker in the composed-comparator test, where it turns the key
 // ordering into a total one.
-struct keyed_tag_less
+struct DKeyedTagLess
 {
     bool operator()(
-        const DKeyedValue& _a,
-        const DKeyedValue& _b
+        const DKeyedValue& _left,
+        const DKeyedValue& _right
     ) const
     {
-        return (_a.tag < _b.tag);
+        return (_left.tag < _right.tag);
     }
 };
 
 // DCrossTypeLess
 //   struct: a comparator whose call operator is itself a template.
-// DOrderComparator forwards through a heterogeneous operator(), and that
-// forwarding is only observable with a comparator that can actually accept
-// two different types.
+// DOrderComparator forwards through a call operator templated on both
+// operands, and that forwarding is only observable with a comparator that can
+// accept two different types.
 struct DCrossTypeLess
 {
-    template<typename _A,
-             typename _B>
+    template<typename Left,
+             typename Right>
     bool operator()(
-        const _A& _a,
-        const _B& _b
+        const Left&  _left,
+        const Right& _right
     ) const
     {
-        return (_a < _b);
+        return (_left < _right);
     }
 };
 
-// int_key_of
+// DTallyingLess
+//   struct: an ascending comparator whose call operator is NOT const -- it
+// counts its own calls in a member.  DOrderComparator calls the comparator it
+// holds as a non-const lvalue, so this compiles through it and the count lands
+// on the wrapper's own copy.
+struct DTallyingLess
+{
+    std::size_t calls;
+
+    DTallyingLess()
+        : calls(0)
+    {}
+
+    bool operator()(
+        int _left,
+        int _right
+    )
+    {
+        ++calls;
+
+        return (_left < _right);
+    }
+};
+
+// DGreedyLess
+//   struct: an ascending comparator with an UNCONSTRAINED forwarding
+// constructor, as several of the comparator algebra's helpers have.  Handed a
+// non-const DGreedyLess, that constructor outbids the copy constructor and
+// tries to build the held std::less<int> from a DGreedyLess, which does not
+// compile -- so a wrapper that ever copies one from a non-const lvalue fails
+// to build rather than failing a check.
+struct DGreedyLess
+{
+    DGreedyLess()
+        : inner()
+    {}
+
+    template<typename Any>
+    explicit DGreedyLess(
+        Any&& _any
+    )
+        : inner(static_cast<Any&&>(_any))
+    {}
+
+    bool operator()(
+        int _left,
+        int _right
+    ) const
+    {
+        return inner(_left, _right);
+    }
+
+    std::less<int> inner;
+};
+
+// DIntKeyOf
 //   struct: a key extractor for the comparator algebra tests.
-struct int_key_of
+struct DIntKeyOf
 {
     int operator()(
         const DKeyedValue& _value
@@ -192,25 +238,17 @@ struct int_key_of
 
 // order -- sort_order
 bool tests_sort_common_order_enumerators();
-bool tests_sort_common_order_underlying_type();
+bool tests_sort_common_order_matches_c_module();
+bool tests_sort_common_order_shape();
 
-// comparators -- less / greater
-bool tests_sort_common_less_semantics();
-bool tests_sort_common_greater_semantics();
-bool tests_sort_common_comparator_irreflexivity();
-bool tests_sort_common_comparator_on_user_type();
-
-// DOrderComparator -- internal::DOrderComparator
+// order_comparator -- internal::DOrderComparator
 bool tests_sort_common_order_comparator_ascending();
 bool tests_sort_common_order_comparator_descending();
 bool tests_sort_common_order_comparator_none();
 bool tests_sort_common_order_comparator_heterogeneous();
+bool tests_sort_common_order_comparator_non_const();
+bool tests_sort_common_order_comparator_copies_from_const();
 bool tests_sort_common_order_comparator_drives_a_sort();
-
-// aliases -- default_comparator / default_comparator_t
-bool tests_sort_common_default_comparator();
-bool tests_sort_common_default_comparator_alias();
-bool tests_sort_common_include_guard();
 
 // algebra -- the functional comparator vocabulary
 bool tests_sort_common_is_comparator_trait();
@@ -218,9 +256,143 @@ bool tests_sort_common_natural_matches_less();
 bool tests_sort_common_reversed_matches_greater();
 bool tests_sort_common_composed_comparator_sorts();
 
+// header -- the include guard
+bool tests_sort_common_include_guard();
+
 
 
 #ifdef DTEST_SPEC_MODE
+
+// sort_common_order_block
+//   provider: the "order" block of sort_common_spec.
+inline
+dt::block_spec sort_common_order_block()
+{
+    return dt::block_spec
+    {
+        "order",
+        "sort_order",
+        {
+            {
+                "sort_common_order_enumerators",
+                "enumerators",
+                &tests_sort_common_order_enumerators
+            },
+            {
+                "sort_common_order_matches_c_module",
+                "matches the C module",
+                &tests_sort_common_order_matches_c_module
+            },
+            {
+                "sort_common_order_shape",
+                "C++98 shape",
+                &tests_sort_common_order_shape
+            }
+        }
+    };
+}
+
+// sort_common_order_comparator_block
+//   provider: the "order_comparator" block of sort_common_spec.
+inline
+dt::block_spec sort_common_order_comparator_block()
+{
+    return dt::block_spec
+    {
+        "order_comparator",
+        "internal::DOrderComparator",
+        {
+            {
+                "sort_common_order_comparator_ascending",
+                "ascending",
+                &tests_sort_common_order_comparator_ascending
+            },
+            {
+                "sort_common_order_comparator_descending",
+                "descending",
+                &tests_sort_common_order_comparator_descending
+            },
+            {
+                "sort_common_order_comparator_none",
+                "none",
+                &tests_sort_common_order_comparator_none
+            },
+            {
+                "sort_common_order_comparator_heterogeneous",
+                "heterogeneous",
+                &tests_sort_common_order_comparator_heterogeneous
+            },
+            {
+                "sort_common_order_comparator_non_const",
+                "non-const comparator",
+                &tests_sort_common_order_comparator_non_const
+            },
+            {
+                "sort_common_order_comparator_copies_from_const",
+                "copies from a const lvalue",
+                &tests_sort_common_order_comparator_copies_from_const
+            },
+            {
+                "sort_common_order_comparator_drives_a_sort",
+                "drives a sort",
+                &tests_sort_common_order_comparator_drives_a_sort
+            }
+        }
+    };
+}
+
+// sort_common_algebra_block
+//   provider: the "algebra" block of sort_common_spec.
+inline
+dt::block_spec sort_common_algebra_block()
+{
+    return dt::block_spec
+    {
+        "algebra",
+        "the functional comparator vocabulary",
+        {
+            {
+                "sort_common_is_comparator_trait",
+                "is comparator trait",
+                &tests_sort_common_is_comparator_trait
+            },
+            {
+                "sort_common_natural_matches_less",
+                "natural matches std::less",
+                &tests_sort_common_natural_matches_less
+            },
+            {
+                "sort_common_reversed_matches_greater",
+                "reversed matches std::greater",
+                &tests_sort_common_reversed_matches_greater
+            },
+            {
+                "sort_common_composed_comparator_sorts",
+                "composed comparator sorts",
+                &tests_sort_common_composed_comparator_sorts
+            }
+        }
+    };
+}
+
+// sort_common_header_block
+//   provider: the "header" block of sort_common_spec.
+inline
+dt::block_spec sort_common_header_block()
+{
+    return dt::block_spec
+    {
+        "header",
+        "the include guard",
+        {
+            {
+                "sort_common_include_guard",
+                "include guard",
+                &tests_sort_common_include_guard
+            }
+        }
+    };
+}
 
 // sort_common_spec
 //   provider: the module spec for this suite, handed to run_module by
@@ -231,136 +403,14 @@ dt::module_spec sort_common_spec()
     return dt::module_spec
     {
         "sort_common.hpp",
-        "core vocabulary: the sort_order enum, the less/greater comparator "
-        "primitives, the run-time order_comparator wrapper, the "
-        "default_comparator aliases and the functional comparator algebra "
-        "the header re-exports.",
+        "the shared vocabulary: the sort_order direction and its parity with "
+        "the C module, the run-time DOrderComparator wrapper, the functional "
+        "comparator algebra driven through a sort, and the include guard.",
         {
-            dt::block_spec
-            {
-                "order",
-                "sort_order",
-                {
-                    {
-                        "sort_common_order_enumerators",
-                        "enumerators",
-                        &tests_sort_common_order_enumerators
-                    },
-                    {
-                        "sort_common_order_underlying_type",
-                        "underlying type",
-                        &tests_sort_common_order_underlying_type
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "comparators",
-                "less / greater",
-                {
-                    {
-                        "sort_common_less_semantics",
-                        "less semantics",
-                        &tests_sort_common_less_semantics
-                    },
-                    {
-                        "sort_common_greater_semantics",
-                        "greater semantics",
-                        &tests_sort_common_greater_semantics
-                    },
-                    {
-                        "sort_common_comparator_irreflexivity",
-                        "comparator irreflexivity",
-                        &tests_sort_common_comparator_irreflexivity
-                    },
-                    {
-                        "sort_common_comparator_on_user_type",
-                        "comparator on user type",
-                        &tests_sort_common_comparator_on_user_type
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "order_comparator",
-                "internal::order_comparator",
-                {
-                    {
-                        "sort_common_order_comparator_ascending",
-                        "ascending",
-                        &tests_sort_common_order_comparator_ascending
-                    },
-                    {
-                        "sort_common_order_comparator_descending",
-                        "descending",
-                        &tests_sort_common_order_comparator_descending
-                    },
-                    {
-                        "sort_common_order_comparator_none",
-                        "none",
-                        &tests_sort_common_order_comparator_none
-                    },
-                    {
-                        "sort_common_order_comparator_heterogeneous",
-                        "heterogeneous",
-                        &tests_sort_common_order_comparator_heterogeneous
-                    },
-                    {
-                        "sort_common_order_comparator_drives_a_sort",
-                        "drives a sort",
-                        &tests_sort_common_order_comparator_drives_a_sort
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "aliases",
-                "default_comparator / default_comparator_t",
-                {
-                    {
-                        "sort_common_default_comparator",
-                        "default comparator",
-                        &tests_sort_common_default_comparator
-                    },
-                    {
-                        "sort_common_default_comparator_alias",
-                        "default comparator alias",
-                        &tests_sort_common_default_comparator_alias
-                    },
-                    {
-                        "sort_common_include_guard",
-                        "include guard",
-                        &tests_sort_common_include_guard
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "algebra",
-                "the functional comparator vocabulary",
-                {
-                    {
-                        "sort_common_is_comparator_trait",
-                        "is comparator trait",
-                        &tests_sort_common_is_comparator_trait
-                    },
-                    {
-                        "sort_common_natural_matches_less",
-                        "natural matches less",
-                        &tests_sort_common_natural_matches_less
-                    },
-                    {
-                        "sort_common_reversed_matches_greater",
-                        "reversed matches greater",
-                        &tests_sort_common_reversed_matches_greater
-                    },
-                    {
-                        "sort_common_composed_comparator_sorts",
-                        "composed comparator sorts",
-                        &tests_sort_common_composed_comparator_sorts
-                    }
-                }
-            }
+            sort_common_order_block(),
+            sort_common_order_comparator_block(),
+            sort_common_algebra_block(),
+            sort_common_header_block()
         }
     };
 }

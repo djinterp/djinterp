@@ -6,20 +6,22 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     test_insertion_sort_apply.cpp   internal::insertion_sort_apply -- the
-*                                     shift loop, the already-in-place fast
-*                                     path, and the exact comparison counts
-*     test_insertion_sort_cpp98.cpp   internal::insertion_sort_apply_98 -- the
-*                                     hint-parameter variant, held to parity
-*                                     with the traits-deducing one
-*     test_insertion_sort_entry.cpp   the public insertion_sort /
-*                                     insertion_sort_ordered entry points
+*     insertion_sort_tests_primitives.cpp  insertion_place / insertion_pass
+*                                          -- where a candidate lands, where
+*                                          it stops, and the pass over a
+*                                          sub-run
+*     insertion_sort_tests_apply.cpp       internal::insertion_sort_apply --
+*                                          the shift loop, the already-in-
+*                                          place fast path, and the exact
+*                                          comparison counts
+*     insertion_sort_tests_entry.cpp       the public insertion_sort /
+*                                          insertion_sort_ordered entry points
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/insertion_sort_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_INSERTION_SORT_TESTS_
@@ -38,7 +40,7 @@
 #include "sort_support.hpp"
 #endif  // !DTEST_SPEC_MODE
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
 #endif  // DTEST_SPEC_MODE
 
 
@@ -72,42 +74,7 @@ void insertion_apply_ints(
 {
     ::djinterp::internal::insertion_sort_apply(_first,
                                                _last,
-                                               less<int>());
-
-    return;
-}
-
-// insertion_apply_98_ints
-//   helper: the C++98 hint-parameter driver over vector<int> iterators.  The
-// trailing null pointer names the element type in place of
-// std::iterator_traits.
-inline
-void insertion_apply_98_ints(
-    std::vector<int>::iterator _first,
-    std::vector<int>::iterator _last
-)
-{
-    ::djinterp::internal::insertion_sort_apply_98(_first,
-                                                  _last,
-                                                  less<int>(),
-                                                  static_cast<int*>(nullptr));
-
-    return;
-}
-
-// insertion_apply_98_keyed
-//   helper: the C++98 driver under the key-only comparator.
-inline
-void insertion_apply_98_keyed(
-    std::vector<DKeyedValue>::iterator _first,
-    std::vector<DKeyedValue>::iterator _last
-)
-{
-    ::djinterp::internal::insertion_sort_apply_98(
-        _first,
-        _last,
-        keyed_value_less(),
-        static_cast<DKeyedValue*>(nullptr));
+                                               std::less<int>());
 
     return;
 }
@@ -126,14 +93,14 @@ void insertion_sort_ints(
 }
 
 // insertion_sort_ints_descending
-//   helper: the three-argument public entry point under greater<int>.
+//   helper: the three-argument public entry point under std::greater<int>.
 inline
 void insertion_sort_ints_descending(
     std::vector<int>::iterator _first,
     std::vector<int>::iterator _last
 )
 {
-    insertion_sort(_first, _last, greater<int>());
+    insertion_sort(_first, _last, std::greater<int>());
 
     return;
 }
@@ -165,8 +132,8 @@ void insertion_sort_keyed(
     return;
 }
 
-//   insertion_sort_ordered has the same bool / sort_order mismatch as
-// bubble_sort_ordered; the probe keeps it out of the immediate compile.
+//   the probe asks whether insertion_sort_ordered takes the shared
+// (It, It, Cmp, sort_order::value) shape, without naming the call.
 D_TESTS_SORT_ORDERED_PROBE(insertion, ::djinterp::insertion_sort_ordered)
 
 
@@ -177,18 +144,17 @@ D_TESTS_SORT_ORDERED_PROBE(insertion, ::djinterp::insertion_sort_ordered)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
+// primitives -- insertion_place / insertion_pass
+bool tests_insertion_sort_place_landing_index();
+bool tests_insertion_sort_place_stops_at_equivalent();
+bool tests_insertion_sort_pass_sub_run();
+
 // apply -- internal::insertion_sort_apply
 bool tests_insertion_sort_apply_degenerate_ranges();
 bool tests_insertion_sort_apply_ordering_battery();
 bool tests_insertion_sort_apply_fast_path();
 bool tests_insertion_sort_apply_full_shift();
 bool tests_insertion_sort_apply_comparison_counts();
-
-// cpp98 -- internal::insertion_sort_apply_98
-bool tests_insertion_sort_cpp98_degenerate_ranges();
-bool tests_insertion_sort_cpp98_ordering_battery();
-bool tests_insertion_sort_cpp98_parity_with_apply();
-bool tests_insertion_sort_cpp98_stability();
 
 // entry -- insertion_sort / insertion_sort_ordered
 bool tests_insertion_sort_entry_comparator();
@@ -201,6 +167,113 @@ bool tests_insertion_sort_entry_pointer_iterators();
 
 #ifdef DTEST_SPEC_MODE
 
+// insertion_sort_primitives_block
+//   provider: the "primitives" block of insertion_sort_spec.
+inline
+dt::block_spec insertion_sort_primitives_block()
+{
+    return dt::block_spec
+    {
+        "primitives",
+        "insertion_place / insertion_pass",
+        {
+            {
+                "insertion_sort_place_landing_index",
+                "place: the landing index",
+                &tests_insertion_sort_place_landing_index
+            },
+            {
+                "insertion_sort_place_stops_at_equivalent",
+                "place: stops at an equivalent",
+                &tests_insertion_sort_place_stops_at_equivalent
+            },
+            {
+                "insertion_sort_pass_sub_run",
+                "pass over a sub-run",
+                &tests_insertion_sort_pass_sub_run
+            }
+        }
+    };
+}
+
+// insertion_sort_apply_block
+//   provider: the "apply" block of insertion_sort_spec.
+inline
+dt::block_spec insertion_sort_apply_block()
+{
+    return dt::block_spec
+    {
+        "apply",
+        "internal::insertion_sort_apply",
+        {
+            {
+                "insertion_sort_apply_degenerate_ranges",
+                "degenerate ranges",
+                &tests_insertion_sort_apply_degenerate_ranges
+            },
+            {
+                "insertion_sort_apply_ordering_battery",
+                "ordering battery",
+                &tests_insertion_sort_apply_ordering_battery
+            },
+            {
+                "insertion_sort_apply_fast_path",
+                "fast path",
+                &tests_insertion_sort_apply_fast_path
+            },
+            {
+                "insertion_sort_apply_full_shift",
+                "full shift",
+                &tests_insertion_sort_apply_full_shift
+            },
+            {
+                "insertion_sort_apply_comparison_counts",
+                "comparison counts",
+                &tests_insertion_sort_apply_comparison_counts
+            }
+        }
+    };
+}
+
+// insertion_sort_entry_block
+//   provider: the "entry" block of insertion_sort_spec.
+inline
+dt::block_spec insertion_sort_entry_block()
+{
+    return dt::block_spec
+    {
+        "entry",
+        "insertion_sort / insertion_sort_ordered",
+        {
+            {
+                "insertion_sort_entry_comparator",
+                "comparator",
+                &tests_insertion_sort_entry_comparator
+            },
+            {
+                "insertion_sort_entry_default",
+                "default",
+                &tests_insertion_sort_entry_default
+            },
+            {
+                "insertion_sort_entry_ordered",
+                "ordered",
+                &tests_insertion_sort_entry_ordered
+            },
+            {
+                "insertion_sort_entry_stability",
+                "stability",
+                &tests_insertion_sort_entry_stability
+            },
+            {
+                "insertion_sort_entry_pointer_iterators",
+                "pointer iterators",
+                &tests_insertion_sort_entry_pointer_iterators
+            }
+        }
+    };
+}
+
 // insertion_sort_spec
 //   provider: the module spec for this suite, handed to run_module by
 // insertion_sort_tests_runner.cpp.
@@ -210,100 +283,12 @@ dt::module_spec insertion_sort_spec()
     return dt::module_spec
     {
         "insertion_sort.hpp",
-        "insertion sort: the shift-based internal driver, the C++98 "
-        "hint-parameter variant, and the public entry points.",
+        "insertion sort: the placement and pass primitives, the shift-based "
+        "internal driver, and the public entry points.",
         {
-            dt::block_spec
-            {
-                "apply",
-                "internal::insertion_sort_apply",
-                {
-                    {
-                        "insertion_sort_apply_degenerate_ranges",
-                        "degenerate ranges",
-                        &tests_insertion_sort_apply_degenerate_ranges
-                    },
-                    {
-                        "insertion_sort_apply_ordering_battery",
-                        "ordering battery",
-                        &tests_insertion_sort_apply_ordering_battery
-                    },
-                    {
-                        "insertion_sort_apply_fast_path",
-                        "fast path",
-                        &tests_insertion_sort_apply_fast_path
-                    },
-                    {
-                        "insertion_sort_apply_full_shift",
-                        "full shift",
-                        &tests_insertion_sort_apply_full_shift
-                    },
-                    {
-                        "insertion_sort_apply_comparison_counts",
-                        "comparison counts",
-                        &tests_insertion_sort_apply_comparison_counts
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "cpp98",
-                "internal::insertion_sort_apply_98",
-                {
-                    {
-                        "insertion_sort_cpp98_degenerate_ranges",
-                        "degenerate ranges",
-                        &tests_insertion_sort_cpp98_degenerate_ranges
-                    },
-                    {
-                        "insertion_sort_cpp98_ordering_battery",
-                        "ordering battery",
-                        &tests_insertion_sort_cpp98_ordering_battery
-                    },
-                    {
-                        "insertion_sort_cpp98_parity_with_apply",
-                        "parity with apply",
-                        &tests_insertion_sort_cpp98_parity_with_apply
-                    },
-                    {
-                        "insertion_sort_cpp98_stability",
-                        "stability",
-                        &tests_insertion_sort_cpp98_stability
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "entry",
-                "insertion_sort / insertion_sort_ordered",
-                {
-                    {
-                        "insertion_sort_entry_comparator",
-                        "comparator",
-                        &tests_insertion_sort_entry_comparator
-                    },
-                    {
-                        "insertion_sort_entry_default",
-                        "default",
-                        &tests_insertion_sort_entry_default
-                    },
-                    {
-                        "insertion_sort_entry_ordered",
-                        "ordered",
-                        &tests_insertion_sort_entry_ordered
-                    },
-                    {
-                        "insertion_sort_entry_stability",
-                        "stability",
-                        &tests_insertion_sort_entry_stability
-                    },
-                    {
-                        "insertion_sort_entry_pointer_iterators",
-                        "pointer iterators",
-                        &tests_insertion_sort_entry_pointer_iterators
-                    }
-                }
-            }
+            insertion_sort_primitives_block(),
+            insertion_sort_apply_block(),
+            insertion_sort_entry_block()
         }
     };
 }

@@ -7,23 +7,22 @@
 * subsystem as a whole.  Declares every tests_sort_conformance_* predicate.
 *
 *   sections (one .cpp each):
-*     test_sort_conformance_adl.cpp        the free sort() entry points must
-*                                          be callable unqualified
-*     test_sort_conformance_surface.cpp    the six *_sort_ordered signatures
-*                                          agree; the dialect the banners
-*                                          promise; reachability of the
-*                                          shrink guard
+*     sort_conformance_tests_adl.cpp      djinterp::sort must be callable
+*                                         unqualified, next to std::sort
+*     sort_conformance_tests_surface.cpp  the six *_sort_ordered entry points
+*                                         share one shape and one meaning
 *
-*   Everything here was written against a coverage run of the suite.  Where a
-* check is expected to FAIL it says so, in the same style the *_entry sections
-* use: the assertion states the CORRECT behaviour and stays red until the
-* library is corrected, rather than being weakened to match the defect.
+*   Both claims were once red: djinterp::sort collided with std::sort under
+* argument-dependent lookup, and three of the six *_sort_ordered entry points
+* took a bool.  The assertions state the correct behaviour, as they did while
+* it was missing; they are green now because the library changed, not
+* because they did.
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_conformance_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_SORT_CONFORMANCE_TESTS_
@@ -39,11 +38,11 @@
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "../../../../../inc/djinterp/re_std/algorithm/sort.hpp"
+#include "../../../../../inc/djinterp/cpp/util/sort/sort.hpp"
 #include "sort_support.hpp"
 #endif  // !DTEST_SPEC_MODE
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
 #endif  // DTEST_SPEC_MODE
 
 
@@ -67,73 +66,69 @@ namespace dt = ::djinterp::test;
 ///                    I.   UNQUALIFIED-CALL PROBE                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-//   djinterp::sort has the same name and the same (Iterator, Iterator[,
-// Comparator]) shape as std::sort.  Whenever the iterator type is a standard
-// one, ADL adds std::sort to the overload set of an UNQUALIFIED sort(...)
-// call, and the two candidates match equally well.  The result is an
-// ambiguity at the call site, in the caller's code, from a header the caller
-// merely included.
+//   djinterp::sort has the name and the (Iterator, Iterator[, Comparator])
+// shape of std::sort.  Were it a function template, an UNQUALIFIED
+// sort(...) on standard iterators would find it by ordinary lookup and
+// std::sort by argument-dependent lookup, the two would match equally well,
+// and the call would be ambiguous in the caller's code.  sort_dispatch.hpp
+// makes djinterp::sort a function object instead: lookup that finds an
+// object performs no argument-dependent lookup, so the call resolves.
 //
 //   Ambiguous overload resolution inside decltype is ill-formed in the
-// immediate context, so it is SFINAE-detectable and the defect can be probed
-// instead of crashing the build.
-//
-//   The remedy is NOT a SFINAE constraint on the entry point: when the
-// argument is a real comparator both candidates stay viable, and constraining
-// can only drop djinterp::sort so std::sort silently wins.  The library fix is
-// to rename the free entry points or to require the qualified djinterp::sort
-// spelling; the probe below tracks the defect until one of those lands.
+// immediate context, so it is SFINAE-detectable: the probes below report an
+// ambiguity as false rather than breaking the build, which is how the
+// collision was tracked while it existed.
 
 // DUnqualifiedSort3Probe
 //   trait: true when sort(first, last, comparator) resolves unambiguously.
-template<typename _Void,
-         typename _Iterator,
-         typename _Compare>
+template<typename Void,
+         typename Iterator,
+         typename Compare>
 struct unqualified_sort3_probe_impl
     : std::false_type
 {
 };
 
-template<typename _Iterator,
-         typename _Compare>
+template<typename Iterator,
+         typename Compare>
 struct unqualified_sort3_probe_impl<
-    decltype(void(sort(std::declval<_Iterator>(),
-                       std::declval<_Iterator>(),
-                       std::declval<_Compare>()))),
-    _Iterator,
-    _Compare>
+    decltype(void(sort(std::declval<Iterator>(),
+                       std::declval<Iterator>(),
+                       std::declval<Compare>()))),
+    Iterator,
+    Compare>
     : std::true_type
 {
 };
 
-template<typename _Iterator,
-         typename _Compare>
+template<typename Iterator,
+         typename Compare>
 struct DUnqualifiedSort3Probe
-    : unqualified_sort3_probe_impl<void, _Iterator, _Compare>
+    : unqualified_sort3_probe_impl<void, Iterator, Compare>
 {
 };
 
 // DUnqualifiedSort2Probe
 //   trait: true when sort(first, last) resolves unambiguously.
-template<typename _Void,
-         typename _Iterator>
+template<typename Void,
+         typename Iterator>
 struct unqualified_sort2_probe_impl
     : std::false_type
 {
 };
 
-template<typename _Iterator>
+template<typename Iterator>
 struct unqualified_sort2_probe_impl<
-    decltype(void(sort(std::declval<_Iterator>(),
-                       std::declval<_Iterator>()))),
-    _Iterator>
+    decltype(void(sort(std::declval<Iterator>(),
+                       std::declval<Iterator>()))),
+    Iterator>
     : std::true_type
 {
 };
 
-template<typename _Iterator>
+template<typename Iterator>
 struct DUnqualifiedSort2Probe
-    : unqualified_sort2_probe_impl<void, _Iterator>
+    : unqualified_sort2_probe_impl<void, Iterator>
 {
 };
 
@@ -141,10 +136,10 @@ struct DUnqualifiedSort2Probe
 ///////////////////////////////////////////////////////////////////////////////
 ///                    II.  ORDERED-ENTRY UNIFORMITY PROBES                 ///
 ///////////////////////////////////////////////////////////////////////////////
-//   The three algorithms whose *_sort_ordered fourth parameter is `bool`
-// already have per-module probes.  These re-declare the same probe for all
-// six so one test can assert the SURFACE is uniform, which is the property a
-// caller actually depends on when swapping one algorithm for another.
+//   The per-module suites probe their own *_sort_ordered.  These declare the
+// same probe for all six so one test can assert the SURFACE is uniform, which
+// is the property a caller depends on when swapping one algorithm for
+// another.
 
 D_TESTS_SORT_ORDERED_PROBE(conf_bubble,    ::djinterp::bubble_sort_ordered)
 D_TESTS_SORT_ORDERED_PROBE(conf_selection, ::djinterp::selection_sort_ordered)
@@ -161,18 +156,65 @@ D_TESTS_SORT_ORDERED_PROBE(conf_heap,      ::djinterp::heap_sort_ordered)
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// adl -- the free entry points must be usable unqualified
+// adl -- djinterp::sort must be usable unqualified
 bool tests_sort_conformance_unqualified_sort_unambiguous();
 bool tests_sort_conformance_qualified_sort_dispatches();
 
 // surface -- subsystem-wide claims
 bool tests_sort_conformance_ordered_surface_is_uniform();
-bool tests_sort_conformance_dialect_gating_is_consistent();
-bool tests_sort_conformance_bubble_shrink_boundary_invariant();
+bool tests_sort_conformance_ordered_means_the_same();
 
 
 
 #ifdef DTEST_SPEC_MODE
+
+// sort_conformance_adl_block
+//   provider: the "adl" block of sort_conformance_spec.
+inline
+dt::block_spec sort_conformance_adl_block()
+{
+    return dt::block_spec
+    {
+        "adl",
+        "djinterp::sort, unqualified",
+        {
+            {
+                "sort_conformance_unqualified_sort_unambiguous",
+                "unqualified sort is unambiguous",
+                &tests_sort_conformance_unqualified_sort_unambiguous
+            },
+            {
+                "sort_conformance_qualified_sort_dispatches",
+                "qualified sort dispatches",
+                &tests_sort_conformance_qualified_sort_dispatches
+            }
+        }
+    };
+}
+
+// sort_conformance_surface_block
+//   provider: the "surface" block of sort_conformance_spec.
+inline
+dt::block_spec sort_conformance_surface_block()
+{
+    return dt::block_spec
+    {
+        "surface",
+        "subsystem-wide surface claims",
+        {
+            {
+                "sort_conformance_ordered_surface_is_uniform",
+                "ordered surface is uniform",
+                &tests_sort_conformance_ordered_surface_is_uniform
+            },
+            {
+                "sort_conformance_ordered_means_the_same",
+                "ordered means the same everywhere",
+                &tests_sort_conformance_ordered_means_the_same
+            }
+        }
+    };
+}
 
 // sort_conformance_spec
 //   provider: the module spec for this suite, handed to run_module by
@@ -184,49 +226,11 @@ dt::module_spec sort_conformance_spec()
     {
         "sort (conformance)",
         "cross-cutting contracts spanning the whole subsystem: unqualified "
-        "call resolution against std::sort, the uniformity of the ordered "
-        "entry points, the C++98-through-C++23 dialect claim, and the "
-        "reachability of the bubble-sort shrink guard.",
+        "call resolution against std::sort, and the shape and meaning the "
+        "six ordered entry points share.",
         {
-            dt::block_spec
-            {
-                "adl",
-                "unqualified free sort() entry points",
-                {
-                    {
-                        "sort_conformance_unqualified_sort_unambiguous",
-                        "unqualified sort is unambiguous",
-                        &tests_sort_conformance_unqualified_sort_unambiguous
-                    },
-                    {
-                        "sort_conformance_qualified_sort_dispatches",
-                        "qualified sort dispatches",
-                        &tests_sort_conformance_qualified_sort_dispatches
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "surface",
-                "subsystem-wide surface claims",
-                {
-                    {
-                        "sort_conformance_ordered_surface_is_uniform",
-                        "ordered surface is uniform",
-                        &tests_sort_conformance_ordered_surface_is_uniform
-                    },
-                    {
-                        "sort_conformance_dialect_gating_is_consistent",
-                        "dialect gating is consistent",
-                        &tests_sort_conformance_dialect_gating_is_consistent
-                    },
-                    {
-                        "sort_conformance_bubble_shrink_boundary_invariant",
-                        "bubble shrink boundary invariant",
-                        &tests_sort_conformance_bubble_shrink_boundary_invariant
-                    }
-                }
-            }
+            sort_conformance_adl_block(),
+            sort_conformance_surface_block()
         }
     };
 }

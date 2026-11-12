@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/heap_sort_tests_sift.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -141,7 +141,7 @@ bool tests_heap_sort_sift_down_missing_right_child()
     result.check(data[1] == 7);
     result.check(data[2] == 8);
     result.check(data[3] == 2);
-    result.check(is_max_heap(data.begin(), data.end(), less<int>()));
+    result.check(is_max_heap(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }
@@ -153,8 +153,7 @@ bool tests_heap_sort_sift_down_already_satisfied()
     verdict                  result;
     std::vector<int>         data;
     std::vector<int>         original;
-    std::vector<DTrackedInt> tracked;
-    std::size_t              swaps;
+    std::vector<DKeyedValue> keyed;
     std::size_t              i;
 
     //   A root that already dominates both children takes the
@@ -176,23 +175,25 @@ bool tests_heap_sort_sift_down_already_satisfied()
 
     //   Equivalent children take the same exit: the comparisons are strict,
     // so an equal child never displaces its parent.  Asserted through the
-    // swap counter, because "nothing moved" and "moved and moved back" are
-    // indistinguishable from the values alone.
-    swaps = 0;
-
-    tracked.reserve(7);
+    // tags of seven equal keys, because "nothing moved" and "moved and moved
+    // back" are indistinguishable from the values alone -- and a sift that
+    // moves a hole writes by assignment, which no swap counter would see.
+    keyed.reserve(7);
 
     for (i = 0; i < 7; ++i)
     {
-        tracked.push_back(make_tracked(4, &swaps));
+        keyed.push_back(make_keyed(4, static_cast<int>(i)));
     }
 
-    ::djinterp::internal::heap_sift_down(tracked.begin(),
+    ::djinterp::internal::heap_sift_down(keyed.begin(),
                                          static_cast<std::ptrdiff_t>(7),
                                          static_cast<std::ptrdiff_t>(0),
-                                         tracked_int_less());
+                                         keyed_value_less());
 
-    result.check(swaps == 0);
+    for (i = 0; i < 7; ++i)
+    {
+        result.check(keyed[i].tag == static_cast<int>(i));
+    }
 
     return result.ok();
 }
@@ -230,7 +231,7 @@ bool tests_heap_sort_sift_down_cascade()
     result.check(data[4] == 5);
     result.check(data[5] == 4);
     result.check(data[6] == 3);
-    result.check(is_max_heap(data.begin(), data.end(), less<int>()));
+    result.check(is_max_heap(data.begin(), data.end(), std::less<int>()));
 
     //   The RIGHT child winning is a separate branch from the left child
     // winning, and it only fires when the right child beats a left child
@@ -268,9 +269,162 @@ bool tests_heap_sort_sift_down_cascade()
 
     heap_sift_ints(data.begin(), 15, 0);
 
-    result.check(is_max_heap(data.begin(), data.end(), less<int>()));
+    result.check(is_max_heap(data.begin(), data.end(), std::less<int>()));
     result.check(data[0] == 14);
     result.check(data[7] == 0);
+
+    return result.ok();
+}
+
+
+// swapping_sift_reference
+//   helper: the textbook sift, which exchanges the sinking element with its
+// larger child level by level.  heap_sift_down moves a hole instead; the two
+// make the same comparisons in the same order and must leave the same heap.
+template<typename Compare>
+static
+void swapping_sift_reference(
+    std::vector<int>& _data,
+    std::ptrdiff_t    _size,
+    std::ptrdiff_t    _root,
+    Compare           _compare
+)
+{
+    std::ptrdiff_t current;
+    std::ptrdiff_t left;
+    std::ptrdiff_t largest;
+
+    current = _root;
+
+    for (;;)
+    {
+        left = (2 * current) + 1;
+
+        if (left >= _size)
+        {
+            break;
+        }
+
+        largest = current;
+
+        if (_compare(_data[static_cast<std::size_t>(largest)],
+                     _data[static_cast<std::size_t>(left)]))
+        {
+            largest = left;
+        }
+
+        if ( ((left + 1) < _size) &&
+             (_compare(_data[static_cast<std::size_t>(largest)],
+                       _data[static_cast<std::size_t>(left + 1)])) )
+        {
+            largest = left + 1;
+        }
+
+        if (largest == current)
+        {
+            break;
+        }
+
+        std::swap(_data[static_cast<std::size_t>(current)],
+                  _data[static_cast<std::size_t>(largest)]);
+
+        current = largest;
+    }
+
+    return;
+}
+
+
+// tests_heap_sort_larger_child_ties
+bool tests_heap_sort_larger_child_ties()
+{
+    verdict                  result;
+    std::vector<DKeyedValue> keyed;
+    keyed_value_less         compare;
+
+    //   heap_larger_child names the child a sift would promote; it takes its
+    // comparator by reference, being called once per level.  A child must
+    // STRICTLY follow to win, so on a tie between the two children the
+    // LEFT one is kept -- one of the two choices that pin where heap sort
+    // leaves equivalent elements.
+    keyed.push_back(make_keyed(1, 0));
+    keyed.push_back(make_keyed(5, 1));
+    keyed.push_back(make_keyed(5, 2));
+
+    result.check(::djinterp::internal::heap_larger_child(
+                     keyed.begin(),
+                     static_cast<std::ptrdiff_t>(3),
+                     static_cast<std::ptrdiff_t>(0),
+                     static_cast<std::ptrdiff_t>(1),
+                     keyed[0],
+                     compare) == 1);
+
+    //   A strictly larger right child does win.
+    keyed[2] = make_keyed(6, 2);
+
+    result.check(::djinterp::internal::heap_larger_child(
+                     keyed.begin(),
+                     static_cast<std::ptrdiff_t>(3),
+                     static_cast<std::ptrdiff_t>(0),
+                     static_cast<std::ptrdiff_t>(1),
+                     keyed[0],
+                     compare) == 2);
+
+    //   And a sinking element equal to both children keeps its place: the
+    // node itself is reported, so nothing moves.
+    keyed[0] = make_keyed(6, 0);
+    keyed[1] = make_keyed(6, 1);
+
+    result.check(::djinterp::internal::heap_larger_child(
+                     keyed.begin(),
+                     static_cast<std::ptrdiff_t>(3),
+                     static_cast<std::ptrdiff_t>(0),
+                     static_cast<std::ptrdiff_t>(1),
+                     keyed[0],
+                     compare) == 0);
+
+    return result.ok();
+}
+
+
+// tests_heap_sort_sift_down_matches_swapping_sift
+bool tests_heap_sort_sift_down_matches_swapping_sift()
+{
+    verdict          result;
+    std::vector<int> moved;
+    std::vector<int> swapped;
+    std::size_t      size_index;
+    std::size_t      shape_index;
+    std::ptrdiff_t   size;
+    std::ptrdiff_t   root;
+
+    //   Every root of every battery input, sifted both ways from the same
+    // start: the hole-moving sift must leave exactly the arrangement the
+    // swapping one does.  Duplicates are where the two could differ, and the
+    // battery's constant and few-unique shapes are full of them.
+    for (size_index = 0; size_index < battery_size_count; ++size_index)
+    {
+        for (shape_index = 0;
+             shape_index < battery_shape_count;
+             ++shape_index)
+        {
+            moved = make_shape(shape_index, battery_size_at(size_index));
+            size  = static_cast<std::ptrdiff_t>(moved.size());
+
+            for (root = 0; root < size; ++root)
+            {
+                swapped = moved;
+
+                heap_sift_ints(moved.begin(), size, root);
+                swapping_sift_reference(swapped,
+                                        size,
+                                        root,
+                                        std::less<int>());
+
+                result.check(ranges_equal(moved, swapped));
+            }
+        }
+    }
 
     return result.ok();
 }

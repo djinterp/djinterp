@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      archive_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                                       archive_tests_runner.cpp
 *
 *   Entry point (main) for the archive.hpp / archive.cpp unit-test suite.  It
 * includes the suite's test header and calls every tests_* function the section
@@ -14,8 +14,9 @@
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/util/archive/archive_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.21
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
+*                                                            revised: 2026.11.10
+*******************************************************************************/
 
 // std
 #include <cstdio>
@@ -64,7 +65,7 @@ int main()
     D_AR_RUN(tests_tar_roundtrip_files);
     D_AR_RUN(tests_tar_directories);
     D_AR_RUN(tests_tar_metadata);
-    D_AR_RUN(tests_tar_name_truncation);
+    D_AR_RUN(tests_tar_name_limits);
     D_AR_RUN(tests_tar_checksum);
     D_AR_RUN(tests_tar_extract_truncated);
     D_AR_RUN(tests_tar_empty_archive);

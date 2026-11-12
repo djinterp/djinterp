@@ -5,18 +5,15 @@
 * of the suite pins the vocabulary's data contract; this section drives
 * archive.hpp to record which knobs the built-in writers consult.
 *
-*   CURRENT STATE:
-*   archive.cpp reads exactly two fields -- store_only and level -- and builds a
-* fresh compress_options for the stream, copying only `level` into it.  The
-* embedded codec block and every per-format container knob are therefore inert
-* today.  That diverges from the header's THE EMBEDDED CODEC note, which
-* describes codec.level as taking precedence over the archive-level `level`.
-*
-*   The two characterization tests below (codec_block_is_inert, and the honoured
-* pair above it) pin TODAY's behaviour deliberately, so that wiring the codec
-* block through fails them loudly and forces the header's documentation and the
-* implementation to be reconciled in the same change.  They are not an
-* endorsement of the gap.
+*   WHAT IS HONOURED:
+*   The facade lowers the set and the kernel resolves it once, so every knob
+* the built-in writers consult reaches them: store_only, level, the embedded
+* codec block (its level the archive's unless it sets its own), the ZIP
+* method, the UTF-8 flag and comment, the preserve_* flags, and the tar
+* format.  A request the writers cannot honour -- ZIP encryption, ZIP's LZMA,
+* tar's gnu and v7 -- is refused with a status, never written as something
+* else.  zip64, numeric_owner and the gz header block are not consulted by
+* the built-in writers; requesting them is safe.
 *
 *   Part of the archive_options.hpp unit-test suite; the declarations, shared
 * helpers, and per-suite check macros live in archive_options_tests.hpp.  These
@@ -26,7 +23,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_options_tests_facade.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -38,8 +35,7 @@ NS_TESTING
 
 /*
 tests_facade_honours_store_only
-  Verifies the archive-level store_only flag reaches the ZIP writer -- one of
-the two fields the facade actually consults.
+  Verifies the archive-level store_only flag reaches the ZIP writer.
   Tests the following:
   - with store_only set, every ZIP local header records method 0, and the
     archive still round-trips
@@ -105,8 +101,8 @@ bool tests_facade_honours_store_only()
 
 /*
 tests_facade_honours_level
-  Verifies the archive-level `level` field reaches the stream codec -- the other
-field the facade consults.  Effort is observed through its effect on the
+  Verifies the archive-level `level` field reaches the stream codec, when the
+codec block does not set its own.  Effort is observed through its effect on the
 produced size rather than through any header field, so the assertion holds for
 any DEFLATE backend.
   Tests the following:
@@ -169,23 +165,19 @@ bool tests_facade_honours_level()
 }
 
 /*
-tests_facade_codec_block_is_inert
-  CHARACTERIZATION TEST -- pins today's behaviour, which diverges from the
-header.  archive.cpp constructs a fresh compress_options per call and copies
-only the archive-level `level` into it, so the embedded codec block is
-discarded entirely.  The header's THE EMBEDDED CODEC note instead specifies
-that codec.level takes precedence when it is moved off its -1 default.
-  When the codec block is wired through, this test WILL fail; that is its
-purpose, and the fix is to update it alongside the header's note.
+tests_facade_honours_codec_block
+  Verifies the embedded codec block reaches the ZIP writer's DEFLATE stream:
+its level is the archive level unless the block sets its own, and a knob of
+another codec changes nothing.
   Tests the following:
-  - setting codec.level alone produces output byte-identical to pristine
-    defaults, i.e. it is currently ignored
-  - setting the archive-level level alone DOES change the output, so the two
-    fields are demonstrably not interchangeable today
-  - setting an advanced codec knob (a zstd parameter irrelevant to the ZIP
-    DEFLATE path) likewise changes nothing and never fails the call
+  - when a DEFLATE codec is present, codec.level 0 alone changes the archive
+    (DEFLATE at 0 cannot compress, so the member is stored)
+  - codec.level overrides the archive level: level 0 with codec.level 9 is
+    byte for byte codec.level 9 alone
+  - knobs of codecs ZIP does not use (zstd, brotli) leave the archive as it
+    was, and never fail the call
 */
-bool tests_facade_codec_block_is_inert()
+bool tests_facade_honours_codec_block()
 {
     using namespace ::djinterp::formats;
 
@@ -196,31 +188,34 @@ bool tests_facade_codec_block_is_inert()
     D_AO_CHECK_STATUS(try_archive<zip>(items, baseline, archive_options()),
                       status_ok);
 
-    // codec.level alone: currently discarded
+    if (codec_is_available<codecs::deflate>())
     {
         byte_blob blob;
         D_AO_CHECK_STATUS(try_archive<zip>(items, blob,
                               ::djinterp::test::codec_level_options(0)),
                           status_ok);
-        D_AO_CHECK(blob == baseline);
-    }
-
-    // the archive-level level: honoured, so the pair is not interchangeable
-    if (codec_is_available<codecs::deflate>())
-    {
-        byte_blob blob;
-        D_AO_CHECK_STATUS(try_archive<zip>(items, blob,
-                              ::djinterp::test::level_options(0)),
-                          status_ok);
         D_AO_CHECK(blob != baseline);
     }
 
-    // an advanced knob from an unrelated codec: inert, and harmless
+    // codec.level wins over level
+    {
+        archive_options both = ::djinterp::test::level_options(0);
+        both.codec.level = 9;
+
+        byte_blob a;
+        byte_blob b;
+        D_AO_CHECK_STATUS(try_archive<zip>(items, a, both), status_ok);
+        D_AO_CHECK_STATUS(try_archive<zip>(items, b,
+                              ::djinterp::test::codec_level_options(9)),
+                          status_ok);
+        D_AO_CHECK(a == b);
+    }
+
+    // knobs of codecs ZIP does not use: inert, and harmless
     {
         archive_options opt;
-        opt.codec.zstd.window_log      = 27;
-        opt.codec.brotli.quality       = 11;
-        opt.codec.deflate.window_bits  = 9;
+        opt.codec.zstd.window_log = 27;
+        opt.codec.brotli.quality  = 11;
 
         byte_blob blob;
         D_AO_CHECK_STATUS(try_archive<zip>(items, blob, opt), status_ok);
@@ -228,6 +223,75 @@ bool tests_facade_codec_block_is_inert()
     }
 
     return _ok;
+}
+
+namespace
+{
+    // ao_unhonoured_requests
+    //   function: whether every ZIP method and encryption request the built-in
+    // writer cannot honour comes back as a defined status, and never as a
+    // corrupt archive: whenever it reports success, the result round-trips.
+    // lzma is refused outright: ZIP's LZMA is not a stream the codec set
+    // makes.
+    bool ao_unhonoured_requests(
+        const entry_list& items
+    )
+    {
+        using namespace ::djinterp::formats;
+
+        bool _ok = true;
+
+        {
+            const zip_method methods[] = { zip_method_bzip2, zip_method_lzma,
+                                           zip_method_zstd,  zip_method_xz };
+
+            {
+                byte_blob blob;
+                D_AO_CHECK_STATUS(try_archive<zip>(items, blob,
+                                      ::djinterp::test::zip_method_options(
+                                          zip_method_lzma)),
+                                  status_unsupported);
+            }
+
+            const std::size_t n = sizeof(methods) / sizeof(methods[0]);
+
+            for (std::size_t i = 0; i < n; ++i)
+            {
+                const archive_options opt =
+                    ::djinterp::test::zip_method_options(methods[i]);
+
+                byte_blob blob;
+                const status s = try_archive<zip>(items, blob, opt);
+
+                D_AO_CHECK( (s == status_ok)          ||
+                            (s == status_unavailable) ||
+                            (s == status_unsupported) );
+
+                if (s == status_ok)
+                {
+                    entry_list out;
+                    D_AO_CHECK_STATUS(try_extract<zip>(blob, out),
+                                      status_ok);
+                    D_AO_CHECK(::djinterp::test::files_preserved(items,
+                                                                 out));
+                }
+            }
+        }
+        {
+            const archive_options opt =
+                ::djinterp::test::zip_encrypted_options(
+                    zip_encryption_aes_256, "hunter2");
+
+            byte_blob  blob;
+            const status s = try_archive<zip>(items, blob, opt);
+
+            D_AO_CHECK( (s == status_ok)          ||
+                        (s == status_unavailable) ||
+                        (s == status_unsupported) );
+        }
+
+        return _ok;
+    }
 }
 
 /*
@@ -239,8 +303,8 @@ characterization test above this does not pin WHICH status comes back for the
 compressed-method requests, so it keeps holding once a backend learns to honour
 them.
   Tests the following:
-  - zip64 policy, UTF-8 name flagging, an archive comment, and the two
-    preserve_* flags all leave a valid, readable zip
+  - zip64, UTF-8 name flagging, an archive comment, and the two preserve_*
+    flags all leave a valid, readable zip
   - a tar variant request leaves a valid, readable tar
   - the gz header knobs leave a valid gz (when the codec is present)
   - requesting a ZIP method or encryption scheme the built-in writer cannot
@@ -257,11 +321,11 @@ bool tests_facade_container_knobs_do_not_corrupt()
     // zip container knobs
     {
         archive_options opt;
-        opt.zip.zip64            = zip64_always;
-        opt.zip.utf8_names       = false;
+        opt.zip.zip64            = 1;
+        opt.zip.utf8_names       = 0;
         opt.comment              = "suite comment";
-        opt.preserve_permissions = false;
-        opt.preserve_mtime       = false;
+        opt.preserve_permissions = 0;
+        opt.preserve_mtime       = 0;
 
         byte_blob blob;
         D_AO_CHECK_STATUS(try_archive<zip>(items, blob, opt), status_ok);
@@ -276,7 +340,7 @@ bool tests_facade_container_knobs_do_not_corrupt()
     {
         archive_options opt;
         opt.tar.format        = tar_format_pax;
-        opt.tar.numeric_owner = true;
+        opt.tar.numeric_owner = 1;
 
         byte_blob blob;
         D_AO_CHECK_STATUS(try_archive<tar>(items, blob, opt), status_ok);
@@ -291,9 +355,9 @@ bool tests_facade_container_knobs_do_not_corrupt()
     if (format_is_writable<gz>() && format_is_readable<gz>())
     {
         archive_options opt;
-        opt.gz.store_name    = true;
+        opt.gz.store_name    = 1;
         opt.gz.original_name = "carried.txt";
-        opt.gz.store_mtime   = false;
+        opt.gz.store_mtime   = 0;
 
         entry_list one;
         one.push_back(::djinterp::test::make_file_entry("carried.txt",
@@ -309,43 +373,7 @@ bool tests_facade_container_knobs_do_not_corrupt()
         D_AO_CHECK(out[0].data == one[0].data);
     }
 
-    // unimplemented ZIP methods / encryption: a defined status, never garbage
-    {
-        const zip_method methods[] = { zip_method_bzip2, zip_method_lzma,
-                                       zip_method_zstd,  zip_method_xz };
-
-        for (std::size_t i = 0; i < sizeof(methods) / sizeof(methods[0]); ++i)
-        {
-            const archive_options opt =
-                ::djinterp::test::zip_method_options(methods[i]);
-
-            byte_blob blob;
-            const status s = try_archive<zip>(items, blob, opt);
-
-            D_AO_CHECK( (s == status_ok)          ||
-                        (s == status_unavailable) ||
-                        (s == status_unsupported) );
-
-            if (s == status_ok)
-            {
-                entry_list out;
-                D_AO_CHECK_STATUS(try_extract<zip>(blob, out), status_ok);
-                D_AO_CHECK(::djinterp::test::files_preserved(items, out));
-            }
-        }
-    }
-    {
-        const archive_options opt =
-            ::djinterp::test::zip_encrypted_options(zip_encryption_aes256,
-                                                    "hunter2");
-
-        byte_blob  blob;
-        const status s = try_archive<zip>(items, blob, opt);
-
-        D_AO_CHECK( (s == status_ok)          ||
-                    (s == status_unavailable) ||
-                    (s == status_unsupported) );
-    }
+    D_AO_CHECK(ao_unhonoured_requests(items));
 
     return _ok;
 }
@@ -376,12 +404,12 @@ bool tests_facade_does_not_mutate_options()
     archive_options opt;
     opt.level                = 6;
     opt.comment              = "unchanged";
-    opt.zip.zip64            = zip64_always;
+    opt.zip.zip64            = 1;
     opt.zip.password         = "pw";
     opt.codec.level          = 2;
     opt.codec.zstd.workers   = 3;
     opt.sevenzip.threads     = 4;
-    opt.preserve_mtime       = false;
+    opt.preserve_mtime       = 0;
 
     const archive_options before(opt);
 

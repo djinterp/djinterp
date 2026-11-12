@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/heap_sort_tests_apply.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -65,7 +65,7 @@ bool tests_heap_sort_apply_ordering_battery()
 {
     verdict result;
 
-    verify_battery_reference(&heap_apply_ints, less<int>(), result);
+    verify_battery_reference(&heap_apply_ints, std::less<int>(), result);
 
     return result.ok();
 }
@@ -107,7 +107,7 @@ bool tests_heap_sort_apply_heap_invariant()
 
             std::stable_sort(expected.begin(),
                              expected.end(),
-                             less<int>());
+                             std::less<int>());
 
             // phase 1 -- heapify, bottom-up from the last parent
             i = ::djinterp::internal::heap_parent(size - 1);
@@ -126,7 +126,7 @@ bool tests_heap_sort_apply_heap_invariant()
 
             result.check(is_max_heap(data.begin(),
                                      data.end(),
-                                     less<int>()));
+                                     std::less<int>()));
 
             // the maximum has to be at the root once phase 1 is done
             result.check(data[0] == expected[length - 1]);
@@ -144,7 +144,7 @@ bool tests_heap_sort_apply_heap_invariant()
                 // of the sorted output
                 result.check(is_max_heap(data.begin(),
                                          data.begin() + i,
-                                         less<int>()));
+                                         std::less<int>()));
 
                 --i;
             }

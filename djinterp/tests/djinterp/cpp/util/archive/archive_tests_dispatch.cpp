@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests_dispatch.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -35,7 +35,9 @@ public API cannot exercise (it never passes a null base with a non-zero count).
     (empty) archive
   - archive_extract with a null input and a non-zero length is rejected with
     status_invalid_argument
-  - archive_extract with a null input and a zero length is valid and yields no
+  - archive_extract with a null input and a zero length is not a guard
+    failure: it reaches the reader, which finds no ZIP in zero bytes (an empty
+    ZIP is a 22-byte end record) and reports status_corrupt_input, with no
     entries
 */
 bool tests_dispatch_null_base_guard()
@@ -67,12 +69,12 @@ bool tests_dispatch_null_base_guard()
                           status_invalid_argument);
     }
 
-    // extract: null input + zero length -> valid, no entries
+    // extract: null input + zero length -> past the guard; not a ZIP
     {
         entry_list out;
         D_AR_CHECK_STATUS(::djinterp::internal::archive_extract(
                               format_id_zip, (const char*)0, 0u, out),
-                          status_ok);
+                          status_corrupt_input);
         D_AR_CHECK(out.empty());
     }
 
@@ -84,8 +86,10 @@ tests_dispatch_unknown_format
   Verifies the default arm of each dispatch switch, reached only by an
 out-of-range format id.
   Tests the following:
-  - archive_create with an unknown format id returns status_unavailable
-  - archive_extract with an unknown format id returns status_unavailable
+  - archive_create with an unknown format id returns status_invalid_argument
+  - archive_extract with an unknown format id returns status_invalid_argument
+  (an id outside the enumeration is a malformed request; status_unavailable
+  is for a format this build was compiled without)
 */
 bool tests_dispatch_unknown_format()
 {
@@ -102,7 +106,7 @@ bool tests_dispatch_unknown_format()
 
         D_AR_CHECK_STATUS(::djinterp::internal::archive_create(
                               bad, one, 1u, opt, out),
-                          status_unavailable);
+                          status_invalid_argument);
     }
 
     {
@@ -111,7 +115,7 @@ bool tests_dispatch_unknown_format()
 
         D_AR_CHECK_STATUS(::djinterp::internal::archive_extract(
                               bad, blob.data(), blob.size(), out),
-                          status_unavailable);
+                          status_invalid_argument);
     }
 
     return _ok;
@@ -141,16 +145,24 @@ bool tests_dispatch_capability_switches()
     D_AR_CHECK(::djinterp::internal::format_can_read(format_id_tar)  == true);
 
     // gz / tar.gz track the gzip codec
-    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_gz)     == codec_is_available<codecs::gzip>());
-    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_tar_gz) == codec_is_available<codecs::gzip>());
-    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_gz)      == codec_is_available<codecs::gzip>());
-    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_tar_gz)  == codec_is_available<codecs::gzip>());
+    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_gz)     ==
+               codec_is_available<codecs::gzip>());
+    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_tar_gz) ==
+               codec_is_available<codecs::gzip>());
+    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_gz)      ==
+               codec_is_available<codecs::gzip>());
+    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_tar_gz)  ==
+               codec_is_available<codecs::gzip>());
 
     // 7z / rar arms agree with the template wrappers
-    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_sevenzip) == format_is_writable<sevenzip>());
-    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_sevenzip)  == format_is_readable<sevenzip>());
-    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_rar)      == format_is_writable<rar>());
-    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_rar)       == format_is_readable<rar>());
+    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_sevenzip) ==
+               format_is_writable<sevenzip>());
+    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_sevenzip)  ==
+               format_is_readable<sevenzip>());
+    D_AR_CHECK(::djinterp::internal::format_can_write(format_id_rar)      ==
+               format_is_writable<rar>());
+    D_AR_CHECK(::djinterp::internal::format_can_read(format_id_rar)       ==
+               format_is_readable<rar>());
 
     // unknown id -> default arm -> false
     D_AR_CHECK(::djinterp::internal::format_can_write(bad) == false);

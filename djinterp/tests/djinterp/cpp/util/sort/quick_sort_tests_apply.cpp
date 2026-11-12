@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/quick_sort_tests_apply.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -28,7 +28,8 @@ bool tests_quick_sort_apply_threshold_boundary()
     std::size_t      shape_index;
     std::size_t      length;
 
-    threshold = static_cast<std::size_t>(D_QUICK_SORT_INSERTION_THRESHOLD);
+    threshold = static_cast<std::size_t>(
+        quick_sort_traits::insertion_threshold);
 
     //   At or below the threshold the while loop is never entered and the
     // whole range is handed to insertion sort.  "Never entered" is checked
@@ -49,12 +50,12 @@ bool tests_quick_sort_apply_threshold_boundary()
             ::djinterp::internal::quick_sort_apply(
                 quick_path.begin(),
                 quick_path.end(),
-                make_counting(less<int>(), &quick_comparisons));
+                make_counting(std::less<int>(), &quick_comparisons));
 
             ::djinterp::internal::insertion_sort_apply(
                 insertion_path.begin(),
                 insertion_path.end(),
-                make_counting(less<int>(), &insertion_comparisons));
+                make_counting(std::less<int>(), &insertion_comparisons));
 
             result.check(ranges_equal(quick_path, insertion_path));
             result.check(quick_comparisons == insertion_comparisons);
@@ -74,12 +75,12 @@ bool tests_quick_sort_apply_threshold_boundary()
     ::djinterp::internal::quick_sort_apply(
         quick_path.begin(),
         quick_path.end(),
-        make_counting(less<int>(), &quick_comparisons));
+        make_counting(std::less<int>(), &quick_comparisons));
 
     ::djinterp::internal::insertion_sort_apply(
         insertion_path.begin(),
         insertion_path.end(),
-        make_counting(less<int>(), &insertion_comparisons));
+        make_counting(std::less<int>(), &insertion_comparisons));
 
     result.check(insertion_comparisons ==
                  (((length - 1) * (length + 2)) / 2));
@@ -95,7 +96,7 @@ bool tests_quick_sort_apply_ordering_battery()
 {
     verdict result;
 
-    verify_battery_reference(&quick_apply_ints, less<int>(), result);
+    verify_battery_reference(&quick_apply_ints, std::less<int>(), result);
 
     return result.ok();
 }
@@ -123,14 +124,14 @@ bool tests_quick_sort_apply_adversarial_shapes()
         data     = make_shape(shape_index, length);
         expected = data;
 
-        std::stable_sort(expected.begin(), expected.end(), less<int>());
+        std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
         comparisons = 0;
 
         ::djinterp::internal::quick_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(data == expected);
 
@@ -150,9 +151,9 @@ bool tests_quick_sort_apply_adversarial_shapes()
     ::djinterp::internal::quick_sort_apply(
         data.begin(),
         data.end(),
-        make_counting(less<int>(), &comparisons));
+        make_counting(std::less<int>(), &comparisons));
 
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
     result.check(comparisons < (25 * length));
 
     //   The driver recurses into the SMALLER partition and loops on the
@@ -164,17 +165,17 @@ bool tests_quick_sort_apply_adversarial_shapes()
 
     ::djinterp::internal::quick_sort_apply(data.begin(),
                                            data.end(),
-                                           less<int>());
+                                           std::less<int>());
 
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     data = shape_ascending(length);
 
     ::djinterp::internal::quick_sort_apply(data.begin(),
                                            data.end(),
-                                           less<int>());
+                                           std::less<int>());
 
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }

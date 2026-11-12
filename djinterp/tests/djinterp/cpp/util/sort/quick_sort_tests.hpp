@@ -6,27 +6,29 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     test_quick_sort_median.cpp      internal::quick_sort_median_of_three --
+*     quick_sort_tests_traits.cpp     quick_sort_traits -- the property block
+*                                     and the configured insertion threshold
+*     quick_sort_tests_median.cpp     internal::quick_sort_median_of_three --
 *                                     all six orderings of a distinct triple
-*     test_quick_sort_partition.cpp   internal::quick_sort_partition -- the
+*     quick_sort_tests_partition.cpp  internal::quick_sort_partition -- the
 *                                     Hoare convergence and its post-condition
-*     test_quick_sort_apply.cpp       internal::quick_sort_apply -- the
+*     quick_sort_tests_apply.cpp      internal::quick_sort_apply -- the
 *                                     threshold, the insertion-sort tail, and
 *                                     the tail-call loop
-*     test_quick_sort_cpp98.cpp       internal::quick_sort_apply_98
-*     test_quick_sort_entry.cpp       the public quick_sort /
+*     quick_sort_tests_entry.cpp      the public quick_sort /
 *                                     quick_sort_ordered entry points
 *
-*   D_QUICK_SORT_INSERTION_THRESHOLD is 16, so any input of sixteen or fewer
-* elements never reaches the partitioner at all.  Every test that means to
+*   quick_sort_traits::insertion_threshold is 16 unless the build sets
+* D_CFG_SORT_QUICK_INSERTION_THRESHOLD, and any input of that many elements or
+* fewer never reaches the partitioner at all.  Every test that means to
 * exercise median-of-three, partitioning or recursion therefore uses more than
-* sixteen elements.
+* the threshold; the battery's 16/17/18 straddle the default.
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/quick_sort_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_QUICK_SORT_TESTS_
@@ -40,11 +42,12 @@
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/util/sort/quick_sort.hpp"
 // djinterp [test]
 #include "sort_support.hpp"
 #endif  // !DTEST_SPEC_MODE
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
 #endif  // DTEST_SPEC_MODE
 
 
@@ -115,7 +118,7 @@ void quick_median_ints(
     ::djinterp::internal::quick_sort_median_of_three(_first,
                                                      _mid,
                                                      _end,
-                                                     less<int>());
+                                                     std::less<int>());
 
     return;
 }
@@ -131,7 +134,7 @@ std::vector<int>::iterator quick_partition_ints(
 {
     return ::djinterp::internal::quick_sort_partition(_first,
                                                       _last,
-                                                      less<int>());
+                                                      std::less<int>());
 }
 
 // quick_apply_ints
@@ -144,40 +147,7 @@ void quick_apply_ints(
 {
     ::djinterp::internal::quick_sort_apply(_first,
                                            _last,
-                                           less<int>());
-
-    return;
-}
-
-// quick_apply_98_ints
-//   helper: the C++98 hint-parameter driver over vector<int> iterators.
-inline
-void quick_apply_98_ints(
-    std::vector<int>::iterator _first,
-    std::vector<int>::iterator _last
-)
-{
-    ::djinterp::internal::quick_sort_apply_98(_first,
-                                              _last,
-                                              less<int>(),
-                                              static_cast<int*>(nullptr));
-
-    return;
-}
-
-// quick_apply_98_keyed
-//   helper: the C++98 driver under the key-only comparator.
-inline
-void quick_apply_98_keyed(
-    std::vector<DKeyedValue>::iterator _first,
-    std::vector<DKeyedValue>::iterator _last
-)
-{
-    ::djinterp::internal::quick_sort_apply_98(
-        _first,
-        _last,
-        keyed_value_less(),
-        static_cast<DKeyedValue*>(nullptr));
+                                           std::less<int>());
 
     return;
 }
@@ -196,14 +166,14 @@ void quick_sort_ints(
 }
 
 // quick_sort_ints_descending
-//   helper: the three-argument public entry point under greater<int>.
+//   helper: the three-argument public entry point under std::greater<int>.
 inline
 void quick_sort_ints_descending(
     std::vector<int>::iterator _first,
     std::vector<int>::iterator _last
 )
 {
-    quick_sort(_first, _last, greater<int>());
+    quick_sort(_first, _last, std::greater<int>());
 
     return;
 }
@@ -238,7 +208,7 @@ void quick_sort_keyed(
 
 // quick_sort_keyed_ordered_ascending
 //   helper: quick_sort_ordered with sort_order::ascending.  Quicksort's
-// ordered entry point takes a real sort_order, so it needs no probe.
+// ordered entry point takes a real sort_order::value, so it needs no probe.
 inline
 void quick_sort_keyed_ordered_ascending(
     std::vector<DKeyedValue>::iterator _first,
@@ -261,6 +231,9 @@ void quick_sort_keyed_ordered_ascending(
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
+// traits -- quick_sort_traits
+bool tests_quick_sort_traits_values();
+
 // median -- internal::quick_sort_median_of_three
 bool tests_quick_sort_median_all_permutations();
 bool tests_quick_sort_median_duplicates();
@@ -277,10 +250,6 @@ bool tests_quick_sort_apply_threshold_boundary();
 bool tests_quick_sort_apply_ordering_battery();
 bool tests_quick_sort_apply_adversarial_shapes();
 
-// cpp98 -- internal::quick_sort_apply_98
-bool tests_quick_sort_cpp98_ordering_battery();
-bool tests_quick_sort_cpp98_parity_with_apply();
-
 // entry -- quick_sort / quick_sort_ordered
 bool tests_quick_sort_entry_comparator();
 bool tests_quick_sort_entry_default();
@@ -292,6 +261,156 @@ bool tests_quick_sort_entry_pointer_iterators();
 
 #ifdef DTEST_SPEC_MODE
 
+// quick_sort_traits_block
+//   provider: the "traits" block of quick_sort_spec.
+inline
+dt::block_spec quick_sort_traits_block()
+{
+    return dt::block_spec
+    {
+        "traits",
+        "quick_sort_traits",
+        {
+            {
+                "quick_sort_traits_values",
+                "values",
+                &tests_quick_sort_traits_values
+            }
+        }
+    };
+}
+
+// quick_sort_median_block
+//   provider: the "median" block of quick_sort_spec.
+inline
+dt::block_spec quick_sort_median_block()
+{
+    return dt::block_spec
+    {
+        "median",
+        "internal::quick_sort_median_of_three",
+        {
+            {
+                "quick_sort_median_all_permutations",
+                "all permutations",
+                &tests_quick_sort_median_all_permutations
+            },
+            {
+                "quick_sort_median_duplicates",
+                "duplicates",
+                &tests_quick_sort_median_duplicates
+            },
+            {
+                "quick_sort_median_degenerate_positions",
+                "degenerate positions",
+                &tests_quick_sort_median_degenerate_positions
+            }
+        }
+    };
+}
+
+// quick_sort_partition_block
+//   provider: the "partition" block of quick_sort_spec.
+inline
+dt::block_spec quick_sort_partition_block()
+{
+    return dt::block_spec
+    {
+        "partition",
+        "internal::quick_sort_partition",
+        {
+            {
+                "quick_sort_partition_postcondition",
+                "postcondition",
+                &tests_quick_sort_partition_postcondition
+            },
+            {
+                "quick_sort_partition_all_equal",
+                "all equal",
+                &tests_quick_sort_partition_all_equal
+            },
+            {
+                "quick_sort_partition_extreme_pivots",
+                "extreme pivots",
+                &tests_quick_sort_partition_extreme_pivots
+            },
+            {
+                "quick_sort_partition_minimal_ranges",
+                "minimal ranges",
+                &tests_quick_sort_partition_minimal_ranges
+            }
+        }
+    };
+}
+
+// quick_sort_apply_block
+//   provider: the "apply" block of quick_sort_spec.
+inline
+dt::block_spec quick_sort_apply_block()
+{
+    return dt::block_spec
+    {
+        "apply",
+        "internal::quick_sort_apply",
+        {
+            {
+                "quick_sort_apply_threshold_boundary",
+                "threshold boundary",
+                &tests_quick_sort_apply_threshold_boundary
+            },
+            {
+                "quick_sort_apply_ordering_battery",
+                "ordering battery",
+                &tests_quick_sort_apply_ordering_battery
+            },
+            {
+                "quick_sort_apply_adversarial_shapes",
+                "adversarial shapes",
+                &tests_quick_sort_apply_adversarial_shapes
+            }
+        }
+    };
+}
+
+// quick_sort_entry_block
+//   provider: the "entry" block of quick_sort_spec.
+inline
+dt::block_spec quick_sort_entry_block()
+{
+    return dt::block_spec
+    {
+        "entry",
+        "quick_sort / quick_sort_ordered",
+        {
+            {
+                "quick_sort_entry_comparator",
+                "comparator",
+                &tests_quick_sort_entry_comparator
+            },
+            {
+                "quick_sort_entry_default",
+                "default",
+                &tests_quick_sort_entry_default
+            },
+            {
+                "quick_sort_entry_ordered",
+                "ordered",
+                &tests_quick_sort_entry_ordered
+            },
+            {
+                "quick_sort_entry_short_range_guard",
+                "short range guard",
+                &tests_quick_sort_entry_short_range_guard
+            },
+            {
+                "quick_sort_entry_pointer_iterators",
+                "pointer iterators",
+                &tests_quick_sort_entry_pointer_iterators
+            }
+        }
+    };
+}
+
 // quick_sort_spec
 //   provider: the module spec for this suite, handed to run_module by
 // quick_sort_tests_runner.cpp.
@@ -301,131 +420,16 @@ dt::module_spec quick_sort_spec()
     return dt::module_spec
     {
         "quick_sort.hpp",
-        "quicksort: median-of-three pivot selection, the Hoare partitioner, "
-        "the hybrid driver with its insertion-sort threshold and "
-        "smaller-side recursion, the C++98 variant, and the public entry "
-        "points.",
+        "quicksort: the traits and configured threshold, median-of-three "
+        "pivot selection, the Hoare partitioner, the hybrid driver with its "
+        "insertion-sort finish and smaller-side recursion, and the public "
+        "entry points.",
         {
-            dt::block_spec
-            {
-                "median",
-                "internal::quick_sort_median_of_three",
-                {
-                    {
-                        "quick_sort_median_all_permutations",
-                        "all permutations",
-                        &tests_quick_sort_median_all_permutations
-                    },
-                    {
-                        "quick_sort_median_duplicates",
-                        "duplicates",
-                        &tests_quick_sort_median_duplicates
-                    },
-                    {
-                        "quick_sort_median_degenerate_positions",
-                        "degenerate positions",
-                        &tests_quick_sort_median_degenerate_positions
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "partition",
-                "internal::quick_sort_partition",
-                {
-                    {
-                        "quick_sort_partition_postcondition",
-                        "postcondition",
-                        &tests_quick_sort_partition_postcondition
-                    },
-                    {
-                        "quick_sort_partition_all_equal",
-                        "all equal",
-                        &tests_quick_sort_partition_all_equal
-                    },
-                    {
-                        "quick_sort_partition_extreme_pivots",
-                        "extreme pivots",
-                        &tests_quick_sort_partition_extreme_pivots
-                    },
-                    {
-                        "quick_sort_partition_minimal_ranges",
-                        "minimal ranges",
-                        &tests_quick_sort_partition_minimal_ranges
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "apply",
-                "internal::quick_sort_apply",
-                {
-                    {
-                        "quick_sort_apply_threshold_boundary",
-                        "threshold boundary",
-                        &tests_quick_sort_apply_threshold_boundary
-                    },
-                    {
-                        "quick_sort_apply_ordering_battery",
-                        "ordering battery",
-                        &tests_quick_sort_apply_ordering_battery
-                    },
-                    {
-                        "quick_sort_apply_adversarial_shapes",
-                        "adversarial shapes",
-                        &tests_quick_sort_apply_adversarial_shapes
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "cpp98",
-                "internal::quick_sort_apply_98",
-                {
-                    {
-                        "quick_sort_cpp98_ordering_battery",
-                        "ordering battery",
-                        &tests_quick_sort_cpp98_ordering_battery
-                    },
-                    {
-                        "quick_sort_cpp98_parity_with_apply",
-                        "parity with apply",
-                        &tests_quick_sort_cpp98_parity_with_apply
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "entry",
-                "quick_sort / quick_sort_ordered",
-                {
-                    {
-                        "quick_sort_entry_comparator",
-                        "comparator",
-                        &tests_quick_sort_entry_comparator
-                    },
-                    {
-                        "quick_sort_entry_default",
-                        "default",
-                        &tests_quick_sort_entry_default
-                    },
-                    {
-                        "quick_sort_entry_ordered",
-                        "ordered",
-                        &tests_quick_sort_entry_ordered
-                    },
-                    {
-                        "quick_sort_entry_short_range_guard",
-                        "short range guard",
-                        &tests_quick_sort_entry_short_range_guard
-                    },
-                    {
-                        "quick_sort_entry_pointer_iterators",
-                        "pointer iterators",
-                        &tests_quick_sort_entry_pointer_iterators
-                    }
-                }
-            }
+            quick_sort_traits_block(),
+            quick_sort_median_block(),
+            quick_sort_partition_block(),
+            quick_sort_apply_block(),
+            quick_sort_entry_block()
         }
     };
 }

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_monoid_tests_algebra.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -31,7 +31,7 @@ bool tests_sort_monoid_semigroup_registration()
 
     result.check(is_semigroup<DIntRun>::value);
     result.check(is_semigroup<DKeyedRun>::value);
-    result.check((is_semigroup<sorted_run<int, greater<int> > >::value));
+    result.check((is_semigroup<DSortedRun<int, std::greater<int> > >::value));
 
     return result.ok();
 }
@@ -76,8 +76,8 @@ bool tests_sort_monoid_mappend_merges()
     static const int right_values[] = { 2, 4, 6 };
     static const int expected[]     = { 1, 2, 3, 4, 5, 6 };
 
-    DIntRun left(ints_of(left_values, 3), less<int>(), true);
-    DIntRun right(ints_of(right_values, 3), less<int>(), true);
+    DIntRun left(ints_of(left_values, 3), std::less<int>(), true);
+    DIntRun right(ints_of(right_values, 3), std::less<int>(), true);
     DIntRun combined;
     DIntRun merged;
 
@@ -105,10 +105,10 @@ bool tests_sort_monoid_mappend_merges()
     static const int low[]           = { 5, 1 };
     static const int high_then_low[] = { 9, 7, 5, 1 };
 
-    sorted_run<int, greater<int> > descending_left(
-        ints_of(high, 2), greater<int>(), true);
-    sorted_run<int, greater<int> > descending_right(
-        ints_of(low, 2), greater<int>(), true);
+    DSortedRun<int, std::greater<int> > descending_left(
+        ints_of(high, 2), std::greater<int>(), true);
+    DSortedRun<int, std::greater<int> > descending_right(
+        ints_of(low, 2), std::greater<int>(), true);
 
     result.check(ranges_equal(
         mappend(descending_left, descending_right).data(),
@@ -125,7 +125,7 @@ bool tests_sort_monoid_mempty_is_identity()
 
     static const int values[] = { 2, 4, 6 };
 
-    DIntRun run(ints_of(values, 3), less<int>(), true);
+    DIntRun run(ints_of(values, 3), std::less<int>(), true);
     DIntRun identity;
 
     //   combine() short-circuits on an empty operand and returns the other
@@ -197,9 +197,9 @@ bool tests_sort_monoid_associativity()
     static const int b_values[] = { 2, 5, 8 };
     static const int c_values[] = { 3, 6, 9 };
 
-    DIntRun a(ints_of(a_values, 3), less<int>(), true);
-    DIntRun b(ints_of(b_values, 3), less<int>(), true);
-    DIntRun c(ints_of(c_values, 3), less<int>(), true);
+    DIntRun a(ints_of(a_values, 3), std::less<int>(), true);
+    DIntRun b(ints_of(b_values, 3), std::less<int>(), true);
+    DIntRun c(ints_of(c_values, 3), std::less<int>(), true);
 
     std::vector<DKeyedValue> ka;
     std::vector<DKeyedValue> kb;
@@ -296,10 +296,10 @@ bool tests_sort_monoid_mconcat_is_merge_sort()
 
             std::stable_sort(expected.begin(),
                              expected.end(),
-                             less<int>());
+                             std::less<int>());
 
             result.check(ranges_equal(
-                mconcat(to_singleton_runs(source, less<int>())).data(),
+                mconcat(to_singleton_runs(source, std::less<int>())).data(),
                 expected));
         }
     }

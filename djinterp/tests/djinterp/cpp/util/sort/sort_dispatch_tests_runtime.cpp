@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_runtime.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -24,20 +24,20 @@ bool tests_sort_dispatch_runtime_every_case()
     std::vector<int> expected;
     std::size_t      i;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
     //   One case of the switch per enumerator, all six visited.  The input
     // is long enough that quicksort passes its insertion-sort threshold, so
     // no case is quietly answered by the same code as another.
     expected = shape_random(64);
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     for (i = 0; i < 6; ++i)
     {
@@ -46,7 +46,7 @@ bool tests_sort_dispatch_runtime_every_case()
         ::djinterp::internal::dispatch_runtime(every[i],
                                                data.begin(),
                                                data.end(),
-                                               less<int>());
+                                               std::less<int>());
 
         result.check(data == expected);
     }
@@ -54,7 +54,7 @@ bool tests_sort_dispatch_runtime_every_case()
     //   The comparator is forwarded, not defaulted: the same six cases under
     // a descending comparator.
     expected = shape_random(64);
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
     for (i = 0; i < 6; ++i)
     {
@@ -63,7 +63,7 @@ bool tests_sort_dispatch_runtime_every_case()
         ::djinterp::internal::dispatch_runtime(every[i],
                                                data.begin(),
                                                data.end(),
-                                               greater<int>());
+                                               std::greater<int>());
 
         result.check(data == expected);
     }
@@ -93,14 +93,14 @@ bool tests_sort_dispatch_runtime_unrecognised_is_noop()
         unrecognised_algorithm(),
         data.begin(),
         data.end(),
-        make_counting(less<int>(), &comparisons));
+        make_counting(std::less<int>(), &comparisons));
 
     result.check(ranges_equal(data, original));
     result.check(comparisons == 0);
 
     //   An unsorted range stays unsorted, which is the observable
     // consequence a caller has to be ready for.
-    result.check(!is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(!is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }
@@ -114,28 +114,28 @@ bool tests_sort_dispatch_runtime_battery()
     //   Every algorithm, over every shape and length in the corpus, reached
     // through the run-time switch rather than through its own entry point.
     verify_battery_reference(
-        &runtime_dispatch_ints<sort_algorithm::bubble>,
-        less<int>(),
+        &runtime_dispatch_ints<DSortAlgorithm::bubble>,
+        std::less<int>(),
         result);
     verify_battery_reference(
-        &runtime_dispatch_ints<sort_algorithm::selection>,
-        less<int>(),
+        &runtime_dispatch_ints<DSortAlgorithm::selection>,
+        std::less<int>(),
         result);
     verify_battery_reference(
-        &runtime_dispatch_ints<sort_algorithm::insertion>,
-        less<int>(),
+        &runtime_dispatch_ints<DSortAlgorithm::insertion>,
+        std::less<int>(),
         result);
     verify_battery_reference(
-        &runtime_dispatch_ints<sort_algorithm::merge>,
-        less<int>(),
+        &runtime_dispatch_ints<DSortAlgorithm::merge>,
+        std::less<int>(),
         result);
     verify_battery_reference(
-        &runtime_dispatch_ints<sort_algorithm::quick>,
-        less<int>(),
+        &runtime_dispatch_ints<DSortAlgorithm::quick>,
+        std::less<int>(),
         result);
     verify_battery_reference(
-        &runtime_dispatch_ints<sort_algorithm::heap>,
-        less<int>(),
+        &runtime_dispatch_ints<DSortAlgorithm::heap>,
+        std::less<int>(),
         result);
 
     return result.ok();

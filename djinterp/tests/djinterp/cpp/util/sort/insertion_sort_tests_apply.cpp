@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/insertion_sort_tests_apply.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -62,7 +62,7 @@ bool tests_insertion_sort_apply_ordering_battery()
 {
     verdict result;
 
-    verify_battery_reference(&insertion_apply_ints, less<int>(), result);
+    verify_battery_reference(&insertion_apply_ints, std::less<int>(), result);
 
     return result.ok();
 }
@@ -96,7 +96,7 @@ bool tests_insertion_sort_apply_fast_path()
         ::djinterp::internal::insertion_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(comparisons == (length - 1));
 
@@ -108,7 +108,7 @@ bool tests_insertion_sort_apply_fast_path()
         ::djinterp::internal::insertion_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(comparisons == (length - 1));
     }
@@ -143,11 +143,11 @@ bool tests_insertion_sort_apply_full_shift()
     ::djinterp::internal::insertion_sort_apply(
         data.begin(),
         data.end(),
-        make_counting(less<int>(), &comparisons));
+        make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons == ((2 * length) - 2));
     result.check(data[0] == -1);
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     //   Insertion sort is shift-based, not exchange-based: it assigns over
     // the hole and never calls swap.  A tracked element type therefore sees
@@ -171,7 +171,7 @@ bool tests_insertion_sort_apply_full_shift()
     values = tracked_values(tracked);
     result.check(is_sorted_range(values.begin(),
                                  values.end(),
-                                 less<int>()));
+                                 std::less<int>()));
 
     return result.ok();
 }
@@ -207,12 +207,12 @@ bool tests_insertion_sort_apply_comparison_counts()
         ::djinterp::internal::insertion_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(comparisons == expected);
         result.check(is_sorted_range(data.begin(),
                                      data.end(),
-                                     less<int>()));
+                                     std::less<int>()));
 
         //   Every other shape must fall between the two extremes: never
         // cheaper than the sorted best case, never dearer than the reversed
@@ -223,7 +223,7 @@ bool tests_insertion_sort_apply_comparison_counts()
         ::djinterp::internal::insertion_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(comparisons >= (length - 1));
         result.check(comparisons <= expected);

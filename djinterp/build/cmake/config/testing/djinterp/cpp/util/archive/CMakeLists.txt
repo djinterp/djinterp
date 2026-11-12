@@ -4,12 +4,14 @@
 # section translation units (tests/), and the module's production sources
 # (src/).  djinterp_add_test_executable links djinterp_c_runtime, defines
 # D_TESTING=1, sets the per-config output dir, and registers the exe with CTest
-# (run it with `ctest -R archive_tests`).  Any ancestor djinterp_add_test_subtree
-# picks this leaf up automatically -- no extra wiring here.
+# (run it with `ctest -R archive_tests`).  Any ancestor
+# djinterp_add_test_subtree picks this leaf up automatically -- no extra wiring
+# here.
 #
-# path: /build/cmake/config/testing/djinterp/core/util/CMakeLists.txt
+# path: /build/cmake/config/testing/djinterp/cpp/util/archive/CMakeLists.txt
+# author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.10
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util/archive")
 set(_src_dir   "${DJINTERP_SRC_ROOT}/djinterp/cpp/util")
 
 # section TUs (one per module section).  Exclude any stray *_main.cpp so it can
@@ -24,8 +26,8 @@ list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
 # sources (env_archive.c / env_compress.c) and the configured codec backend link
 # arrive via djinterp_c_runtime, which the helper links automatically.
 set(_prod
-    "${_src_dir}/archive.cpp"
-    "${_src_dir}/compress.cpp")
+    "${_src_dir}/archive/archive.cpp"
+    "${_src_dir}/compress/compress.cpp")
 
 djinterp_add_test_executable(archive_tests
     SOURCES
@@ -34,4 +36,6 @@ djinterp_add_test_executable(archive_tests
         ${_prod}
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/util"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/util/archive"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/util/compress"
         "${_tests_dir}")

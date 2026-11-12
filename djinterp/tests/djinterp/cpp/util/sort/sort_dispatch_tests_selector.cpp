@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_selector.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -22,23 +22,23 @@ bool tests_sort_dispatch_algorithm_enumerators()
     verdict result;
 
     //   The six enumerators and their numeric values.  These cross the ABI
-    // in every run-time sort() call and every sorter<dynamic_algorithm>, so
+    // in every run-time sort() call and every DSorter<DDynamicAlgorithm>, so
     // reordering them would silently redirect existing callers to a
     // different algorithm -- an error no compiler would report.
-    result.check(static_cast<int>(sort_algorithm::bubble) == 0);
-    result.check(static_cast<int>(sort_algorithm::selection) == 1);
-    result.check(static_cast<int>(sort_algorithm::insertion) == 2);
-    result.check(static_cast<int>(sort_algorithm::merge) == 3);
-    result.check(static_cast<int>(sort_algorithm::quick) == 4);
-    result.check(static_cast<int>(sort_algorithm::heap) == 5);
+    result.check(static_cast<int>(DSortAlgorithm::bubble) == 0);
+    result.check(static_cast<int>(DSortAlgorithm::selection) == 1);
+    result.check(static_cast<int>(DSortAlgorithm::insertion) == 2);
+    result.check(static_cast<int>(DSortAlgorithm::merge) == 3);
+    result.check(static_cast<int>(DSortAlgorithm::quick) == 4);
+    result.check(static_cast<int>(DSortAlgorithm::heap) == 5);
 
     //   All six are distinct.
-    result.check(sort_algorithm::bubble != sort_algorithm::selection);
-    result.check(sort_algorithm::selection != sort_algorithm::insertion);
-    result.check(sort_algorithm::insertion != sort_algorithm::merge);
-    result.check(sort_algorithm::merge != sort_algorithm::quick);
-    result.check(sort_algorithm::quick != sort_algorithm::heap);
-    result.check(sort_algorithm::heap != sort_algorithm::bubble);
+    result.check(DSortAlgorithm::bubble != DSortAlgorithm::selection);
+    result.check(DSortAlgorithm::selection != DSortAlgorithm::insertion);
+    result.check(DSortAlgorithm::insertion != DSortAlgorithm::merge);
+    result.check(DSortAlgorithm::merge != DSortAlgorithm::quick);
+    result.check(DSortAlgorithm::quick != DSortAlgorithm::heap);
+    result.check(DSortAlgorithm::heap != DSortAlgorithm::bubble);
 
     return result.ok();
 }
@@ -49,20 +49,20 @@ bool tests_sort_dispatch_algorithm_underlying_type()
 {
     verdict result;
 
-    //   Fixed at std::uint8_t, like sort_order.  A silent widening to int
-    // would break no call site, so it is asserted directly.
+    //   Fixed at re_std::uint8_t, so a stored choice is one byte.  A silent
+    // widening to int would break no call site, so it is asserted directly.
     result.check((std::is_same<
-                      std::underlying_type<sort_algorithm>::type,
-                      std::uint8_t>::value));
+                      std::underlying_type<DSortAlgorithm>::type,
+                      re_std::uint8_t>::value));
 
-    result.check(sizeof(sort_algorithm) == 1);
+    result.check(sizeof(DSortAlgorithm) == 1);
 
     //   Scoped, so it never converts implicitly.  That is what keeps the
     // run-time sort(algorithm, first, last) overloads from colliding with
     // the compile-time sort(first, last, comp) ones: an int would be
-    // ambiguous, a sort_algorithm is not.
-    result.check((!std::is_convertible<sort_algorithm, int>::value));
-    result.check((!std::is_convertible<int, sort_algorithm>::value));
+    // ambiguous, a DSortAlgorithm is not.
+    result.check((!std::is_convertible<DSortAlgorithm, int>::value));
+    result.check((!std::is_convertible<int, DSortAlgorithm>::value));
 
     return result.ok();
 }

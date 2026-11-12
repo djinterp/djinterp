@@ -37,14 +37,14 @@
 * path:      /inc/djinterp/cpp/util/sort/merge_sort_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_SORT_MERGE_SORT_COMMON_HPP
 #define DJINTERP_UTIL_SORT_MERGE_SORT_COMMON_HPP 1
 
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../djinterp.hpp"  // framework root
 
 
 NS_DJINTERP

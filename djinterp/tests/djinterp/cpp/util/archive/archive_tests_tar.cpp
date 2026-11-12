@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests_tar.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -76,9 +76,12 @@ bool tests_tar_roundtrip_files()
     bool       _ok = true;
     entry_list items;
 
-    items.push_back(::djinterp::test::make_text_entry("readme.txt", "hello tar"));
-    items.push_back(::djinterp::test::make_file_entry("data.bin", binary_sample()));
-    items.push_back(::djinterp::test::make_file_entry("empty.dat", byte_blob()));
+    items.push_back(
+        ::djinterp::test::make_text_entry("readme.txt", "hello tar"));
+    items.push_back(
+        ::djinterp::test::make_file_entry("data.bin", binary_sample()));
+    items.push_back(
+        ::djinterp::test::make_file_entry("empty.dat", byte_blob()));
 
     // structural shape of the produced container
     byte_blob blob;
@@ -160,7 +163,8 @@ bool tests_tar_metadata()
                                                  false,
                                                  0600u,
                                                  1000000000L));
-    items.push_back(::djinterp::test::make_file_entry("defmode", byte_blob("y")));
+    items.push_back(
+        ::djinterp::test::make_file_entry("defmode", byte_blob("y")));
     items.push_back(::djinterp::test::make_dir_entry("defdir"));
 
     entry_list out;
@@ -188,40 +192,66 @@ bool tests_tar_metadata()
 }
 
 /*
-tests_tar_name_truncation
-  Verifies the writer's defensive 100-byte name field.
+tests_tar_name_limits
+  Verifies the names a tar can hold.  ustar splits a path across the 155-byte
+prefix and the 100-byte name at a '/'; a name it cannot split goes in a pax
+record under the default format, and strict ustar refuses it rather than
+truncate it (a truncated path extracts to the wrong place and looks correct
+doing it).
   Tests the following:
-  - a name longer than 100 bytes is truncated to its first 100 bytes
   - a name of exactly 100 bytes is preserved in full
+  - a 141-byte path with a '/' in the right place is preserved in full
+  - a single 120-byte component and a 300-byte path round-trip by default
+  - under tar_format_ustar the 120-byte component is status_unsupported
 */
-bool tests_tar_name_truncation()
+bool tests_tar_name_limits()
 {
     using namespace ::djinterp::formats;
 
     bool _ok = true;
 
-    const std::string head100(100, 'a');
-    const std::string long_name = head100 + std::string(20, 'b');   // 120 bytes
     const std::string name100(100, 'c');
+    const std::string split141 = std::string(60, 'p') + "/" +
+                                 std::string(80, 'n');
+    const std::string single120(120, 'a');
+    const std::string path300  = std::string(150, 'q') + "/" +
+                                 std::string(149, 'r');
 
-    entry_list items;
-    items.push_back(::djinterp::test::make_file_entry(long_name, byte_blob("d")));
-    items.push_back(::djinterp::test::make_file_entry(name100, byte_blob("e")));
-
-    entry_list out;
-    D_AR_CHECK_STATUS(::djinterp::test::roundtrip<tar>(items, out), status_ok);
-    D_AR_REQUIRE(out.size() == 2u);
-
-    // over-long name truncated to 100 bytes (its first 100)
-    D_AR_CHECK(::djinterp::test::has_entry(out, head100));
+    // representable in ustar, or in pax: preserved byte for byte
     {
-        const entry* e = ::djinterp::test::find_entry(out, head100);
-        D_AR_REQUIRE(e != (const entry*)0);
-        D_AR_CHECK(e->name.size() == 100u);
+        entry_list items;
+        items.push_back(::djinterp::test::make_file_entry(name100,
+                                                          byte_blob("e")));
+        items.push_back(::djinterp::test::make_file_entry(split141,
+                                                          byte_blob("s")));
+        items.push_back(::djinterp::test::make_file_entry(single120,
+                                                          byte_blob("d")));
+        items.push_back(::djinterp::test::make_file_entry(path300,
+                                                          byte_blob("l")));
+
+        entry_list out;
+        D_AR_CHECK_STATUS(::djinterp::test::roundtrip<tar>(items, out),
+                          status_ok);
+        D_AR_REQUIRE(out.size() == 4u);
+        D_AR_CHECK(::djinterp::test::has_entry(out, name100));
+        D_AR_CHECK(::djinterp::test::has_entry(out, split141));
+        D_AR_CHECK(::djinterp::test::has_entry(out, single120));
+        D_AR_CHECK(::djinterp::test::has_entry(out, path300));
     }
 
-    // exactly-100 name preserved
-    D_AR_CHECK(::djinterp::test::has_entry(out, name100));
+    // strict ustar: refused, not truncated
+    {
+        entry_list      items;
+        archive_options opt;
+
+        opt.tar.format = tar_format_ustar;
+        items.push_back(::djinterp::test::make_file_entry(single120,
+                                                          byte_blob("d")));
+
+        byte_blob blob;
+        D_AR_CHECK_STATUS(try_archive<tar>(items, blob, opt),
+                          status_unsupported);
+    }
 
     return _ok;
 }
@@ -275,9 +305,9 @@ tests_tar_extract_truncated
   Verifies the reader's handling of a stream cut short.
   Tests the following:
   - a stream whose declared file data runs past the buffer end is rejected
-    with status_backend_error
-  - a prefix shorter than a single 512-byte block is treated as an empty
-    (already-ended) archive: status_ok, no entries
+    with status_truncated_input
+  - a cut inside a header is status_truncated_input
+  - a cut inside the end-of-archive zero records is accepted: status_ok
 */
 bool tests_tar_extract_truncated()
 {
@@ -286,7 +316,8 @@ bool tests_tar_extract_truncated()
     bool       _ok = true;
     entry_list items;
 
-    items.push_back(::djinterp::test::make_file_entry("big", repeat_bytes('Z', 100)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("big", repeat_bytes('Z', 100)));
 
     byte_blob full;
     D_AR_CHECK_STATUS(try_archive<tar>(items, full), status_ok);
@@ -296,15 +327,22 @@ bool tests_tar_extract_truncated()
     {
         byte_blob cut(full.data(), 550u);
         entry_list  out;
-        D_AR_CHECK_STATUS(try_extract<tar>(cut, out), status_backend_error);
+        D_AR_CHECK_STATUS(try_extract<tar>(cut, out), status_truncated_input);
     }
 
-    // cut below one block: the reader sees no complete header and stops clean
+    // cut inside the header: as truncated as a cut inside the data
     {
         byte_blob tiny(full.data(), 300u);
         entry_list  out;
-        D_AR_CHECK_STATUS(try_extract<tar>(tiny, out), status_ok);
-        D_AR_CHECK(out.empty());
+        D_AR_CHECK_STATUS(try_extract<tar>(tiny, out), status_truncated_input);
+    }
+
+    // cut inside the end marker: every member is whole, so it reads
+    {
+        byte_blob  ended(full.data(), 1024u + 200u);
+        entry_list out;
+        D_AR_CHECK_STATUS(try_extract<tar>(ended, out), status_ok);
+        D_AR_CHECK(out.size() == 1u);
     }
 
     return _ok;

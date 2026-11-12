@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_options_tests_semantics.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 // djinterp
@@ -49,6 +49,18 @@ namespace
     }
 }
 
+// D_AO_MOVES
+//   macro: one comparator-completeness check: set _field to _value on a fresh
+// aggregate and require the comparator to notice.
+#define D_AO_MOVES(_field, _value)                                             \
+    do                                                                         \
+    {                                                                          \
+        archive_options _o;                                                    \
+        _o._field = (_value);                                                  \
+        D_AO_CHECK(ao_moved(_o));                                              \
+    }                                                                          \
+    while (false)
+
 /*
 tests_options_copy_construction
   Verifies copy construction reproduces the whole tree, including the nested
@@ -64,10 +76,10 @@ bool tests_options_copy_construction()
     archive_options src;
 
     src.level                = 7;
-    src.store_only           = true;
+    src.store_only           = 1;
     src.comment              = "built by the suite";
-    src.preserve_permissions = false;
-    src.preserve_mtime       = false;
+    src.preserve_permissions = 0;
+    src.preserve_mtime       = 0;
     src.codec.level          = 4;
     src.codec.brotli.quality = 11;
     src.zip.method           = zip_method_lzma;
@@ -75,7 +87,7 @@ bool tests_options_copy_construction()
     src.tar.format           = tar_format_gnu;
     src.gz.original_name     = "orig";
     src.sevenzip.threads     = 8;
-    src.rar.recovery_record  = true;
+    src.rar.recovery_record  = 1;
 
     const archive_options copy(src);
 
@@ -83,7 +95,7 @@ bool tests_options_copy_construction()
 
     D_AO_CHECK(copy.level                == 7);
     D_AO_CHECK(copy.comment              == "built by the suite");
-    D_AO_CHECK(copy.preserve_permissions == false);
+    D_AO_CHECK(copy.preserve_permissions == 0);
     D_AO_CHECK(copy.codec.level          == 4);
     D_AO_CHECK(copy.codec.brotli.quality == 11);
     D_AO_CHECK(copy.zip.method           == zip_method_lzma);
@@ -91,7 +103,7 @@ bool tests_options_copy_construction()
     D_AO_CHECK(copy.tar.format           == tar_format_gnu);
     D_AO_CHECK(copy.gz.original_name     == "orig");
     D_AO_CHECK(copy.sevenzip.threads     == 8);
-    D_AO_CHECK(copy.rar.recovery_record  == true);
+    D_AO_CHECK(copy.rar.recovery_record  == 1);
 
     {
         const archive_options pristine;
@@ -119,25 +131,25 @@ bool tests_options_assignment()
     archive_options src;
     src.level        = 2;
     src.comment      = "source";
-    src.zip.zip64    = zip64_always;
+    src.zip.zip64    = 1;
     src.codec.lz4.level = 9;
 
     archive_options dst;
     dst.level            = 5;
     dst.comment          = "target";
-    dst.tar.numeric_owner = true;
-    dst.sevenzip.solid    = false;
+    dst.tar.numeric_owner = 1;
+    dst.sevenzip.solid    = 0;
 
     dst = src;
 
     D_AO_CHECK_EQUAL_OPT(dst, src);
     D_AO_CHECK(dst.level             == 2);
     D_AO_CHECK(dst.comment           == "source");
-    D_AO_CHECK(dst.zip.zip64         == zip64_always);
+    D_AO_CHECK(dst.zip.zip64         == 1);
     D_AO_CHECK(dst.codec.lz4.level   == 9);
-    // the target's former values are gone
-    D_AO_CHECK(dst.tar.numeric_owner == false);
-    D_AO_CHECK(dst.sevenzip.solid    == true);
+    // the target's former values are gone: the source left them unset
+    D_AO_CHECK(dst.tar.numeric_owner == archive_knob_unset);
+    D_AO_CHECK(dst.sevenzip.solid    == archive_knob_unset);
 
     // pristine over customised
     {
@@ -224,11 +236,11 @@ bool tests_comparator_detects_archive_fields()
 {
     bool _ok = true;
 
-    { archive_options o; o.level                = 5;       D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.store_only           = true;    D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.comment              = "c";     D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.preserve_permissions = false;   D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.preserve_mtime       = false;   D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(level, 5);
+    D_AO_MOVES(store_only, 1);
+    D_AO_MOVES(comment, "c");
+    D_AO_MOVES(preserve_permissions, 0);
+    D_AO_MOVES(preserve_mtime, 0);
 
     return _ok;
 }
@@ -250,34 +262,34 @@ bool tests_comparator_detects_format_fields()
     bool _ok = true;
 
     // zip
-    { archive_options o; o.zip.method     = zip_method_store;          D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.zip.encryption = zip_encryption_aes128;     D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.zip.password   = "p";                       D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.zip.zip64      = zip64_never;               D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.zip.utf8_names = false;                     D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(zip.method, zip_method_store);
+    D_AO_MOVES(zip.encryption, zip_encryption_aes_128);
+    D_AO_MOVES(zip.password, "p");
+    D_AO_MOVES(zip.zip64, 0);
+    D_AO_MOVES(zip.utf8_names, 0);
 
     // tar
-    { archive_options o; o.tar.format        = tar_format_v7;          D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.tar.numeric_owner = true;                   D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(tar.format, tar_format_v7);
+    D_AO_MOVES(tar.numeric_owner, 1);
 
     // gz
-    { archive_options o; o.gz.store_name    = true;                    D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.gz.store_mtime   = false;                   D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.gz.original_name = "n";                     D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(gz.store_name, 1);
+    D_AO_MOVES(gz.store_mtime, 0);
+    D_AO_MOVES(gz.original_name, "n");
 
     // sevenzip
-    { archive_options o; o.sevenzip.method             = sevenzip_method_ppmd; D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.sevenzip.solid              = false;        D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.sevenzip.header_compression = false;        D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.sevenzip.header_encryption  = true;         D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.sevenzip.password           = "s";          D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.sevenzip.threads            = 2;            D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(sevenzip.method, sevenzip_method_copy);
+    D_AO_MOVES(sevenzip.solid, 0);
+    D_AO_MOVES(sevenzip.header_compression, 0);
+    D_AO_MOVES(sevenzip.header_encryption, 1);
+    D_AO_MOVES(sevenzip.password, "s");
+    D_AO_MOVES(sevenzip.threads, 2);
 
     // rar
-    { archive_options o; o.rar.level           = 5;                    D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.rar.solid           = true;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.rar.recovery_record = true;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.rar.password        = "r";                  D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(rar.level, 5);
+    D_AO_MOVES(rar.solid, 1);
+    D_AO_MOVES(rar.recovery_record, 1);
+    D_AO_MOVES(rar.password, "r");
 
     return _ok;
 }
@@ -296,68 +308,68 @@ bool tests_comparator_detects_codec_fields()
 {
     bool _ok = true;
 
-    { archive_options o; o.codec.level = 1; D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.level, 1);
 
     // deflate (3)
-    { archive_options o; o.codec.deflate.window_bits = 15;                        D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.deflate.mem_level   = 9;                         D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.deflate.strategy    = deflate_strategy_rle;      D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.deflate.window_bits, 15);
+    D_AO_MOVES(codec.deflate.mem_level, 9);
+    D_AO_MOVES(codec.deflate.strategy, deflate_strategy_rle);
 
     // bzip2 (4)
-    { archive_options o; o.codec.bzip2.block_size_100k  = 9;                      D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.bzip2.work_factor      = 30;                     D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.bzip2.verbosity        = 1;                      D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.bzip2.small_decompress = true;                   D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.bzip2.block_size_100k, 9);
+    D_AO_MOVES(codec.bzip2.work_factor, 30);
+    D_AO_MOVES(codec.bzip2.verbosity, 1);
+    D_AO_MOVES(codec.bzip2.small_decompress, true);
 
     // lzma (11)
-    { archive_options o; o.codec.lzma.extreme   = true;                           D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.check     = lzma_check_sha256;              D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.dict_size = 1u << 20;                       D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.lc        = 0;                              D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.lp        = 0;                              D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.pb        = 0;                              D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.mode      = lzma_mode_fast;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.nice_len  = 64;                             D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.mf        = lzma_mf_bt4;                    D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.depth     = 10;                             D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lzma.threads   = 4;                              D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.lzma.extreme, true);
+    D_AO_MOVES(codec.lzma.check, lzma_check_sha256);
+    D_AO_MOVES(codec.lzma.dict_size, 1u << 20);
+    D_AO_MOVES(codec.lzma.lc, 0);
+    D_AO_MOVES(codec.lzma.lp, 0);
+    D_AO_MOVES(codec.lzma.pb, 0);
+    D_AO_MOVES(codec.lzma.mode, lzma_mode_fast);
+    D_AO_MOVES(codec.lzma.nice_len, 64);
+    D_AO_MOVES(codec.lzma.mf, lzma_mf_bt4);
+    D_AO_MOVES(codec.lzma.depth, 10);
+    D_AO_MOVES(codec.lzma.threads, 4);
 
     // zstd (19)
-    { archive_options o; o.codec.zstd.level                  = 19;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.window_log             = 27;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.hash_log               = 20;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.chain_log              = 20;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.search_log             = 5;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.min_match              = 4;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.target_length          = 64;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.strategy               = zstd_strategy_btopt; D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.long_distance_matching = true;              D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.ldm_hash_log           = 20;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.ldm_min_match          = 32;                D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.ldm_bucket_size_log    = 3;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.ldm_hash_rate_log      = 4;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.content_size_flag      = false;             D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.checksum_flag          = true;              D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.dict_id_flag           = false;             D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.workers                = 4;                 D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.job_size               = 1u << 20;          D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.zstd.overlap_log            = 6;                 D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.zstd.level, 19);
+    D_AO_MOVES(codec.zstd.window_log, 27);
+    D_AO_MOVES(codec.zstd.hash_log, 20);
+    D_AO_MOVES(codec.zstd.chain_log, 20);
+    D_AO_MOVES(codec.zstd.search_log, 5);
+    D_AO_MOVES(codec.zstd.min_match, 4);
+    D_AO_MOVES(codec.zstd.target_length, 64);
+    D_AO_MOVES(codec.zstd.strategy, zstd_strategy_btopt);
+    D_AO_MOVES(codec.zstd.long_distance_matching, true);
+    D_AO_MOVES(codec.zstd.ldm_hash_log, 20);
+    D_AO_MOVES(codec.zstd.ldm_min_match, 32);
+    D_AO_MOVES(codec.zstd.ldm_bucket_size_log, 3);
+    D_AO_MOVES(codec.zstd.ldm_hash_rate_log, 4);
+    D_AO_MOVES(codec.zstd.content_size_flag, false);
+    D_AO_MOVES(codec.zstd.checksum_flag, true);
+    D_AO_MOVES(codec.zstd.dict_id_flag, false);
+    D_AO_MOVES(codec.zstd.workers, 4);
+    D_AO_MOVES(codec.zstd.job_size, 1u << 20);
+    D_AO_MOVES(codec.zstd.overlap_log, 6);
 
     // lz4 (7)
-    { archive_options o; o.codec.lz4.level              = 9;                      D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lz4.block_size         = lz4_block_size_4mb;     D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lz4.block_mode         = lz4_block_mode_independent; D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lz4.content_checksum   = true;                   D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lz4.block_checksum     = true;                   D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lz4.store_content_size = true;                   D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.lz4.favor_dec_speed    = true;                   D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.lz4.level, 9);
+    D_AO_MOVES(codec.lz4.block_size, lz4_block_size_4mb);
+    D_AO_MOVES(codec.lz4.block_mode, lz4_block_mode_independent);
+    D_AO_MOVES(codec.lz4.content_checksum, true);
+    D_AO_MOVES(codec.lz4.block_checksum, true);
+    D_AO_MOVES(codec.lz4.store_content_size, true);
+    D_AO_MOVES(codec.lz4.favor_dec_speed, true);
 
     // brotli (5)
-    { archive_options o; o.codec.brotli.quality      = 11;                        D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.brotli.window_bits  = 22;                        D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.brotli.block_bits   = 20;                        D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.brotli.mode         = brotli_mode_text;          D_AO_CHECK(ao_moved(o)); }
-    { archive_options o; o.codec.brotli.large_window = true;                      D_AO_CHECK(ao_moved(o)); }
+    D_AO_MOVES(codec.brotli.quality, 11);
+    D_AO_MOVES(codec.brotli.window_bits, 22);
+    D_AO_MOVES(codec.brotli.block_bits, 20);
+    D_AO_MOVES(codec.brotli.mode, brotli_mode_text);
+    D_AO_MOVES(codec.brotli.large_window, true);
 
     return _ok;
 }
@@ -373,6 +385,8 @@ codec's per-codec blocks by block with codec.level called out by name.
   - several moved fields are all named, comma-separated
   - codec.level is named individually while an advanced zstd knob is reported as
     the block "codec.zstd"
+  - every block's coarse name is the prefix of its knobs' fine names, so the
+    lzma.* knobs report as "codec.lzma"
   - the description is symmetric in its two arguments
 */
 bool tests_option_diff_description()
@@ -389,7 +403,7 @@ bool tests_option_diff_description()
     // one field
     {
         archive_options o;
-        o.store_only = true;
+        o.store_only = 1;
         D_AO_CHECK(::djinterp::test::describe_diff_from_default(o)
                        == std::string("store_only"));
     }
@@ -414,6 +428,36 @@ bool tests_option_diff_description()
                        == std::string("codec.zstd"));
     }
 
+    // a block is named as its knobs are: the coarse name is the prefix of
+    // describe_compress_option_diff's fine one, for every block -- lzma's
+    // included, whose knobs xz takes and which reports as codec.lzma
+    {
+        archive_options moved[6];
+        size_t          k;
+
+        moved[0].codec.deflate.window_bits = 12;
+        moved[1].codec.bzip2.work_factor   = 30;
+        moved[2].codec.lzma.nice_len       = 64;
+        moved[3].codec.zstd.window_log     = 20;
+        moved[4].codec.lz4.block_checksum  = 1;
+        moved[5].codec.brotli.quality      = 5;
+
+        for (k = 0; k < 6; ++k)
+        {
+            const std::string coarse =
+                ::djinterp::test::describe_diff_from_default(moved[k]);
+            const std::string fine =
+                ::djinterp::describe_compress_option_diff(moved[k].codec,
+                                                          fresh.codec);
+
+            D_AO_CHECK(fine.find('.') != std::string::npos);
+            D_AO_CHECK(coarse == ("codec." + fine.substr(0, fine.find('.'))));
+        }
+
+        D_AO_CHECK(::djinterp::test::describe_diff_from_default(moved[2])
+                       == std::string("codec.lzma"));
+    }
+
     // several fields, in the helper's documented order
     {
         archive_options o;
@@ -428,7 +472,7 @@ bool tests_option_diff_description()
     // symmetry: the same fields are named whichever way round the call goes
     {
         archive_options o;
-        o.gz.store_name = true;
+        o.gz.store_name = 1;
 
         D_AO_CHECK(::djinterp::test::describe_option_diff(o, fresh)
                        == ::djinterp::test::describe_option_diff(fresh, o));
@@ -455,21 +499,21 @@ bool tests_option_builders()
 
     {
         const archive_options o = ::djinterp::test::store_only_options();
-        D_AO_CHECK(o.store_only == true);
+        D_AO_CHECK(o.store_only == 1);
         D_AO_CHECK(::djinterp::test::describe_diff_from_default(o)
                        == std::string("store_only"));
     }
     {
         const archive_options o = ::djinterp::test::level_options(9);
         D_AO_CHECK(o.level       == 9);
-        D_AO_CHECK(o.codec.level == -1);
+        D_AO_CHECK(o.codec.level == archive_knob_unset);
         D_AO_CHECK(::djinterp::test::describe_diff_from_default(o)
                        == std::string("level"));
     }
     {
         const archive_options o = ::djinterp::test::codec_level_options(4);
         D_AO_CHECK(o.codec.level == 4);
-        D_AO_CHECK(o.level       == -1);
+        D_AO_CHECK(o.level       == archive_knob_unset);
         D_AO_CHECK(::djinterp::test::describe_diff_from_default(o)
                        == std::string("codec.level"));
     }
@@ -482,9 +526,9 @@ bool tests_option_builders()
     }
     {
         const archive_options o =
-            ::djinterp::test::zip_encrypted_options(zip_encryption_aes192,
+            ::djinterp::test::zip_encrypted_options(zip_encryption_aes_192,
                                                     "s3cret");
-        D_AO_CHECK(o.zip.encryption == zip_encryption_aes192);
+        D_AO_CHECK(o.zip.encryption == zip_encryption_aes_192);
         D_AO_CHECK(o.zip.password   == "s3cret");
         D_AO_CHECK(::djinterp::test::describe_diff_from_default(o)
                        == std::string("zip.encryption, zip.password"));
@@ -498,6 +542,8 @@ bool tests_option_builders()
 
     return _ok;
 }
+
+#undef D_AO_MOVES
 
 NS_END  // testing
 NS_END  // djinterp

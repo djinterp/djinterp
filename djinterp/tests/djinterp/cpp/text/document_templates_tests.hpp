@@ -1,29 +1,30 @@
 /*******************************************************************************
 * djinterp [tests]                                  document_templates_tests.hpp
 *
-*   Unit tests for the dialect-agnostic document-template subframework built this
-* session.  Each test is a `bool()` predicate in ::djinterp::testing, in the
-* DTest convention (see the runner: D_TO_RUN wires each into report_builder::run).
-* Grouped by the header under test:
+*   Unit tests for the dialect-agnostic document-template subframework built
+* this session.  Each test is a `bool()` predicate in ::djinterp::testing, in
+* the DTest convention (see the runner: D_TO_RUN wires each into
+* report_builder::run).  Grouped by the header under test:
 *
 *     I.   document_attributes      - the open kv hint bag: keys, flags, tokens
 *     II.  DDocumentRenderer        - the abstract protocol + plain realization
 *     III. DDocumentTable           - content model: build API, queries, render
 *     IV.  DTitlePage               - cover composition + knobs
-*     V.   pdf_document_renderer    - the PDF face over pdf_template (integration)
+*     V.   DPdfCanvasDocumentRenderer - the PDF face over DPdfCanvas
 *
-*   The plain-text renderer's str() is the observable surface for I-IV (semantics
-* are format-independent, so verifying them in text verifies them everywhere).
-* The PDF back end exposes no post-render text, so V is integration-level: each
-* construct is driven through the renderer and the emitted document is checked to
-* be a well-formed PDF (%PDF header) with no fault -- which exercises the escape,
-* table-forwarding, and style-resolution paths end to end.
+*   The plain-text renderer's str() is the observable surface for I-IV
+* (semantics are format-independent, so verifying them in text verifies them
+* everywhere).  The PDF back end exposes no post-render text, so V is
+* integration-level: each construct is driven through the renderer and the
+* emitted document is checked to be a well-formed PDF (%PDF header) with no
+* fault -- which exercises the escape, table-forwarding, and style-resolution
+* paths end to end.
 *
 *
 * path:      /tests/djinterp/cpp/text/document_templates_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_DOCUMENT_TEMPLATES_
@@ -38,12 +39,13 @@
 #include <djinterp/cpp/util/document/templates/document_renderer.hpp>
 #include <djinterp/cpp/util/document/templates/document_table.hpp>
 #include <djinterp/cpp/util/document/templates/title_page.hpp>
+#include <djinterp/cpp/util/pdf/pdf_canvas_document_renderer.hpp>
 
 
 namespace djinterp {
 namespace testing {
 
-// -- small shared predicates (inline: this header may be included widely) ------
+// -- small shared predicates (inline: this header may be included widely) --
 
 // contains
 //   whether _needle occurs in _hay.
@@ -94,7 +96,7 @@ bool tests_attr_flag_parsing()
 
     return (attr_flag(_a, doc_attr_bold,   false) == true)
         && (attr_flag(_a, doc_attr_italic, true)  == false)
-        && (attr_flag(_a, doc_attr_wrap,   true)  == true);   // absent -> fallback
+        && (attr_flag(_a, doc_attr_wrap,   true)  == true);  // unset: fallback
 }
 
 // alignment tokens round-trip; only the first character is significant.
@@ -102,9 +104,11 @@ inline
 bool tests_align_token_roundtrip()
 {
     return (std::string(align_to_string(DTextAlignment::center)) == "center")
-        && (align_from_string("right", DTextAlignment::left)    == DTextAlignment::right)
-        && (align_from_string("",      DTextAlignment::justify) == DTextAlignment::justify)
-        && (align_from_string("C")                              == DTextAlignment::center);
+        && (align_from_string("right", DTextAlignment::left) ==
+            DTextAlignment::right)
+        && (align_from_string("", DTextAlignment::justify) ==
+            DTextAlignment::justify)
+        && (align_from_string("C") == DTextAlignment::center);
 }
 
 // attr_align reads the align key, falling back when unset.
@@ -136,7 +140,7 @@ bool tests_plain_heading_and_paragraph()
     const std::string _s = _r.str();
 
     return contains(_s, "Overview")
-        && contains(_s, "========")           // 8-wide '=' underline for "Overview"
+        && contains(_s, "========")  // 8-wide '=' underline for "Overview"
         && contains(_s, "a paragraph line");
 }
 
@@ -296,58 +300,54 @@ bool tests_title_page_style_name_constants()
 
 
 // ===========================================================================
-// V.   pdf_document_renderer  (integration smoke)
+// V.   DPdfCanvasDocumentRenderer  (integration smoke)
 // ===========================================================================
 
 // a title page drives cleanly to a well-formed PDF.
 inline
 bool tests_pdf_renders_title_page()
 {
-    pdf_template          _tpl;
-    pdf_document_renderer _r(_tpl);
+    DPdfCanvasDocumentRenderer _r;
 
     DTitlePage _p;
     _p.set_title("T").set_banner("PASS", "verdict.pass");
     _p.render(_r);
 
-    return looks_like_pdf(_tpl.render_pdf());
+    return looks_like_pdf(_r.to_bytes());
 }
 
 // a table forwards through the monospace engine to a well-formed PDF.
 inline
 bool tests_pdf_renders_table()
 {
-    pdf_template          _tpl;
-    pdf_document_renderer _r(_tpl);
+    DPdfCanvasDocumentRenderer _r;
 
     DDocumentTable _t;
     _t.add_column("A").add_column("B", DTextAlignment::right);
     _t.add_row({ "x", "1" });
     _t.render(_r);
 
-    return looks_like_pdf(_tpl.render_pdf());
+    return looks_like_pdf(_r.to_bytes());
 }
 
 // text containing braces is escaped rather than mistaken for placeholders.
 inline
 bool tests_pdf_handles_brace_text()
 {
-    pdf_template          _tpl;
-    pdf_document_renderer _r(_tpl);
+    DPdfCanvasDocumentRenderer _r;
 
     _r.paragraph("value with {curly} and {{already}}", DDocAttributes());
 
-    return looks_like_pdf(_tpl.render_pdf());
+    return looks_like_pdf(_r.to_bytes());
 }
 
 // a registered style name resolves during rendering.
 inline
 bool tests_pdf_resolves_registered_style()
 {
-    pdf_template          _tpl;
-    pdf_document_renderer _r(_tpl);
+    DPdfCanvasDocumentRenderer _r;
 
-    pdf_text_style _style(pdf_font(DPdfBaseFont::helvetica_bold, 20.0));
+    canvas_style _style(pdf_font(DPdfBaseFont::helvetica_bold, 20.0));
     _style.color = pdf_color::green();
     _r.register_style("verdict.pass", _style);
 
@@ -355,7 +355,7 @@ bool tests_pdf_resolves_registered_style()
     _a.set(doc_attr_style, std::string("verdict.pass"));
     _r.paragraph("PASS", _a);
 
-    return looks_like_pdf(_tpl.render_pdf());
+    return looks_like_pdf(_r.to_bytes());
 }
 
 

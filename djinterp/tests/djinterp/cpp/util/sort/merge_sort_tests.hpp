@@ -6,27 +6,31 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     test_merge_sort_traits.cpp    merge_sort_traits -- the compile-time
-*                                   property block
-*     test_merge_sort_merge.cpp     internal::merge_halves -- the merge
-*                                   primitive in isolation, including both
-*                                   exhaustion tails
-*     test_merge_sort_recurse.cpp   internal::merge_sort_recurse -- the split
-*                                   and the shared buffer
-*     test_merge_sort_cpp98.cpp     internal::merge_sort_apply_98 -- the
-*                                   hint-parameter variant
-*     test_merge_sort_entry.cpp     the public merge_sort / merge_sort_ordered
-*                                   entry points
+*     merge_sort_tests_traits.cpp    merge_sort_traits -- the property block,
+*                                    and the adaptivity it claims
+*     merge_sort_tests_merge.cpp     internal::merge_runs -- the merge
+*                                    primitive in isolation: both exhaustion
+*                                    tails, the left-favouring tie and the
+*                                    ordered-pair copy
+*     merge_sort_tests_pass.cpp      internal::merge_pass and the ping-pong of
+*                                    internal::merge_sort_apply -- short and
+*                                    lone runs, and a result that ends in the
+*                                    scratch
+*     merge_sort_tests_buffered.cpp  merge_sort_buffered -- the caller's
+*                                    scratch, held to parity with merge_sort
+*     merge_sort_tests_entry.cpp     the public merge_sort /
+*                                    merge_sort_ordered entry points
 *
-*   merge_halves and merge_sort_recurse take a trailing, non-deducible
-* _DiffType template parameter, so every call to them must name all four
-* template arguments explicitly.  The adapters below do that once.
+*   The merge sort here is bottom-up: passes of doubling width, each reading
+* one buffer and writing the other.  merge_runs and merge_pass take the source
+* and the destination separately and index them by position, so the adapters
+* below hand them two vectors and positions rather than iterators into one.
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/merge_sort_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_MERGE_SORT_TESTS_
@@ -41,13 +45,12 @@
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/util/sort/merge_sort.hpp"
-#endif  // !DTEST_SPEC_MODE
-#ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
-#endif  // DTEST_SPEC_MODE
-                                                       // the traits cross-check
 // djinterp [test]
 #include "sort_support.hpp"
+#endif  // !DTEST_SPEC_MODE
+#ifdef DTEST_SPEC_MODE
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
+#endif  // DTEST_SPEC_MODE
 
 
 NS_DJINTERP
@@ -70,120 +73,122 @@ namespace dt = ::djinterp::test;
 ///                    I.   ADAPTERS                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// merge_halves_ints
-//   helper: merge_halves over vector<int>, ascending, with every template
-// argument named because _DiffType is not deducible from the call.
+// merge_runs_ints
+//   helper: merge_runs over vector<int>, ascending: merges [_begin, _mid) and
+// [_mid, _end) of _src into the same span of _dst.
 inline
-void merge_halves_ints(
-    std::vector<int>::iterator _first,
-    std::vector<int>::iterator _mid,
-    std::vector<int>::iterator _last,
-    int*                       _buffer
+void merge_runs_ints(
+    const std::vector<int>& _src,
+    std::vector<int>&       _dst,
+    std::ptrdiff_t          _begin,
+    std::ptrdiff_t          _mid,
+    std::ptrdiff_t          _end
 )
 {
-    ::djinterp::internal::merge_halves<std::vector<int>::iterator,
-                                       int,
-                                       less<int>,
-                                       std::ptrdiff_t>(_first,
-                                                       _mid,
-                                                       _last,
-                                                       _buffer,
-                                                       less<int>());
+    ::djinterp::internal::merge_runs(_src.begin(),
+                                     _dst.begin(),
+                                     _begin,
+                                     _mid,
+                                     _end,
+                                     std::less<int>());
 
     return;
 }
 
-// merge_halves_keyed
-//   helper: merge_halves under the key-only comparator, so the merge step's
-// left-favouring tie-break -- the source of the algorithm's stability -- is
+// merge_runs_keyed
+//   helper: merge_runs under the key-only comparator, so the merge's
+// left-favouring tie -- the source of the algorithm's stability -- is
 // directly observable.
 inline
-void merge_halves_keyed(
-    std::vector<DKeyedValue>::iterator _first,
-    std::vector<DKeyedValue>::iterator _mid,
-    std::vector<DKeyedValue>::iterator _last,
-    DKeyedValue*                       _buffer
+void merge_runs_keyed(
+    const std::vector<DKeyedValue>& _src,
+    std::vector<DKeyedValue>&       _dst,
+    std::ptrdiff_t                  _begin,
+    std::ptrdiff_t                  _mid,
+    std::ptrdiff_t                  _end
 )
 {
-    ::djinterp::internal::merge_halves<std::vector<DKeyedValue>::iterator,
-                                       DKeyedValue,
-                                       keyed_value_less,
-                                       std::ptrdiff_t>(_first,
-                                                       _mid,
-                                                       _last,
-                                                       _buffer,
-                                                       keyed_value_less());
+    ::djinterp::internal::merge_runs(_src.begin(),
+                                     _dst.begin(),
+                                     _begin,
+                                     _mid,
+                                     _end,
+                                     keyed_value_less());
 
     return;
 }
 
-// merge_recurse_ints
-//   helper: merge_sort_recurse over vector<int> with a caller-owned buffer.
+// merge_pass_ints
+//   helper: one merge_pass of width _width over all of _src into _dst,
+// ascending.
 inline
-void merge_recurse_ints(
-    std::vector<int>::iterator _first,
-    std::vector<int>::iterator _last,
-    int*                       _buffer
+void merge_pass_ints(
+    const std::vector<int>& _src,
+    std::vector<int>&       _dst,
+    std::ptrdiff_t          _width
 )
 {
-    ::djinterp::internal::merge_sort_recurse<std::vector<int>::iterator,
-                                             int,
-                                             less<int>,
-                                             std::ptrdiff_t>(_first,
-                                                             _last,
-                                                             _buffer,
-                                                             less<int>());
+    ::djinterp::internal::merge_pass(_src.begin(),
+                                     _dst.begin(),
+                                     static_cast<std::ptrdiff_t>(_src.size()),
+                                     _width,
+                                     std::less<int>());
 
     return;
 }
 
 // merge_apply_ints
-//   helper: the internal top-level driver, which owns its own buffer.
+//   helper: the internal driver over vector<int> iterators, with a scratch
+// buffer it owns for the call -- what the three-argument entry point does.
 inline
 void merge_apply_ints(
     std::vector<int>::iterator _first,
     std::vector<int>::iterator _last
 )
 {
+    std::vector<int> scratch(_first, _last);
+
     ::djinterp::internal::merge_sort_apply(_first,
                                            _last,
-                                           less<int>());
+                                           scratch.begin(),
+                                           std::less<int>());
 
     return;
 }
 
-// merge_apply_98_ints
-//   helper: the C++98 hint-parameter driver over vector<int> iterators.
+// merge_buffered_ints
+//   helper: merge_sort_buffered over vector<int>, with a fresh caller-owned
+// scratch of exactly the range's length.
 inline
-void merge_apply_98_ints(
+void merge_buffered_ints(
     std::vector<int>::iterator _first,
     std::vector<int>::iterator _last
 )
 {
-    ::djinterp::internal::merge_sort_apply_98(
-        _first,
-        _last,
-        less<int>(),
-        static_cast<int*>(nullptr),
-        static_cast<std::ptrdiff_t*>(nullptr));
+    std::vector<int> scratch(_first, _last);
+
+    merge_sort_buffered(_first,
+                        _last,
+                        std::less<int>(),
+                        scratch.begin());
 
     return;
 }
 
-// merge_apply_98_keyed
-//   helper: the C++98 driver under the key-only comparator.
+// merge_buffered_keyed
+//   helper: merge_sort_buffered under the key-only comparator.
 inline
-void merge_apply_98_keyed(
+void merge_buffered_keyed(
     std::vector<DKeyedValue>::iterator _first,
     std::vector<DKeyedValue>::iterator _last
 )
 {
-    ::djinterp::internal::merge_sort_apply_98(
-        _first,
-        _last,
-        keyed_value_less(),
-        static_cast<DKeyedValue*>(nullptr),
-        static_cast<std::ptrdiff_t*>(nullptr));
+    std::vector<DKeyedValue> scratch(_first, _last);
+
+    merge_sort_buffered(_first,
+                        _last,
+                        keyed_value_less(),
+                        scratch.begin());
 
     return;
 }
@@ -202,14 +207,14 @@ void merge_sort_ints(
 }
 
 // merge_sort_ints_descending
-//   helper: the three-argument public entry point under greater<int>.
+//   helper: the three-argument public entry point under std::greater<int>.
 inline
 void merge_sort_ints_descending(
     std::vector<int>::iterator _first,
     std::vector<int>::iterator _last
 )
 {
-    merge_sort(_first, _last, greater<int>());
+    merge_sort(_first, _last, std::greater<int>());
 
     return;
 }
@@ -241,8 +246,7 @@ void merge_sort_keyed(
 }
 
 // merge_sort_keyed_ordered_ascending
-//   helper: merge_sort_ordered with sort_order::ascending.  merge_sort's
-// ordered entry point takes a real sort_order, so it needs no probe.
+//   helper: merge_sort_ordered with sort_order::ascending.
 inline
 void merge_sort_keyed_ordered_ascending(
     std::vector<DKeyedValue>::iterator _first,
@@ -267,23 +271,27 @@ void merge_sort_keyed_ordered_ascending(
 
 // traits -- merge_sort_traits
 bool tests_merge_sort_traits_values();
+bool tests_merge_sort_traits_adaptivity();
 
-// merge -- internal::merge_halves
-bool tests_merge_sort_merge_halves_basic();
-bool tests_merge_sort_merge_halves_empty_halves();
-bool tests_merge_sort_merge_halves_exhaustion_tails();
-bool tests_merge_sort_merge_halves_stability();
+// merge -- internal::merge_runs
+bool tests_merge_sort_merge_runs_basic();
+bool tests_merge_sort_merge_runs_empty_runs();
+bool tests_merge_sort_merge_runs_exhaustion_tails();
+bool tests_merge_sort_merge_runs_stability();
+bool tests_merge_sort_merge_runs_ordered_pair_copied();
 
-// recurse -- internal::merge_sort_recurse
-bool tests_merge_sort_recurse_base_cases();
-bool tests_merge_sort_recurse_ordering_battery();
-bool tests_merge_sort_recurse_split_parities();
+// pass -- internal::merge_pass / the ping-pong
+bool tests_merge_sort_pass_short_and_lone_runs();
+bool tests_merge_sort_pass_degenerate_widths();
+bool tests_merge_sort_apply_ordering_battery();
+bool tests_merge_sort_apply_pass_parities();
 
-// cpp98 -- internal::merge_sort_apply_98
-bool tests_merge_sort_cpp98_degenerate_ranges();
-bool tests_merge_sort_cpp98_ordering_battery();
-bool tests_merge_sort_cpp98_parity_with_apply();
-bool tests_merge_sort_cpp98_stability();
+// buffered -- merge_sort_buffered
+bool tests_merge_sort_buffered_degenerate_ranges();
+bool tests_merge_sort_buffered_ordering_battery();
+bool tests_merge_sort_buffered_parity_with_merge_sort();
+bool tests_merge_sort_buffered_stability();
+bool tests_merge_sort_buffered_reuses_scratch();
 
 // entry -- merge_sort / merge_sort_ordered
 bool tests_merge_sort_entry_comparator();
@@ -296,6 +304,181 @@ bool tests_merge_sort_entry_pointer_iterators();
 
 #ifdef DTEST_SPEC_MODE
 
+// merge_sort_traits_block
+//   provider: the "traits" block of merge_sort_spec.
+inline
+dt::block_spec merge_sort_traits_block()
+{
+    return dt::block_spec
+    {
+        "traits",
+        "merge_sort_traits",
+        {
+            {
+                "merge_sort_traits_values",
+                "values",
+                &tests_merge_sort_traits_values
+            },
+            {
+                "merge_sort_traits_adaptivity",
+                "adaptivity",
+                &tests_merge_sort_traits_adaptivity
+            }
+        }
+    };
+}
+
+// merge_sort_merge_block
+//   provider: the "merge" block of merge_sort_spec.
+inline
+dt::block_spec merge_sort_merge_block()
+{
+    return dt::block_spec
+    {
+        "merge",
+        "internal::merge_runs",
+        {
+            {
+                "merge_sort_merge_runs_basic",
+                "basic",
+                &tests_merge_sort_merge_runs_basic
+            },
+            {
+                "merge_sort_merge_runs_empty_runs",
+                "empty runs",
+                &tests_merge_sort_merge_runs_empty_runs
+            },
+            {
+                "merge_sort_merge_runs_exhaustion_tails",
+                "exhaustion tails",
+                &tests_merge_sort_merge_runs_exhaustion_tails
+            },
+            {
+                "merge_sort_merge_runs_stability",
+                "stability",
+                &tests_merge_sort_merge_runs_stability
+            },
+            {
+                "merge_sort_merge_runs_ordered_pair_copied",
+                "an ordered pair is copied",
+                &tests_merge_sort_merge_runs_ordered_pair_copied
+            }
+        }
+    };
+}
+
+// merge_sort_pass_block
+//   provider: the "pass" block of merge_sort_spec.
+inline
+dt::block_spec merge_sort_pass_block()
+{
+    return dt::block_spec
+    {
+        "pass",
+        "internal::merge_pass / the ping-pong",
+        {
+            {
+                "merge_sort_pass_short_and_lone_runs",
+                "short and lone runs",
+                &tests_merge_sort_pass_short_and_lone_runs
+            },
+            {
+                "merge_sort_pass_degenerate_widths",
+                "degenerate widths",
+                &tests_merge_sort_pass_degenerate_widths
+            },
+            {
+                "merge_sort_apply_ordering_battery",
+                "ordering battery",
+                &tests_merge_sort_apply_ordering_battery
+            },
+            {
+                "merge_sort_apply_pass_parities",
+                "pass parities",
+                &tests_merge_sort_apply_pass_parities
+            }
+        }
+    };
+}
+
+// merge_sort_buffered_block
+//   provider: the "buffered" block of merge_sort_spec.
+inline
+dt::block_spec merge_sort_buffered_block()
+{
+    return dt::block_spec
+    {
+        "buffered",
+        "merge_sort_buffered",
+        {
+            {
+                "merge_sort_buffered_degenerate_ranges",
+                "degenerate ranges",
+                &tests_merge_sort_buffered_degenerate_ranges
+            },
+            {
+                "merge_sort_buffered_ordering_battery",
+                "ordering battery",
+                &tests_merge_sort_buffered_ordering_battery
+            },
+            {
+                "merge_sort_buffered_parity_with_merge_sort",
+                "parity with merge_sort",
+                &tests_merge_sort_buffered_parity_with_merge_sort
+            },
+            {
+                "merge_sort_buffered_stability",
+                "stability",
+                &tests_merge_sort_buffered_stability
+            },
+            {
+                "merge_sort_buffered_reuses_scratch",
+                "reuses its scratch",
+                &tests_merge_sort_buffered_reuses_scratch
+            }
+        }
+    };
+}
+
+// merge_sort_entry_block
+//   provider: the "entry" block of merge_sort_spec.
+inline
+dt::block_spec merge_sort_entry_block()
+{
+    return dt::block_spec
+    {
+        "entry",
+        "merge_sort / merge_sort_ordered",
+        {
+            {
+                "merge_sort_entry_comparator",
+                "comparator",
+                &tests_merge_sort_entry_comparator
+            },
+            {
+                "merge_sort_entry_default",
+                "default",
+                &tests_merge_sort_entry_default
+            },
+            {
+                "merge_sort_entry_ordered",
+                "ordered",
+                &tests_merge_sort_entry_ordered
+            },
+            {
+                "merge_sort_entry_stability",
+                "stability",
+                &tests_merge_sort_entry_stability
+            },
+            {
+                "merge_sort_entry_pointer_iterators",
+                "pointer iterators",
+                &tests_merge_sort_entry_pointer_iterators
+            }
+        }
+    };
+}
+
 // merge_sort_spec
 //   provider: the module spec for this suite, handed to run_module by
 // merge_sort_tests_runner.cpp.
@@ -305,129 +488,15 @@ dt::module_spec merge_sort_spec()
     return dt::module_spec
     {
         "merge_sort.hpp",
-        "merge sort: the merge primitive, the recursive driver, the C++98 "
-        "variant, the published traits, and the public entry points.",
+        "merge sort: the published traits, the merge_runs primitive, the "
+        "bottom-up passes and their ping-pong, the caller-scratch entry "
+        "point, and the public entry points.",
         {
-            dt::block_spec
-            {
-                "traits",
-                "merge_sort_traits",
-                {
-                    {
-                        "merge_sort_traits_values",
-                        "values",
-                        &tests_merge_sort_traits_values
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "merge",
-                "internal::merge_halves",
-                {
-                    {
-                        "merge_sort_merge_halves_basic",
-                        "halves basic",
-                        &tests_merge_sort_merge_halves_basic
-                    },
-                    {
-                        "merge_sort_merge_halves_empty_halves",
-                        "halves empty halves",
-                        &tests_merge_sort_merge_halves_empty_halves
-                    },
-                    {
-                        "merge_sort_merge_halves_exhaustion_tails",
-                        "halves exhaustion tails",
-                        &tests_merge_sort_merge_halves_exhaustion_tails
-                    },
-                    {
-                        "merge_sort_merge_halves_stability",
-                        "halves stability",
-                        &tests_merge_sort_merge_halves_stability
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "recurse",
-                "internal::merge_sort_recurse",
-                {
-                    {
-                        "merge_sort_recurse_base_cases",
-                        "base cases",
-                        &tests_merge_sort_recurse_base_cases
-                    },
-                    {
-                        "merge_sort_recurse_ordering_battery",
-                        "ordering battery",
-                        &tests_merge_sort_recurse_ordering_battery
-                    },
-                    {
-                        "merge_sort_recurse_split_parities",
-                        "split parities",
-                        &tests_merge_sort_recurse_split_parities
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "cpp98",
-                "internal::merge_sort_apply_98",
-                {
-                    {
-                        "merge_sort_cpp98_degenerate_ranges",
-                        "degenerate ranges",
-                        &tests_merge_sort_cpp98_degenerate_ranges
-                    },
-                    {
-                        "merge_sort_cpp98_ordering_battery",
-                        "ordering battery",
-                        &tests_merge_sort_cpp98_ordering_battery
-                    },
-                    {
-                        "merge_sort_cpp98_parity_with_apply",
-                        "parity with apply",
-                        &tests_merge_sort_cpp98_parity_with_apply
-                    },
-                    {
-                        "merge_sort_cpp98_stability",
-                        "stability",
-                        &tests_merge_sort_cpp98_stability
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "entry",
-                "merge_sort / merge_sort_ordered",
-                {
-                    {
-                        "merge_sort_entry_comparator",
-                        "comparator",
-                        &tests_merge_sort_entry_comparator
-                    },
-                    {
-                        "merge_sort_entry_default",
-                        "default",
-                        &tests_merge_sort_entry_default
-                    },
-                    {
-                        "merge_sort_entry_ordered",
-                        "ordered",
-                        &tests_merge_sort_entry_ordered
-                    },
-                    {
-                        "merge_sort_entry_stability",
-                        "stability",
-                        &tests_merge_sort_entry_stability
-                    },
-                    {
-                        "merge_sort_entry_pointer_iterators",
-                        "pointer iterators",
-                        &tests_merge_sort_entry_pointer_iterators
-                    }
-                }
-            }
+            merge_sort_traits_block(),
+            merge_sort_merge_block(),
+            merge_sort_pass_block(),
+            merge_sort_buffered_block(),
+            merge_sort_entry_block()
         }
     };
 }

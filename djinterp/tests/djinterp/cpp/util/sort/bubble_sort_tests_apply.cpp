@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/bubble_sort_tests_apply.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -31,7 +31,7 @@ bool tests_bubble_sort_apply_degenerate_ranges()
     result.check(empty.empty());
 
     // a single element enters the outer loop, finds an empty inner range,
-    // sees no swap and exits on the first pass
+    // sees no exchange and exits on the first pass
     single.push_back(42);
     bubble_apply_ints(single.begin(), single.end());
     result.check(single.size() == 1);
@@ -64,7 +64,7 @@ bool tests_bubble_sort_apply_ordering_battery()
     verdict result;
 
     // every length and shape, checked against a std::stable_sort reference
-    verify_battery_reference(&bubble_apply_ints, less<int>(), result);
+    verify_battery_reference(&bubble_apply_ints, std::less<int>(), result);
 
     return result.ok();
 }
@@ -88,16 +88,16 @@ bool tests_bubble_sort_apply_early_exit()
             continue;
         }
 
-        //   already ascending: the first pass makes n-1 comparisons, swaps
-        // nothing, and the !swapped break fires.  Any larger count means the
-        // adaptive early exit did not happen.
+        //   already ascending: the first pass makes n-1 comparisons,
+        // exchanges nothing and returns 0, which ends the driver.  Any larger
+        // count means the adaptive early exit did not happen.
         data        = shape_ascending(length);
         comparisons = 0;
 
         ::djinterp::internal::bubble_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(comparisons == (length - 1));
 
@@ -109,7 +109,7 @@ bool tests_bubble_sort_apply_early_exit()
         ::djinterp::internal::bubble_sort_apply(
             data.begin(),
             data.end(),
-            make_counting(less<int>(), &comparisons));
+            make_counting(std::less<int>(), &comparisons));
 
         result.check(comparisons == (length - 1));
     }
@@ -127,8 +127,8 @@ bool tests_bubble_sort_apply_shrinking_boundary()
     std::size_t      comparisons;
     std::size_t      i;
 
-    //   [2, 1, 3, 4, 5, 6]: the only swap happens at the very front, so the
-    // last-swap position collapses the unsorted boundary to index 1 and the
+    //   [2, 1, 3, 4, 5, 6]: the only exchange happens at the very front, so
+    // the last-exchange index collapses the unsorted boundary to 1 and the
     // second pass compares nothing at all.  Five comparisons total; a bubble
     // sort without the boundary optimisation would make nine.
     leading_inversion.push_back(2);
@@ -144,12 +144,12 @@ bool tests_bubble_sort_apply_shrinking_boundary()
     ::djinterp::internal::bubble_sort_apply(
         leading_inversion.begin(),
         leading_inversion.end(),
-        make_counting(less<int>(), &comparisons));
+        make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons == 5);
     result.check(is_sorted_range(leading_inversion.begin(),
                                  leading_inversion.end(),
-                                 less<int>()));
+                                 std::less<int>()));
 
     //   [1, 2, 3, 6, 5, 4]: the inversions sit at the back, so the boundary
     // retreats one slot per pass -- 5 + 4 + 3 comparisons over three passes.
@@ -165,71 +165,58 @@ bool tests_bubble_sort_apply_shrinking_boundary()
     ::djinterp::internal::bubble_sort_apply(
         trailing_inversions.begin(),
         trailing_inversions.end(),
-        make_counting(less<int>(), &comparisons));
+        make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons == 12);
     result.check(is_sorted_range(trailing_inversions.begin(),
                                  trailing_inversions.end(),
-                                 less<int>()));
+                                 std::less<int>()));
 
     return result.ok();
 }
 
 
-// tests_bubble_sort_apply_swap_traffic
-bool tests_bubble_sort_apply_swap_traffic()
+// tests_bubble_sort_apply_exchange_traffic
+bool tests_bubble_sort_apply_exchange_traffic()
 {
-    verdict                  result;
-    std::vector<DTrackedInt> data;
-    std::vector<int>         values;
-    std::size_t              swaps;
-    std::size_t              expected;
-    std::size_t              length;
-    std::size_t              i;
+    verdict          result;
+    std::vector<int> data;
+    std::size_t      exchanges;
+    std::size_t      length;
 
     length = 32;
 
-    //   strictly descending input is the worst case: every one of the
-    // n(n-1)/2 adjacent pairs is an inversion and each is swapped exactly
-    // once.
-    swaps = 0;
-    data.clear();
-    data.reserve(length);
+    //   A pair is exchanged exactly when the comparator affirms that the later
+    // element strictly precedes the carried one, so the affirmations ARE the
+    // exchanges -- counted this way because bubble_pass exchanges by
+    // assignment around a carried element, which no swap counter sees.
+    //
+    //   Strictly descending input is the worst case: every one of the
+    // n(n-1)/2 adjacent inversions is exchanged exactly once.
+    data      = shape_descending(length);
+    exchanges = 0;
 
-    for (i = 0; i < length; ++i)
-    {
-        data.push_back(make_tracked(static_cast<int>(length - i), &swaps));
-    }
+    ::djinterp::internal::bubble_sort_apply(
+        data.begin(),
+        data.end(),
+        make_affirmation_counter(std::less<int>(), &exchanges));
 
-    ::djinterp::internal::bubble_sort_apply(data.begin(),
-                                            data.end(),
-                                            tracked_int_less());
+    result.check(exchanges == ((length * (length - 1)) / 2));
+    result.check(is_sorted_range(data.begin(),
+                                 data.end(),
+                                 std::less<int>()));
 
-    expected = ((length * (length - 1)) / 2);
+    //   Already-ordered input exchanges nothing: the first pass affirms no
+    // precedence, returns 0, and the driver stops.
+    data      = shape_ascending(length);
+    exchanges = 0;
 
-    result.check(swaps == expected);
+    ::djinterp::internal::bubble_sort_apply(
+        data.begin(),
+        data.end(),
+        make_affirmation_counter(std::less<int>(), &exchanges));
 
-    values = tracked_values(data);
-    result.check(is_sorted_range(values.begin(),
-                                 values.end(),
-                                 less<int>()));
-
-    //   already-ordered input must not swap at all: the early exit fires
-    // before any exchange.
-    swaps = 0;
-    data.clear();
-    data.reserve(length);
-
-    for (i = 0; i < length; ++i)
-    {
-        data.push_back(make_tracked(static_cast<int>(i), &swaps));
-    }
-
-    ::djinterp::internal::bubble_sort_apply(data.begin(),
-                                            data.end(),
-                                            tracked_int_less());
-
-    result.check(swaps == 0);
+    result.check(exchanges == 0);
 
     return result.ok();
 }

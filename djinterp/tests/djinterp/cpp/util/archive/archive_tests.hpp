@@ -27,7 +27,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_ARCHIVE_TESTS_
@@ -39,8 +39,10 @@
 #include <string>
 #include <vector>
 // djinterp
-#include "../../../../../inc/djinterp/cpp/util/archive/archive.hpp"                      // the module under test (+ internal)
-#include "djinterp/cpp/modules/test/archive/test_archive.hpp"   // shared archive verifiers
+#include "../../../../../inc/djinterp/cpp/util/archive/archive.hpp"
+                                        // the module under test (+ internal)
+#include "djinterp/cpp/modules/test/archive/test_archive.hpp"
+                                        // shared archive verifiers
 
 
 NS_DJINTERP
@@ -105,7 +107,7 @@ bool tests_format_capability_queries();
 bool tests_tar_roundtrip_files();
 bool tests_tar_directories();
 bool tests_tar_metadata();
-bool tests_tar_name_truncation();
+bool tests_tar_name_limits();
 bool tests_tar_checksum();
 bool tests_tar_extract_truncated();
 bool tests_tar_empty_archive();

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/bubble_sort_tests_entry.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -24,10 +24,10 @@ bool tests_bubble_sort_entry_default()
     std::vector<int> through_apply;
 
     // the two-argument entry point across the whole corpus
-    verify_battery_reference(&bubble_sort_ints, less<int>(), result);
+    verify_battery_reference(&bubble_sort_ints, std::less<int>(), result);
 
-    //   the defaulted comparator must be exactly less<value_type>: the entry
-    // point and the internal driver have to agree element for element.
+    //   the defaulted comparator must be exactly std::less<value_type>: the
+    // entry point and the internal driver have to agree element for element.
     through_entry = shape_random(64);
     through_apply = through_entry;
 
@@ -49,7 +49,7 @@ bool tests_bubble_sort_entry_comparator()
 
     // the explicit-comparator entry point, driven descending
     verify_battery_reference(&bubble_sort_ints_descending,
-                             greater<int>(),
+                             std::greater<int>(),
                              result);
 
     //   the comparator is taken by value and must still be the one actually
@@ -59,10 +59,10 @@ bool tests_bubble_sort_entry_comparator()
 
     bubble_sort(data.begin(),
                 data.end(),
-                make_counting(less<int>(), &comparisons));
+                make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons > 0);
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }
@@ -80,13 +80,11 @@ bool tests_bubble_sort_entry_ordered()
 
     typedef std::vector<int>::iterator iterator_type;
 
-    //   DEFECT: bubble_sort_ordered declares its fourth parameter as `bool`
-    // yet hands it to internal::DOrderComparator, which takes a sort_order.
-    // sort_order is a scoped enum, so no conversion exists and the template
-    // cannot be instantiated with a sort_order argument.  This check is
-    // expected to FAIL until the parameter type is corrected to sort_order,
-    // matching merge_sort_ordered, quick_sort_ordered and heap_sort_ordered.
-    callable = bubble_ordered_probe<iterator_type, less<int> >::value;
+    //   bubble_sort_ordered takes its direction as sort_order::value, the
+    // shape all six *_sort_ordered entry points share.  The probe asks
+    // overload resolution rather than naming the call, so a signature that
+    // drifted would fail this check instead of the suite's build.
+    callable = bubble_ordered_probe<iterator_type, std::less<int> >::value;
 
     result.check(callable);
 
@@ -97,22 +95,22 @@ bool tests_bubble_sort_entry_ordered()
 
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
     bubble_call_ordered(ascending_out.begin(),
                         ascending_out.end(),
-                        less<int>(),
+                        std::less<int>(),
                         sort_order::ascending,
-                        bubble_ordered_probe<iterator_type, less<int> >());
+                        bubble_ordered_probe<iterator_type, std::less<int> >());
 
     bubble_call_ordered(descending_out.begin(),
                         descending_out.end(),
-                        less<int>(),
+                        std::less<int>(),
                         sort_order::descending,
-                        bubble_ordered_probe<iterator_type, less<int> >());
+                        bubble_ordered_probe<iterator_type, std::less<int> >());
 
     //   the behavioural half of the test is only meaningful once the entry
     // point is callable at all
@@ -131,7 +129,7 @@ bool tests_bubble_sort_entry_stability()
 {
     verdict result;
 
-    //   bubble_sort_tag advertises is_stable == true, and only ever swaps a
+    //   DBubbleSortTag advertises is_stable == true, and only ever swaps a
     // pair that is STRICTLY out of order, so equivalents can never cross.
     verify_stability_battery(&bubble_sort_keyed, true, result);
 
@@ -145,7 +143,7 @@ bool tests_bubble_sort_entry_pointer_iterators()
     verdict result;
 
     // raw pointers are the minimal random-access iterator model
-    verify_battery_raw(&bubble_sort_ints_raw, less<int>(), result);
+    verify_battery_raw(&bubble_sort_ints_raw, std::less<int>(), result);
 
     return result.ok();
 }

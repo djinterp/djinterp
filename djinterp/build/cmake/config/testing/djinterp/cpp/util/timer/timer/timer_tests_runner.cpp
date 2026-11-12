@@ -1,6 +1,18 @@
+/*******************************************************************************
+* djinterp [test]                                         timer_tests_runner.cpp
+*
+*   The runner for timer.hpp's suite: registers each test with report_builder
+* in one module, and writes the console report and timer_tests.pdf.
+*
+*
+* path:      /build/cmake/config/testing/djinterp/cpp/util/timer/timer/timer_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.10
+*******************************************************************************/
 // djinterp
 #include "timer_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
+#include "djinterp/cpp/modules/test/output/test_report_runner.hpp"
 
 
 // D_TM_RUN

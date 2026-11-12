@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_tests_surface.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -23,52 +23,52 @@ bool tests_sort_facade_include_guards()
 
     ok = true;
 
-    //   This translation unit includes <djinterp/core/util/sort/sort.hpp>
-    // and nothing else from the subsystem -- no test support header, no
-    // individual algorithm header.  Everything asserted here is therefore a
-    // statement about what the facade alone pulls in.
+    //   This translation unit includes sort.hpp and nothing else from the
+    // subsystem -- no test support header, no individual algorithm header.
+    // Everything asserted here is therefore a statement about what the
+    // facade alone pulls in.
     //
     //   The facade's own guard.
-#ifndef DJINTERP_UTILITY_SORT_FACADE_
+#ifndef DJINTERP_UTIL_SORT_HPP
     ok = false;
 #endif
 
-    //   The three headers it aggregates.
-#ifndef DJINTERP_UTILITY_SORT_
+    //   The headers it aggregates, and the comparator algebra.
+#ifndef DJINTERP_UTIL_SORT_COMMON_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_DISPATCH_
+#ifndef DJINTERP_UTIL_SORT_DISPATCH_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_MONOID_
+#ifndef DJINTERP_UTIL_SORT_MONOID_HPP
     ok = false;
 #endif
 
     //   And, transitively through the dispatch header, all six algorithm
     // headers.
-#ifndef DJINTERP_UTILITY_SORT_BUBBLE_
+#ifndef DJINTERP_UTIL_SORT_BUBBLE_SORT_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_SELECTION_
+#ifndef DJINTERP_UTIL_SORT_SELECTION_SORT_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_INSERTION_
+#ifndef DJINTERP_UTIL_SORT_INSERTION_SORT_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_MERGE_
+#ifndef DJINTERP_UTIL_SORT_MERGE_SORT_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_QUICK_
+#ifndef DJINTERP_UTIL_SORT_QUICK_SORT_HPP
     ok = false;
 #endif
 
-#ifndef DJINTERP_UTILITY_SORT_HEAP_
+#ifndef DJINTERP_UTIL_SORT_HEAP_SORT_HPP
     ok = false;
 #endif
 
@@ -92,7 +92,7 @@ bool tests_sort_facade_view_is_not_included()
     // inside the language, and it is worth observing, because adding the
     // include would be a silent, one-line compile-time regression for every
     // caller of the facade.
-#ifdef DJINTERP_UTILITY_SORT_VIEW_
+#ifdef DJINTERP_UTIL_SORT_VIEW_HPP
     ok = false;
 #endif
 
@@ -106,7 +106,7 @@ bool tests_sort_facade_core_symbols_visible()
     bool             ok;
     std::vector<int> data;
     sort_traits      properties;
-    sorted_run<int>  run;
+    DSortedRun<int>  run;
 
     ok = true;
 
@@ -115,35 +115,34 @@ bool tests_sort_facade_core_symbols_visible()
     // of preprocessor guards.  This body would fail to COMPILE, not merely
     // to pass, if the facade stopped exporting any of them.
     //
-    //   From sort_common.hpp: the order enum, the comparator primitives and
-    // the default-comparator alias.
+    //   From sort_common.hpp, the order enum; from comparator.hpp, the
+    // algebra the facade brings in with it.
     ok = (ok && (sort_order::ascending != sort_order::descending));
-    ok = (ok && less<int>()(1, 2));
-    ok = (ok && greater<int>()(2, 1));
-    ok = (ok && default_comparator_t<int>()(1, 2));
+    ok = (ok && natural<int>()(1, 2));
+    ok = (ok && (natural<int>() | reversed())(2, 1));
 
     //   From sort_dispatch.hpp: the selector, the tags, the traits bridge,
-    // the sorter and the free entry points.
-    ok = (ok && (quick_sort_tag::value == sort_algorithm::quick));
-    ok = (ok && is_sort_tag<merge_sort_tag>::value);
-    ok = (ok && (algorithm_tag_t<sort_algorithm::heap>::value ==
-                 sort_algorithm::heap));
+    // the DSorter and the free entry points.
+    ok = (ok && (DQuickSortTag::value == DSortAlgorithm::quick));
+    ok = (ok && is_sort_tag<DMergeSortTag>::value);
+    ok = (ok && (algorithm_tag_t<DSortAlgorithm::heap>::value ==
+                 DSortAlgorithm::heap));
 
-    properties = properties_of(sort_algorithm::merge);
+    properties = properties_of(DSortAlgorithm::merge);
     ok         = (ok && properties.is_stable);
-    ok         = (ok && (name_of(sort_algorithm::bubble) != nullptr));
+    ok         = (ok && (name_of(DSortAlgorithm::bubble) != nullptr));
 
     data.push_back(3);
     data.push_back(1);
     data.push_back(2);
 
-    sorter<insertion_sort_tag>()(data.begin(), data.end());
+    DSorter<DInsertionSortTag>()(data.begin(), data.end());
     ok = (ok && (data[0] == 1) && (data[2] == 3));
 
-    sort(sort_algorithm::heap, data.begin(), data.end(), greater<int>());
+    sort(DSortAlgorithm::heap, data.begin(), data.end(), std::greater<int>());
     ok = (ok && (data[0] == 3) && (data[2] == 1));
 
-    sort<merge_sort_tag>(data.begin(), data.end());
+    sort(DMergeSortTag(), data.begin(), data.end());
     ok = (ok && (data[0] == 1));
 
     //   The six algorithm entry points, reachable through the facade
@@ -159,10 +158,10 @@ bool tests_sort_facade_core_symbols_visible()
     //   From sort_monoid.hpp: the run type, the algebra and the factories.
     run = make_sorted_run(data);
     ok  = (ok && (run.size() == 3));
-    ok  = (ok && mappend(run, mempty<sorted_run<int> >()).size() == 3);
+    ok  = (ok && mappend(run, mempty<DSortedRun<int> >()).size() == 3);
     ok  = (ok && (mconcat(to_singleton_runs(data)).data()[0] == 1));
     ok  = (ok && singleton_run(4).size() == 1);
-    ok  = (ok && adopt_sorted_run(data, less<int>()).size() == 3);
+    ok  = (ok && adopt_sorted_run(data, std::less<int>()).size() == 3);
 
     return ok;
 }

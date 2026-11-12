@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests_api.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -81,7 +81,8 @@ bool tests_throwing_roundtrip()
     entry_list items;
 
     items.push_back(::djinterp::test::make_text_entry("a.txt", "alpha"));
-    items.push_back(::djinterp::test::make_file_entry("b.bin", binary_sample()));
+    items.push_back(
+        ::djinterp::test::make_file_entry("b.bin", binary_sample()));
 
     try
     {
@@ -139,7 +140,8 @@ bool tests_throwing_error_on_create()
 
         const std::string w = _e.what();
         D_AR_CHECK(w.find("gz") != std::string::npos);
-        D_AR_CHECK(w.find("invalid argument") != std::string::npos);
+        D_AR_CHECK(w.find(status_message(status_invalid_argument)) !=
+                   std::string::npos);
     }
 
     D_AR_CHECK(caught);
@@ -169,7 +171,8 @@ bool tests_throwing_error_on_extract()
     opt.store_only = true;
 
     entry_list items;
-    items.push_back(::djinterp::test::make_file_entry("f", repeat_bytes('D', 50)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("f", repeat_bytes('D', 50)));
 
     byte_blob full;
     D_AR_CHECK_STATUS(try_archive<zip>(items, full, opt), status_ok);
@@ -190,7 +193,8 @@ bool tests_throwing_error_on_extract()
 
         const std::string w = _e.what();
         D_AR_CHECK(w.find("zip") != std::string::npos);
-        D_AR_CHECK(w.find("backend") != std::string::npos);
+        D_AR_CHECK(w.find(status_message(status_corrupt_input)) !=
+                   std::string::npos);
     }
 
     D_AR_CHECK(caught);

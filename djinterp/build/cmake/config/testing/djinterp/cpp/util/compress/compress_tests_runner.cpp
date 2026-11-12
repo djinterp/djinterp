@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   compress_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                                      compress_tests_runner.cpp
 *
 *   Entry point for the compress.hpp / compress.cpp unit-test suite.  It
 * includes the test header and calls every tests_* function the section
@@ -7,10 +7,12 @@
 * together with those sections and the production compress.cpp yields the test
 * executable.  Exits non-zero if any test fails.
 *
+*
 * path:      /build/cmake/config/testing/djinterp/cpp/util/compress/compress_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.21
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
+*                                                            revised: 2026.11.10
+*******************************************************************************/
 
 // std
 #include <cstdio>
@@ -83,10 +85,10 @@ int main()
     D_CP_RUN(tests_compress_api_template_dispatch);
     D_CP_RUN(tests_compress_api_invalid_argument_compress);
     D_CP_RUN(tests_compress_api_invalid_argument_decompress);
-    D_CP_RUN(tests_compress_api_out_of_range_unavailable);
+    D_CP_RUN(tests_compress_api_out_of_range_invalid);
     D_CP_RUN(tests_compress_api_decompress_garbage);
     D_CP_RUN(tests_compress_api_decompress_garbage_brotli);
-    D_CP_RUN(tests_compress_api_deflate_bad_level);
+    D_CP_RUN(tests_compress_api_bad_level_invalid);
     D_CP_RUN(tests_compress_api_zlib_truncated);
 
     // -- options --------------------------------------------------------------

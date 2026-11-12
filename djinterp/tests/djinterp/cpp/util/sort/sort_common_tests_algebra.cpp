@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_common_tests_algebra.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -21,13 +21,13 @@ bool tests_sort_common_is_comparator_trait()
 {
     verdict result;
 
-    //   sort_common.hpp no longer defines its own is_comparator; it pulls in
-    // functional/comparator.hpp so the sort subsystem and the functional
-    // layer share ONE trait.  These checks are what would catch a return of
-    // the two clashing primaries the header comment warns about.
-    result.check((is_comparator<less<int>, int>::value));
-    result.check((is_comparator<greater<int>, int>::value));
-    result.check((is_comparator<less<DBoxedInt>, DBoxedInt>::value));
+    //   The sort subsystem defines no comparator trait of its own: the one
+    // is_comparator lives in functional/comparator.hpp, and every comparator
+    // parameter in the subsystem accepts its models.  A second, clashing
+    // primary in the subsystem is what these checks would catch.
+    result.check((is_comparator<std::less<int>, int>::value));
+    result.check((is_comparator<std::greater<int>, int>::value));
+    result.check((is_comparator<std::less<DBoxedInt>, DBoxedInt>::value));
     result.check((is_comparator<DEvenFirst, int>::value));
 
     //   A type that is not callable as (const T&, const T&) -> bool is not a
@@ -35,10 +35,16 @@ bool tests_sort_common_is_comparator_trait()
     result.check((!is_comparator<int, int>::value));
     result.check((!is_comparator<std::vector<int>, int>::value));
 
-    //   The wrapped run-time comparator models the trait too, which is what
+    //   The run-time direction wrapper models the trait too, which is what
     // lets the *_sort_ordered entry points hand it to an algorithm.
     result.check((is_comparator<
-                      ::djinterp::internal::DOrderComparator<less<int> >,
+                      ::djinterp::internal::DOrderComparator<std::less<int> >,
+                      int>::value));
+
+    //   ...including over a comparator whose own call operator is not const:
+    // the wrapper's is, and it reaches the comparator through a mutable copy.
+    result.check((is_comparator<
+                      ::djinterp::internal::DOrderComparator<DTallyingLess>,
                       int>::value));
 
     return result.ok();
@@ -48,16 +54,16 @@ bool tests_sort_common_is_comparator_trait()
 // tests_sort_common_natural_matches_less
 bool tests_sort_common_natural_matches_less()
 {
-    verdict     result;
-    less<int>   primitive;
-    std::size_t i;
-    std::size_t j;
-    int         values[6];
+    verdict        result;
+    std::less<int> primitive;
+    std::size_t    i;
+    std::size_t    j;
+    int            values[6];
 
-    //   The header documents less<T> as "the value-type equivalent of
-    // natural<T>()".  That is a behavioural claim, so it is checked
-    // behaviourally, over every ordered pair of a set that contains
-    // duplicates and negatives.
+    //   The algorithm headers default to std::less<T>, and the algebra's
+    // natural<T>() is meant to be the same ordering.  That is a behavioural
+    // claim, so it is checked behaviourally, over every ordered pair of a set
+    // that contains duplicates and negatives.
     values[0] = -7;
     values[1] = -1;
     values[2] = 0;
@@ -84,11 +90,11 @@ bool tests_sort_common_natural_matches_less()
 // tests_sort_common_reversed_matches_greater
 bool tests_sort_common_reversed_matches_greater()
 {
-    verdict      result;
-    greater<int> primitive;
-    std::size_t  i;
-    std::size_t  j;
-    int          values[6];
+    verdict           result;
+    std::greater<int> primitive;
+    std::size_t       i;
+    std::size_t       j;
+    int               values[6];
 
     values[0] = -7;
     values[1] = -1;
@@ -97,7 +103,8 @@ bool tests_sort_common_reversed_matches_greater()
     values[4] = 4;
     values[5] = 11;
 
-    //   The matching claim for greater<T>: "natural<T>() | reversed()".
+    //   The matching claim for descending order: natural<T>() | reversed()
+    // is std::greater<T>.
     for (i = 0; i < 6; ++i)
     {
         for (j = 0; j < 6; ++j)
@@ -133,8 +140,8 @@ bool tests_sort_common_composed_comparator_sorts()
 
     insertion_sort(data.begin(),
                    data.end(),
-                   ::djinterp::by_key(int_key_of()) |
-                       ::djinterp::then(keyed_tag_less()));
+                   ::djinterp::by_key(DIntKeyOf()) |
+                       ::djinterp::then(DKeyedTagLess()));
 
     result.check(data[0] == make_keyed(1, 20));
     result.check(data[1] == make_keyed(1, 40));
@@ -146,7 +153,7 @@ bool tests_sort_common_composed_comparator_sorts()
     // comparator the algorithms accept.
     insertion_sort(data.begin(),
                    data.end(),
-                   ::djinterp::by_key(int_key_of()) |
+                   ::djinterp::by_key(DIntKeyOf()) |
                        ::djinterp::reversed());
 
     for (i = 1; i < data.size(); ++i)

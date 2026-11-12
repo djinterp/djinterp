@@ -1,7 +1,7 @@
 ################################################################################
-# djinterp [test]                                                  CMakeLists.txt
+# djinterp [test]                                                 CMakeLists.txt
 #
-#   Test leaf for the portable compression facade (djinterp/core/util/compress).
+#   Test leaf for the portable compression facade (cpp/util/compress).
 # Builds the `compress_tests` executable from the runner (this dir), the section
 # translation units (tests/), and the production compress.cpp.
 #
@@ -9,10 +9,11 @@
 # is consumed only by this suite, so there is no reason to stand up a shared
 # static library for it.
 #
-# path: /build/cmake/config/testing/djinterp/core/util/CMakeLists.txt
+# path: /build/cmake/config/testing/djinterp/cpp/util/compress/CMakeLists.txt
+# author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.10
 ################################################################################
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util/compress")
 set(_src_dir   "${DJINTERP_SRC_ROOT}/djinterp/cpp/util")
 
 # section TUs (one per semantic region); exclude any legacy *_main.cpp so a
@@ -21,7 +22,7 @@ file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/compress_tests_*.cpp")
 list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
 
 # production implementation under test
-file(GLOB _prod CONFIGURE_DEPENDS "${_src_dir}/compress.cpp")
+set(_prod "${_src_dir}/compress/compress.cpp")
 
 # ------------------------------------------------------------------------------
 # Compression backend libraries.
@@ -64,10 +65,10 @@ endif()
 
 # ------------------------------------------------------------------------------
 # The test executable.
-#   INCLUDES carries the three bare-include roots this suite reaches for:
-#   - inc/djinterp/cpp/util   -> "compress.hpp"        (the facade under test)
-#   - inc/djinterp/test        -> "test_compress.hpp"   (shared testing module)
-#   - tests/djinterp/cpp/util -> "compress_tests.hpp"  (this suite's header)
+#   INCLUDES carries the bare-include roots this suite reaches for:
+#   - inc/djinterp/cpp/util/compress -> "compress.hpp"      (the facade)
+#   - inc/djinterp/cpp/modules/test  -> "test_compress.hpp" (shared helpers)
+#   - tests/djinterp/cpp/util/compress -> "compress_tests.hpp" (this suite)
 # The helper additionally puts ${DJINTERP_INC_ROOT} on the path and links
 # djinterp_c_runtime, defines D_TESTING=1, and registers the CTest entry.
 # ------------------------------------------------------------------------------
@@ -78,6 +79,7 @@ djinterp_add_test_executable(compress_tests
         ${_prod}
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/util"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/util/compress"
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"
         "${_tests_dir}"
     LIBRARIES

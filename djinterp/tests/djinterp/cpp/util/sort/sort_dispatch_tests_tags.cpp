@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_tags.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -25,12 +25,12 @@ bool tests_sort_dispatch_tag_values()
     // between the compile-time and run-time surfaces, so it has to hold in
     // both directions -- see tests_sort_dispatch_algorithm_tag_alias for the
     // trip back.
-    result.check(bubble_sort_tag::value == sort_algorithm::bubble);
-    result.check(selection_sort_tag::value == sort_algorithm::selection);
-    result.check(insertion_sort_tag::value == sort_algorithm::insertion);
-    result.check(merge_sort_tag::value == sort_algorithm::merge);
-    result.check(quick_sort_tag::value == sort_algorithm::quick);
-    result.check(heap_sort_tag::value == sort_algorithm::heap);
+    result.check(DBubbleSortTag::value == DSortAlgorithm::bubble);
+    result.check(DSelectionSortTag::value == DSortAlgorithm::selection);
+    result.check(DInsertionSortTag::value == DSortAlgorithm::insertion);
+    result.check(DMergeSortTag::value == DSortAlgorithm::merge);
+    result.check(DQuickSortTag::value == DSortAlgorithm::quick);
+    result.check(DHeapSortTag::value == DSortAlgorithm::heap);
 
     return result.ok();
 }
@@ -44,46 +44,64 @@ bool tests_sort_dispatch_tag_properties()
     //   The property matrix.  These are the subsystem's public promises
     // about each algorithm and they drive real caller decisions, so all
     // eighteen values are pinned individually rather than spot-checked.
+    // Merge sort is adaptive in comparisons: an ordered pair of runs costs
+    // one comparison and a copy.
     //
     //             stable  in-place  adaptive
     //   bubble      yes      yes       yes
     //   selection   no       yes       no
     //   insertion   yes      yes       yes
-    //   merge       yes      no        no
+    //   merge       yes      no        yes
     //   quick       no       yes       no
     //   heap        no       yes       no
-    result.check(bubble_sort_tag::is_stable);
-    result.check(bubble_sort_tag::is_in_place);
-    result.check(bubble_sort_tag::is_adaptive);
+    result.check(DBubbleSortTag::is_stable);
+    result.check(DBubbleSortTag::is_in_place);
+    result.check(DBubbleSortTag::is_adaptive);
 
-    result.check(!selection_sort_tag::is_stable);
-    result.check(selection_sort_tag::is_in_place);
-    result.check(!selection_sort_tag::is_adaptive);
+    result.check(!DSelectionSortTag::is_stable);
+    result.check(DSelectionSortTag::is_in_place);
+    result.check(!DSelectionSortTag::is_adaptive);
 
-    result.check(insertion_sort_tag::is_stable);
-    result.check(insertion_sort_tag::is_in_place);
-    result.check(insertion_sort_tag::is_adaptive);
+    result.check(DInsertionSortTag::is_stable);
+    result.check(DInsertionSortTag::is_in_place);
+    result.check(DInsertionSortTag::is_adaptive);
 
-    result.check(merge_sort_tag::is_stable);
-    result.check(!merge_sort_tag::is_in_place);
-    result.check(!merge_sort_tag::is_adaptive);
+    result.check(DMergeSortTag::is_stable);
+    result.check(!DMergeSortTag::is_in_place);
+    result.check(DMergeSortTag::is_adaptive);
 
-    result.check(!quick_sort_tag::is_stable);
-    result.check(quick_sort_tag::is_in_place);
-    result.check(!quick_sort_tag::is_adaptive);
+    result.check(!DQuickSortTag::is_stable);
+    result.check(DQuickSortTag::is_in_place);
+    result.check(!DQuickSortTag::is_adaptive);
 
-    result.check(!heap_sort_tag::is_stable);
-    result.check(heap_sort_tag::is_in_place);
-    result.check(!heap_sort_tag::is_adaptive);
+    result.check(!DHeapSortTag::is_stable);
+    result.check(DHeapSortTag::is_in_place);
+    result.check(!DHeapSortTag::is_adaptive);
 
     //   Merge sort is the only algorithm in the set that is not in place --
     // it is the one that allocates a buffer.
-    result.check(!merge_sort_tag::is_in_place);
-    result.check(bubble_sort_tag::is_in_place &&
-                 selection_sort_tag::is_in_place &&
-                 insertion_sort_tag::is_in_place &&
-                 quick_sort_tag::is_in_place &&
-                 heap_sort_tag::is_in_place);
+    result.check(!DMergeSortTag::is_in_place);
+    result.check(DBubbleSortTag::is_in_place &&
+                 DSelectionSortTag::is_in_place &&
+                 DInsertionSortTag::is_in_place &&
+                 DQuickSortTag::is_in_place &&
+                 DHeapSortTag::is_in_place);
+
+    //   The matrix has one source: each tag inherits its algorithm's traits
+    // struct rather than restating the three values, so the tag and the
+    // algorithm header cannot disagree.
+    result.check((std::is_base_of<bubble_sort_traits,
+                                  DBubbleSortTag>::value));
+    result.check((std::is_base_of<selection_sort_traits,
+                                  DSelectionSortTag>::value));
+    result.check((std::is_base_of<insertion_sort_traits,
+                                  DInsertionSortTag>::value));
+    result.check((std::is_base_of<merge_sort_traits,
+                                  DMergeSortTag>::value));
+    result.check((std::is_base_of<quick_sort_traits,
+                                  DQuickSortTag>::value));
+    result.check((std::is_base_of<heap_sort_traits,
+                                  DHeapSortTag>::value));
 
     return result.ok();
 }
@@ -94,19 +112,19 @@ bool tests_sort_dispatch_tag_names()
 {
     verdict result;
 
-    result.check(names_equal(bubble_sort_tag::name(), "bubble_sort"));
-    result.check(names_equal(selection_sort_tag::name(), "selection_sort"));
-    result.check(names_equal(insertion_sort_tag::name(), "insertion_sort"));
-    result.check(names_equal(merge_sort_tag::name(), "merge_sort"));
-    result.check(names_equal(quick_sort_tag::name(), "quick_sort"));
-    result.check(names_equal(heap_sort_tag::name(), "heap_sort"));
+    result.check(names_equal(DBubbleSortTag::name(), "bubble_sort"));
+    result.check(names_equal(DSelectionSortTag::name(), "selection_sort"));
+    result.check(names_equal(DInsertionSortTag::name(), "insertion_sort"));
+    result.check(names_equal(DMergeSortTag::name(), "merge_sort"));
+    result.check(names_equal(DQuickSortTag::name(), "quick_sort"));
+    result.check(names_equal(DHeapSortTag::name(), "heap_sort"));
 
     //   Never null, and never accidentally shared between two tags.
-    result.check(bubble_sort_tag::name() != nullptr);
-    result.check(!names_equal(quick_sort_tag::name(),
-                              heap_sort_tag::name()));
-    result.check(!names_equal(merge_sort_tag::name(),
-                              insertion_sort_tag::name()));
+    result.check(DBubbleSortTag::name() != nullptr);
+    result.check(!names_equal(DQuickSortTag::name(),
+                              DHeapSortTag::name()));
+    result.check(!names_equal(DMergeSortTag::name(),
+                              DInsertionSortTag::name()));
 
     return result.ok();
 }
@@ -122,23 +140,23 @@ bool tests_sort_dispatch_tag_apply()
     // table has no copy-paste error in it -- a tag wired to the wrong entry
     // point would still sort correctly, so ordering alone cannot catch it;
     // the property and name checks above are what pin the identity.
-    verify_battery_reference(&tag_apply_ints<bubble_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&tag_apply_ints<DBubbleSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&tag_apply_ints<selection_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&tag_apply_ints<DSelectionSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&tag_apply_ints<insertion_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&tag_apply_ints<DInsertionSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&tag_apply_ints<merge_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&tag_apply_ints<DMergeSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&tag_apply_ints<quick_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&tag_apply_ints<DQuickSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&tag_apply_ints<heap_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&tag_apply_ints<DHeapSortTag>,
+                             std::less<int>(),
                              result);
 
     return result.ok();
@@ -150,27 +168,27 @@ bool tests_sort_dispatch_is_sort_tag()
 {
     verdict result;
 
-    //   is_sort_tag is is_base_of<sort_tag_base, T>, so it accepts exactly
+    //   is_sort_tag is is_base_of<DSortTagBase, T>, so it accepts exactly
     // the six tags.
-    result.check(is_sort_tag<bubble_sort_tag>::value);
-    result.check(is_sort_tag<selection_sort_tag>::value);
-    result.check(is_sort_tag<insertion_sort_tag>::value);
-    result.check(is_sort_tag<merge_sort_tag>::value);
-    result.check(is_sort_tag<quick_sort_tag>::value);
-    result.check(is_sort_tag<heap_sort_tag>::value);
+    result.check(is_sort_tag<DBubbleSortTag>::value);
+    result.check(is_sort_tag<DSelectionSortTag>::value);
+    result.check(is_sort_tag<DInsertionSortTag>::value);
+    result.check(is_sort_tag<DMergeSortTag>::value);
+    result.check(is_sort_tag<DQuickSortTag>::value);
+    result.check(is_sort_tag<DHeapSortTag>::value);
 
     result.check(!is_sort_tag<int>::value);
-    result.check(!is_sort_tag<sort_algorithm>::value);
-    result.check(!is_sort_tag<less<int> >::value);
+    result.check(!is_sort_tag<DSortAlgorithm>::value);
+    result.check(!is_sort_tag<std::less<int> >::value);
 
-    //   NOTE: dynamic_algorithm is NOT a sort tag -- it does not derive from
-    // sort_tag_base.  sorter's static_assert message says the parameter must
-    // be "a sort tag type ... or the dynamic_algorithm sentinel", which
+    //   NOTE: DDynamicAlgorithm is NOT a sort tag -- it does not derive from
+    // DSortTagBase.  DSorter's static_assert message says the parameter must
+    // be "a sort tag type ... or the DDynamicAlgorithm sentinel", which
     // reads as though this were true.  It is harmless, because
-    // sorter<dynamic_algorithm> is an explicit specialization and so never
+    // DSorter<DDynamicAlgorithm> is an explicit specialization and so never
     // instantiates the primary template's assertion -- but the message is
     // misleading and is pinned here so the discrepancy stays visible.
-    result.check(!is_sort_tag<dynamic_algorithm>::value);
+    result.check(!is_sort_tag<DDynamicAlgorithm>::value);
 
     return result.ok();
 }
@@ -181,14 +199,14 @@ bool tests_sort_dispatch_default_tag()
 {
     verdict result;
 
-    //   The documented default is quicksort.  sorter<>, the defaulted
-    // sort<>() overloads and the default-constructed dynamic sorter all
+    //   The documented default is quicksort.  DSorter<>, the defaulted
+    // sort<>() overloads and the default-constructed dynamic DSorter all
     // resolve through this typedef, so it is asserted once here and relied
     // on elsewhere.
-    result.check((std::is_same<default_sort_tag, quick_sort_tag>::value));
-    result.check(default_sort_tag::value == sort_algorithm::quick);
-    result.check(names_equal(default_sort_tag::name(), "quick_sort"));
-    result.check(is_sort_tag<default_sort_tag>::value);
+    result.check((std::is_same<DDefaultSortTag, DQuickSortTag>::value));
+    result.check(DDefaultSortTag::value == DSortAlgorithm::quick);
+    result.check(names_equal(DDefaultSortTag::name(), "quick_sort"));
+    result.check(is_sort_tag<DDefaultSortTag>::value);
 
     return result.ok();
 }

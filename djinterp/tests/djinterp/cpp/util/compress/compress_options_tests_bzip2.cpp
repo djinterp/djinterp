@@ -1,15 +1,15 @@
 /*******************************************************************************
 * djinterp [test]                               compress_options_tests_bzip2.cpp
 *
-*   Tests for DBzip2Options (compress_options.hpp section II.ii).  Confirms the
-* sentinel defaults (block_size_100k 0, work_factor 0, verbosity 0,
-* small_decompress false), independent fields, and portable plain-data layout.
+*   Tests for the bzip2 block (DBzip2Options): block size, work factor,
+* verbosity and the small-decompress flag (compress_options.hpp section II).
+* The block is the core's struct; a pristine one has every knob UNSET.
 *
 *
 * path:      /tests/djinterp/cpp/util/compress/compress_options_tests_bzip2.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -22,64 +22,70 @@ NS_TESTING
 
 /*
 tests_compress_options_bzip2_defaults
-  Confirms a default-constructed DBzip2Options sits on its sentinels.
+  Confirms the bzip2 block of a default-constructed compress_options is
+  pristine: every knob UNSET, which the core resolves at dispatch.
+  (DBzip2Options is the core's plain struct and has no constructor of its own;
+  a block is initialised by the option set it lives in.)
   Tests the following:
-  - block_size_100k, work_factor, and verbosity default to 0
-  - small_decompress defaults to false
+  - each of the 4 knobs is D_COMPRESS_KNOB_UNSET
 */
 bool tests_compress_options_bzip2_defaults()
 {
-    DBzip2Options b;
-
-    D_CO_CHECK(b.block_size_100k  == 0);
-    D_CO_CHECK(b.work_factor      == 0);
-    D_CO_CHECK(b.verbosity        == 0);
-    D_CO_CHECK(b.small_decompress == false);
+    compress_options o;
+    D_CO_CHECK(o.bzip2.block_size_100k == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.bzip2.work_factor == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.bzip2.verbosity == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.bzip2.small_decompress == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }
 
 /*
 tests_compress_options_bzip2_fields
-  Confirms each field is a distinct, writable member.
+  Confirms each knob is a distinct, writable member - assigning one leaves the
+  others untouched (no aliasing or packing surprise).
   Tests the following:
-  - each field round-trips a written value
-  - writing one field does not disturb the others
+  - each written knob reads back its value
+  - every knob not yet written is still UNSET
 */
 bool tests_compress_options_bzip2_fields()
 {
-    DBzip2Options b;
+    compress_options o;
 
-    b.block_size_100k = 9;
-    D_CO_CHECK(b.block_size_100k == 9);
-    D_CO_CHECK(b.work_factor     == 0);      // untouched
-    D_CO_CHECK(b.verbosity       == 0);      // untouched
+    o.bzip2.block_size_100k = 9;
+    D_CO_CHECK(o.bzip2.block_size_100k == 9);
+    D_CO_CHECK(o.bzip2.work_factor == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.bzip2.verbosity == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.bzip2.small_decompress == D_COMPRESS_KNOB_UNSET);
 
-    b.work_factor = 250;
-    D_CO_CHECK(b.work_factor     == 250);
-    D_CO_CHECK(b.block_size_100k == 9);      // preserved
+    o.bzip2.work_factor = 30;
+    D_CO_CHECK(o.bzip2.block_size_100k == 9);
+    D_CO_CHECK(o.bzip2.work_factor == 30);
+    D_CO_CHECK(o.bzip2.verbosity == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.bzip2.small_decompress == D_COMPRESS_KNOB_UNSET);
 
-    b.verbosity = 4;
-    D_CO_CHECK(b.verbosity       == 4);
-
-    b.small_decompress = true;
-    D_CO_CHECK(b.small_decompress == true);
-    D_CO_CHECK(b.block_size_100k  == 9);     // preserved
-    D_CO_CHECK(b.work_factor      == 250);   // preserved
+    o.bzip2.small_decompress = 1;
+    D_CO_CHECK(o.bzip2.block_size_100k == 9);
+    D_CO_CHECK(o.bzip2.work_factor == 30);
+    D_CO_CHECK(o.bzip2.small_decompress == 1);
+    D_CO_CHECK(o.bzip2.verbosity == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }
 
 /*
 tests_compress_options_bzip2_layout
-  Confirms DBzip2Options is portable, ABI-stable plain data.
+  Confirms DBzip2Options is portable plain data of exactly its knobs: 4
+  int32_t fields, no padding, so the C and C++ faces share one layout.
   Tests the following:
-  - the struct is trivially copyable, standard-layout, trivially destructible,
+  - the struct is trivially copyable, standard-layout, trivially destructible
     and non-polymorphic
+  - its size is 4 int32_t
 */
 bool tests_compress_options_bzip2_layout()
 {
     D_CO_CHECK(pod_ish_layout<DBzip2Options>());
+    D_CO_CHECK(sizeof(DBzip2Options) == (4 * sizeof(int32_t)));
 
     return true;
 }

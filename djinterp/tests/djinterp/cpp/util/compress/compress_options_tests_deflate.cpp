@@ -1,16 +1,15 @@
 /*******************************************************************************
 * djinterp [test]                             compress_options_tests_deflate.cpp
 *
-*   Tests for DDeflateOptions (compress_options.hpp section II.i) - advanced
-* tuning for the zlib-family codecs.  Confirms the sentinel defaults
-* (window_bits 0, mem_level 0, strategy neutral), that each field is an
-* independent lvalue, and that the struct is portable plain data.
+*   Tests for the DEFLATE block (DDeflateOptions): window bits, memory level and
+* strategy (compress_options.hpp section II).
+* The block is the core's struct; a pristine one has every knob UNSET.
 *
 *
 * path:      /tests/djinterp/cpp/util/compress/compress_options_tests_deflate.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -23,62 +22,66 @@ NS_TESTING
 
 /*
 tests_compress_options_deflate_defaults
-  Confirms a default-constructed DDeflateOptions sits entirely on its "leave it
-  to the backend" sentinels.
+  Confirms the deflate block of a default-constructed compress_options is
+  pristine: every knob UNSET, which the core resolves at dispatch.
+  (DDeflateOptions is the core's plain struct and has no constructor of its
+  own; a block is initialised by the option set it lives in.)
   Tests the following:
-  - window_bits and mem_level default to 0 (backend maximum / default)
-  - strategy defaults to the neutral deflate_strategy_default
+  - each of the 3 knobs is D_COMPRESS_KNOB_UNSET
 */
 bool tests_compress_options_deflate_defaults()
 {
-    DDeflateOptions d;
-
-    D_CO_CHECK(d.window_bits == 0);
-    D_CO_CHECK(d.mem_level   == 0);
-    D_CO_CHECK(d.strategy    == deflate_strategy_default);
+    compress_options o;
+    D_CO_CHECK(o.deflate.window_bits == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.deflate.mem_level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.deflate.strategy == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }
 
 /*
 tests_compress_options_deflate_fields
-  Confirms each field is a distinct, writable member - assigning one leaves the
-  others untouched (no unintended aliasing or packing surprise).
+  Confirms each knob is a distinct, writable member - assigning one leaves the
+  others untouched (no aliasing or packing surprise).
   Tests the following:
-  - each field round-trips a written value
-  - writing one field does not disturb the others
+  - each written knob reads back its value
+  - every knob not yet written is still UNSET
 */
 bool tests_compress_options_deflate_fields()
 {
-    DDeflateOptions d;
+    compress_options o;
 
-    d.window_bits = 15;
-    D_CO_CHECK(d.window_bits == 15);
-    D_CO_CHECK(d.mem_level   == 0);                       // untouched
-    D_CO_CHECK(d.strategy    == deflate_strategy_default); // untouched
+    o.deflate.window_bits = 15;
+    D_CO_CHECK(o.deflate.window_bits == 15);
+    D_CO_CHECK(o.deflate.mem_level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.deflate.strategy == D_COMPRESS_KNOB_UNSET);
 
-    d.mem_level = 9;
-    D_CO_CHECK(d.mem_level   == 9);
-    D_CO_CHECK(d.window_bits == 15);                      // preserved
+    o.deflate.mem_level = 9;
+    D_CO_CHECK(o.deflate.window_bits == 15);
+    D_CO_CHECK(o.deflate.mem_level == 9);
+    D_CO_CHECK(o.deflate.strategy == D_COMPRESS_KNOB_UNSET);
 
-    d.strategy = deflate_strategy_rle;
-    D_CO_CHECK(d.strategy    == deflate_strategy_rle);
-    D_CO_CHECK(d.window_bits == 15);                      // preserved
-    D_CO_CHECK(d.mem_level   == 9);                       // preserved
+    o.deflate.strategy = deflate_strategy_rle;
+    D_CO_CHECK(o.deflate.window_bits == 15);
+    D_CO_CHECK(o.deflate.mem_level == 9);
+    D_CO_CHECK(o.deflate.strategy == deflate_strategy_rle);
 
     return true;
 }
 
 /*
 tests_compress_options_deflate_layout
-  Confirms DDeflateOptions is portable, ABI-stable plain data.
+  Confirms DDeflateOptions is portable plain data of exactly its knobs: 3
+  int32_t fields, no padding, so the C and C++ faces share one layout.
   Tests the following:
-  - the struct is trivially copyable, standard-layout, trivially destructible,
+  - the struct is trivially copyable, standard-layout, trivially destructible
     and non-polymorphic
+  - its size is 3 int32_t
 */
 bool tests_compress_options_deflate_layout()
 {
     D_CO_CHECK(pod_ish_layout<DDeflateOptions>());
+    D_CO_CHECK(sizeof(DDeflateOptions) == (3 * sizeof(int32_t)));
 
     return true;
 }

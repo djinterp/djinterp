@@ -1,15 +1,16 @@
-/******************************************************************************
-* djinterp [test]                          insertion_sort_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                                insertion_sort_tests_runner.cpp
 *
-*   main() for the insertion_sort_tests executable.  Defines DTEST_SPEC_MODE so the suite
-* header presents its spec-provider face (no fixtures compiled here), builds
-* the option set, and hands the spec to run_module.
+*   main() for the insertion_sort_tests executable.  Defines DTEST_SPEC_MODE
+* so the suite header presents its spec-provider face (no fixtures compiled
+* here), builds the option set, and hands the spec to run_module.
 *
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/util/sort/insertion_sort/insertion_sort_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
+*                                                            revised: 2026.11.12
+*******************************************************************************/
 
 #define DTEST_SPEC_MODE   // suite exposes its spec provider, not its fixtures
 
@@ -33,6 +34,7 @@ int main()
     return dt::run_module(
         tt::insertion_sort_spec(),
         "insertion_sort.hpp unit tests",
-        "insertion sort: the shift-based apply, its C++98 variant and the entry points",
+        "insertion sort: the placement and pass primitives, the shift- "
+        "based driver and the entry points",
         opts);
 }

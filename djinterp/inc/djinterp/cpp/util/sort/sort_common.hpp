@@ -21,11 +21,11 @@
 * path:      /inc/djinterp/cpp/util/sort/sort_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
-#ifndef DJINTERP_UTIL_SORT_SORT_COMMON_HPP
-#define DJINTERP_UTIL_SORT_SORT_COMMON_HPP 1
+#ifndef DJINTERP_UTIL_SORT_COMMON_HPP
+#define DJINTERP_UTIL_SORT_COMMON_HPP 1
 
 // djinterp
 #include "../../djinterp.hpp"  // framework root
@@ -55,26 +55,55 @@ NS_INTERNAL
     // in the direction a sort_order asks for. Descending exchanges the
     // operands, which turns the strict weak ordering "left precedes right"
     // into its converse, itself a strict weak ordering; ascending and none
-    // pass them through unchanged. Called as a non-const lvalue, as the sort
-    // algorithms hold their comparator by value, so a Comparator whose call
-    // operator is not const works too.
+    // pass them through unchanged.
+    //   The call operator is const, so the wrapper models is_comparator like
+    // the comparator it wraps; the comparator it holds is mutable, so a
+    // Comparator whose call operator is not const -- one that tallies its
+    // calls, say -- works too. The two operands may differ in type, so a
+    // comparator that orders across types -- a key against an element, as a
+    // search does -- keeps working when wrapped.
+    //   Every copy of the held comparator is made from a const lvalue -- the
+    // constructor takes it by const reference, and the copy operations are
+    // written out because the implicit ones would copy the mutable member as
+    // a non-const lvalue. A comparator with an unconstrained forwarding
+    // constructor would take that for itself instead of copying.
     template<typename Comparator>
     class DOrderComparator
     {
     public:
         DOrderComparator(
-            Comparator        _comparator,
+            const Comparator& _comparator,
             sort_order::value _order
         )
             : m_comparator(_comparator),
               m_descending(_order == sort_order::descending)
         {}
 
-        template<typename Type>
-        bool operator()(
-            const Type& _left,
-            const Type& _right
+        DOrderComparator(
+            const DOrderComparator& _other
         )
+            : m_comparator(static_cast<const Comparator&>(
+                  _other.m_comparator)),
+              m_descending(_other.m_descending)
+        {}
+
+        DOrderComparator& operator=(
+            const DOrderComparator& _other
+        )
+        {
+            m_comparator = static_cast<const Comparator&>(
+                _other.m_comparator);
+            m_descending = _other.m_descending;
+
+            return *this;
+        }
+
+        template<typename Left,
+                 typename Right>
+        bool operator()(
+            const Left&  _left,
+            const Right& _right
+        ) const
         {
             if (m_descending)
             {
@@ -87,8 +116,8 @@ NS_INTERNAL
         }
 
     private:
-        Comparator m_comparator;
-        bool       m_descending;
+        mutable Comparator m_comparator;
+        bool               m_descending;
     };
 
 NS_END  // internal
@@ -96,4 +125,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTIL_SORT_SORT_COMMON_HPP
+#endif  // DJINTERP_UTIL_SORT_COMMON_HPP

@@ -1,7 +1,7 @@
 ################################################################################
-# djinterp [test]                                                  CMakeLists.txt
+# djinterp [test]                                                 CMakeLists.txt
 #
-#   Test leaf for the djinterp/core/util compress_options vocabulary.
+#   Test leaf for the cpp/util/compress compress_options vocabulary.
 #
 #     compress_options_tests   the compress_options.hpp option vocabulary
 #                              (recipe R1: header-only - the vocabulary is pure
@@ -14,11 +14,12 @@
 # directory does not contain.  Keeping the block here duplicated the target name
 # (fatal once util/ gains an aggregate) and named a source that does not exist.
 #
-# path: /build/cmake/config/testing/djinterp/core/util/compress_options/
+# path: /build/cmake/config/testing/djinterp/cpp/util/compress_options/
 #       CMakeLists.txt
+# author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.10
 ################################################################################
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util/compress")
 
 # compress_options.hpp is pure data (plain enums and POD-ish structs); the suite
 # verifies its defaults, sentinels, enum values, value semantics, and layout,
@@ -29,9 +30,9 @@ list(FILTER _compress_options_sources EXCLUDE REGEX "_main\\.cpp$")
 
 #   INCLUDES carries the bare-include roots this suite reaches for:
 #   - inc/djinterp/cpp        -> "djinterp.hpp"             (NS_ macros; must
-#                                                             precede the header)
-#   - inc/djinterp/cpp/util   -> "compress_options.hpp"     (the header tested)
-#   - tests/djinterp/cpp/util -> "compress_options_tests.hpp"
+#                                                            precede the header)
+#   - inc/djinterp/cpp/util/compress -> "compress_options.hpp" (under test)
+#   - tests/djinterp/cpp/util/compress -> "compress_options_tests.hpp"
 djinterp_add_test_executable(compress_options_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/compress_options_tests_runner.cpp"
@@ -39,4 +40,5 @@ djinterp_add_test_executable(compress_options_tests
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp"
         "${DJINTERP_INC_ROOT}/djinterp/cpp/util"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/util/compress"
         "${_tests_dir}")

@@ -31,7 +31,7 @@
 * path:      /tests/djinterp/cpp/text/font_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_TEXT_FONT_TESTS_
@@ -45,6 +45,9 @@
 #include <vector>
 // djinterp
 #include "../../../../inc/djinterp/cpp/text/font.hpp"
+
+// font.hpp is C++17 at its floor and empty below it; so is its suite.
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
 NS_DJINTERP
@@ -382,25 +385,24 @@ bool traits_track_the_flags() noexcept
 {
     using f = DFont<_Feat, probe_color>;
 
-    return ( (has_font_underline_v<f>         == has_ff(_Feat, ff_underline))     &&
-             (has_font_strikethrough_v<f>     == has_ff(_Feat, ff_strikethrough)) &&
-             (has_font_overline_v<f>          == has_ff(_Feat, ff_overline))      &&
-             (has_font_small_caps_v<f>        == has_ff(_Feat, ff_small_caps))    &&
-             (has_font_all_caps_v<f>          == has_ff(_Feat, ff_all_caps))      &&
-             (has_font_subscript_v<f>         == has_ff(_Feat, ff_subscript))     &&
-             (has_font_superscript_v<f>       == has_ff(_Feat, ff_superscript))   &&
-             (has_font_letter_spacing_v<f>    == has_ff(_Feat, ff_letter_spacing))&&
-             (has_font_line_height_v<f>       == has_ff(_Feat, ff_line_height))   &&
-             (has_font_stretch_v<f>           == has_ff(_Feat, ff_stretch))       &&
-             (has_font_spacing_v<f>           == has_ff(_Feat, ff_spacing))       &&
-             (has_font_color_v<f>             == has_ff(_Feat, ff_color))         &&
-             (has_font_background_v<f>        == has_ff(_Feat, ff_background))    &&
-             (has_font_opentype_features_v<f> ==
-                                          has_ff(_Feat, ff_opentype_features))    &&
-             (has_font_variable_axes_v<f>     == has_ff(_Feat, ff_variable_axes)) &&
-             (has_font_script_hint_v<f>       == has_ff(_Feat, ff_script_hint))   &&
-             (has_font_backend_handles_v<f>   ==
-                                          has_ff(_Feat, ff_backend_handles)) );
+    return (has_font_underline_v<f>       == has_ff(_Feat, ff_underline))
+        && (has_font_strikethrough_v<f>   == has_ff(_Feat, ff_strikethrough))
+        && (has_font_overline_v<f>        == has_ff(_Feat, ff_overline))
+        && (has_font_small_caps_v<f>      == has_ff(_Feat, ff_small_caps))
+        && (has_font_all_caps_v<f>        == has_ff(_Feat, ff_all_caps))
+        && (has_font_subscript_v<f>       == has_ff(_Feat, ff_subscript))
+        && (has_font_superscript_v<f>     == has_ff(_Feat, ff_superscript))
+        && (has_font_letter_spacing_v<f>  == has_ff(_Feat, ff_letter_spacing))
+        && (has_font_line_height_v<f>     == has_ff(_Feat, ff_line_height))
+        && (has_font_stretch_v<f>         == has_ff(_Feat, ff_stretch))
+        && (has_font_spacing_v<f>         == has_ff(_Feat, ff_spacing))
+        && (has_font_color_v<f>           == has_ff(_Feat, ff_color))
+        && (has_font_background_v<f>      == has_ff(_Feat, ff_background))
+        && (has_font_opentype_features_v<f> ==
+            has_ff(_Feat, ff_opentype_features))
+        && (has_font_variable_axes_v<f>   == has_ff(_Feat, ff_variable_axes))
+        && (has_font_script_hint_v<f>     == has_ff(_Feat, ff_script_hint))
+        && (has_font_backend_handles_v<f> == has_ff(_Feat, ff_backend_handles));
 }
 
 
@@ -936,6 +938,9 @@ bool tests_concepts_reject_non_fonts();
 
 NS_END  // testing
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
 #endif  // DJINTERP_TEXT_FONT_TESTS_

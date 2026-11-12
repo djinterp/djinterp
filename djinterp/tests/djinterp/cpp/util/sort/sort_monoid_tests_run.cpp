@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_monoid_tests_run.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -36,11 +36,12 @@ bool tests_sort_monoid_run_default_construction()
 
     //   The published member types.
     result.check((std::is_same<DIntRun::value_type, int>::value));
-    result.check((std::is_same<DIntRun::compare_type, less<int> >::value));
+    result.check((std::is_same<DIntRun::compare_type, std::less<int> >::value));
     result.check((std::is_same<DIntRun::container_type,
                                std::vector<int> >::value));
-    result.check((std::is_same<DIntRun::compare_type,
-                               default_comparator_t<int> >::value));
+    //   Compare defaults to std::less<Type>, so the one-parameter spelling
+    // names the same type.
+    result.check((std::is_same<DSortedRun<int>, DIntRun>::value));
 
     return result.ok();
 }
@@ -51,7 +52,7 @@ bool tests_sort_monoid_run_comparator_construction()
 {
     verdict result;
 
-    sorted_run<int, greater<int> > descending_run((greater<int>()));
+    DSortedRun<int, std::greater<int> > descending_run((std::greater<int>()));
 
     //   The comparator-only constructor builds an empty run that remembers a
     // specific ordering.  This matters because combine() propagates the LEFT
@@ -64,11 +65,11 @@ bool tests_sort_monoid_run_comparator_construction()
 
     //   It is explicit, so a comparator never silently becomes a run.
     result.check((!std::is_convertible<
-                      greater<int>,
-                      sorted_run<int, greater<int> > >::value));
+                      std::greater<int>,
+                      DSortedRun<int, std::greater<int> > >::value));
     result.check((std::is_constructible<
-                      sorted_run<int, greater<int> >,
-                      greater<int> >::value));
+                      DSortedRun<int, std::greater<int> >,
+                      std::greater<int> >::value));
 
     return result.ok();
 }
@@ -82,9 +83,9 @@ bool tests_sort_monoid_run_adopting_construction()
     static const int ordered[]   = { 1, 3, 3, 7, 9 };
     static const int unordered[] = { 9, 1, 7 };
 
-    DIntRun adopted(ints_of(ordered, 5), less<int>(), true);
-    DIntRun misused(ints_of(unordered, 3), less<int>(), true);
-    DIntRun adopted_empty((std::vector<int>()), less<int>(), true);
+    DIntRun adopted(ints_of(ordered, 5), std::less<int>(), true);
+    DIntRun misused(ints_of(unordered, 3), std::less<int>(), true);
+    DIntRun adopted_empty((std::vector<int>()), std::less<int>(), true);
 
     //   The three-argument constructor adopts a vector that the CALLER
     // guarantees is already ordered.  It performs no sort, which is the
@@ -118,7 +119,7 @@ bool tests_sort_monoid_run_accessors()
 
     static const int values[] = { 2, 4, 6, 8 };
 
-    DIntRun run(ints_of(values, 4), less<int>(), true);
+    DIntRun run(ints_of(values, 4), std::less<int>(), true);
 
     const DIntRun& frozen = run;
 
@@ -137,7 +138,7 @@ bool tests_sort_monoid_run_accessors()
     result.check((std::is_same<decltype(run.data()),
                                const std::vector<int>&>::value));
     result.check((std::is_same<decltype(run.compare()),
-                               const less<int>&>::value));
+                               const std::less<int>&>::value));
 
     //   And they are const member functions, so a const run is fully
     // readable.
@@ -158,12 +159,12 @@ bool tests_sort_monoid_run_value_semantics()
     static const int first_values[]  = { 1, 2, 3 };
     static const int second_values[] = { 7, 8 };
 
-    DIntRun original(ints_of(first_values, 3), less<int>(), true);
+    DIntRun original(ints_of(first_values, 3), std::less<int>(), true);
     DIntRun  copy(original);
     DIntRun  assigned;
     DIntRun* self;
 
-    //   sorted_run is a value type -- the header calls it a newtype over a
+    //   DSortedRun is a value type -- the header calls it a newtype over a
     // vector.  A copy is independent of its source, which is what makes the
     // algebra safe: combine() takes both operands by const reference and
     // returns a new run, so a caller's runs are never mutated underneath
@@ -177,7 +178,7 @@ bool tests_sort_monoid_run_value_semantics()
     result.check(ranges_equal(assigned.data(), original.data()));
 
     //   Reassigning one leaves the other alone.
-    assigned = DIntRun(ints_of(second_values, 2), less<int>(), true);
+    assigned = DIntRun(ints_of(second_values, 2), std::less<int>(), true);
 
     result.check(assigned.size() == 2);
     result.check(assigned.data()[0] == 7);

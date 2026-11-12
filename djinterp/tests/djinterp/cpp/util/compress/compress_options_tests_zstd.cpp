@@ -1,17 +1,15 @@
 /*******************************************************************************
 * djinterp [test]                                compress_options_tests_zstd.cpp
 *
-*   Tests for DZstdOptions (compress_options.hpp section II.iv) - the widest
-* tuning block, mirroring Zstandard's advanced-parameter set.  Every numeric
-* knob defaults to 0 ("backend default"), but the frame flags are the subtle
-* part and get their own test: content_size_flag and dict_id_flag default to
-* true while checksum_flag defaults to false.
+*   Tests for the Zstandard block (DZstdOptions, compress_options.hpp
+* section II): nineteen knobs, pristine at UNSET, and the flags the core pins
+* when it resolves for zstd.
 *
 *
 * path:      /tests/djinterp/cpp/util/compress/compress_options_tests_zstd.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -24,120 +22,166 @@ NS_TESTING
 
 /*
 tests_compress_options_zstd_defaults
-  Confirms every numeric and categorical field of a default-constructed
-  DZstdOptions sits on its sentinel.
+  Confirms the zstd block of a default-constructed compress_options is
+  pristine: every knob UNSET, which the core resolves at dispatch.
+  (DZstdOptions is the core's plain struct and has no constructor of its own;
+  a block is initialised by the option set it lives in.)
   Tests the following:
-  - level and all *_log / match / length knobs default to 0
-  - the long-distance-matcher knobs default to 0 and the matcher is off
-  - strategy defaults to the neutral enumerator; workers, job_size, overlap_log
-    default to 0
-  (the boolean frame flags are checked by the flag-defaults test)
+  - each of the 19 knobs is D_COMPRESS_KNOB_UNSET
 */
 bool tests_compress_options_zstd_defaults()
 {
-    DZstdOptions z;
-
-    D_CO_CHECK(z.level         == 0);
-    D_CO_CHECK(z.window_log    == 0);
-    D_CO_CHECK(z.hash_log      == 0);
-    D_CO_CHECK(z.chain_log     == 0);
-    D_CO_CHECK(z.search_log    == 0);
-    D_CO_CHECK(z.min_match     == 0);
-    D_CO_CHECK(z.target_length == 0);
-    D_CO_CHECK(z.strategy      == zstd_strategy_default);
-
-    D_CO_CHECK(z.long_distance_matching == false);
-    D_CO_CHECK(z.ldm_hash_log        == 0);
-    D_CO_CHECK(z.ldm_min_match       == 0);
-    D_CO_CHECK(z.ldm_bucket_size_log == 0);
-    D_CO_CHECK(z.ldm_hash_rate_log   == 0);
-
-    D_CO_CHECK(z.workers     == 0);
-    D_CO_CHECK(z.job_size    == static_cast<std::size_t>(0));
-    D_CO_CHECK(z.overlap_log == 0);
+    compress_options o;
+    D_CO_CHECK(o.zstd.level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.window_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.chain_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.search_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.target_length == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.strategy == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.long_distance_matching == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_bucket_size_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_rate_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.content_size_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.checksum_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.dict_id_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.workers == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.job_size == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.overlap_log == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }
 
 /*
 tests_compress_options_zstd_flag_defaults
-  Locks the frame-flag defaults - the one part of DZstdOptions a "everything
-  starts at zero/false" assumption would get wrong.
+  Confirms the zstd flags the core pins when it resolves for zstd, each for a
+  reason rather than by convention: the frame records content size, checksum
+  and dictionary id; long-distance matching is off; and there are no worker
+  threads, which is what makes the output independent of how many cores the
+  machine has.
   Tests the following:
-  - content_size_flag defaults to true (the decompressed size is written)
-  - dict_id_flag defaults to true
-  - checksum_flag defaults to false
+  - content_size_flag, checksum_flag and dict_id_flag resolve to 1
+  - long_distance_matching and workers resolve to 0
+  - the encoder's own parameters (window_log .. target_length) stay UNSET
 */
 bool tests_compress_options_zstd_flag_defaults()
 {
-    DZstdOptions z;
+    compress_options in;
+    compress_options out;
 
-    D_CO_CHECK(z.content_size_flag == true);
-    D_CO_CHECK(z.dict_id_flag      == true);
-    D_CO_CHECK(z.checksum_flag     == false);
+    D_CO_CHECK(d_compress_options_resolve(D_CODEC_ID_ZSTD, &in, &out) ==
+               D_PACK_STATUS_OK);
+
+    D_CO_CHECK(out.zstd.content_size_flag      == 1);
+    D_CO_CHECK(out.zstd.checksum_flag          == 1);
+    D_CO_CHECK(out.zstd.dict_id_flag           == 1);
+    D_CO_CHECK(out.zstd.long_distance_matching == 0);
+    D_CO_CHECK(out.zstd.workers                == 0);
+
+    D_CO_CHECK(out.zstd.window_log    == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(out.zstd.hash_log      == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(out.zstd.chain_log     == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(out.zstd.search_log    == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(out.zstd.min_match     == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(out.zstd.target_length == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }
 
 /*
 tests_compress_options_zstd_fields
-  Confirms the fields are independent writable members across the numeric,
-  boolean, enum, and size_t kinds.
+  Confirms each knob is a distinct, writable member - assigning one leaves the
+  others untouched (no aliasing or packing surprise).
   Tests the following:
-  - representative fields of each kind round-trip written values
-  - writing one field does not disturb the others
+  - each written knob reads back its value
+  - every knob not yet written is still UNSET
 */
 bool tests_compress_options_zstd_fields()
 {
-    DZstdOptions z;
+    compress_options o;
 
-    z.level = 19;
-    D_CO_CHECK(z.level      == 19);
-    D_CO_CHECK(z.window_log == 0);        // untouched
+    o.zstd.window_log = 27;
+    D_CO_CHECK(o.zstd.window_log == 27);
+    D_CO_CHECK(o.zstd.level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.chain_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.search_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.target_length == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.strategy == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.long_distance_matching == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_bucket_size_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_rate_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.content_size_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.checksum_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.dict_id_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.workers == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.job_size == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.overlap_log == D_COMPRESS_KNOB_UNSET);
 
-    z.window_log = 27;
-    D_CO_CHECK(z.window_log == 27);
-    D_CO_CHECK(z.level      == 19);       // preserved
+    o.zstd.strategy = zstd_strategy_btultra2;
+    D_CO_CHECK(o.zstd.window_log == 27);
+    D_CO_CHECK(o.zstd.strategy == zstd_strategy_btultra2);
+    D_CO_CHECK(o.zstd.level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.chain_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.search_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.target_length == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.long_distance_matching == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_bucket_size_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_rate_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.content_size_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.checksum_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.dict_id_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.workers == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.job_size == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.overlap_log == D_COMPRESS_KNOB_UNSET);
 
-    z.strategy = zstd_strategy_btultra2;
-    D_CO_CHECK(z.strategy   == zstd_strategy_btultra2);
-
-    z.long_distance_matching = true;
-    z.ldm_hash_log           = 24;
-    D_CO_CHECK(z.long_distance_matching == true);
-    D_CO_CHECK(z.ldm_hash_log           == 24);
-
-    // flip each flag off/on relative to its default
-    z.content_size_flag = false;
-    z.checksum_flag     = true;
-    z.dict_id_flag      = false;
-    D_CO_CHECK(z.content_size_flag == false);
-    D_CO_CHECK(z.checksum_flag     == true);
-    D_CO_CHECK(z.dict_id_flag      == false);
-
-    z.workers  = 4;
-    z.job_size = static_cast<std::size_t>(1) << 20;   // 1 MiB
-    D_CO_CHECK(z.workers  == 4);
-    D_CO_CHECK(z.job_size == (static_cast<std::size_t>(1) << 20));
-
-    // spot-check that the earliest writes survived the later ones
-    D_CO_CHECK(z.level      == 19);
-    D_CO_CHECK(z.window_log == 27);
-    D_CO_CHECK(z.strategy   == zstd_strategy_btultra2);
+    o.zstd.checksum_flag = 0;
+    D_CO_CHECK(o.zstd.window_log == 27);
+    D_CO_CHECK(o.zstd.strategy == zstd_strategy_btultra2);
+    D_CO_CHECK(o.zstd.checksum_flag == 0);
+    D_CO_CHECK(o.zstd.level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.chain_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.search_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.target_length == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.long_distance_matching == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_min_match == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_bucket_size_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.ldm_hash_rate_log == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.content_size_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.dict_id_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.workers == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.job_size == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(o.zstd.overlap_log == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }
 
 /*
 tests_compress_options_zstd_layout
-  Confirms DZstdOptions is portable, ABI-stable plain data despite its size.
+  Confirms DZstdOptions is portable plain data of exactly its knobs: 19
+  int32_t fields, no padding, so the C and C++ faces share one layout.
   Tests the following:
-  - the struct is trivially copyable, standard-layout, trivially destructible,
+  - the struct is trivially copyable, standard-layout, trivially destructible
     and non-polymorphic
+  - its size is 19 int32_t
 */
 bool tests_compress_options_zstd_layout()
 {
     D_CO_CHECK(pod_ish_layout<DZstdOptions>());
+    D_CO_CHECK(sizeof(DZstdOptions) == (19 * sizeof(int32_t)));
 
     return true;
 }

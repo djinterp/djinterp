@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests_zip.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -40,9 +40,12 @@ bool tests_zip_roundtrip_files()
     bool       _ok = true;
     entry_list items;
 
-    items.push_back(::djinterp::test::make_text_entry("readme.txt", "hello zip"));
-    items.push_back(::djinterp::test::make_file_entry("data.bin", binary_sample()));
-    items.push_back(::djinterp::test::make_file_entry("empty.dat", byte_blob()));
+    items.push_back(
+        ::djinterp::test::make_text_entry("readme.txt", "hello zip"));
+    items.push_back(
+        ::djinterp::test::make_file_entry("data.bin", binary_sample()));
+    items.push_back(
+        ::djinterp::test::make_file_entry("empty.dat", byte_blob()));
 
     byte_blob blob;
     D_AR_CHECK_STATUS(try_archive<zip>(items, blob), status_ok);
@@ -76,8 +79,10 @@ bool tests_zip_store_mode()
     opt.store_only = true;
 
     entry_list items;
-    items.push_back(::djinterp::test::make_file_entry("a", repeat_bytes('A', 1000)));
-    items.push_back(::djinterp::test::make_file_entry("b", repeat_bytes('B', 1000)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("a", repeat_bytes('A', 1000)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("b", repeat_bytes('B', 1000)));
 
     byte_blob blob;
     D_AR_CHECK_STATUS(try_archive<zip>(items, blob, opt), status_ok);
@@ -91,7 +96,8 @@ bool tests_zip_store_mode()
     }
 
     entry_list out;
-    D_AR_CHECK_STATUS(::djinterp::test::roundtrip<zip>(items, out, opt), status_ok);
+    D_AR_CHECK_STATUS(::djinterp::test::roundtrip<zip>(items, out, opt),
+                      status_ok);
     D_AR_CHECK(::djinterp::test::files_preserved(items, out));
 
     return _ok;
@@ -114,11 +120,13 @@ bool tests_zip_deflate_mode()
     bool _ok = true;
 
     entry_list items;
-    items.push_back(::djinterp::test::make_file_entry("big", repeat_bytes('A', 1000)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("big", repeat_bytes('A', 1000)));
     items.push_back(::djinterp::test::make_file_entry("tiny", byte_blob("hi")));
 
     byte_blob blob;
-    D_AR_CHECK_STATUS(try_archive<zip>(items, blob), status_ok);   // default opts
+    D_AR_CHECK_STATUS(try_archive<zip>(items, blob),
+                      status_ok);   // default opts
 
     {
         std::vector<unsigned int> methods;
@@ -218,8 +226,9 @@ tests_zip_unsupported_method
   Verifies the reader rejects an entry whose compression method it cannot
 handle.
   Tests the following:
-  - a local header advertising an unknown method (patched to 99) extracts to
-    status_unsupported
+  - an entry advertising an unknown method (99) in its local header and its
+    central-directory record extracts to status_unsupported (the reader takes
+    the method from the central directory, as ZIP readers do)
 */
 bool tests_zip_unsupported_method()
 {
@@ -237,9 +246,17 @@ bool tests_zip_unsupported_method()
     D_AR_CHECK_STATUS(try_archive<zip>(items, blob, opt), status_ok);
     D_AR_REQUIRE(blob.size() > 10u);
 
-    // the first local header's 2-byte method field is at offset 8
+    // the first local header's 2-byte method field is at offset 8, and the
+    // first central record's at offset 10 past its signature
     blob[8] = (char)99;
     blob[9] = (char)0;
+    {
+        const std::size_t cd = blob.find("PK\001\002");
+
+        D_AR_REQUIRE(cd != byte_blob::npos);
+        blob[cd + 10] = (char)99;
+        blob[cd + 11] = (char)0;
+    }
 
     entry_list out;
     D_AR_CHECK_STATUS(try_extract<zip>(blob, out), status_unsupported);
@@ -252,9 +269,10 @@ tests_zip_extract_truncated
   Verifies the reader's handling of a container cut short.
   Tests the following:
   - a stream whose entry data runs past the buffer end is rejected with
-    status_backend_error
+    status_corrupt_input: the reader starts from the end-of-central-directory
+    record, which a cut removes, so what is left is not a ZIP at all
   - a stream cut inside the first local header (fewer than 30 bytes) is
-    rejected with status_backend_error
+    rejected with status_corrupt_input
 */
 bool tests_zip_extract_truncated()
 {
@@ -266,23 +284,25 @@ bool tests_zip_extract_truncated()
     opt.store_only = true;
 
     entry_list items;
-    items.push_back(::djinterp::test::make_file_entry("f", repeat_bytes('D', 50)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("f", repeat_bytes('D', 50)));
 
     byte_blob full;
     D_AR_CHECK_STATUS(try_archive<zip>(items, full, opt), status_ok);
 
-    // name "f" (1 byte): data begins at 30 + 1 = 31; cut inside the 50 data bytes
+    // name "f" (1 byte): data begins at 30 + 1 = 31; cut inside the 50
+    // data bytes
     {
         byte_blob cut(full.data(), 41u);
         entry_list  out;
-        D_AR_CHECK_STATUS(try_extract<zip>(cut, out), status_backend_error);
+        D_AR_CHECK_STATUS(try_extract<zip>(cut, out), status_corrupt_input);
     }
 
     // cut inside the fixed 30-byte local header
     {
         byte_blob stub(full.data(), 20u);
         entry_list  out;
-        D_AR_CHECK_STATUS(try_extract<zip>(stub, out), status_backend_error);
+        D_AR_CHECK_STATUS(try_extract<zip>(stub, out), status_corrupt_input);
     }
 
     return _ok;
@@ -314,7 +334,8 @@ bool tests_zip_extract_corrupt_deflate()
 
     // a long, highly compressible run so the writer chooses deflate (method 8)
     entry_list items;
-    items.push_back(::djinterp::test::make_file_entry("c", repeat_bytes('Z', 4000)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("c", repeat_bytes('Z', 4000)));
 
     byte_blob blob;
     D_AR_CHECK_STATUS(try_archive<zip>(items, blob), status_ok);
@@ -346,12 +367,13 @@ bool tests_zip_extract_corrupt_deflate()
 
         for (std::size_t i = 0; i < comp_size; ++i)
         {
-            blob[at + i] = (char)0xFF;   // 0xFF leads with a reserved block type
+            // 0xFF leads with a reserved block type
+            blob[at + i] = (char)0xFF;
         }
     }
 
     entry_list out;
-    D_AR_CHECK_STATUS(try_extract<zip>(blob, out), status_backend_error);
+    D_AR_CHECK_STATUS(try_extract<zip>(blob, out), status_corrupt_input);
 
     return _ok;
 }

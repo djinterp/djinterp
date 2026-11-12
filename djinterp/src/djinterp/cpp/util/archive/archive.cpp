@@ -19,20 +19,26 @@
 *   WHERE THE ALLOCATION LIVES, AND WHY THAT IS CORRECT:
 *   The kernel allocates nothing; it takes caller-owned regions.  This file is
 * the C++ face, std::vector and std::string are its native vocabulary, and it
-* is the right place for the two allocations an extraction needs: an entry
-* array and a byte arena the entries point into.  Pushing them down into the
-* kernel would put an allocator in tier 0, where every other module would then
-* inherit it.
+* is the right place for the regions the kernel asks for: an extraction's
+* entry array and the byte arena the entries point into, and a create's
+* stage.  Pushing them down into the kernel would put an allocator in tier 0,
+* where every other module would then inherit it.
 *
 *   EXTRACTION IS MEASURE-THEN-FILL, and the retry loop is the interesting
 * part: the kernel reports both region sizes before the fact, so there is
 * exactly one growth step and never a guess-and-double.
 *
+*   CREATION IS STAGED: the kernel says how big a stage the members need, and
+* this file supplies one.  A tar.gz's tar is written there, then compressed
+* from there; a ZIP keeps its plans and scratch there, and compresses each
+* member once.  Formats that need no stage get none.  Reading a tar.gz needs
+* no stage at all: the kernel inflates it straight through its tar reader.
+*
 *
 * path:      /src/djinterp/cpp/util/archive/archive.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/util/archive/archive.hpp"
 
@@ -148,12 +154,23 @@ status archive_create(
 )
 {
     std::vector<dj_archive_entry>  lowered;
+    std::vector<unsigned char>     stage;
     dj_archive_options             opt = _opt.lower();
     dj_pack_sink                   sink;
     const dj_archive_entry*        base;
+    std::size_t                   need = 0;
     std::size_t                   i;
+    status                        s;
 
     _out.clear();
+
+    // a null base names no members: with a count it is a malformed request,
+    // and lowering it would read through the null pointer
+    if ( (_items == 0) &&
+         (_count != 0) )
+    {
+        return status_invalid_argument;
+    }
 
     lowered.reserve(_count);
 
@@ -165,10 +182,22 @@ status archive_create(
     // an empty vector must not be indexed; pass a null base with count 0
     base = lowered.empty() ? (const dj_archive_entry*)0 : &lowered[0];
 
+    // the stage: a tar.gz's tar, a ZIP's plans and scratch, so that a ZIP
+    // compresses each member once; nothing for the other formats
+    s = d_archive_stage_size(_fmt, base, _count, &opt, &need);
+
+    if (s != status_ok)
+    {
+        return s;
+    }
+
+    stage.resize(need);
     sink.write   = &entry_sink_write;
     sink.context = &_out;
 
-    return d_archive_create_to_sink(_fmt, base, _count, &opt, sink, 0);
+    return d_archive_create_staged_to_sink(
+        _fmt, base, _count, &opt,
+        stage.empty() ? (void*)0 : &stage[0], stage.size(), sink, 0);
 }
 
 /*

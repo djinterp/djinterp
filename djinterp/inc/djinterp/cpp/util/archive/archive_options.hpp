@@ -24,11 +24,11 @@
 *
 *   LIFETIME, STATED ONCE
 *   ---------------------
-*   lower() returns a dj_archive_options whose text spans POINT INTO this object.
-* It is valid for exactly as long as this object lives unmodified.  Every use
-* in archive.cpp takes the lowering as a local, uses it within one call, and
-* discards it -- which is the only pattern that is obviously correct, and the
-* only one this header endorses.
+*   lower() returns a dj_archive_options whose text spans POINT INTO this
+* object.  It is valid for exactly as long as this object lives unmodified.
+* Every use in archive.cpp takes the lowering as a local, uses it within one
+* call, and discards it -- which is the only pattern that is obviously
+* correct, and the only one this header endorses.
 *
 *   WHAT IS SHARED ANYWAY
 *   ---------------------
@@ -48,13 +48,14 @@
 * path:      /inc/djinterp/cpp/util/archive/archive_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_ARCHIVE_ARCHIVE_OPTIONS_HPP
 #define DJINTERP_UTIL_ARCHIVE_ARCHIVE_OPTIONS_HPP 1
 
 // std
+#include <cstring>                         // std::strchr, std::strlen
 #include <string>
 // djinterp
 #include "../../djinterp.hpp"
@@ -521,6 +522,10 @@ bool codec_is_default(
 // fields would bury the signal for a caller tuning a container.  When the
 // individual knob matters, call describe_compress_option_diff on the .codec
 // member, which names every field.
+//
+//   A block is named as its knobs are, so the coarse name is always the
+// prefix of the fine ones: the lzma.* knobs xz takes report as "codec.lzma",
+// the member they live in, not as the codec "xz".
 
 // describe_option_diff
 //   function: a comma-separated list of every knob that differs between two
@@ -606,8 +611,18 @@ std::string describe_option_diff(
                     {
                         out += ", ";
                     }
-                    out += "codec.";
-                    out += d_codec_id_name(c);
+
+                    // the block's own name: the knob name up to its dot
+                    {
+                        const char* name = d_compress_knob_name(cmoved[j]);
+                        const char* dot  = std::strchr(name, '.');
+
+                        out += "codec.";
+                        out.append(name,
+                                   (dot != NULL) ?
+                                       (size_t)(dot - name) :
+                                       std::strlen(name));
+                    }
                 }
             }
         }

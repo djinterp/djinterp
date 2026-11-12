@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/config/c/util/archive/cfg_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_UTIL_ARCHIVE_CFG_ARCHIVE_H
@@ -176,15 +176,14 @@ TABLE OF CONTENTS
 // --- 0.6  Composition ---
 
 // D_CFG_ARCHIVE_TAR_GZ_STAGING
-//   brief: let the C++ face implement tar.gz by staging the tar in a byte_blob
-// and compressing it (1, the default), or report the format unsupported (0).
+//   brief: write tar.gz through a caller's stage (1, the default), or report
+// the format unsupported for writing (0).
 //   The kernel cannot compose the two transforms in one pass: that needs a
 // streaming tar feeding the codec's input, and the codec leaves consume whole
-// buffers. The C++ face has somewhere to stage and the C face does not, so with
-// this ON the two faces genuinely differ in what they support -- an honest
-// asymmetry, recorded rather than hidden.
-//   Set 0 for a build that wants the two faces to expose exactly the same
-// formats, at the cost of losing tar.gz from both.
+// buffers. So the tar is written into a stage the caller supplies and
+// compressed from there: d_archive_stage_size and d_archive_create_staged in
+// C, a vector the facade owns in C++. Both faces support the same formats.
+//   Reading needs no stage and is not governed by this knob.
 #ifndef D_CFG_ARCHIVE_TAR_GZ_STAGING
 #   define D_CFG_ARCHIVE_TAR_GZ_STAGING 1
 #endif
@@ -218,9 +217,10 @@ TABLE OF CONTENTS
 
 // D_CFG_ARCHIVE_ZIP_METHOD
 //   brief: the method a ZIP entry is written with, by its number in the ZIP
-// format: 0 store, 8 deflate, 12 bzip2, 14 lzma, 93 zstd, 95 xz; or -1 (the
-// default), which is deflate where a DEFLATE provider is built in and store
-// where none is.
+// format: 0 store, 8 deflate, 12 bzip2, 93 zstd, 95 xz; or -1 (the default),
+// which is deflate where a DEFLATE provider is built in and store where none
+// is.  14 (lzma) is not offered: ZIP's LZMA is a raw LZMA1 stream, which the
+// codec set does not make.
 //   An entry whose method has no codec in the build is stored instead, one
 // entry at a time, so a method named here never makes a container unwritable.
 #ifndef D_CFG_ARCHIVE_ZIP_METHOD
@@ -283,10 +283,9 @@ TABLE OF CONTENTS
       (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 0)  &&                          \
       (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 8)  &&                          \
       (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 12) &&                          \
-      (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 14) &&                          \
       (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 93) &&                          \
       (D_CFG_NORM(D_CFG_ARCHIVE_ZIP_METHOD) != 95) )
-#   error "D_CFG_ARCHIVE_ZIP_METHOD must be -1, 0, 8, 12, 14, 93 or 95"
+#   error "D_CFG_ARCHIVE_ZIP_METHOD must be -1, 0, 8, 12, 93 or 95"
 #endif
 #if ( (D_CFG_NORM(D_CFG_ARCHIVE_SEVENZIP_METHOD) < 0) ||                       \
       (D_CFG_NORM(D_CFG_ARCHIVE_SEVENZIP_METHOD) > 5) )

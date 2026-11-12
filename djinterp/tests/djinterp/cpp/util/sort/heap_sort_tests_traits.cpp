@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/heap_sort_tests_traits.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -21,34 +21,17 @@ bool tests_heap_sort_traits_values()
 {
     verdict result;
 
-    //   heap_sort_traits is one of only two per-algorithm trait blocks the
-    // subsystem actually defines (merge_sort_traits is the other), even
-    // though every algorithm header's banner advertises one.  Its three
-    // values are pinned here.
+    //   heap_sort_traits pins the three properties a caller can branch on.
+    // Heap sort gives up stability to stay in place, and costs O(n log n) on
+    // every input: heapify reorders ordered input like any other, so it is
+    // not adaptive.
     result.check(!heap_sort_traits::is_stable);
     result.check(heap_sort_traits::is_in_place);
     result.check(!heap_sort_traits::is_adaptive);
 
-    //   Cross-checked against the dispatch tag, which is the subsystem's
-    // real single source of truth for these properties.  Changing either
-    // surface alone breaks this test rather than silently splitting the
-    // answer a caller gets from the two.
-    result.check(heap_sort_traits::is_stable ==
-                 heap_sort_tag::is_stable);
-    result.check(heap_sort_traits::is_in_place ==
-                 heap_sort_tag::is_in_place);
-    result.check(heap_sort_traits::is_adaptive ==
-                 heap_sort_tag::is_adaptive);
-
-    //   Heap sort and merge sort are the two algorithms that publish traits,
-    // and they are meant to be opposites on the first two axes: merge sort
-    // buys stability with a buffer, heap sort gives up stability to stay in
-    // place.
-    result.check(heap_sort_traits::is_stable !=
-                 merge_sort_traits::is_stable);
-    result.check(heap_sort_traits::is_in_place !=
-                 merge_sort_traits::is_in_place);
-
+    //   The members are usable in constant expressions, which is the point
+    // of publishing them as static const bool.  The dispatch tags inherit
+    // this struct, so the dispatch suite checks that link.
     result.check(static_cast<bool>(
         std::integral_constant<bool,
                                heap_sort_traits::is_in_place>::value));

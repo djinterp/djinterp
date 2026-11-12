@@ -22,18 +22,19 @@
 *   contents:
 *     I.    verdict                     (non-short-circuiting accumulator)
 *     II.   element types               (DKeyedValue, DTrackedInt)
-*     III.  instrumented comparators    (DCountingComparator)
+*     III.  instrumented comparators    (DCountingComparator,
+*                                        DAffirmationCounter)
 *     IV.   range predicates            (ordering / permutation / stability)
 *     V.    deterministic generators    (lcg + the ten input shapes)
 *     VI.   input batteries             (the shared corpus)
 *     VII.  battery drivers             (the reference-oracle harness)
-*     VIII. ordered-entry probe         (SFINAE around a defective signature)
+*     VIII. ordered-entry probe         (SFINAE around the _ordered shape)
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_support.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_SORT_SUPPORT_
@@ -42,11 +43,13 @@
 // std
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
+#include "../../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
+// re_std
+#include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // uint32_t
 
 
 NS_DJINTERP
@@ -327,15 +330,15 @@ std::vector<int> tracked_values(
 // entry point in the subsystem takes its comparator BY VALUE and copies it
 // again into DOrderComparator: a member counter would be incremented on a
 // copy the caller cannot see.  An external counter survives every copy.
-template<typename _Compare>
+template<typename Compare>
 class DCountingComparator
 {
 public:
     // DCountingComparator
     //   ctor: wraps _compare and bumps *_counter on every call.
     DCountingComparator(
-        _Compare     _compare,
-        std::size_t* _counter
+        const Compare& _compare,
+        std::size_t*   _counter
     )
         : m_compare(_compare),
           m_counter(_counter)
@@ -344,11 +347,11 @@ public:
 
     // operator()
     //   function: records the call, then forwards to the wrapped comparator.
-    template<typename _A,
-             typename _B>
+    template<typename Left,
+             typename Right>
     bool operator()(
-        const _A& _a,
-        const _B& _b
+        const Left& _a,
+        const Right& _b
     ) const
     {
         if (m_counter != nullptr)
@@ -360,20 +363,83 @@ public:
     }
 
 private:
-    _Compare     m_compare;
+    Compare     m_compare;
     std::size_t* m_counter;
 };
 
 // make_counting
-//   function: deduces _Compare and builds a DCountingComparator sharing
+//   function: deduces Compare and builds a DCountingComparator sharing
 // _counter.
-template<typename _Compare>
-DCountingComparator<_Compare> make_counting(
-    _Compare     _compare,
+template<typename Compare>
+DCountingComparator<Compare> make_counting(
+    Compare     _compare,
     std::size_t* _counter
 )
 {
-    return DCountingComparator<_Compare>(_compare, _counter);
+    return DCountingComparator<Compare>(_compare, _counter);
+}
+
+// DAffirmationCounter
+//   class: wraps a comparator and counts the calls that answered TRUE -- the
+// precedences the comparator affirmed.
+//
+//   An exchange-based algorithm moves elements exactly when its comparator
+// affirms a strict precedence, so this count measures its exchange traffic
+// whether the exchange is a swap or the carried-element assignment the
+// bubble and insertion primitives use.  A swap counter sees only the first.
+// The counter is held by pointer for the reason DCountingComparator's is.
+template<typename Compare>
+class DAffirmationCounter
+{
+public:
+    // DAffirmationCounter
+    //   ctor: wraps _compare and bumps *_counter on every TRUE answer.
+    DAffirmationCounter(
+        const Compare& _compare,
+        std::size_t*   _counter
+    )
+        : m_compare(_compare),
+          m_counter(_counter)
+    {
+    }
+
+    // operator()
+    //   function: forwards to the wrapped comparator and records a TRUE.
+    template<typename Left,
+             typename Right>
+    bool operator()(
+        const Left&  _left,
+        const Right& _right
+    ) const
+    {
+        bool answer;
+
+        answer = m_compare(_left, _right);
+
+        if ( (answer) &&
+             (m_counter != nullptr) )
+        {
+            ++(*m_counter);
+        }
+
+        return answer;
+    }
+
+private:
+    Compare      m_compare;
+    std::size_t* m_counter;
+};
+
+// make_affirmation_counter
+//   function: deduces Compare and builds a DAffirmationCounter sharing
+// _counter.
+template<typename Compare>
+DAffirmationCounter<Compare> make_affirmation_counter(
+    Compare      _compare,
+    std::size_t* _counter
+)
+{
+    return DAffirmationCounter<Compare>(_compare, _counter);
 }
 
 
@@ -385,16 +451,16 @@ DCountingComparator<_Compare> make_counting(
 //   function: true when no element in [_first, _last) strictly precedes its
 // predecessor under _compare.  Hand-rolled rather than std::is_sorted so the
 // suites never depend on the standard algorithm they are validating against.
-template<typename _Iterator,
-         typename _Compare>
+template<typename Iterator,
+         typename Compare>
 bool is_sorted_range(
-    _Iterator _first,
-    _Iterator _last,
-    _Compare  _compare
+    Iterator _first,
+    Iterator _last,
+    Compare  _compare
 )
 {
-    _Iterator previous;
-    _Iterator current;
+    Iterator previous;
+    Iterator current;
 
     if (_first == _last)
     {
@@ -422,14 +488,14 @@ bool is_sorted_range(
 // multiplicities.  The oracle sorts copies of both with the standard library
 // and compares -- an independent implementation, so a bug in the subsystem
 // cannot mask itself.
-template<typename _Type>
+template<typename Type>
 bool is_permutation_of(
-    const std::vector<_Type>& _a,
-    const std::vector<_Type>& _b
+    const std::vector<Type>& _a,
+    const std::vector<Type>& _b
 )
 {
-    std::vector<_Type> left;
-    std::vector<_Type> right;
+    std::vector<Type> left;
+    std::vector<Type> right;
 
     if (_a.size() != _b.size())
     {
@@ -447,10 +513,10 @@ bool is_permutation_of(
 
 // ranges_equal
 //   function: elementwise equality of two vectors.
-template<typename _Type>
+template<typename Type>
 bool ranges_equal(
-    const std::vector<_Type>& _a,
-    const std::vector<_Type>& _b
+    const std::vector<Type>& _a,
+    const std::vector<Type>& _b
 )
 {
     return (_a == _b);
@@ -492,12 +558,12 @@ bool is_stable_result(
 // heap_sift_down in isolation from the full sort.  The range spelling matches
 // is_sorted_range above, so the heap suites probe a shrinking heap the same
 // way every other predicate here takes a range.
-template<typename _Iterator,
-         typename _Compare>
+template<typename Iterator,
+         typename Compare>
 bool is_max_heap(
-    _Iterator _first,
-    _Iterator _last,
-    _Compare  _compare
+    Iterator _first,
+    Iterator _last,
+    Compare  _compare
 )
 {
     std::ptrdiff_t size;
@@ -542,7 +608,7 @@ public:
     // lcg
     //   ctor: seeds the generator.
     explicit DLcg(
-        std::uint32_t _seed
+        re_std::uint32_t _seed
     )
         : m_state(_seed)
     {
@@ -550,7 +616,7 @@ public:
 
     // next
     //   function: advances the state and returns it.
-    std::uint32_t next()
+    re_std::uint32_t next()
     {
         m_state = ((m_state * 1664525u) + 1013904223u);
 
@@ -564,7 +630,7 @@ public:
         int _bound
     )
     {
-        std::uint32_t drawn;
+        re_std::uint32_t drawn;
 
         if (_bound <= 0)
         {
@@ -573,11 +639,11 @@ public:
 
         drawn = (next() >> 16);
 
-        return static_cast<int>(drawn % static_cast<std::uint32_t>(_bound));
+        return static_cast<int>(drawn % static_cast<re_std::uint32_t>(_bound));
     }
 
 private:
-    std::uint32_t m_state;
+    re_std::uint32_t m_state;
 };
 
 // battery_shape_count
@@ -926,10 +992,10 @@ const std::size_t battery_size_count = 17;
 //   function: the length at index _index of the standard battery.
 //
 //   The ladder is not arbitrary.  0/1/2/3 are the degenerate and minimal
-// ranges; 16/17/18 straddle D_QUICK_SORT_INSERTION_THRESHOLD so quicksort is
-// observed both below and above its recursion cut-off; 32/33, 64, 256/257 sit
-// either side of powers of two so merge sort's odd/even split is exercised in
-// both parities; 127 and 512 give depth without cost.
+// ranges; 16/17/18 straddle quicksort's default insertion threshold, so it is
+// observed both below and above its cut-off; 32/33, 64, 256/257 sit either
+// side of powers of two, where merge sort's pass count changes parity; 127
+// and 512 give depth without cost.
 inline
 std::size_t battery_size_at(
     std::size_t _index
@@ -1077,13 +1143,13 @@ std::vector<DKeyedBatteryCase> keyed_battery()
 // catches a dropped or duplicated element that an ordering check alone would
 // miss.
 //
-//   _Sorter is anything callable as _sorter(begin, end) -- a function pointer
+//   Sorter is anything callable as _sorter(begin, end) -- a function pointer
 // adapter or a functor.
-template<typename _Sorter,
-         typename _Compare>
+template<typename Sorter,
+         typename Compare>
 bool verify_battery_reference(
-    _Sorter  _sorter,
-    _Compare _compare,
+    Sorter  _sorter,
+    Compare _compare,
     verdict& _verdict
 )
 {
@@ -1118,11 +1184,11 @@ bool verify_battery_reference(
 // return a null pointer, and the sorts form (last - first) and, in the
 // quicksort partitioner, (last - 1).  Reserving guarantees a real address for
 // the empty case so first == last is still a valid comparison.
-template<typename _Sorter,
-         typename _Compare>
+template<typename Sorter,
+         typename Compare>
 bool verify_battery_raw(
-    _Sorter  _sorter,
-    _Compare _compare,
+    Sorter  _sorter,
+    Compare _compare,
     verdict& _verdict
 )
 {
@@ -1160,9 +1226,9 @@ bool verify_battery_raw(
 //   The stability check is asserted only for algorithms that claim it: an
 // unstable algorithm is permitted to preserve order by accident, so the
 // negative is not an assertion, it is measured separately where it matters.
-template<typename _Sorter>
+template<typename Sorter>
 bool verify_stability_battery(
-    _Sorter  _sorter,
+    Sorter  _sorter,
     bool     _expect_stable,
     verdict& _verdict
 )
@@ -1201,60 +1267,54 @@ bool verify_stability_battery(
 // D_TESTS_SORT_ORDERED_PROBE
 //   macro: for the entry point FN, defines
 //     NAME_ordered_probe<It, Cmp>        -- true_type iff
-//                                           FN(It, It, Cmp, sort_order) is a
-//                                           viable call
+//                                           FN(It, It, Cmp, sort_order::value)
+//                                           is a viable call
 //     NAME_call_ordered(..., tag)        -- tag-dispatched invocation
 //
-//   Three of the six *_sort_ordered entry points (bubble, selection,
-// insertion) declare their fourth parameter as `bool` while their bodies
-// construct internal::DOrderComparator<C>(comp, sort_order).  sort_order is a
-// scoped enum, so no implicit conversion exists in either direction: those
-// templates cannot be instantiated at all, and naming one directly would be a
-// hard compile error that takes the whole suite down instead of failing a
-// test.
-//
-//   The probe pushes the mismatch into the immediate context -- overload
-// resolution against a `bool` parameter simply fails to accept a sort_order
-// argument, which is SFINAE-friendly -- so the suites can DETECT the defect,
-// report it as a failed check, and still build.  The false_type overload of
-// NAME_call_ordered is what keeps the un-instantiable body from ever being
-// instantiated.
+//   The six *_sort_ordered entry points are meant to share one shape, and a
+// generic caller swapping one algorithm for another leans on that.  Naming an
+// entry point whose fourth parameter had drifted to another type would be a
+// hard compile error that took the whole suite down; the probe moves the
+// question into overload resolution, where it is SFINAE-friendly, so a
+// mismatch is reported as a failed check and the suite still builds.  The
+// false_type overload of NAME_call_ordered keeps a body that could not be
+// instantiated from ever being instantiated.
 #define D_TESTS_SORT_ORDERED_PROBE(NAME, FN)                                  \
-    template<typename _Void,                                                  \
-             typename _Iterator,                                              \
-             typename _Compare>                                               \
+    template<typename Void,                                                   \
+             typename Iterator,                                               \
+             typename Compare>                                                \
     struct NAME##_ordered_probe_impl                                          \
         : std::false_type                                                     \
     {                                                                         \
     };                                                                        \
                                                                               \
-    template<typename _Iterator,                                              \
-             typename _Compare>                                               \
+    template<typename Iterator,                                               \
+             typename Compare>                                                \
     struct NAME##_ordered_probe_impl<                                         \
-        decltype(void(FN(std::declval<_Iterator>(),                           \
-                         std::declval<_Iterator>(),                           \
-                         std::declval<_Compare>(),                            \
-                         std::declval< ::djinterp::sort_order>()))),          \
-        _Iterator,                                                            \
-        _Compare>                                                             \
+        decltype(void(FN(std::declval<Iterator>(),                            \
+                         std::declval<Iterator>(),                            \
+                         std::declval<Compare>(),                             \
+                         std::declval< ::djinterp::sort_order::value>()))),   \
+        Iterator,                                                             \
+        Compare>                                                              \
         : std::true_type                                                      \
     {                                                                         \
     };                                                                        \
                                                                               \
-    template<typename _Iterator,                                              \
-             typename _Compare>                                               \
+    template<typename Iterator,                                               \
+             typename Compare>                                                \
     struct NAME##_ordered_probe                                               \
-        : NAME##_ordered_probe_impl<void, _Iterator, _Compare>                \
+        : NAME##_ordered_probe_impl<void, Iterator, Compare>                  \
     {                                                                         \
     };                                                                        \
                                                                               \
-    template<typename _Iterator,                                              \
-             typename _Compare>                                               \
+    template<typename Iterator,                                               \
+             typename Compare>                                                \
     void NAME##_call_ordered(                                                 \
-        _Iterator              _first,                                        \
-        _Iterator              _last,                                         \
-        _Compare               _compare,                                      \
-        ::djinterp::sort_order _order,                                        \
+        Iterator              _first,                                         \
+        Iterator              _last,                                          \
+        Compare               _compare,                                       \
+        ::djinterp::sort_order::value _order,                                 \
         std::true_type                                                        \
     )                                                                         \
     {                                                                         \
@@ -1263,13 +1323,13 @@ bool verify_stability_battery(
         return;                                                               \
     }                                                                         \
                                                                               \
-    template<typename _Iterator,                                              \
-             typename _Compare>                                               \
+    template<typename Iterator,                                               \
+             typename Compare>                                                \
     void NAME##_call_ordered(                                                 \
-        _Iterator,                                                            \
-        _Iterator,                                                            \
-        _Compare,                                                             \
-        ::djinterp::sort_order,                                               \
+        Iterator,                                                             \
+        Iterator,                                                             \
+        Compare,                                                              \
+        ::djinterp::sort_order::value,                                        \
         std::false_type                                                       \
     )                                                                         \
     {                                                                         \

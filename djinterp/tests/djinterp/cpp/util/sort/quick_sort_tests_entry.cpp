@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/quick_sort_tests_entry.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -23,7 +23,7 @@ bool tests_quick_sort_entry_default()
     std::vector<int> through_entry;
     std::vector<int> through_apply;
 
-    verify_battery_reference(&quick_sort_ints, less<int>(), result);
+    verify_battery_reference(&quick_sort_ints, std::less<int>(), result);
 
     through_entry = shape_random(64);
     through_apply = through_entry;
@@ -45,7 +45,7 @@ bool tests_quick_sort_entry_comparator()
     std::size_t      comparisons;
 
     verify_battery_reference(&quick_sort_ints_descending,
-                             greater<int>(),
+                             std::greater<int>(),
                              result);
 
     data        = shape_random(48);
@@ -53,10 +53,10 @@ bool tests_quick_sort_entry_comparator()
 
     quick_sort(data.begin(),
                data.end(),
-               make_counting(less<int>(), &comparisons));
+               make_counting(std::less<int>(), &comparisons));
 
     result.check(comparisons > 0);
-    result.check(is_sorted_range(data.begin(), data.end(), less<int>()));
+    result.check(is_sorted_range(data.begin(), data.end(), std::less<int>()));
 
     return result.ok();
 }
@@ -72,8 +72,9 @@ bool tests_quick_sort_entry_ordered()
     std::vector<int> expected_ascending;
     std::vector<int> expected_descending;
 
-    //   quick_sort_ordered takes a real sort_order, so unlike the bubble,
-    // selection and insertion entry points it can simply be called.
+    //   quick_sort_ordered takes sort_order::value, as all six do, so it is
+    // called directly here; the bubble, selection and insertion suites go
+    // through the probe, which predates that uniformity.
     ascending_out       = shape_random(64);
     descending_out      = ascending_out;
     none_out            = ascending_out;
@@ -82,26 +83,26 @@ bool tests_quick_sort_entry_ordered()
 
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
     quick_sort_ordered(ascending_out.begin(),
                        ascending_out.end(),
-                       less<int>(),
+                       std::less<int>(),
                        sort_order::ascending);
 
     quick_sort_ordered(descending_out.begin(),
                        descending_out.end(),
-                       less<int>(),
+                       std::less<int>(),
                        sort_order::descending);
 
     //   sort_order::none is not "leave it alone": DOrderComparator special
     // cases descending only, so none behaves exactly as ascending does.
     quick_sort_ordered(none_out.begin(),
                        none_out.end(),
-                       less<int>(),
+                       std::less<int>(),
                        sort_order::none);
 
     result.check(ranges_equal(ascending_out, expected_ascending));
@@ -139,7 +140,7 @@ bool tests_quick_sort_entry_short_range_guard()
         result.check(data.size() == length);
         result.check(is_sorted_range(data.begin(),
                                      data.end(),
-                                     less<int>()));
+                                     std::less<int>()));
     }
 
     //   An empty sub-range taken from the middle of a populated container
@@ -164,7 +165,7 @@ bool tests_quick_sort_entry_pointer_iterators()
 {
     verdict result;
 
-    verify_battery_raw(&quick_sort_ints_raw, less<int>(), result);
+    verify_battery_raw(&quick_sort_ints_raw, std::less<int>(), result);
 
     return result.ok();
 }

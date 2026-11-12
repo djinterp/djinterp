@@ -1,15 +1,16 @@
-/******************************************************************************
-* djinterp [test]                          bubble_sort_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                                   bubble_sort_tests_runner.cpp
 *
-*   main() for the bubble_sort_tests executable.  Defines DTEST_SPEC_MODE so the suite
-* header presents its spec-provider face (no fixtures compiled here), builds
-* the option set, and hands the spec to run_module.
+*   main() for the bubble_sort_tests executable.  Defines DTEST_SPEC_MODE so
+* the suite header presents its spec-provider face (no fixtures compiled
+* here), builds the option set, and hands the spec to run_module.
 *
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/util/sort/bubble_sort/bubble_sort_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
+*                                                            revised: 2026.11.12
+*******************************************************************************/
 
 #define DTEST_SPEC_MODE   // suite exposes its spec provider, not its fixtures
 
@@ -33,6 +34,7 @@ int main()
     return dt::run_module(
         tt::bubble_sort_spec(),
         "bubble_sort.hpp unit tests",
-        "adaptive bubble sort: the shrinking-boundary apply loop and its entry points",
+        "bubble sort: the compare-exchange and pass primitives, the "
+        "shrinking-boundary driver and the entry points",
         opts);
 }

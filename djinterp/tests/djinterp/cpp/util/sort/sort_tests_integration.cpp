@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_tests_integration.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -16,35 +16,111 @@ NS_DJINTERP
 NS_TESTING
 
 
+// every_form_agrees
+//   helper: sorts _source through all eighteen spellings the facade offers --
+// the six run-time selectors, the six tags and the six named entry points --
+// and reports whether every result equals _reference.
+static
+bool every_form_agrees(
+    const std::vector<int>& _source,
+    const std::vector<int>& _reference
+)
+{
+    static const DSortAlgorithm every[6] =
+    {
+        DSortAlgorithm::bubble,
+        DSortAlgorithm::selection,
+        DSortAlgorithm::insertion,
+        DSortAlgorithm::merge,
+        DSortAlgorithm::quick,
+        DSortAlgorithm::heap
+    };
+
+    bool             ok;
+    std::vector<int> c;
+    std::size_t      j;
+
+    ok = true;
+
+    for (j = 0; j < 6; ++j)
+    {
+        c = _source;
+        sort(every[j], c.begin(), c.end());
+        ok = (ok && (c == _reference));
+    }
+
+    //   The compile-time family, over the same input.
+    c = _source;
+    sort(DBubbleSortTag(), c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    sort(DSelectionSortTag(), c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    sort(DInsertionSortTag(), c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    sort(DMergeSortTag(), c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    sort(DQuickSortTag(), c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    sort(DHeapSortTag(), c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    //   And the six named entry points.
+    c = _source;
+    bubble_sort(c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    selection_sort(c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    insertion_sort(c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    merge_sort(c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    quick_sort(c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    c = _source;
+    heap_sort(c.begin(), c.end());
+    ok = (ok && (c == _reference));
+
+    return ok;
+}
+
+
 // tests_sort_facade_every_algorithm_agrees
 bool tests_sort_facade_every_algorithm_agrees()
 {
     bool             ok;
     std::vector<int> source;
     std::vector<int> reference;
-    std::vector<int> candidate;
     std::size_t      i;
-    std::size_t      j;
     std::size_t      length;
     unsigned int     state;
-
-    sort_algorithm every[6];
-
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
 
     ok    = true;
     state = 987654321u;
 
     //   The subsystem's central promise: the choice of algorithm is a
     // performance decision and never a semantic one.  Six algorithms, sizes
-    // spanning quicksort's insertion threshold and merge sort's recursion,
-    // all reached through the facade -- and all six must agree, element for
-    // element, with std::sort.
+    // spanning quicksort's insertion threshold and several of merge sort's
+    // pass counts, all reached through the facade -- and every form must
+    // agree, element for element, with std::sort.
     //
     //   This test carries its own generator rather than the shared corpus,
     // because the facade suite deliberately includes only sort.hpp: it is
@@ -64,64 +140,7 @@ bool tests_sort_facade_every_algorithm_agrees()
         reference = source;
         std::sort(reference.begin(), reference.end());
 
-        for (j = 0; j < 6; ++j)
-        {
-            candidate = source;
-
-            sort(every[j], candidate.begin(), candidate.end());
-
-            ok = (ok && (candidate == reference));
-        }
-
-        //   The compile-time family, over the same inputs.
-        candidate = source;
-        sort<bubble_sort_tag>(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        sort<selection_sort_tag>(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        sort<insertion_sort_tag>(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        sort<merge_sort_tag>(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        sort<quick_sort_tag>(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        sort<heap_sort_tag>(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        //   And the six named entry points.
-        candidate = source;
-        bubble_sort(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        selection_sort(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        insertion_sort(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        merge_sort(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        quick_sort(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
-
-        candidate = source;
-        heap_sort(candidate.begin(), candidate.end());
-        ok = (ok && (candidate == reference));
+        ok = (ok && every_form_agrees(source, reference));
     }
 
     return ok;
@@ -163,7 +182,7 @@ bool tests_sort_facade_dispatch_and_monoid_agree()
         ok = (ok && (mconcat(to_singleton_runs(source)).data() ==
                      reference));
         ok = (ok && (make_sorted_run(source).data() == reference));
-        ok = (ok && (make_sorted_run(source, less<int>()).data() ==
+        ok = (ok && (make_sorted_run(source, std::less<int>()).data() ==
                      reference));
 
         //   Two runs built from the halves of the input, merged through the
@@ -208,7 +227,7 @@ bool tests_sort_facade_comparator_algebra_end_to_end()
     descending = ascending;
     std::reverse(descending.begin(), descending.end());
 
-    ok = (ok && is_comparator<less<int>, int>::value);
+    ok = (ok && is_comparator<std::less<int>, int>::value);
 
     //   Through an algorithm.
     data = ascending;
@@ -219,23 +238,24 @@ bool tests_sort_facade_comparator_algebra_end_to_end()
 
     //   Through the compile-time dispatch surface.
     data = descending;
-    sort<merge_sort_tag>(data.begin(),
-                         data.end(),
-                         ::djinterp::natural<int>());
+    sort(DMergeSortTag(),
+         data.begin(),
+         data.end(),
+         ::djinterp::natural<int>());
     ok = (ok && (data == ascending));
 
     //   Through the run-time dispatch surface.
     data = ascending;
-    sort(sort_algorithm::selection,
+    sort(DSortAlgorithm::selection,
          data.begin(),
          data.end(),
          ::djinterp::natural<int>() | ::djinterp::reversed());
     ok = (ok && (data == descending));
 
-    //   Through a sorter's ordered overload, where the composed comparator
+    //   Through a DSorter's ordered overload, where the composed comparator
     // is itself wrapped by an DOrderComparator.
     data = descending;
-    sorter<bubble_sort_tag>()(
+    DSorter<DBubbleSortTag>()(
         data.begin(),
         data.end(),
         ::djinterp::natural<int>() | ::djinterp::reversed(),

@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_common_tests_order.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -21,10 +21,8 @@ bool tests_sort_common_order_enumerators()
 {
     verdict result;
 
-    //   sort_order is a scoped enum, so the enumerators are distinct values
-    // that do not implicitly convert.  Their numeric values are pinned
-    // because internal::DOrderComparator branches on them and because they
-    // cross the ABI in every *_sort_ordered signature.
+    //   The numeric values are pinned: internal::DOrderComparator branches on
+    // them, and they cross into every *_sort_ordered call.
     result.check(static_cast<int>(sort_order::none) == 0);
     result.check(static_cast<int>(sort_order::ascending) == 1);
     result.check(static_cast<int>(sort_order::descending) == 2);
@@ -39,27 +37,47 @@ bool tests_sort_common_order_enumerators()
 }
 
 
-// tests_sort_common_order_underlying_type
-bool tests_sort_common_order_underlying_type()
+// tests_sort_common_order_matches_c_module
+bool tests_sort_common_order_matches_c_module()
 {
     verdict result;
 
-    //   The underlying type is fixed at std::uint8_t, which is what makes
-    // sort_order safe to store in a packed struct or send over a wire.  A
-    // silent change to the default (int) would not break any call site, so
-    // it is asserted directly.
-    result.check((std::is_same<
-                      std::underlying_type<sort_order>::type,
-                      std::uint8_t>::value));
+    //   sort_common.hpp promises "the values of the C module's dj_sort_order",
+    // so a direction can cross between the two languages as a plain integer.
+    // The promise is a claim about another header, so it is checked against
+    // that header rather than against literals.
+    result.check(static_cast<int>(sort_order::none) ==
+                 static_cast<int>(D_SORT_ORDER_NONE));
+    result.check(static_cast<int>(sort_order::ascending) ==
+                 static_cast<int>(D_SORT_ORDER_ASCENDING));
+    result.check(static_cast<int>(sort_order::descending) ==
+                 static_cast<int>(D_SORT_ORDER_DESCENDING));
 
-    result.check(sizeof(sort_order) == 1);
+    return result.ok();
+}
 
-    //   Scoped enums do not convert to their underlying type implicitly.
-    // That is the property the *_sort_ordered defect turns on: a `bool`
-    // parameter cannot receive a sort_order argument.
-    result.check((!std::is_convertible<sort_order, int>::value));
-    result.check((!std::is_convertible<sort_order, bool>::value));
-    result.check((!std::is_convertible<bool, sort_order>::value));
+
+// tests_sort_common_order_shape
+bool tests_sort_common_order_shape()
+{
+    verdict result;
+
+    //   sort_order is a struct wrapping an unscoped enum named value -- the
+    // C++98 spelling of a scoped enumeration, which keeps sort_common.hpp and
+    // every *_sort_ordered entry point valid from C++98.  The enumerators are
+    // named through the struct, as a scoped enum's would be.
+    result.check(std::is_class<sort_order>::value);
+    result.check(std::is_enum<sort_order::value>::value);
+
+    //   The property the *_sort_ordered entry points rely on: no implicit
+    // conversion reaches sort_order::value, so a bool -- or an int -- handed
+    // to the fourth parameter is a compile error rather than a direction.
+    result.check((!std::is_convertible<bool, sort_order::value>::value));
+    result.check((!std::is_convertible<int, sort_order::value>::value));
+
+    //   The other direction does convert, as an unscoped enum does; that is
+    // what lets a direction be compared with the C module's values above.
+    result.check((std::is_convertible<sort_order::value, int>::value));
 
     return result.ok();
 }

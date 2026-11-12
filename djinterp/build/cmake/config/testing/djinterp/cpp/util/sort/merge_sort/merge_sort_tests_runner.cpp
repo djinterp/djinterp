@@ -1,15 +1,16 @@
-/******************************************************************************
-* djinterp [test]                          merge_sort_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                                    merge_sort_tests_runner.cpp
 *
-*   main() for the merge_sort_tests executable.  Defines DTEST_SPEC_MODE so the suite
-* header presents its spec-provider face (no fixtures compiled here), builds
-* the option set, and hands the spec to run_module.
+*   main() for the merge_sort_tests executable.  Defines DTEST_SPEC_MODE so
+* the suite header presents its spec-provider face (no fixtures compiled
+* here), builds the option set, and hands the spec to run_module.
 *
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/util/sort/merge_sort/merge_sort_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
+*                                                            revised: 2026.11.12
+*******************************************************************************/
 
 #define DTEST_SPEC_MODE   // suite exposes its spec provider, not its fixtures
 
@@ -33,6 +34,7 @@ int main()
     return dt::run_module(
         tt::merge_sort_spec(),
         "merge_sort.hpp unit tests",
-        "merge sort: the stable merge primitive, the recursive driver, traits and entry points",
+        "merge sort: traits, the merge_runs primitive, the bottom-up "
+        "passes, the caller-scratch entry and the entry points",
         opts);
 }

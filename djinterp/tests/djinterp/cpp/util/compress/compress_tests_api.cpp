@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/cpp/util/compress/compress_tests_api.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // std
@@ -167,15 +167,18 @@ bool tests_compress_api_invalid_argument_decompress()
 }
 
 /*
-tests_compress_api_out_of_range_unavailable
-  Confirms an unknown codec id lands on the dispatch switch default and reports
-  the codec unavailable rather than misbehaving - in both directions, with
-  valid (non-null) input so the argument guard is passed first.
+tests_compress_api_out_of_range_invalid
+  Confirms an unknown codec id is refused as a malformed request rather than
+  misbehaving - in both directions, with valid (non-null) input so the null
+  guard is passed first. An id outside the enumeration is invalid_argument;
+  unavailable is for a codec this build was compiled without.
   Tests the following:
-  - compress_buffer(out-of-range id, valid input) returns status_unavailable
-  - decompress_buffer(out-of-range id, valid input) returns status_unavailable
+  - compress_buffer(out-of-range id, valid input) returns
+    status_invalid_argument
+  - decompress_buffer(out-of-range id, valid input) returns
+    status_invalid_argument
 */
-bool tests_compress_api_out_of_range_unavailable()
+bool tests_compress_api_out_of_range_invalid()
 {
     byte_blob      in = test::make_text(64);
     byte_blob      out;
@@ -184,10 +187,10 @@ bool tests_compress_api_out_of_range_unavailable()
 
     D_CP_CHECK(::djinterp::internal::compress_buffer(
                    bogus, in.data(), in.size(), opt, out)
-               == status_unavailable);
+               == status_invalid_argument);
     D_CP_CHECK(::djinterp::internal::decompress_buffer(
                    bogus, in.data(), in.size(), out)
-               == status_unavailable);
+               == status_invalid_argument);
 
     return true;
 }
@@ -242,15 +245,16 @@ bool tests_compress_api_decompress_garbage_brotli()
 
 /*
 tests_compress_api_deflate_bad_level
-  Confirms an out-of-range compression level is surfaced as a backend error -
-  the zlib encoder rejects a level above 9, exercising the "encoder init
-  failed" arm.  All three zlib-family codecs share the availability of the zlib
+  Confirms an out-of-range level is refused before any backend sees it: the
+  kernel validates every knob against its range (the generic level is 0..9)
+  and answers invalid_argument, so the result does not depend on which zlib
+  is linked. All three zlib-family codecs share the availability of the zlib
   backend, so all three are checked together.
   Tests the following:
-  - compressing with an out-of-range level under deflate / zlib / gzip yields
-    status_backend_error when the zlib backend is available
+  - compressing with level 999 under deflate / zlib / gzip yields
+    status_invalid_argument when the zlib backend is available
 */
-bool tests_compress_api_deflate_bad_level()
+bool tests_compress_api_bad_level_invalid()
 {
     if (!test::is_available<codecs::deflate>())
     {
@@ -261,12 +265,15 @@ bool tests_compress_api_deflate_bad_level()
     byte_blob      out;
     compress_options opt;
 
-    // above zlib's valid 0..9 (and not the -1 "default" sentinel)
+    // above the generic 0..9 (UNSET, not a number, selects the default)
     opt.level = 999;
 
-    D_CP_CHECK(try_compress<codecs::deflate>(in, out, opt) == status_backend_error);
-    D_CP_CHECK(try_compress<codecs::zlib>(in, out, opt)    == status_backend_error);
-    D_CP_CHECK(try_compress<codecs::gzip>(in, out, opt)    == status_backend_error);
+    D_CP_CHECK(try_compress<codecs::deflate>(in, out, opt) ==
+               status_invalid_argument);
+    D_CP_CHECK(try_compress<codecs::zlib>(in, out, opt)    ==
+               status_invalid_argument);
+    D_CP_CHECK(try_compress<codecs::gzip>(in, out, opt)    ==
+               status_invalid_argument);
 
     return true;
 }

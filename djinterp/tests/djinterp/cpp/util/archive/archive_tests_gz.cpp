@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_tests_gz.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // djinterp
@@ -40,7 +40,8 @@ bool tests_gz_requires_single_entry()
     {
         entry_list  empty;
         byte_blob blob;
-        D_AR_CHECK_STATUS(try_archive<gz>(empty, blob), status_invalid_argument);
+        D_AR_CHECK_STATUS(try_archive<gz>(empty, blob),
+                          status_invalid_argument);
     }
     {
         entry_list two;
@@ -71,7 +72,8 @@ bool tests_gz_roundtrip()
     bool       _ok = true;
     entry_list one;
 
-    one.push_back(::djinterp::test::make_file_entry("payload", repeat_bytes('Q', 500)));
+    one.push_back(
+        ::djinterp::test::make_file_entry("payload", repeat_bytes('Q', 500)));
 
     if (format_is_writable<gz>())
     {
@@ -111,8 +113,10 @@ bool tests_targz_roundtrip_files()
     entry_list items;
 
     items.push_back(::djinterp::test::make_text_entry("one.txt", "first file"));
-    items.push_back(::djinterp::test::make_file_entry("two.bin", binary_sample()));
-    items.push_back(::djinterp::test::make_file_entry("three", repeat_bytes('T', 300)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("two.bin", binary_sample()));
+    items.push_back(
+        ::djinterp::test::make_file_entry("three", repeat_bytes('T', 300)));
 
     if (format_is_writable<tar_gz>())
     {
@@ -121,7 +125,8 @@ bool tests_targz_roundtrip_files()
         D_AR_CHECK(::djinterp::test::looks_like_gzip(blob));
 
         entry_list out;
-        D_AR_CHECK_STATUS(::djinterp::test::roundtrip<tar_gz>(items, out), status_ok);
+        D_AR_CHECK_STATUS(::djinterp::test::roundtrip<tar_gz>(items, out),
+                          status_ok);
         D_AR_CHECK(::djinterp::test::count_files(out) == 3u);
         D_AR_CHECK(::djinterp::test::files_preserved(items, out));
     }
@@ -189,7 +194,8 @@ bool tests_gz_extract_corrupt()
     }
 
     entry_list one;
-    one.push_back(::djinterp::test::make_file_entry("p", repeat_bytes('Q', 2000)));
+    one.push_back(
+        ::djinterp::test::make_file_entry("p", repeat_bytes('Q', 2000)));
 
     byte_blob blob;
     D_AR_CHECK_STATUS(try_archive<gz>(one, blob), status_ok);
@@ -203,7 +209,7 @@ bool tests_gz_extract_corrupt()
     blob[12] = (char)0xFF;
 
     entry_list out;
-    D_AR_CHECK_STATUS(try_extract<gz>(blob, out), status_backend_error);
+    D_AR_CHECK_STATUS(try_extract<gz>(blob, out), status_corrupt_input);
 
     return _ok;
 }
@@ -215,7 +221,7 @@ wrapper is corrupt (the gunzip step fails before any tar parsing).
   Tests the following:
   - when tar.gz is writable and readable: a real gzip-wrapped tar whose
     compressed body is overwritten with an undecodable run extracts to
-    status_backend_error
+    status_corrupt_input
   - otherwise: the case does not apply and the test is a no-op
 */
 bool tests_targz_extract_corrupt()
@@ -231,7 +237,8 @@ bool tests_targz_extract_corrupt()
 
     entry_list items;
     items.push_back(::djinterp::test::make_text_entry("a.txt", "first"));
-    items.push_back(::djinterp::test::make_file_entry("b", repeat_bytes('T', 800)));
+    items.push_back(
+        ::djinterp::test::make_file_entry("b", repeat_bytes('T', 800)));
 
     byte_blob blob;
     D_AR_CHECK_STATUS(try_archive<tar_gz>(items, blob), status_ok);
@@ -245,7 +252,7 @@ bool tests_targz_extract_corrupt()
     blob[12] = (char)0xFF;
 
     entry_list out;
-    D_AR_CHECK_STATUS(try_extract<tar_gz>(blob, out), status_backend_error);
+    D_AR_CHECK_STATUS(try_extract<tar_gz>(blob, out), status_corrupt_input);
 
     return _ok;
 }

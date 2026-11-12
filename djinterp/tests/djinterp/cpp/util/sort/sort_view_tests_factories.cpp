@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_view_tests_factories.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -26,16 +26,16 @@ bool tests_sort_view_sorted_default_algorithm()
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   sorted() with no argument builds a terminal bound to the subsystem's
     // default algorithm.  The header states that default matches
-    // default_sort_tag, which is quicksort -- so the two must agree.
+    // DDefaultSortTag, which is quicksort -- so the two must agree.
     result.check(ranges_equal(source | sorted(), expected));
     result.check(ranges_equal(source | sorted(),
-                              source | sorted(default_sort_tag::value)));
+                              source | sorted(DDefaultSortTag::value)));
     result.check(ranges_equal(source | sorted(),
-                              source | sorted(sort_algorithm::quick)));
+                              source | sorted(DSortAlgorithm::quick)));
 
     //   Duplicates survive: the terminal drains and sorts, it does not
     // uniquify.
@@ -55,19 +55,19 @@ bool tests_sort_view_sorted_explicit_algorithm()
     std::vector<int> expected;
     std::size_t      i;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   The one-argument overload lets a caller pin the algorithm.  All six
     // must produce the same ordered result -- the choice is a performance
@@ -87,26 +87,27 @@ bool tests_sort_view_sorted_by_comparator()
     verdict          result;
     std::vector<int> source;
     std::vector<int> expected;
-    greater<int>     named;
+    std::greater<int>     named;
 
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
     //   sorted_by() takes the comparator by forwarding reference and decays
     // it into the terminal, so both an lvalue and a temporary work.
-    result.check(ranges_equal(source | sorted_by(greater<int>()), expected));
+    result.check(ranges_equal(source | sorted_by(std::greater<int>()),
+                              expected));
     result.check(ranges_equal(source | sorted_by(named), expected));
 
     //   A comparator built from the algebra is the documented use case, and
     // it must need no glue at all.
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     result.check(ranges_equal(
         source | sorted_by(::djinterp::natural<int>()), expected));
 
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
     result.check(ranges_equal(
         source | sorted_by(::djinterp::natural<int>() |
@@ -125,35 +126,35 @@ bool tests_sort_view_sorted_by_explicit_algorithm()
     std::vector<int> expected;
     std::size_t      i;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
     //   The two-argument form puts the ALGORITHM first, deliberately: a
-    // trailing sort_algorithm would be ambiguous against a comparator, since
+    // trailing DSortAlgorithm would be ambiguous against a comparator, since
     // the comparator parameter is a forwarding reference that would happily
     // bind it.
     for (i = 0; i < 6; ++i)
     {
         result.check(ranges_equal(
-            source | sorted_by(every[i], greater<int>()), expected));
+            source | sorted_by(every[i], std::greater<int>()), expected));
     }
 
     //   The one- and two-argument forms agree when the two-argument form is
     // given the default algorithm.
     result.check(ranges_equal(
-        source | sorted_by(greater<int>()),
-        source | sorted_by(sort_algorithm::quick, greater<int>())));
+        source | sorted_by(std::greater<int>()),
+        source | sorted_by(DSortAlgorithm::quick, std::greater<int>())));
 
     return result.ok();
 }
@@ -171,20 +172,20 @@ bool tests_sort_view_pipe_from_container()
     source   = view_sample();
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   The (container | terminal) overload: a plain vector goes straight
     // into the terminal with no explicit view in between.  This is the form
     // the header's usage examples show.
     result.check(ranges_equal(source | sorted(), expected));
-    result.check(ranges_equal(source | sorted_by(less<int>()), expected));
+    result.check(ranges_equal(source | sorted_by(std::less<int>()), expected));
 
     //   The source is left alone -- the terminal returns a new vector.
     result.check(ranges_equal(source, view_sample()));
 
     //   Degenerate containers.
     result.check((empty | sorted()).empty());
-    result.check((empty | sorted_by(greater<int>())).empty());
+    result.check((empty | sorted_by(std::greater<int>())).empty());
 
     single.push_back(3);
 
@@ -213,7 +214,7 @@ bool tests_sort_view_pipe_from_adapted_view()
     expected.push_back(-1);
 
     result.check(ranges_equal(
-        view_sample_storage() | ::djinterp::views::transform(negate_int()) | sorted(),
+        view_sample_storage() | ::djinterp::transform(negate_int()) | sorted(),
         expected));
 
     //   A filter upstream: only the odd values reach the sort.
@@ -224,7 +225,7 @@ bool tests_sort_view_pipe_from_adapted_view()
     expected.push_back(9);
 
     result.check(ranges_equal(
-        view_sample_storage() | ::djinterp::views::filter(is_odd()) | sorted(),
+        view_sample_storage() | ::djinterp::filter(is_odd()) | sorted(),
         expected));
 
     //   Two adapters and an explicit comparator, which is the fully
@@ -237,17 +238,17 @@ bool tests_sort_view_pipe_from_adapted_view()
 
     result.check(ranges_equal(
         view_sample_storage() |
-            ::djinterp::views::filter(is_odd()) |
-            ::djinterp::views::transform(negate_int()) |
-            sorted_by(greater<int>()),
+            ::djinterp::filter(is_odd()) |
+            ::djinterp::transform(negate_int()) |
+            sorted_by(std::greater<int>()),
         expected));
 
     //   And the same pipeline under a non-default algorithm.
     result.check(ranges_equal(
         view_sample_storage() |
-            ::djinterp::views::filter(is_odd()) |
-            ::djinterp::views::transform(negate_int()) |
-            sorted_by(sort_algorithm::merge, greater<int>()),
+            ::djinterp::filter(is_odd()) |
+            ::djinterp::transform(negate_int()) |
+            sorted_by(DSortAlgorithm::merge, std::greater<int>()),
         expected));
 
     return result.ok();

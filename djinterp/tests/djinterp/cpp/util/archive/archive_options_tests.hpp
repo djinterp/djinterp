@@ -9,21 +9,20 @@
 * tree) links the sections and calls each function.
 *
 *   WHAT A PLAIN-DATA HEADER OFFERS A TEST:
-*   archive_options carries no logic -- its "code" is the set of constructor
-* defaults, the enum values, and the value semantics the compiler generates.
-* Those ARE the contract call sites rely on, so the suite pins every one of
-* them: the neutral-zero rule for each categorical enum, every field's
-* documented default, deep copy/assign independence (the blocks hold
-* std::string), and the stub-compatibility guarantee (`level` = -1,
-* `store_only` = false).
+*   archive_options carries no logic of its own: its contract is the knob set,
+* the enum values, the value semantics the compiler generates, and the rule
+* that a fresh set says nothing -- every numeric knob archive_knob_unset,
+* every text knob empty -- so that the kernel's resolution, done once for
+* both faces, decides what each unset knob means for the format being
+* written.  The suite pins all of it: the enums' values (a ZIP method is its
+* number on the wire), pristine blocks and what each resolves to, deep
+* copy/assign independence (the blocks hold std::string), and the
+* stub-compatibility guarantee (`level` and `store_only` keep their names).
 *
 *   BEHAVIOUR IS TESTED SEPARATELY:
 *   The last section drives the facade to record which knobs the built-in
-* writers actually consult today.  archive.cpp reads exactly two fields --
-* store_only and level -- so the remaining knobs are, for now, inert.  Those
-* tests assert the safe invariant (requesting an unhonoured knob still yields a
-* valid, readable archive and never mutates the caller's option set) rather
-* than freezing today's gaps in place.
+* writers consult, and that the ones they cannot honour are refused with a
+* status rather than written as something else.
 *
 *   CHECK MACROS:
 *   Unique-lettered per suite (D_AO_) so co-compiled suites never collide.  Each
@@ -37,7 +36,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_options_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_ARCHIVE_OPTIONS_TESTS_
@@ -48,9 +47,12 @@
 #include <cstdio>
 #include <string>
 // djinterp
-#include "../../../../../inc/djinterp/cpp/util/archive/archive.hpp"                              // facade (pulls the options)
-#include "djinterp/cpp/modules/test/archive/test_archive_options.hpp"   // shared option comparators
-#include "djinterp/cpp/modules/test/archive/test_archive.hpp"           // shared archive verifiers
+#include "../../../../../inc/djinterp/cpp/util/archive/archive.hpp"
+                                        // facade (pulls the options)
+#include "djinterp/cpp/modules/test/archive/test_archive_options.hpp"
+                                        // shared option comparators
+#include "djinterp/cpp/modules/test/archive/test_archive.hpp"
+                                        // shared archive verifiers
 
 
 NS_DJINTERP
@@ -81,15 +83,70 @@ entry_list sample_entries()
     return items;
 }
 
+// resolved_for
+//   function: the kernel's resolution of an option set for one format: what
+// each knob the caller left unset means when that format is written.  The
+// set is lowered for the call and the result is the kernel's own form.
+//
+// Parameter(s):
+//   _format: the format to resolve for.
+//   _opt:    the option set.
+// Return:
+//   the resolved set; pristine when resolution refused the set.
+inline
+dj_archive_options resolved_for(
+    format_id              _format,
+    const archive_options& _opt
+)
+{
+    const dj_archive_options in = _opt.lower();
+    dj_archive_options       out;
+
+    d_archive_options_init(&out);
+    (void)d_archive_options_resolve(_format, &in, &out);
+
+    return out;
+}
+
+// expected_zip_method
+//   function: the method an unset ZIP method resolves to in this build: store
+// when the build stores everything; the build's method when cfg_archive.h
+// names one; else deflate where DEFLATE can compress and store where not.
+inline
+int expected_zip_method()
+{
+    if (D_INTERNAL_ARCHIVE_STORE_ONLY)
+    {
+        return zip_method_store;
+    }
+    if (D_INTERNAL_ARCHIVE_ZIP_METHOD >= 0)
+    {
+        return D_INTERNAL_ARCHIVE_ZIP_METHOD;
+    }
+
+    return d_codec_can_compress(D_CODEC_ID_DEFLATE) ? zip_method_deflate
+                                                    : zip_method_store;
+}
+
+// expected_sevenzip_method
+//   function: the method an unset 7z method resolves to in this build: copy
+// when the build stores everything, else the build's method.
+inline
+int expected_sevenzip_method()
+{
+    return D_INTERNAL_ARCHIVE_STORE_ONLY ? (int)sevenzip_method_copy
+                                         : D_INTERNAL_ARCHIVE_SEVENZIP_METHOD;
+}
+
 
 // =============================================================================
 // TEST DECLARATIONS  (grouped by header section; defined in the section .cpp)
 // =============================================================================
 
 // I. categorical enums  (archive_options_tests_enums.cpp)
-bool tests_enum_neutral_defaults();
+bool tests_enum_unset_is_no_enumerator();
 bool tests_enum_distinct_values();
-bool tests_enum_sequential_values();
+bool tests_enum_wire_values();
 bool tests_enum_plain_not_scoped();
 
 // II.i DZipOptions  (archive_options_tests_zip.cpp)
@@ -107,11 +164,13 @@ bool tests_archive_options_defaults();
 bool tests_archive_options_stub_superset();
 bool tests_archive_options_nested_blocks_default();
 
-// the embedded codec (HAS-A compress_options)  (archive_options_tests_codec.cpp)
+// the embedded codec, HAS-A compress_options
+//   (archive_options_tests_codec.cpp)
 bool tests_codec_block_defaults();
 bool tests_codec_block_independence();
 
-// value semantics + the shared comparators  (archive_options_tests_semantics.cpp)
+// value semantics + the shared comparators
+//   (archive_options_tests_semantics.cpp)
 bool tests_options_copy_construction();
 bool tests_options_assignment();
 bool tests_options_deep_string_independence();
@@ -124,7 +183,7 @@ bool tests_option_builders();
 // what the facade actually honours  (archive_options_tests_facade.cpp)
 bool tests_facade_honours_store_only();
 bool tests_facade_honours_level();
-bool tests_facade_codec_block_is_inert();
+bool tests_facade_honours_codec_block();
 bool tests_facade_container_knobs_do_not_corrupt();
 bool tests_facade_does_not_mutate_options();
 

@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/cpp/util/compress/compress_tests_status.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 // std
@@ -32,6 +32,7 @@ tests_compress_status_messages
   Tests the following:
   - each of the six status codes yields a non-null, non-empty string
   - no two codes share the same message (each is distinct)
+  - the message is the kernel's (d_pack_status_message), word for word
 */
 bool tests_compress_status_messages()
 {
@@ -67,8 +68,9 @@ bool tests_compress_status_messages()
         }
     }
 
-    // spot-check the anchor value
-    D_CP_CHECK(std::strcmp(status_message(status_ok), "ok") == 0);
+    // the facade's text is the kernel's, so the two faces say the same thing
+    D_CP_CHECK(std::strcmp(status_message(status_ok),
+                           d_pack_status_message(D_PACK_STATUS_OK)) == 0);
 
     return true;
 }
@@ -97,21 +99,30 @@ bool tests_compress_status_unknown()
 
 /*
 tests_compress_status_enum_values
-  Pins the numeric values of the status enum.  The dispatch leaves and callers
-  compare against these, and status_ok == 0 is relied on throughout, so a
-  reordering must be caught here.
+  Pins the numeric values of the status enum to the kernel's taxonomy
+  (compress_common.h 1.1): formal statuses -- the request is not defined --
+  below 0x100, mechanical ones -- the machinery ran short -- from 0x100. The
+  dispatch leaves and callers compare against these, and status_ok == 0 is
+  relied on throughout, so a renumbering must be caught here.
   Tests the following:
   - status_ok is zero
-  - the remaining codes hold their documented, contiguous ordering
+  - the formal codes are 1 to 6, in the kernel's order
+  - the mechanical codes start at 0x100, and the facade's names map to them
 */
 bool tests_compress_status_enum_values()
 {
     D_CP_CHECK(static_cast<int>(status_ok)               == 0);
-    D_CP_CHECK(static_cast<int>(status_unavailable)      == 1);
-    D_CP_CHECK(static_cast<int>(status_invalid_argument) == 2);
-    D_CP_CHECK(static_cast<int>(status_buffer_error)     == 3);
-    D_CP_CHECK(static_cast<int>(status_backend_error)    == 4);
-    D_CP_CHECK(static_cast<int>(status_unsupported)      == 5);
+
+    D_CP_CHECK(static_cast<int>(status_unavailable)      == 0x001);
+    D_CP_CHECK(static_cast<int>(status_unsupported)      == 0x002);
+    D_CP_CHECK(static_cast<int>(status_invalid_argument) == 0x003);
+    D_CP_CHECK(static_cast<int>(status_corrupt_input)    == 0x004);
+    D_CP_CHECK(static_cast<int>(status_truncated_input)  == 0x005);
+    D_CP_CHECK(static_cast<int>(status_wrong_password)   == 0x006);
+
+    D_CP_CHECK(static_cast<int>(status_buffer_error)     == 0x100);
+    D_CP_CHECK(static_cast<int>(status_no_memory)        == 0x101);
+    D_CP_CHECK(static_cast<int>(status_backend_error)    == 0x103);
 
     return true;
 }

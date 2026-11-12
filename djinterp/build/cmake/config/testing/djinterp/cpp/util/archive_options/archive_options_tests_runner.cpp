@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             archive_options_tests_runner.cpp
+/*******************************************************************************
+* djinterp [test]                               archive_options_tests_runner.cpp
 *
 *   Entry point (main) for the archive_options.hpp unit-test suite.  It includes
 * the suite's test header and calls every tests_* function the section
@@ -15,8 +15,9 @@
 *
 * path:      /build/cmake/config/testing/djinterp/cpp/util/archive_options/archive_options_tests_runner.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
+*                                                            revised: 2026.11.11
+*******************************************************************************/
 
 // std
 #include <cstdio>
@@ -52,9 +53,9 @@ int main()
     std::printf("archive_options.hpp unit tests\n");
 
     // I. categorical enums
-    D_AO_RUN(tests_enum_neutral_defaults);
+    D_AO_RUN(tests_enum_unset_is_no_enumerator);
     D_AO_RUN(tests_enum_distinct_values);
-    D_AO_RUN(tests_enum_sequential_values);
+    D_AO_RUN(tests_enum_wire_values);
     D_AO_RUN(tests_enum_plain_not_scoped);
 
     // II.i DZipOptions
@@ -89,7 +90,7 @@ int main()
     // what the facade actually honours
     D_AO_RUN(tests_facade_honours_store_only);
     D_AO_RUN(tests_facade_honours_level);
-    D_AO_RUN(tests_facade_codec_block_is_inert);
+    D_AO_RUN(tests_facade_honours_codec_block);
     D_AO_RUN(tests_facade_container_knobs_do_not_corrupt);
     D_AO_RUN(tests_facade_does_not_mutate_options);
 

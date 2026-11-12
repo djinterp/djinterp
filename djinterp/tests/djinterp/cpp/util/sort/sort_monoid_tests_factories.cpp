@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_monoid_tests_factories.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -26,7 +26,7 @@ bool tests_sort_monoid_make_sorted_run()
     std::size_t      size_index;
     std::size_t      length;
 
-    sorted_run<int, greater<int> > descending;
+    DSortedRun<int, std::greater<int> > descending;
 
     //   make_sorted_run is the SORTING factory: it takes arbitrary data,
     // orders it with ::djinterp::merge_sort, and wraps the result.  Checked
@@ -49,21 +49,21 @@ bool tests_sort_monoid_make_sorted_run()
 
             std::stable_sort(expected.begin(),
                              expected.end(),
-                             less<int>());
+                             std::less<int>());
 
             result.check(ranges_equal(
-                make_sorted_run(source, less<int>()).data(), expected));
+                make_sorted_run(source, std::less<int>()).data(), expected));
             result.check(
-                make_sorted_run(source, less<int>()).size() == length);
+                make_sorted_run(source, std::less<int>()).size() == length);
         }
     }
 
     //   An explicit comparator is honoured, and the run remembers it.
     source     = shape_random(32);
     expected   = source;
-    descending = make_sorted_run(source, greater<int>());
+    descending = make_sorted_run(source, std::greater<int>());
 
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
     result.check(ranges_equal(descending.data(), expected));
     result.check(descending.compare()(2, 1));
@@ -87,11 +87,11 @@ bool tests_sort_monoid_make_sorted_run_default()
     source   = shape_random(64);
     expected = source;
 
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
-    //   The one-argument overload supplies default_comparator_t<T>, which is
-    // less<T> -- ascending.  Its return type is the run parameterised on
-    // that comparator, so it interoperates with DIntRun without a cast.
+    //   The one-argument overload supplies std::less<T> -- ascending.  Its
+    // return type is the run parameterised on that comparator, so it
+    // interoperates with DIntRun without a cast.
     defaulted = make_sorted_run(source);
 
     result.check(ranges_equal(defaulted.data(), expected));
@@ -126,8 +126,8 @@ bool tests_sort_monoid_adopt_sorted_run()
     // quietly sorted would fail here, and that is exactly the regression
     // worth catching, because the two factories are one keyword apart at the
     // call site.
-    adopted = adopt_sorted_run(ints_of(ordered, 4), less<int>());
-    misused = adopt_sorted_run(ints_of(unordered, 3), less<int>());
+    adopted = adopt_sorted_run(ints_of(ordered, 4), std::less<int>());
+    misused = adopt_sorted_run(ints_of(unordered, 3), std::less<int>());
 
     result.check(ranges_equal(adopted.data(), ints_of(ordered, 4)));
     result.check(adopted.size() == 4);
@@ -143,7 +143,8 @@ bool tests_sort_monoid_adopt_sorted_run()
                                misused.data()));
 
     //   Adopting nothing yields the identity.
-    result.check(adopt_sorted_run(std::vector<int>(), less<int>()).empty());
+    result.check(
+        adopt_sorted_run(std::vector<int>(), std::less<int>()).empty());
 
     //   An adopted run participates in the algebra like any other.
     result.check(mappend(adopted, adopted).size() == 8);
@@ -157,7 +158,7 @@ bool tests_sort_monoid_singleton_run()
 {
     verdict result;
 
-    sorted_run<int, greater<int> > descending_one;
+    DSortedRun<int, std::greater<int> > descending_one;
     DIntRun                        defaulted_one;
     DKeyedRun                      keyed_one;
 
@@ -174,7 +175,7 @@ bool tests_sort_monoid_singleton_run()
 
     //   With an explicit comparator, which the run carries into any later
     // combine.
-    descending_one = singleton_run(7, greater<int>());
+    descending_one = singleton_run(7, std::greater<int>());
 
     result.check(descending_one.size() == 1);
     result.check(descending_one.data()[0] == 7);
@@ -187,8 +188,8 @@ bool tests_sort_monoid_singleton_run()
 
     //   And under a descending comparator the same pair comes out the other
     // way round -- the comparator travels with the LEFT operand.
-    result.check(mappend(singleton_run(1, greater<int>()),
-                         singleton_run(2, greater<int>())).data()[0] == 2);
+    result.check(mappend(singleton_run(1, std::greater<int>()),
+                         singleton_run(2, std::greater<int>())).data()[0] == 2);
 
     //   Singletons of a user type work the same way, and the merge's
     // a-before-b rule makes two equivalent singletons keep their order.
@@ -220,7 +221,7 @@ bool tests_sort_monoid_to_singleton_runs()
     // run holds exactly one element, in input order -- the lift itself sorts
     // nothing.
     source = ints_of(values, 3);
-    runs   = to_singleton_runs(source, less<int>());
+    runs   = to_singleton_runs(source, std::less<int>());
 
     result.check(runs.size() == 3);
 

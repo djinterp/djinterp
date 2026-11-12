@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_common_tests_order_comparator.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): TBA                                             created: 2026.10.15
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -21,8 +21,8 @@ bool tests_sort_common_order_comparator_ascending()
 {
     verdict result;
 
-    ::djinterp::internal::DOrderComparator<less<int> > ascending(
-        less<int>(), sort_order::ascending);
+    ::djinterp::internal::DOrderComparator<std::less<int> > ascending(
+        std::less<int>(), sort_order::ascending);
 
     //   sort_order::ascending is the pass-through case: the wrapped
     // comparator is consulted with the operands in the order they arrived.
@@ -43,8 +43,8 @@ bool tests_sort_common_order_comparator_descending()
     std::size_t j;
     int         values[5];
 
-    ::djinterp::internal::DOrderComparator<less<int> > descending(
-        less<int>(), sort_order::descending);
+    ::djinterp::internal::DOrderComparator<std::less<int> > descending(
+        std::less<int>(), sort_order::descending);
 
     ::djinterp::internal::DOrderComparator<DEvenFirst> flipped_parity(
         parity, sort_order::descending);
@@ -96,11 +96,11 @@ bool tests_sort_common_order_comparator_none()
 {
     verdict result;
 
-    ::djinterp::internal::DOrderComparator<less<int> > unspecified(
-        less<int>(), sort_order::none);
+    ::djinterp::internal::DOrderComparator<std::less<int> > unspecified(
+        std::less<int>(), sort_order::none);
 
-    ::djinterp::internal::DOrderComparator<less<int> > ascending(
-        less<int>(), sort_order::ascending);
+    ::djinterp::internal::DOrderComparator<std::less<int> > ascending(
+        std::less<int>(), sort_order::ascending);
 
     //   The branch tests for descending ONLY, so sort_order::none falls
     // through to the ascending path.  That is worth pinning: "none" reads
@@ -129,8 +129,8 @@ bool tests_sort_common_order_comparator_heterogeneous()
         DCrossTypeLess(), sort_order::descending);
 
     //   DOrderComparator's call operator is a template over BOTH operand
-    // types, so a heterogeneous comparator survives the wrapping.  Mixed
-    // int/long and int/double calls exercise that.
+    // types, so a comparator that orders across types survives the wrapping.
+    // Mixed int/long and int/double calls exercise that.
     result.check(ascending(1, 2L));
     result.check(!ascending(2L, 1));
 
@@ -147,6 +147,64 @@ bool tests_sort_common_order_comparator_heterogeneous()
 
     result.check(copy(2L, 1));
     result.check(!copy(1, 2L));
+
+    return result.ok();
+}
+
+
+// tests_sort_common_order_comparator_non_const
+bool tests_sort_common_order_comparator_non_const()
+{
+    verdict       result;
+    DTallyingLess tally;
+
+    //   The wrapper holds a mutable copy of its comparator, so a comparator
+    // whose call operator mutates -- one that tallies its calls, here --
+    // works through it even when the wrapper itself is const.  The calls
+    // land on the wrapper's copy, not on the caller's.
+    const ::djinterp::internal::DOrderComparator<DTallyingLess> descending(
+        tally, sort_order::descending);
+
+    result.check(descending(2, 1));
+    result.check(!descending(1, 2));
+    result.check(!descending(3, 3));
+
+    result.check(tally.calls == 0);
+
+    return result.ok();
+}
+
+
+// tests_sort_common_order_comparator_copies_from_const
+bool tests_sort_common_order_comparator_copies_from_const()
+{
+    verdict          result;
+    DGreedyLess      greedy;
+    std::vector<int> data;
+
+    //   The wrapper is constructed from a non-const lvalue, copied, assigned
+    // and handed by value to a sort.  Each of those copies the held
+    // comparator; were any made from a non-const lvalue, DGreedyLess's
+    // forwarding constructor would claim it and this test would not build.
+    ::djinterp::internal::DOrderComparator<DGreedyLess> descending(
+        greedy, sort_order::descending);
+    ::djinterp::internal::DOrderComparator<DGreedyLess> copy(descending);
+    ::djinterp::internal::DOrderComparator<DGreedyLess> assigned(
+        greedy, sort_order::ascending);
+
+    assigned = copy;
+
+    result.check(copy(2, 1));
+    result.check(assigned(2, 1));
+    result.check(!assigned(1, 2));
+
+    data = shape_random(32);
+
+    insertion_sort(data.begin(), data.end(), copy);
+
+    result.check(is_sorted_range(data.begin(),
+                                 data.end(),
+                                 std::greater<int>()));
 
     return result.ok();
 }
@@ -170,10 +228,10 @@ bool tests_sort_common_order_comparator_drives_a_sort()
 
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
     //   End to end: the wrapper is a comparator like any other, so it drops
     // straight into an algorithm.  This is exactly what the *_sort_ordered
@@ -181,20 +239,20 @@ bool tests_sort_common_order_comparator_drives_a_sort()
     insertion_sort(
         ascending_out.begin(),
         ascending_out.end(),
-        ::djinterp::internal::DOrderComparator<less<int> >(
-            less<int>(), sort_order::ascending));
+        ::djinterp::internal::DOrderComparator<std::less<int> >(
+            std::less<int>(), sort_order::ascending));
 
     insertion_sort(
         descending_out.begin(),
         descending_out.end(),
-        ::djinterp::internal::DOrderComparator<less<int> >(
-            less<int>(), sort_order::descending));
+        ::djinterp::internal::DOrderComparator<std::less<int> >(
+            std::less<int>(), sort_order::descending));
 
     insertion_sort(
         none_out.begin(),
         none_out.end(),
-        ::djinterp::internal::DOrderComparator<less<int> >(
-            less<int>(), sort_order::none));
+        ::djinterp::internal::DOrderComparator<std::less<int> >(
+            std::less<int>(), sort_order::none));
 
     result.check(ranges_equal(ascending_out, expected_ascending));
     result.check(ranges_equal(descending_out, expected_descending));

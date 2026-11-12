@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_sorter.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 // djinterp [test]
@@ -21,42 +21,42 @@ bool tests_sort_dispatch_sorter_static_surface()
 {
     verdict result;
 
-    //   sorter<tag> republishes its tag's compile-time surface, so a caller
+    //   DSorter<tag> republishes its tag's compile-time surface, so a caller
     // can query the algorithm without naming the tag twice.  Every member
     // must agree with the tag it was built from.
-    result.check(sorter<bubble_sort_tag>::algorithm ==
-                 sort_algorithm::bubble);
-    result.check(sorter<merge_sort_tag>::algorithm ==
-                 sort_algorithm::merge);
-    result.check(sorter<heap_sort_tag>::algorithm == sort_algorithm::heap);
+    result.check(DSorter<DBubbleSortTag>::algorithm ==
+                 DSortAlgorithm::bubble);
+    result.check(DSorter<DMergeSortTag>::algorithm ==
+                 DSortAlgorithm::merge);
+    result.check(DSorter<DHeapSortTag>::algorithm == DSortAlgorithm::heap);
 
-    result.check(sorter<insertion_sort_tag>::is_stable);
-    result.check(sorter<insertion_sort_tag>::is_in_place);
-    result.check(sorter<insertion_sort_tag>::is_adaptive);
+    result.check(DSorter<DInsertionSortTag>::is_stable);
+    result.check(DSorter<DInsertionSortTag>::is_in_place);
+    result.check(DSorter<DInsertionSortTag>::is_adaptive);
 
-    result.check(sorter<merge_sort_tag>::is_stable);
-    result.check(!sorter<merge_sort_tag>::is_in_place);
-    result.check(!sorter<merge_sort_tag>::is_adaptive);
+    result.check(DSorter<DMergeSortTag>::is_stable);
+    result.check(!DSorter<DMergeSortTag>::is_in_place);
+    result.check(DSorter<DMergeSortTag>::is_adaptive);
 
-    result.check(!sorter<quick_sort_tag>::is_stable);
-    result.check(sorter<quick_sort_tag>::is_in_place);
+    result.check(!DSorter<DQuickSortTag>::is_stable);
+    result.check(DSorter<DQuickSortTag>::is_in_place);
 
-    result.check(names_equal(sorter<selection_sort_tag>::name(),
+    result.check(names_equal(DSorter<DSelectionSortTag>::name(),
                              "selection_sort"));
-    result.check(names_equal(sorter<heap_sort_tag>::name(), "heap_sort"));
+    result.check(names_equal(DSorter<DHeapSortTag>::name(), "heap_sort"));
 
-    //   sorter<default_sort_tag> is the compile-time form of the default.
-    // Note that sorter<> is NOT this type -- the template parameter defaults
-    // to the dynamic_algorithm sentinel, so sorter<> is the run-time
+    //   DSorter<DDefaultSortTag> is the compile-time form of the default.
+    // Note that DSorter<> is NOT this type -- the template parameter defaults
+    // to the DDynamicAlgorithm sentinel, so DSorter<> is the run-time
     // specialization and has no static `algorithm` member at all.
-    result.check(sorter<default_sort_tag>::algorithm ==
-                 sort_algorithm::quick);
-    result.check(sorter<quick_sort_tag>::algorithm ==
-                 default_sort_tag::value);
+    result.check(DSorter<DDefaultSortTag>::algorithm ==
+                 DSortAlgorithm::quick);
+    result.check(DSorter<DQuickSortTag>::algorithm ==
+                 DDefaultSortTag::value);
 
     //   The compile-time form is stateless: that is what makes it
     // zero-overhead next to calling the algorithm directly.
-    result.check(std::is_empty<sorter<quick_sort_tag> >::value);
+    result.check(std::is_empty<DSorter<DQuickSortTag> >::value);
 
     return result.ok();
 }
@@ -71,32 +71,32 @@ bool tests_sort_dispatch_sorter_static_calls()
 
     //   The two-argument call operator, over the whole corpus, for every
     // tag.
-    verify_battery_reference(&static_sorter_ints<bubble_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&static_sorter_ints<DBubbleSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&static_sorter_ints<selection_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&static_sorter_ints<DSelectionSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&static_sorter_ints<insertion_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&static_sorter_ints<DInsertionSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&static_sorter_ints<merge_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&static_sorter_ints<DMergeSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&static_sorter_ints<quick_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&static_sorter_ints<DQuickSortTag>,
+                             std::less<int>(),
                              result);
-    verify_battery_reference(&static_sorter_ints<heap_sort_tag>,
-                             less<int>(),
+    verify_battery_reference(&static_sorter_ints<DHeapSortTag>,
+                             std::less<int>(),
                              result);
 
     //   The three-argument call operator forwards an explicit comparator.
     data     = shape_random(64);
     expected = data;
 
-    std::stable_sort(expected.begin(), expected.end(), greater<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::greater<int>());
 
-    sorter<merge_sort_tag>()(data.begin(), data.end(), greater<int>());
+    DSorter<DMergeSortTag>()(data.begin(), data.end(), std::greater<int>());
 
     result.check(data == expected);
 
@@ -109,29 +109,29 @@ bool tests_sort_dispatch_sorter_dynamic_construction()
 {
     verdict result;
 
-    sorter<dynamic_algorithm> defaulted;
-    sorter<dynamic_algorithm> explicit_bubble(sort_algorithm::bubble);
-    sorter<>                  shorthand;
+    DSorter<DDynamicAlgorithm> defaulted;
+    DSorter<DDynamicAlgorithm> explicit_bubble(DSortAlgorithm::bubble);
+    DSorter<>                  shorthand;
 
-    //   The default constructor binds to default_sort_tag -- quicksort --
+    //   The default constructor binds to DDefaultSortTag -- quicksort --
     // matching the compile-time default.
-    result.check(defaulted.algorithm() == default_sort_tag::value);
-    result.check(defaulted.algorithm() == sort_algorithm::quick);
+    result.check(defaulted.algorithm() == DDefaultSortTag::value);
+    result.check(defaulted.algorithm() == DSortAlgorithm::quick);
     result.check(names_equal(defaulted.name(), "quick_sort"));
 
-    //   sorter<> and sorter<dynamic_algorithm> are the same type: the
+    //   DSorter<> and DSorter<DDynamicAlgorithm> are the same type: the
     // template parameter defaults to the sentinel.
-    result.check((std::is_same<sorter<>,
-                               sorter<dynamic_algorithm> >::value));
+    result.check((std::is_same<DSorter<>,
+                               DSorter<DDynamicAlgorithm> >::value));
     result.check(shorthand.algorithm() == defaulted.algorithm());
 
-    //   The converting constructor is explicit, so a bare sort_algorithm
-    // never silently becomes a sorter.
-    result.check(explicit_bubble.algorithm() == sort_algorithm::bubble);
+    //   The converting constructor is explicit, so a bare DSortAlgorithm
+    // never silently becomes a DSorter.
+    result.check(explicit_bubble.algorithm() == DSortAlgorithm::bubble);
     result.check(names_equal(explicit_bubble.name(), "bubble_sort"));
     result.check((!std::is_convertible<
-                      sort_algorithm,
-                      sorter<dynamic_algorithm> >::value));
+                      DSortAlgorithm,
+                      DSorter<DDynamicAlgorithm> >::value));
 
     return result.ok();
 }
@@ -145,19 +145,19 @@ bool tests_sort_dispatch_sorter_dynamic_rebinding()
     std::vector<int> expected;
     std::size_t      i;
 
-    sorter<dynamic_algorithm> dispatcher;
+    DSorter<DDynamicAlgorithm> dispatcher;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
     expected = shape_random(64);
-    std::stable_sort(expected.begin(), expected.end(), less<int>());
+    std::stable_sort(expected.begin(), expected.end(), std::less<int>());
 
     //   One instance, rebound six times: the selector is state, not a
     // compile-time property, and every observable follows it.
@@ -175,7 +175,7 @@ bool tests_sort_dispatch_sorter_dynamic_rebinding()
         result.check(data == expected);
     }
 
-    //   Rebinding to an unrecognised enumerator makes the sorter a no-op
+    //   Rebinding to an unrecognised enumerator makes the DSorter a no-op
     // rather than a fault -- it inherits dispatch_runtime's fall-through.
     dispatcher.set_algorithm(unrecognised_algorithm());
 
@@ -197,19 +197,19 @@ bool tests_sort_dispatch_sorter_dynamic_properties()
     verdict     result;
     std::size_t i;
 
-    sorter<dynamic_algorithm> dispatcher;
+    DSorter<DDynamicAlgorithm> dispatcher;
 
-    sort_algorithm every[6];
+    DSortAlgorithm every[6];
 
-    every[0] = sort_algorithm::bubble;
-    every[1] = sort_algorithm::selection;
-    every[2] = sort_algorithm::insertion;
-    every[3] = sort_algorithm::merge;
-    every[4] = sort_algorithm::quick;
-    every[5] = sort_algorithm::heap;
+    every[0] = DSortAlgorithm::bubble;
+    every[1] = DSortAlgorithm::selection;
+    every[2] = DSortAlgorithm::insertion;
+    every[3] = DSortAlgorithm::merge;
+    every[4] = DSortAlgorithm::quick;
+    every[5] = DSortAlgorithm::heap;
 
-    //   The dynamic sorter's property accessors are functions where the
-    // static sorter's are constants, but they must answer identically for
+    //   The dynamic DSorter's property accessors are functions where the
+    // static DSorter's are constants, but they must answer identically for
     // the same algorithm.  Checked against properties_of, which is where
     // they source their answers.
     for (i = 0; i < 6; ++i)
@@ -226,15 +226,15 @@ bool tests_sort_dispatch_sorter_dynamic_properties()
 
     //   Spot-checked against the compile-time surface, so a divergence
     // between the two faces of the subsystem shows up here.
-    dispatcher.set_algorithm(sort_algorithm::merge);
-    result.check(dispatcher.is_stable() == sorter<merge_sort_tag>::is_stable);
+    dispatcher.set_algorithm(DSortAlgorithm::merge);
+    result.check(dispatcher.is_stable() == DSorter<DMergeSortTag>::is_stable);
     result.check(dispatcher.is_in_place() ==
-                 sorter<merge_sort_tag>::is_in_place);
+                 DSorter<DMergeSortTag>::is_in_place);
 
-    dispatcher.set_algorithm(sort_algorithm::heap);
-    result.check(dispatcher.is_stable() == sorter<heap_sort_tag>::is_stable);
+    dispatcher.set_algorithm(DSortAlgorithm::heap);
+    result.check(dispatcher.is_stable() == DSorter<DHeapSortTag>::is_stable);
     result.check(dispatcher.is_in_place() ==
-                 sorter<heap_sort_tag>::is_in_place);
+                 DSorter<DHeapSortTag>::is_in_place);
 
     //   An unrecognised enumerator reports all-false, inherited from
     // properties_of.
@@ -256,49 +256,55 @@ bool tests_sort_dispatch_sorter_ordered_overloads()
     std::vector<int> expected_ascending;
     std::vector<int> expected_descending;
 
-    sorter<dynamic_algorithm> dispatcher(sort_algorithm::merge);
+    DSorter<DDynamicAlgorithm> dispatcher(DSortAlgorithm::merge);
 
     expected_ascending = shape_random(64);
     std::stable_sort(expected_ascending.begin(),
                      expected_ascending.end(),
-                     less<int>());
+                     std::less<int>());
 
     expected_descending = shape_random(64);
     std::stable_sort(expected_descending.begin(),
                      expected_descending.end(),
-                     greater<int>());
+                     std::greater<int>());
 
-    //   Both sorter forms carry a four-argument call operator that wraps the
+    //   Both DSorter forms carry a four-argument call operator that wraps the
     // comparator in an DOrderComparator.  Unlike the bubble, selection and
     // insertion *_sort_ordered free functions, these take a real sort_order
     // and so are callable as documented.
     data = shape_random(64);
-    sorter<merge_sort_tag>()(data.begin(),
+    DSorter<DMergeSortTag>()(data.begin(),
                              data.end(),
-                             less<int>(),
+                             std::less<int>(),
                              sort_order::ascending);
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    sorter<merge_sort_tag>()(data.begin(),
+    DSorter<DMergeSortTag>()(data.begin(),
                              data.end(),
-                             less<int>(),
+                             std::less<int>(),
                              sort_order::descending);
     result.check(data == expected_descending);
 
     data = shape_random(64);
-    sorter<merge_sort_tag>()(data.begin(),
+    DSorter<DMergeSortTag>()(data.begin(),
                              data.end(),
-                             less<int>(),
+                             std::less<int>(),
                              sort_order::none);
     result.check(data == expected_ascending);
 
     data = shape_random(64);
-    dispatcher(data.begin(), data.end(), less<int>(), sort_order::descending);
+    dispatcher(data.begin(),
+               data.end(),
+               std::less<int>(),
+               sort_order::descending);
     result.check(data == expected_descending);
 
     data = shape_random(64);
-    dispatcher(data.begin(), data.end(), less<int>(), sort_order::ascending);
+    dispatcher(data.begin(),
+               data.end(),
+               std::less<int>(),
+               sort_order::ascending);
     result.check(data == expected_ascending);
 
     //   Handing the ordered overload an already-descending comparator flips
@@ -306,7 +312,7 @@ bool tests_sort_dispatch_sorter_ordered_overloads()
     data = shape_random(64);
     dispatcher(data.begin(),
                data.end(),
-               greater<int>(),
+               std::greater<int>(),
                sort_order::descending);
     result.check(data == expected_ascending);
 

@@ -3,7 +3,7 @@
 #
 #   Wires the sort subsystem's test executables.  This directory is a MULTI-EXE
 # CLUSTER (section 6.4): twelve suites share the one slug
-# djinterp/core/util/sort, so they share this single CMakeLists rather than
+# djinterp/cpp/util/sort, so they share this single CMakeLists rather than
 # each carrying its own.
 #
 #   Every suite follows the leaf recipe of section 6.1 -- runner listed
@@ -17,12 +17,14 @@
 #                                   in both faces
 #
 # The helper already adds the inc/ root, which is what the runners' spec face
-# needs for <djinterp/core/djinterp.hpp> and "djinterp/test/test_defaults.hpp".
+# needs for <djinterp/cpp/djinterp.hpp> and
+# "djinterp/cpp/modules/test/test_defaults.hpp".
 #
 #
 # path:      /build/cmake/config/testing/djinterp/cpp/util/sort/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                        created: 2026.07.22
+#                                                           revised: 2026.11.12
 #*****************************************************************************
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/util/sort")
@@ -37,7 +39,8 @@ set(_inc_dir   "${DJINTERP_INC_ROOT}/djinterp/cpp/util/sort")
 # tree.  The runners include their suite header bare (INCLUDES carries the tests
 # dir), so sitting a directory deeper does not affect include resolution.
 macro(djinterp_add_sort_suite _name)
-    string(REGEX REPLACE "_tests$" "" _dir "${_name}")   # bubble_sort_tests -> bubble_sort
+    # bubble_sort_tests -> bubble_sort
+    string(REGEX REPLACE "_tests$" "" _dir "${_name}")
 
     file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/${_name}_*.cpp")
     list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")

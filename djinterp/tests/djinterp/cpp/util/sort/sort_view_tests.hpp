@@ -6,14 +6,14 @@
 * translation units share.
 *
 *   sections (one .cpp each):
-*     test_sort_view_terminals.cpp   internal::sort_default_terminal and
-*                                    internal::sort_with_terminal -- the drain,
+*     sort_view_tests_terminals.cpp  internal::DSortDefaultTerminal and
+*                                    internal::DSortWithTerminal -- the drain,
 *                                    the algorithm selection, and the empty
 *                                    pipeline
-*     test_sort_view_factories.cpp   sorted() / sorted_by() and the operator|
+*     sort_view_tests_factories.cpp  sorted() / sorted_by() and the operator|
 *                                    plumbing they are driven through
 *
-*   The view protocol (operator|, the terminal contract, views::transform and
+*   The view protocol (operator|, the terminal contract, transform and
 * friends) is used only in this suite, so a change in functional/view.hpp is
 * contained here.
 *
@@ -21,7 +21,7 @@
 * path:      /tests/djinterp/cpp/util/sort/sort_view_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_SORT_VIEW_TESTS_
@@ -36,11 +36,13 @@
 // language gates are needed by both faces of this header.
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
+#include "../../../../../inc/djinterp/cpp/util/sort/sort_view.hpp"
+#include "../../../../../inc/djinterp/cpp/functional/comparator.hpp"
 // djinterp [test]
 #include "sort_support.hpp"
 #endif  // !DTEST_SPEC_MODE
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"   // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // spec, run_module
 #endif  // DTEST_SPEC_MODE
 
 
@@ -118,13 +120,13 @@ struct is_negative
 };
 
 // unrecognised_view_algorithm
-//   function: a sort_algorithm value outside the six enumerators, produced
+//   function: a DSortAlgorithm value outside the six enumerators, produced
 // the only way a caller could produce one -- by casting.  The terminals
 // forward it to the run-time dispatcher, whose switch has no default label.
 inline
-sort_algorithm unrecognised_view_algorithm()
+DSortAlgorithm unrecognised_view_algorithm()
 {
-    return static_cast<sort_algorithm>(99);
+    return static_cast<DSortAlgorithm>(99);
 }
 
 // view_sample
@@ -166,7 +168,7 @@ const std::vector<int>& view_sample_storage()
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 
-// terminals -- internal::sort_default_terminal / sort_with_terminal
+// terminals -- internal::DSortDefaultTerminal / DSortWithTerminal
 bool tests_sort_view_default_terminal_applies();
 bool tests_sort_view_with_terminal_applies();
 bool tests_sort_view_terminal_algorithm_selection();
@@ -185,6 +187,89 @@ bool tests_sort_view_pipe_from_adapted_view();
 
 #ifdef DTEST_SPEC_MODE
 
+// sort_view_terminals_block
+//   provider: the "terminals" block of sort_view_spec.
+inline
+dt::block_spec sort_view_terminals_block()
+{
+    return dt::block_spec
+    {
+        "terminals",
+        "internal::DSortDefaultTerminal / DSortWithTerminal",
+        {
+            {
+                "sort_view_default_terminal_applies",
+                "default terminal applies",
+                &tests_sort_view_default_terminal_applies
+            },
+            {
+                "sort_view_with_terminal_applies",
+                "with terminal applies",
+                &tests_sort_view_with_terminal_applies
+            },
+            {
+                "sort_view_terminal_algorithm_selection",
+                "terminal algorithm selection",
+                &tests_sort_view_terminal_algorithm_selection
+            },
+            {
+                "sort_view_terminal_empty_pipeline",
+                "terminal empty pipeline",
+                &tests_sort_view_terminal_empty_pipeline
+            },
+            {
+                "sort_view_terminal_is_recognised",
+                "terminal is recognised",
+                &tests_sort_view_terminal_is_recognised
+            }
+        }
+    };
+}
+
+// sort_view_factories_block
+//   provider: the "factories" block of sort_view_spec.
+inline
+dt::block_spec sort_view_factories_block()
+{
+    return dt::block_spec
+    {
+        "factories",
+        "sorted() / sorted_by()",
+        {
+            {
+                "sort_view_sorted_default_algorithm",
+                "sorted default algorithm",
+                &tests_sort_view_sorted_default_algorithm
+            },
+            {
+                "sort_view_sorted_explicit_algorithm",
+                "sorted explicit algorithm",
+                &tests_sort_view_sorted_explicit_algorithm
+            },
+            {
+                "sort_view_sorted_by_comparator",
+                "sorted by comparator",
+                &tests_sort_view_sorted_by_comparator
+            },
+            {
+                "sort_view_sorted_by_explicit_algorithm",
+                "sorted by explicit algorithm",
+                &tests_sort_view_sorted_by_explicit_algorithm
+            },
+            {
+                "sort_view_pipe_from_container",
+                "pipe from container",
+                &tests_sort_view_pipe_from_container
+            },
+            {
+                "sort_view_pipe_from_adapted_view",
+                "pipe from adapted view",
+                &tests_sort_view_pipe_from_adapted_view
+            }
+        }
+    };
+}
+
 // sort_view_spec
 //   provider: the module spec for this suite, handed to run_module by
 // sort_view_tests_runner.cpp.
@@ -198,75 +283,8 @@ dt::module_spec sort_view_spec()
         "terminals and the sorted() / sorted_by() factories that build "
         "them.",
         {
-            dt::block_spec
-            {
-                "terminals",
-                "internal::sort_default_terminal / sort_with_terminal",
-                {
-                    {
-                        "sort_view_default_terminal_applies",
-                        "default terminal applies",
-                        &tests_sort_view_default_terminal_applies
-                    },
-                    {
-                        "sort_view_with_terminal_applies",
-                        "with terminal applies",
-                        &tests_sort_view_with_terminal_applies
-                    },
-                    {
-                        "sort_view_terminal_algorithm_selection",
-                        "terminal algorithm selection",
-                        &tests_sort_view_terminal_algorithm_selection
-                    },
-                    {
-                        "sort_view_terminal_empty_pipeline",
-                        "terminal empty pipeline",
-                        &tests_sort_view_terminal_empty_pipeline
-                    },
-                    {
-                        "sort_view_terminal_is_recognised",
-                        "terminal is recognised",
-                        &tests_sort_view_terminal_is_recognised
-                    }
-                }
-            },
-            dt::block_spec
-            {
-                "factories",
-                "sorted() / sorted_by()",
-                {
-                    {
-                        "sort_view_sorted_default_algorithm",
-                        "sorted default algorithm",
-                        &tests_sort_view_sorted_default_algorithm
-                    },
-                    {
-                        "sort_view_sorted_explicit_algorithm",
-                        "sorted explicit algorithm",
-                        &tests_sort_view_sorted_explicit_algorithm
-                    },
-                    {
-                        "sort_view_sorted_by_comparator",
-                        "sorted by comparator",
-                        &tests_sort_view_sorted_by_comparator
-                    },
-                    {
-                        "sort_view_sorted_by_explicit_algorithm",
-                        "sorted by explicit algorithm",
-                        &tests_sort_view_sorted_by_explicit_algorithm
-                    },
-                    {
-                        "sort_view_pipe_from_container",
-                        "pipe from container",
-                        &tests_sort_view_pipe_from_container
-                    },
-                    {
-                        "sort_view_pipe_from_adapted_view",
-                        "pipe from adapted view",
-                        &tests_sort_view_pipe_from_adapted_view
-                    }
-                }
-            }
+            sort_view_terminals_block(),
+            sort_view_factories_block()
         }
     };
 }
