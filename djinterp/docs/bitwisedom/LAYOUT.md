@@ -70,16 +70,16 @@ obsolete configuration manually when the new build is working. Since
 `build/cmake/djinterp/tools/bitwisedom/cmake/Uxoxo.cmake` (now
 `build/ui/bitwisedom/cmake/`).
 
-**uxoxo's Dear ImGui, patched.** Since 2026.10.20 the Options can set a
-sheet's tabs over one of its columns, at the column's left or its right,
-which Dear ImGui's dock nodes do not do by themselves: uxoxo's
-`inc/imgui/imgui.cpp` and `imgui_internal.h` carry a small patch -- a dock
-node's tab bar may begin and end inset, and keep to its right, marked
-`[uxoxo]` and announced by `IMGUI_DOCK_TAB_BAR_INSET 2` (2026.10.19's
-first form, `1`, began inset only) -- delivered as an overlay of uxoxo's
-own, to extract over uxoxo's root. Without it the window still builds,
-configure says so, and the tabs run across the whole width from the left,
-as they do by default anyway.
+**uxoxo's Dear ImGui, patched.** The Options can set a sheet's tabs over
+one of its columns, which Dear ImGui's dock nodes do not do by themselves:
+uxoxo's `inc/imgui/imgui.cpp` and `imgui_internal.h` carry a small patch,
+marked `[uxoxo]` and announced by `IMGUI_DOCK_TAB_BAR_INSET`. With uxoxo's
+own `1` (2026.10.25, which 0.9 takes by ruling cli e) a dock node's tab bar
+may begin inset: the tabs begin at the column and run on to the right edge.
+With the overlay's `2` (2026.10.20) it may also end inset and keep to its
+right: the tabs end where the column does, at its left or its right. With
+neither the window still builds, configure says so, and the tabs run across
+the whole width from the left, as they do by default anyway.
 
 **After unzipping an overlay, configure before building**
 (`cmake --preset msvc`): extraction keeps the archive's file times, which

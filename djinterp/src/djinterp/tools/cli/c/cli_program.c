@@ -3,16 +3,17 @@
 *
 * A command-line program as the kit runs it, declared in cli_program.h, and
 * the text helpers of cli_internal.h's section 2.
-*   The kit adds its standard options to the root unbound, and reads them
-* after every parse -- a failed one included, so that the message a failure
-* writes is coloured as `--color` asked when it was given before the
-* mistake. The parse's own work is the argument parser's; the kit's is what
-* comes before it -- the true command line on Windows, `/?` as `--help` --
-* and after: the exit status the grammar gives each ending, and the failure
-* message in the GNU shape, written by a failure function of the kit's that
-* the parser calls. After a parse that went well, at `-v`, where the run goes
-* on to a command's work, an option that keeps one value and was given values
-* that differ is said, with the one it took (GRAMMAR R8).
+*   The kit adds its standard options to the root unbound, and reads them after
+* every parse -- a failed one included, so that the message a failure writes
+* is coloured as `--color` asked when it was given before the mistake. The
+* parse's own work is the argument parser's; the kit's is what comes before it
+* -- the true command line on Windows, `/?` as `--help`, the run's settings
+* started and the command line's taken off it (cli_settings.h) -- and after:
+* the exit status the grammar gives each ending, and the failure message in
+* the GNU shape, written by a failure function of the kit's that the parser
+* calls. After a parse that went well, at `-v`, where the run goes on to a
+* command's work, an option that keeps one value and was given values that
+* differ is said, with the one it took (GRAMMAR R8).
 *   Every diagnostic is composed in a buffer and written to the error output
 * in one write, so that two programs writing to one terminal do not
 * interleave within a line.
@@ -26,7 +27,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_program.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // corresponding header
 // std
@@ -50,6 +51,7 @@
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // the parser
 #include "../../../../../inc/djinterp/tools/cli/c/cli_format.h"  // d_cli_formatter_use
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // sinks, colour
+#include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // settings
 #include "./cli_internal.h"  // copies, the system
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
@@ -3968,6 +3970,65 @@ const char* const* d_cli_internal_prepare(
     return argv;
 }
 
+/**
+ * @brief The run's settings: started at a program's first parse, the run
+ *        then being its program's -- a module's program is told its run's
+ *        settings by the program that loaded it -- and taken off the
+ *        arguments, which the program keeps without them.
+ *
+ * @param[in,out] _program  the program.
+ * @param[in,out] _argc     the argument count; receives the count kept.
+ * @param[in,out] _argv     the arguments; receives those kept.
+ * @return D_CLI_EXIT_OK; or D_CLI_EXIT_TROUBLE, said, when the settings
+ *         could not be read for want of memory, or the command line named
+ *         one badly.
+ */
+static
+int d_cli_internal_settings(
+    struct dj_cli_program* _program,
+    int*                   _argc,
+    const char* const**    _argv
+)
+{
+    const char** kept;
+    int          count  = 0;
+    int          status = (_program->host == NULL)
+                          ? d_cli_settings_start(_program)
+                          : D_CLI_EXIT_OK;
+
+    if (status != D_CLI_EXIT_OK)
+    {
+        return status;
+    }
+
+    kept = (const char**)D_INTERNAL_CLI_MALLOC(((size_t)*_argc + 1u) *
+                                               sizeof(const char*));
+
+    if (!kept)
+    {
+        d_cli_report(_program,
+                     (int)D_CLI_SEVERITY_ERROR,
+                     "out of memory");
+
+        return D_CLI_EXIT_TROUBLE;
+    }
+
+    status = d_cli_settings_take(_program,
+                                 *_argc,
+                                 *_argv,
+                                 kept,
+                                 &count);
+
+    // kept in place of the copy the arguments may have been read from
+    D_INTERNAL_CLI_FREE((void*)_program->arguments);
+    _program->arguments      = kept;
+    _program->argument_count = (size_t)count;
+    *_argc                   = count;
+    *_argv                   = kept;
+
+    return status;
+}
+
 /*
 d_cli_program_parse
   The program readied, the arguments, the parse, the standard options'
@@ -3993,12 +4054,16 @@ bool d_cli_program_parse(
         return true;
     }
 
-    const char* const* const argv = d_cli_internal_prepare(_program,
-                                                           _argc,
-                                                           _argv);
+    const char* const* argv = d_cli_internal_prepare(_program,
+                                                     _argc,
+                                                     _argv);
+    int                argc = _argc;
 
-    // no memory to parse with, said
-    if (!argv)
+    // no memory to parse with, or a setting named badly, said
+    if ( (!argv) ||
+         (d_cli_internal_settings(_program,
+                                  &argc,
+                                  &argv) != D_CLI_EXIT_OK) )
     {
         *_exit = D_CLI_EXIT_TROUBLE;
 
@@ -4006,7 +4071,7 @@ bool d_cli_program_parse(
     }
 
     const int status = d_arg_parser_parse(_program->parser,
-                                          _argc,
+                                          argc,
                                           (char* const*)argv);
 
     d_cli_internal_read_standard(_program);

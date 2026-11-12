@@ -1,6 +1,6 @@
 # The djinterp interpreter and its command language: design
 
-Written 2026-11-04, amended 2026-11-09 and 2026-11-11. Agreed with the
+Written 2026-11-04, amended 2026-11-09, 2026-11-11 and 2026-11-13. Agreed with the
 designs it depends on: expression core v2's, the options' and the
 registry's, and dawk's. The owner rules what they do not settle.
 
@@ -505,6 +505,11 @@ djinterp help, completion, --version the kit's
 Each djin is a command group, as `git`'s subcommands are. A djin named as a
 built-in command is refused at registration, by name.
 
+In the preview of 11-13, `describe` takes a djin alone, as text; `COMMAND`
+and `--format=json` come with desc's sink. With no djin of the program's
+own yet, `list` names the registry's frames, the kit's `cli` among them, as
+"settings only".
+
 - **`get`** prints statements, `net.timeout_ms = 5000`, one a line, with
   `d_option_env_format_quoted`. So its output can be pasted into a settings
   file.
@@ -627,8 +632,8 @@ into the language's types.
 | Fri 11-06 | This note agreed or amended with the designs it depends on. *Core v2 agreed 11-05; the options and dawk 11-10.* |
 | Mon 11-09 | The grammar's fixes; the spine moved to `interp`. |
 | Wed 11-11 | The djin records (6.2): the set, registration into the registry, and the text that `list` and `describe` print. |
-| Fri 11-13 | The `djinterp` program on the records, with `list` and `describe`, and its build leaf; the kit's options on the knob-and-option pattern; `get` and `set` through the registry. |
-| Weeks 2 and 3 | The 0.8 preview (6.4): `list`, `describe`, `get`, `set`, a djin's commands run. The interpreter's skeleton on core v2 -- sequences and pipelines -- behind it. |
+| Fri 11-13 | The `djinterp` program on the records (`src/djinterp/tools/djinterp/`, its leaf `build/cmake/config/djinterp/tools/djinterp/`): `list`, `describe DJIN`, `get [--show-origin] [NAME]...` and `set NAME=VALUE...`. The kit's settings on the knob-and-option pattern (`tools/cli/c/cli_settings.h`): the user's file, both imports, and the command line's settings. |
+| Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 -- sequences and pipelines -- behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |
 | December | Predicates, blocks and values; djins through the interpreter; awk run by dawk; the language frozen 12-11; suites, docs and the man page by 12-18. |
 

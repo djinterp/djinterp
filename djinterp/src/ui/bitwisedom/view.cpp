@@ -36,7 +36,7 @@
 * path:      /src/ui/bitwisedom/view.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/view.hpp"  // corresponding header
 
@@ -2957,6 +2957,56 @@ bool pinned_here(
 }
 
 /*
+tab_places_menu
+  Where the sheets' tabs run and which end they keep to: only what the Dear
+ImGui under uxoxo can do (tab_row_places) is offered, and what it cannot
+shows as it is drawn.
+*/
+templates tab_places_menu(
+    const shell_state& _shell
+)
+{
+    // what the Dear ImGui under uxoxo can do with the row: begin it over a
+    // column, and end it there and keep the tabs right
+    const int can = tab_row_places();
+    templates places;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        static const char* const OVER[] = { "Every column", "The bits",
+                                            "The symbols column",
+                                            "The value column" };
+
+        places.push_back(menu_item(
+            OVER[i], "set",
+            attrs({ { "target", std::string("environment.tabs_over") },
+                    { "value", static_cast<long>(i) },
+                    { "checkable", true },
+                    { "checked",
+                      static_cast<int>(_shell.prefs.tabs_over) == i },
+                    { "enabled", (i == 0) || (can >= 1) } })));
+    }
+
+    places.push_back(separator());
+    places.push_back(menu_item(
+        "At the left", "set",
+        attrs({ { "target", std::string("environment.tabs_align") },
+                { "value", 0L },
+                { "checkable", true },
+                { "checked", (!_shell.prefs.tabs_right) || (can < 2) },
+                { "enabled", can >= 2 } })));
+    places.push_back(menu_item(
+        "At the right", "set",
+        attrs({ { "target", std::string("environment.tabs_align") },
+                { "value", 1L },
+                { "checkable", true },
+                { "checked", (_shell.prefs.tabs_right) && (can >= 2) },
+                { "enabled", can >= 2 } })));
+
+    return places;
+}
+
+/*
 tab_items
   A tab's menu: close it, every other tab of its row, or those to its left
 or its right -- pinned tabs staying -- pin or unpin it, rename a sheet's
@@ -3008,37 +3058,6 @@ templates tab_items(
                                  { "enabled", _any } }));
     };
 
-    templates places;
-
-    for (int i = 0; i < 4; ++i)
-    {
-        static const char* const OVER[] = { "Every column", "The bits",
-                                            "The symbols column",
-                                            "The value column" };
-
-        places.push_back(menu_item(
-            OVER[i], "set",
-            attrs({ { "target", std::string("environment.tabs_over") },
-                    { "value", static_cast<long>(i) },
-                    { "checkable", true },
-                    { "checked",
-                      static_cast<int>(shell.prefs.tabs_over) == i } })));
-    }
-
-    places.push_back(separator());
-    places.push_back(menu_item(
-        "At the left", "set",
-        attrs({ { "target", std::string("environment.tabs_align") },
-                { "value", 0L },
-                { "checkable", true },
-                { "checked", !shell.prefs.tabs_right } })));
-    places.push_back(menu_item(
-        "At the right", "set",
-        attrs({ { "target", std::string("environment.tabs_align") },
-                { "value", 1L },
-                { "checkable", true },
-                { "checked", shell.prefs.tabs_right } })));
-
     templates items = {
         label(ui.menu_tab_title, attrs({ { "tone", "muted" } })),
         separator(),
@@ -3059,7 +3078,7 @@ templates tab_items(
     }
 
     items.push_back(separator());
-    items.push_back(menu("The sheets' tabs", std::move(places)));
+    items.push_back(menu("The sheets' tabs", tab_places_menu(shell)));
 
     return items;
 }

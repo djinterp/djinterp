@@ -43,6 +43,7 @@ own: a `kit::program` *is* the parser and holds the kit's C record.
 | `c/cli_format.h` | help's layout, as the parser's formatter |
 | `c/cli_io.h` | the standard streams, terminals, colour, and files read and written whole |
 | `c/cli_plugin.h` | the plugin interface, finding and loading a command's module, both sides of a plugin |
+| `c/cli_settings.h` | the run's settings on the knob-and-option pattern: the kit's own, the user's file, the environment, those the command line gives *(added 11-13)* |
 | `c/cli.h` | every C header of the kit, and the parser's |
 | `cli_program.hpp`, `cli_io.hpp`, `cli_plugin.hpp` | the C++ face of each |
 | `cli.hpp` | every C++ header of the kit, and the parser's face |

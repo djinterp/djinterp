@@ -44,7 +44,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.04
+#                                                            revised: 2026.11.13
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -344,6 +344,7 @@ foreach(_level IN LISTS DJINTERP_CLI_C_LEVELS)
         "${_tests}/c/cli_edit_tests.c"
         "${_tests}/c/cli_operand_tests.c"
         "${_tests}/c/cli_plugin_tests.c"
+        "${_tests}/c/cli_settings_tests.c"
         "${CMAKE_CURRENT_LIST_DIR}/cli_c_tests_runner.c")
 
     set_target_properties(${_target} PROPERTIES

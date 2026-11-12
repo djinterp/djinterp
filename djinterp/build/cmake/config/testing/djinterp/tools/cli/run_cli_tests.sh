@@ -54,7 +54,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/run_cli_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.04
+#                                                            revised: 2026.11.13
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
@@ -167,6 +167,7 @@ C_SUITES=( "${TESTS}/c/cli_tests_support.c"
            "${TESTS}/c/cli_edit_tests.c"
            "${TESTS}/c/cli_operand_tests.c"
            "${TESTS}/c/cli_plugin_tests.c"
+           "${TESTS}/c/cli_settings_tests.c"
            "${HERE}/cli_c_tests_runner.c" )
 SWEEP=( "${TESTS}/c/cli_sweep_tests.c"
         "${TESTS}/c/cli_tests_support.c"

@@ -24,7 +24,7 @@
 * path:      /inc/ui/bitwisedom/elements.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #ifndef UI_BITWISEDOM_ELEMENTS_HPP
@@ -341,6 +341,18 @@ struct grid_columns_seen
 grid_columns_seen grid_columns(
     int _document
 );
+
+/**
+ * @brief How far the Dear ImGui under uxoxo lets a sheet's tab row be
+ *        placed (IMGUI_DOCK_TAB_BAR_INSET): for the menus and the Options,
+ *        which offer only what it can do.
+ *
+ * @return 0, not at all: the tabs run across the whole width; 1, the row
+ *         may begin over a column, and runs on to the right edge, its tabs
+ *         at its left; 2, it may end over the column too, and keep its
+ *         tabs at its right.
+ */
+int tab_row_places();
 void draw_flow(
     model&                        _model,
     uxoxo::platform::imgui_frame& _frame,

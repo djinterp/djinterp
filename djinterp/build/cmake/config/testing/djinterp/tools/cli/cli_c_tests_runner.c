@@ -17,7 +17,7 @@
 * path:      /build/cmake/config/testing/djinterp/tools/cli/cli_c_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -30,6 +30,7 @@
 #include "../../../../../../../tests/djinterp/tools/cli/c/cli_operand_tests.h"  // operands that name no file
 #include "../../../../../../../tests/djinterp/tools/cli/c/cli_plugin_tests.h"  // modules
 #include "../../../../../../../tests/djinterp/tools/cli/c/cli_program_tests.h"  // the program
+#include "../../../../../../../tests/djinterp/tools/cli/c/cli_settings_tests.h"  // settings
 #include "../../../../../../../tests/djinterp/tools/cli/c/cli_tests_support.h"  // d_tests_cli_setenv
 
 
@@ -46,15 +47,16 @@ struct dj_tests_cli_c_suite
 //   constant: every C suite this build has, in the order they run: the
 // streams and files the others write through, the help the program lays
 // out, the program, its commands that change a file, its operands that name
-// no file, then the modules it loads.
+// no file, the modules it loads, then the settings it keeps.
 static const struct dj_tests_cli_c_suite SUITES[] =
 {
-    { d_tests_cli_io,      &d_tests_cli_io_count      },
-    { d_tests_cli_format,  &d_tests_cli_format_count  },
-    { d_tests_cli_program, &d_tests_cli_program_count },
-    { d_tests_cli_edit,    &d_tests_cli_edit_count    },
-    { d_tests_cli_operand, &d_tests_cli_operand_count },
-    { d_tests_cli_plugin,  &d_tests_cli_plugin_count  }
+    { d_tests_cli_io,       &d_tests_cli_io_count       },
+    { d_tests_cli_format,   &d_tests_cli_format_count   },
+    { d_tests_cli_program,  &d_tests_cli_program_count  },
+    { d_tests_cli_edit,     &d_tests_cli_edit_count     },
+    { d_tests_cli_operand,  &d_tests_cli_operand_count  },
+    { d_tests_cli_plugin,   &d_tests_cli_plugin_count   },
+    { d_tests_cli_settings, &d_tests_cli_settings_count }
 };
 
 /*

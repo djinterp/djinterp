@@ -1,6 +1,6 @@
 # djinterp::ui — multidimensional visualization framework
 
-> **Where this file is, and what its paths mean (2026-11-09).**
+> **Where this file is, and what its paths mean (2026-11-09, 2026-11-13).**
 > This is `djinterp::ui`'s README as it stood before the restructure of
 > 2026-11-03, which deleted it from `inc/djinterp/ui/` (afb60e61); it is
 > restored from that commit's parent to `docs/djinterp/tools/ui/` (ruling
@@ -14,6 +14,7 @@
 > | `core/util/color/` | `inc/djinterp/cpp/util/color/` |
 > | `math/linear_algebra/`, `math/geometry/`, `math/coordinate/` | the same under `inc/djinterp/cpp/modules/` |
 > | `3d/camera.hpp`, `3d/box.hpp` | `inc/djinterp/cpp/modules/render/` |
+> | `frontends/imgui.hpp` | `inc/ui/frontends/imgui.hpp`, beside the tools' windows, since djinterp itself links no window library (2026-11-13) |
 
 A UI-framework-agnostic, multi-resolution visualization stack built on the
 djinterp math and render3d subframeworks. Its first consumer was a best-path

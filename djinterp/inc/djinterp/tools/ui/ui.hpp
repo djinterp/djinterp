@@ -8,16 +8,16 @@
 * bridge, the level-of-detail scheme, the concrete lenses built so far (slice,
 * heatmap), the framework-agnostic 2D draw layer, the visit-counting state
 * source, and SVG export.  The 3D rendering math is the render3d and math
-* subframeworks', pulled in through types.hpp.  Backend bindings that depend on
-* an external library (e.g. frontends/imgui.hpp) are deliberately not included
-* here; include them only where that library is linked.  Later phases (the
-* remaining lenses and the DSL) add their own headers alongside these.
+* subframeworks', pulled in through types.hpp.  Bindings that depend on an
+* external library live beside the windows that link it, not here: the ImGui
+* frontend is /inc/ui/frontends/imgui.hpp.  Later phases (the remaining lenses
+* and the DSL) add their own headers alongside these.
 *
 *
 * path:      /inc/djinterp/tools/ui/ui.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.18
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #ifndef DJINTERP_TOOLS_UI_HPP

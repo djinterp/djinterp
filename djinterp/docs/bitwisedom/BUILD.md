@@ -321,15 +321,19 @@ it finds GLFW. uxoxo's own tests stay off unless
 `BITWISEDOM_BUILD_UXOXO_TESTS=ON`.
 
 uxoxo's Dear ImGui must be the docking branch (`IMGUI_HAS_DOCK`), or
-configure stops. Its `imgui.cpp` and `imgui_internal.h` carry, since
-2026.10.20, a patch of uxoxo's -- `ImGuiDockNode::TabBarInsetLeft`,
-`TabBarInsetRight` and `TabBarAlignRight`, a dock node's tab bar begun and
-ended inset and kept to its right, marked `[uxoxo]` and announced by
-`IMGUI_DOCK_TAB_BAR_INSET 2` -- so the Options can set a sheet's tabs over
-one of its columns, at its left or its right; without it, or with the
-patch's first form of 2026.10.19 (`1`), configure warns, and the tabs run
-across the whole width from the left, as Dear ImGui's own do and as they
-do by default.
+configure stops. Its `imgui.cpp` and `imgui_internal.h` carry a patch of
+uxoxo's, marked `[uxoxo]` and announced by `IMGUI_DOCK_TAB_BAR_INSET`:
+
+- **`1`**, uxoxo's own since 2026.10.25 and the one 0.9 takes (ruling
+  cli e): `ImGuiDockNode::TabBarInsetLeft`, a dock node's tab bar begun
+  inset. The Options can set a sheet's tabs over one of its columns; they
+  begin at the column's left and run on to the right edge. Configure says
+  so, the tab menu offers no more, and the Options say so.
+- **`2`**, the overlay of 2026.10.20: `TabBarInsetRight` and
+  `TabBarAlignRight` as well, the bar ended inset and kept to its right.
+  The tabs then end where the column does, at its left or its right.
+- **Neither**: configure warns, and the tabs run across the whole width
+  from the left, as Dear ImGui's own do and as they do by default.
 
 ---
 

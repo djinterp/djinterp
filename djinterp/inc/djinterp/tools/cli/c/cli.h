@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/tools/cli/c/cli.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #ifndef DJINTERP_TOOLS_CLI_C_CLI_H
@@ -27,6 +27,7 @@
                                                          // no file
 #include "./cli_plugin.h"                                // modules
 #include "./cli_program.h"                               // the program
+#include "./cli_settings.h"                              // the settings
 
 
 #endif  // DJINTERP_TOOLS_CLI_C_CLI_H

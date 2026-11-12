@@ -207,6 +207,26 @@ The kit installs these; a program's own options never reuse their names.
 | `completion SHELL` | a completion script for `bash`, `zsh`, `fish` or `powershell`, to standard output |
 | `gui [ARGUMENT]...` | the program's window, where it has one (section 7) |
 
+**Settings** *(added 11-13)*. Every program keeps the settings of
+`docs/djinterp/option/knob_and_option.md`: the kit's own, as
+`cli.plugin_strict_version`, and a program's. A run reads them from the
+user's settings file (`$XDG_CONFIG_HOME/djinterp/settings`, else
+`~/.config/djinterp/settings`; `%APPDATA%\djinterp\settings` on Windows),
+from the environment (`DJINTERP_CLI_PLUGIN_STRICT_VERSION`, then the
+program's own name, `BITWISEDOM_CLI_PLUGIN_STRICT_VERSION`, which wins), and
+from its command line:
+
+| setting | does |
+|---|---|
+| `--NAME=VALUE` | sets the setting NAME for this run; NAME is a full name, which always holds a `.` |
+| `--NAME`, `--no-NAME` | sets a bool setting true, or false |
+| `--set NAME=VALUE` | sets any setting, one on the root, `plugin_path`, among them |
+
+The command line stands above the environment, and the environment above
+the file. A statement of the file that fails is said by its line, as a
+warning, and the file is read on; a setting the command line names badly
+is a usage error, the nearest name suggested (R26).
+
 **Help** is wrapped to the terminal's width when standard output is a
 terminal, and to 80 columns otherwise, so that what a script captures does
 not depend on the window it ran in.
@@ -391,6 +411,13 @@ global ones:
   nearest command is suggested.
 - **R25.** After `--`, every argument is an operand (R3); `@FILE` and `/?`
   are read as themselves there.
+- **R26.** *(added 11-13)* A **setting** (section 6) is taken off the
+  command line before the rest is read, wherever an option could stand:
+  before the command, after it, among its operands. An argument that is an
+  option's value is never one (R22, R23), so in `--level --x.y` the word
+  `--x.y` is `--level`'s value; nor is one after `--`. No option of a
+  program's has a `.` in its name (R5), so none is ever taken for a
+  setting.
 
 The standard options of section 6, in the same notation:
 

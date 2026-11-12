@@ -4,10 +4,12 @@
 * A program's commands that live in modules of their own, declared in
 * cli_plugin.h.
 *   Finding a module is string work over three kinds of directory -- those a
-* run names, those PROGRAM_PLUGIN_PATH lists, and the build's, written out
-* from their `$ORIGIN` and `$PROGRAM`; loading one is cli_system.c's, and
-* checking it is reading its record, against the version the program takes,
-* its own unless it was told to take any with a warning. The host's
+* run names, those the program's `plugin_path` setting lists (read from
+* PROGRAM_PLUGIN_PATH), and `cli.plugin_search`'s, the build's by default,
+* written out from their `$ORIGIN` and `$PROGRAM` (cli_settings.h); loading
+* one is cli_system.c's, and checking it is reading its record, against the
+* version the program takes, its own unless it was told to take any with a
+* warning, by its code or by `cli.plugin_strict_version`. The host's
 * command takes everything after its name as the parser leaves it -- a prefix
 * command with no options of its own, its help flag removed and the root's
 * options not falling through -- so the module reads every argument itself,
@@ -19,7 +21,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_plugin.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // corresponding header
 // std
@@ -37,6 +39,7 @@
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h"  // dj_arg_buffer
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // d_cli_colour_wanted, d_cli_free
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // dj_cli_program, d_cli_report
+#include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // what the run set
 #include "./cli_internal.h"  // the system, copies, d_cli_internal_modules_said
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
@@ -610,9 +613,10 @@ int d_cli_internal_expand(
 }
 
 /**
- * @brief Tries each directory of the build's list (D_CFG_CLI_PLUGIN_SEARCH),
- *        written out, until one holds the module; one that needs the
- *        program's directory, unknown, is passed over.
+ * @brief Tries each directory of `cli.plugin_search` -- the build's list,
+ *        D_CFG_CLI_PLUGIN_SEARCH, unless the run set another -- written
+ *        out, until one holds the module; one that needs the program's
+ *        directory, unknown, is passed over.
  *
  * @param[in]     _program     the program's name.
  * @param[in]     _executable  the program's file, or NULL.
@@ -632,7 +636,7 @@ int d_cli_internal_try_search(
     struct dj_arg_buffer* _searched
 )
 {
-    static const char list[] = D_INTERNAL_CLI_PLUGIN_SEARCH;
+    const char* const list = d_cli_settings_plugin_search();
 
     int result = D_ARG_ERROR_FILE;
 
@@ -672,7 +676,9 @@ int d_cli_internal_try_search(
 #if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
 
 /**
- * @brief Tries the directories PROGRAM_PLUGIN_PATH lists.
+ * @brief Tries the directories the program's `plugin_path` lists: the run's
+ *        setting, read from PROGRAM_PLUGIN_PATH among the rest; the
+ *        variable itself where the run's settings are not started.
  *
  * @param[in]     _program   the program's name.
  * @param[in]     _tagged    the module's tagged name, or NULL.
@@ -694,8 +700,25 @@ int d_cli_internal_try_variable(
 {
     struct dj_arg_buffer variable = D_ARG_BUFFER_INIT;
     char*               list     = NULL;
-    int                 status   = d_cli_internal_plugin_variable(_program,
-                                                                  &variable);
+    const char* const   set      = d_cli_settings_plugin_path();
+    int                 status   = (set != NULL)
+                                   ? D_ARG_OK
+                                   : d_cli_internal_plugin_variable(
+                                         _program,
+                                         &variable);
+
+    // the run's setting, or the variable's own value
+    if (set != NULL)
+    {
+        status = d_cli_internal_try_list(set,
+                                         _tagged,
+                                         _plain,
+                                         _found,
+                                         _searched);
+        d_arg_buffer_release(&variable);
+
+        return status;
+    }
 
     status = ( (status == D_ARG_OK) &&
                (d_cli_internal_getenv(variable.data,
@@ -1483,7 +1506,9 @@ bool d_cli_internal_find_module(
 
 /**
  * @brief Whether a program refuses a module of another version of it: as
- *        its setting for the run says, else as the build does.
+ *        `cli.plugin_strict_version` says where the file, the environment
+ *        or the command line set it, else as the program's setting for the
+ *        run says, else as the build does.
  *
  * @param[in] _program  the program.
  * @return `true` if it does.
@@ -1493,13 +1518,7 @@ bool d_cli_internal_strict_versions(
     const struct dj_cli_program* _program
 )
 {
-    return (_program->plugin_versions ==
-            (int)D_CLI_PLUGIN_VERSIONS_REFUSE)
-           ? true
-           : (_program->plugin_versions ==
-              (int)D_CLI_PLUGIN_VERSIONS_WARN)
-             ? false
-             : (D_INTERNAL_CLI_PLUGIN_STRICT_VERSION == 1);
+    return d_cli_settings_plugin_strict_version(_program->plugin_versions);
 }
 
 /**

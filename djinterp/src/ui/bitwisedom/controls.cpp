@@ -43,7 +43,7 @@
 * path:      /src/ui/bitwisedom/controls.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/elements.hpp"  // corresponding header
 
@@ -1385,9 +1385,13 @@ std::map<std::string, std::string>& tab_drafts()
 }
 
 // BITWISEDOM_TAB_PLACES
-//   whether uxoxo's Dear ImGui lets a dock node's tab bar begin and end
-// inset, and keep its tabs at its right end: its patch's second form.
+//   how far uxoxo's Dear ImGui lets a dock node's tab bar be placed: 0, not
+// at all; 1, its start inset (IMGUI_DOCK_TAB_BAR_INSET 1, uxoxo's own, which
+// ruling cli e takes for 0.9); 2, its end inset too, and its tabs kept at
+// its right end (the overlay of 2026.10.20).
 #if defined(IMGUI_DOCK_TAB_BAR_INSET) && (IMGUI_DOCK_TAB_BAR_INSET >= 2)
+#define BITWISEDOM_TAB_PLACES 2
+#elif defined(IMGUI_DOCK_TAB_BAR_INSET) && (IMGUI_DOCK_TAB_BAR_INSET >= 1)
 #define BITWISEDOM_TAB_PLACES 1
 #else
 #define BITWISEDOM_TAB_PLACES 0
@@ -1436,11 +1440,13 @@ void set_tab_places(
             continue;
         }
 
-#if BITWISEDOM_TAB_PLACES
+#if BITWISEDOM_TAB_PLACES >= 1
         const auto found = tab_places().find(node->ID);
         const bool asked = (found != tab_places().end());
 
         node->TabBarInsetLeft  = asked ? found->second.from : 0.0f;
+#endif
+#if BITWISEDOM_TAB_PLACES >= 2
         node->TabBarInsetRight = asked ? found->second.to : 0.0f;
         node->TabBarAlignRight = ( (asked) && (found->second.right) );
 #endif
@@ -1496,6 +1502,16 @@ void set_tab_places(
     tab_places().clear();
 
     return;
+}
+
+/*
+tab_row_places
+  BITWISEDOM_TAB_PLACES, for the menus and the Options, which see no ImGui
+internals.
+*/
+int tab_row_places()
+{
+    return BITWISEDOM_TAB_PLACES;
 }
 
 // tab_keys
@@ -1855,8 +1871,10 @@ void draw_dock_window(
     // preferences name -- every one, the bits, the symbols column or the
     // value column -- at their left or their right, from the next frame;
     // the grid's ground up through the row either side of them. The
-    // document in view has the say, where a node holds several
-#if BITWISEDOM_TAB_PLACES
+    // document in view has the say, where a node holds several. Where the
+    // tab bar can only begin inset, it runs on to the node's right edge,
+    // its tabs at its left
+#if BITWISEDOM_TAB_PLACES >= 1
     if ( (docked) &&
          (_attrs.as_bool("tab_row", false)) )
     {
@@ -1893,6 +1911,9 @@ void draw_dock_window(
 
         from = std::clamp(from, left, right);
         to   = std::clamp(to, from, right);
+#if BITWISEDOM_TAB_PLACES < 2
+        to   = right;
+#endif
 
         tab_place& asked = tab_places()[node->ID];
 
@@ -1901,7 +1922,8 @@ void draw_dock_window(
         {
             asked.from    = (from > left + 0.5f) ? from - left : 0.0f;
             asked.to      = (to < right - 0.5f) ? to - left : 0.0f;
-            asked.right   = _attrs.as_bool("tabs_right", false);
+            asked.right   = ( (BITWISEDOM_TAB_PLACES >= 2) &&
+                              (_attrs.as_bool("tabs_right", false)) );
             asked.in_view = shown;
         }
 

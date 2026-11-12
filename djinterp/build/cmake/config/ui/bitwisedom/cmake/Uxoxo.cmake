@@ -23,7 +23,7 @@
 # path:      /build/cmake/config/ui/bitwisedom/cmake/Uxoxo.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.11.09
+#                                                            revised: 2026.11.13
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -78,11 +78,12 @@ if(NOT _bitwisedom_docking)
         "2026.10.18, whose ImGui is the docking branch, over UXOXO_ROOT.")
 endif()
 
-# the tab rows over one of a sheet's columns, or kept to the right: uxoxo's
-# ImGui of 2026.10.20 (IMGUI_DOCK_TAB_BAR_INSET 2) lets a dock node's tab
-# bar begin and end inset, and sit at its right. Without it, a sheet's tabs
-# run across the whole width from the left, as ImGui's own do -- the
-# default anyway
+# the tab rows over one of a sheet's columns: uxoxo's own Dear ImGui
+# (IMGUI_DOCK_TAB_BAR_INSET 1, which ruling cli e takes for 0.9) lets a dock
+# node's tab bar begin inset, so a sheet's tabs begin over a column and run
+# on to the right edge; the overlay of 2026.10.20 (2) lets it end inset too,
+# and keep its tabs at its right. Without either, a sheet's tabs run across
+# the whole width from the left, as ImGui's own do -- the default anyway
 set(_bitwisedom_inset "")
 
 if(EXISTS "${UXOXO_ROOT}/inc/imgui/imgui_internal.h")
@@ -91,15 +92,20 @@ if(EXISTS "${UXOXO_ROOT}/inc/imgui/imgui_internal.h")
 endif()
 
 if(NOT _bitwisedom_inset MATCHES
-       "IMGUI_DOCK_TAB_BAR_INSET[ \t]+([2-9]|[1-9][0-9]+)")
+       "IMGUI_DOCK_TAB_BAR_INSET[ \t]+([1-9]|[1-9][0-9]+)")
     message(WARNING
         "uxoxo at ${UXOXO_ROOT} carries a Dear ImGui whose dock tab bars "
-        "cannot be inset at both ends and kept to the right "
-        "(inc/imgui/imgui_internal.h does not define "
-        "IMGUI_DOCK_TAB_BAR_INSET as 2 or more): a sheet's tabs will run "
-        "across the whole width, whatever the Options say. Extract the "
-        "uxoxo overlay of 2026.10.20 over UXOXO_ROOT for tabs over a "
-        "column, or at the right.")
+        "cannot be inset (inc/imgui/imgui_internal.h does not define "
+        "IMGUI_DOCK_TAB_BAR_INSET): a sheet's tabs will run across the "
+        "whole width, whatever the Options say. Extract a uxoxo of "
+        "2026.10.25 or later over UXOXO_ROOT for tabs over a column.")
+elseif(NOT _bitwisedom_inset MATCHES
+           "IMGUI_DOCK_TAB_BAR_INSET[ \t]+([2-9]|[1-9][0-9]+)")
+    message(STATUS
+        "bitwisedom: a sheet's tabs may begin over a column, and keep to "
+        "its left; ending over it and keeping to the right need "
+        "IMGUI_DOCK_TAB_BAR_INSET 2, which this uxoxo's Dear ImGui does "
+        "not have")
 endif()
 
 set(UXOXO_CXX_STANDARD ${BITWISEDOM_CXX_STANDARD} CACHE STRING

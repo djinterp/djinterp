@@ -56,7 +56,7 @@
 * path:      /tests/ui/bitwisedom/ui_smoke.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // std
 #include <cmath>    // std::fabs
@@ -3803,12 +3803,15 @@ void the_status_bar(
 
 /*
 tabs_over_the_bits
-  A sheet's tab row runs across the whole width, as Dear ImGui's own do, by
+A sheet's tab row runs across the whole width, as Dear ImGui's own do, by
 default; or over the sheet's bits, its symbols column running up through
 the row, its tabs at the bits' left or their right; or over the symbols
-column alone. A double-click on the tab renames the sheet's file, the name
-typed over the tab: ".bitwisedom.json" put after a bare name, a name with
-a folder in it refused, and Escape keeping the name it had.
+column alone. Where uxoxo's Dear ImGui lets a tab bar only begin inset
+(its IMGUI_DOCK_TAB_BAR_INSET 1), the row over the bits runs on to the
+right edge, its tabs at its left. A double-click on the tab renames the
+sheet's file, the name typed over the tab: ".bitwisedom.json" put after a
+bare name, a name with a folder in it refused, and Escape keeping the name
+it had.
 */
 void tabs_over_the_bits(
     app& _window
@@ -3835,8 +3838,9 @@ void tabs_over_the_bits(
             (window->DC.DockTabItemRect.Min.x < edge),
            "by default the tabs run across the whole width, from its left");
 
-    // where uxoxo's ImGui lets a tab bar begin and end inset
-#if defined(IMGUI_DOCK_TAB_BAR_INSET) && (IMGUI_DOCK_TAB_BAR_INSET >= 2)
+    // where uxoxo's ImGui lets a tab bar begin inset, and, from 2, end
+    // inset and keep its tabs right
+#if defined(IMGUI_DOCK_TAB_BAR_INSET) && (IMGUI_DOCK_TAB_BAR_INSET >= 1)
     using bitwisedom::gui::grid_columns;
 
     // tab_at
@@ -3856,6 +3860,7 @@ void tabs_over_the_bits(
            "over the bits: the symbols column runs up through the tab row, "
            "and the tabs begin past it");
 
+#if (IMGUI_DOCK_TAB_BAR_INSET >= 2)
     const float left_tab = tab_at().Min.x;
 
     post(_window, "set", 1L, std::string("environment.tabs_align"));
@@ -3872,6 +3877,16 @@ void tabs_over_the_bits(
                        grid_columns(id).symbols_to) <= 2.0f) &&
             (tab_at().Max.x <= grid_columns(id).symbols_to + 1.0f),
            "over the symbols column: the tabs end where it does");
+#else
+    expect( (window != nullptr) &&
+            (window->DockNode != nullptr) &&
+            (std::fabs(control_spot(named + ".tab_row.to").x -
+                       (window->DockNode->Pos.x +
+                        window->DockNode->Size.x)) <= 1.0f) &&
+            (bitwisedom::gui::tab_row_places() == 1),
+           "and, where a tab bar can only begin inset, on to the right "
+           "edge");
+#endif
 
     post(_window, "set", 0L, std::string("environment.tabs_over"));
     frames(_window, 4);

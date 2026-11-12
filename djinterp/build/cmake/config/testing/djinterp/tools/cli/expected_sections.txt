@@ -18,14 +18,14 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.04
+#                                                            revised: 2026.11.13
 
 # the C suites: streams and files 8, help 5, the program 18, commands that
 # change a file 4, operands that name no file 2, plugins 9
-c99 46
-c11 46
-c17 46
-c23 46
+c99 51
+c11 51
+c17 51
+c23 51
 
 # the allocation sweep, at the C floor: making, endings, work, files,
 # plugins

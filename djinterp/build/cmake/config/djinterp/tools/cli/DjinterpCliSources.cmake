@@ -6,8 +6,9 @@
 #
 #     DJINTERP_ARG_PARSER_SOURCES   the parser's C sources, the sinks it
 #                                   writes through, and re_std's one C source
-#     DJINTERP_CLI_SOURCES          the kit's C sources, and filesys, which
-#                                   reads and writes its files
+#     DJINTERP_CLI_SOURCES          the kit's C sources; filesys, which
+#                                   reads and writes its files; and the
+#                                   option core, which keeps its settings
 #
 # DjinterpCli.cmake makes the libraries a program links from them; the
 # kit's tests make their own, in testing mode. DJINTERP_ROOT, the repository
@@ -16,7 +17,7 @@
 # path:      /build/cmake/config/djinterp/tools/cli/DjinterpCliSources.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.10.25
+#                                                            revised: 2026.11.13
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -85,7 +86,15 @@ set(DJINTERP_CLI_SOURCES
     "${_djinterp_cli_src}/tools/cli/c/cli_operand.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_plugin.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_program.c"
+    "${_djinterp_cli_src}/tools/cli/c/cli_settings.c"
     "${_djinterp_cli_src}/tools/cli/c/cli_system.c"
+    # the option core the settings are kept in (cli_settings.h): option_env
+    # and its registry, and the option sets beneath them
+    "${_djinterp_cli_src}/c/option/option_common.c"
+    "${_djinterp_cli_src}/c/option/option_env.c"
+    "${_djinterp_cli_src}/c/option/option_env_registry.c"
+    "${_djinterp_cli_src}/c/option/option_set.c"
+    "${_djinterp_cli_src}/c/option/option_set_common.c"
     "${_djinterp_cli_src}/c/filesys/file_common.c"
     "${_djinterp_cli_src}/c/filesys/file_desc.c"
     "${_djinterp_cli_src}/c/filesys/file_dir.c"

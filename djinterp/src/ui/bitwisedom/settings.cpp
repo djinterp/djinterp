@@ -17,7 +17,7 @@
 * path:      /src/ui/bitwisedom/settings.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../inc/ui/bitwisedom/settings.hpp"  // corresponding header
 
@@ -26,7 +26,8 @@
 #include <cmath>      // std::lround
 #include <utility>    // std::move
 // bitwisedom
-#include <djinterp/tools/bitwisedom/json.hpp>  // json_value
+#include <djinterp/tools/bitwisedom/json.hpp>      // json_value
+#include "../../../inc/ui/bitwisedom/elements.hpp"  // tab_row_places
 
 
 namespace bitwisedom
@@ -334,10 +335,14 @@ std::vector<env_setting> make_environment()
         "environment.tabs_over", "The sheets' tabs run over",
         { "every column", "the bits", "the symbols column",
           "the value column" },
-        "the row of a sheet's tabs: across the whole width, as it always "
-        "was; or over one of the sheet's columns, as Visual Studio's code "
-        "tabs run over the code -- the rest of the row the grid's, up to "
-        "the window's top. A column hidden is every column",
+        (tab_row_places() >= 1)
+            ? "the row of a sheet's tabs: across the whole width, as it "
+              "always was; or over one of the sheet's columns, as Visual "
+              "Studio's code tabs run over the code -- the rest of the row "
+              "the grid's, up to the window's top. A column hidden is every "
+              "column"
+            : "the row of a sheet's tabs: across the whole width, whatever "
+              "this says, with the Dear ImGui this window was built with",
         [](const shell_state& _s)
         {
             return static_cast<int>(_s.prefs.tabs_over);
@@ -349,7 +354,11 @@ std::vector<env_setting> make_environment()
     out.push_back(env_choice(
         "environment.tabs_align", "The sheets' tabs keep to",
         { "the left", "the right" },
-        "which end of what they run over the sheets' tabs keep to",
+        (tab_row_places() >= 2)
+            ? "which end of what they run over the sheets' tabs keep to"
+            : "which end of what they run over the sheets' tabs keep to: "
+              "the left, whatever this says, with the Dear ImGui this "
+              "window was built with",
         [](const shell_state& _s) { return _s.prefs.tabs_right ? 1 : 0; },
         [](shell_state& _s, int _index)
         {

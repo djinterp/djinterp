@@ -5,11 +5,14 @@
 *   Each enumeration has one table of words, used both ways, so a value
 * written is always a value read. Two enumerations count from -1 (inherit);
 * their tables carry an offset.
+*   A file that cannot be read or written is said in the commands' words,
+* `cannot read 'PATH': REASON`, so the window's status bar and standard
+* error agree.
 *
 * path:      /src/djinterp/tools/bitwisedom/persist.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.19
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/persist.hpp>  // corresponding header
 
@@ -17,8 +20,10 @@
 
 // std
 #include <algorithm>         // std::max
+#include <cerrno>            // errno
 #include <cmath>             // std::fabs
 #include <cstddef>           // std::size_t
+#include <cstring>           // std::strerror
 #include <filesystem>        // std::filesystem::path
 #include <fstream>           // std::ifstream, std::ofstream
 #include <initializer_list>  // std::initializer_list
@@ -938,6 +943,32 @@ std::filesystem::path file_path(
 #endif
 }
 
+/*
+file_problem
+  What could not be done with a file, in the commands' words (the kit's
+d_cli_file_error): `cannot DOING 'PATH': REASON`, REASON the system's words
+for `_errnum`, left out when the system gave none.
+*/
+std::string file_problem(
+    const char*        _doing,
+    const std::string& _path,
+    int                _errnum
+)
+{
+    std::string problem = std::string("cannot ") + _doing + " '" + _path +
+                          "'";
+
+    if (_errnum != 0)
+    {
+        const char* const reason = std::strerror(_errnum);
+
+        problem += ": ";
+        problem += (reason != nullptr) ? reason : "unknown error";
+    }
+
+    return problem;
+}
+
 }  // anonymous namespace
 
 
@@ -1278,11 +1309,13 @@ bool read_file(
     std::string&       _error
 )
 {
+    errno = 0;
+
     std::ifstream in(file_path(_path), std::ios::binary);
 
     if (!in)
     {
-        _error = "cannot open " + _path;
+        _error = file_problem("read", _path, errno);
 
         return false;
     }
@@ -1299,20 +1332,24 @@ bool write_file(
     std::string&       _error
 )
 {
+    errno = 0;
+
     std::ofstream out(file_path(_path), std::ios::binary | std::ios::trunc);
 
     if (!out)
     {
-        _error = "cannot write " + _path;
+        _error = file_problem("write", _path, errno);
 
         return false;
     }
 
+    errno = 0;
     out << _text;
+    out.flush();
 
     if (!out)
     {
-        _error = "writing " + _path + " failed";
+        _error = file_problem("write", _path, errno);
 
         return false;
     }
