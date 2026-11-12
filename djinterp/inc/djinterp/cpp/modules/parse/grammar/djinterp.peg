@@ -14,7 +14,7 @@
 #  parser that implements it (the `or_` combinator and precedence climbing),   #
 #  and it makes every longest-match decision -- `--` before `-`, `<=` before   #
 #  `<`, the bare `--` option terminator -- a property of rule order rather     #
-#  than an external side condition.  An ABNF (RFC 5234) or EBNF rendering is    #
+#  than an external side condition.  An ABNF (RFC 5234) or EBNF rendering is   #
 #  available as a companion; there, alternation is unordered, so these orders  #
 #  become normative notes attached to the grammar.                             #
 #                                                                              #
@@ -27,12 +27,12 @@
 #  command and its arguments are read by the signature's command role.         #
 #                                                                              #
 #  NOTATION.                                                                   #
-#    A <- e   rule            e1 e2   sequence          e1 / e2  ordered choice #
-#    e*       zero or more    e+      one or more       e?       optional       #
-#    &e       and-predicate (lookahead, consumes nothing)                       #
-#    !e       not-predicate   [...]   char class   'x' "xy" literal   .  any    #
+#    A <- e   rule            e1 e2   sequence         e1 / e2  ordered choice #
+#    e*       zero or more    e+      one or more      e?       optional       #
+#    &e       and-predicate (lookahead, consumes nothing)                      #
+#    !e       not-predicate   [...]   char class   'x' "xy" literal   .  any   #
 #                                                                              #
-#  author(s): Samuel 'teer' Neal-Blim                        created: 2026.07.06 #
+#  author(s): Samuel 'teer' Neal-Blim                      created: 2026.07.06 #
 ################################################################################
 
 

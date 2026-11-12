@@ -28,6 +28,7 @@
 *                                 D_CFG_PARSE_EXPR_MAX_DEPTH /
 *                                 D_CFG_PARSE_EXPR_MAX_ERRORS /
 *                                 D_CFG_PARSE_EXPR_ERROR_ORDER
+*           parse/c/settings.h -> D_INTERNAL_PARSE_SETTINGS
 *           the parse sources  -> D_INTERNAL_PARSE_HEAP
 * requires: cfg_common.h (helpers, and the testing preset it applies)
 *
@@ -35,7 +36,7 @@
 * path:      /inc/djinterp/config/c/modules/parse/cfg_parse.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_PARSE_CFG_PARSE_H
@@ -198,6 +199,20 @@
 #   endif
 #endif
 
+// 1.3.6
+// D_CFG_PARSE_SETTINGS
+//   brief: 1 compiles parse's settings group, the djin `parse` (settings.h):
+// the rows `expr_max_depth`, `expr_max_errors` and `expr_error_order`, which
+// an option of 0 then reads once d_parse_register has run; 0 leaves an
+// option of 0 meaning its knob. Default 1.
+#ifndef D_CFG_PARSE_SETTINGS
+#   if defined(D_CFG_PARSE_ALL)
+#       define D_CFG_PARSE_SETTINGS         D_CFG_PARSE_ALL
+#   else
+#       define D_CFG_PARSE_SETTINGS         1
+#   endif
+#endif
+
 
 // 1.4    Validation
 //------------------------------------------------------------------------------
@@ -230,6 +245,9 @@
 #endif
 #if !D_CFG_IS_BOOL(D_CFG_PARSE_EXPR_SCAN)
 #   error "D_CFG_PARSE_EXPR_SCAN must be 0 or 1"
+#endif
+#if !D_CFG_IS_BOOL(D_CFG_PARSE_SETTINGS)
+#   error "D_CFG_PARSE_SETTINGS must be 0 or 1"
 #endif
 
 
@@ -471,6 +489,16 @@
 #   define D_INTERNAL_PARSE_EXPR_SCAN       1
 #else
 #   define D_INTERNAL_PARSE_EXPR_SCAN       0
+#endif
+
+// 3.1.11
+// D_INTERNAL_PARSE_SETTINGS
+//   brief: 1 when parse's settings group is compiled. Computed from
+// D_CFG_PARSE_SETTINGS; read by settings.h and settings.c.
+#if D_CFG_IS_ON(D_CFG_PARSE_SETTINGS)
+#   define D_INTERNAL_PARSE_SETTINGS        1
+#else
+#   define D_INTERNAL_PARSE_SETTINGS        0
 #endif
 
 // 3.2    Aggregate consequences

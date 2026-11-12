@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/term.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -160,6 +160,11 @@ D_STATIC_ASSERT(offsetof(struct dj_parse_expr_node, op) == 4u,
                 "dj_parse_expr_node's op must follow its 4 header bytes");
 D_STATIC_ASSERT(offsetof(struct dj_parse_expr_node, length) == 20u,
                 "dj_parse_expr_node's span must close the record");
+D_STATIC_ASSERT(offsetof(struct dj_parse_expr_term, nodes) == 0u,
+                "dj_parse_expr_term must open with its nodes");
+D_STATIC_ASSERT(offsetof(struct dj_parse_expr_term, node_count) ==
+                    sizeof(struct dj_parse_expr_node*),
+                "dj_parse_expr_term's count must follow its nodes");
 
 
 //==============================================================================
@@ -293,6 +298,20 @@ uint32_t d_parse_expr_term_copy_with(struct dj_parse_expr_term*       _to,
                                      uint32_t                         _node,
                                      void*                            _scratch,
                                      size_t                           _size);
+/**
+ * @brief Makes a term hold what another holds, node for node, at the same
+ *        indices, its root, depth and holes too.
+ *
+ * @param[in,out] _to    the term; keeps its own storage, which grows where
+ *                       it may and must hold the whole arena where it may
+ *                       not.
+ * @param[in]     _from  the term copied.
+ * @return true; false where either is NULL or `_to` cannot hold it, `_to`
+ *         then empty.
+ * @note The C++ face's copy: a node's index means the same node in both.
+ */
+bool     d_parse_expr_term_assign(struct dj_parse_expr_term*       _to,
+                                  const struct dj_parse_expr_term* _from);
 /**
  * @brief The scratch d_parse_expr_term_copy_with needs to copy a subtree.
  *

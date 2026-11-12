@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/term.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/term.h"  // corresponding header
 // std
@@ -143,21 +143,23 @@ d_parse_expr_term_release(
 }
 
 /**
- * @brief Makes room for one more node.
+ * @brief Makes room for more nodes.
  *
- * @param[in,out] _term  the term.
+ * @param[in,out] _term   the term.
+ * @param[in]     _extra  how many more.
  * @return true when there is room, false when the term is full and cannot
- *         grow, or its count would pass 32 bits.
+ *         grow, or its count would reach the index that means no node.
  */
 static bool
-d_internal_expr_room_for_node(
-    struct dj_parse_expr_term* _term
+d_internal_expr_room_for_nodes(
+    struct dj_parse_expr_term* _term,
+    uint32_t                   _extra
 )
 {
     size_t needed = 0u;
 
     // the count must stay below the index that means "no node"
-    if ( (d_ckd_add(&needed, (size_t)_term->node_count, 1u)) ||
+    if ( (d_ckd_add(&needed, (size_t)_term->node_count, (size_t)_extra)) ||
          (needed >= (size_t)D_PARSE_EXPR_NO_NODE) )
     {
         return false;
@@ -256,7 +258,7 @@ d_internal_expr_append(
 )
 {
     // make room, or refuse
-    if (!d_internal_expr_room_for_node(_term))
+    if (!d_internal_expr_room_for_nodes(_term, 1u))
     {
         return D_PARSE_EXPR_NO_NODE;
     }
@@ -397,7 +399,7 @@ d_internal_expr_build_apply(
 
     // room for the children and the node, or a refusal with nothing changed
     if ( (!d_internal_expr_room_for_args(_term, _count)) ||
-         (!d_internal_expr_room_for_node(_term)) )
+         (!d_internal_expr_room_for_nodes(_term, 1u)) )
     {
         return D_PARSE_EXPR_NO_NODE;
     }
@@ -573,6 +575,59 @@ d_internal_expr_copy_marked(
     }
 
     return _map[_root];
+}
+
+/*
+d_parse_expr_term_assign
+  Empties `_to`, makes room for every node and index of `_from`, and copies
+both arrays whole, so each index names the same node in both.
+*/
+bool
+d_parse_expr_term_assign(
+    struct dj_parse_expr_term*       _to,
+    const struct dj_parse_expr_term* _from
+)
+{
+    // both terms; a term is already itself
+    if ( (!_to) || (!_from) )
+    {
+        return false;
+    }
+
+    if (_to == _from)
+    {
+        return true;
+    }
+
+    d_parse_expr_term_clear(_to);
+
+    // the whole arena must fit, growing where the term may
+    if ( (!d_internal_expr_room_for_nodes(_to, _from->node_count)) ||
+         (!d_internal_expr_room_for_args(_to, _from->arg_count)) )
+    {
+        return false;
+    }
+
+    if (_from->node_count > 0u)
+    {
+        memcpy(_to->nodes, _from->nodes,
+               (size_t)_from->node_count * sizeof(struct dj_parse_expr_node));
+    }
+
+    if (_from->arg_count > 0u)
+    {
+        memcpy(_to->args, _from->args,
+               (size_t)_from->arg_count * sizeof(uint32_t));
+    }
+
+    _to->node_count = _from->node_count;
+    _to->arg_count  = _from->arg_count;
+    _to->root       = _from->root;
+    _to->depth      = _from->depth;
+    _to->flags      = (_to->flags & ~D_PARSE_EXPR_TERM_HAS_HOLES) |
+                      (_from->flags & D_PARSE_EXPR_TERM_HAS_HOLES);
+
+    return true;
 }
 
 /*

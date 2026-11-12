@@ -50,7 +50,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/traversable.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.11
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -70,6 +70,12 @@ II.   GENERIC TRAVERSABLE OPERATIONS
 
 #ifndef DJINTERP_PARSE_TRAVERSABLE_HPP
 #define DJINTERP_PARSE_TRAVERSABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
@@ -204,7 +210,7 @@ NS_INTERNAL
     template<typename _Value>
     struct DTraversableAppendHelper
     {
-        D_CONSTEXPR
+        D_CONSTEXPR_CPP20
         std::vector<_Value> operator()(
             std::vector<_Value> _acc,
             const _Value&       _element
@@ -251,7 +257,7 @@ struct traversable_traits<std::vector<_Type>, void>
     //   F<std::vector<B>> from a std::vector<A> and f : A -> F<B>.
     template<typename _Function>
     static
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP20
     typename monad_rebind<
         decltype(std::declval<_Function&>()(std::declval<const _Type&>())),
         std::vector<applicative_value_type_t<decltype(
@@ -342,6 +348,9 @@ auto sequence(
 
 
 NS_END  // djinterp
+
+
+#endif  // floor, for now
 
 
 #endif  // DJINTERP_PARSE_TRAVERSABLE_HPP

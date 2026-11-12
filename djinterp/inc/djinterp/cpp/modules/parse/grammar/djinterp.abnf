@@ -63,7 +63,7 @@ argument     = long-option
 block        = "{" *nl [ sequence ] "}"                   ; note (h)
 
 long-option  = "--" option-name [ "=" [ option-value ] ]
-terminator   = "--"                    ; only when not followed by a name char - note (b)
+terminator   = "--"                    ; not before a name char - note (b)
 short-option = "-" 1*short-char
 
 verb         = word

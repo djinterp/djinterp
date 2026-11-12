@@ -24,10 +24,10 @@
 * path:      /tests/djinterp/tools/vparse/cli_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.12
 *******************************************************************************/
-#include "cli/cli.hpp"     // the unit under test
-#include "cli/report.hpp"  // json_quote
+#include "../../../../src/djinterp/tools/vparse/cli/cli.hpp"     // the unit under test
+#include "../../../../src/djinterp/tools/vparse/cli/report.hpp"  // json_quote
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER  // the floor its header has
 
 // std

@@ -4,15 +4,18 @@ Lane F, for agreement with lanes E, G and H and the math session by Friday
 2026-11-06. The design is the contract: anything that changes it after Friday
 goes back to the lanes it touches.
 
-**Status, Wednesday 11-11.** The C core is built and tested: term,
+**Status, Friday 11-13.** The C core is built and tested: term,
 signature, parser with its sub-parse and hole modes, diagnostics, folds,
 walks, the renderer, the default scanner and the caller's scratch, with
-every case of sections 6.3 and 6.4 in its suite, now on DTest 2.0's C face
-(section 21 lists what is there, what is measured, and what building it
-changed in this text). Lanes E, G and H answered section 20 on 11-05 and
+every case of sections 6.3 and 6.4 in its suite, on DTest 2.0's C face.
+Friday 11-13 adds the `parse` settings group on lane E's option_env
+(section 11), the C++98 face and the bridge to v1 (section 13), and the
+face's suite, which holds the face to the C API node for node (section 14).
+Section 21 lists what is there, what is measured, and what building it
+changed in this text. Lanes E, G and H answered section 20 on 11-05 and
 since; their answers are folded in, and decisions F15 to F19 came of them.
-The owner ruled S190 for core v2 on 11-08. Friday 11-13 brings the C++98
-face, the bridge, the parity suite and the `parse` settings group.
+The owner ruled S190 for core v2 on 11-08. The round trip at 100,000 terms
+and the fuzz harness, as suites of their own, move to week 3 (section 18).
 
 ## 0. What this settles
 
@@ -184,13 +187,17 @@ own table of atoms, an interned lexeme's offset, or a small integer.
 ### 4.3 Building and rewriting
 
 The builder is public: `d_parse_expr_term_leaf`, `d_parse_expr_term_apply`
-(children by index), `d_parse_expr_term_hole`, and `d_parse_expr_term_copy`
-(a subtree of one term into another, its nodes renumbered). A language's own
-pass after the parse (math's `piecewise`, a simplifier) writes a new term
-with these, as v1's rewrites write a new `expression`. Equality
-(`d_parse_expr_term_equal`, spans and `_GROUPED` ignored unless asked) and a
-digest (`d_parse_expr_term_digest`, 32-bit FNV-1a over the reachable nodes in
-order, with the face on Friday 11-13) serve the parity tests and caches.
+(children by index), `d_parse_expr_term_hole`, `d_parse_expr_term_copy`
+(a subtree of one term into another, its nodes renumbered) and
+`d_parse_expr_term_assign` (a whole term into another, arena for arena, the
+face's copy; F38). A language's own pass after the parse (math's
+`piecewise`, a simplifier) writes a new term with these, as v1's rewrites
+write a new `expression`. Equality (`d_parse_expr_term_equal`, spans and
+`_GROUPED` ignored unless asked) and a digest (`d_parse_expr_term_digest`,
+`fold.h`: 32-bit FNV-1a over the subtree as a depth-first walk meets it,
+each node's kind, flags without `_GROUPED`, operator, number of children
+and a leaf's value, so spans and groups do not change it; F38) serve the
+parity tests and caches.
 
 ## 5. The signature
 
@@ -843,12 +850,23 @@ a group of names), each defaulting to its knob:
 So `DJINTERP_PARSE_EXPR_MAX_DEPTH=unbounded` and
 `--parse.expr_error_order=structure_first` work. An option of 0 means the
 setting in force, read through its cache when a parse starts; the group sits
-in a unit of parse's own, and a knob (`D_CFG_PARSE_SETTINGS`, default 1)
-compiles it out, 0 then meaning the knob again. Until Friday 11-13 builds
-it, 0 means the knob. `D_PARSE_EXPR_OPTION_STOP` gets no row: it is a
-caller's choice per parse, not a setting. The group is registered
-(`d_parse_register`) before a program starts its threads, and its header
-says so (promise 8).
+in a unit of parse's own (`parse/settings.h`, built 11-12), and a knob
+(`D_CFG_PARSE_SETTINGS`, default 1 or `D_CFG_PARSE_ALL`) compiles it out, 0
+then meaning the knob again. `D_PARSE_EXPR_OPTION_STOP` gets no row: it is
+a caller's choice per parse, not a setting. The group is registered
+(`d_parse_register(registry)`) before a program starts its threads, and its
+header says so (promise 8); `d_parse_unregister()` takes it off again, and
+`d_parse_djin()` gives the djin to a caller that reads it.
+
+The core does not call the option layer (F33). It reads the settings in
+force through one function, `d_parse_expr_settings(&settings)`: the knobs,
+unless a reader has been installed with `d_parse_expr_settings_from(reader)`,
+in which case the reader fills them and each value is checked as an
+option's would be, a value out of range falling back to its knob.
+`d_parse_register` installs the group's reader, which reads the three rows
+through their caches; `d_parse_unregister` takes it out. So a program that
+links the core alone links no option code, and a parse costs one call more
+than it did when 0 meant the knob.
 
 | knob (`cfg_parse.h`) | default | option (`dj_parse_expr_options`) | what it is |
 |---|---|---|---|
@@ -858,6 +876,7 @@ says so (promise 8).
 | `D_CFG_PARSE_EXPR_ERROR_ORDER` | leftmost | `error_order` | which error is the error (section 7.3) |
 | `D_CFG_PARSE_EXPR_RENDER` | 1 | none | the renderer compiled in |
 | `D_CFG_PARSE_EXPR_SCAN` | `D_CFG_PARSE_ALL`, else 1 | none | the default scanner compiled in (section 10) |
+| `D_CFG_PARSE_SETTINGS` | `D_CFG_PARSE_ALL`, else 1 | none | the `parse` settings group compiled in; off, an option of 0 is the knob |
 | none | | `flags` | `D_PARSE_EXPR_OPTION_STOP`: end at a token the expression cannot go on with (F17) |
 
 A build without the heap is a full one: every structure has a fixed-storage
@@ -885,56 +904,92 @@ sink. That is promise 8's "says why not".
 Every allocation goes through `d_parse_grow` or one call of the caller's
 choosing, and every size is computed with `d_ckd_mul` and `d_ckd_add` before
 the call (promise 3). Counts are 32 bits; a text of 4 GiB or more, or a term
-of more than 2^32 - 1 nodes, is `capacity`, not a wrap. `sizeof`, `offsetof`
-and `alignof` of the node, the token and the term are asserted in C and C++
-(promise 3's layout gate); the node's size and offsets are asserted now, the
-rest with the face on Friday 11-13.
+of more than 2^32 - 1 nodes, is `capacity`, not a wrap. `sizeof` and
+`offsetof` of the node, the token and the term are asserted in the C
+headers, which the face includes at every C++ level (promise 3's layout
+gate): the node is 24 bytes, the token 20 with its offset at 8 and its
+value at 16, and the term's nodes and count lead it. Each of the face's
+classes that is its C structure (`DOptions`, `DMixfix`, `DScanConfig`,
+`DRenderOptions`) is asserted to add nothing to it.
 
 ## 13. The C++98 face
 
-`djinterp::parse::expr`, one class per C structure, each holding its C
-structure and calling the C functions, so nothing is computed twice and the
-parity tests compare like with like.
+`djinterp::parse::expr` (`inc/djinterp/cpp/modules/parse/expr/`, built
+11-12), at every level from ISO strict C++98 to C++26. Each class holds its
+C structure and calls the C functions, so nothing is computed twice and the
+parity tests compare like with like. The names are the C++ style guide's:
+classes `D` and Pascal case, functions and members in snake case (F34).
 
-- `signature`: builder methods (`atom`, `prefix`, `infix`, `postfix`,
-  `mixfix`, `juxtapose`, `custom`), each returning `*this`; `seal()`.
-- `term`: nodes as `node_view` (kind, op, children, span, flags), equality,
-  digest; copyable at every level, movable from C++11.
-- `parse(signature, source, options)` and `parse(signature, tokens,
-  options)`, returning a `result`: the term, the diagnostics, the error's
-  index, and whether it succeeded. A source is any class with a `next`
-  member of the C shape's arguments; a C++98 functor, a C++11 lambda through
-  an adapter.
-- `fold<Value>(term, algebra)`: the algebra a functor `Value
-  operator()(node_view, const Value* children, std::size_t count)`; the
-  values held in a `std::vector<Value>` in arena order, no recursion.
-- `walk(term, visitor)`; `render(signature, term, options, atom_writer)`
-  returning a `std::string` or writing through a functor.
-- `diagnostics`: a C++98 view over the sink: count, each record, its
-  message, the error. The foundation's `diagnostic.hpp` is C++11-floored;
-  either its floor comes down to C++98 in parse's polish (the better
-  answer: one view at every level), or `expr` carries the C++98 view until it
-  does. The face's window decides by what the port costs.
+- `DSignature` (`signature.hpp`): builder methods `atom`, `token`,
+  `prefix`, `infix`, `postfix`, `chain`, `mixfix`, `op`, `juxtapose`,
+  `custom` and `role`, each returning `*this`; a refused row leaves
+  `good()` false and the chain goes on; `seal()`, `sealed()`, `find(id)`
+  (once sealed). On the heap or in the caller's arrays; not copyable,
+  movable from C++11. `DMixfix` builds a mixfix's descriptor:
+  `bracket`, `list`, `rows`, `with_tail`, `in`.
+- `DTerm` (`term.hpp`): `leaf`, `apply` (an array, or from C++11 an
+  initializer list), `hole`, `copy`, `set_root`, `clear`; nodes as
+  `DNodeView` (kind, operator, value, children, span, flags, depth);
+  `verify`, `equal`, `digest`, `==`. On the heap or in the caller's
+  storage; copyable at every level (by `d_parse_expr_term_assign`, `good()`
+  false where the copy cannot be held), movable from C++11.
+- `parse(signature, source, options, sink)` (`parse.hpp`) returns a
+  `DResult`: the term, the status, the error's domain, code, span and
+  index, the token the parse ended at, and the diagnostics as `DDiagnostic`
+  copies with their messages (F36), so a result is a plain value. With the
+  caller's sink the diagnostics stay there. A source is a C source (the
+  default scanner's, through `DScanner`), an array or vector of tokens, or
+  any object with a `next` member of the C shape's arguments: a C++98
+  class, or a callable through `make_source`, a lambda from C++11. `DOptions`
+  is the C options, zeroed.
+- `fold<Value>(term, root, algebra, out, flags)` (`fold.hpp`): the algebra
+  any object with `Value operator()(DNodeView, const Value* children,
+  std::size_t count)`, the values held in a `std::vector<Value>`, each
+  reached node once, in arena order, no recursion; `walk(term, root,
+  visitor)` with `enter` and `leave`, depth first on an explicit stack.
+  Both are C++ of their own over the same rules as the C fold and walk, not
+  the C ones under a thunk, so an algebra or a visitor may throw (F35); the
+  parity suite holds them to the C ones node for node.
+- `render(signature, term, root, out, options)` into a `std::string`, and
+  `render_to(..., writer)` through any writer `bool operator()(const char*,
+  std::size_t)`, each with an optional C++ atom writer `bool
+  operator()(DNodeView, std::string&)` (`render.hpp`); `DRenderOptions` is
+  the C options, zeroed.
+- `DScanner` and `DScanConfig` (`scan.hpp`) bind the default scanner.
+
+A source, a writer or an atom writer is called from inside the C parser or
+renderer; what it throws stops at the face and is a failure there (a fatal
+parse, a render that returns false), so no exception crosses a C frame
+(F37). `expr.hpp` is the umbrella for all of it.
 
 Above C++98, and only as additions: move constructors and `noexcept` from
-C++11, lambdas and `std::initializer_list` tables for signatures from C++11,
-`std::string_view` texts from C++17, concepts for the algebra and the source
-from C++20. Nothing that changes a result depends on the level.
+C++11, lambdas and initializer lists from C++11. Nothing that changes a
+result depends on the level, and the suite says so at each one.
 
-The **bridge** (`bridge.hpp`, C++11 and up, v1's floor):
-`to_expression<OpId, Atom>(term, op_of, atom_of)` builds v1's
-`expression<OpId, Atom>` from a v2 term, iteratively, so math's folds, its
-simplifier and lane D's layout keep their v1 term; and
-`from_operator_signature(operator_signature<OpId>)` gives a v2 signature
-from a v1 table, for a language moving its table.
+The **bridge** (`bridge.hpp`, C++11 and up, v1's floor; below it the file is
+empty): `to_expression<OpId, Atom>(term, root, op_of, atom_of, out, flags)`
+builds v1's `expression<OpId, Atom>` from a v2 subtree by the face's fold,
+each application through `op_of(DNodeView)` and each leaf through
+`atom_of(DNodeView)`, so math's folds, its simplifier and lane D's layout
+keep their v1 term. OpId and Atom are given, since v1's term is an alias no
+argument deduces through. A node a chain shares is built once, and v1's
+nodes, held by shared pointer, share it too. A term with holes is refused
+unless `D_PARSE_EXPR_FOLD_HOLES` is given, `out` then untouched.
+`from_operator_signature(table, id_of, signature)` defines a v1 table's
+prefix, infix and postfix rows in a v2 signature, its ids through `id_of`,
+with their precedence (both bind the higher tighter), associativity,
+spelling and algebraic flags, a word's spelling flagged
+`D_PARSE_EXPR_OP_WORD`. The token classes are the language's own, so it
+adds its roles and seals; a nullary or matchfix row has no form one
+spelling can give, and is left to the caller and counted (F39).
 
 ## 14. Tests
 
 | suite | language | what it holds |
 |---|---|---|
 | `parse_expr` (DTest's C face: `tests/.../parse/expr/expr_tests*`, leaf `build/.../parse/expr/`) | C99 to C23 | signatures sealed and refused, each form, each role condition, each diagnostic with its span and note, recovery, the depth guard, the sub-parse and hole modes, folds, walks, rendering, the scanner, the caller's scratch, each fixed-storage form |
-| `t_parse_expr_cpp` | C++98 strict to C++26 | the same through the face |
-| `t_parse_expr_parity` | C++98 to C++26 | each text of the corpus through the C API and the face: the same arena node for node, the same diagnostics (domain, code, span), the same render, the same fold |
+| `parse_expr_face` (DTest's C face from C++: `tests/.../cpp/modules/parse/expr/expr_face_tests*`, leaf `build/.../cpp/modules/parse/expr/`) | ISO strict C++98, C++98 to C++26 | three blocks (F40). `face`: the face's own rules (storage, copies and moves, the builder's refusals, C++ sources, the result's copies, writers, folds and walks, a callback's throw). `parity`: a calculator built by the C API and by the face, the same rows; 24 texts, well formed and not, parsed both ways with the settings in force and three sets of options: the same arena node for node, the same result and diagnostics field for field and message for message; every term rendered five ways, folded from every node with and without holes, walked five ways, digested at every node: the same each time. `bridge`, from C++11: parsed terms as v1's, a chain's shared node shared, holes and bad roots refused, a v1 table moved and parsed by |
+| `parse_settings` (DTest's C face: `tests/.../c/modules/parse/settings/`) | C99 to C23 | the `parse` group: the knobs as defaults, each source (a file, the environment, the command line), the standing, a forced value given back, `unbounded` by name, a misspelling's suggestion, a parse reading the rows, and the knobs again once unregistered |
 | `t_parse_expr_roundtrip` | C | 100,000 random terms over a test signature with every form, rendered, read back, compared; and random texts read and rendered, read again |
 | `t_parse_expr_math` | C++, with the math session | every text of math's face test and fuzz, through math's v2 table and through its parser layer: the same term, the same status at the same character, but where 7.3's difference is the reason |
 | the command grammar's | C++, lane G's, in `tests/djinterp/cpp/modules/interp/` | the command grammar's examples, on the interpreter's table |
@@ -952,12 +1007,15 @@ timed.
 `src/djinterp/c/modules/parse/expr/`: `term.h`, `signature.h`, `parse.h`,
 `fold.h`, `render.h`, `scan.h`, and `expr.h`, the umbrella; the
 sources share one header of their own, `expr_internal.h`, which holds the
-decision the parser and the renderer both make. **C++ face**,
-`inc/djinterp/cpp/modules/parse/expr/`: the same stems in `.hpp`, and
-`bridge.hpp`. **Config**: the knobs join `cfg_parse.h`, one file for the
-subframework as the config readme asks. **Tests**:
-`tests/djinterp/c/modules/parse/expr/` and
-`tests/djinterp/cpp/modules/parse/expr/`.
+decision the parser and the renderer both make. **Settings**,
+`inc/djinterp/c/modules/parse/settings.h` and
+`src/djinterp/c/modules/parse/settings.c`, beside the core, not in it.
+**C++ face**, `inc/djinterp/cpp/modules/parse/expr/`: the same stems in
+`.hpp`, and `bridge.hpp`, which the umbrella leaves out, being C++11's.
+**Config**: the knobs join `cfg_parse.h`, one file for the subframework as
+the config readme asks. **Tests**: `tests/djinterp/c/modules/parse/expr/`,
+`.../parse/settings/` and `tests/djinterp/cpp/modules/parse/expr/`, each
+with its leaf at the same path under `build/cmake/config/testing/`.
 
 **Names**: functions `d_parse_expr_*`, types `dj_parse_expr_*`, macros
 `D_PARSE_EXPR_*`, the namespace `djinterp::parse::expr` (`NS_EXPR` inside
@@ -978,8 +1036,12 @@ is right, these follow in the same sweep.
 - `cpp/modules/parse/expression_ops.hpp`, `expression_parse.hpp`,
   `expression_render.hpp` and `expression_static.hpp`, one directory up:
   stale copies of 09.21 that include `../math/expression.hpp`, which does not
-  exist, and fail at every level; nothing includes them. They retire in this
-  delivery: 4 of the 14 C++ units that fail at every level.
+  exist, and fail at every level; nothing includes them. Retired.
+- Parse's other stale copies retire on 11-13: `cpp/modules/parse/vparse/`
+  (17 files, `parsegen/vparse/` from before the restructure),
+  `cpp/modules/parsegen/peg.cpp`, which included it, and
+  `cpp/modules/parse/parsers/cpp/c.hpp`, an older copy of
+  `parsers/c/c.hpp`. Nothing builds or includes any of them.
 
 ## 16. The two `/parse/` foundations (style #80)
 
@@ -1134,8 +1196,8 @@ commit with lane H's removal of dawk's own correction
 
 Answered 11-05: domain 4 and its ten codes are agreed, named as in 7.1; a
 note carries its error's code (done); section 11's settings are rows of a
-`parse` group in E's pattern (Friday 11-13, on option_env's named INT rows,
-which E delivers 11-11; the rows as section 11 gives them, agreed 11-10); a
+`parse` group in E's pattern (built 11-12 on option_env's named INT rows,
+which E delivered 11-11; the rows as section 11 gives them, agreed 11-10); a
 describer for a signature (identity, state, each operator's spellings, role,
 precedence, association and arity, its bytes) in December, once desc's
 describer interface is frozen. The core logs nothing and prints nothing: the
@@ -1156,8 +1218,8 @@ to agree by 11-13; parse's table follows.
 | Wed 11-04 | the C core built and tested (section 21); the 22 allocation sites checked |
 | Fri 11-06 | this design agreed; S190 and style #80 decided |
 | Wed 11-11 | (Monday's, moved) the scanner; the sub-parse and `hole_mode` (F18); the caller's scratch; parse's four C suites on DTest 2.0's C face; F24 with lane H |
-| Fri 11-13 | (Wednesday's, moved) the C++98 face; the bridge; the parity suite; the round trip at 100,000 terms and the fuzz harness. Interfaces agreed; the `parse` settings group on lane E's option_env; parse polish begins (the 14 C++ units and 1 C unit failing at every level; the 4 to gate below C++11; parse's long functions; the stale `parse/vparse` copy retired) |
-| week 3 | parsegen's and vparse's notation readers on v2; the command grammar with lane G; vparse's long functions split |
+| Fri 11-13 | (Wednesday's, moved) the C++98 face; the bridge; the parity suite, as the face's suite. Interfaces agreed; the `parse` settings group on lane E's option_env; parse polish begun: the stale copies retired (`parse/vparse`, `parsegen/peg.cpp`, `parsers/cpp/c.hpp`), `parse_bnf.h`'s path and `traversable.hpp`'s floor fixed, `stress.cpp` marked as a lexer's data (lane A's ruling) |
+| week 3 | the round trip at 100,000 terms and the fuzz harness, as suites of their own (moved from 11-13); parse's long functions (`syntax_item.c`, `css_match`); parsegen's and vparse's notation readers on v2; the command grammar with lane G; vparse's long functions split; the five held guard renames, once math's chunk 46 lands |
 | week 4 | suites for parse's stable core, docs; the bison, flex and LLVM adapters' design note |
 | December | the DSL's hooks for lane G by 12-04; v1's climber retired once math has moved; a result flag saying every error could be mended by more input (a missing operand at the end, an unclosed bracket), for the interpreter's continuation prompt (lane G) |
 
@@ -1293,6 +1355,86 @@ mode alone:* a raw block is not an expression. *Alternative, letting a hook
 change its source's state between takes:* the source then knows of hooks,
 and the parser must promise how far it reads ahead.
 
+F20 to F32 are the syntax layer's and the deliveries' (lane F's handoffs of
+11-06 and 11-11). Eight more came of building the settings group and the
+face, 11-12.
+
+**F33. The core reads the settings in force through a reader it is given,
+and calls no option code.** `d_parse_expr_settings_from` installs the
+reader; `d_parse_register` installs the `parse` group's. *For:* a program
+that links the core alone links no option layer, and the core's suite runs
+without one; the group is replaceable (a test's, an embedder's), and its
+values are checked where they are used. *Against:* one function pointer of
+program-wide state, written before threads start, as the group's
+registration already must be. *Alternative, the core calling `option_env`
+itself:* every client of the core links the option layer and its registry.
+*Alternative, the caller passing the settings in each parse's options:*
+every caller fetches them, and an option of 0 can no longer mean "the
+setting in force".
+
+**F34. The face's names are the C++ style guide's: classes `D` and Pascal
+case (`DTerm`, `DSignature`, `DNodeView`, `DResult`), functions in snake
+case (`parse`, `fold`, `render_to`).** *For:* the guide's rule for classes,
+as the foundation's C++ follows it. *Against:* this design's draft names
+(`term`, `node_view`, `result`) move. *Alternative, the draft's lower-case
+names:* the guide keeps snake case for what the standard's protocols name,
+traits and `re_std`, and these are none of them.
+
+**F35. The face's fold and walk are C++ of their own over the C ones'
+rules, not the C fold and walk under a thunk.** *For:* an algebra or a
+visitor may throw, and its exception unwinds no C frame; a value is any
+copyable type (a `std::string`, v1's term), not a byte size; neither
+recurses. *Against:* two implementations of one rule; the parity suite
+holds them to each other at every node of every text, with holes allowed
+and not, and a bad root. *Alternative, a thunk over `d_parse_expr_fold`:*
+values must then be trivially copyable bytes, and a throw must be caught at
+the thunk and the fold stopped, losing the exception.
+
+**F36. The face carries its own C++98 view of the diagnostics: a result
+copies each record and its message.** *For:* a result is a plain value at
+every level, outliving the sink it came from; the foundation's
+`diagnostic.hpp` keeps its C++11 floor. *Against:* a copy per diagnostic;
+a caller who wants none passes its own sink, and the result then holds no
+copies. *Alternative, bringing `diagnostic.hpp` down to C++98:* another
+lane's header ported for a view that still could not outlive its sink.
+
+**F37. What a source, a writer or an atom writer throws stops at the face,
+and is that callback's failure.** *For:* they are called from inside the C
+parser and renderer, whose frames an exception must not cross; the C shapes
+already have a failure (`-1`, a short write, `false`), and the face maps a
+throw onto it. *Against:* the exception's message is lost; a caller who
+needs it keeps it in the callback. *Alternative, letting it through:*
+undefined in C frames, and the parser's own state left behind.
+
+**F38. The C core gains `d_parse_expr_term_assign` and
+`d_parse_expr_term_digest`.** *For:* the face's copy is the C arena copied
+whole, indices and unreached nodes too, so parity holds for copies; C
+clients (math's memo, lane G's caches) get the digest the face has, spans
+and groups not changing it. *Against:* two functions more in C. *Alternative,
+the face copying by `d_parse_expr_term_copy` from the root:* the nodes
+renumber, and a copy is no longer the same arena. *Alternative, the digest
+in C++ only:* C callers write their own.
+
+**F39. The bridge takes its ids and atoms from the caller, and leaves to it
+what v2 cannot take from one row.** `to_expression<OpId, Atom>` maps each
+node through `op_of` and `atom_of`; `from_operator_signature` maps ids
+through `id_of`, flags a word's spelling, and counts the nullary and
+matchfix rows it leaves. *For:* v1's ids and atoms are any types, and v2's
+classes are the language's lexer's, which no v1 table names. *Against:* a
+language moving its table still writes its roles, and its constants and
+matchfix operators. *Alternative, inventing classes and sealing:* the
+classes would not be the lexer's. *Alternative, a nullary row as an atom,
+a matchfix row as a mixfix:* an atom needs a class, and a mixfix two parts
+where v1's row has one spelling.
+
+**F40. The face's suite is one module of three blocks, `face`, `parity` and
+`bridge`, at every C++ level, the bridge's tests skipped below C++11.**
+*For:* one set of fixtures (the calculator built both ways, the C parse),
+as F25 has it for the syntax suites; a skipped test says why (F26). The C
+units it stands on are built once, at C99. *Alternative, the three suites
+this design first named (`t_parse_expr_cpp`, `t_parse_expr_parity` and a
+bridge suite):* three copies of the fixtures.
+
 ## 20. What each lane is asked
 
 By Friday 11-06, and where each stands:
@@ -1304,7 +1446,8 @@ By Friday 11-06, and where each stands:
   probe measured), within F10's range; whether F11's reading of `(1 + 2]`
   suits (it maps to `unbalanced` either way, now at the `]` alone). The
   first two become the knobs' and the settings group's defaults; until they
-  come, 1000 and `leftmost`.
+  come, 1000 and `leftmost`. *11-12: chunk 46 has not landed; the five v1
+  guard renames wait for it (F29).*
 - **Lane G:** the two questions of 17.2; whether week 3 suits the command
   grammar. *Answered 11-05 (17.2); F19 came of it. 11-10: the grammar's
   edits for P1 to P8, whole; the walk's skip meets its F5 (section 8).*
@@ -1316,31 +1459,51 @@ By Friday 11-06, and where each stands:
 
 ## 21. The build in this delivery
 
-Wednesday 11-11's, over Friday 11-06's.
+Friday 11-13's, over Wednesday 11-11's.
 
 ### 21.1 What is there
 
 | file | what |
 |---|---|
-| `inc/.../parse/expr/term.h`, `src/.../term.c` | the arena: fixed or heap storage, leaves, applications, holes, copy (and `copy_with`, in the caller's scratch), verify, equality |
+| `inc/.../parse/expr/term.h`, `src/.../term.c` | the arena: fixed or heap storage, leaves, applications, holes, copy (and `copy_with`, in the caller's scratch), assign (11-12), verify, equality |
 | `inc/.../parse/expr/signature.h`, `src/.../signature.c` | operators of the four forms, chains, mixfix descriptors with their `hole_mode`, juxtaposition, roles, sealing with its diagnostics, lookup |
-| `inc/.../parse/expr/parse.h`, `src/.../parse.c` | tokens and sources (the array source), the parser of section 6, the hook interface and the sub-parse, the caller's scratch and `d_parse_expr_scratch_size`, `d_parse_expr_locate` |
+| `inc/.../parse/expr/parse.h`, `src/.../parse.c` | tokens and sources (the array source), the parser of section 6, the hook interface and the sub-parse, the caller's scratch and `d_parse_expr_scratch_size`, `d_parse_expr_locate`; the settings in force and their reader (11-12) |
 | `inc/.../parse/expr/scan.h`, `src/.../scan.c` | the default scanner of section 10 |
-| `inc/.../parse/expr/fold.h`, `src/.../fold.c` | the fold (marks, then arena order) and the walk (`enter`, `leave`, skip and stop) |
+| `inc/.../parse/expr/fold.h`, `src/.../fold.c` | the fold (marks, then arena order), the walk (`enter`, `leave`, skip and stop) and the digest (11-12) |
 | `inc/.../parse/expr/render.h`, `src/.../render.c` | the renderer, through a write function or into a buffer |
 | `inc/.../parse/expr/expr.h` | the umbrella |
 | `src/.../parse/expr/expr_internal.h` | the frame kinds and the one bracket decision the parser and the renderer share |
-| `inc/djinterp/config/.../cfg_parse.h` | the six knobs of section 11 that exist now, validated |
+| `inc/djinterp/config/.../cfg_parse.h` | the seven knobs of section 11, validated |
+| `inc/.../parse/settings.h`, `src/.../parse/settings.c` | the `parse` group of section 11 on lane E's option_env: three rows, register, unregister, the reader |
+| `inc/djinterp/cpp/modules/parse/expr/*.hpp` | the C++98 face of section 13: `term.hpp`, `signature.hpp`, `parse.hpp`, `fold.hpp`, `render.hpp`, `scan.hpp`, `expr.hpp`; and `bridge.hpp`, from C++11 |
 | `inc/.../parse/diagnostic.h` | `D_PARSE_DIAG_DOMAIN_EXPR` (4) |
 | `tests/.../parse/expr/expr_tests*`, leaf `build/.../parse/expr/` | the C suite, `parse_expr`, on DTest 2.0's C face: five blocks, sixteen tests; every case of 6.3 and 6.4 (dawk's ladder and lane H's eight among them), every code of 7.1, recovery, both error orders, the guard, a full arena on caller storage, the stop option, the sub-parse and hole modes, a hook's own mode, the command language rendered back, 3,000 random round trips, the renderings named in 9, folds and walks, `locate`, the scanner, the caller's scratch |
 | `tests/.../parse/syntax/syntax_tests*`, `tests/.../parse/overflow/overflow_tests*`, leaves beside the expression suite's | parse's other two C suites on the same face: the syntax items (F20 to F24) and the allocation sites' refusals |
+| `tests/.../c/modules/parse/settings/settings_tests*`, its leaf | `parse_settings`: two blocks, seven tests (section 14) |
+| `tests/.../cpp/modules/parse/expr/expr_face_tests*`, leaf `build/.../cpp/modules/parse/expr/` | `parse_expr_face`: three blocks, nineteen tests (section 14), at ISO strict C++98 and C++98 to C++26 |
 
 ### 21.2 Measured
 
-- The three suites pass at C99, C11, C17 and C23 with GCC under ASan and
-  UBSan, and with Clang under valgrind (no errors, no leaks): `parse_expr`
-  16 of 16, `parse_syntax` 12 of 12, `parse_overflow` 3 of 4 with one
-  skipped, the refusals that exist only where `size_t` is 32 bits.
+- The four C suites pass at C99, C11, C17 and C23 with GCC under ASan and
+  UBSan: `parse_expr` 16 of 16, `parse_syntax` 12 of 12, `parse_overflow` 3
+  of 4 with one skipped, the refusals that exist only where `size_t` is 32
+  bits, and `parse_settings` 7 of 7, which also passes with Clang under
+  valgrind (no errors, no leaks).
+- `parse_expr_face` passes 19 of 19 (640 checks) at C++11, 14, 17, 20, 23
+  and 26, and 15 of 19 at ISO strict C++98 and C++98, the bridge's four
+  skipped, with GCC and Clang (GCC 13 has no C++26); with GCC at C++98 and
+  C++17 under ASan and UBSan, and with GCC at C++11 and Clang at C++98 and
+  C++26 under valgrind (no errors, no leaks). Its leaf builds and passes
+  standing alone and inside the whole project.
+- The parity suite fails when the face is changed: a message copied with
+  one byte more, the fold's children taken in reverse, the walk's skip
+  ignored; each is caught by its parity test and the face test beside it.
+- Under the knob matrix: `parse_settings` skips its seven tests with the
+  group compiled out (`D_CFG_PARSE_SETTINGS` or `D_CFG_PARSE_ALL` 0) and
+  passes them without the heap, the scanner or the renderer;
+  `parse_expr_face` skips its nineteen without the heap, the scanner or the
+  renderer, or with a guard under 16, and passes with the group compiled
+  out and with the guard at 16 or unbounded.
 - Line coverage of the core's six sources under `parse_expr`: 89.8% (term
   86%, signature 91%, parse 92%, fold 96%, render 81%, scan 97%), against
   the floor of 80%.
@@ -1364,11 +1527,11 @@ Wednesday 11-11's, over Friday 11-06's.
 
 ### 21.3 Not yet
 
-The `parse` settings group (lane E's option_env, Friday 11-13);
-`d_parse_expr_term_digest`; the C++98 face, the bridge and the parity suite
-(Friday 11-13); the round trip at 100,000 terms and the fuzz harness as
-suites of their own; the token's and the term's layout asserts, with the
-face.
+The round trip at 100,000 terms and the fuzz harness as suites of their own
+(week 3); concepts for the algebra and the source from C++20, and
+`std::string_view` texts from C++17 (section 13: additions, none yet
+needed); the face's own tests of the caller's storage without the heap,
+which the C suite covers.
 
 ### 21.4 What building it changed in this text
 
@@ -1390,6 +1553,18 @@ of Monday 11-02 sees what moved.
 - 9: the buffer form; the bracket rule over an operand's whole open edge,
   found by the round trip.
 - 11: the stack rooms of a build without the heap.
+
+And from building the face and the settings group, 11-12:
+
+- 4.3: `d_parse_expr_term_assign`, and the digest's definition (F38).
+- 11: the core reads the settings through a reader it is given (F33); the
+  knob `D_CFG_PARSE_SETTINGS`.
+- 12: the token's and the term's layout asserted; the face's classes that
+  are their C structures asserted to add nothing.
+- 13: the face as built: its names (F34), its own fold and walk (F35), its
+  own copy of the diagnostics (F36), throws stopped at C frames (F37), and
+  the bridge's arguments (F39).
+- 14: the face's suites as one (F40); the settings suite.
 
 And from building week 2's part, 11-10:
 

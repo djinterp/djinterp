@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/fold.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/fold.h"  // corresponding header
 // std
@@ -364,4 +364,88 @@ d_parse_expr_walk(
 #endif  // D_INTERNAL_PARSE_EXPR_HEAP
 
     return whole;
+}
+
+
+//==============================================================================
+// DIGESTING
+//==============================================================================
+
+
+// FNV-1a's 32-bit offset basis and prime
+#define D_INTERNAL_EXPR_FNV_BASIS   2166136261u
+#define D_INTERNAL_EXPR_FNV_PRIME   16777619u
+
+/*
+d_internal_expr_fnv
+  Folds a 32-bit word into a digest, a byte at a time, low byte first, so the
+digest is the same on every byte order.
+*/
+static uint32_t
+d_internal_expr_fnv(
+    uint32_t _digest,
+    uint32_t _word
+)
+{
+    for (unsigned shift = 0u; shift < 32u; shift += 8u)
+    {
+        _digest ^= (_word >> shift) & 0xFFu;
+        _digest *= D_INTERNAL_EXPR_FNV_PRIME;
+    }
+
+    return _digest;
+}
+
+/*
+d_internal_expr_digest_enter
+  Folds a node in as the walk enters it.
+*/
+static int
+d_internal_expr_digest_enter(
+    void*                            _ctx,
+    const struct dj_parse_expr_term* _term,
+    uint32_t                         _node,
+    uint32_t                         _parent
+)
+{
+    uint32_t* const                  digest = (uint32_t*)_ctx;
+    const struct dj_parse_expr_node* n      = &_term->nodes[_node];
+    const uint32_t                   head   =
+        (uint32_t)n->kind |
+        ((uint32_t)(n->flags & ~D_PARSE_EXPR_NODE_GROUPED) << 8u);
+
+    (void)_parent;
+
+    *digest = d_internal_expr_fnv(*digest, head);
+    *digest = d_internal_expr_fnv(*digest, n->op);
+    *digest = d_internal_expr_fnv(*digest, n->count);
+    *digest = d_internal_expr_fnv(*digest,
+                                  (n->kind == D_PARSE_EXPR_NODE_LEAF)
+                                  ? n->first
+                                  : 0u);
+
+    return D_PARSE_EXPR_WALK_CONTINUE;
+}
+
+/*
+d_parse_expr_term_digest
+  A walk with the digest as its context.
+*/
+uint32_t
+d_parse_expr_term_digest(
+    const struct dj_parse_expr_term* _term,
+    uint32_t                         _root
+)
+{
+    uint32_t digest = D_INTERNAL_EXPR_FNV_BASIS;
+
+    if ( (!_term) || (_root >= _term->node_count) )
+    {
+        return 0u;
+    }
+
+    return (d_parse_expr_walk(_term, _root, d_internal_expr_digest_enter,
+                              NULL, &digest))
+           ? digest
+           : 0u;
 }

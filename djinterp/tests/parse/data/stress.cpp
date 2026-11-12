@@ -2,12 +2,17 @@
 * djinterp [test]                                                     stress.cpp
 *
 * Exercises `local.hpp`.
+*   Data, not a unit: input for parse's C++ lexer, given by name to the
+* lexer tools beside it (`dump_lex_cpp`, `corpus_lex --cpp`), holding
+* digraphs, raw strings, C++23 literals and a line splice. Nothing compiles
+* it, and `local.hpp` exists nowhere; the checks leave `tests/**/data/` out
+* (lane A, 11-12).
 *
 *
 * path:      /tests/parse/data/stress.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.22
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include <string>
 #include "local.hpp"

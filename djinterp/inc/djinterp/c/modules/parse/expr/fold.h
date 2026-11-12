@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/fold.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -37,6 +37,7 @@ TABLE OF CONTENTS
     ----------
     1.  Folding
     2.  Walking
+    3.  Digesting
 */
 
 #ifndef DJINTERP_C_PARSE_EXPR_FOLD_H
@@ -191,6 +192,25 @@ bool d_parse_expr_walk(const struct dj_parse_expr_term* _term,
                        dj_parse_expr_visit_fn           _enter,
                        dj_parse_expr_visit_fn           _leave,
                        void*                            _ctx);
+
+// 2.3    Digesting
+//------------------------------------------------------------------------------
+/**
+ * @brief A subtree's digest: 32-bit FNV-1a over its nodes as a depth-first
+ *        walk meets them, each node's kind, operator, number of children, a
+ *        leaf's value, and its flags but GROUPED.
+ *
+ * Two subtrees d_parse_expr_term_equal finds equal, spans aside, have one
+ * digest, whichever terms and indices they are at: the parity tests and
+ * caches compare by it.
+ *
+ * @param[in] _term  the term, verified or parsed.
+ * @param[in] _root  the subtree's root.
+ * @return the digest; 0 where an argument is wrong or the walk's stack could
+ *         not grow.
+ */
+uint32_t d_parse_expr_term_digest(const struct dj_parse_expr_term* _term,
+                                  uint32_t                         _root);
 
 D_EXTERN_C_END
 

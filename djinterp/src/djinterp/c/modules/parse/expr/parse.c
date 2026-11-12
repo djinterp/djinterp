@@ -26,7 +26,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/parse.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // corresponding header
 // std
@@ -2711,7 +2711,8 @@ d_internal_expr_step_operator(
 
 
 /**
- * @brief Gives a parser its settings, each option over its knob.
+ * @brief Gives a parser its settings, each option over the setting in force
+ *        (d_parse_expr_settings), read once, as the parse starts.
  *
  * @param[out] _p        the parser, zeroed.
  * @param[in]  _options  the options; may be NULL.
@@ -2722,21 +2723,23 @@ d_internal_expr_settings(
     const struct dj_parse_expr_options* _options
 )
 {
-    struct dj_parse_expr_options none;
+    struct dj_parse_expr_options  none;
+    struct dj_parse_expr_settings in_force;
 
     memset(&none, 0, sizeof(none));
+    d_parse_expr_settings(&in_force);
 
     const struct dj_parse_expr_options* o = (_options) ? _options : &none;
 
     _p->max_depth   = (o->max_depth != 0u)
                       ? o->max_depth
-                      : (uint32_t)D_CFG_PARSE_EXPR_MAX_DEPTH;
+                      : in_force.max_depth;
     _p->max_errors  = (o->max_errors != 0u)
                       ? o->max_errors
-                      : (uint32_t)D_CFG_PARSE_EXPR_MAX_ERRORS;
+                      : in_force.max_errors;
     _p->order       = (o->error_order != D_PARSE_EXPR_ORDER_DEFAULT)
                       ? o->error_order
-                      : (uint8_t)D_CFG_PARSE_EXPR_ERROR_ORDER;
+                      : in_force.error_order;
     _p->flags       = o->flags;
     _p->mode        = (o->mode != 0u) ? o->mode : 1u;
     _p->source_id   = o->source_id;
@@ -3382,6 +3385,85 @@ d_parse_expr_locate(
     {
         *_column = column;
     }
+
+    return;
+}
+
+
+//==============================================================================
+// 10. THE SETTINGS IN FORCE
+//==============================================================================
+
+
+// d_internal_expr_reader
+//   variable: the reader an option of 0 consults, or NULL for the knobs.
+// Written only by d_parse_expr_settings_from, before the program's threads
+// start; every parse reads it.
+static dj_parse_expr_settings_fn d_internal_expr_reader = NULL;
+
+/*
+d_parse_expr_settings
+  The knobs, then the reader's settings over them, each kept only where an
+option could give it, so a reader cannot hand a parse a guard or an allowance
+it would refuse.
+*/
+void
+d_parse_expr_settings(
+    struct dj_parse_expr_settings* _settings
+)
+{
+    struct dj_parse_expr_settings read;
+
+    if (!_settings)
+    {
+        return;
+    }
+
+    memset(_settings, 0, sizeof(*_settings));
+    _settings->max_depth   = (uint32_t)D_CFG_PARSE_EXPR_MAX_DEPTH;
+    _settings->max_errors  = (uint32_t)D_CFG_PARSE_EXPR_MAX_ERRORS;
+    _settings->error_order = (uint8_t)D_CFG_PARSE_EXPR_ERROR_ORDER;
+
+    if (!d_internal_expr_reader)
+    {
+        return;
+    }
+
+    memset(&read, 0, sizeof(read));
+    d_internal_expr_reader(&read);
+
+    if ( ( (read.max_depth >= 1u) &&
+           (read.max_depth <= D_PARSE_EXPR_NODE_DEPTH_MAX) ) ||
+         (read.max_depth == D_PARSE_EXPR_DEPTH_UNBOUNDED) )
+    {
+        _settings->max_depth = read.max_depth;
+    }
+
+    if ( (read.max_errors >= 1u) &&
+         (read.max_errors <= D_PARSE_EXPR_ERRORS_MAX) )
+    {
+        _settings->max_errors = read.max_errors;
+    }
+
+    if ( (read.error_order == D_PARSE_EXPR_ORDER_LEFTMOST) ||
+         (read.error_order == D_PARSE_EXPR_ORDER_STRUCTURE_FIRST) )
+    {
+        _settings->error_order = read.error_order;
+    }
+
+    return;
+}
+
+/*
+d_parse_expr_settings_from
+  Keeps the reader.
+*/
+void
+d_parse_expr_settings_from(
+    dj_parse_expr_settings_fn _reader
+)
+{
+    d_internal_expr_reader = _reader;
 
     return;
 }

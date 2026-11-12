@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/parse.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -49,19 +49,22 @@ TABLE OF CONTENTS
          1.  dj_parse_expr_check_fn
          2.  dj_parse_expr_options
          3.  dj_parse_expr_result
+         4.  dj_parse_expr_settings
+         5.  dj_parse_expr_settings_fn
 3.  OPERATIONS
     ----------
     1.  Sources
     2.  Parsing
     3.  The hook interface
     4.  Places
+    5.  The settings in force
 */
 
 #ifndef DJINTERP_C_PARSE_EXPR_PARSE_H
 #define DJINTERP_C_PARSE_EXPR_PARSE_H 1
 
 // std
-#include <stddef.h>  // size_t
+#include <stddef.h>  // size_t, offsetof
 // djinterp
 #include "../../../djinterp.h"                              // framework root
 #include "../../../../config/c/modules/parse/cfg_parse.h"   // D_CFG_PARSE_EXPR_*
@@ -180,6 +183,14 @@ struct dj_parse_expr_token
     uint32_t value;
 };
 
+// the layout every source and the C++ face rely on, at every level
+D_STATIC_ASSERT(sizeof(struct dj_parse_expr_token) == 20u,
+                "dj_parse_expr_token must stay five 32-bit words");
+D_STATIC_ASSERT(offsetof(struct dj_parse_expr_token, offset) == 8u,
+                "dj_parse_expr_token's span must follow its class and flags");
+D_STATIC_ASSERT(offsetof(struct dj_parse_expr_token, value) == 16u,
+                "dj_parse_expr_token's value must close the record");
+
 // 2.1.2
 // dj_parse_expr_source
 //   struct: where tokens come from, one at a time. `next` is told the
@@ -222,7 +233,9 @@ typedef bool (*dj_parse_expr_check_fn)(
 
 // 2.2.2
 // dj_parse_expr_options
-//   struct: the run-time settings, each 0 for the knob's default. `max_depth`
+//   struct: the run-time settings, each 0 for the setting in force: the
+// `parse` group's row once d_parse_register has run (settings.h), and the
+// knob's default otherwise (d_parse_expr_settings). `max_depth`
 // is 1 to D_PARSE_EXPR_NODE_DEPTH_MAX, or D_PARSE_EXPR_DEPTH_UNBOUNDED: a
 // guard between them is refused, as no node records a depth past the first.
 // `max_errors` is 1 to D_PARSE_EXPR_ERRORS_MAX; more is refused. `mode` is
@@ -271,6 +284,25 @@ struct dj_parse_expr_result
     uint32_t                   diag_index;
     struct dj_parse_expr_token next;
 };
+
+// 2.2.4
+// dj_parse_expr_settings
+//   struct: what an option of 0 stands for when a parse starts: the depth
+// guard, the error allowance and the error order, each valid as an option's.
+struct dj_parse_expr_settings
+{
+    uint32_t max_depth;
+    uint32_t max_errors;
+    uint8_t  error_order;
+    uint8_t  reserved[3];
+};
+
+// 2.2.5
+// dj_parse_expr_settings_fn
+//   type: a reader of the settings in force, which d_parse_register installs
+// (settings.h); it fills every member.
+typedef void (*dj_parse_expr_settings_fn)(
+    struct dj_parse_expr_settings* _settings);
 
 
 //==============================================================================
@@ -442,6 +474,27 @@ void     d_parse_expr_locate(const char* _text,
                              size_t      _offset,
                              uint32_t*   _line,
                              uint32_t*   _column);
+
+// 3.5    The settings in force
+//------------------------------------------------------------------------------
+/**
+ * @brief The settings an option of 0 stands for, now: the reader's, once
+ *        one is installed, and the knobs' otherwise.
+ *
+ * @param[out] _settings  the settings; may not be NULL.
+ */
+void d_parse_expr_settings(struct dj_parse_expr_settings* _settings);
+
+/**
+ * @brief Installs the reader an option of 0 consults; NULL goes back to the
+ *        knobs. d_parse_register installs parse's group's.
+ *
+ * @param[in] _reader  the reader, or NULL.
+ * @note Shared by every parse in the program, so it is installed before the
+ *       program starts its threads, as a djin is registered (lane E's
+ *       "configure, then run"); a parse never writes it.
+ */
+void d_parse_expr_settings_from(dj_parse_expr_settings_fn _reader);
 
 D_EXTERN_C_END
 

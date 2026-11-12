@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/c/modules/parse/parsers/bnf/parse_bnf.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.09
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_C_PARSE_PARSERS_BNF_PARSE_BNF_H
@@ -22,7 +22,7 @@
 #include <string.h>
 // djinterp
 #include "../../../../djinterp.h"
-#include "../../../c/dmemory.h"
+#include "../../../../memory/dmemory.h"
 #include "../../../../dstring.h"
 #include "../../../../string_fn.h"
 #include "parse_bnf_common.h"

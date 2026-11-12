@@ -26,13 +26,13 @@
      { e } zero or more     [ e ] optional        ( e ) grouping
      e1 - e2  exception (e1 but not e2)            ;  ends a rule
      "t" / 't'  terminal string     (* comment *)     ? special sequence ?
-   ============================================================================ *)
+   ========================================================================== *)
 
 
 (* ─── II.  Syntactic grammar (over tokens) ─────────────────────────────────
       Each alternative is selected by its leading token, which is unambiguous,
       so the unordered '|' is exact here.  Precedence is the cascade: weakest
-      binder (sequence) first, strongest (primary) last.                        *)
+      binder (sequence) first, strongest (primary) last.                      *)
 
 program     = { nl }, [ sequence ] ;
 
@@ -41,7 +41,7 @@ sequence    = pipeline, { separator, { nl }, pipeline },
 separator   = ";" | newlineToken ;
 nl          = newlineToken ;                    (* a newline that is a blank *)
 
-pipeline    = orExpr, { "|", { nl }, orExpr } ;            (* | threads a value *)
+pipeline    = orExpr, { "|", { nl }, orExpr } ;          (* | threads a value *)
 
 orExpr      = andExpr, { "or", { nl }, andExpr } ;
 andExpr     = notExpr, { "and", { nl }, notExpr } ;
@@ -78,7 +78,7 @@ compareOp   = "==" | "!=" | "=~" | "<=" | ">=" | "<" | ">" ;
 
 (* ─── I.  Lexical grammar (over characters) ─────────────────────────────────
       The exception operator writes the character sets directly.  Maximal munch
-      and lexical priority are the notes (a),(b),(c).                           *)
+      and lexical priority are the notes (a),(b),(c).                         *)
 
 newlineToken  = newline ;
 
@@ -146,4 +146,4 @@ continuation  = "\", newline ;                             (* joins two lines *)
        declare a command's block raw: its text, to the '}' that closes it, is
        one token, read by the djin's own dialect, and this grammar does not
        apply inside it.
-   ─────────────────────────────────────────────────────────────────────────── *)
+   ────────────────────────────────────────────────────────────────────────── *)
