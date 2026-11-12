@@ -17,7 +17,7 @@
 * path:      /src/ui/vparse/elements_imgui.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.10.26
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../inc/ui/vparse/elements.hpp"  // corresponding header
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER  // the floor the header has
@@ -32,7 +32,7 @@
 // imgui
 #include "imgui.h"  // widgets, tables, draw lists
 // djinterp
-#include "djinterp/tools/ui/frontends/imgui.hpp"  // ui::draw_field
+#include "../../../inc/ui/frontends/imgui.hpp"  // ui::draw_field
 // re_std
 #include "re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint16_t
 // uxoxo
