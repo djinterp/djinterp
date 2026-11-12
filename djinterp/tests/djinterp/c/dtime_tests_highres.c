@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dtime_tests_highres.c
+* djinterp [c]                                             dtime_tests_highres.c
 *
 *   Tests for high-resolution time functions (clock_gettime, clock_getres,
 * timespec_get).

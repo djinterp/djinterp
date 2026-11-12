@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               djinterp_tests.h
+* djinterp [c]                                                  djinterp_tests.h
 *
 * djinterp.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block holds the register's decision #21
@@ -51,6 +51,7 @@ D_EXTERN_C_BEGIN
 // 1.1    The register's decisions
 //------------------------------------------------------------------------------
 bool d_tests_djinterp_index_macros(void);
+
 bool d_tests_djinterp_index_most_negative(void);
 
 
@@ -110,6 +111,7 @@ d_tests_djinterp_spec(void)
 // The tests built call by call (section 3), which the runner calls after
 // adding the spec.
 bool d_tests_djinterp_run_all(struct dj_test_suite* _suite);
+
 bool d_tests_djinterp_core_all_extended(struct dj_test_suite* _suite);
 
 
@@ -144,24 +146,31 @@ bool d_tests_djinterp_core_all_extended(struct dj_test_suite* _suite);
 bool d_tests_djinterp_macro_clamp_index(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_index_in_bounds(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_safe_arr_idx(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_is_valid_index(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_is_valid_index_n(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_neg_idx(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_arr_idx(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_macro_function_consistency(
     struct dj_test_suite* _suite
 );
@@ -238,6 +247,7 @@ bool d_tests_djinterp_run_all(
 bool d_tests_djinterp_ssize64_creation(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_ssize64_access(
     struct dj_test_suite* _suite
 );
@@ -246,6 +256,7 @@ bool d_tests_djinterp_ssize64_access(
 bool d_tests_djinterp_ssize64_arithmetic_functions(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_ssize64_arithmetic_macros(
     struct dj_test_suite* _suite
 );
@@ -254,6 +265,7 @@ bool d_tests_djinterp_ssize64_arithmetic_macros(
 bool d_tests_djinterp_ssize64_comparison_ssize64(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_ssize64_comparison_other_types(
     struct dj_test_suite* _suite
 );
@@ -262,9 +274,11 @@ bool d_tests_djinterp_ssize64_comparison_other_types(
 bool d_tests_djinterp_ssize64_conversion_functions(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_ssize64_validation_functions(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_djinterp_ssize64_edge_cases(
     struct dj_test_suite* _suite
 );

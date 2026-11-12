@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                         test_compress_tests_signatures.cpp
+* djinterp [cpp][test]                        test_compress_tests_signatures.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_tests_signatures.cpp

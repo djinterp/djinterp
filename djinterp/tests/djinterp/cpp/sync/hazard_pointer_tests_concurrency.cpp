@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            hazard_pointer_tests_concurrency.cpp
+* djinterp [cpp][sync]                      hazard_pointer_tests_concurrency.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/hazard_pointer_tests_concurrency.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                test_deadlock_tests_scoped.cpp
+* djinterp [cpp][test]                            test_deadlock_tests_scoped.cpp
 *
 *   Section TU: DScopedDeadlockWatchdog - RAII arming of a borrowed watchdog
 * around a block.  The ctor sets the timeout and arms; the dtor disarms.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                test_object.c
+* djinterp [c][test]                                               test_object.c
 *
 *   Implementation of the shared node kernel.  Compiled by both languages from
 * this one source.

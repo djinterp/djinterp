@@ -1,24 +1,42 @@
 /*******************************************************************************
-* djinterp [config]                                          cfg_test_metadata.h
+* djinterp [c][test]                                         cfg_test_metadata.h
 *
 *   Configuration for the DTest metadata module.
 *
 *   targets:  c/test/test_metadata.h
 *   requires: cfg_common.h
 *
-*   ONE FILE, ONE MODULE, BOTH FORKS.  Granularity is the module, and after
-* rev13 that is what the file set actually is: cfg_test.h had grown to serve
-* four modules at once, which made it the thing the rule forbids at a larger
-* scale than the sibling it was written to prevent.  There is deliberately no
-* copy under config/test/ for the C++ fork -- a knob's value must be identical
-* in both forks (dconfig 6.2), and two files, one per fork, would be that rule
-* broken by directory structure rather than by anyone's decision.
+* ONE FILE, ONE MODULE, BOTH FORKS
+* --------------------------------
+*   Granularity is the module, and after rev13 that is what the file set
+* actually is: cfg_test.h had grown to serve four modules at once, which made it
+* the thing the rule forbids at a larger scale than the sibling it was written
+* to prevent.  There is deliberately no copy under config/test/ for the C++ fork
+* -- a knob's value must be identical in both forks (dconfig 6.2), and two
+* files, one per fork, would be that rule broken by directory structure rather
+* than by anyone's decision.
 *
-*   THIS FILE DECLARES KNOBS.  IT DOES NOT DECLARE TYPES.  D_CFG_* originates
-* here with a default and a validation block; the typedef that turns it into a
-* type lives at the top of the module header that owns the type, where a reader
-* looking for dj_test_key_id finds it in the file that uses it.  A config header
-* that also typedefs is a second place to look for one answer.
+* THIS FILE DECLARES KNOBS
+* ------------------------
+*   It does not declare types.  D_CFG_* originates here with a default and a
+* validation block; the typedef that turns it into a type lives at the top of
+* the module header that owns the type, where a reader looking for
+* dj_test_key_id finds it in the file that uses it.  A config header that also
+* typedefs is a second place to look for one answer.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: dconfig.h includes this file. Define a knob before that, or
+* pass it with -D, to change its default.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TEST_METADATA (1), D_CFG_TEST_METADATA_REPLACE (1),
+* D_CFG_TEST_METADATA_MAX (8) and D_CFG_TEST_KEY_ID_TYPE (uint32_t).
 *
 *
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_metadata.h

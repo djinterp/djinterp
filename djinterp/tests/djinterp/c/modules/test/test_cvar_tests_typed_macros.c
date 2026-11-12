@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 test_cvar_tests_typed_macros.c
+* djinterp [c][test]                              test_cvar_tests_typed_macros.c
 *
 * test_cvar.h's suite, block "cvar_typed_macro_all": the D_TEST_REGISTRY_* typed
 * access macros, also with an unknown key.

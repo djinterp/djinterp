@@ -1,10 +1,11 @@
 /*******************************************************************************
-* djinterp [test]                                           lock_guard_tests.hpp
+* djinterp [cpp][sync]                                      lock_guard_tests.hpp
 *
 *   Declarations for the lock_guard.hpp unit-test suite, plus the helper types
 * the sections share.
 *
-*   WHAT THESE GUARDS ARE, AND WHAT THAT MEANS FOR TESTING:
+* WHAT THESE GUARDS ARE, AND WHAT THAT MEANS FOR TESTING
+* ------------------------------------------------------
 *   lock_guard.hpp is the RAII layer over lock_policy.hpp: a handful of guards
 * that acquire a policy's lock on construction and release it on destruction,
 * so that call sites never name a concrete mutex or lock type.  Each guard is a
@@ -17,9 +18,10 @@
 * readers that overlap - get their own section, built from std::thread with a
 * rendezvous so the threads truly race rather than lining up by luck.
 *
-*   THE SHARP EDGES THE SUITE PINS:
+* THE SHARP EDGES THE SUITE PINS
+* ------------------------------
 *     - DScopedReadLock and DScopedWriteLock declare `= default` move members,
-*       but for null_lock_policy those moves are IMPLICITLY DELETED: the guard
+*       but for null_lock_policy those moves are implicitly deleted: the guard
 *       holds a no_op_guard, and no_op_guard is non-movable (deleted copy plus a
 *       user-declared destructor).  So a guard that moves fine for every real
 *       policy will not compile if moved under the null policy - a portability
@@ -28,16 +30,16 @@
 *     - DScopedTryLock and DScopedTimedLock are move-CONSTRUCTIBLE but not
 *       move-ASSIGNABLE: they declare a move constructor and no move assignment,
 *       and the deleted copy suppresses the implicit one.  A move on
-*       construction transfers ownership; the moved-from guard does NOT unlock
+*       construction transfers ownership; the moved-from guard does not unlock
 *       (tests_try_move_transfers_ownership).
-*     - the null policy provides NO real exclusion: no_op_mutex::try_lock()
-*       always returns true, so DScopedTryLock<null_lock_policy> ALWAYS owns
+*     - the null policy provides no real exclusion: no_op_mutex::try_lock()
+*       always returns true, so DScopedTryLock<null_lock_policy> always owns
 * the
 *       lock, even a second one over the same mutex.  Single-threaded null-mode
 *       code proceeds unconditionally (tests_try_under_the_null_policy_always_
 *       succeeds).
-*     - DUpgradeLock is NOT atomic: it unlocks the read lock and then takes the
-*       write lock, and there is a window in between where NO lock is held.  The
+*     - DUpgradeLock is not atomic: it unlocks the read lock and then takes the
+*       write lock, and there is a window in between where no lock is held.  The
 *       header says so; the suite pins that after the (non-atomic) upgrade the
 *       write lock really is held exclusively (tests_upgrade_holds_the_write_
 *       lock_exclusively).
@@ -45,22 +47,24 @@
 *       not double-unlock, and a released guard's destructor unlocks nothing
 *       (tests_try_release_is_idempotent).
 *
-*   A NON-BUG WORTH RECORDING: lock_guard.hpp's own "include env.h first"
-* precondition guards are COMMENTED OUT, exactly as cow.hpp's are.  Unlike
-* cow.hpp, this is harmless here, because lock_guard.hpp includes
-* ../djinterp.hpp
-* BEFORE ./lock_policy.hpp - so the environment is always in scope by the time
-* lock_policy.hpp's own LIVE #error is reached.  The header is therefore
-* self-sufficient and CAN be the first djinterp header in a TU
-* (tests_header_is_self_sufficient).
+* A NON-BUG WORTH RECORDING
+* -------------------------
+*   lock_guard.hpp's own "include env.h first" precondition guards are commented
+* out, exactly as cow.hpp's are.  Unlike cow.hpp, this is harmless here, because
+* lock_guard.hpp includes ../djinterp.hpp before ./lock_policy.hpp - so the
+* environment is always in scope by the time lock_policy.hpp's own live #error
+* is reached.  The header is therefore self-sufficient and can be the first
+* djinterp header in a TU (tests_header_is_self_sufficient).
 *
-*   PORTABILITY: the suite floors at C++11 (its concurrency section needs
-* std::thread), matching the sibling suites.  lock_guard.hpp itself reaches
-* lower - the blocking guards work in C++98 with null_lock_policy - but that
-* path is out of this harness's scope.  Within the suite, DScopedTimedLock is
-* exercised from C++11, and DUpgradeLock and the shared_lock_policy paths are
-* gated to C++17 (shared_timed to C++14), because that is where the standard
-* library types they need first appear.
+* PORTABILITY
+* -----------
+*   The suite floors at C++11 (its concurrency section needs std::thread),
+* matching the sibling suites.  lock_guard.hpp itself reaches lower - the
+* blocking guards work in C++98 with null_lock_policy - but that path is out of
+* this harness's scope.  Within the suite, DScopedTimedLock is exercised from
+* C++11, and DUpgradeLock and the shared_lock_policy paths are gated to C++17
+* (shared_timed to C++14), because that is where the standard library types they
+* need first appear.
 *
 *
 * path:      /tests/djinterp/cpp/sync/lock_guard_tests.hpp
@@ -230,77 +234,125 @@ bool spin_until_count(
 // a.   the header contract
 //////////////////////////////////////////
 bool tests_header_include_guard();
+
 bool tests_header_is_idempotent();
+
 bool tests_header_is_self_sufficient();
+
 bool tests_header_pulls_its_dependencies();
+
 bool tests_header_provides_the_std_facilities();
+
 bool tests_header_precondition_guards_are_commented_out();
+
 bool tests_entities_live_in_the_djinterp_namespace();
+
 bool tests_header_defines_no_stray_macros();
+
 bool tests_the_guards_are_gated_by_standard();
 
 // b.   I.  DScopedReadLock
 //////////////////////////////////////////
 bool tests_read_exposes_its_policy_aliases();
+
 bool tests_read_lock_acquires_on_construction();
+
 bool tests_read_lock_releases_on_destruction();
+
 bool tests_read_lock_is_not_copyable();
+
 bool tests_read_lock_is_movable_for_a_real_policy();
+
 bool tests_read_lock_is_not_movable_for_the_null_policy();
+
 bool tests_read_lock_under_the_null_policy_is_a_no_op();
+
 bool tests_read_lock_is_shared_under_the_shared_policy();
 
 // c.   II. DScopedWriteLock
 //////////////////////////////////////////
 bool tests_write_exposes_its_policy_aliases();
+
 bool tests_write_lock_acquires_exclusively();
+
 bool tests_write_lock_releases_on_destruction();
+
 bool tests_write_lock_is_not_copyable();
+
 bool tests_write_lock_is_movable_for_a_real_policy();
+
 bool tests_write_lock_is_not_movable_for_the_null_policy();
+
 bool tests_write_lock_is_exclusive_even_under_the_shared_policy();
+
 bool tests_write_lock_under_the_null_policy_is_a_no_op();
 
 // d.   III. DScopedTryLock
 //////////////////////////////////////////
 bool tests_try_exposes_its_mutex_alias();
+
 bool tests_try_acquires_a_free_mutex();
+
 bool tests_try_fails_on_a_held_mutex();
+
 bool tests_try_releases_on_destruction();
+
 bool tests_try_release_unlocks_early();
+
 bool tests_try_release_is_idempotent();
+
 bool tests_try_is_not_copyable();
+
 bool tests_try_is_move_constructible_only();
+
 bool tests_try_move_transfers_ownership();
+
 bool tests_try_under_the_null_policy_always_succeeds();
 
 // e.   IV. DScopedTimedLock
 //////////////////////////////////////////
 bool tests_timed_exposes_its_mutex_alias();
+
 bool tests_timed_acquires_a_free_mutex();
+
 bool tests_timed_releases_on_destruction();
+
 bool tests_timed_release_unlocks_early();
+
 bool tests_timed_release_is_idempotent();
+
 bool tests_timed_is_not_copyable();
+
 bool tests_timed_is_move_constructible_only();
+
 bool tests_timed_move_transfers_ownership();
 
 // f.   V.  DUpgradeLock
 //////////////////////////////////////////
 bool tests_upgrade_exposes_its_aliases();
+
 bool tests_upgrade_acquires_the_write_lock();
+
 bool tests_upgrade_empties_the_source_read_lock();
+
 bool tests_upgrade_downgrade_releases_the_write_lock();
+
 bool tests_upgrade_releases_on_destruction();
+
 bool tests_upgrade_is_not_copyable();
+
 bool tests_upgrade_is_move_constructible();
 
 // g.   concurrency
 //////////////////////////////////////////
 bool tests_write_lock_serializes_writers();
+
 bool tests_read_lock_admits_concurrent_readers();
+
 bool tests_try_lock_excludes_a_contending_thread();
+
 bool tests_timed_lock_times_out_under_contention();
+
 bool tests_upgrade_holds_the_write_lock_exclusively();
 
 

@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_report_tests_verdict.cpp
+* djinterp [cpp][test]                             test_report_tests_verdict.cpp
 *
-*   Section I of the test_report suite: THE VERDICT.
+*   Section I of the test_report suite: the verdict.
 *
-*   verdict_from_counts_helper is the FOLD THE WHOLE MODEL RESTS ON.  It is called
+*   verdict_from_counts_helper is the fold the whole model rests on.  It is called
 * to derive a unit's verdict from its checks, a module's from its units, and a
 * run's from its modules - three levels, one function.  Its precedence order
 * (empty -> failed -> pending -> passed) is therefore the single decision that
 * determines whether any given run is green, and every test below is really asking
-* the same question: under exactly which counts does this thing say PASS?
+* the same question: under exactly which counts does this thing say pass?
 *
 *   The answer has one surprise in it, and it is the last test in this file.
 *

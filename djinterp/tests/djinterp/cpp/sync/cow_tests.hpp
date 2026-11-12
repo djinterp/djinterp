@@ -1,10 +1,11 @@
 /*******************************************************************************
-* djinterp [test]                                                  cow_tests.hpp
+* djinterp [cpp][sync]                                             cow_tests.hpp
 *
 *   Declarations for the cow.hpp unit-test suite, plus the helper types the
 * sections share.
 *
-*   WHY THE CORE HEADER IS INCLUDED FIRST, AND WHY THAT IS A BUG REPORT:
+* WHY THE CORE HEADER IS INCLUDED FIRST, AND WHY THAT IS A BUG REPORT
+* -------------------------------------------------------------------
 *   cow.hpp cannot be the first djinterp header in a translation unit.  Its
 * first include is ./lock_policy.hpp, and lock_policy.hpp opens with
 *
@@ -18,8 +19,9 @@
 * includes the core explicitly below, and tests_header_cannot_be_included_first
 * is the standing note that says why.
 *
-*   WHAT THE SUITE MEASURES RATHER THAN ASSUMES:
-*   Copy-on-write is a claim about WHEN A COPY HAPPENS, so almost nothing here
+* WHAT THE SUITE MEASURES RATHER THAN ASSUMES
+* -------------------------------------------
+*   Copy-on-write is a claim about when a copy happens, so almost nothing here
 * can be tested by reading a value back - the value is the same either way.  The
 * suite therefore instruments the payload: `tracked` counts every construction,
 * copy, move and destruction of a T, so the tests can say exactly what cow.hpp
@@ -27,19 +29,20 @@
 * only when shared", "snapshot() is zero-copy", and "nothing leaks" become
 * assertions instead of hopes.
 *
-*   THE SHARP EDGES THE SUITE PINS:
-*     - DCowPtr's read(), write(), operator* and operator-> DEREFERENCE AN
-*       UNCHECKED POINTER.  On a default-constructed (empty) DCowPtr they are
+* THE SHARP EDGES THE SUITE PINS
+* ------------------------------
+*     - DCowPtr's read(), write(), operator* and operator-> dereference an
+*       Unchecked pointer.  On a default-constructed (empty) DCowPtr they are
 *       undefined behaviour, not an exception and not a null return.  The suite
-*       exercises the queries that ARE null-safe (use_count, is_unique,
+*       exercises the queries that are null-safe (use_count, is_unique,
 *       operator bool, detach, swap) and never dereferences an empty one - see
 *       tests_the_empty_cow_ptr_must_not_be_dereferenced.
-*     - DCowState::write() BUMPS THE VERSION BEFORE IT CLONES.  If the clone
+*     - DCowState::write() bumps the version before it clones.  If the clone
 *       throws, the exception propagates, the value is unchanged - and the
 *       version has still advanced.  A reader that trusts the version now
 *       believes in a mutation that never happened
 *       (tests_state_write_bumps_the_version_even_when_the_clone_throws).
-*     - DCowState::read() and write() return a REFERENCE, and the lock guard
+*     - DCowState::read() and write() return a reference, and the lock guard
 *       that protected it dies on the way out.  The header says "callers must
 *       not retain references"; what it does not say is that the reference can
 *       be left dangling by a concurrent replace(), which frees the block it
@@ -49,9 +52,10 @@
 *       body is instantiated regardless.  A move-only T works for make(), the
 *       readers and the copies - and stops at the first write().
 *
-*   PORTABILITY: the suite requires C++11, as cow.hpp does (its own C++11 gate
-* is commented out, so nothing enforces that - see
-* tests_header_gates_are_commented_out).
+* PORTABILITY
+* -----------
+*   The suite requires C++11, as cow.hpp does (its own C++11 gate is commented
+* out, so nothing enforces that - see tests_header_gates_are_commented_out).
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests.hpp
@@ -432,148 +436,251 @@ bool spin_until_count(
 // a.   the header contract
 //////////////////////////////////////////
 bool tests_header_include_guard();
+
 bool tests_header_is_idempotent();
+
 bool tests_header_cannot_be_included_first();
+
 bool tests_header_pulls_its_dependencies();
+
 bool tests_header_takes_lock_guard_but_never_uses_it();
+
 bool tests_header_gates_are_commented_out();
+
 bool tests_header_provides_the_std_facilities();
+
 bool tests_entities_live_in_the_djinterp_namespace();
+
 bool tests_header_defines_no_stray_macros();
 
 // b.   I.  the control block
 //////////////////////////////////////////
 bool tests_control_block_starts_at_one();
+
 bool tests_control_block_add_ref();
+
 bool tests_control_block_release_reports_the_last_reference();
+
 bool tests_control_block_is_unique();
+
 bool tests_control_block_refcount_ops_are_noexcept();
+
 bool tests_control_block_holds_the_value_inline();
+
 bool tests_control_block_constructs_the_value_in_place();
+
 bool tests_control_block_copies_an_lvalue();
+
 bool tests_control_block_moves_an_rvalue();
+
 bool tests_control_block_lives_in_internal();
 
 // c.   II. DCowPtr - lifetime
 //////////////////////////////////////////
 bool tests_cow_ptr_default_is_empty();
+
 bool tests_cow_ptr_make_starts_unique();
+
 bool tests_cow_ptr_make_constructs_in_place();
+
 bool tests_cow_ptr_make_copies_an_lvalue();
+
 bool tests_cow_ptr_make_moves_an_rvalue();
+
 bool tests_cow_ptr_copy_shares_the_block();
+
 bool tests_cow_ptr_move_steals_the_block();
+
 bool tests_cow_ptr_copy_assignment_shares();
+
 bool tests_cow_ptr_move_assignment_steals();
+
 bool tests_cow_ptr_self_assignment_is_safe();
+
 bool tests_cow_ptr_assigning_an_aliased_block_is_safe();
+
 bool tests_cow_ptr_destructor_releases_the_last_reference();
+
 bool tests_cow_ptr_empty_operations_are_safe();
+
 bool tests_cow_ptr_lifetime_operations_are_noexcept();
 
 // d.   II. DCowPtr - access and the clone
 //////////////////////////////////////////
 bool tests_cow_ptr_read_returns_the_value();
+
 bool tests_cow_ptr_arrow_and_star_reach_the_value();
+
 bool tests_cow_ptr_const_access_never_clones();
+
 bool tests_cow_ptr_write_when_unique_does_not_clone();
+
 bool tests_cow_ptr_write_when_shared_clones();
+
 bool tests_cow_ptr_write_leaves_the_other_holder_untouched();
+
 bool tests_cow_ptr_write_clones_exactly_once();
+
 bool tests_cow_ptr_write_copies_the_value_exactly_once();
+
 bool tests_cow_ptr_is_unique_and_use_count();
+
 bool tests_cow_ptr_operator_bool();
+
 bool tests_the_empty_cow_ptr_must_not_be_dereferenced();
+
 bool tests_cow_ptr_carries_a_move_only_payload();
 
 // e.   II. DCowPtr - detach and swap
 //////////////////////////////////////////
 bool tests_detach_clones_even_when_unique();
+
 bool tests_detach_copies_the_value_exactly_once();
+
 bool tests_detach_when_shared_leaves_the_others_alone();
+
 bool tests_detach_on_an_empty_pointer_is_a_no_op();
+
 bool tests_member_swap_exchanges_the_blocks();
+
 bool tests_free_swap_is_found_by_adl();
+
 bool tests_swap_touches_no_refcounts();
+
 bool tests_swap_is_noexcept();
 
 // f.   III. DImmutableSnapshot
 //////////////////////////////////////////
 bool tests_snapshot_from_a_value_copies_it();
+
 bool tests_snapshot_from_a_cow_ptr_is_zero_copy();
+
 bool tests_snapshot_version_defaults_to_zero();
+
 bool tests_snapshot_carries_the_version_it_was_given();
+
 bool tests_snapshot_get_arrow_and_star();
+
 bool tests_snapshot_exposes_only_const_access();
+
 bool tests_snapshot_copy_shares_the_block();
+
 bool tests_snapshot_move_steals_the_block();
+
 bool tests_snapshot_is_not_default_constructible();
+
 bool tests_snapshot_outlives_its_source();
+
 bool tests_snapshot_from_an_empty_cow_ptr_is_falsy();
+
 bool tests_snapshot_use_count();
 
 // g.   IV. DCowState - basics
 //////////////////////////////////////////
 bool tests_state_default_constructs_its_value();
+
 bool tests_state_constructs_from_an_lvalue();
+
 bool tests_state_constructs_from_an_rvalue();
+
 bool tests_state_is_not_copyable();
+
 bool tests_state_is_not_movable();
+
 bool tests_state_exposes_its_policy_aliases();
+
 bool tests_state_marks_itself_with_cow_state_type();
+
 bool tests_state_declares_the_cow_strategy_tag();
+
 bool tests_state_read_returns_the_value();
+
 bool tests_state_version_starts_at_zero();
+
 bool tests_state_exposes_its_mutex();
+
 bool tests_state_defaults_to_the_default_policy();
 
 // h.   IV. DCowState - the protocol
 //////////////////////////////////////////
 bool tests_state_write_mutates_and_bumps_the_version();
+
 bool tests_state_write_without_a_snapshot_does_not_clone();
+
 bool tests_state_snapshot_shares_the_block();
+
 bool tests_state_write_after_a_snapshot_clones();
+
 bool tests_state_snapshot_is_isolated_from_later_writes();
+
 bool tests_state_snapshot_pins_its_version();
+
 bool tests_state_modify_runs_under_the_write_lock();
+
 bool tests_state_modify_returns_the_callables_result();
+
 bool tests_state_modify_accepts_a_void_callable();
+
 bool tests_state_modify_bumps_the_version();
+
 bool tests_state_replace_swaps_the_whole_value();
+
 bool tests_state_replace_leaves_old_snapshots_valid();
+
 bool tests_state_read_and_write_return_unguarded_references();
 
 // i.   IV. DCowState - the lock policies
 //////////////////////////////////////////
 bool tests_state_under_the_null_policy();
+
 bool tests_state_under_the_exclusive_policy();
+
 bool tests_state_under_the_timed_policy();
+
 bool tests_state_under_the_shared_policy();
+
 bool tests_state_under_the_shared_timed_policy();
+
 bool tests_state_write_excludes_other_agents();
+
 bool tests_state_null_policy_costs_no_mutex();
+
 bool tests_every_policy_yields_a_usable_state();
 
 // j.   exception safety
 //////////////////////////////////////////
 bool tests_make_propagates_a_throwing_constructor();
+
 bool tests_a_failed_make_leaks_nothing();
+
 bool tests_write_on_a_shared_pointer_is_strongly_safe();
+
 bool tests_detach_is_strongly_safe();
+
 bool tests_state_replace_is_strongly_safe();
+
 bool tests_state_write_bumps_the_version_even_when_the_clone_throws();
+
 bool tests_state_modify_bumps_the_version_even_when_the_callable_throws();
+
 bool tests_state_modify_releases_the_lock_when_the_callable_throws();
+
 bool tests_a_snapshot_survives_a_failed_write();
 
 // k.   concurrency
 //////////////////////////////////////////
 bool tests_concurrent_copies_keep_the_refcount_exact();
+
 bool tests_concurrent_snapshots_never_see_a_torn_value();
+
 bool tests_a_held_snapshot_is_stable_under_writes();
+
 bool tests_concurrent_writers_serialize();
+
 bool tests_concurrent_readers_and_writers_leak_nothing();
+
 bool tests_the_shared_policy_admits_concurrent_readers();
+
 bool tests_shared_policy_read_after_snapshot_is_unlocked();
 
 

@@ -1,93 +1,147 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_test_counter.h
+* djinterp [c][test]                                          cfg_test_counter.h
 *
-*   Build-time configuration for the counter kernel: how deep a tree may go,
-* and whether the bounds and events are enforced at all.
+*   Build-time configuration for DTest's counters (c/modules/test/
+* test_counter.h, and the C++ face's test_counter.hpp): the defaults every
+* test counter and tally starts from.
 *
-*   targets:  test/test_counter_common.h -> D_INTERNAL_TEST_COUNTER_*
-*             test/test_counter.h        -> D_INTERNAL_TEST_COUNTER_*
-*   requires: cfg_common.h (helpers, D_CFG_TESTING)
+*   targets:  c/modules/test/test_counter.h  -> D_INTERNAL_TEST_TALLY_*,
+*                                               D_INTERNAL_TEST_COUNTER_*
+*             cpp/modules/test/test_counter.hpp (the counter defaults)
+*   requires: cfg_common.h (helpers)
 *
-*   THE STORAGE IS THE CALLER'S, so there is no capacity knob here -- a caller
-* who wants more children passes a bigger array. What IS configured is the
-* recursion bound, which the caller cannot express, and the two enforcement
-* gates, which a release build may want to drop.
+* THREE LAYERS, EACH OPTIONAL
+* ---------------------------
+*   A knob here is the build's default. The run time can override it per tally
+* or per counter through the options structs (struct dj_test_tally_options,
+* struct dj_test_counter_options), whose init functions read these knobs. And a
+* program that runs DTest as an abstract machine can opt in, with
+* D_CFG_TEST_COUNTER_MACHINE, to a schema of the same settings for
+* c/option/option_env.h, its defaults pinned to these knobs, so text, a script,
+* the environment or the command line can set them.
+*   A build that sets nothing gets the generic counter's behaviour: unbounded
+* counters that step by one, and a tally of 16 that refuses a 17th event.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: dconfig.h includes this file. Define a knob before that, or
+* pass it with -D, to change its default.
+*
+*     cc -DD_CFG_TEST_TALLY_CAPACITY=32 -DD_CFG_TEST_COUNTER_FLOOR=1 ...
+*
+* OPTIONS
+* -------
+*   Each knob is a default the run can override: struct dj_test_counter_options
+* and struct dj_test_tally_options in test_counter.h, and, with
+* D_CFG_TEST_COUNTER_MACHINE, their option_env schema.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TEST_TALLY_CAPACITY (16, 1 to 4096), D_CFG_TEST_TALLY_WHEN_FULL (0
+* refuse, 1 overflow), D_CFG_TEST_COUNTER_STEP (1, not 0),
+* D_CFG_TEST_COUNTER_FLOOR (0) and D_CFG_TEST_COUNTER_MACHINE (0); each is
+* checked, and resolved as D_INTERNAL_TEST_*.
 *
 *
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_counter.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_TEST_CFG_TEST_COUNTER_H
 #define DJINTERP_CONFIG_C_TEST_CFG_TEST_COUNTER_H 1
 
 // djinterp
-#include "../../../cfg_common.h"
+#include "../../../cfg_common.h"  // D_CFG_* helpers, user overrides
 
-// D_CFG_TEST_COUNTER_MAX_DEPTH
-//   brief: how deep a counter subtree may be walked before the walk stops.
-// Default 64.
-//   A bound is needed because the child array is caller-provided and nothing
-// stops a caller pointing a counter's children at an array containing itself.
-// The kernel cannot detect that cheaply, so it bounds the walk instead: a
-// cycle costs a truncated total rather than a stack overflow, which is a much
-// better failure. Raise it for a genuinely deep suite; there is no reason to
-// lower it.
-#ifndef D_CFG_TEST_COUNTER_MAX_DEPTH
-#   define D_CFG_TEST_COUNTER_MAX_DEPTH 64
+
+// D_CFG_TEST_TALLY_CAPACITY
+//   brief: how many keys one struct dj_test_tally can hold. Default 16.
+//   Each slot is a test counter and its binding, about a hundred bytes, so
+// the default costs under two kilobytes a tally. It is storage, fixed at
+// build time; a run may track fewer (dj_test_tally_options.limit), never more.
+#ifndef D_CFG_TEST_TALLY_CAPACITY
+#   define D_CFG_TEST_TALLY_CAPACITY 16
 #endif
 
-// D_CFG_TEST_COUNTER_ENFORCE_BOUNDS
-//   brief: clamp to min/max and report CLAMPED / AT_LIMIT (1, the default), or
-// let a counter run past its bounds (0).
-//   OFF makes increment a plain add. The bounds are still recorded on the
-// struct, so a parity record still shows what they WERE -- which means a build
-// with this off and a build with it on diverge visibly at the first clamp
-// rather than silently agreeing.
-#ifndef D_CFG_TEST_COUNTER_ENFORCE_BOUNDS
-#   define D_CFG_TEST_COUNTER_ENFORCE_BOUNDS 1
+#if ( (D_CFG_NORM(D_CFG_TEST_TALLY_CAPACITY) < 1) ||                          \
+      (D_CFG_NORM(D_CFG_TEST_TALLY_CAPACITY) > 4096) )
+#   error "D_CFG_TEST_TALLY_CAPACITY must be between 1 and 4096"
 #endif
 
-// D_CFG_TEST_COUNTER_EVENTS
-//   brief: notify the observer on change (1, the default), or compile the
-// callback out entirely (0).
-//   OFF removes one null check and one indirect call per operation. It also
-// removes an observable behaviour, so a suite that asserts event ordering
-// cannot run against such a build -- which is why cfg_testing.h forces it back
-// on.
-#ifndef D_CFG_TEST_COUNTER_EVENTS
-#   define D_CFG_TEST_COUNTER_EVENTS 1
+// D_CFG_TEST_TALLY_WHEN_FULL
+//   brief: what a full tally does with a key it cannot track. Default 0.
+//   0 refuses it: tracking returns NULL and counting it fails, so the loss is
+// visible. 1 counts it in the tally's overflow counter instead, so totals
+// stay whole and the overflow says how much was not told apart.
+#ifndef D_CFG_TEST_TALLY_WHEN_FULL
+#   define D_CFG_TEST_TALLY_WHEN_FULL 0
 #endif
 
-#if !D_CFG_IS_BOOL(D_CFG_TEST_COUNTER_ENFORCE_BOUNDS)
-#   error "D_CFG_TEST_COUNTER_ENFORCE_BOUNDS must be 0 or 1"
-#endif
-#if !D_CFG_IS_BOOL(D_CFG_TEST_COUNTER_EVENTS)
-#   error "D_CFG_TEST_COUNTER_EVENTS must be 0 or 1"
-#endif
-#if ( D_CFG_NORM(D_CFG_TEST_COUNTER_MAX_DEPTH) < 1 )
-#   error "D_CFG_TEST_COUNTER_MAX_DEPTH must be at least 1"
+#if ( (D_CFG_NORM(D_CFG_TEST_TALLY_WHEN_FULL) < 0) ||                         \
+      (D_CFG_NORM(D_CFG_TEST_TALLY_WHEN_FULL) > 1) )
+#   error "D_CFG_TEST_TALLY_WHEN_FULL must be 0 (refuse) or 1 (overflow)"
 #endif
 
-// D_INTERNAL_TEST_COUNTER_MAX_DEPTH / _BOUNDS / _EVENTS
-//   brief: the resolved values the kernel reads. The two gates are forced ON
-// in a test build: a parity suite against a counter that neither clamps nor
-// notifies is not measuring the counter this framework ships.
-#define D_INTERNAL_TEST_COUNTER_MAX_DEPTH   D_CFG_TEST_COUNTER_MAX_DEPTH
-
-#if ( D_CFG_IS_ON(D_CFG_TESTING) ||                                            \
-      D_CFG_IS_ON(D_CFG_TEST_COUNTER_ENFORCE_BOUNDS) )
-#   define D_INTERNAL_TEST_COUNTER_BOUNDS 1
-#else
-#   define D_INTERNAL_TEST_COUNTER_BOUNDS 0
+// D_CFG_TEST_COUNTER_STEP
+//   brief: how far one recorded occurrence moves a test counter.
+// Default 1. Not 0, which would count nothing; negative counts down.
+#ifndef D_CFG_TEST_COUNTER_STEP
+#   define D_CFG_TEST_COUNTER_STEP 1
 #endif
 
-#if ( D_CFG_IS_ON(D_CFG_TESTING) || D_CFG_IS_ON(D_CFG_TEST_COUNTER_EVENTS) )
-#   define D_INTERNAL_TEST_COUNTER_EVENTS 1
-#else
-#   define D_INTERNAL_TEST_COUNTER_EVENTS 0
+#if (D_CFG_NORM(D_CFG_TEST_COUNTER_STEP) == 0)
+#   error "D_CFG_TEST_COUNTER_STEP must not be 0"
 #endif
+
+// D_CFG_TEST_COUNTER_FLOOR
+//   brief: hold test counters at or above zero (1), or leave them unbounded
+// as the generic counter is (0, the default). A count of occurrences cannot be
+// negative, so a build that only counts may want 1; one that also counts
+// down to a balance wants 0.
+#ifndef D_CFG_TEST_COUNTER_FLOOR
+#   define D_CFG_TEST_COUNTER_FLOOR 0
+#endif
+
+#if ( (D_CFG_NORM(D_CFG_TEST_COUNTER_FLOOR) < 0) ||                           \
+      (D_CFG_NORM(D_CFG_TEST_COUNTER_FLOOR) > 1) )
+#   error "D_CFG_TEST_COUNTER_FLOOR must be 0 or 1"
+#endif
+
+// D_CFG_TEST_COUNTER_MACHINE
+//   brief: compile the counters' abstract-machine schema (1), or leave it out
+// (0, the default). Opt-in: it pulls in c/option/option_env.h, which needs a
+// 64-bit integer, and a program that does not run DTest as a machine has no
+// use for it.
+#ifndef D_CFG_TEST_COUNTER_MACHINE
+#   define D_CFG_TEST_COUNTER_MACHINE 0
+#endif
+
+#if ( (D_CFG_NORM(D_CFG_TEST_COUNTER_MACHINE) < 0) ||                         \
+      (D_CFG_NORM(D_CFG_TEST_COUNTER_MACHINE) > 1) )
+#   error "D_CFG_TEST_COUNTER_MACHINE must be 0 or 1"
+#endif
+
+// D_INTERNAL_TEST_TALLY_CAPACITY
+//   brief: the resolved capacity.
+#define D_INTERNAL_TEST_TALLY_CAPACITY    D_CFG_NORM(D_CFG_TEST_TALLY_CAPACITY)
+
+// D_INTERNAL_TEST_TALLY_WHEN_FULL
+//   brief: the resolved full-tally policy.
+#define D_INTERNAL_TEST_TALLY_WHEN_FULL   D_CFG_NORM(D_CFG_TEST_TALLY_WHEN_FULL)
+
+// D_INTERNAL_TEST_COUNTER_STEP
+//   brief: the resolved step.
+#define D_INTERNAL_TEST_COUNTER_STEP      D_CFG_NORM(D_CFG_TEST_COUNTER_STEP)
+
+// D_INTERNAL_TEST_COUNTER_FLOOR
+//   brief: the resolved floor switch.
+#define D_INTERNAL_TEST_COUNTER_FLOOR     D_CFG_NORM(D_CFG_TEST_COUNTER_FLOOR)
+
+// D_INTERNAL_TEST_COUNTER_MACHINE
+//   brief: the resolved machine switch.
+#define D_INTERNAL_TEST_COUNTER_MACHINE   D_CFG_NORM(D_CFG_TEST_COUNTER_MACHINE)
+
 
 #endif  // DJINTERP_CONFIG_C_TEST_CFG_TEST_COUNTER_H

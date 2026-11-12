@@ -1,27 +1,27 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                              test_race.hpp
+* djinterp [cpp][test]                                             test_race.hpp
 *
 *   Race-condition probing and linearization recording for the DTest
 * multithreading harness.
 *
 *   We can't reliably "detect" data races without a runtime tool like
 * TSAN; the standard says any racing read/write is undefined behavior
-* and may produce any result.  But we CAN do three things that catch
+* and may produce any result.  But we can do three things that catch
 * the bugs in practice:
 *
-*     1. RACE PROBES
+*     1. Race probes
 *        Many threads hammer a non-atomic location for a long time.
 *        If the final value, expected from a sequential reasoning,
 *        does not match what was observed, a race occurred.  The
 *        probe runs the harness many times to reduce false negatives.
 *
-*     2. ATOMICITY ASSERTIONS
+*     2. Atomicity assertions
 *        Verify that an operation that the user claims is atomic
 *        actually appears so to outside observers.  We snapshot the
 *        observed state from many threads and check that no
 *        intermediate state is ever visible.
 *
-*     3. LINEARIZATION RECORDING
+*     3. Linearization recording
 *        Threads record (start_time, end_time, op_name, args, result)
 *        for every operation.  Post-hoc, the recording can be
 *        analyzed for serializability - does there exist a sequential
@@ -36,8 +36,23 @@
 *     DLinearizationLog  - append-only timestamped op log
 *     DConsistencyCheck  - sequential-consistency post-hoc verifier
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later.
+*
+* HOW TO USE
+* ----------
+*   Probe a suspected race with a DRaceProbe, record operations in a
+* DLinearizationLog, and check atomicity with a DAtomicityObserver; each report
+* converts to a basic_test.
+*
+* OPTIONS
+* -------
+*   The probe's operations, iterations and invariant, given to the probe.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_race.hpp

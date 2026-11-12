@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                             test_race_tests_linearization.cpp
+* djinterp [cpp][test]                         test_race_tests_linearization.cpp
 *
 *   Section TU: DLinearizationEvent and DLinearizationLog - the append-only
 * timestamped operation log.

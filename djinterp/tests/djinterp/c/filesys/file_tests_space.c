@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                             file_tests_space.c
+* djinterp [c][filesys]                                       file_tests_space.c
 *
-*   XV. CAPACITY (file_space) -- how much room the filesystem behind a path
+*   XV. Capacity (file_space) -- how much room the filesystem behind a path
 * has. The success case sanity-checks the relationships that must hold on any
 * real volume (there is some capacity; neither free nor available exceeds it),
 * rather than asserting exact figures that depend on the host. On failure the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                      test_report_runner_tests_compress.cpp
+* djinterp [cpp][test]                     test_report_runner_tests_compress.cpp
 *
 * report_runner's suite, block "compress": the compress pack mode, which
 * compresses each rendered document on its own and writes it where its loose

@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_container_tests_probes.cpp
+* djinterp [cpp][test]                           test_container_tests_probes.cpp
 *
-*   Section I of the test_container suite: the STRUCTURAL MEMBER PROBES.  One
+*   Section I of the test_container suite: the structural member probes.  One
 * unit per probe (has_value_type, has_size_accessor, has_empty_method,
 * has_begin_end, has_root_method, has_clear_method, has_append_child_method),
 * each pinned true on a fixture carrying the member and false on one without;

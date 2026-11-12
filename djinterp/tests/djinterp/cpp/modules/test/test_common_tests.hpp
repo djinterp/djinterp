@@ -1,23 +1,25 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                      test_common_tests.hpp
+* djinterp [cpp][test]                                     test_common_tests.hpp
 *
 *   Declarations, shared check helper, and the authored suite spec for the
 * test_common.hpp unit suite.  Two faces, selected by DTEST_SPEC_MODE:
-*   - NORMAL mode (the four section TUs): includes the header under test and
+*   - normal mode (the four section TUs): includes the header under test and
 *     exposes the check helper; the TUs define the tests_* bodies.
-*   - SPEC mode (the runner): includes the authoring surface and exposes
+*   - spec mode (the runner): includes the authoring surface and exposes
 *     common_spec(), the module_spec provider the runner hands to run_module.
-* The tests_* DECLARATIONS are visible in both modes.  (Same shape as
+* The tests_* declarations are visible in both modes.  (Same shape as
 * test_options / test_callable / test_context.)
 *
 *   Sections -> one translation unit each:
-*   - test_common_tests_type_id.cpp    -> I.   TEST TYPE IDENTIFICATION
-*   - test_common_tests_status.cpp     -> II.  STATUS CLASSIFICATION
-*   - test_common_tests_event.cpp      -> III. EVENT SYSTEM
-*   - test_common_tests_constexpr.cpp  -> IV.  CONSTEXPR SUPPORT MACROS
+*   - test_common_tests_type_id.cpp    -> I.   Test type identification
+*   - test_common_tests_status.cpp     -> II.  Status classification
+*   - test_common_tests_event.cpp      -> III. Event system
+*   - test_common_tests_constexpr.cpp  -> IV.  Constexpr support macros
 *
-*   NOTE: the entities under test live in djinterp::test; the tests themselves
-* live, flat, in djinterp::testing.
+* NOTE
+* ----
+*   The entities under test live in djinterp::test; the tests themselves live,
+* flat, in djinterp::testing.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_common_tests.hpp
@@ -81,7 +83,9 @@ bool test_common_check(
 
 // I.   TEST TYPE IDENTIFICATION
 bool tests_test_type_id();
+
 bool tests_test_callable_id();
+
 bool tests_k_no_callable();
 
 // II.  STATUS CLASSIFICATION
@@ -89,10 +93,12 @@ bool tests_test_status();
 
 // III. EVENT SYSTEM
 bool tests_test_event_id();
+
 bool tests_test_event();
 
 // IV.  CONSTEXPR SUPPORT MACROS
 bool tests_d_test_constexpr();
+
 bool tests_d_test_static_constexpr();
 
 

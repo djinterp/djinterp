@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                                archive.hpp
+* djinterp [cpp][test]                                               archive.hpp
 *
 * Instrumented drop-in for core/util/archive/archive.hpp, used by the test_pack suite:
 *   The archive-side companion to pack_facade/compress.hpp. It stands in for
@@ -10,7 +10,7 @@
 *
 *   It reproduces exactly the surface test_pack.hpp consumes -- entry,
 * entry_list, the formats:: tags, try_archive<>, and format_is_writable<> -- but
-* RECORDS rather than builds an archive: try_archive<Tag> writes the observable
+* records rather than builds an archive: try_archive<Tag> writes the observable
 * line
 *
 *       A|<tag>|<count>|<first entry name>
@@ -19,20 +19,36 @@
 * steer.  byte_blob and status come from the sibling compress double, as in
 * the production tree where archive.hpp includes compress.hpp.
 *
-*   The recorded tag ids are the ENUM-STYLE names the tests expect -- note
+*   The recorded tag ids are the enum-style names the tests expect -- note
 * "tar_gz" and "sevenzip", which deliberately differ from the production
 * format_traits::name() ("tar.gz" and "7z"): the double records the selector's
 * identity, not the on-disk extension.
 *
-* THE HOOKS:
+* THE HOOKS
+* ---------
 *   - fmt_stat<Tag>()       a mutable status slot per format, status_ok by
 *                           default; assign it to force a format's outcome.
 *   - reset_format_hooks()  restores every slot to status_ok.
 *
-* PORTABILITY:
+* PORTABILITY
+* -----------
 *   Only <string> / <vector> / <sstream> and the env-gated djinterp core are
 * pulled in, so the double compiles in every language mode env.h reports
 * (C++98 onward); the entry count is rendered through std::ostringstream.
+*
+* HOW TO USE
+* ----------
+*   Nothing to include by hand: a test build that defines
+* DTEST_PACK_USE_FACADE_DOUBLE gets it in place of
+* core/util/archive/archive.hpp.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   DTEST_PACK_USE_FACADE_DOUBLE, which only the test_pack suite sets.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/pack_facade/archive.hpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        dtime_tests_monotonic.c
+* djinterp [c]                                           dtime_tests_monotonic.c
 *
 *   Tests for monotonic time utility functions (monotonic_time_ms,
 * monotonic_time_us, monotonic_time_ns).

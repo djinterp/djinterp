@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              dfile_tests_ops.c
+* djinterp [c][filesys]                                        dfile_tests_ops.c
 *
 *   Tests for file operations (remove, unlink, rename, copy).
 *

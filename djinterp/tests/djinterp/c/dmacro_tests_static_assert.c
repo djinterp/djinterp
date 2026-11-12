@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   dmacro_tests_static_assert.c
+* djinterp [c]                                      dmacro_tests_static_assert.c
 *
 *   Unit tests for `dmacro.h` compile-time assertions section.
 *   Tests D_ASSERT_SAME_SIZE macro for compile-time type size validation.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_runner_tests_facade.cpp
+* djinterp [cpp][test]                              test_runner_tests_facade.cpp
 *
 *   Section II (facade surface) - construction and the non-rendering public API.
 * Default construction adopts the framework option defaults; an explicit option

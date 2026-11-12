@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    dio_tests_formatted_input.c
+* djinterp [c]                                       dio_tests_formatted_input.c
 *
 *
 * path:      /tests/djinterp/c/dio_tests_formatted_input.c

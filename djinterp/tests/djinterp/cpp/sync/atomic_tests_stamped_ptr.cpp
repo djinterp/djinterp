@@ -1,26 +1,28 @@
 /*******************************************************************************
-* djinterp [test]                                   atomic_tests_stamped_ptr.cpp
+* djinterp [cpp][sync]                              atomic_tests_stamped_ptr.cpp
 *
 *   Section IV - DAtomicStampedPtr<T>.  The ABA-defeating packed pointer is
 * the most edge-heavy type in the header, so this section is the largest:
 *
 *     - construction (default -> {nullptr, 0}; explicit; default stamp arg)
 *     - store / load of pointer and stamp (default and explicit orders)
-*     - the FULL 16-bit stamp range beside a live pointer (proves the 48/16
+*     - the full 16-bit stamp range beside a live pointer (proves the 48/16
 *       bit split does not corrupt either field)
 *     - a null pointer carrying a non-zero stamp
 *     - weak compare-exchange: the success path (retried against spurious
 *       failure) and the failure path (which rewrites the expected pair)
-*     - the ABA scenario proper: a CAS with the RIGHT pointer but a STALE
+*     - the ABA scenario proper: a CAS with the right pointer but a stale
 *       stamp must be rejected - the entire reason the type exists
 *     - stamp wrap across the 16-bit boundary (0xFFFF -> 0x0000)
 *     - the unpack sign-extension branch, exercised as a pure bit-pattern
 *       round-trip (never dereferenced) for a canonical high-half address
 *
-*   PLATFORM NOTE: tests_stamped_sign_extension assumes the x86-64 48-bit
-* canonical-address model the header is written against (upper 16 bits hold
-* the stamp; bit 47 is sign-extended).  It forms pointer VALUES purely as bit
-* patterns and never dereferences them, so it is well-defined on that model.
+* PLATFORM NOTE
+* -------------
+*   tests_stamped_sign_extension assumes the x86-64 48-bit canonical-address
+* model the header is written against (upper 16 bits hold the stamp; bit 47 is
+* sign-extended).  It forms pointer values purely as bit patterns and never
+* dereferences them, so it is well-defined on that model.
 *
 *
 * path:      /tests/djinterp/cpp/sync/atomic_tests_stamped_ptr.cpp

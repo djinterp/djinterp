@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        dmacro_tests_iter_adv.c
+* djinterp [c]                                           dmacro_tests_iter_adv.c
 *
 *   Unit tests for `dmacro.h` advanced iteration patterns section.
 *   Tests D_FOR_EACH_ADJACENT_PAIR for sliding window iteration.

@@ -1,24 +1,26 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_runner.hpp
+* djinterp [cpp][test]                                           test_runner.hpp
 *
-*   The top-level RUN facade for DTest -- the single object that composes the
+*   The top-level run facade for DTest -- the single object that composes the
 * pieces so running a suite is one call.  A DTestRunner owns a test_handler
 * (the tree walker + event dispatcher), a test_option_set (the resolved
 * configuration), and an option-driven reporter bundle bound to the event
 * alphabet (test_event.hpp).  Hand it a tree, call run(), read the verdict.
 *
-*   WHAT IT COMPOSES:
+* WHAT IT COMPOSES
+* ----------------
 *     - test_handler   : walks the tree, fires lifecycle events, tallies.
-*     - test_options   : the knobs + per-node routes; the runner RESOLVES each
+*     - test_options   : the knobs + per-node routes; the runner resolves each
 *                        node against them and routes its line accordingly.
 *     - DTestEvent     : the tags the reporter binds to (DOnTestEnd,
-*                        on_module_start, DOnSessionStart / on_session_end).
+*                        DOnModuleStart, DOnSessionStart / DOnSessionEnd).
 *   The reporter is "a listener through and through": the runner installs a
 * bundle on the handler's dispatcher whose bodies render and route report
-* lines.  Because the reporter reads the option set at FIRE time (not bind
+* lines.  Because the reporter reads the option set at fire time (not bind
 * time), options may be changed up to the moment run() is called.
 *
-*   WHERE OPTIONS MEET EVENTS:
+* WHERE OPTIONS MEET EVENTS
+* -------------------------
 *   For every leaf, the reporter builds a match_context from the node (name /
 * type id / status, and tags parsed from a "tags" metadata key when present)
 * and calls the free resolve(...).  The resolved verdict decides
@@ -28,18 +30,20 @@
 * resolution the option subframework defines, applied one node at a time as
 * the walk dispatches.
 *
-*   THE CINCH:
+* THE CINCH
+* ---------
 *     // runtime options
 *     djinterp::test::run_tests(my_tree);                       // -> exit code
 *     djinterp::test::run_tests(my_tree, my_options);
 *
 *     // or hold a runner for finer control
 *     djinterp::test::DTestRunner runner;
-*     runner.handler().on<on_test_failed>( ... );   // extra listeners
+*     runner.handler().on<DOnTestFailed>( ... );   // extra listeners
 *     auto result = runner.run(my_tree);
 *     return runner.exit_code();
 *
-*   WHAT IT REPORTS:
+* WHAT IT REPORTS
+* ---------------
 *   The event payloads carry the node only (no tree depth), so the built-in
 * reporter numbers leaves ordinally and emits one line per leaf plus a closing
 * summary.  Hierarchical numbering / depth indentation would need a
@@ -48,9 +52,25 @@
 * width is clamped here; production layout (alignment / word-wrap under
 * line_width) composes the cli_string algebra.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   The runner is C++11 throughout -- it drives the runtime test_option_set and
 * the free resolve() the option subframework defines.
+*
+* HOW TO USE
+* ----------
+*   Hand a DTestRunner the nodes to run, call run(), and read the DSessionResult
+* it returns.
+*
+* OPTIONS
+* -------
+*   A test_option_set (test_options.hpp), whose defaults come from
+* default_test_options(). set_options replaces it; the reporters it binds follow
+* it.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_runner.hpp
@@ -435,7 +455,7 @@ private:
 
         // interior node: a header line
         m_reporter_ids.push_back(
-            m_handler.template on<on_module_start>(
+            m_handler.template on<DOnModuleStart>(
                 [this](const basic_test* _node)
                 {
                     this->report_module(_node);
@@ -452,7 +472,7 @@ private:
 
         // session end: the summary line
         m_reporter_ids.push_back(
-            m_handler.template on<on_session_end>(
+            m_handler.template on<DOnSessionEnd>(
                 [this](std::size_t _passed,
                        std::size_t _failed)
                 {

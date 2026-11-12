@@ -1,17 +1,17 @@
 /*******************************************************************************
-* djinterp [tests]                                  test_report_runner_tests.hpp
+* djinterp [cpp][test]                              test_report_runner_tests.hpp
 *
 *   Suite header for test_report_runner.hpp - the runner-facing front end for
 * the report subsystem (report_builder, run_named_tests, D_CHECK_EQ).  Declares
 * every test body, supplies the fixtures the bodies need, and (in
 * DTEST_SPEC_MODE) exposes the spec provider the runner hands to run_module.
 *
-*   BUILD PREREQUISITE.
-*   test_report_runner.hpp does NOT compile at C++17 or higher unless
+*   Build prerequisite.
+*   test_report_runner.hpp does not compile at C++17 or higher unless
 * D_TEST_REPORT_ENABLE_ARCHIVE is defined.  Its DPendingDoc::bytes member and
 * its write_bytes_to_file parameter are both spelled `byte_blob`, and
 * byte_blob is typedef'd in core/util/compress/compress.hpp, which the header reaches
-* ONLY through the archive include guarded by that macro:
+* only through the archive include guarded by that macro:
 *
 *     #if defined(D_TEST_REPORT_ENABLE_ARCHIVE) &&
 *         D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -27,13 +27,13 @@
 * the packaging arm this suite covers, and keeps report_builder's member set
 * identical across every translation unit that links together.
 *
-*   FINDING - run_named_tests EMITS TO stdout UNCONDITIONALLY.
+*   Finding - run_named_tests emits to stdout unconditionally.
 *   run_named_tests constructs its own report_builder from the option set it is
 * handed and calls finish() on it.  A default-constructed builder starts with
 * its console enabled and its sink set to stdout, and the function exposes no
 * sink parameter and no console flag, so every call prints a full console
 * report - module banner, per-unit lines, results box, comprehensive summary
-* and assessment - to stdout.  The `show` option does NOT gate this: silent is
+* and assessment - to stdout.  The `show` option does not gate this: silent is
 * consulted at exactly one place, the "report document was not written" note,
 * never by the console emitters, which test the builder's private m_console
 * only.  The convenience block below therefore asserts on the returned exit
@@ -43,7 +43,7 @@
 * per the authoring guide the behaviour is pinned and named here rather than
 * worked around.
 *
-*   HOW THIS SUITE OBSERVES THE BUILDER.
+*   How this suite observes the builder.
 *   Everything below finish() is private, so the console renderers are driven
 * through the public surface and observed by pointing set_file() at a scratch
 * file (DRrCapture) and reading the emitted text back.  Document emission is
@@ -51,7 +51,8 @@
 * and inspecting the files (rr_read_file / rr_file_exists) before removing
 * them.  The report model itself is read directly through report().
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 baseline for the builder core; the document and archive sections
 * ride the header's own C++17 gate.  Built at C++20 by the DTest CMake helper.
 *
@@ -641,105 +642,179 @@ dt::test_option_set rr_pdf_options()
 
 // I.    CONSTRUCTION   (test_report_runner_tests_construction.cpp)
 bool tests_report_runner_default_construction();
+
 bool tests_report_runner_option_set_construction();
+
 bool tests_report_runner_report_accessors();
+
 bool tests_report_runner_options_accessors();
+
 bool tests_report_runner_metadata_setters();
+
 bool tests_report_runner_console_toggle();
+
 bool tests_report_runner_null_file_sink();
 
 // II.   OPTIONS   (test_report_runner_tests_options.cpp)
 bool tests_report_runner_use_pdf_selects_document();
+
 bool tests_report_runner_use_pdf_sets_path();
+
 bool tests_report_runner_use_pdf_empty_path_keeps_existing();
+
 bool tests_report_runner_use_pdf_returns_self();
+
 bool tests_report_runner_set_document();
+
 bool tests_report_runner_set_output_file();
+
 bool tests_report_runner_set_split();
+
 bool tests_report_runner_set_show();
+
 bool tests_report_runner_options_survive_recording();
 
 // III.  RECORDING   (test_report_runner_tests_recording.cpp)
 bool tests_report_runner_module_appends();
+
 bool tests_report_runner_module_returns_reference();
+
 bool tests_report_runner_run_records_result();
+
 bool tests_report_runner_run_returns_predicate_value();
+
 bool tests_report_runner_run_null_predicate();
+
 bool tests_report_runner_ensure_module_autocreates();
+
 bool tests_report_runner_unit_records_known_result();
+
 bool tests_report_runner_open_unit_named();
+
 bool tests_report_runner_open_unit_described();
+
 bool tests_report_runner_check_detail_overload();
+
 bool tests_report_runner_check_named_overload();
+
 bool tests_report_runner_check_without_unit_is_noop();
+
 bool tests_report_runner_check_without_module_is_noop();
+
 bool tests_report_runner_close_unit_without_unit_is_noop();
+
 bool tests_report_runner_multiple_modules_isolated();
 
 // IV.   CONSOLE   (test_report_runner_tests_console.cpp)
 bool tests_report_runner_module_banner_text();
+
 bool tests_report_runner_module_banner_description();
+
 bool tests_report_runner_unit_line_symbols();
+
 bool tests_report_runner_open_unit_banner();
+
 bool tests_report_runner_check_detail_line();
+
 bool tests_report_runner_check_named_line();
+
 bool tests_report_runner_close_unit_line();
+
 bool tests_report_runner_module_results_box();
+
 bool tests_report_runner_comprehensive_summary();
+
 bool tests_report_runner_assessment_pass();
+
 bool tests_report_runner_assessment_fail();
+
 bool tests_report_runner_rule_width();
+
 bool tests_report_runner_console_disabled_emits_nothing();
 
 // V.    FINISH   (test_report_runner_tests_finish.cpp)
 bool tests_report_runner_finish_exit_code_pass();
+
 bool tests_report_runner_finish_exit_code_fail();
+
 bool tests_report_runner_finish_empty_report();
+
 bool tests_report_runner_finish_final_tally();
+
 bool tests_report_runner_finish_is_repeatable();
+
 bool tests_report_runner_finish_multi_module_boxes();
+
 bool tests_report_runner_finish_empty_unit_is_forgiven();
 
 // VI.   DOCUMENT   (test_report_runner_tests_document.cpp)
 bool tests_report_runner_txt_writes_no_file();
+
 bool tests_report_runner_pdf_whole_run_writes_one();
+
 bool tests_report_runner_pdf_output_path_used();
+
 bool tests_report_runner_pdf_empty_path_falls_back();
+
 bool tests_report_runner_pdf_per_module_writes_each();
+
 bool tests_report_runner_pdf_per_module_ignores_output_path();
+
 bool tests_report_runner_pdf_file_name_pattern();
+
 bool tests_report_runner_pdf_write_failure_reports();
+
 bool tests_report_runner_pdf_console_notes_path();
 
 // VII.  ARCHIVE   (test_report_runner_tests_archive.cpp)
 #if defined(D_TEST_REPORT_ENABLE_ARCHIVE)
 bool tests_report_runner_archive_zip_bundles();
+
 bool tests_report_runner_archive_entry_basenames();
+
 bool tests_report_runner_archive_fallback_extension();
+
 bool tests_report_runner_archive_per_module_one_container();
+
 bool tests_report_runner_archive_rar_is_unavailable();
+
 bool tests_report_runner_archive_pack_none_stays_loose();
+
 bool tests_report_runner_archive_store_only_stores();
+
 bool tests_report_runner_archive_deflate_compresses();
+
 bool tests_report_runner_archive_default_follows_build();
+
 #endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 // VIII. CONVENIENCE   (test_report_runner_tests_convenience.cpp)
 bool tests_report_runner_run_named_tests_exit_code();
+
 bool tests_report_runner_run_named_tests_records_all();
+
 bool tests_report_runner_run_named_tests_zero_count();
+
 bool tests_report_runner_check_eq_records_detail();
+
 bool tests_report_runner_check_eq_reports_mismatch();
+
 bool tests_report_runner_check_eq_evaluates_once();
+
 bool tests_report_runner_to_report_string_strings();
+
 bool tests_report_runner_to_report_string_bool();
+
 bool tests_report_runner_to_report_string_generic();
 
 // IX.   COMPRESS   (test_report_runner_tests_compress.cpp)
 #if defined(D_TEST_REPORT_ENABLE_ARCHIVE)
 bool tests_report_runner_compress_gzip_writes_suffix();
+
 bool tests_report_runner_compress_per_module_each();
+
 bool tests_report_runner_compress_store_is_loose();
+
 #endif  // D_TEST_REPORT_ENABLE_ARCHIVE
 
 

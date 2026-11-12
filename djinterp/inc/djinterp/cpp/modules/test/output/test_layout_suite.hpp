@@ -1,33 +1,50 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                      test_layout_suite.hpp
+* djinterp [cpp][test]                                     test_layout_suite.hpp
 *
 *   The layout subframework's own test module -- and the new home of the two
 * demos that used to ship inside the library headers.
 *
-*   WHY THEY MOVED.  report_dialect.hpp carried a DEMO section and
-* report_surfaces.hpp an EQUIVALENCE DEMO.  Both asserted something true and
-* worth asserting, but a library header cannot be exercised by the harness: the
-* code was compiled and never run, so a regression in the interpreter would have
-* shipped silently.  Here the same code is a MODULE the runner executes, and a
-* failure is reported rather than merely compiled.  Sections I-III of
-* report_surfaces.hpp stayed put -- the surfaces themselves are library; only
-* the assertions about them were tests.
+* WHY THEY MOVED
+* --------------
+*   report_dialect.hpp carried a demo section and report_surfaces.hpp an
+* Equivalence demo.  Both asserted something true and worth asserting, but a
+* library header cannot be exercised by the harness: the code was compiled and
+* never run, so a regression in the interpreter would have shipped silently.
+* Here the same code is a module the runner executes, and a failure is reported
+* rather than merely compiled.  Sections I-III of report_surfaces.hpp stayed put
+* -- the surfaces themselves are library; only the assertions about them were
+* tests.
 *
-*   WHAT IT COVERS.
-*     1. FOUR SURFACES, ONE TERM.  The combinator, cursor, aggregate-spec and
+*   What it covers.
+*     1. Four surfaces, one term.  The combinator, cursor, aggregate-spec and
 *        block-DSL front ends each build the same document; all four render
 *        identically.  This is the subframework's central claim, and it is the
 *        one that silently breaks when a builder drifts.
-*     2. THE FOUR PASSES.  demo_render exercises number -> outline -> emit ->
+*     2. The four passes.  demo_render exercises number -> outline -> emit ->
 *        run end to end: the numbering, the generated table of contents, the
 *        section depths and a rendered table all have to be right for its output
 *        to match.
-*     3. DEPTH.  A nested section numbers 1.1, which is precisely what the flat
+*     3. Depth.  A nested section numbers 1.1, which is precisely what the flat
 *        per-level layout literals this stack replaced could not express.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++17: layout.hpp's floor is C++14, and test_report_runner.hpp's buffer
 * needs C++17.  Empty below it.
+*
+* HOW TO USE
+* ----------
+*   A runner registers the layout subframework's tests on its report_builder:
+*
+*     register_layout_tests(rb);
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_layout_suite.hpp

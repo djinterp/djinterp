@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_handler.h
+* djinterp [c][test]                                              test_handler.h
 *
 *   Test handler - orchestrates test execution with event handling.
 *
@@ -9,6 +9,20 @@
 *   - Integrates with the event system for extensible behavior
 *   - Coordinates execution of tests, blocks, modules, trees, and sessions
 *   - Provides DSL macros for declarative test definition
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_handler.h
@@ -154,16 +168,19 @@ struct dj_test_kv
 struct dj_test_handler* d_test_handler_new(
     struct dj_test_options* _default_config
 );
+
 struct dj_test_handler* d_test_handler_new_with_events(
     struct dj_test_options* _default_config,
     size_t                  _event_capacity
 );
+
 struct dj_test_handler* d_test_handler_new_full(
     struct dj_test_options* _default_config,
     size_t                  _event_capacity,
     size_t                  _stack_capacity,
     uint32_t                _flags
 );
+
 void d_test_handler_free(
     struct dj_test_handler* _handler
 );
@@ -173,10 +190,12 @@ void d_test_handler_set_flag(
     struct dj_test_handler* _handler,
     enum DTestHandlerFlag   _flag
 );
+
 void d_test_handler_clear_flag(
     struct dj_test_handler* _handler,
     enum DTestHandlerFlag   _flag
 );
+
 bool d_test_handler_has_flag(
     const struct dj_test_handler* _handler,
     enum DTestHandlerFlag         _flag
@@ -189,14 +208,17 @@ bool d_test_handler_register_listener(
     fn_callback             _callback,
     bool                    _enabled
 );
+
 bool d_test_handler_unregister_listener(
     struct dj_test_handler* _handler,
     dj_event_id             _event_id
 );
+
 bool d_test_handler_enable_listener(
     struct dj_test_handler* _handler,
     dj_event_id             _id
 );
+
 bool d_test_handler_disable_listener(
     struct dj_test_handler* _handler,
     dj_event_id             _id
@@ -215,26 +237,31 @@ bool d_test_handler_run_test(
     struct dj_test*         _test,
     struct dj_test_options* _run_config
 );
+
 bool d_test_handler_run_block(
     struct dj_test_handler* _handler,
     struct dj_test_block*   _block,
     struct dj_test_options* _run_config
 );
+
 bool d_test_handler_run_test_type(
     struct dj_test_handler* _handler,
     struct dj_test_type*    _test_type,
     struct dj_test_options* _run_config
 );
+
 bool d_test_handler_run_module(
     struct dj_test_handler* _handler,
     struct dj_test_module*  _module,
     struct dj_test_options* _run_config
 );
+
 bool d_test_handler_run_tree(
     struct dj_test_handler* _handler,
     struct dj_test_tree*    _tree,
     struct dj_test_options* _run_config
 );
+
 bool d_test_handler_run_session(
     struct dj_test_handler* _handler,
     struct dj_test_session* _session
@@ -251,14 +278,17 @@ bool d_test_handler_push_result(
     struct dj_test_handler*      _handler,
     const struct dj_test_result* _result
 );
+
 bool d_test_handler_pop_result(
     struct dj_test_handler* _handler,
     struct dj_test_result*  _out
 );
+
 bool d_test_handler_push_context(
     struct dj_test_handler*       _handler,
     const struct dj_test_context* _context
 );
+
 bool d_test_handler_pop_context(
     struct dj_test_handler* _handler,
     struct dj_test_context* _out
@@ -268,16 +298,20 @@ bool d_test_handler_pop_context(
 struct dj_test_result d_test_handler_get_results(
     const struct dj_test_handler* _handler
 );
+
 void d_test_handler_reset_results(
     struct dj_test_handler* _handler
 );
+
 void d_test_handler_print_results(
     const struct dj_test_handler* _handler,
     const char*                   _label
 );
+
 double d_test_handler_get_pass_rate(
     const struct dj_test_handler* _handler
 );
+
 double d_test_handler_get_assertion_rate(
     const struct dj_test_handler* _handler
 );
@@ -286,10 +320,12 @@ double d_test_handler_get_assertion_rate(
 struct dj_test_context* d_test_context_new(
     struct dj_test_handler* _handler
 );
+
 void d_test_context_init(
     struct dj_test_context* _context,
     struct dj_test_handler* _handler
 );
+
 void d_test_context_free(
     struct dj_test_context* _context
 );
@@ -411,21 +447,25 @@ struct dj_test_module* d_test_handler_create_module_with_metadata(
     const struct dj_test_kv* _metadata,
     size_t                   _count
 );
+
 struct dj_test* d_test_handler_create_test_from_nodes(
     const struct dj_test_dsl_node* _nodes,
     size_t                         _count
 );
+
 struct dj_test_block* d_test_handler_create_block_from_nodes(
     const char*                    _name,
     const struct dj_test_dsl_node* _nodes,
     size_t                         _count
 );
+
 struct dj_test_module* d_test_handler_create_module_from_decl(
     const struct dj_test_kv*       _metadata,
     size_t                         _metadata_count,
     const struct dj_test_dsl_node* _children,
     size_t                         _children_count
 );
+
 bool d_test_module_set_metadata_str(
     struct dj_test_module* _module,
     const char*            _key,

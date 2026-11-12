@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dmacro_tests_token_manip.c
+* djinterp [c]                                        dmacro_tests_token_manip.c
 *
 *   Unit tests for `dmacro.h` token manipulation section (Section I).
 *   Tests token pasting (D_CONCAT), stringification (D_STRINGIFY, D_TOSTR),

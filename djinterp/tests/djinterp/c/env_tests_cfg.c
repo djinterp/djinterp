@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                env_tests_cfg.c
+* djinterp [c][env]                                              env_tests_cfg.c
 *
 * Unit tests for `env.h` configuration system (CFG section).
 * Tests the D_CFG_ENV_* macros that control environment detection.

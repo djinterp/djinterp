@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_builder_tests_structure.cpp
+* djinterp [cpp][test]                          test_builder_tests_structure.cpp
 *
 *   Building the forest.  test_module / test_block / test grow a rank-checked
 * nesting (a module holds blocks, a block holds tests), each opener resetting
 * the cursors beneath it; with no enclosing scope, a block or test lands as a
 * top-level root.  The scoped module / block forms open a node, run a body, and
-* RESTORE the prior cursor - checked here by proving a stray assertion after a
+* restore the prior cursor - checked here by proving a stray assertion after a
 * scope has no open test to bind onto.  Rank safety is exercised two ways
 * through the explicit-tree constructor (which keeps the caller's kinds rather
 * than re-installing the defaults): a leaf `block` rejects a child test, and an

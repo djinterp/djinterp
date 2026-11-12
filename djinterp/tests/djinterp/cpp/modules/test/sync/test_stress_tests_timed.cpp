@@ -1,9 +1,9 @@
 /*******************************************************************************
-* djinterp [tests]                                   test_stress_tests_timed.cpp
+* djinterp [cpp][test]                               test_stress_tests_timed.cpp
 *
 *   Section TU: DTimedStress - duration-bounded execution.  A timed run has no
 * exact op count by construction, so the assertions here are on the
-* invariants that DO hold: work happened, the window was honoured, and the
+* invariants that do hold: work happened, the window was honoured, and the
 * per-thread vector is shaped correctly.
 *
 *

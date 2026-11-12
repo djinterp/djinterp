@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_builder_tests_events.cpp
+* djinterp [cpp][test]                             test_builder_tests_events.cpp
 *
 *   The event lifecycle run() fires as it walks, and the subscription sugar.
 * on_passed / on_failed / on_skipped / on_error fire once per matching leaf
 * (on_error carrying the diagnostic); DOnStatusChange fires only when a
-* deferred leaf actually resolves; on_module_start fires once per interior
-* node; DOnSessionStart / on_session_end bracket the walk, the latter carrying
+* deferred leaf actually resolves; DOnModuleStart fires once per interior
+* node; DOnSessionStart / DOnSessionEnd bracket the walk, the latter carrying
 * the pass / fail counts.  verdict::consume from a handler halts the rest of
 * that event's word.  A handler that throws is caught and re-reported as
 * DOnListenerThrew (named by the offending event) rather than aborting the
@@ -106,7 +106,7 @@ bool tests_events_status_change_fired()
 }
 
 // tests_events_module_start_per_interior
-//   on_module_start fires once for every interior node (module or block).
+//   DOnModuleStart fires once for every interior node (module or block).
 bool tests_events_module_start_per_interior()
 {
     bool ok = true;
@@ -114,7 +114,7 @@ bool tests_events_module_start_per_interior()
     int module_starts = 0;
 
     dt::test_builder<> b;
-    b.on<dt::on_module_start>([&module_starts](const dt::basic_test*){ ++module_starts; });
+    b.on<dt::DOnModuleStart>([&module_starts](const dt::basic_test*){ ++module_starts; });
     b.test_module("m1")
         .test_block("b1").test("t1").assert_(true)
         .test_block("b2").test("t2").assert_(true);
@@ -128,7 +128,7 @@ bool tests_events_module_start_per_interior()
 }
 
 // tests_events_session_end_counts
-//   DOnSessionStart fires once up front; on_session_end carries the final
+//   DOnSessionStart fires once up front; DOnSessionEnd carries the final
 // pass / fail counts.
 bool tests_events_session_end_counts()
 {
@@ -140,7 +140,7 @@ bool tests_events_session_end_counts()
 
     dt::test_builder<> b;
     b.on<dt::DOnSessionStart>([&start_calls]{ ++start_calls; });
-    b.on<dt::on_session_end>(DSessionEndRecorder{&sp, &sf});
+    b.on<dt::DOnSessionEnd>(DSessionEndRecorder{&sp, &sf});
     b.test_module("m").test("p").assert_(true).test("f").assert_(false);
     b.run();
 

@@ -1,7 +1,21 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_printer.h
+* djinterp [c][test]                                              test_printer.h
 *
 * TBA
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_printer.h

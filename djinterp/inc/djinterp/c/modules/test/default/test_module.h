@@ -1,9 +1,24 @@
 /*******************************************************************************
-* djinterp [c/test]                                                test_module.h
+* djinterp [c][test]                                               test_module.h
 *
 *   Test module definition - a logical grouping of related tests.
 *   A module represents a unit being tested (e.g., a source file, subsystem,
 * or feature). It contains test blocks, configuration, and metadata.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   Its tests, blocks and modules take optional arguments (struct dj_test_arg
+* lists) that become entries of a test option set, test_options.h.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/default/test_module.h
@@ -131,12 +146,14 @@ struct dj_test_module* d_test_module_new(
     struct dj_test_type** _children,
     size_t                _child_count
 );
+
 struct dj_test_module* d_test_module_new_args(
     struct dj_test_arg*   _args,
     size_t                _arg_count,
     struct dj_test_type** _children,
     size_t                _child_count
 );
+
 struct dj_test_options* d_test_module_validate_args(
     struct dj_test_arg* _args,
     size_t              _arg_count
@@ -151,9 +168,11 @@ bool d_test_module_add_child(
     struct dj_test_module*          _module,
     const struct dj_test_tree_node* _child
 );
+
 size_t d_test_module_child_count(
     const struct dj_test_module* _module
 );
+
 struct dj_test_type* d_test_module_get_child_at(
     const struct dj_test_module* _module,
     size_t                       _index
@@ -184,6 +203,7 @@ bool d_test_module_set_stage_hook(
     enum DTestStage        _stage,
     fn_stage               _hook
 );
+
 fn_stage d_test_module_get_stage_hook(
     const struct dj_test_module* _module,
     enum DTestStage              _stage
@@ -198,6 +218,7 @@ bool d_test_module_run(
     struct dj_test_module*  _module,
     struct dj_test_options* _parent_settings
 );
+
 bool d_test_module_run_child(
     struct dj_test_module*  _module,
     size_t                  _child_index,
@@ -212,9 +233,11 @@ bool d_test_module_run_child(
 struct dj_test_module_result* d_test_module_get_result(
     const struct dj_test_module* _module
 );
+
 void d_test_module_reset_result(
     struct dj_test_module* _module
 );
+
 double d_test_module_get_pass_rate(
     const struct dj_test_module* _module
 );
@@ -229,9 +252,11 @@ void d_test_module_print(
     const char*                  _prefix,
     size_t                       _prefix_length
 );
+
 void d_test_module_print_result(
     const struct dj_test_module* _module
 );
+
 const char* d_test_module_status_to_string(
     enum DTestModuleStatus _status
 );

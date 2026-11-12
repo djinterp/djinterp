@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         rcu_tests_reclaimer.cpp
+* djinterp [cpp][sync]                                   rcu_tests_reclaimer.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/rcu_tests_reclaimer.cpp

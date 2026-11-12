@@ -1,24 +1,28 @@
 /*******************************************************************************
-* djinterp [test]                                            file_tests_util.cpp
+* djinterp [cpp][filesys]                                    file_tests_util.cpp
 *
 *   Shared environment for the core/filesys C++ suite: an isolated, absolute-pathed
 * scratch directory with one standard fixture, stood up before run() and torn
 * down after.
 *
-*   WHAT THESE HELPERS ARE BUILT ON, AND WHY. Every helper here reaches for the
-* C layer (c/filesys) or raw stdio -- never for djinterp::file, djinterp::directory
-* or the free functions this suite exists to test. The C layer sits BENEATH the
-* code under test and has its own suite, so a helper built on it is independent
-* evidence. Were teardown written with remove_all(), a broken remove_all would
-* leave the scratch tree behind AND report every later case as passing on a
-* dirty directory; were fs_test_contents_are written with djinterp::file, a
-* broken read would corroborate a broken write. Neither can happen this way.
+* WHAT THESE HELPERS ARE BUILT ON, AND WHY
+* ----------------------------------------
+*   Every helper here reaches for the C layer (c/filesys) or raw stdio -- never
+* for djinterp::file, djinterp::directory or the free functions this suite
+* exists to test. The C layer sits beneath the code under test and has its own
+* suite, so a helper built on it is independent evidence. Were teardown written
+* with remove_all(), a broken remove_all would leave the scratch tree behind and
+* report every later case as passing on a dirty directory; were
+* fs_test_contents_are written with djinterp::file, a broken read would
+* corroborate a broken write. Neither can happen this way.
 *
-*   ABSOLUTE PATHS. The scratch directory is resolved through d_dir_get_current at
-* setup. Deferred clauses run long after the section functions returned, and
-* one of them changes nothing about the working directory -- but the C suite's
-* chdir case proves how cheap it is to be wrong about that, so the paths do not
-* depend on it.
+* ABSOLUTE PATHS
+* --------------
+*   The scratch directory is resolved through d_dir_get_current at setup.
+* Deferred clauses run long after the section functions returned, and one of
+* them changes nothing about the working directory -- but the C suite's chdir
+* case proves how cheap it is to be wrong about that, so the paths do not depend
+* on it.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_util.cpp

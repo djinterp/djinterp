@@ -1,17 +1,15 @@
 # =============================================================================
-# testing/djinterp/core/
-#   Core-layer aggregate + the top-level djinterp header-smoke suite.
+# testing/djinterp/cpp/
+#   The C++ layer's aggregate, and djinterp.hpp's suite.
 #
 #   Two things happen here:
-#     - djinterp_header_tests : a leaf exe built from djinterp_header_tests_runner.cpp
-#       in THIS directory (a compile/link smoke test over the umbrella
-#       <djinterp/core/djinterp.hpp> and the test-framework headers).  Its own
-#       test header is pulled in by a repo-relative #include in the runner, so
-#       only inc/ (added by the helper) and the shared core tests dir are needed.
+#     - djinterp_header_tests : djinterp.hpp's suite (tests/djinterp/cpp/
+#       djinterp_tests*), in DTest's C face: the runner in THIS directory, the
+#       section translation units globbed from the tests tree, and DTest's C
+#       face, which djinterp_c_runtime does not yet carry.
 #     - all_djinterp_core : the subtree group target, which recurses into every
-#       core subsystem child directory (db, event, functional, meta, option,
-#       paradigm, sync) and then depends on every test exe at or below here -
-#       including djinterp_header_tests.
+#       child directory and then depends on every test exe at or below here,
+#       djinterp_header_tests included.
 #
 #   Composes upward: testing/djinterp/CMakeLists.txt (all_djinterp) recurses
 # straight through this file, so the whole core layer is reachable from the
@@ -25,17 +23,17 @@
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp")
 
-# Header-smoke section TUs, if any (the runner is named explicitly, never
-# globbed; a stray *_main.cpp under tests/ would collide on main(), so exclude).
-file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/djinterp_header_tests_*.cpp")
-list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
+# the section TUs (the runner is named explicitly, never globbed; a stray
+# entry point under tests/ would collide on main(), so exclude)
+file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/djinterp_tests_*.cpp")
+list(FILTER _sources EXCLUDE REGEX "_(main|runner)\\.cpp$")
 
 djinterp_add_test_executable(djinterp_header_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/djinterp_header_tests_runner.cpp"
         ${_sources}
+        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/cpp"
         "${_tests_dir}")
 
 # Recurse into the core subsystems and publish the group target over them all.

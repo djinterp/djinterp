@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   t_file_noplat.c
+* djinterp [c][filesys]                                          t_file_noplat.c
 *
 *   Runtime harness for c/filesys built with neither POSIX nor Windows --
 * D_CFG_FILE_HAS_POSIX=0 on a POSIX host, or a target env counts as neither,

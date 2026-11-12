@@ -1,51 +1,57 @@
 /*******************************************************************************
-* djinterp [test]                                              condvar_tests.hpp
+* djinterp [cpp][sync]                                         condvar_tests.hpp
 *
 *   Declarations for the condvar.hpp unit-test suite, plus the helper types the
 * sections share.
 *
-*   WHY THE HARNESS IS BUILT FROM std AND NOTHING ELSE:
+*   Why the harness is built from std and nothing else:
 *   The framework's own concurrency helpers - test_latch, test_barrier,
-* test_gate, DSimultaneousStart (test_sync.hpp) - are implemented ON TOP of
-* portable_condvar and exclusive_lock_policy.  They are DOWNSTREAM of the header
+* test_gate, DSimultaneousStart (test_sync.hpp) - are implemented on top of
+* portable_condvar and exclusive_lock_policy.  They are downstream of the header
 * under test.  Orchestrating this suite with them would be circular: a broken
 * portable_condvar would break the barrier that was supposed to expose it, and
 * the suite could pass, hang, or lie.  So every rendezvous below is built from
 * std::atomic + std::thread + std::chrono only - a harness that cannot be broken
 * by the thing it is testing.
 *
-*   WHY NOTHING HANGS:
-*   A condvar test that fails is a condvar test that BLOCKS, and a blocked test
+* WHY NOTHING HANGS
+* -----------------
+*   A condvar test that fails is a condvar test that blocks, and a blocked test
 * takes the whole runner down with it.  Every waiter here therefore waits on a
 * predicate that ORs in an `abort` flag, and every test's last act is rescue() -
 * set abort, notify everyone - before it joins.  A broken wait yields a reported
-* FAILURE (the deadline elapsed) rather than a hung process.  Spin-waits sleep
+* Failure (the deadline elapsed) rather than a hung process.  Spin-waits sleep
 * rather than spin hot, so the suite is correct on a single-core box too.
 *
-*   WHAT THE SUITE PINS THAT THE HEADER DOES NOT SAY:
+* WHAT THE SUITE PINS THAT THE HEADER DOES NOT SAY
+* ------------------------------------------------
 *   Three facts fell out of testing and are pinned deliberately, each in a named
 * test, because code that relies on the header's "same code, locked or not"
 * promise will meet them:
-*     - no_op_condvar has NO wait_until, so portable_condvar<null_lock_policy>
+*     - no_op_condvar has no wait_until, so portable_condvar<null_lock_policy>
 * ::wait_until does not compile (tests_only_the_real_condvars_have_wait_until);
 *     - std::condition_variable has no stop_token overload, so the C++20 wait()
 *       does not compile for a std::mutex policy - only for the policies that
 *       select condition_variable_any (tests_only_condition_variable_any_takes_
 *       a_stop_token);
-*     - no_op_condvar::wait(lock, pred) IGNORES the predicate entirely (it is
+*     - no_op_condvar::wait(lock, pred) ignores the predicate entirely (it is
 *       never even invoked), while wait_for(lock, dur, pred) calls it once and
 *       returns it (tests_no_op_wait_ignores_its_predicate).
 *
-*   NOTE ON INCLUDES: this header deliberately does NOT include <mutex>,
-* <condition_variable>, <shared_mutex> or <stop_token>.  condvar.hpp claims to
-* supply them, and tests_header_provides_the_std_facilities is only an honest
-* test of that claim from a TU that could not have gotten them anywhere else.
+* NOTE ON INCLUDES
+* ----------------
+*   This header deliberately does not include <mutex>, <condition_variable>,
+* <shared_mutex> or <stop_token>.  condvar.hpp claims to supply them, and
+* tests_header_provides_the_std_facilities is only an honest test of that claim
+* from a TU that could not have gotten them anywhere else.
 *
-*   PORTABILITY: the suite requires C++11 (the framework's floor, and the gate
-* sections III and IV of the header sit behind).  The C++14 / C++17 / C++20
-* faces - shared_timed_lock_policy, shared_lock_policy, the stop_token wait -
-* are gated where they appear, and their tests degrade to a stated no-op below
-* their standard rather than being silently dropped.
+* PORTABILITY
+* -----------
+*   The suite requires C++11 (the framework's floor, and the gate sections III
+* and IV of the header sit behind).  The C++14 / C++17 / C++20 faces -
+* shared_timed_lock_policy, shared_lock_policy, the stop_token wait - are gated
+* where they appear, and their tests degrade to a stated no-op below their
+* standard rather than being silently dropped.
 *
 *
 * path:      /tests/djinterp/cpp/sync/condvar_tests.hpp
@@ -634,133 +640,225 @@ void wait_worker(
 // a.   the header contract
 //////////////////////////////////////////
 bool tests_header_include_guard();
+
 bool tests_header_is_idempotent();
+
 bool tests_header_inherits_its_guards_from_lock_policy();
+
 bool tests_header_pulls_its_dependencies();
+
 bool tests_header_provides_the_std_facilities();
+
 bool tests_header_defines_no_stray_macros();
+
 bool tests_entities_live_in_the_djinterp_namespace();
+
 bool tests_sections_three_and_four_are_gated_to_cpp11();
 
 // b.   I.  thread yield
 //////////////////////////////////////////
 bool tests_yield_is_a_nullary_void_function();
+
 bool tests_yield_is_callable();
+
 bool tests_yield_does_not_throw();
+
 bool tests_yield_is_not_declared_noexcept();
+
 bool tests_yield_from_many_threads();
+
 bool tests_yield_in_a_spin_loop_makes_progress();
+
 bool tests_yield_has_one_definition_across_tus();
 
 // c.   II. hardware concurrency
 //////////////////////////////////////////
 bool tests_hardware_returns_unsigned();
+
 bool tests_hardware_is_deterministic();
+
 bool tests_hardware_may_return_zero();
+
 bool tests_hardware_is_plausible();
+
 bool tests_hardware_matches_the_standard();
+
 bool tests_hardware_does_not_throw();
+
 bool tests_hardware_is_callable_from_many_threads();
+
 bool tests_hardware_has_one_definition_across_tus();
 
 // d.   III. portable_once
 //////////////////////////////////////////
 bool tests_once_is_default_constructible();
+
 bool tests_once_is_not_copyable();
+
 bool tests_once_is_not_movable();
+
 bool tests_once_holds_one_flag_and_nothing_else();
+
 bool tests_once_runs_the_callable();
+
 bool tests_once_runs_it_only_once();
+
 bool tests_once_ignores_a_later_callable();
+
 bool tests_once_runs_exactly_once_under_contention();
+
 bool tests_once_publishes_the_result_to_every_caller();
+
 bool tests_once_forwards_its_arguments();
+
 bool tests_once_forwards_by_reference();
+
 bool tests_once_accepts_any_callable();
+
 bool tests_once_propagates_an_exception();
+
 bool tests_once_retries_after_an_exception();
+
 bool tests_once_instances_are_independent();
 
 // e.   IV. the condvar selector
 //////////////////////////////////////////
 bool tests_selector_maps_std_mutex_to_condition_variable();
+
 bool tests_selector_maps_no_op_mutex_to_the_no_op_condvar();
+
 bool tests_selector_falls_back_to_condition_variable_any();
+
 bool tests_selector_maps_the_shared_mutexes();
+
 bool tests_selector_primary_accepts_any_type();
+
 bool tests_every_policy_selects_its_condvar();
+
 bool tests_every_condvar_can_notify();
+
 bool tests_every_condvar_can_wait();
+
 bool tests_every_condvar_can_wait_for();
+
 bool tests_only_the_real_condvars_have_wait_until();
+
 bool tests_only_condition_variable_any_takes_a_stop_token();
 
 // f.   IV. the no-op condvar
 //////////////////////////////////////////
 bool tests_no_op_condvar_is_empty();
+
 bool tests_no_op_notify_is_a_noexcept_no_op();
+
 bool tests_no_op_wait_returns_immediately();
+
 bool tests_no_op_wait_never_touches_the_lock();
+
 bool tests_no_op_wait_ignores_its_predicate();
+
 bool tests_no_op_wait_for_claims_no_timeout();
+
 bool tests_no_op_wait_for_does_not_sleep();
+
 bool tests_no_op_wait_for_with_a_predicate_returns_it();
+
 bool tests_no_op_condvar_lives_in_internal();
+
 bool tests_the_null_policy_condvar_is_free();
 
 // g.   IV. portable_condvar's surface
 //////////////////////////////////////////
 bool tests_condvar_is_default_constructible();
+
 bool tests_condvar_is_not_copyable();
+
 bool tests_condvar_is_not_movable();
+
 bool tests_condvar_exposes_its_condvar_type();
+
 bool tests_condvar_notify_is_noexcept();
+
 bool tests_condvar_native_returns_the_underlying();
+
 bool tests_condvar_native_has_a_const_overload();
+
 bool tests_condvar_costs_exactly_its_condvar();
+
 bool tests_condvar_has_no_vtable();
+
 bool tests_condvar_notify_without_waiters_is_harmless();
+
 bool tests_condvar_instances_are_independent();
 
 // h.   IV. wait + notify
 //////////////////////////////////////////
 bool tests_wait_blocks_until_notified();
+
 bool tests_wait_releases_the_mutex_while_blocked();
+
 bool tests_wait_reacquires_the_mutex_before_returning();
+
 bool tests_wait_with_a_predicate_returns_when_it_holds();
+
 bool tests_wait_with_a_true_predicate_never_blocks();
+
 bool tests_wait_ignores_a_notification_while_the_predicate_is_false();
+
 bool tests_notify_one_wakes_a_waiter();
+
 bool tests_notify_all_wakes_every_waiter();
+
 bool tests_notify_one_wakes_at_least_one_of_many();
+
 bool tests_a_notification_with_no_waiter_is_lost();
 
 // i.   IV. timed waits
 //////////////////////////////////////////
 bool tests_wait_for_times_out();
+
 bool tests_wait_for_returns_no_timeout_when_notified();
+
 bool tests_wait_for_with_a_predicate_returns_false_on_timeout();
+
 bool tests_wait_for_with_a_predicate_returns_true_when_satisfied();
+
 bool tests_wait_for_with_a_true_predicate_returns_at_once();
+
 bool tests_wait_for_with_a_zero_duration_times_out();
+
 bool tests_wait_for_keeps_waiting_while_the_predicate_is_false();
+
 bool tests_wait_until_times_out();
+
 bool tests_wait_until_with_a_past_deadline_returns_at_once();
+
 bool tests_wait_until_returns_no_timeout_when_notified();
+
 bool tests_wait_for_on_the_condition_variable_any_path();
+
 bool tests_wait_until_has_no_predicate_overload();
 
 // j.   IV. the lock policies
 //////////////////////////////////////////
 bool tests_the_null_policy_never_blocks();
+
 bool tests_the_exclusive_policy_handshake();
+
 bool tests_the_timed_policy_handshake();
+
 bool tests_the_shared_policy_wakes_a_reader();
+
 bool tests_the_shared_timed_policy_handshake();
+
 bool tests_the_default_policy_works();
+
 bool tests_every_policy_yields_a_usable_condvar();
+
 bool tests_the_stop_token_wait_returns_the_predicate();
+
 bool tests_the_stop_token_wait_returns_true_when_satisfied();
+
 bool tests_the_stop_token_wait_returns_at_once_if_already_stopped();
 
 

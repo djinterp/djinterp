@@ -1,20 +1,23 @@
 /*******************************************************************************
-* djinterp [test]                                             file_tests_ops.cpp
+* djinterp [cpp][filesys]                                     file_tests_ops.cpp
 *
-*   VI. OPERATIONS (file_ops.hpp) -- remove, rename, copy over whole paths.
+*   VI. Operations (file_ops.hpp) -- remove, rename, copy over whole paths.
 *
-*   RENAME ALWAYS OVERWRITES HERE. The C d_file_rename takes an overwrite flag and
-* the c/filesys suite pins both settings; this layer passes 1 unconditionally, so
-* renaming onto an existing file REPLACES it rather than failing EEXIST. That
-* is a deliberate narrowing -- rename is the atomic-replace primitive, and a
-* replace that refuses to replace is not one -- but it means a C caller's
-* instinct is wrong here, so the case below states it outright.
+* RENAME ALWAYS OVERWRITES HERE
+* -----------------------------
+*   The C d_file_rename takes an overwrite flag and the c/filesys suite pins
+* both settings; this layer passes 1 unconditionally, so renaming onto an
+* existing file replaces it rather than failing EEXIST. That is a deliberate
+* narrowing -- rename is the atomic-replace primitive, and a replace that
+* refuses to replace is not one -- but it means a C caller's instinct is wrong
+* here, so the case below states it outright.
 *
-*   THE REMOVAL FAMILY, BY WHAT EACH REFUSES. remove() takes a file or an empty
-* directory; remove_file() refuses a directory. The refusal is the point of the
-* narrower name, so it is tested -- and tested WITHOUT pinning an errno, since
-* the header says EISDIR or EPERM by platform and asserting either one would
-* make this suite fail on the other.
+* THE REMOVAL FAMILY, BY WHAT EACH REFUSES
+* ----------------------------------------
+*   remove() takes a file or an empty directory; remove_file() refuses a
+* directory. The refusal is the point of the narrower name, so it is tested --
+* and tested without pinning an errno, since the header says EISDIR or EPERM by
+* platform and asserting either one would make this suite fail on the other.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_ops.cpp

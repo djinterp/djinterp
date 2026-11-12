@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_callable_tests_transform.cpp
+* djinterp [cpp][test]                         test_callable_tests_transform.cpp
 *
 *   Row rewriting.  transform replaces the thunk bound to an id with the result
 * of a mapper applied to it - the general knob behind wrapping a row (negate,
 * memoize, fold a side effect).  Pinned here: that the mapper's result becomes
-* the row (a negating mapper flips invoke); that the mapper actually RECEIVES
+* the row (a negating mapper flips invoke); that the mapper actually receives
 * the row's current thunk (a mapper that calls its argument twice doubles a
 * counter); that transform is guarded by has(), so an unbound / sentinel id, or
-* an EMPTY row, leaves the mapper uncalled - the pointed contrast with
+* an empty row, leaves the mapper uncalled - the pointed contrast with
 * compose_with, which binds onto an empty row; and that a mapper returning an
-* empty thunk DISABLES the row (has() goes false, invoke reads false) while the
+* empty thunk disables the row (has() goes false, invoke reads false) while the
 * row itself remains counted.
 *
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  dtime_tests.h
+* djinterp [c]                                                     dtime_tests.h
 *
 * dtime.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block holds the register's decisions on dtime (#14, #15, #25 to
@@ -50,11 +50,17 @@ D_EXTERN_C_BEGIN
 // 1.1    The register's decisions
 //------------------------------------------------------------------------------
 bool d_tests_dtime_timespec_to_ns(void);
+
 bool d_tests_dtime_nanosleep(void);
+
 bool d_tests_dtime_timegm_normalizes(void);
+
 bool d_tests_dtime_clocks(void);
+
 bool d_tests_dtime_strftime_s(void);
+
 bool d_tests_dtime_timespec_cmp_null(void);
+
 bool d_tests_dtime_timespec_type(void);
 
 
@@ -200,9 +206,13 @@ bool d_tests_dtime_teardown(void);
 
 // III. thread-safe time conversion tests
 bool d_tests_dtime_localtime(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_gmtime(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_ctime(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_asctime(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_thread_safe_conversion_all(struct dj_test_suite* _suite);
 
 
@@ -212,8 +222,11 @@ bool d_tests_dtime_thread_safe_conversion_all(struct dj_test_suite* _suite);
 
 // IV. high-resolution time tests
 bool d_tests_dtime_clock_gettime(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_clock_getres(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_get(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_high_resolution_time_all(struct dj_test_suite* _suite);
 
 
@@ -223,8 +236,11 @@ bool d_tests_dtime_high_resolution_time_all(struct dj_test_suite* _suite);
 
 // V. sleep functions tests
 bool d_tests_dtime_nanosleep_cases(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_usleep(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_sleep_ms(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_sleep_functions_all(struct dj_test_suite* _suite);
 
 
@@ -234,7 +250,9 @@ bool d_tests_dtime_sleep_functions_all(struct dj_test_suite* _suite);
 
 // VI. timezone utilities tests
 bool d_tests_dtime_timegm(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_tzset(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timezone_utilities_all(struct dj_test_suite* _suite);
 
 
@@ -244,7 +262,9 @@ bool d_tests_dtime_timezone_utilities_all(struct dj_test_suite* _suite);
 
 // VII. string parsing and formatting tests
 bool d_tests_dtime_strptime(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_strftime_s_cases(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_string_parsing_formatting_all(struct dj_test_suite* _suite);
 
 
@@ -254,14 +274,23 @@ bool d_tests_dtime_string_parsing_formatting_all(struct dj_test_suite* _suite);
 
 // VIII. time arithmetic tests
 bool d_tests_dtime_timespec_add(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_sub(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_cmp(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_to_ms(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_to_us(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_to_ns_cases(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_ms_to_timespec(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_us_to_timespec(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_ns_to_timespec(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_time_arithmetic_all(struct dj_test_suite* _suite);
 
 
@@ -271,8 +300,11 @@ bool d_tests_dtime_time_arithmetic_all(struct dj_test_suite* _suite);
 
 // IX. monotonic time utilities tests
 bool d_tests_dtime_monotonic_time_ms(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_monotonic_time_us(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_monotonic_time_ns(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_monotonic_time_all(struct dj_test_suite* _suite);
 
 
@@ -282,7 +314,9 @@ bool d_tests_dtime_monotonic_time_all(struct dj_test_suite* _suite);
 
 // X. timespec normalization tests
 bool d_tests_dtime_timespec_normalize(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_is_valid(struct dj_test_suite* _suite);
+
 bool d_tests_dtime_timespec_normalization_all(struct dj_test_suite* _suite);
 
 

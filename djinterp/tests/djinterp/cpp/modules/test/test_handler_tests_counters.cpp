@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_handler_tests_counters.cpp
+* djinterp [cpp][test]                           test_handler_tests_counters.cpp
 *
 *   Section IV (counters) - the pull-based bookkeeping side of the handler.
 * record() routes a status through increment_for into the matching per-session

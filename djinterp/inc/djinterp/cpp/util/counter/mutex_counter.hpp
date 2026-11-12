@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               mutex_counter.hpp
+* djinterp [cpp][utility]                                      mutex_counter.hpp
 *
 * Lock-policy-based thread-safe counter.
 *   Wraps the base `counter<ValueType>` with a configurable lock policy
@@ -10,11 +10,13 @@
 *   The underlying counter is accessed only through the lock — no public
 * method exposes an unguarded reference to the internal state.
 *
-* LOCK ORDERING:
+* LOCK ORDERING
+* -------------
 *   Parent locks are always acquired before child locks.  Children must
 * not hold references back to the parent to avoid deadlock.
 *
-* POLICY COMPATIBILITY:
+* POLICY COMPATIBILITY
+* --------------------
 *   Any policy from lock_policy.hpp or lock_policy_c.hpp is accepted:
 *   - null_lock_policy         (compiles to nothing — useful for testing)
 *   - exclusive_lock_policy    (std::mutex)
@@ -23,18 +25,37 @@
 *   - shared_timed_lock_policy (std::shared_timed_mutex)
 *   - c_exclusive, c_shared, c_recursive, c_spinlock
 *
-* SEE ALSO:
+* SEE ALSO
+* --------
 *   counter.hpp         — unsynchronized base
 *   atomic_counter.hpp  — lock-free std::atomic variant
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++17 or later.
+*
+* HOW TO USE
+* ----------
+*     mutex_counter<long> hits;
+*
+*     hits.increment();                   // under the lock
+*
+*   snapshot() copies it into a counter<> for reading several values together.
+*
+* OPTIONS
+* -------
+*   The lock policy, a template argument (default_lock_policy), and the initial
+* value and bounds given to the constructor.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/util/counter/mutex_counter.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COUNTER_MUTEX_COUNTER_HPP
@@ -65,13 +86,13 @@ NS_DJINTERP
 //
 //   Wraps `counter<ValueType>` by composition.  Read operations acquire
 // a shared lock (when the policy supports it); write operations acquire
-// an exclusive lock.  Children are mutex_counters with the same policy,
+// an exclusive lock.  Children are mutex_counter objects with the same policy,
 // each with their own mutex.
 //
 //   Template parameter `ValueType` must be an arithmetic type.
 //   Template parameter `Policy` must be a lock policy struct.
 template<typename ValueType = re_std::int64_t,
-         typename Policy     = default_lock_policy>
+         typename Policy    = default_lock_policy>
 class mutex_counter
 {
     static_assert(std::is_arithmetic_v<ValueType>,
@@ -165,6 +186,55 @@ public:
         m_counter.reset();
 
         return;
+    }
+
+    // compare
+    //   three-way comparison by value: -1, 0 or 1 as this counter is below,
+    // equal to or above `_other`. each value is read under its own lock,
+    // one lock at a time.
+    int compare(
+        const self_type& _other
+    ) const
+    {
+        const value_type mine   = value();
+        const value_type theirs = _other.value();
+
+        return (mine < theirs) ? -1 : ( (theirs < mine) ? 1 : 0 );
+    }
+
+    // merge
+    //   adds `_other`'s movement since its start to this counter, as
+    // counter::merge does. `_other` is copied under its read lock and
+    // released before this counter's write lock is taken, so no thread
+    // holds two of these locks and a counter may merge itself.
+    bool merge(
+        const self_type& _other
+    )
+    {
+        return merge(_other.snapshot());
+    }
+
+    // merge
+    //   adds a plain counter's movement since its start, under the write
+    // lock.
+    bool merge(
+        const base_type& _other
+    )
+    {
+        write_guard guard(m_mutex);
+
+        return m_counter.merge(_other);
+    }
+
+    // snapshot
+    //   returns a copy of the guarded counter, taken under the read lock:
+    // its value, start and bounds. this mutex_counter's children are kept
+    // beside the guarded counter, not in it, so the copy carries none.
+    base_type snapshot() const
+    {
+        read_guard guard(m_mutex);
+
+        return m_counter;
     }
 
     // reset_all

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_runner_tests_helpers.cpp
+* djinterp [cpp][test]                             test_runner_tests_helpers.cpp
 *
 *   Section I - the internal reporter helpers.  These are pure functions in
 * djinterp::test::internal, so they are called directly: the raw-status map

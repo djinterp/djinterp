@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          atomic_tests_size.cpp
+* djinterp [cpp][sync]                                     atomic_tests_size.cpp
 *
 *   Section I - atomic_size.  A single-threaded, exhaustive pass over the
 * semantic element-count wrapper: construction, load/store (default and

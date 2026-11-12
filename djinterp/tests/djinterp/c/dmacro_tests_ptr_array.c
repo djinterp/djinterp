@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       dmacro_tests_ptr_array.c
+* djinterp [c]                                          dmacro_tests_ptr_array.c
 *
 *   Unit tests for `dmacro.h` pointer array initialization section.
 *   Tests D_FOR_EACH_DATA_COMMA and D_STRUCT_ARRAY_INIT concepts.

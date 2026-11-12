@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 test_options_tests_lifecycle.c
+* djinterp [c][test]                              test_options_tests_lifecycle.c
 *
 * test_options.h's suite, block "config_lifecycle_all": d_test_options_new,
 * _new_preset, _new_copy (of NULL too) and _free.

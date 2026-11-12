@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                            test_deadlock_tests_lock_order.cpp
+* djinterp [cpp][test]                        test_deadlock_tests_lock_order.cpp
 *
 *   Section TU: lock_order_tracker - the acquisition-order graph, immediate
 * AB-BA detection, and full cycle analysis.

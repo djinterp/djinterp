@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_defaults_tests_authoring.cpp
+* djinterp [cpp][test]                         test_defaults_tests_authoring.cpp
 *
 *   The authoring aggregates and the small pure helpers around them.  test_spec
 * / block_spec / module_spec are the plain-data description a run is authored

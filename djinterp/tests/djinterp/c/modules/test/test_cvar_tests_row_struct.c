@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   test_cvar_tests_row_struct.c
+* djinterp [c][test]                                test_cvar_tests_row_struct.c
 *
 * test_cvar.h's suite, block "cvar_row_struct_all": dj_test_registry_row's
 * members, the key first, then flag, command_flags, value_type, value and help.

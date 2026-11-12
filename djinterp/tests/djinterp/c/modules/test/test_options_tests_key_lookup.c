@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                test_options_tests_key_lookup.c
+* djinterp [c][test]                             test_options_tests_key_lookup.c
 *
 * test_options.h's suite, block "config_key_lookup_all":
 * d_test_options_key_from_string: config keys and their aliases resolve; NULL,

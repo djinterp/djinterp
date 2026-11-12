@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_handler.hpp
+* djinterp [cpp][test]                                          test_handler.hpp
 *
 *   DTest framework session root.  Composes a typed `DEventDispatcher` (from
 * the C++ event subsystem) with per-session result counters and a tree
@@ -9,40 +9,45 @@
 * sinks, instrumentation, and ad-hoc assertions all bind to the dispatcher
 * the same way.
 *
-*   DESIGN:
+* DESIGN
+* ------
 *   test_handler owns an `DEventDispatcher` and a small set of session
 * counters (passed / failed / skipped / errors / pending / total).  It
-* does NOT own a tree or options set; trees are passed by reference
-* into `run(...)`, options are looked up externally.  The handler MAY
+* does not own a tree or options set; trees are passed by reference
+* into `run(...)`, options are looked up externally.  The handler may
 * hold a non-owning pointer to a `DTestPrinter` - when set via
 * `set_printer(...)`, the handler installs a bundle of listeners on
 * its own `DEventDispatcher` that drive the printer; when cleared, the
 * bundle is unbound.  The printer itself is a listener through and
 * through; this header just provides a one-line wiring API.
 *
-*   NODES ARE PRE-EVALUATED:
+* NODES ARE PRE-EVALUATED
+* -----------------------
 *   As of the DTestObject refactor, a node carries no deferred-callable
 * handle: its result / status are authoritative, written by whatever
 * evaluated the test (a builder, an inline check, a subtree factory)
-* BEFORE the walk.  The handler therefore READS each node's status and
+* before the walk.  The handler therefore reads each node's status and
 * fires the matching lifecycle events; it does not reach into a side
 * table to produce that status.  The earlier set_callable_table(...)
 * wiring is gone - deferred work is composed on the authoring side and
 * its verdict written onto the node.
 *
-*   BUILT-IN LIFECYCLE EVENTS:
-*   The built-in event TAGS are declared in test_event.hpp under the
+* BUILT-IN LIFECYCLE EVENTS
+* -------------------------
+*   The built-in event tags are declared in test_event.hpp under the
 * `djinterp::test::` sub-namespace.  This file includes that
 * header and references the tags by their qualified names.
 *
-*   CUSTOM EVENTS:
+* CUSTOM EVENTS
+* -------------
 *   Users declare custom events anywhere with `D_EVENT(name, ...)` or
 * `D_EVENT_EMPTY(name)` from event.hpp.  No registration step is
-* required: the type IS the registration.  The handler binds and fires
+* required: the type is the registration.  The handler binds and fires
 * custom events through exactly the same `on<E>()` and `fire<E>()`
 * methods used for built-ins.
 *
-*   HANDLERS RETURN A VERDICT:
+* HANDLERS RETURN A VERDICT
+* -------------------------
 *   In the refactored event subsystem a handler is a callable taking the
 * event's payload and returning `void` (always-pass) or a `verdict`; it
 * no longer mutates an event_context.  The dispatcher's bind() verifies
@@ -50,38 +55,54 @@
 * `DDispatchResult` (count + final verdict); the count-returning facade
 * methods below surface only its `invoked` field.
 *
-*   USAGE EXAMPLE - printing a custom-event warning:
+*   Usage example - printing a custom-event warning:
 *     D_EVENT_EMPTY(on_unreachable_path);
 *
 *     test_handler handler;
 *     handler.on<on_unreachable_path>(
 *         []() D_NOEXCEPT
 *         {
-*             std::fputs("\xE2\x80\xBC THIS SHOULD NOT HAPPEN\n", stderr);
+*             std::fputs("\xE2\x80\xBC this should not happen\n", stderr);
 *         });
 *
 *     // anywhere a test should never reach:
 *     handler.fire<on_unreachable_path>();
 *
-*   PRINTER WIRING:
+* PRINTER WIRING
+* --------------
 *     DTestPrinter printer( ... );
 *     test_handler handler;
 *     handler.set_printer(&printer);   // installs lifecycle bundle
 *     handler.run(my_tree);            // walk + dispatch
 *     handler.clear_printer();         // unbinds (also done in dtor)
 *
-*   CONVENIENCE MACROS:
+* CONVENIENCE MACROS
+* ------------------
 *     D_TEST_ON(_handler, Event, _lambda)        binds a listener
 *     D_TEST_FIRE(_handler, Event, ...)          immediate dispatch
 *     D_TEST_QUEUE(_handler, Event, ...)         deferred dispatch
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  All standard-version gating goes through the env.h
 * and env_cpp_features.h interface (D_ENV_LANG_IS_CPP11_OR_HIGHER,
 * D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES, etc.).  Concept-based
 * handler constraints are activated when D_ENV_CPP_FEATURE_LANG_CONCEPTS
 * is non-zero; on older toolchains the same calls compile through the
 * event subsystem's static_assert path.
+*
+* HOW TO USE
+* ----------
+*   Hand a test_handler a tree and run it; bind observers with on<Event>()
+* before the run and read the DSessionResult after.
+*
+* OPTIONS
+* -------
+*   A printer (set_printer) and the handlers bound to its dispatcher.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_handler.hpp
@@ -508,12 +529,12 @@ public:
     }
 
     // end_session
-    //   fires on_session_end with the current pass /
+    //   fires DOnSessionEnd with the current pass /
     // fail counters.  Counters are NOT cleared; call
     // reset_counters() explicitly if a clean slate is wanted.
     void end_session()
     {
-        m_events.fire<on_session_end>(
+        m_events.fire<DOnSessionEnd>(
             m_result.passed,
             m_result.failed);
 
@@ -753,11 +774,11 @@ private:
         // dispatch interior-vs-leaf entry event
         if (is_leaf)
         {
-            fire_if_listened<on_test_start>(obj_ptr);
+            fire_if_listened<DOnTestStart>(obj_ptr);
         }
         else
         {
-            fire_if_listened<on_module_start>(obj_ptr);
+            fire_if_listened<DOnModuleStart>(obj_ptr);
         }
 
         // dispatch the status-specific event for leaf nodes
@@ -813,7 +834,7 @@ private:
                 break;
 
             case test_status::failed:
-                fire_if_listened<on_test_failed>(_obj);
+                fire_if_listened<DOnTestFailed>(_obj);
                 break;
 
             case test_status::skipped:
@@ -821,7 +842,7 @@ private:
                 break;
 
             case test_status::error:
-                fire_if_listened<on_test_error>(
+                fire_if_listened<DOnTestError>(
                     _obj,
                     static_cast<const char*>(nullptr));
                 break;

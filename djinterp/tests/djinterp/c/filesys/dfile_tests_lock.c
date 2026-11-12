@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_lock.c
+* djinterp [c][filesys]                                       dfile_tests_lock.c
 *
 *   Tests for file locking operations (flock).
 *

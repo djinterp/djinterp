@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_handler_tests_dispatch.cpp
+* djinterp [cpp][test]                           test_handler_tests_dispatch.cpp
 *
 *   Section IV (dispatch) - the typed event facade over the owned dispatcher.
 * on() binds a listener and hands back a DHandlerId; off/enable/disable act on

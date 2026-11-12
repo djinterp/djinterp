@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 dmacro_tests.c
+* djinterp [c]                                                    dmacro_tests.c
 *
 *   Master test suite for `dmacro.h` unit tests.
 *   This file provides the entry point functions that run all dmacro tests

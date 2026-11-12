@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         dstring_tests_access.c
+* djinterp [c]                                            dstring_tests_access.c
 *
 *   Unit tests for dj_string access functions:
 *     - d_string_length

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                  test_tree.h
+* djinterp [c][test]                                                 test_tree.h
 *
 *   Core test framework providing individual test structures that can contain
 * a mix of test functions and assertions. Tests can be created via the D_TEST
@@ -12,6 +12,20 @@
 * Configuration is resolved at runtime by combining the test's own config with
 * the run config passed to d_test_run(). Parent types pass their resolved
 * config down when executing children.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_tree.h
@@ -65,6 +79,7 @@ struct dj_test_tree_node* d_test_tree_node_new(
 );
 
 struct dj_test_tree* d_test_tree_new(void);
+
 // deep-copies _count node templates, remapping their links; NULL when
 // _count is 0, a link points outside the array, or memory or the size of the
 // pointer table runs out
@@ -78,6 +93,7 @@ struct dj_test_tree* d_test_tree_new_arr(
 void d_test_tree_node_free(
     struct dj_test_tree_node* _test_tree_node
 );
+
 void d_test_tree_free(
     struct dj_test_tree* _test_tree
 );

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      dmacro_tests_array_util.c
+* djinterp [c]                                         dmacro_tests_array_util.c
 *
 *   Unit tests for `dmacro.h` array utilities section (Section II).
 *   Tests compile-time array sizing macros (D_ARRAY_COUNT, D_ARRAY_COUNT_SAFE,

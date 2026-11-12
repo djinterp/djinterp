@@ -1,9 +1,9 @@
 /*******************************************************************************
-* djinterp [test]                                    file_recursive_tests_sa.cpp
+* djinterp [cpp][filesys]                            file_recursive_tests_sa.cpp
 *
 *   Unit tests for the recursive traversal in inc/djinterp/cpp/filesys/file_recursive.hpp --
 * walk and remove_all. One file for the facility, sibling to the other suites,
-* same harness and same three rules. Free functions, so a FLAT tier ladder.
+* same harness and same three rules. Free functions, so a flat tier ladder.
 *
 *   The visitor is a functor holding pointers to the counters it updates -- the
 * C++98-clean form of a stateful visitor, and proof that walk's by-value visitor
@@ -12,7 +12,7 @@
 * them down with remove_all (itself under test in its own group); the test calls
 * no opendir/mkdir/unlink directly.
 *
-*   The symlink group is the one that matters most: it proves walk does NOT
+*   The symlink group is the one that matters most: it proves walk does not
 * descend through a directory symlink, by counting -- following it would visit
 * the target's contents a second time.
 *

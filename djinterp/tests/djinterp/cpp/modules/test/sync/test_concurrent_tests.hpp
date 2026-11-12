@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                     test_concurrent_tests.hpp
+* djinterp [cpp][test]                                 test_concurrent_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_concurrent.hpp - the
 * concurrent execution harness (run reports, the runner, execution patterns,
@@ -16,12 +16,15 @@
 *   ------------------------------------------------------------------------
 *   BUILD PREREQUISITE - make_concurrent_runner does not compile
 *   ------------------------------------------------------------------------
-*   STATUS:  the factory block of this suite is gated OFF by default
-*            (D_HC_FACTORY_RETURNABLE = 0) and the module under test is NOT
-*            patched by this delivery.  Apply the substitution below, then
-*            build with -DD_HC_FACTORY_RETURNABLE=1 to enable the block.
 *
-*   EXACT SUBSTITUTION, in inc/djinterp/cpp/modules/test/sync/test_concurrent.hpp, in
+* STATUS
+* ------
+*   The factory block of this suite is gated off by default
+* (D_HC_FACTORY_RETURNABLE = 0) and the module under test is not patched by this
+* delivery.  Apply the substitution below, then build with
+* -DD_HC_FACTORY_RETURNABLE=1 to enable the block.
+*
+*   Exact substitution, in inc/djinterp/cpp/modules/test/sync/test_concurrent.hpp, in
 *   class DConcurrentRunner, immediately after the two deleted-copy lines:
 *
 *       DConcurrentRunner(const DConcurrentRunner&)            = delete;
@@ -29,10 +32,11 @@
 *   +   DConcurrentRunner(DConcurrentRunner&&)                 = default;
 *   +   DConcurrentRunner& operator=(DConcurrentRunner&&)      = default;
 *
-*   WHY:
+* WHY
+* ---
 *   make_concurrent_runner() ends in `return runner;` where `runner` is a
 * local DConcurrentRunner.  DConcurrentRunner user-declares a deleted copy
-* constructor and declares NO move constructor, so the implicit move
+* constructor and declares no move constructor, so the implicit move
 * constructor is suppressed; returning by value selects the deleted copy
 * constructor and the template is ill-formed on instantiation.  (Compare
 * test_thread and DTestThreadGroup, which both explicitly declare moves and
@@ -188,58 +192,98 @@ dt::test_thread::worker_fn hc_sleeper(
 
 // I.   RUN REPORT                      (test_concurrent_tests_report.cpp)
 bool tests_creport_outcome_enum_values();
+
 bool tests_creport_thread_report_defaults();
+
 bool tests_creport_thread_report_fields();
+
 bool tests_creport_run_report_defaults();
+
 bool tests_creport_success_predicate();
+
 bool tests_creport_to_test_object_success();
+
 bool tests_creport_to_test_object_thread_threw();
+
 bool tests_creport_to_test_object_timed_out();
+
 bool tests_creport_to_test_object_not_started();
+
 bool tests_creport_to_test_object_custom_name();
 
 // II.  CONCURRENT RUNNER               (test_concurrent_tests_concurrent_runner.cpp)
 bool tests_crunner_default_construct();
+
 bool tests_crunner_explicit_construct();
+
 bool tests_crunner_set_thread_count();
+
 bool tests_crunner_thread_count_from_heterogeneous();
+
 bool tests_crunner_clear_workers();
+
 bool tests_crunner_join_timeout_accessors();
+
 bool tests_crunner_run_zero_threads_not_started();
+
 bool tests_crunner_run_without_worker_not_started();
+
 bool tests_crunner_run_homogeneous_success();
+
 bool tests_crunner_run_invokes_each_thread_once();
+
 bool tests_crunner_run_thread_ids_unique();
+
 bool tests_crunner_run_heterogeneous();
+
 bool tests_crunner_run_per_thread_reports();
+
 bool tests_crunner_run_thread_threw();
+
 bool tests_crunner_run_first_exception();
+
 bool tests_crunner_run_partial_failure_counts();
+
 bool tests_crunner_run_timeout_outcome();
+
 bool tests_crunner_simultaneous_start();
+
 bool tests_crunner_wall_clock_nonnegative();
 
 // III. EXECUTION PATTERNS              (test_concurrent_tests_patterns.cpp)
 bool tests_cpatterns_run_simultaneous();
+
 bool tests_cpatterns_run_simultaneous_reports();
+
 bool tests_cpatterns_run_simultaneous_failure();
+
 bool tests_cpatterns_with_timeout_success();
+
 bool tests_cpatterns_with_timeout_expires();
+
 bool tests_cpatterns_reader_writer_counts();
+
 bool tests_cpatterns_reader_writer_id_split();
 
 // IV.  PHASE PIPELINE                  (test_concurrent_tests_pipeline.cpp)
 bool tests_cpipeline_construct();
+
 bool tests_cpipeline_add_phase();
+
 bool tests_cpipeline_run_no_phases();
+
 bool tests_cpipeline_run_all_phases();
+
 bool tests_cpipeline_phase_indices();
+
 bool tests_cpipeline_barrier_ordering();
 
 // V.   FACTORY HELPERS                 (test_concurrent_tests_factory.cpp)
 #if D_HC_FACTORY_RETURNABLE
 bool tests_cfactory_make_concurrent_runner();
+
 bool tests_cfactory_make_and_run();
+
 #endif  // D_HC_FACTORY_RETURNABLE
 
 

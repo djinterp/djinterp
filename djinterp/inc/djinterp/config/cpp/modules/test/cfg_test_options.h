@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_test_options.h
+* djinterp [cpp][test]                                        cfg_test_options.h
 *
 *   Build-time defaults for how DTest packages its report: whether the report
 * file is written as it is, compressed or put in a container, with which codec
 * and container, and whether the container's entries are stored or compressed.
-*   Every knob here is a DEFAULT. A test_option_set's slots -- pack,
+*   Every knob here is a default. A test_option_set's slots -- pack,
 * compressor, archive_format, compress_opts and archive_opts -- are the runtime
 * options and always win; these choose only what default_test_options() holds
 * (the owner's ruling of 2026-11-09: complete configurability when the user
@@ -17,6 +17,24 @@
 *   targets:  cpp/modules/test/test_options.hpp -> D_INTERNAL_TEST_OUTPUT_*
 *   requires: cfg_common.h; cfg_output_packaging.h (the library's defaults,
 *             which these fall back to)
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: dconfig.h includes this file. Define a knob before that, or
+* pass it with -D, to change its default.
+*
+* OPTIONS
+* -------
+*   Each knob is only a default: a test_option_set's pack, compressor,
+* archive_format, compress_opts and archive_opts slots are the run-time options
+* and always win.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TEST_OUTPUT_PACK, D_CFG_TEST_OUTPUT_CODEC, D_CFG_TEST_OUTPUT_FORMAT,
+* D_CFG_TEST_OUTPUT_LEVEL and D_CFG_TEST_OUTPUT_STORE_ONLY; each falls back to
+* the library's own (D_CFG_OUTPUT_PACK, D_CFG_OUTPUT_CODEC, D_CFG_OUTPUT_FORMAT,
+* D_CFG_ARCHIVE_LEVEL, D_CFG_ARCHIVE_STORE_ONLY).
 *
 *
 * path:      /inc/djinterp/config/cpp/modules/test/cfg_test_options.h

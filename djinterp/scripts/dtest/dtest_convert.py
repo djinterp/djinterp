@@ -18,6 +18,13 @@
 #   program  a standalone program under tests/unintegrated: main() becomes a
 #            spec test, and a spec row for it is printed to paste into the
 #            suite header.
+#   section  the dj_tests_section tables (tests/.../parse/tests_section.h)
+#            the parse, parsegen and command-line-kit suites list their
+#            sections in: each table becomes a table of dj_test_case_spec
+#            rows (a descriptor to write per row, marked once per table),
+#            gains a dj_test_block_spec beside it, and keeps its #if lines;
+#            each extern follows, and the C-face runner over every table of
+#            the run is printed to merge into the suite's runner.
 #   paths    not a form but its commonest breakage: each quoted #include that
 #            does not resolve is pointed at the file the restructure moved it
 #            to, found by the longest tail of its path that names exactly one
@@ -39,7 +46,8 @@
 # the migration guide).
 #
 # usage:
-#   dtest_convert.py --from {bridge,sa,program,paths} [--in-place | --out DIR]
+#   dtest_convert.py --from {bridge,sa,program,section,paths}
+#                    [--in-place | --out DIR]
 #                    [--report] [--final] FILE...
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.05
@@ -908,6 +916,135 @@ def convert_program(text, path, marks):
 
 
 # -----------------------------------------------------------------------------
+# 4b. section: dj_tests_section tables
+# -----------------------------------------------------------------------------
+
+SECTION_TABLE = re.compile(r'^([ \t]*)((?:static\s+)?const\s+)(struct\s+)?'
+                           r'dj_tests_section(\s+)(\w+)(\s*\[\s*\]\s*=\s*\n?\s*\{)',
+                           re.M)
+SECTION_EXTERN = re.compile(r'^([ \t]*)extern(\s+)const\s+(struct\s+)?'
+                            r'dj_tests_section(\s+)(\w+)\s*\[\s*\]\s*;[^\n]*$', re.M)
+SECTION_ROW = re.compile(r'\{(\s*)("(?:[^"\\]|\\.)*")\s*,(\s*)([^{}]+?)\s*\}')
+SECTION_INCLUDE = re.compile(r'^#\s*include\s*"[^"]*tests_section\.h"[^\n]*$', re.M)
+SECTION_TABLES = []
+
+
+def block_name(table):
+    """The block a table becomes, named as its sections are: the table's
+    name without its d_tests_ prefix."""
+    return re.sub(r'^d_?tests?_', '', table)
+
+
+def convert_section_rows(body, indent):
+    """Each row { "name", fn } of a table body, as a C-face row
+    { "name", "", fn }, one field to a line; everything between rows (their
+    commas, #if lines, comments) is kept."""
+    out = []
+    pos = 0
+    rows = 0
+    for m in SECTION_ROW.finditer(body):
+        out.append(body[pos:m.start()])
+        col = column_of(body, m.start())
+        pad = ' ' * (col + 2)
+        out.append('{ %s,\n%s"",\n%s%s }' % (m.group(2), pad, pad,
+                                             m.group(4).strip()))
+        pos = m.end()
+        rows += 1
+    out.append(body[pos:])
+    return ''.join(out), rows
+
+
+def convert_section(text, path, marks):
+    """dj_tests_section tables to the C face's spec rows, in place: each
+    table keeps its name, linkage and conditions, so the code that names it
+    still does, and a block spec over it is defined beside it."""
+    if 'dj_tests_section' not in text:
+        return text
+    out = []
+    pos = 0
+    for m in SECTION_TABLE.finditer(text):
+        open_ = m.end() - 1
+        close = match_brace(text, open_)
+        if close < 0:
+            marks.append((path, text.count('\n', 0, m.start()) + 1,
+                          'a table whose braces do not close'))
+            continue
+        end = text.find(';', close)
+        indent, quals, table = m.group(1), m.group(2), m.group(5)
+        body, rows = convert_section_rows(text[open_ + 1:close], indent)
+        is_static = 'static' in quals
+        block = '%s_block' % table
+        out.append(text[pos:m.start()])
+        out.append('%s// %s write a descriptor for each of the %d rows below '
+                   '(3.5)\n' % (indent, MARK, rows))
+        out.append('%s%sstruct dj_test_case_spec%s%s%s' %
+                   (indent, quals, m.group(4), table,
+                    text[m.start(6):open_ + 1]))
+        out.append(body)
+        out.append(text[close:end + 1])
+        out.append('\n\n%s// %s\n%s//   constant: %s as a block of the C face\'s '
+                   'spec form.\n' % (indent, block, indent, table))
+        out.append('%s%sconst struct dj_test_block_spec %s =\n%s{\n'
+                   % (indent, 'static ' if is_static else '', block, indent))
+        out.append('%s    "%s",\n%s    "",  // %s describe the block\n'
+                   % (indent, block_name(table), indent, MARK))
+        out.append('%s    %s,\n%s    sizeof(%s) / sizeof(%s[0])\n%s};'
+                   % (indent, table, indent, table, table, indent))
+        SECTION_TABLES.append((path, table, block, is_static))
+        pos = end + 1
+    out.append(text[pos:])
+    text = ''.join(out)
+
+    # the externs a header declares the tables by
+    def extern(m):
+        indent, table = m.group(1), m.group(5)
+        return ('%sextern%sconst struct dj_test_case_spec%s%s[];\n'
+                '%sextern%sconst struct dj_test_block_spec %s_block;'
+                % (indent, m.group(2), m.group(4), table, indent, m.group(2),
+                   table))
+    text = SECTION_EXTERN.sub(extern, text)
+
+    # tests_section.h gives way to the C face
+    inc = '#include "%s"  // dj_test_case_spec' % rel_include(path)
+    if SECTION_INCLUDE.search(text):
+        text = SECTION_INCLUDE.sub(inc if SUITE_H not in text else '', text,
+                                   count=1)
+        text = re.sub(r'\n#\s*include\s*"[^"]*tests_section\.h"[^\n]*', '',
+                      text)
+
+    # a runner over the old tables walks .run and .name: it is replaced, not
+    # converted (the printed runner below)
+    for i, line in enumerate(text.split('\n')):
+        if re.search(r'\bdj_tests_section\b', line):
+            marks.append((path, i + 1, 'a use of dj_tests_section left: '
+                          'a runner over the old tables is replaced by '
+                          'the printed one'))
+    return text
+
+
+def print_section_runner():
+    """The C-face runner over every block the run converted: blocks gathered
+    into one module at run time, since another unit's const is not a
+    constant expression in C."""
+    blocks = [b for (_, _, b, st) in SECTION_TABLES if not st]
+    if not blocks:
+        return
+    rows = ',\n'.join('        %s' % b for b in blocks)
+    print('  runner for the %d converted block(s): its main, to merge with '
+          'the suite\'s own setup:\n'
+          '    const struct dj_test_block_spec  blocks[]  =\n    {\n%s\n    };\n'
+          '    const struct dj_test_module_spec module    =\n'
+          '        { "MODULE", "", blocks, sizeof(blocks) / sizeof(blocks[0]) };\n'
+          '    const struct dj_test_module_spec* const modules[] = { &module };\n\n'
+          '    return d_test_run_modules(_argc,\n'
+          '                              _argv,\n'
+          '                              "TITLE",\n'
+          '                              modules,\n'
+          '                              1u);' % (len(blocks), rows),
+          file=sys.stderr)
+
+
+# -----------------------------------------------------------------------------
 # 5. paths: includes the restructure moved
 # -----------------------------------------------------------------------------
 
@@ -1058,7 +1195,7 @@ def final_names(text, path):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--from', dest='form', required=True,
-                    choices=('bridge', 'sa', 'program', 'paths'))
+                    choices=('bridge', 'sa', 'program', 'section', 'paths'))
     g = ap.add_mutually_exclusive_group()
     g.add_argument('--in-place', action='store_true')
     g.add_argument('--out')
@@ -1070,7 +1207,8 @@ def main():
         ap.error('--final goes with --from sa --in-place')
 
     conv = {'bridge': convert_bridge, 'sa': convert_sa,
-            'program': convert_program, 'paths': convert_paths}[a.form]
+            'program': convert_program, 'section': convert_section,
+            'paths': convert_paths}[a.form]
     marks = []
     if a.form == 'sa':
         # which sections check, across every file of the run, before any
@@ -1115,6 +1253,8 @@ def main():
             open(dst, 'wb').write(data)
         else:
             sys.stdout.buffer.write(data)
+    if a.form == 'section':
+        print_section_runner()
     if a.report or a.in_place or a.out:
         for path, line, why in marks:
             print('%s:%d: %s %s' % (path, line, MARK, why), file=sys.stderr)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                        test_defaults_tests_integration.cpp
+* djinterp [cpp][test]                       test_defaults_tests_integration.cpp
 *
 *   The integration tier - the entry points that project a module_spec onto the
 * two views the framework keeps in step: the six-kind test_tree and the report
@@ -11,7 +11,7 @@
 * together and return a process exit code (0 all-pass, non-zero on any failure).
 * describe_tree / tree_summary are the console views.
 *
-*   Built against the REAL test_tree and the REAL report_builder - no mock and
+*   Built against the real test_tree and the real report_builder - no mock and
 * no process-global log.  The tree assertions read the tree's live leaf
 * counters.  The drive_report assertions read the report_builder's accumulated
 * test_report model (rb.report()): module -> unit -> check structure, with each
@@ -20,11 +20,13 @@
 * produces.  The run_module / run_suite assertions read the real process exit
 * code (their observable contract; each owns its builder internally).
 *
-*   NOTE: run_module / run_suite emit their live console report as they run
-* (they own a console-enabled builder with no injection seam), so those two
-* cases print a full report to stdout.  That is expected; only their return
-* code is asserted.  The drive_report cases silence their builder
-* (set_console(false)) since they inspect the model, not the stream.
+* NOTE
+* ----
+*   run_module / run_suite emit their live console report as they run (they own
+* a console-enabled builder with no injection seam), so those two cases print a
+* full report to stdout.  That is expected; only their return code is asserted.
+* The drive_report cases silence their builder (set_console(false)) since they
+* inspect the model, not the stream.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_defaults_tests_integration.cpp

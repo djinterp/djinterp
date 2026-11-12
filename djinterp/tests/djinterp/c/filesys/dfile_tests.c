@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  dfile_tests.c
+* djinterp [c][filesys]                                            dfile_tests.c
 *
 *   Master test runner for the dfile module (cross-platform file I/O).
 *   Aggregates all test categories and manages test environment lifecycle.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            restd_any_tests.cpp
+* djinterp [re_std]                                          restd_any_tests.cpp
 *
 * re_std any test suite implementation:
 *   Out-of-line definitions for the registry, helper types, and

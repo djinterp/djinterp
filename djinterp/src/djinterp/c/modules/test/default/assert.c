@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                     assert.c
+* djinterp [c][test]                                                    assert.c
 *
 *   Implementation of runtime assertion functions for unit testing.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                dmemory_tests.c
+* djinterp [c][memory]                                           dmemory_tests.c
 *
 *
 * path:      /tests/djinterp/c/memory/dmemory_tests.c

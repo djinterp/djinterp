@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     rcu_tests_epoch_counter.cpp
+* djinterp [cpp][sync]                               rcu_tests_epoch_counter.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/rcu_tests_epoch_counter.cpp

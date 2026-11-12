@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   test_suite.h
+* djinterp [c][test]                                                test_suite.h
 *
 * DTest's C face: the surface a C suite is written in.
 *   A suite is a tree of modules, blocks and tests, and a test is a run of
@@ -24,10 +24,40 @@
 * `dtest_*`; the names here follow the C guide. It is plain C99 with no
 * dependency on the C++ framework, so a C-only build runs its suites.
 *
-*   NOT THREAD-SAFE. A suite is built and run by one thread, and
-* D_TEST_REQUIRE reaches the suite being run through a file-scope pointer, so
-* one suite runs at a time in a process. Tests that start threads join them
-* before they return.
+* NOT THREAD-SAFE
+* ---------------
+*   A suite is built and run by one thread, and D_TEST_REQUIRE reaches the suite
+* being run through a file-scope pointer, so one suite runs at a time in a
+* process. Tests that start threads join them before they return.
+*
+* HOW TO USE
+* ----------
+*   A suite is four files (docs/djinterp_testing.md, section 12): a header that
+* lists its tests as spec rows, the test sources, a runner and a CMake leaf. The
+* runner hands the specs to d_test_run_modules:
+*
+*     static const struct dj_test_module_spec* const modules[] =
+*         { &d_tests_x_module };
+*
+*     int main(int argc, char** argv)
+*     {
+*         return d_test_run_modules(argc, argv, "x", modules, 1u);
+*     }
+*
+*   A test is a bool (void) function that checks with D_TEST_CHECK,
+* D_TEST_REQUIRE, D_TEST_SKIP and D_TEST_NOTE.
+*
+* OPTIONS
+* -------
+*   struct dj_test_suite_options: how much the report shows
+* (D_TEST_SUITE_SHOW_*), whether each module prints its results table, the
+* stream, and a filter on test paths. d_test_run_modules reads them from the
+* command line: --failures, --tests (the default), --checks, --no-table,
+* --filter=TEXT and --help.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_suite.h
@@ -292,8 +322,10 @@ void d_test_suite_set_options(struct dj_test_suite*               _suite,
 // D_TEST_SUITE_EXIT_ERROR.
 bool d_test_suite_module(struct dj_test_suite* _suite,
                          const char*           _name);
+
 bool d_test_suite_block(struct dj_test_suite* _suite,
                         const char*           _name);
+
 bool d_test_suite_test(struct dj_test_suite* _suite,
                        const char*           _name);
 
@@ -452,7 +484,9 @@ bool d_test_suite_require(bool        _result,
                           const char* _expr,
                           const char* _file,
                           int         _line);
+
 void d_test_suite_skip_current(const char* _reason);
+
 bool d_test_suite_note_current(const char* _format,
                                ...) D_FORMAT_PRINTF(1, 2);
 

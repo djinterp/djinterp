@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                            cfg_test_parity.h
+* djinterp [c][test]                                           cfg_test_parity.h
 *
 *   Build-time configuration for the parity oracle: what may appear in a parity
 * record, and the sizes the kernel would otherwise hard-code.
@@ -9,19 +9,36 @@
 *             test/test_parity.hpp      -> D_INTERNAL_TEST_PARITY_*
 *   requires: cfg_common.h (helpers, D_CFG_TESTING)
 *
-*   MOST OF THESE KNOBS NARROW WHAT MAY BE RECORDED, and that is the unusual
+*   Most of these knobs narrow what may be recorded, and that is the unusual
 * thing about this file. Configuration normally adds capability; here the
 * valuable direction is subtraction, because a parity record is only as useful
 * as its determinism. A record that varies between two correct runs produces
 * failures that are not bugs, the suite gets muted, and a muted oracle catches
-* nothing for the rest of the project. Every knob below that turns something OFF
+* nothing for the rest of the project. Every knob below that turns something off
 * exists so a project can reach a green, meaningful diff sooner rather than
 * living with an amber one.
 *
 *   The grammar knobs (delimiter, escape, version) are here because they are a
-* WIRE FORMAT. Two streams compared by `diff` must have been produced by builds
+* Wire format. Two streams compared by `diff` must have been produced by builds
 * that agree about all three, so they belong somewhere a build can pin them
 * rather than in a header a reader might casually edit.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: dconfig.h includes this file. Define a knob before that, or
+* pass it with -D, to change its default.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TEST_PARITY (on under D_CFG_TESTING), its record switches
+* D_CFG_TEST_PARITY_RECORD_FLOAT, _SIZE_WIDTH, _LAYOUT and _BYTES (1 each),
+* D_CFG_TEST_PARITY_PATH_MAX (256), D_CFG_TEST_PARITY_DELIM ('|'),
+* D_CFG_TEST_PARITY_ESCAPE ('\\'), D_CFG_TEST_PARITY_VERSION (1) and
+* D_CFG_TEST_PARITY_STRICT (1).
 *
 *
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_parity.h

@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [tests]                               test_race_tests_consistency.cpp
+* djinterp [cpp][test]                           test_race_tests_consistency.cpp
 *
 *   Section TU: DConsistencyCheckReport and DConsistencyCheck - the
 * structural verifier over a DLinearizationLog.
 *
 *   The checker verifies two properties: interval validity (completed_at >=
 * invoked_at) and per-thread program order (an event may not begin before the
-* previous event on the SAME thread completed).  Both violations are
+* previous event on the same thread completed).  Both violations are
 * constructed here deterministically rather than raced into existence.
 *
 *

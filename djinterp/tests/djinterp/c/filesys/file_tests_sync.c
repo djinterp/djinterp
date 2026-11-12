@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_sync.c
+* djinterp [c][filesys]                                        file_tests_sync.c
 *
-*   VI. DURABILITY (file_sync) -- flushing to the operating system and to the
+*   VI. Durability (file_sync) -- flushing to the operating system and to the
 * device. The two descriptor-flushing forms report ENOSYS on the ISO C backend
 * and are checked directly there; elsewhere a written file is flushed to
 * success. d_file_flush_stream runs on every backend and, following C, treats a NULL

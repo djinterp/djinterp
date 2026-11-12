@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        cow_tests_ptr_access.cpp
+* djinterp [cpp][sync]                                  cow_tests_ptr_access.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_ptr_access.cpp

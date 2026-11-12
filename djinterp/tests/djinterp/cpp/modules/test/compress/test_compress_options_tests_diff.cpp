@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                       test_compress_options_tests_diff.cpp
+* djinterp [cpp][test]                      test_compress_options_tests_diff.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_options_tests_diff.cpp

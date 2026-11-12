@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 file_tests.hpp
+* djinterp [cpp][filesys]                                         file_tests.hpp
 *
 *   Unit tests for the djinterp C++ filesystem layer (core/filesys/file_*.hpp),
 * authored against the DTest framework's native C++ surface -- test_builder --
@@ -7,33 +7,38 @@
 * this side simply speaks to it directly, which is what makes deferred
 * predicates and RAII-aware cases possible.
 *
-*   WHAT IS UNDER TEST. The C++ layer only: djinterp::path, file_status, file,
-* directory, process, space_info, error, and the free functions over them. The
-* C modules beneath are exercised by the c/filesys suite and are assumed working
-* here -- when a case fails in both suites, the C one names the real fault.
+* WHAT IS UNDER TEST
+* ------------------
+*   The C++ layer only: djinterp::path, file_status, file, directory, process,
+* space_info, error, and the free functions over them. The C modules beneath are
+* exercised by the c/filesys suite and are assumed working here -- when a case
+* fails in both suites, the C one names the real fault.
 *
-*   AUTHORING MODEL. Each section defines one
-* `void tests_fs_<module>(suite_type&)` that opens a module, then a block per
-* type or function, then a leaf per behaviour, conjoining clauses onto the leaf
-* with assert_. Clauses are DEFERRED: assert_ stores the predicate and the
-* forest is evaluated later, in one pass, by run(). That is the whole reason to
-* prefer the native surface -- construction and evaluation are separate phases,
-* so a case is a self-contained scenario rather than a sequence of side effects
-* on shared state.
+* AUTHORING MODEL
+* ---------------
+*   Each section defines one `void tests_fs_<module>(suite_type&)` that opens a
+* module, then a block per type or function, then a leaf per behaviour,
+* conjoining clauses onto the leaf with assert_. Clauses are deferred: assert_
+* stores the predicate and the forest is evaluated later, in one pass, by run().
+* That is the whole reason to prefer the native surface -- construction and
+* evaluation are separate phases, so a case is a self-contained scenario rather
+* than a sequence of side effects on shared state.
 *
-*   >>> THE ONE AUTHORING RULE. A deferred clause runs AFTER the function that
+*   >>> the one authoring rule. A deferred clause runs after the function that
 *   registered it has returned. A lambda that captures a local by reference is
 *   therefore a dangling reference by the time it runs. Every clause here is
 *   capture-free and reaches the environment through the free helpers below,
 *   which own their storage. Capture by value if you must capture at all; never
 *   by reference. <<<
 *
-*   RAII IS THE POINT. The C suite could only ask what a function returned.
-* Here the types own things, so the cases ask what the C++ layer adds: that a
-* handle closes itself, that a move transfers ownership and leaves the source
-* closed, that copying is not merely discouraged but ill-formed, and that a
-* moved-from path is the invalid path every free function must reject. Those
-* checks have no counterpart in the C suite and are most of this one's value.
+* RAII IS THE POINT
+* -----------------
+*   The C suite could only ask what a function returned. Here the types own
+* things, so the cases ask what the C++ layer adds: that a handle closes itself,
+* that a move transfers ownership and leaves the source closed, that copying is
+* not merely discouraged but ill-formed, and that a moved-from path is the
+* invalid path every free function must reject. Those checks have no counterpart
+* in the C suite and are most of this one's value.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests.hpp

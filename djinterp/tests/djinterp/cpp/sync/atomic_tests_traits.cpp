@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [test]                                        atomic_tests_traits.cpp
+* djinterp [cpp][sync]                                   atomic_tests_traits.cpp
 *
 *   Section V - the compile-time type / trait surface every atomic wrapper
 * advertises.  These are the guarantees generic code (and the concurrency
-* trait system) relies on, so each is enforced with a static_assert AND
+* trait system) relies on, so each is enforced with a static_assert and
 * mirrored into a runtime bool the report records:
 *
 *     - value_type aliases          (atomic_size -> size_t, version -> uint64_t)
 *     - concurrency_strategy_tag     (both -> atomic_strategy_tag: the tag-alias
 *                                     fast path read by the trait system)
-*     - copy AND move deletion       (a user-declared deleted copy ctor also
+*     - copy and move deletion       (a user-declared deleted copy ctor also
 *                                     suppresses the move members, so these
 *                                     types are neither copyable nor movable)
 *     - DAtomicStampedPtr::stamp_type == uint16_t

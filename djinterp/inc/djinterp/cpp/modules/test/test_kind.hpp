@@ -1,12 +1,13 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                              test_kind.hpp
+* djinterp [cpp][test]                                             test_kind.hpp
 *
 *   The test_kind module: the kind record, the kind-set wrapper, and
 * the resolved-query free functions that tie them together.  Storage
 * and lookup of kinds, plus the per-kind structural data (rank,
 * leaf/interior, defaults), live here in one place.
 *
-*   TEST KIND RECORD:
+* TEST KIND RECORD
+* ----------------
 *   A test_kind is the structural definition of one test
 * classification: the id it answers to, the rank it occupies in the
 * tree hierarchy, whether it is a leaf or an interior node, an
@@ -14,7 +15,8 @@
 * options.  It is a plain aggregate - the canonical value type a user
 * stores in a kind set.
 *
-*   TEST KIND SET:
+* TEST KIND SET
+* -------------
 *   A DTestKindSet is a minimalist wrapper around any user-supplied
 * set-classified container (as recognised by set_traits.hpp).  The
 * container holds whatever represents kinds - test_kind records,
@@ -23,7 +25,8 @@
 * stores no kind data of its own.  The previous test_type<Container>
 * registry is retired; this wrapper plus the record above replace it.
 *
-*   RESOLVED QUERIES:
+* RESOLVED QUERIES
+* ----------------
 *   The rank / leaf-interior / default-option resolution the old
 * registry performed as member functions is provided as free
 * functions over a kind set:
@@ -39,27 +42,45 @@
 * unregistered id: the raw id acts as the rank, the node is treated
 * as a leaf, and it has no default options.
 *
-*   TREE INTEGRATION:
+* TREE INTEGRATION
+* ----------------
 *   A kind set is metadata held alongside the tree (by whatever owns
 * the walk), never a node in it.  When present, a DTestObject's
 * DTestTypeId is resolved through it: a matched kind's rank governs
 * insertion ordering and its is_leaf flag governs whether the node
 * may have children, with default options cascading from the kind.
 *
-*   NO BUILT-IN KINDS:
+* NO BUILT-IN KINDS
+* -----------------
 *   This module defines no built-in kind constants.  The vocabulary
 * of test classifications is entirely user-defined.  See
 * test_defaults.hpp for the framework's default kind set.
 *
-*   CONSTRAINTS:
+* CONSTRAINTS
+* -----------
 *   DTestKindSet's SetContainer must be structurally classified as
 * a set-like container by set_traits.hpp.  Under C++20 this is
 * enforced through a concept; under earlier standards through
 * static_assert.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  C++20 concepts are used when available; pre-C++20
 * falls back to static_assert.
+*
+* HOW TO USE
+* ----------
+*   Describe a kind with make_test_kind, keep a set of them in a DTestKindSet,
+* and ask structural questions with rank_of, is_leaf and can_be_child_of.
+* test_defaults.hpp's default_test_kinds() is the framework's own set.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_kind.hpp

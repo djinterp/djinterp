@@ -1,9 +1,9 @@
 /*******************************************************************************
-* djinterp [test]                                               atomic_tests.hpp
+* djinterp [cpp][sync]                                          atomic_tests.hpp
 *
 *   Unit-test declarations for core/sync/atomic.hpp.  Every test is a niladic
 * predicate returning true on pass (the report_builder::run signature); all
-* live FLAT in namespace djinterp::testing.  The definitions are split across
+* live flat in namespace djinterp::testing.  The definitions are split across
 * section translation units, one per like-group semantic section of the
 * header under test:
 *
@@ -16,7 +16,7 @@
 *                                         move deletion, noexcept guarantees)
 *     atomic_tests_concurrency.cpp -      behavior under real thread contention
 *
-*   There are NO shared helper types: every atomic type is exercised directly.
+*   There are no shared helper types: every atomic type is exercised directly.
 * The C++20-only wait/notify surface is gated behind
 * D_ENV_LANG_IS_CPP20_OR_HIGHER exactly as it is in atomic.hpp, so this suite
 * also builds (minus those two-per-type cases) on a C++11/14/17 configuration.
@@ -45,19 +45,30 @@ NS_TESTING
 // =========================================================================
 
 bool tests_atomic_size_default_ctor();
+
 bool tests_atomic_size_explicit_ctor();
+
 bool tests_atomic_size_load_store();
+
 bool tests_atomic_size_fetch_add();
+
 bool tests_atomic_size_fetch_sub();
+
 bool tests_atomic_size_increment();
+
 bool tests_atomic_size_decrement();
+
 bool tests_atomic_size_cas_strong();
+
 bool tests_atomic_size_cas_weak();
+
 bool tests_atomic_size_conversion();
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 bool tests_atomic_size_wait_returns_on_change();
+
 bool tests_atomic_size_notify();
+
 #endif
 
 
@@ -66,18 +77,28 @@ bool tests_atomic_size_notify();
 // =========================================================================
 
 bool tests_atomic_version_default_ctor();
+
 bool tests_atomic_version_explicit_ctor();
+
 bool tests_atomic_version_load_store();
+
 bool tests_atomic_version_fetch_add();
+
 bool tests_atomic_version_bump();
+
 bool tests_atomic_version_cas_strong();
+
 bool tests_atomic_version_cas_weak();
+
 bool tests_atomic_version_conversion();
+
 bool tests_atomic_version_large_values();
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 bool tests_atomic_version_wait_returns_on_change();
+
 bool tests_atomic_version_notify();
+
 #endif
 
 
@@ -86,9 +107,13 @@ bool tests_atomic_version_notify();
 // =========================================================================
 
 bool tests_flag_guard_was_set_false_on_clear_flag();
+
 bool tests_flag_guard_sets_flag_on_construct();
+
 bool tests_flag_guard_clears_on_destruct();
+
 bool tests_flag_guard_was_set_true_when_already_held();
+
 bool tests_flag_guard_one_shot_init_pattern();
 
 
@@ -97,14 +122,23 @@ bool tests_flag_guard_one_shot_init_pattern();
 // =========================================================================
 
 bool tests_stamped_default_ctor();
+
 bool tests_stamped_explicit_ctor();
+
 bool tests_stamped_store_load();
+
 bool tests_stamped_stamp_range();
+
 bool tests_stamped_null_with_stamp();
+
 bool tests_stamped_cas_weak_success();
+
 bool tests_stamped_cas_weak_failure_updates_expected();
+
 bool tests_stamped_aba_defeat();
+
 bool tests_stamped_stamp_wrap();
+
 bool tests_stamped_sign_extension();
 
 
@@ -113,15 +147,25 @@ bool tests_stamped_sign_extension();
 // =========================================================================
 
 bool tests_atomic_size_value_type();
+
 bool tests_atomic_version_value_type();
+
 bool tests_atomic_size_strategy_tag();
+
 bool tests_atomic_version_strategy_tag();
+
 bool tests_atomic_size_noncopyable();
+
 bool tests_atomic_version_noncopyable();
+
 bool tests_flag_guard_noncopyable();
+
 bool tests_stamped_ptr_noncopyable();
+
 bool tests_stamped_stamp_type();
+
 bool tests_atomic_size_noexcept();
+
 bool tests_atomic_version_noexcept();
 
 
@@ -130,9 +174,13 @@ bool tests_atomic_version_noexcept();
 // =========================================================================
 
 bool tests_atomic_size_concurrent_increment();
+
 bool tests_atomic_size_concurrent_inc_dec();
+
 bool tests_atomic_version_concurrent_bump();
+
 bool tests_atomic_size_concurrent_cas();
+
 bool tests_atomic_flag_guard_concurrent_churn();
 
 

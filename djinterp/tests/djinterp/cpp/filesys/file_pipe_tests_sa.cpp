@@ -1,16 +1,16 @@
 /*******************************************************************************
-* djinterp [test]                                         file_pipe_tests_sa.cpp
+* djinterp [cpp][filesys]                                 file_pipe_tests_sa.cpp
 *
 *   Unit tests for djinterp::process (inc/djinterp/cpp/filesys/file_pipe.hpp) --
 * the popen-model pipe to a shell-run command. One file for the class, sibling
 * to the other suites, same harness and same three rules.
 *
 *   Unlike the ISO-C-pure suites, this one necessarily runs real shell commands
-* (echo, exit, cat, false) -- that IS the facility under test. Every command
+* (echo, exit, cat, false) -- that is the facility under test. Every command
 * here is a fixed literal, which is also the only safe way to call the class
-* (see the SECURITY note in file_pipe.hpp); nothing is built from input.
+* (see the security note in file_pipe.hpp); nothing is built from input.
 *
-*   process is a resource type (it owns a pipe), so its ladder is NOT flat: the
+*   process is a resource type (it owns a pipe), so its ladder is not flat: the
 * move group is added on C++11+. Non-copyability is a compile-time guarantee
 * (deleted copy ops), verified by a negative-compile check outside this file.
 *

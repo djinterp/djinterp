@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                   test_compress_options_tests_builders.cpp
+* djinterp [cpp][test]                  test_compress_options_tests_builders.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_options_tests_builders.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./test_compress_options_tests.hpp"
@@ -51,7 +51,8 @@ tests_compress_options_level_builder_any_value
   the preset's transparency.
   Tests the following:
   - negative, zero and large efforts are carried through unclamped
-  - requesting the default effort produces a set that is still pristine
+  - requesting the unset effort, the default, produces a set that is still
+    pristine; -1 is a value like any other
   - two calls with the same effort produce equal sets
 */
 bool tests_compress_options_level_builder_any_value()
@@ -63,15 +64,18 @@ bool tests_compress_options_level_builder_any_value()
     D_CO_CHECK(dt::compress_level_options(22).level == 22);
     D_CO_CHECK(dt::compress_level_options(-7).level == -7);
 
-    // -1 IS the default effort, so that set is pristine and its diff empty
-    const dj::compress_options at_default = dt::compress_level_options(-1);
+    // unset IS the default effort, so that set is pristine and its diff empty
+    const dj::compress_options at_default =
+        dt::compress_level_options(D_COMPRESS_KNOB_UNSET);
 
     D_CO_CHECK(dt::compress_options_are_default(at_default));
     D_CO_CHECK(dt::describe_compress_diff_from_default(at_default).empty());
 
-    // any other effort is not pristine
+    // any other effort is not pristine, -1 included
     D_CO_CHECK(!dt::compress_options_are_default(
                    dt::compress_level_options(0)));
+    D_CO_CHECK(!dt::compress_options_are_default(
+                   dt::compress_level_options(-1)));
 
     // the builder is deterministic
     D_CO_CHECK(dt::compress_options_equal(dt::compress_level_options(6),
@@ -94,7 +98,7 @@ bool tests_compress_options_deflate_builder_scope()
 {
     const dj::compress_options fresh;
     const dj::compress_options o =
-        dt::deflate_tuned_options(15, 8, co_bump(fresh.deflate.strategy));
+        dt::deflate_tuned_options(15, 8, dj::deflate_strategy_filtered);
 
     D_CO_CHECK(o.level == fresh.level);
     D_CO_CHECK(dt::bzip2_options_equal(fresh.bzip2, o.bzip2));
@@ -129,12 +133,15 @@ tests_compress_options_deflate_builder_args
   - all three arguments reach their own fields, in the right order
   - the arguments are independent, so window_bits and mem_level do not
     cross-contaminate
-  - passing the default values back produces a pristine set
+  - passing the default values back, with the fresh strategy put back on the
+    field, produces a pristine set
+  A fresh set leaves the strategy unset, which no DDeflateStrategy names, so
+  the test requests a real strategy and puts the fresh one back on the field.
 */
 bool tests_compress_options_deflate_builder_args()
 {
     const dj::compress_options fresh;
-    const dj::DDeflateStrategy alt = co_bump(fresh.deflate.strategy);
+    const dj::DDeflateStrategy alt = dj::deflate_strategy_filtered;
 
     const dj::compress_options o = dt::deflate_tuned_options(15, 8, alt);
 
@@ -155,10 +162,12 @@ bool tests_compress_options_deflate_builder_args()
                -15);
 
     // handing back the defaults produces a pristine set
-    const dj::compress_options same =
+    dj::compress_options same =
         dt::deflate_tuned_options(fresh.deflate.window_bits,
                                   fresh.deflate.mem_level,
-                                  fresh.deflate.strategy);
+                                  alt);
+
+    same.deflate.strategy = fresh.deflate.strategy;
 
     D_CO_CHECK(dt::compress_options_are_default(same));
     D_CO_CHECK(dt::describe_compress_diff_from_default(same).empty());

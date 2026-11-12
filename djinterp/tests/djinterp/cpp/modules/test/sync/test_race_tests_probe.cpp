@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [tests]                                     test_race_tests_probe.cpp
+* djinterp [cpp][test]                                 test_race_tests_probe.cpp
 *
 *   Section TU: DRaceProbeReport and DRaceProbe.
 *
 *   The probe's job is to detect races, which are probabilistic.  These tests
-* therefore never require that a race IS observed; they pin the harness's own
+* therefore never require that a race is observed; they pin the harness's own
 * contract - a correct workload yields no evidence, a deliberately false
 * invariant yields evidence on every repetition, and the counters aggregate
 * exactly.

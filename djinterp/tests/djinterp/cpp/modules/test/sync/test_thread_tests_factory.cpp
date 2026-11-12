@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                 test_thread_tests_factory.cpp
+* djinterp [cpp][test]                             test_thread_tests_factory.cpp
 *
 *   Section TU: make_test_thread / make_named_test_thread factory helpers.
 *

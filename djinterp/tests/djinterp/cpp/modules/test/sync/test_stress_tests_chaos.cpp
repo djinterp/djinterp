@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                   test_stress_tests_chaos.cpp
+* djinterp [cpp][test]                               test_stress_tests_chaos.cpp
 *
 *   Section TU: DChaosRunner - the weighted op-mix runner.
 *

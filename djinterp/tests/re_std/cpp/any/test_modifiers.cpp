@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_modifiers.cpp
+* djinterp [re_std]                                           test_modifiers.cpp
 *
 * re_std::any modifier tests:
 *   reset(), swap(), emplace<T>(...), copy / move assignment.

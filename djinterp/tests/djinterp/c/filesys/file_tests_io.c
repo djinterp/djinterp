@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                                file_tests_io.c
+* djinterp [c][filesys]                                          file_tests_io.c
 *
-*   IV. TRANSFER (file_io) -- moving bytes through a descriptor, at an offset,
+*   IV. Transfer (file_io) -- moving bytes through a descriptor, at an offset,
 * or a whole file at a time.
 *
 *   Descriptor reads and writes are descriptor-based and so report ENOSYS on

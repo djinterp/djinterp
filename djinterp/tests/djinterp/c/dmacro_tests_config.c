@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dmacro_tests_config.c
+* djinterp [c]                                             dmacro_tests_config.c
 *
 *   Unit tests for `dmacro.h` configuration system.
 *   Tests D_CFG_DMACRO_* configuration macros, variant selection, limit

@@ -1,17 +1,17 @@
 /*******************************************************************************
-* djinterp [test]                                               file_tests_dir.c
+* djinterp [c][filesys]                                         file_tests_dir.c
 *
-*   X. DIRECTORIES (file_dir) -- creation, removal, traversal, and the working
+*   X. Directories (file_dir) -- creation, removal, traversal, and the working
 * directory. Several configured behaviours are pinned here deliberately:
 * d_dir_create_parents treats an existing directory as success (MKDIR_P_EXISTING_OK);
-* d_dir_read yields "." and ".." because dot-entries are NOT skipped by default,
+* d_dir_read yields "." and ".." because dot-entries are not skipped by default,
 * which the traversal test asserts rather than assumes; and d_path_resolve with a
-* NULL buffer ALLOCATES (REALPATH_ALLOC) and hands back memory the caller must
+* NULL buffer allocates (REALPATH_ALLOC) and hands back memory the caller must
 * free -- it does not error.
 *
 *   The d_dir_set_current case is the one piece of global state in the suite: it saves
 * the working directory, moves, checks the move functionally (a relative name
-* now resolves), and ALWAYS restores -- using only non-fatal checks so a
+* now resolves), and always restores -- using only non-fatal checks so a
 * failure cannot leave the process in the wrong directory for later sections.
 *
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_common_tests_event.cpp
+* djinterp [cpp][test]                               test_common_tests_event.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_common_tests_event.cpp

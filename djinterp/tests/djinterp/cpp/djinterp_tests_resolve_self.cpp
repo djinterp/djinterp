@@ -139,9 +139,9 @@ bool tests_resolve_self_variadic_templates()
 /*
 tests_resolve_self_repeat
   Tests the following:
-  - resolve_self over repeat<self,N> yields a tuple of N targets
+  - resolve_self over repeat_type<self,N> yields a tuple of N targets
   - the inner type is resolved BEFORE repetition
-    (repeat<vector<self>,2> -> tuple<vector<T>, vector<T>>)
+    (repeat_type<vector<self>,2> -> tuple<vector<T>, vector<T>>)
   - repeat with no self repeats unchanged
   - the N=0 repeat resolves to an empty tuple
 */
@@ -149,14 +149,14 @@ bool tests_resolve_self_repeat()
 {
     bool _ok = true;
     using ::djinterp::self;
-    using ::djinterp::repeat;
+    using ::djinterp::repeat_type;
     using T = probe_target;
 
-    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat<self, 3>, T>, std::tuple<T, T, T> >::value));
-    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat<self, 1>, T>, std::tuple<T> >::value));
-    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat<self, 0>, T>, std::tuple<> >::value));
-    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat<std::vector<self>, 2>, T>, std::tuple<std::vector<T>, std::vector<T>> >::value));
-    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat<int, 3>, T>, std::tuple<int, int, int> >::value));
+    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat_type<self, 3>, T>, std::tuple<T, T, T> >::value));
+    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat_type<self, 1>, T>, std::tuple<T> >::value));
+    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat_type<self, 0>, T>, std::tuple<> >::value));
+    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat_type<std::vector<self>, 2>, T>, std::tuple<std::vector<T>, std::vector<T>> >::value));
+    D_DT_CHECK(_ok, (std::is_same< ::djinterp::resolve_self_t<repeat_type<int, 3>, T>, std::tuple<int, int, int> >::value));
 
     return _ok;
 }

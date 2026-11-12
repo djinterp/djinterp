@@ -1,26 +1,28 @@
 /*******************************************************************************
-* djinterp [test]                                   atomic_tests_concurrency.cpp
+* djinterp [cpp][sync]                              atomic_tests_concurrency.cpp
 *
 *   Section VI - behaviour under real thread contention.  The single-threaded
 * sections prove the API contract; these prove the types are actually atomic
-* by hammering them from many threads and asserting DETERMINISTIC final
+* by hammering them from many threads and asserting deterministic final
 * invariants (never timing):
 *
 *     - N threads each increment K times  -> final count == N*K
 *     - balanced incrementers + decrementers -> back to the start value
 *     - N threads each bump K times        -> final generation == N*K
 *     - a lock-free CAS-loop increment from N threads -> final count == N*K
-*       (exercises compare_exchange_weak's success AND failure paths under
+*       (exercises compare_exchange_weak's success and failure paths under
 *        genuine contention)
 *     - concurrent construct/destruct churn of DAtomicFlagGuard on one shared
-*       flag leaves the flag CLEAR (its last operation is always a clear)
+*       flag leaves the flag clear (its last operation is always a clear)
 *
-*   The flag churn deliberately does NOT use the guard as a mutex: the guard
+*   The flag churn deliberately does not use the guard as a mutex: the guard
 * clears on destruct, so it does not hold across threads.  We assert only the
 * post-condition that survives any interleaving.
 *
-*   PORTABILITY: requires threads (C++11+).  atomic.hpp itself requires C++11
-* for <atomic>, so this section carries no additional gate.
+* PORTABILITY
+* -----------
+*   Requires threads (C++11+).  atomic.hpp itself requires C++11 for <atomic>,
+* so this section carries no additional gate.
 *
 *
 * path:      /tests/djinterp/cpp/sync/atomic_tests_concurrency.cpp

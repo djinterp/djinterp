@@ -1,14 +1,15 @@
 /*******************************************************************************
-* djinterp [test]                                       hazard_pointer_tests.hpp
+* djinterp [cpp][sync]                                  hazard_pointer_tests.hpp
 *
 *   Declarations for the hazard_pointer.hpp unit-test suite, plus the helper
 * types the sections share.
 *
-*   WHAT A HAZARD POINTER IS FOR, AND WHAT THAT MEANS FOR TESTING:
+* WHAT A HAZARD POINTER IS FOR, AND WHAT THAT MEANS FOR TESTING
+* -------------------------------------------------------------
 *   A hazard pointer is a reader's public promise - "I am about to dereference
 * this node; do not free it" - that a writer's reclamation scan must honour.
-* The one property the whole file exists to provide is therefore a NEGATIVE
-* one: a node that some active hazard record protects is NOT reclaimed by a
+* The one property the whole file exists to provide is therefore a negative
+* one: a node that some active hazard record protects is not reclaimed by a
 * concurrent scan.  That safety property is the spine of the suite
 * (tests_scan_spares_a_protected_node, and its concurrent form
 * tests_a_protected_node_survives_a_concurrent_scan), and almost everything else
@@ -25,19 +26,20 @@
 * built from std::atomic and std::thread, with a rendezvous so the reader and
 * the scanner actually overlap rather than lining up by luck.
 *
-*   THE SHARP EDGES THE SUITE PINS:
-*     - protect_and_validate() PROTECTS AND RETURNS A NULL POINTER when the
+* THE SHARP EDGES THE SUITE PINS
+* ------------------------------
+*     - protect_and_validate() protects and returns a NULL pointer when the
 *       source holds null: it loads null, publishes null, re-reads null, and
 *       reports success.  The caller gets nullptr back and must not read it as
 *       "validated, go ahead" - it means "nothing to protect"
 *       (tests_validate_on_a_null_source_returns_null).
 *     - protect_and_validate(source, 0) - zero retries - never runs the loop,
-*       so it returns nullptr WITHOUT publishing anything and WITHOUT clearing a
+*       so it returns nullptr without publishing anything and without clearing a
 *       previously published protection.  A caller that passes 0 gets no
 *       protection and no diagnostic (tests_validate_with_zero_retries_does_
 *       nothing).
 *     - a domain of capacity 0 allocates a zero-length record array (legal), so
-*       acquire() always fails - and should_scan() is TRUE from the start,
+*       acquire() always fails - and should_scan() is true from the start,
 *       because its threshold is 2*0 == 0 and the retired count is already >= 0
 *       (tests_a_zero_capacity_domain_always_wants_to_scan).
 *     - acquire() exhaustion is silent: the (capacity+1)-th caller gets nullptr,
@@ -46,16 +48,18 @@
 *       protection and no error (tests_scoped_hazard_survives_exhaustion, and
 *       kin).
 *     - DMultiHazardDomain::acquire_slot_group() claims the group by CAS on
-*       its first slot ONLY, then plain-stores the rest active.  The group is
+*       its first slot only, then plain-stores the rest active.  The group is
 *       contiguous, and releasing it clears every slot
 *       (tests_group_is_contiguous_and_fully_active).
 *
-*   PORTABILITY: the whole header is gated to C++11 (it needs <atomic>); below
-* that it is empty.  Under C++23, IF <hazard_pointer> is available, the header
-* delegates sections I to VIII to the standard and defines NONE of the custom
-* types - so the suite compiles to almost nothing there.  Every section is
-* therefore wrapped so that it degrades to a stated no-op when the custom types
-* are absent; see the D_HAS_STD_HAZARD_POINTER discussion in
+* PORTABILITY
+* -----------
+*   The whole header is gated to C++11 (it needs <atomic>); below that it is
+* empty.  Under C++23, if <hazard_pointer> is available, the header delegates
+* sections I to VIII to the standard and defines none of the custom types - so
+* the suite compiles to almost nothing there.  Every section is therefore
+* wrapped so that it degrades to a stated no-op when the custom types are
+* absent; see the D_HAS_STD_HAZARD_POINTER discussion in
 * tests_which_implementation_is_in_play.
 *
 *
@@ -311,124 +315,207 @@ bool spin_until_count(
 // a.   the header contract
 //////////////////////////////////////////
 bool tests_header_include_guard();
+
 bool tests_header_is_idempotent();
+
 bool tests_header_requires_the_environment_first();
+
 bool tests_header_pulls_its_dependency();
+
 bool tests_header_provides_the_std_facilities();
+
 bool tests_header_is_gated_to_cpp11();
+
 bool tests_which_implementation_is_in_play();
+
 bool tests_entities_live_in_the_djinterp_namespace();
+
 bool tests_header_defines_no_stray_macros();
+
 bool tests_the_std_delegation_aliases_exist_when_selected();
 
 // b.   II.  hazard_record
 //////////////////////////////////////////
 bool tests_record_default_is_inactive_and_null();
+
 bool tests_record_holds_two_atomics();
+
 bool tests_record_pointer_is_a_void_pointer();
+
 bool tests_record_is_not_copyable();
 
 // c.   III. hazard_domain - records
 //////////////////////////////////////////
 bool tests_domain_reports_its_capacity();
+
 bool tests_domain_is_not_copyable();
+
 bool tests_domain_declares_the_hazard_strategy_tag();
+
 bool tests_domain_marks_itself_with_hazard_domain_type();
+
 bool tests_acquire_hands_out_a_record();
+
 bool tests_acquire_hands_out_distinct_records();
+
 bool tests_acquire_fills_the_pool_then_returns_null();
+
 bool tests_release_returns_a_record_to_the_pool();
+
 bool tests_release_clears_the_protected_pointer();
+
 bool tests_release_of_null_is_a_no_op();
+
 bool tests_a_reacquired_record_is_clean();
+
 bool tests_a_zero_capacity_domain_acquires_nothing();
 
 // d.   III. hazard_domain - scanning and retire count
 //////////////////////////////////////////
 bool tests_is_protected_sees_a_published_pointer();
+
 bool tests_is_protected_is_false_for_an_unprotected_pointer();
+
 bool tests_is_protected_of_null_is_false();
+
 bool tests_is_protected_ignores_an_inactive_record();
+
 bool tests_collect_gathers_the_protected_pointers();
+
 bool tests_collect_clears_its_output_first();
+
 bool tests_collect_skips_null_and_inactive_slots();
+
 bool tests_retired_count_starts_at_zero();
+
 bool tests_increment_and_decrement_retired();
+
 bool tests_decrement_retired_takes_a_count();
+
 bool tests_should_scan_crosses_at_twice_capacity();
+
 bool tests_a_zero_capacity_domain_always_wants_to_scan();
 
 // e.   IV.  scoped_hazard
 //////////////////////////////////////////
 bool tests_scoped_acquires_on_construction();
+
 bool tests_scoped_releases_on_destruction();
+
 bool tests_scoped_protect_publishes();
+
 bool tests_scoped_clear_unpublishes();
+
 bool tests_scoped_is_not_copyable();
+
 bool tests_scoped_hazard_survives_exhaustion();
+
 bool tests_scoped_protect_while_invalid_is_a_no_op();
 
 // f.   V.   DTypedHazardPtr
 //////////////////////////////////////////
 bool tests_typed_acquires_a_record();
+
 bool tests_typed_is_not_copyable();
+
 bool tests_validate_on_a_stable_source_succeeds();
+
 bool tests_validate_publishes_the_validated_pointer();
+
 bool tests_validate_on_a_null_source_returns_null();
+
 bool tests_validate_with_zero_retries_does_nothing();
+
 bool tests_validate_clears_protection_when_it_gives_up();
+
 bool tests_typed_protect_publishes_directly();
+
 bool tests_typed_clear_unpublishes();
+
 bool tests_typed_on_an_exhausted_domain_is_invalid();
 
 // g.   VI.  DRetiredList
 //////////////////////////////////////////
 bool tests_retired_list_starts_empty();
+
 bool tests_retire_queues_a_node();
+
 bool tests_scan_reclaims_an_unprotected_node();
+
 bool tests_scan_spares_a_protected_node();
+
 bool tests_scan_compacts_the_survivors();
+
 bool tests_scan_returns_the_reclaimed_count();
+
 bool tests_scan_with_a_custom_deleter();
+
 bool tests_default_retire_deletes_the_node();
+
 bool tests_scan_by_epoch_reclaims_older_entries();
+
 bool tests_scan_by_epoch_keeps_newer_entries();
+
 bool tests_clear_runs_every_deleter();
+
 bool tests_pending_and_empty_track_the_queue();
+
 bool tests_scan_on_an_empty_list_is_a_no_op();
 
 // h.   VII. DMultiHazardDomain
 //////////////////////////////////////////
 bool tests_multi_reports_its_geometry();
+
 bool tests_multi_declares_the_hazard_strategy_tag();
+
 bool tests_multi_marks_itself_with_hazard_domain_type();
+
 bool tests_multi_is_not_copyable();
+
 bool tests_acquire_group_hands_out_a_group();
+
 bool tests_group_is_contiguous_and_fully_active();
+
 bool tests_acquire_group_fills_then_returns_null();
+
 bool tests_release_group_clears_every_slot();
+
 bool tests_multi_is_protected_scans_every_slot();
+
 bool tests_multi_collect_gathers_across_groups();
+
 bool tests_multi_should_scan_crosses_at_twice_total_slots();
+
 bool tests_multi_slots_per_thread_is_the_template_argument();
 
 // i.   VIII. DScopedMultiHazard
 //////////////////////////////////////////
 bool tests_scoped_multi_acquires_a_group();
+
 bool tests_scoped_multi_releases_on_destruction();
+
 bool tests_scoped_multi_protects_a_slot();
+
 bool tests_scoped_multi_clears_a_slot();
+
 bool tests_scoped_multi_clear_all();
+
 bool tests_scoped_multi_is_not_copyable();
+
 bool tests_scoped_multi_out_of_range_slot_is_a_no_op();
+
 bool tests_scoped_multi_survives_exhaustion();
 
 // j.   concurrency
 //////////////////////////////////////////
 bool tests_concurrent_acquire_hands_out_distinct_records();
+
 bool tests_a_protected_node_survives_a_concurrent_scan();
+
 bool tests_validation_under_a_churning_source_is_sound();
+
 bool tests_concurrent_protect_and_scan_leak_nothing();
+
 bool tests_group_acquisition_is_atomic_under_contention();
 
 

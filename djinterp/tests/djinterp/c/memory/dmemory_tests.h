@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                dmemory_tests.h
+* djinterp [c][memory]                                           dmemory_tests.h
 *
 *   Unit tests for the dmemory module (cross-platform memory operations).
 *   Tests cover secure memory copying, duplication, setting, and boundary
@@ -104,7 +104,9 @@ bool d_tests_dmemory_compare_buffers(
  *****************************************************************************/
 
 bool d_tests_dmemory_memcpy(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_memcpy_s(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_copy_all(struct dj_test_suite* _suite);
 
 
@@ -113,6 +115,7 @@ bool d_tests_dmemory_copy_all(struct dj_test_suite* _suite);
  *****************************************************************************/
 
 bool d_tests_dmemory_memdup_s(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_duplication_all(struct dj_test_suite* _suite);
 
 
@@ -121,7 +124,9 @@ bool d_tests_dmemory_duplication_all(struct dj_test_suite* _suite);
  *****************************************************************************/
 
 bool d_tests_dmemory_memset(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_memset_s(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_set_all(struct dj_test_suite* _suite);
 
 
@@ -130,9 +135,13 @@ bool d_tests_dmemory_set_all(struct dj_test_suite* _suite);
  *****************************************************************************/
 
 bool d_tests_dmemory_null_params_all(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_boundary_conditions_all(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_alignment_all(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_overlap_all(struct dj_test_suite* _suite);
+
 bool d_tests_dmemory_performance_all(struct dj_test_suite* _suite);
 
 /******************************************************************************

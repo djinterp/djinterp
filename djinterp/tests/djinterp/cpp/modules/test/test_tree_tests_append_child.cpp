@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_tree_tests_append_child.cpp
+* djinterp [cpp][test]                          test_tree_tests_append_child.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_tree_tests_append_child.cpp

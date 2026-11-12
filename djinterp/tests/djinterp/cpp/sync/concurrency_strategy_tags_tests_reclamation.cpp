@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                 concurrency_strategy_tags_tests_reclamation.cpp
+* djinterp [cpp][sync]           concurrency_strategy_tags_tests_reclamation.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/concurrency_strategy_tags_tests_reclamation.cpp

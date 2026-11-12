@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    test_cvar_tests_row_flags.c
+* djinterp [c][test]                                 test_cvar_tests_row_flags.c
 *
 * test_cvar.h's suite, block "cvar_row_flag_all": DTestRegistryRowFlag's
 * IS_REQUIRED, IS_CONFIG and IS_METADATA bits, each a distinct power of two, no

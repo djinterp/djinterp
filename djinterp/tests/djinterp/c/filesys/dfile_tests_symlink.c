@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dfile_tests_symlink.c
+* djinterp [c][filesys]                                    dfile_tests_symlink.c
 *
 *   Tests for symbolic link operations (symlink, readlink, is_symlink).
 *

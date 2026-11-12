@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            restd_any_tests.hpp
+* djinterp [re_std]                                          restd_any_tests.hpp
 *
 * re_std any test suite header:
 *   Declarations, helper types, and test-registration macros for the
@@ -7,13 +7,15 @@
 * cases at static initialization time via the TEST_CASE macro; the
 * main runner walks the resulting linked list.
 *
-*   FRAMEWORK PHILOSOPHY:
+* FRAMEWORK PHILOSOPHY
+* --------------------
 *   Deliberately framework-agnostic - uses only standard C++98
 * facilities (cstdio for output, exception-based assertions where
 * available).  Macros can be retargeted to the djinterp test
 * framework by changing EXPECT_* and TEST_CASE definitions.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++98 minimum.  C++11+ tests gated on feature macros; C++17+
 * std::any compatibility tests gated on D_ENV_CPP17_HAS_ANY.
 *

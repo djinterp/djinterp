@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dtime_tests_null.c
+* djinterp [c]                                                dtime_tests_null.c
 *
 *   Comprehensive NULL parameter tests for all dtime functions.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               test_options_tests_flag_macros.c
+* djinterp [c][test]                            test_options_tests_flag_macros.c
 *
 * test_options.h's suite, block "config_flag_macro_all": D_TEST_SETTINGS_SHIFT,
 * D_TEST_SETTINGS_TO_FLAGS, D_TEST_FLAGS_TO_SETTINGS, and the round trip through

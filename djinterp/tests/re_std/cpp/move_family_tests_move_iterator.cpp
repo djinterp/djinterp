@@ -269,7 +269,7 @@ tests_move_iterator_category()
 {
     bool ok = std::is_same<
         re_std::move_iterator<int*>::iterator_category,
-        std::random_access_iterator_tag>::value;
+        re_std::random_access_iterator_tag>::value;
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     ok = ok && (std::is_same<

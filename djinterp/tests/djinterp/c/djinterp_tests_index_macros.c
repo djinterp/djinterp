@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  djinterp_tests_index_macros.c
+* djinterp [c]                                     djinterp_tests_index_macros.c
 *
 *
 * path:      /tests/djinterp/c/djinterp_tests_index_macros.c

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                  test_cvar.h
+* djinterp [c][test]                                                 test_cvar.h
 *
 * The test registry: DTest's config and metadata schema, as one table.
 *   Each row is a key, its flag (a DTestConfigKey or a DTestMetadataFlag),
@@ -11,6 +11,26 @@
 *   A planned revision, not yet made: the union becomes a uint64_t carrier
 * (a row storing `b = true` leaves seven bytes indeterminate, so two equal rows
 * need not compare or hash equal), and `value_type` a dj_type_info16.
+*
+* HOW TO USE
+* ----------
+*   Look a config or metadata key up by name or flag, and read or reset its
+* value:
+*
+*     struct dj_test_registry_row* row = NULL;
+*
+*     d_test_registry_init();
+*     row = d_test_registry_find("max_failures");
+*
+* OPTIONS
+* -------
+*   Every row's value: d_test_registry_set changes one for the process, and
+* d_test_registry_reset / _reset_all restore the defaults. A test option set
+* (test_options.h) overrides them per run instead.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_cvar.h
@@ -450,8 +470,10 @@ bool d_test_registry_is_valid_arg(const char* _key,
 // is unused
 bool d_test_registry_is_config_row(const void* _row,
                                    const void* _context);
+
 bool d_test_registry_is_metadata_row(const void* _row,
                                      const void* _context);
+
 bool d_test_registry_is_required_row(const void* _row,
                                      const void* _context);
 

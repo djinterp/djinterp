@@ -1,23 +1,23 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_event_tests_macros.cpp
+* djinterp [cpp][test]                               test_event_tests_macros.cpp
 *
 *   Section III of the DTestEvent suite: the D_TEST_EVENT family.
 *
-*   These macros are the header's OPEN-ALPHABET promise: a user declares a
+*   These macros are the header's open-alphabet promise: a user declares a
 * custom test event in one line and it binds and fires through exactly the same
-* API as the built-ins, because the type IS the registration.  Three claims are
+* API as the built-ins, because the type is the registration.  Three claims are
 * made about them, and each is pinned here:
 *
-*     1. SHAPE.  D_TEST_EVENT carries the node ("matching the built-in lifecycle
+*     1. Shape.  D_TEST_EVENT carries the node ("matching the built-in lifecycle
 *        shape"); D_TEST_EVENT_MSG carries node + message ("matching the
-*        on_test_error shape"); D_TEST_EVENT_X carries the node followed by
+*        DOnTestError shape"); D_TEST_EVENT_X carries the node followed by
 *        caller-specified extra domains.  Those are not merely "similar" shapes -
-*        the tests assert they are the SAME TYPES as the built-ins' payloads.
-*     2. NAMESPACE-AGNOSTICISM.  The macros refer to the node by its fully
+*        the tests assert they are the same types as the built-ins' payloads.
+*     2. Namespace-agnosticism.  The macros refer to the node by its fully
 *        qualified name, so a custom tag may be declared in the user's own
 *        namespace, at global scope, or alongside the built-ins in
 *        djinterp::test.  All three are exercised below - a tag declared in each.
-*     3. IDENTITY.  A custom tag is a NEW summand: distinct from every built-in
+*     3. Identity.  A custom tag is a new summand: distinct from every built-in
 *        and from every other custom tag, even when the payload shape is
 *        identical.
 *
@@ -85,11 +85,11 @@ bool tests_event_d_test_event_declares_a_node_tag()
 // tests_event_d_test_event_matches_the_builtin_lifecycle_shape
 //   the header says D_TEST_EVENT matches "the built-in lifecycle shape".  Not
 // approximately - the payload type is the SAME type as the node tags'.  So a
-// listener written against on_test_failed can be bound to a custom tag unchanged.
+// listener written against DOnTestFailed can be bound to a custom tag unchanged.
 bool tests_event_d_test_event_matches_the_builtin_lifecycle_shape()
 {
     D_TE_CHECK((std::is_same<payload_of<myproj::DOnFlakyRetry>,
-                             payload_of<dt::on_test_failed> >::value));
+                             payload_of<dt::DOnTestFailed> >::value));
     D_TE_CHECK((std::is_same<payload_of<myproj::DOnFlakyRetry>,
                              DNodePayload>::value));
 
@@ -114,7 +114,7 @@ bool tests_event_d_test_event_msg_declares_a_node_plus_message_tag()
 bool tests_event_d_test_event_msg_matches_the_on_test_error_shape()
 {
     D_TE_CHECK((std::is_same<payload_of<myproj::DOnSoftWarning>,
-                             payload_of<dt::on_test_error> >::value));
+                             payload_of<dt::DOnTestError> >::value));
 
     return true;
 }
@@ -160,18 +160,18 @@ bool tests_event_d_test_event_x_appends_several_extra_domains()
 // expansion text.
 bool tests_event_custom_tags_name_their_own_identifiers()
 {
-    D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(),  "on_flaky_retry")  == 0);
-    D_TE_CHECK(std::strcmp(myproj::DOnSoftWarning::name(), "on_soft_warning") == 0);
-    D_TE_CHECK(std::strcmp(myproj::DOnRetry::name(),        "on_retry")        == 0);
-    D_TE_CHECK(std::strcmp(myproj::DOnBudget::name(),       "on_budget")       == 0);
-    D_TE_CHECK(std::strcmp(::DOnGlobalProbe::name(),       "on_global_probe") == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(),  "DOnFlakyRetry")  == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnSoftWarning::name(), "DOnSoftWarning") == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnRetry::name(),       "DOnRetry")       == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnBudget::name(),      "DOnBudget")      == 0);
+    D_TE_CHECK(std::strcmp(::DOnGlobalProbe::name(),       "DOnGlobalProbe") == 0);
     D_TE_CHECK(std::strcmp(dt::DOnAlongsideBuiltin::name(),
-                           "on_alongside_builtin") == 0);
+                           "DOnAlongsideBuiltin") == 0);
 
     // the name is the IDENTIFIER, not the qualified name - the same identifier
     // declared in two scopes yields two types with the same name() string
     D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(),
-                           "myproj::on_flaky_retry") != 0);
+                           "myproj::DOnFlakyRetry") != 0);
 
     return true;
 }
@@ -179,18 +179,18 @@ bool tests_event_custom_tags_name_their_own_identifiers()
 
 // tests_event_custom_tags_are_distinct_from_builtins
 //   a custom tag with the built-in payload shape is still its OWN channel:
-// binding to it must not catch on_test_failed, and vice versa.  That is only
+// binding to it must not catch DOnTestFailed, and vice versa.  That is only
 // true because they are different types.
 bool tests_event_custom_tags_are_distinct_from_builtins()
 {
-    D_TE_CHECK(!(std::is_same<myproj::DOnFlakyRetry, dt::on_test_failed>::value));
+    D_TE_CHECK(!(std::is_same<myproj::DOnFlakyRetry, dt::DOnTestFailed>::value));
     D_TE_CHECK(!(std::is_same<myproj::DOnFlakyRetry, dt::DOnTestPassed>::value));
-    D_TE_CHECK(!(std::is_same<myproj::DOnSoftWarning, dt::on_test_error>::value));
-    D_TE_CHECK(!(std::is_same<dt::DOnAlongsideBuiltin, dt::on_test_start>::value));
+    D_TE_CHECK(!(std::is_same<myproj::DOnSoftWarning, dt::DOnTestError>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnAlongsideBuiltin, dt::DOnTestStart>::value));
 
     // ...even though the payloads are identical types
     D_TE_CHECK((std::is_same<payload_of<myproj::DOnFlakyRetry>,
-                             payload_of<dt::on_test_failed> >::value));
+                             payload_of<dt::DOnTestFailed> >::value));
 
     return true;
 }

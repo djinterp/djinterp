@@ -1,7 +1,21 @@
 /*******************************************************************************
-* djinterp [c/test]                                                     assert.h
+* djinterp [c][test]                                                    assert.h
 *
 * A runtime equivalent for asserting.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/default/assert.h
@@ -77,16 +91,19 @@ struct dj_assert* d_assert_new(
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_true(
     bool        _expression,
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_false(
     bool        _expression,
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_eq(
     const void*   _a,
     const void*   _b,
@@ -94,6 +111,7 @@ struct dj_assert* d_assert_eq(
     const char*   _message_true,
     const char*   _message_false
 );
+
 struct dj_assert* d_assert_neq(
     const void*   _a,
     const void*   _b,
@@ -101,6 +119,7 @@ struct dj_assert* d_assert_neq(
     const char*   _message_true,
     const char*   _message_false
 );
+
 struct dj_assert* d_assert_lt(
     const void*   _a,
     const void*   _b,
@@ -108,6 +127,7 @@ struct dj_assert* d_assert_lt(
     const char*   _message_true,
     const char*   _message_false
 );
+
 struct dj_assert* d_assert_lt_eq(
     const void*   _a,
     const void*   _b,
@@ -115,6 +135,7 @@ struct dj_assert* d_assert_lt_eq(
     const char*   _message_true,
     const char*   _message_false
 );
+
 struct dj_assert* d_assert_gt(
     const void*   _a,
     const void*   _b,
@@ -122,6 +143,7 @@ struct dj_assert* d_assert_gt(
     const char*   _message_true,
     const char*   _message_false
 );
+
 struct dj_assert* d_assert_gt_eq(
     const void*   _a,
     const void*   _b,
@@ -129,6 +151,7 @@ struct dj_assert* d_assert_gt_eq(
     const char*   _message_true,
     const char*   _message_false
 );
+
 struct dj_assert* d_assert_str_eq(
     const char* _str1,
     size_t      _str1_length,
@@ -137,6 +160,7 @@ struct dj_assert* d_assert_str_eq(
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_str_neq(
     const char* _str1,
     size_t      _str1_length,
@@ -145,22 +169,26 @@ struct dj_assert* d_assert_str_neq(
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_null(
     const void* _expression,
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_nonnull(
     const void* _expression,
     const char* _message_true,
     const char* _message_false
 );
+
 struct dj_assert* d_assert_array_is_valid(
     const void** _arr,
     size_t       _arr_length,
     const char*  _message_true,
     const char*  _message_false
 );
+
 struct dj_assert* d_assert_arrays_eq(
     const void*   _arr1,
     const void*   _arr2,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          env_tests_pp_limits.c
+* djinterp [c][env]                                        env_tests_pp_limits.c
 *
 * Unit tests for `env.h` preprocessor limits (section IV-A).
 * Tests the D_ENV_PP_* macros that define standard and compiler-specific limits.

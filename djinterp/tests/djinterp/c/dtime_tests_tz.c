@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               dtime_tests_tz.c
+* djinterp [c]                                                  dtime_tests_tz.c
 *
 *   Tests for timezone utility functions (timegm, tzset).
 *

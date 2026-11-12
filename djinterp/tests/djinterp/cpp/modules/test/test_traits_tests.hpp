@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [testing]                                       test_traits_tests.hpp
+* djinterp [cpp][test]                                     test_traits_tests.hpp
 *
 *   Declarations, subjects and check macros for the test_traits suite.  The
 * section TUs define the tests_* functions declared at the bottom; the runner
 * calls them.
 *
-*   TESTING A TEST TOOL.
+*   Testing a test tool.
 *   test_traits.hpp is the vocabulary every other trait suite in the framework
 * asks its questions in.  If it is wrong, every suite built on it is wrong in
 * the same direction and none of them says so - a broken cv-ref matrix reports
@@ -17,28 +17,28 @@
 *
 *   That is what the subjects below are.  Every trait in section i is a trait
 * whose correct answer is derivable from its definition in one line - always
-* true, always false, true only for int - and every MIS-SHAPED trait is broken
+* true, always false, true only for int - and every mis-shaped trait is broken
 * in exactly one named way, so that when is_bool_trait rejects it the suite
-* knows WHICH clause did the rejecting.  Nothing here is inferred from the tool
+* knows which clause did the rejecting.  Nothing here is inferred from the tool
 * under test.
 *
-*   THE THREE THINGS THAT CANNOT BE CHECKED AT RUN TIME.
-*   Three of the toolkit's guarantees are guarantees about COMPILATION, and a
+*   The three things that cannot be checked at run time.
+*   Three of the toolkit's guarantees are guarantees about compilation, and a
 * passing run says nothing about any of them:
 *
 *     count_holds does not short-circuit    a trait that hard-errors on a late
-*                                           cell must break the BUILD - that is
+*                                           cell must break the build - that is
 *                                           the whole reason the header does not
 *                                           use std::conjunction
 *     D_TEST_STATIC fails the build         by design
 *     the probes are SFINAE-clean           an ill-formed probe must report
 *                                           false, not diagnose
 *
-*   Each is demonstrated in the pins TU: the SAFE half unconditionally (that
+*   Each is demonstrated in the pins TU: the safe half unconditionally (that
 * std::conjunction really does short-circuit, so the contrast is real), and the
 * half that breaks the build behind D_TT_HAZARD_TESTS.  A suite that does not
 * compile reports nothing, so the mines are off by default and turning them on
-* IS the reproduction.
+* is the reproduction.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests.hpp
@@ -845,73 +845,118 @@ D_TEST_DECLARE_SUBSUMES(subsumes_nothing, unrelated_c, value_typed_c)
 // I.    probe declarators
 bool tests_type_probe();
 bool tests_type_probe_2();
+
 bool tests_expr_probe();
+
 bool tests_expr_probe_2();
+
 bool tests_noexcept_probe();
+
 bool tests_constexpr_probe();
+
 bool tests_probe_scope();
 
 // II.   reading a probe
 bool tests_is_nothrow_probe();
+
 bool tests_yields_lvalue();
+
 bool tests_yields_xvalue();
+
 bool tests_yields_prvalue();
+
 bool tests_is_valid();
+
 bool tests_is_valid_evil();
+
 bool tests_reading_value_companions();
 
 // III.  type-set quantifiers
 bool tests_count_holds();
+
 bool tests_count_holds_empty_pack();
+
 bool tests_holds_for_all();
+
 bool tests_holds_for_any();
+
 bool tests_holds_for_none();
+
 bool tests_quantifier_binding();
+
 bool tests_no_short_circuit();
+
 bool tests_quantifier_value_companions();
 
 // IV.   trait shape
 bool tests_is_bool_trait_positive();
+
 bool tests_is_bool_trait_sink();
+
 bool tests_is_bool_trait_predicates();
+
 bool tests_is_bool_trait_non_traits();
+
 bool tests_trait_is_well_formed();
+
 bool tests_trait_v_agrees();
+
 bool tests_shape_self_application();
+
 bool tests_shape_value_companions();
 
 // V.    cv-ref agreement
 bool tests_cvref_cells();
+
 bool tests_cvref_report_accessors();
+
 bool tests_cvref_report_first_disagreement();
+
 bool tests_trait_across_cvref();
+
 bool tests_trait_ignores_cvref();
+
 bool tests_cvref_value_companion();
 
 // VI.   fixtures
 bool tests_fixture_shapes();
+
 bool tests_fixture_private_members();
+
 bool tests_fixture_ambiguous_members();
+
 bool tests_fixture_greedy();
+
 bool tests_fixture_evil();
+
 bool tests_fixture_throwing_nothrowing();
+
 bool tests_fixture_literal_nonliteral();
+
 bool tests_fixture_enums();
+
 bool tests_fixture_nonclass_types();
+
 bool tests_hostile_list_cardinalities();
+
 bool tests_hostile_list_complete();
 
 // VII.  build-time pins
 bool tests_static_pin();
+
 bool tests_build_time_hazards();
 
 // VIII. concept layer  (C++20)
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 bool tests_trait_concept_agree();
+
 bool tests_declare_subsumes_refines();
+
 bool tests_declare_subsumes_implies_only();
+
 bool tests_declare_subsumes_partial();
+
 bool tests_declare_subsumes_shape();
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS

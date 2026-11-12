@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   dio_tests_file_positioning.c
+* djinterp [c]                                      dio_tests_file_positioning.c
 *
 *
 * path:      /tests/djinterp/c/dio_tests_file_positioning.c

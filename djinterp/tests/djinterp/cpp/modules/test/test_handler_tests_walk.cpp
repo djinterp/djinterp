@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_handler_tests_walk.cpp
+* djinterp [cpp][test]                               test_handler_tests_walk.cpp
 *
 *   Section IV (walk) - run() and the private walk it drives.  A node's status
 * is authoritative; the walk reads it, fires the matching lifecycle events, and
@@ -8,7 +8,7 @@
 * nodes (type_id >= 2) produce a module_start / module_end pair and are not
 * tallied; pending (and any out-of-range status code, via to_test_status'
 * default) fires no status event; and run() brackets the whole walk with
-* DOnSessionStart / on_session_end (the latter carrying the pass/fail counts),
+* DOnSessionStart / DOnSessionEnd (the latter carrying the pass/fail counts),
 * resetting the counters up front.  The DLifecycleRecorder witnesses which
 * events fired, in what order; the counters are read directly.
 *
@@ -228,7 +228,7 @@ bool tests_walk_session_brackets()
     ok = D_TH_CHECK(rec.session_end == 1)   && ok;
     ok = D_TH_CHECK(!rec.order.empty() && rec.order.front() == DLifecycleRecorder::m_session_start) && ok;
     ok = D_TH_CHECK(!rec.order.empty() && rec.order.back()  == DLifecycleRecorder::m_session_end)   && ok;
-    ok = D_TH_CHECK(rec.end_passed == 1 && rec.end_failed == 1) && ok;   // on_session_end payload
+    ok = D_TH_CHECK(rec.end_passed == 1 && rec.end_failed == 1) && ok;   // DOnSessionEnd payload
 
     return ok;
 }

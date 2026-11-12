@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       test_suite_tests_specs.c
+* djinterp [c][test]                                    test_suite_tests_specs.c
 *
 * test_suite.h's suite, section 2: running declarative module specs.
 *   The specs under test are built here from small inner test functions, and

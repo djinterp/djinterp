@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      test_suite_tests_report.c
+* djinterp [c][test]                                   test_suite_tests_report.c
 *
 * test_suite.h's suite, section 3: exit codes, the results table, report
 * detail and options.

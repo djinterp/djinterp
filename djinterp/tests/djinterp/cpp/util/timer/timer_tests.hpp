@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                timer_tests.hpp
+* djinterp [cpp][utility]                                        timer_tests.hpp
 *
 * djinterp timer unit-test header:
 *   Declarations, helper types, and helper macros for the timer.hpp unit
@@ -12,7 +12,8 @@
 * `test_clock`: a manually-advanced clock that satisfies the Clock named
 * requirement but only moves when a test tells it to.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   This header pulls in timer.hpp (which provides the namespace macros and the
 * portable noexcept specifier). Requires C++17 or later (uses an inline static
 * data member).
@@ -21,7 +22,7 @@
 * path:      /tests/djinterp/cpp/util/timer/timer_tests.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTILITY_TIMER_TESTS_
@@ -32,6 +33,9 @@
 #include <cstdio>
 // djinterp
 #include "../../../../../inc/djinterp/cpp/util/timer/timer.hpp"
+#include "../../../../../inc/djinterp/cpp/util/timer/mutex_timer.hpp"
+#include "../../../../../inc/djinterp/cpp/util/timer/timer_event.hpp"
+#include "../../../../../inc/djinterp/cpp/event/event_dispatcher.hpp"
 
 
 // D_TM_CHECK
@@ -197,66 +201,147 @@ void reset_clock() D_NOEXCEPT
 
 // constructors (timer_tests_constructors.cpp)
 bool tests_timer_default_ctor();
+
 bool tests_timer_max_ctor();
+
 bool tests_timer_zero_max_ctor();
+
 bool tests_timer_ctor_custom_duration();
+
 bool tests_timer_ns_lifecycle();
+
 bool tests_timer_us_lifecycle();
 
 // operations: start / stop / reset / reset_all (timer_tests_operations.cpp)
 bool tests_timer_start();
+
 bool tests_timer_start_while_running();
+
 bool tests_timer_start_when_expired();
+
 bool tests_timer_start_when_born_expired();
+
 bool tests_timer_stop();
+
 bool tests_timer_stop_when_not_running();
+
 bool tests_timer_accumulate_cycles();
+
 bool tests_timer_exclude_stopped_intervals();
+
 bool tests_timer_reset_while_running();
+
 bool tests_timer_reset_while_stopped();
+
 bool tests_timer_reset_preserves_children();
+
 bool tests_timer_reset_all_recurses();
+
 bool tests_timer_reset_all_leaf();
+
 bool tests_timer_reset_all_preserves_observed();
 
 // accessors: elapsed / max / has_max / running / expired / remaining
 // (timer_tests_accessors.cpp)
 bool tests_timer_elapsed_running();
+
 bool tests_timer_elapsed_stopped();
+
 bool tests_timer_elapsed_running_with_accumulation();
+
 bool tests_timer_max_value();
+
 bool tests_timer_has_max_flag();
+
 bool tests_timer_running_flag();
+
 bool tests_timer_expired_without_max();
+
 bool tests_timer_expired_below_limit();
+
 bool tests_timer_expired_at_limit();
+
 bool tests_timer_expired_above_limit();
+
 bool tests_timer_expired_live();
+
 bool tests_timer_remaining_without_max();
+
 bool tests_timer_remaining_before_start();
+
 bool tests_timer_remaining_partial();
+
 bool tests_timer_remaining_at_limit();
+
 bool tests_timer_remaining_past_limit();
+
 bool tests_timer_const_accessors();
+
 bool tests_timer_offset_independence();
 
 // children, owning (timer_tests_children.cpp)
 bool tests_timer_add_child();
+
 bool tests_timer_add_child_with_max();
+
 bool tests_timer_multiple_children();
+
 bool tests_timer_child_access();
+
 bool tests_timer_child_access_const();
+
 bool tests_timer_child_count();
+
 bool tests_timer_children_independent();
+
 bool tests_timer_copy_deep_copies_children();
 
 // children, non-owning / observed (timer_tests_observed.cpp)
 bool tests_timer_observe();
+
 bool tests_timer_observe_multiple();
+
 bool tests_timer_observed_out_of_range();
+
 bool tests_timer_observed_live_view();
+
 bool tests_timer_observed_count();
+
 bool tests_timer_observe_non_owning();
+
+
+// increment, decrement, compare and merge (timer_tests_merge.cpp)
+bool tests_timer_increment();
+
+bool tests_timer_decrement();
+
+bool tests_timer_held_in_range();
+
+bool tests_timer_compare();
+
+bool tests_timer_merge();
+
+bool tests_mutex_timer_operations();
+
+// parity with the C timer (timer_tests_parity.cpp)
+bool tests_timer_parity_scripts();
+
+// -----------------------------------------------------------------
+// event tags for the bindings
+// -----------------------------------------------------------------
+
+// DEvTmOpen / DEvTmClose / DEvTmTook
+//   type: the start and end of a span, and an event carrying a duration.
+D_EVENT_EMPTY(DEvTmOpen);
+D_EVENT_EMPTY(DEvTmClose);
+D_EVENT(DEvTmTook, DMsec);
+
+// event bindings (timer_tests_event.cpp)
+bool tests_timer_event_span();
+
+bool tests_timer_event_operations();
+
+bool tests_timer_event_mutex_timer();
 
 
 NS_END  // testing

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      condvar_tests_selector.cpp
+* djinterp [cpp][sync]                                condvar_tests_selector.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/condvar_tests_selector.cpp

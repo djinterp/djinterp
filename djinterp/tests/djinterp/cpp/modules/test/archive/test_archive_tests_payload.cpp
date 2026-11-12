@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_archive_tests_payload.cpp
+* djinterp [cpp][test]                            test_archive_tests_payload.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/archive/test_archive_tests_payload.cpp

@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_event_tests_dispatch.cpp
+* djinterp [cpp][test]                             test_event_tests_dispatch.cpp
 *
-*   Section IV of the DTestEvent suite: the alphabet's actual PROMISE.
+*   Section IV of the DTestEvent suite: the alphabet's actual promise.
 *
-*   Sections I-III pin the tags as TYPES.  But a tag exists to be dispatched
+*   Sections I-III pin the tags as types.  But a tag exists to be dispatched
 * over, and test_event.hpp's whole claim is that "the type IS the registration":
 * no enrolment step, and a custom tag "binds and fires through exactly the same
 * handler API" as a built-in.  Type-level assertions cannot show that.  These
 * tests do: they bind listeners to the tags through the event subsystem the
 * header is declared against (DEventDispatcher, which test_handler.hpp wraps as
-* on() / fire()), fire each one, and assert the DECLARED payload is the payload
+* on() / fire()), fire each one, and assert the declared payload is the payload
 * that actually arrives.
 *
 *   This is also the only place a payload mismatch between a tag and a real fire
@@ -49,7 +49,7 @@ NS_TESTING
 
 
 // tests_event_dispatch_binds_and_fires_a_node_tag
-//   the base case: bind to on_test_failed, fire with the node, and the listener
+//   the base case: bind to DOnTestFailed, fire with the node, and the listener
 // runs exactly once with the pointer it was given.
 bool tests_event_dispatch_binds_and_fires_a_node_tag()
 {
@@ -57,14 +57,14 @@ bool tests_event_dispatch_binds_and_fires_a_node_tag()
     const dt::basic_test         _node = make_node();
     const DLogPtr                _log  = make_log();
 
-    _d.bind<dt::on_test_failed>(
+    _d.bind<dt::DOnTestFailed>(
         [_log](const dt::basic_test* _n)
         {
             ++_log->calls;
             _log->node = _n;
         });
 
-    const ::djinterp::DDispatchResult _r = _d.fire<dt::on_test_failed>(&_node);
+    const ::djinterp::DDispatchResult _r = _d.fire<dt::DOnTestFailed>(&_node);
 
     D_TE_CHECK(_r.invoked == 1u);
     D_TE_CHECK(_log->calls == 1);
@@ -84,7 +84,7 @@ bool tests_event_dispatch_delivers_a_usable_node()
     const dt::basic_test         _node = make_node();
     const DLogPtr                _log  = make_log();
 
-    _d.bind<dt::on_test_start>(
+    _d.bind<dt::DOnTestStart>(
         [_log](const dt::basic_test* _n)
         {
             ++_log->calls;
@@ -92,7 +92,7 @@ bool tests_event_dispatch_delivers_a_usable_node()
             _log->text_1 = _n->metadata().get("name");
         });
 
-    (void) _d.fire<dt::on_test_start>(&_node);
+    (void) _d.fire<dt::DOnTestStart>(&_node);
 
     D_TE_CHECK(_log->calls == 1);
     D_TE_CHECK(_log->a == 7u);                       // the fixture's type id
@@ -127,7 +127,7 @@ bool tests_event_dispatch_empty_payload_tag_fires_with_no_arguments()
 
 
 // tests_event_dispatch_two_count_payload_arrives_intact
-//   on_session_end carries (passed, failed) - and IN THAT ORDER.  Two same-typed
+//   DOnSessionEnd carries (passed, failed) - and IN THAT ORDER.  Two same-typed
 // arguments are exactly where a transposition would hide, so distinct values are
 // used.
 bool tests_event_dispatch_two_count_payload_arrives_intact()
@@ -135,7 +135,7 @@ bool tests_event_dispatch_two_count_payload_arrives_intact()
     ::djinterp::DEventDispatcher _d;
     const DLogPtr                _log = make_log();
 
-    _d.bind<dt::on_session_end>(
+    _d.bind<dt::DOnSessionEnd>(
         [_log](std::size_t _passed, std::size_t _failed)
         {
             ++_log->calls;
@@ -143,7 +143,7 @@ bool tests_event_dispatch_two_count_payload_arrives_intact()
             _log->b = _failed;
         });
 
-    (void) _d.fire<dt::on_session_end>(std::size_t(41), std::size_t(2));
+    (void) _d.fire<dt::DOnSessionEnd>(std::size_t(41), std::size_t(2));
 
     D_TE_CHECK(_log->calls == 1);
     D_TE_CHECK(_log->a == 41u);      // passed
@@ -187,7 +187,7 @@ bool tests_event_dispatch_status_change_payload_arrives_intact()
 
 
 // tests_event_dispatch_error_payload_carries_the_message
-//   on_test_error is (node, message).  The header notes the message "may be
+//   DOnTestError is (node, message).  The header notes the message "may be
 // null", so both a real string and nullptr are fired.
 bool tests_event_dispatch_error_payload_carries_the_message()
 {
@@ -195,7 +195,7 @@ bool tests_event_dispatch_error_payload_carries_the_message()
     const dt::basic_test         _node = make_node();
     const DLogPtr                _log  = make_log();
 
-    _d.bind<dt::on_test_error>(
+    _d.bind<dt::DOnTestError>(
         [_log](const dt::basic_test* _n, const char* _msg)
         {
             ++_log->calls;
@@ -204,14 +204,14 @@ bool tests_event_dispatch_error_payload_carries_the_message()
                                              : std::string("<null>");
         });
 
-    (void) _d.fire<dt::on_test_error>(&_node, "segfault in leaf");
+    (void) _d.fire<dt::DOnTestError>(&_node, "segfault in leaf");
 
     D_TE_CHECK(_log->calls == 1);
     D_TE_CHECK(_log->node == &_node);
     D_TE_CHECK(_log->text_1 == "segfault in leaf");
 
     // the documented null-message case must dispatch just as happily
-    (void) _d.fire<dt::on_test_error>(&_node, static_cast<const char*>(nullptr));
+    (void) _d.fire<dt::DOnTestError>(&_node, static_cast<const char*>(nullptr));
 
     D_TE_CHECK(_log->calls == 2);
     D_TE_CHECK(_log->text_1 == "<null>");
@@ -235,11 +235,11 @@ bool tests_event_dispatch_listener_threw_payload_arrives_intact()
             _log->text_2 = _what;
         });
 
-    (void) _d.fire<dt::DOnListenerThrew>(dt::on_test_failed::name(),
+    (void) _d.fire<dt::DOnListenerThrew>(dt::DOnTestFailed::name(),
                                           "std::bad_alloc");
 
     D_TE_CHECK(_log->calls == 1);
-    D_TE_CHECK(_log->text_1 == "on_test_failed");   // a tag's own name(), routed
+    D_TE_CHECK(_log->text_1 == "DOnTestFailed");   // a tag's own name(), routed
     D_TE_CHECK(_log->text_2 == "std::bad_alloc");
 
     return true;
@@ -325,20 +325,20 @@ bool tests_event_dispatch_consume_verdict_halts_propagation()
     const DLogPtr                _first  = make_log();
     const DLogPtr                _second = make_log();
 
-    _d.bind<dt::on_test_failed>(
+    _d.bind<dt::DOnTestFailed>(
         [_first](const dt::basic_test*) -> ::djinterp::verdict
         {
             ++_first->calls;
             return ::djinterp::verdict::consume;
         });
 
-    _d.bind<dt::on_test_failed>(
+    _d.bind<dt::DOnTestFailed>(
         [_second](const dt::basic_test*)
         {
             ++_second->calls;            // must NOT run
         });
 
-    const ::djinterp::DDispatchResult _r = _d.fire<dt::on_test_failed>(&_node);
+    const ::djinterp::DDispatchResult _r = _d.fire<dt::DOnTestFailed>(&_node);
 
     D_TE_CHECK(_first->calls == 1);
     D_TE_CHECK(_second->calls == 0);     // propagation halted
@@ -387,16 +387,16 @@ bool tests_event_dispatch_tags_are_independent_channels()
     const DLogPtr                _passed = make_log();
     const DLogPtr                _custom = make_log();
 
-    _d.bind<dt::on_test_failed>([_failed](const dt::basic_test*) { ++_failed->calls; });
+    _d.bind<dt::DOnTestFailed>([_failed](const dt::basic_test*) { ++_failed->calls; });
     _d.bind<dt::DOnTestPassed>([_passed](const dt::basic_test*) { ++_passed->calls; });
     _d.bind<myapp::DOnCustomDispatch>([_custom](const dt::basic_test*) { ++_custom->calls; });
 
     // all three share the SAME payload type...
-    D_TE_CHECK((std::is_same<payload_of<dt::on_test_failed>,
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnTestFailed>,
                              payload_of<myapp::DOnCustomDispatch> >::value));
 
     // ...but firing one reaches only its own listener
-    (void) _d.fire<dt::on_test_failed>(&_node);
+    (void) _d.fire<dt::DOnTestFailed>(&_node);
 
     D_TE_CHECK(_failed->calls == 1);
     D_TE_CHECK(_passed->calls == 0);
@@ -420,10 +420,10 @@ bool tests_event_dispatch_unbound_tag_invokes_nothing()
     ::djinterp::DEventDispatcher _d;
     const dt::basic_test         _node = make_node();
 
-    D_TE_CHECK(!_d.has_handlers_for<dt::on_module_start>());
-    D_TE_CHECK(_d.handler_count_for<dt::on_module_start>() == 0u);
+    D_TE_CHECK(!_d.has_handlers_for<dt::DOnModuleStart>());
+    D_TE_CHECK(_d.handler_count_for<dt::DOnModuleStart>() == 0u);
 
-    const ::djinterp::DDispatchResult _r = _d.fire<dt::on_module_start>(&_node);
+    const ::djinterp::DDispatchResult _r = _d.fire<dt::DOnModuleStart>(&_node);
 
     D_TE_CHECK(_r.invoked == 0u);
     D_TE_CHECK(!_r.consumed());

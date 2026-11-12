@@ -1,21 +1,25 @@
 /*******************************************************************************
-* djinterp [test]                                                   file_tests.h
+* djinterp [c][filesys]                                             file_tests.h
 *
 *   Unit tests for the djinterp fs subframework (c/filesys/file_*), written in
 * DTest's C face (c/modules/test/test_suite.h). The C modules are exercised
 * here; the C++ facade (dfile.hpp and friends) is out of scope.
 *
-*   AUTHORING MODEL.  These tests use DTest's imperative surface: each section
-* translation unit defines one `void d_fs_tests_<section>(struct
-* dj_test_suite*)` that opens a module, then a block per public function, then
-* a test per behaviour, making expression-capturing checks (D_FS_CHECK)
-* against the open test.  The runner (config tree) creates one suite, splices
-* every section into it, and reports it once.  The runner enumerates the
-* section builders by name, as the authoring guide's runner does.
+* AUTHORING MODEL
+* ---------------
+*   These tests use DTest's imperative surface: each section translation unit
+* defines one `void d_fs_tests_<section>(struct dj_test_suite*)` that opens a
+* module, then a block per public function, then a test per behaviour, making
+* expression-capturing checks (D_FS_CHECK) against the open test.  The runner
+* (config tree) creates one suite, splices every section into it, and reports it
+* once.  The runner enumerates the section builders by name, as the authoring
+* guide's runner does.
 *
-*   ENVIRONMENT.  d_fs_test_setup builds an isolated, ABSOLUTE-pathed scratch
-* directory and one standard fixture file before any section runs; the absolute
-* path keeps the suite correct even across a d_dir_set_current test.  d_fs_test_teardown
+* ENVIRONMENT
+* -----------
+*   d_fs_test_setup builds an isolated, ABSOLUTE-pathed scratch directory and
+* one standard fixture file before any section runs; the absolute path keeps the
+* suite correct even across a d_dir_set_current test.  d_fs_test_teardown
 * removes the tree afterwards.  Fixtures a test needs to exist are created with
 * d_fs_test_write, which uses raw stdio rather than the code under test, so a
 * broken d_file_write_all cannot mask a failure elsewhere.
@@ -393,16 +397,19 @@ bool d_tests_file_temp_all(struct dj_test_suite* _suite);
 // whole group otherwise rather than reporting an empty pass.
 #if D_FILE_LINK_IS_AVAILABLE
 bool d_tests_file_link_all(struct dj_test_suite* _suite);
+
 #endif
 
 // XIV.  file_pipe
 #if D_FILE_PIPE_IS_AVAILABLE
 bool d_tests_file_pipe_all(struct dj_test_suite* _suite);
+
 #endif
 
 // XV.   file_space
 #if D_FILE_SPACE_IS_AVAILABLE
 bool d_tests_file_space_all(struct dj_test_suite* _suite);
+
 #endif
 
 // master runner

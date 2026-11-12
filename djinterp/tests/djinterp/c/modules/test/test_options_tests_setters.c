@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   test_options_tests_setters.c
+* djinterp [c][test]                                test_options_tests_setters.c
 *
 * test_options.h's suite, block "config_setter_all": each d_test_options_set_*
 * setter, on a NULL config, and with a key of the wrong type.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                   concurrency_strategy_tags_tests_tag_types.cpp
+* djinterp [cpp][sync]             concurrency_strategy_tags_tests_tag_types.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/concurrency_strategy_tags_tests_tag_types.cpp

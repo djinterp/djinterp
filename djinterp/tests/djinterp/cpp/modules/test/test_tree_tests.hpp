@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                        test_tree_tests.hpp
+* djinterp [cpp][test]                                       test_tree_tests.hpp
 *
 *   Unit-test declarations and shared helpers for test_tree.hpp.
 *
@@ -9,11 +9,12 @@
 * TU, and the runner (test_tree_tests_runner.cpp) links them together and
 * calls each in turn.
 *
-*   CONJUNCTIVE-ROOT ACCOUNTING (read this once):
-*   test_tree backs its forest with a single tree whose ROOT NODE is the
-* implied conjunctive root.  That root is created on the FIRST add_root (as a
+* CONJUNCTIVE-ROOT ACCOUNTING (read this once)
+* --------------------------------------------
+*   test_tree backs its forest with a single tree whose root node is the
+* implied conjunctive root.  That root is created on the first add_root (as a
 * default-constructed element, hence status `pending`, type id 0) and is an
-* ORDINARY node in the walk - it is visited by begin()/end() and counted by
+* ordinary node in the walk - it is visited by begin()/end() and counted by
 * size() and the run surface.  Consequently, for a forest grown with
 * add_root:
 *     - size()          == (number of roots) + 1
@@ -170,10 +171,15 @@ test_kind make_leaf_kind(
 // ---------------------------------------------------------------------------
 
 bool tests_tree_default_construct_is_empty();
+
 bool tests_tree_construct_from_kinds();
+
 bool tests_tree_construct_from_kinds_and_forest();
+
 bool tests_tree_type_aliases();
+
 bool tests_tree_kinds_accessor();
+
 bool tests_tree_underlying_accessor();
 
 
@@ -183,9 +189,13 @@ bool tests_tree_underlying_accessor();
 // ---------------------------------------------------------------------------
 
 bool tests_tree_size_and_empty();
+
 bool tests_tree_root_accessor();
+
 bool tests_tree_begin_end_iteration();
+
 bool tests_tree_const_begin_end_iteration();
+
 bool tests_tree_clear();
 
 
@@ -195,9 +205,13 @@ bool tests_tree_clear();
 // ---------------------------------------------------------------------------
 
 bool tests_tree_add_root_creates_conjunctive_root();
+
 bool tests_tree_add_root_returns_child_node();
+
 bool tests_tree_add_root_multiple_roots();
+
 bool tests_tree_add_root_not_rank_checked();
+
 bool tests_tree_add_root_conjunctive_root_is_pending();
 
 
@@ -207,15 +221,25 @@ bool tests_tree_add_root_conjunctive_root_is_pending();
 // ---------------------------------------------------------------------------
 
 bool tests_tree_append_child_null_parent_returns_null();
+
 bool tests_tree_append_child_no_kinds_lower_rank_accepted();
+
 bool tests_tree_append_child_no_kinds_equal_rank_accepted();
+
 bool tests_tree_append_child_no_kinds_higher_rank_rejected();
+
 bool tests_tree_append_child_registered_interior_accepts_within_rank();
+
 bool tests_tree_append_child_registered_higher_rank_rejected();
+
 bool tests_tree_append_child_registered_leaf_parent_rejects();
+
 bool tests_tree_append_child_unregistered_parent_not_treated_as_leaf();
+
 bool tests_tree_append_child_mixed_resolution();
+
 bool tests_tree_append_child_returns_node_and_stores_value();
+
 bool tests_tree_append_child_success_increments_size();
 
 
@@ -225,9 +249,13 @@ bool tests_tree_append_child_success_increments_size();
 // ---------------------------------------------------------------------------
 
 bool tests_tree_validate_rank_flag_true();
+
 bool tests_tree_validate_rank_flag_false();
+
 bool tests_tree_rank_disabled_accepts_any_child();
+
 bool tests_tree_rank_disabled_leaf_parent_accepts();
+
 bool tests_tree_rank_disabled_null_parent_still_null();
 
 
@@ -237,14 +265,23 @@ bool tests_tree_rank_disabled_null_parent_still_null();
 // ---------------------------------------------------------------------------
 
 bool tests_tree_count_by_status_empty_all_zero();
+
 bool tests_tree_count_by_status_int_and_enum_agree();
+
 bool tests_tree_count_passed_failed_skipped_pending();
+
 bool tests_tree_count_includes_conjunctive_root();
+
 bool tests_tree_all_passed_empty_true();
+
 bool tests_tree_all_passed_false_pending_root();
+
 bool tests_tree_all_passed_true_skipped_allowed();
+
 bool tests_tree_failed_tree_all_passed_false_any_failed_true();
+
 bool tests_tree_error_tree_all_passed_false_any_failed_true();
+
 bool tests_tree_any_failed_false_when_none();
 
 
@@ -254,9 +291,13 @@ bool tests_tree_any_failed_false_when_none();
 // ---------------------------------------------------------------------------
 
 bool tests_tree_is_test_tree_true_for_instantiation();
+
 bool tests_tree_is_test_tree_false_for_non_tree();
+
 bool tests_tree_is_test_tree_strips_cv_ref();
+
 bool tests_tree_is_test_tree_value_alias();
+
 bool tests_tree_test_tree_concept();
 
 

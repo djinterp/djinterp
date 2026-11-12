@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              test_cvar_tests_table_integrity.c
+* djinterp [c][test]                           test_cvar_tests_table_integrity.c
 *
 * test_cvar.h's suite, block "cvar_table_integrity_all": every row's key and
 * help text set, its command flags right, and 25 rows, 8 config and 17 metadata.

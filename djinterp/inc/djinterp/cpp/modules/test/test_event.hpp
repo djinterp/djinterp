@@ -1,63 +1,80 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                             test_event.hpp
+* djinterp [cpp][test]                                            test_event.hpp
 *
-*   The DTest event alphabet -- the set of event TAGS the test framework
+*   The DTest event alphabet -- the set of event tags the test framework
 * dispatches over, declared against the formal event subsystem (event.hpp).
-* In that subsystem an event is not a class instance but a TYPE: a tag with a
+* In that subsystem an event is not a class instance but a type: a tag with a
 * nested `payload_type` (a std::tuple of value domains) and a `name()`.  The
-* type IS the registration, so there is no enrolment step and the alphabet is
+* type is the registration, so there is no enrolment step and the alphabet is
 * open -- new summands are added simply by declaring new tags.
 *
 *   This header supplies two things:
-*     1. the BUILT-IN lifecycle tags, in the `djinterp::test::events`
+*     1. the built-in lifecycle tags, in the `djinterp::test::events`
 *        sub-namespace, that test_handler.hpp and test_builder.hpp fire as
 *        they walk a tree (session, module, test, status, and diagnostic
 *        events); and
-*     2. the D_TEST_EVENT family of macros, so a user can declare a CUSTOM
+*     2. the D_TEST_EVENT family of macros, so a user can declare a custom
 *        test event -- one carrying the same node payload as the built-ins --
 *        in a single line, and bind / fire it through exactly the same
 *        handler API.
 *
-*   RELATION TO test_common.hpp:
-*   test_common.hpp carries a small, self-contained `DTestEvent` STRUCT (an
+*   Relation to test_common.hpp:
+*   test_common.hpp carries a small, self-contained `DTestEvent` struct (an
 * {id, status, message} record) plus `DTestEventId`; that is the framework's
 * lightweight, event-subsystem-free observation record and is unrelated to the
-* tags here.  This header instead names the formal event ALPHABET; the two
+* tags here.  This header instead names the formal event alphabet; the two
 * coexist (there is no `DTestEvent` type declared in this file).
 *
-*   PAYLOAD CONVENTION:
+* PAYLOAD CONVENTION
+* ------------------
 *   Every node-scoped tag carries a single `const basic_test*` -- the visited
 * node, from which a handler reads status, type id, and metadata (name /
-* message).  A pointer payload is why this header only FORWARD-DECLARES
+* message).  A pointer payload is why this header only forward-declares
 * basic_test rather than including test_object.hpp: it deliberately sits below
 * test_object.hpp in the include chain (both test_handler.hpp and
 * test_builder.hpp include this header first), keeping the alphabet a light
 * leaf of the dependency graph.  test_object.hpp completes the type.
 *
-*   HANDLERS RETURN A VERDICT:
+* HANDLERS RETURN A VERDICT
+* -------------------------
 *   In the refactored event subsystem a handler is any callable accepting the
 * payload and returning `void` (always-pass) or a `verdict`; it does not
 * mutate a context.  Compatibility is checked at bind time.  These tags carry
 * no opinion about that -- a tag is only an identity and a payload shape.
 *
-*   USAGE -- binding a built-in lifecycle listener:
-*     handler.on<on_test_failed>(
+*   Usage -- binding a built-in lifecycle listener:
+*     handler.on<DOnTestFailed>(
 *         [](const basic_test* _n) D_NOEXCEPT
 *         {
 *             std::fprintf(stderr, "FAIL: %s\n",
 *                          _n->metadata().get("name"));
 *         });
 *
-*   USAGE -- declaring and firing a custom test event:
+*   Usage -- declaring and firing a custom test event:
 *     namespace myproj { D_TEST_EVENT(DOnFlakyRetry); }   // node payload
 *     handler.on<myproj::DOnFlakyRetry>(
 *         [](const basic_test*) { ... });
 *     handler.fire<myproj::DOnFlakyRetry>(&node);
 *
-*   PORTABLE ACROSS:
+* PORTABLE ACROSS
+* ---------------
 *   C++11, C++14, C++17, C++20, C++23, C++26.  The tags are plain types; the
 * event_traits / concept machinery they plug into degrades from concepts
 * (C++20+) to static_assert (C++11) inside event.hpp with no change here.
+*
+* HOW TO USE
+* ----------
+*   Bind handlers to the lifecycle tags on a test_handler's dispatcher, or
+* declare a tag of your own with D_TEST_EVENT and fire it through the same
+* dispatcher.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_event.hpp
@@ -151,17 +168,17 @@ using basic_test = DTestObject<re_std::uint8_t, DTestMetadata>;
 //   the run is beginning; counters have just been reset.  Empty payload.
 D_EVENT_EMPTY(DOnSessionStart);
 
-// on_session_end
+// DOnSessionEnd
 //   the run has finished.  Payload: (passed_count, failed_count).
-D_EVENT(on_session_end, std::size_t, std::size_t);
+D_EVENT(DOnSessionEnd, std::size_t, std::size_t);
 
 
 // ---- module (interior node) lifecycle ----
 
-// on_module_start
+// DOnModuleStart
 //   an interior node (module / block / test group) is being entered.
 // Payload: the node.
-D_EVENT(on_module_start, const basic_test*);
+D_EVENT(DOnModuleStart, const basic_test*);
 
 // DOnModuleEnd
 //   an interior node has been fully visited.  Payload: the node.
@@ -170,10 +187,10 @@ D_EVENT(DOnModuleEnd, const basic_test*);
 
 // ---- test (leaf node) lifecycle ----
 
-// on_test_start
+// DOnTestStart
 //   a leaf (assertion / test function) is being entered, before its
 // status-specific event.  Payload: the node.
-D_EVENT(on_test_start, const basic_test*);
+D_EVENT(DOnTestStart, const basic_test*);
 
 // DOnTestEnd
 //   a leaf has been fully visited, after its status-specific event.
@@ -187,18 +204,18 @@ D_EVENT(DOnTestEnd, const basic_test*);
 //   a leaf resolved to test_status::passed.  Payload: the node.
 D_EVENT(DOnTestPassed, const basic_test*);
 
-// on_test_failed
+// DOnTestFailed
 //   a leaf resolved to test_status::failed.  Payload: the node.
-D_EVENT(on_test_failed, const basic_test*);
+D_EVENT(DOnTestFailed, const basic_test*);
 
 // DOnTestSkipped
 //   a leaf resolved to test_status::skipped.  Payload: the node.
 D_EVENT(DOnTestSkipped, const basic_test*);
 
-// on_test_error
+// DOnTestError
 //   a leaf resolved to test_status::error.  Payload: (node, message),
 // where the message is an optional diagnostic string (may be null).
-D_EVENT(on_test_error, const basic_test*, const char*);
+D_EVENT(DOnTestError, const basic_test*, const char*);
 
 // DOnStatusChange
 //   a leaf's status changed during evaluation (e.g. a deferred leaf was
@@ -214,6 +231,22 @@ D_EVENT(DOnStatusChange, const basic_test*, test_status, test_status);
 // run.  Payload: (event_name, what), both C-strings.  A handler for this
 // event must not itself throw.
 D_EVENT(DOnListenerThrew, const char*, const char*);
+
+
+// ---- the names before the rename ----
+
+// on_session_end, on_module_start, on_test_start, on_test_failed,
+// on_test_error
+//   aliases: five tags' snake_case names from before they took the guide's
+// D + PascalCase. Each is the same type, so binding to either name binds the
+// same channel, and name() reports the new identifier. They stay until the
+// last suites written against them move (lane A's list: the array, concepts
+// and dtuple runners); write new code against the DOn* names.
+using on_session_end  = DOnSessionEnd;
+using on_module_start = DOnModuleStart;
+using on_test_start   = DOnTestStart;
+using on_test_failed  = DOnTestFailed;
+using on_test_error   = DOnTestError;
 
 
 
@@ -246,7 +279,7 @@ NS_END  // djinterp
 
 // D_TEST_EVENT_MSG
 //   declares a custom test event carrying the node plus a C-string message,
-// matching the on_test_error shape.  Payload: (const basic_test*, const char*).
+// matching the DOnTestError shape.  Payload: (const basic_test*, const char*).
 // Usage:
 //   D_TEST_EVENT_MSG(DOnSoftWarning);
 #define D_TEST_EVENT_MSG(_name)                                               \

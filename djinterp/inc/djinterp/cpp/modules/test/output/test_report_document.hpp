@@ -1,40 +1,57 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                   test_report_document.hpp
+* djinterp [cpp][test]                                  test_report_document.hpp
 *
-*   The report's PAGE DESIGN, expressed as a document template rather than a
+*   The report's page design, expressed as a document template rather than a
 * painter -- the piece that lets test_render_pdf_table.hpp's bespoke PDF
 * composition retire.
 *
-*   WHAT WAS LEFT.  That header held two different things: a table engine and a
-* page design.  The table half (per-cell fills and colours, ruled cells, header
-* re-draw across page breaks) moved into DPdfCanvas::table + DCellFormat, which
-* is where a table engine belongs.  What remained was composition -- a title
-* block, a dark suite band per module, a metadata block, a card per test -- and
-* composition is a TEMPLATE: a sequence of semantic calls, not a sequence of
-* rectangles.
+* WHAT WAS LEFT
+* -------------
+*   That header held two different things: a table engine and a page design.
+* The table half (per-cell fills and colours, ruled cells, header re-draw across
+* page breaks) moved into DPdfCanvas::table + DCellFormat, which is where a
+* table engine belongs.  What remained was composition -- a title block, a dark
+* suite band per module, a metadata block, a card per test -- and composition is
+* a template: a sequence of semantic calls, not a sequence of rectangles.
 *
-*   THE PAYOFF OF SAYING IT SEMANTICALLY.  The painter could only ever produce
-* PDF, because it spoke in fills and glyph placements.  The same design written
-* as DDocumentRenderer calls renders as PDF (canvas-backed: real bands, ruled
-* tables), as HTML (bands become styled divs, tables become <table>), as
-* Markdown, and as plain monospace -- from one description.  A band is
-* `heading` carrying a `background` hint; a card is a heading plus a table.
-* Every dialect honours what it can and drops the rest, which is the whole of
-* the hint contract.
+* THE PAYOFF OF SAYING IT SEMANTICALLY
+* ------------------------------------
+*   The painter could only ever produce PDF, because it spoke in fills and glyph
+* placements.  The same design written as DDocumentRenderer calls renders as PDF
+* (canvas-backed: real bands, ruled tables), as HTML (bands become styled divs,
+* tables become <table>), as Markdown, and as plain monospace -- from one
+* description.  A band is `heading` carrying a `background` hint; a card is a
+* heading plus a table. Every dialect honours what it can and drops the rest,
+* which is the whole of the hint contract.
 *
-*   THE PALETTE IS DATA (DReportPalette), not constants baked into draw calls,
+*   The palette is data (DReportPalette), not constants baked into draw calls,
 * so a caller restyles without touching the composition -- and a dialect that
 * cannot colour simply never reads it.  The default is the slate palette the
 * painter used, so the PDF output stays recognisably the same document.
 *
-*   WHAT IT IS NOT.  This does not decide page geometry, margins or fonts: those
-* belong to the renderer a caller hands in (DPdfCanvasDocumentRenderer's page
-* size and body style, the markup profile, and so on).  The template describes
-* the DOCUMENT; the renderer decides the medium.
+* WHAT IT IS NOT
+* --------------
+*   This does not decide page geometry, margins or fonts: those belong to the
+* renderer a caller hands in (DPdfCanvasDocumentRenderer's page size and body
+* style, the markup profile, and so on).  The template describes the document;
+* the renderer decides the medium.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 baseline (DDocumentRenderer's floor).  No PDF dependency -- this
 * header is renderer-agnostic and a text-only build includes it happily.
+*
+* HOW TO USE
+* ----------
+*     render_report_document(report, renderer);
+*
+* OPTIONS
+* -------
+*   DReportDocumentOptions, with its DReportPalette: the page design's choices.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_report_document.hpp

@@ -1,9 +1,9 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_report.hpp
+* djinterp [cpp][test]                                           test_report.hpp
 *
 *   The presentation-side data model for a DTest run.  Where test_tree /
-* test_session model EXECUTION (a forest of evaluable nodes walked by a
-* handler), this header models the RESULT as it is reported: a flat,
+* test_session model execution (a forest of evaluable nodes walked by a
+* handler), this header models the result as it is reported: a flat,
 * render-ready aggregate that mirrors the shape of the output document -
 * a run is a sequence of modules, a module is a sequence of unit tests,
 * and a unit test is a sequence of assertions (checks).  Nothing here
@@ -11,7 +11,8 @@
 * and then handed to a renderer (DTestPrinter for text, test_pdf_report
 * for PDF).
 *
-*   WHY A SEPARATE MODEL:
+* WHY A SEPARATE MODEL
+* --------------------
 *   The execution tree is anonymous and rank-ordered; it is the wrong shape
 * to drive a report (no module description, no per-unit assertion roll-up,
 * no cross-module comprehensive tally).  Rather than overload the tree with
@@ -20,7 +21,8 @@
 * separation the rest of the framework keeps between a value (the tree) and
 * its rendered face (the printer).
 *
-*   THE SHAPE (mirrors the rendered document):
+* THE SHAPE (mirrors the rendered document)
+* -----------------------------------------
 *       test_report   = { title / subtitle / author / description ;
 *                         <modules> ; notes }
 *       report_module = { name ; description ; <units> }
@@ -31,22 +33,38 @@
 * marked failed), so a unit with a single check is the natural model for a
 * runner whose tests are themselves the leaves.
 *
-*   TALLIES:
+* TALLIES
+* -------
 *   Every figure in the rendered report is derived here, not in the renderer:
 * per-module assertion and unit-test counts, the cross-module comprehensive
 * totals, and the pass-rate strings.  This keeps the text and PDF faces in
 * perfect agreement - they read the same numbers.
 *
-*   FILE NAMING:
+* FILE NAMING
+* -----------
 *   expand_report_file_name folds a small placeholder vocabulary ({module},
 * {index}, {date}, {time}, {title}, {ext}) into a concrete output filename,
 * sanitizing the substituted components so a module name is safe on disk.
 * This is the mechanism behind the file_name_pattern option in
 * test_options.hpp and the document_per_module layout.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  No third-party dependency; only <ctime> for the {date} /
 * {time} placeholders.
+*
+* HOW TO USE
+* ----------
+*   A runner builds a test_report -- modules, units, checks -- and hands it to a
+* renderer; expand_report_file_name names the files.
+*
+* OPTIONS
+* -------
+*   The file_name_pattern a runner passes to expand_report_file_name.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_report.hpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      lock_policy_tests_null.cpp
+* djinterp [cpp][sync]                                lock_policy_tests_null.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/lock_policy_tests_null.cpp

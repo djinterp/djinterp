@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                datomic_tests.h
+* djinterp [c][sync]                                             datomic_tests.h
 *
 *   Unit test declarations for `datomic.h` module.
 *   Provides comprehensive testing of all d_atomic functions including
@@ -37,9 +37,11 @@
 bool d_tests_datomic_flag_test_and_set(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_flag_clear(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_flag_explicit(
     struct dj_test_suite* _suite
 );
@@ -56,24 +58,31 @@ bool d_tests_datomic_flag_all(
 bool d_tests_datomic_init_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_uint(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_ulong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_llong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_ullong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_ptr(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_init_size(
     struct dj_test_suite* _suite
 );
@@ -90,27 +99,35 @@ bool d_tests_datomic_init_all(
 bool d_tests_datomic_load_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_uint(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_ulong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_llong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_ullong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_ptr(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_size(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_load_explicit(
     struct dj_test_suite* _suite
 );
@@ -127,27 +144,35 @@ bool d_tests_datomic_load_all(
 bool d_tests_datomic_store_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_uint(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_ulong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_llong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_ullong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_ptr(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_size(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_store_explicit(
     struct dj_test_suite* _suite
 );
@@ -164,27 +189,35 @@ bool d_tests_datomic_store_all(
 bool d_tests_datomic_exchange_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_uint(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_ulong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_llong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_ullong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_ptr(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_size(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_exchange_explicit(
     struct dj_test_suite* _suite
 );
@@ -201,24 +234,31 @@ bool d_tests_datomic_exchange_all(
 bool d_tests_datomic_compare_exchange_strong_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_weak_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_strong_uint(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_strong_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_strong_llong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_strong_ptr(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_strong_size(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_compare_exchange_explicit(
     struct dj_test_suite* _suite
 );
@@ -235,36 +275,47 @@ bool d_tests_datomic_compare_exchange_all(
 bool d_tests_datomic_fetch_add_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_add_uint(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_add_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_add_llong(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_add_size(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_sub_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_sub_long(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_sub_size(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_or_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_xor_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_and_int(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_fetch_explicit(
     struct dj_test_suite* _suite
 );
@@ -281,9 +332,11 @@ bool d_tests_datomic_fetch_all(
 bool d_tests_datomic_thread_fence(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_signal_fence(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_is_lock_free(
     struct dj_test_suite* _suite
 );
@@ -300,21 +353,27 @@ bool d_tests_datomic_fence_all(
 bool d_tests_datomic_null_load(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_null_store(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_null_exchange(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_null_cas(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_null_fetch(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_null_flag(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_datomic_null_ptr(
     struct dj_test_suite* _suite
 );

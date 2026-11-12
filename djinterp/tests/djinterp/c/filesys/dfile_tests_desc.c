@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_desc.c
+* djinterp [c][filesys]                                       dfile_tests_desc.c
 *
 *   Tests for file descriptor operations (fileno, dup, dup2, read, write).
 *

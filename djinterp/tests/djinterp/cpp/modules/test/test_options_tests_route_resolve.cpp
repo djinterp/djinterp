@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [cpp/test]                       test_options_tests_route_resolve.cpp
+* djinterp [cpp][test]                      test_options_tests_route_resolve.cpp
 *
 *   Sections A.IV / A.V / B.V - test_route + make_route, apply_tribool_helper,
 * and resolve.  A default route matches everything and overrides nothing;
 * make_route sets only the guard.  apply_tribool_helper keeps the inherited value
 * on `inherit` and forces it otherwise.  resolve first seeds a DTestResolved from
 * the base knobs (checked field by field against the defaults), then folds every
-* MATCHING route in declaration order: the tristate toggles fold, the guarded
+* matching route in declaration order: the tristate toggles fold, the guarded
 * scalars overwrite (later wins), and sinks either union (add) or replace.  A
 * non-matching route contributes nothing, and a predicate-guarded route reaches
 * only the nodes it matches.

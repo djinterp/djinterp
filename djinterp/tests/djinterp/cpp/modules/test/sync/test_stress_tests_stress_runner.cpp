@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                           test_stress_tests_stress_runner.cpp
+* djinterp [cpp][test]                       test_stress_tests_stress_runner.cpp
 *
 *   Section TU: DStressRunner - configuration and the fixed-iteration
 * workload.  Iteration counts are exact (threads x iterations), so the

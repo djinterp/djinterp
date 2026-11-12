@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_event_tests_alphabet.cpp
+* djinterp [cpp][test]                             test_event_tests_alphabet.cpp
 *
 *   Section II of the DTestEvent suite: the twelve built-in tags.
 *
 *   A tag is only an identity and a payload shape, so this section pins exactly
-* those two things for every summand of the alphabet - and pins them THROUGH
+* those two things for every summand of the alphabet - and pins them through
 * event_traits rather than by reading the nested typedef directly, because
 * event_traits is how the dispatcher sees a tag at a fire site.  The payload
 * assertions are the load-bearing ones: test_handler.hpp fires these tags with
-* concrete arguments (fire<DOnSessionStart>(), fire<on_session_end>(p, f), the
+* concrete arguments (fire<DOnSessionStart>(), fire<DOnSessionEnd>(p, f), the
 * node tags with &node), so a payload drifting here breaks a caller there.
 *
 *   Coverage of the alphabet is exhaustive: all twelve tags appear in the
@@ -56,9 +56,9 @@ bool tests_event_on_session_start_has_empty_payload()
 //   payload (passed_count, failed_count) - two std::size_t, in that order.
 bool tests_event_on_session_end_carries_two_counts()
 {
-    D_TE_CHECK((std::is_same<payload_of<dt::on_session_end>,
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnSessionEnd>,
                              std::tuple<std::size_t, std::size_t> >::value));
-    D_TE_CHECK(::djinterp::event_traits<dt::on_session_end>::arity == 2u);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionEnd>::arity == 2u);
 
     return true;
 }
@@ -68,7 +68,7 @@ bool tests_event_on_session_end_carries_two_counts()
 //   the interior-node lifecycle pair.
 bool tests_event_module_tags_carry_the_node()
 {
-    D_TE_CHECK((std::is_same<payload_of<dt::on_module_start>, DNodePayload>::value));
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnModuleStart>, DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnModuleEnd>,   DNodePayload>::value));
 
     return true;
@@ -79,7 +79,7 @@ bool tests_event_module_tags_carry_the_node()
 //   the leaf lifecycle pair (fired around the status-specific event).
 bool tests_event_test_lifecycle_tags_carry_the_node()
 {
-    D_TE_CHECK((std::is_same<payload_of<dt::on_test_start>, DNodePayload>::value));
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnTestStart>, DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnTestEnd>,   DNodePayload>::value));
 
     return true;
@@ -93,7 +93,7 @@ bool tests_event_test_lifecycle_tags_carry_the_node()
 bool tests_event_terminal_status_tags_carry_the_node()
 {
     D_TE_CHECK((std::is_same<payload_of<dt::DOnTestPassed>,  DNodePayload>::value));
-    D_TE_CHECK((std::is_same<payload_of<dt::on_test_failed>,  DNodePayload>::value));
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnTestFailed>,  DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnTestSkipped>, DNodePayload>::value));
 
     return true;
@@ -105,9 +105,9 @@ bool tests_event_terminal_status_tags_carry_the_node()
 bool tests_event_on_test_error_carries_node_and_message()
 {
     D_TE_CHECK((std::is_same<
-                    payload_of<dt::on_test_error>,
+                    payload_of<dt::DOnTestError>,
                     std::tuple<const dt::basic_test*, const char*> >::value));
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_error>::arity == 2u);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestError>::arity == 2u);
 
     return true;
 }
@@ -150,18 +150,18 @@ bool tests_event_on_listener_threw_carries_two_c_strings()
 // exactly.  A handler that logs or routes by name depends on this.
 bool tests_event_every_tag_names_its_own_identifier()
 {
-    D_TE_CHECK(std::strcmp(dt::DOnSessionStart::name(),  "on_session_start")  == 0);
-    D_TE_CHECK(std::strcmp(dt::on_session_end::name(),    "on_session_end")    == 0);
-    D_TE_CHECK(std::strcmp(dt::on_module_start::name(),   "on_module_start")   == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnModuleEnd::name(),     "on_module_end")     == 0);
-    D_TE_CHECK(std::strcmp(dt::on_test_start::name(),     "on_test_start")     == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestEnd::name(),       "on_test_end")       == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestPassed::name(),    "on_test_passed")    == 0);
-    D_TE_CHECK(std::strcmp(dt::on_test_failed::name(),    "on_test_failed")    == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestSkipped::name(),   "on_test_skipped")   == 0);
-    D_TE_CHECK(std::strcmp(dt::on_test_error::name(),     "on_test_error")     == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnStatusChange::name(),  "on_status_change")  == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnListenerThrew::name(), "on_listener_threw") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnSessionStart::name(),  "DOnSessionStart")  == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnSessionEnd::name(),    "DOnSessionEnd")    == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnModuleStart::name(),   "DOnModuleStart")   == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnModuleEnd::name(),     "DOnModuleEnd")     == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestStart::name(),     "DOnTestStart")     == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestEnd::name(),       "DOnTestEnd")       == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestPassed::name(),    "DOnTestPassed")    == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestFailed::name(),    "DOnTestFailed")    == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestSkipped::name(),   "DOnTestSkipped")   == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestError::name(),     "DOnTestError")     == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnStatusChange::name(),  "DOnStatusChange")  == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnListenerThrew::name(), "DOnListenerThrew") == 0);
 
     return true;
 }
@@ -175,43 +175,43 @@ bool tests_event_every_tag_is_a_distinct_type()
 {
     // pairwise distinctness, expressed as a fold over a type list
     using all = std::tuple<dt::DOnSessionStart,
-                           dt::on_session_end,
-                           dt::on_module_start,
+                           dt::DOnSessionEnd,
+                           dt::DOnModuleStart,
                            dt::DOnModuleEnd,
-                           dt::on_test_start,
+                           dt::DOnTestStart,
                            dt::DOnTestEnd,
                            dt::DOnTestPassed,
-                           dt::on_test_failed,
+                           dt::DOnTestFailed,
                            dt::DOnTestSkipped,
-                           dt::on_test_error,
+                           dt::DOnTestError,
                            dt::DOnStatusChange,
                            dt::DOnListenerThrew>;
 
     D_TE_CHECK(std::tuple_size<all>::value == 12u);
 
     // the tags that share the node payload are nonetheless different TYPES
-    D_TE_CHECK(!(std::is_same<dt::DOnTestPassed, dt::on_test_failed>::value));
-    D_TE_CHECK(!(std::is_same<dt::on_test_start,  dt::DOnTestEnd>::value));
-    D_TE_CHECK(!(std::is_same<dt::on_module_start, dt::on_test_start>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnTestPassed, dt::DOnTestFailed>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnTestStart,  dt::DOnTestEnd>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnModuleStart, dt::DOnTestStart>::value));
     D_TE_CHECK(!(std::is_same<dt::DOnModuleEnd,   dt::DOnTestEnd>::value));
     D_TE_CHECK(!(std::is_same<dt::DOnTestSkipped, dt::DOnTestPassed>::value));
 
     // and the two-argument tags are not each other either
-    D_TE_CHECK(!(std::is_same<dt::on_test_error, dt::DOnListenerThrew>::value));
-    D_TE_CHECK(!(std::is_same<dt::on_session_end, dt::on_test_error>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnTestError, dt::DOnListenerThrew>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnSessionEnd, dt::DOnTestError>::value));
 
     // ...and none of them is the empty one
-    D_TE_CHECK(!(std::is_same<dt::DOnSessionStart, dt::on_session_end>::value));
+    D_TE_CHECK(!(std::is_same<dt::DOnSessionStart, dt::DOnSessionEnd>::value));
 
     // the exhaustive check: every name() string is unique, which can only hold
     // if every tag is a distinct type (D_EVENT derives name() from the tag name)
     const char* names[12] =
     {
-        dt::DOnSessionStart::name(),  dt::on_session_end::name(),
-        dt::on_module_start::name(),   dt::DOnModuleEnd::name(),
-        dt::on_test_start::name(),     dt::DOnTestEnd::name(),
-        dt::DOnTestPassed::name(),    dt::on_test_failed::name(),
-        dt::DOnTestSkipped::name(),   dt::on_test_error::name(),
+        dt::DOnSessionStart::name(),  dt::DOnSessionEnd::name(),
+        dt::DOnModuleStart::name(),   dt::DOnModuleEnd::name(),
+        dt::DOnTestStart::name(),     dt::DOnTestEnd::name(),
+        dt::DOnTestPassed::name(),    dt::DOnTestFailed::name(),
+        dt::DOnTestSkipped::name(),   dt::DOnTestError::name(),
         dt::DOnStatusChange::name(),  dt::DOnListenerThrew::name()
     };
 
@@ -237,23 +237,23 @@ bool tests_event_every_tag_is_a_distinct_type()
 bool tests_event_every_tag_satisfies_event_traits()
 {
     D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionStart>::has_name);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_session_end>::has_name);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_module_start>::has_name);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionEnd>::has_name);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnModuleStart>::has_name);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnModuleEnd>::has_name);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_start>::has_name);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestStart>::has_name);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnTestEnd>::has_name);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnTestPassed>::has_name);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_failed>::has_name);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestFailed>::has_name);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnTestSkipped>::has_name);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_error>::has_name);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestError>::has_name);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnStatusChange>::has_name);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnListenerThrew>::has_name);
 
     // args_type is the legacy spelling of payload_type; the alphabet must be
     // readable through either
     D_TE_CHECK((std::is_same<
-                    typename ::djinterp::event_traits<dt::on_test_failed>::args_type,
-                    payload_of<dt::on_test_failed> >::value));
+                    typename ::djinterp::event_traits<dt::DOnTestFailed>::args_type,
+                    payload_of<dt::DOnTestFailed> >::value));
 
     return true;
 }
@@ -267,12 +267,12 @@ bool tests_event_arity_agrees_with_payload_size()
 {
     D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionStart>::arity ==
                std::tuple_size<payload_of<dt::DOnSessionStart> >::value);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_session_end>::arity ==
-               std::tuple_size<payload_of<dt::on_session_end> >::value);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_failed>::arity ==
-               std::tuple_size<payload_of<dt::on_test_failed> >::value);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_error>::arity ==
-               std::tuple_size<payload_of<dt::on_test_error> >::value);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionEnd>::arity ==
+               std::tuple_size<payload_of<dt::DOnSessionEnd> >::value);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestFailed>::arity ==
+               std::tuple_size<payload_of<dt::DOnTestFailed> >::value);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestError>::arity ==
+               std::tuple_size<payload_of<dt::DOnTestError> >::value);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnStatusChange>::arity ==
                std::tuple_size<payload_of<dt::DOnStatusChange> >::value);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnListenerThrew>::arity ==
@@ -280,8 +280,8 @@ bool tests_event_arity_agrees_with_payload_size()
 
     // the concrete numbers, so a silent re-shaping cannot slip through
     D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionStart>::arity  == 0u);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_module_start>::arity   == 1u);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_session_end>::arity    == 2u);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnModuleStart>::arity   == 1u);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionEnd>::arity    == 2u);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnStatusChange>::arity  == 3u);
 
     return true;
@@ -294,16 +294,16 @@ bool tests_event_arity_agrees_with_payload_size()
 // That uniformity is what lets a single generic listener be bound to any of them.
 bool tests_event_node_tags_all_share_one_payload_shape()
 {
-    D_TE_CHECK((std::is_same<payload_of<dt::on_module_start>,  DNodePayload>::value));
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnModuleStart>,  DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnModuleEnd>,    DNodePayload>::value));
-    D_TE_CHECK((std::is_same<payload_of<dt::on_test_start>,    DNodePayload>::value));
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnTestStart>,    DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnTestEnd>,      DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnTestPassed>,   DNodePayload>::value));
-    D_TE_CHECK((std::is_same<payload_of<dt::on_test_failed>,   DNodePayload>::value));
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnTestFailed>,   DNodePayload>::value));
     D_TE_CHECK((std::is_same<payload_of<dt::DOnTestSkipped>,  DNodePayload>::value));
 
     // the tags that deliberately DEPART from the convention
-    D_TE_CHECK(!(std::is_same<payload_of<dt::on_test_error>,     DNodePayload>::value));
+    D_TE_CHECK(!(std::is_same<payload_of<dt::DOnTestError>,     DNodePayload>::value));
     D_TE_CHECK(!(std::is_same<payload_of<dt::DOnStatusChange>,  DNodePayload>::value));
     D_TE_CHECK(!(std::is_same<payload_of<dt::DOnSessionStart>,  DNodePayload>::value));
     D_TE_CHECK(!(std::is_same<payload_of<dt::DOnListenerThrew>, DNodePayload>::value));
@@ -319,15 +319,15 @@ bool tests_event_has_args_partitions_the_alphabet()
 {
     D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionStart>::has_args == false);
 
-    D_TE_CHECK(::djinterp::event_traits<dt::on_session_end>::has_args);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_module_start>::has_args);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnSessionEnd>::has_args);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnModuleStart>::has_args);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnModuleEnd>::has_args);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_start>::has_args);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestStart>::has_args);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnTestEnd>::has_args);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnTestPassed>::has_args);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_failed>::has_args);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestFailed>::has_args);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnTestSkipped>::has_args);
-    D_TE_CHECK(::djinterp::event_traits<dt::on_test_error>::has_args);
+    D_TE_CHECK(::djinterp::event_traits<dt::DOnTestError>::has_args);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnStatusChange>::has_args);
     D_TE_CHECK(::djinterp::event_traits<dt::DOnListenerThrew>::has_args);
 
@@ -344,7 +344,7 @@ bool tests_event_tags_satisfy_the_event_concepts()
 {
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-    static_assert(::djinterp::is_event<dt::on_test_failed>,
+    static_assert(::djinterp::is_event<dt::DOnTestFailed>,
                   "a built-in tag must satisfy is_event");
     static_assert(::djinterp::event_type<dt::DOnStatusChange>,
                   "a built-in tag must satisfy event_type");
@@ -352,10 +352,10 @@ bool tests_event_tags_satisfy_the_event_concepts()
     // the empty / argument partition, as concepts
     static_assert(::djinterp::empty_event_type<dt::DOnSessionStart>,
                   "on_session_start is the empty summand");
-    static_assert(::djinterp::argument_event_type<dt::on_test_error>,
-                  "on_test_error carries arguments");
-    static_assert(!::djinterp::empty_event_type<dt::on_test_error>,
-                  "on_test_error is not empty");
+    static_assert(::djinterp::argument_event_type<dt::DOnTestError>,
+                  "DOnTestError carries arguments");
+    static_assert(!::djinterp::empty_event_type<dt::DOnTestError>,
+                  "DOnTestError is not empty");
 
     // every tag is named (D_EVENT always emits name())
     static_assert(::djinterp::named_event_type<dt::DOnListenerThrew>,

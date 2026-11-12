@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [tests]                                                sync_tests.hpp
+* djinterp [cpp][test]                                            sync_tests.hpp
 *
 *   Aggregate suite header for the whole djinterp/cpp/modules/test/sync subframework.
 *
 *   Unlike a per-module suite header this one declares no tests of its own and
 * has no fixtures: it exists only to gather the eight module providers into a
-* single vector for run_suite.  It is therefore SPEC-MODE ONLY - there is
+* single vector for run_suite.  It is therefore spec-mode only - there is
 * nothing for a normal-mode section TU to consume, and no section TU includes
 * it.
 *
@@ -15,11 +15,13 @@
 * than assumed, because including these headers in normal mode here would drag
 * the entire subframework into this TU for no purpose.
 *
-*   ORDERING: the modules are listed in dependency order - the foundational
-* thread and coordination modules first, then the harnesses layered on them,
-* then the umbrella.  A suite report therefore reads bottom-up, which is the
-* order in which a failure is most usefully diagnosed: if test_thread is
-* broken, everything downstream of it is expected to be noisy too.
+* ORDERING
+* --------
+*   The modules are listed in dependency order - the foundational thread and
+* coordination modules first, then the harnesses layered on them, then the
+* umbrella.  A suite report therefore reads bottom-up, which is the order in
+* which a failure is most usefully diagnosed: if test_thread is broken,
+* everything downstream of it is expected to be noisy too.
 *
 *   The conditional factory blocks inside the module suites (gated on
 * D_HC_/D_HS_/D_HR_/D_HD_FACTORY_RETURNABLE) are handled entirely by those

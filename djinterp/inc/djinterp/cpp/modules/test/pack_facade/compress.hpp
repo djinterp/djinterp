@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                               compress.hpp
+* djinterp [cpp][test]                                              compress.hpp
 *
 * Instrumented drop-in for core/util/compress/compress.hpp, used by the test_pack suite:
 *   This header stands in for the production compression facade when a test
@@ -10,7 +10,7 @@
 *
 *   It reproduces exactly the surface test_pack.hpp consumes -- byte_blob,
 * status, the codecs:: tags, try_compress<>, and codec_is_available<> -- but
-* RECORDS rather than compresses: try_compress<Tag> writes the observable line
+* records rather than compresses: try_compress<Tag> writes the observable line
 *
 *       C|<tag>|<opt.level>|<payload>
 *
@@ -18,16 +18,32 @@
 * steer.  Every routing / forwarding decision in the code under test therefore
 * becomes a plain string the tests read straight back.
 *
-* THE HOOKS (the test-side controls this double adds over the real facade):
+* THE HOOKS (the test-side controls this double adds over the real facade)
+* ------------------------------------------------------------------------
 *   - codec_stat<Tag>()     a mutable status slot per codec, status_ok by
 *                           default; assign it to force a codec's outcome.
 *   - reset_codec_hooks()   restores every slot to status_ok.
 *
-* PORTABILITY:
+* PORTABILITY
+* -----------
 *   Only <string> / <sstream> and the env-gated djinterp core are pulled in, so
 * the double compiles in every language mode env.h reports (C++98 onward): the
 * integer level is rendered through std::ostringstream rather than the
 * C++11-only std::to_string, and no other post-C++98 facility is used.
+*
+* HOW TO USE
+* ----------
+*   Nothing to include by hand: a test build that defines
+* DTEST_PACK_USE_FACADE_DOUBLE gets it in place of
+* core/util/compress/compress.hpp.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   DTEST_PACK_USE_FACADE_DOUBLE, which only the test_pack suite sets.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/pack_facade/compress.hpp

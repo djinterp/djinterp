@@ -1,16 +1,16 @@
 /*******************************************************************************
-* djinterp [cpp/test]                        test_callable_tests_composition.cpp
+* djinterp [cpp][test]                       test_callable_tests_composition.cpp
 *
 *   The boolean algebra over thunks.  compose_and / compose_or fold a clause
-* onto the thunk already bound to an id under short-circuit AND / OR, replacing
+* onto the thunk already bound to an id under short-circuit and / or, replacing
 * the row with a value-captured closure over (existing, clause).  Pinned here:
 * the full four-row truth table for each; that the fold short-circuits (a false
 * AND-left, or a true OR-left, never evaluates the clause - witnessed by a
 * DCountingThunk whose counter stays at zero); that repeated composition
-* accumulates by wrapping the WHOLE current thunk, so nested short-circuit
-* flows through a chain and mixed AND/OR folds left in call order; and the two
-* edges in compose_with's own branching - composing an UNBOUND or sentinel id
-* is a silent no-op, while composing onto an EMPTY row binds the clause ALONE
+* accumulates by wrapping the whole current thunk, so nested short-circuit
+* flows through a chain and mixed and/or folds left in call order; and the two
+* edges in compose_with's own branching - composing an unbound or sentinel id
+* is a silent no-op, while composing onto an empty row binds the clause alone
 * (the branch that avoids calling the empty std::function, which would throw).
 * A final case grows the table past a reallocation to confirm a composed thunk,
 * holding its operands by value, does not dangle on the vector's slot.

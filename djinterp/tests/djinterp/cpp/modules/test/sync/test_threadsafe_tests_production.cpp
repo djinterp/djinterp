@@ -1,16 +1,18 @@
 /*******************************************************************************
-* djinterp [tests]                          test_threadsafe_tests_production.cpp
+* djinterp [cpp][test]                      test_threadsafe_tests_production.cpp
 *
 *   Section TU: the production threadsafe types the harness is built on arrive
 * with the umbrella.
 *
-*   NAMESPACE NOTE: the production entities live in djinterp, not
-* djinterp::test.  The test subframework re-exports exactly three of them into
-* djinterp::test with using-declarations - atomic_size (test_stress, test_race,
-* test_invariant), and portable_condvar + exclusive_lock_policy (test_sync,
-* test_deadlock).  Everything else must be named through djinterp directly,
-* and this TU spells that out deliberately: if a re-export is ever added or
-* removed, the mismatch shows up here rather than in downstream code.
+* NAMESPACE NOTE
+* --------------
+*   The production entities live in djinterp, not djinterp::test.  The test
+* subframework re-exports exactly three of them into djinterp::test with
+* using-declarations - atomic_size (test_stress, test_race, test_invariant), and
+* portable_condvar + exclusive_lock_policy (test_sync, test_deadlock).
+* Everything else must be named through djinterp directly, and this TU spells
+* that out deliberately: if a re-export is ever added or removed, the mismatch
+* shows up here rather than in downstream code.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/sync/test_threadsafe_tests_production.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    test_suite_tests_building.c
+* djinterp [c][test]                                 test_suite_tests_building.c
 *
 * test_suite.h's suite, section 1: building a suite imperatively.
 *

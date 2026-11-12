@@ -5,10 +5,11 @@
 #   The runner (counter_tests_runner.cpp, this dir) owns main() and drives a
 # report_builder; the section TUs globbed from the tests tree define the
 # ::djinterp::testing::tests_counter_* functions it runs.  counter.hpp pulls in
-# no backend, so nothing beyond the runner + section TUs is compiled or linked
-# (report_builder's archive packaging is opt-in via D_TEST_REPORT_ENABLE_ARCHIVE
-# and stays inert here — the console + single-PDF path has no archive
-# dependency).
+# no backend; the parity tests compare it with the C counter, so that one C
+# source, c/util/counter/counter.c, is compiled beside the runner and the
+# section TUs, and nothing else (report_builder's archive packaging is opt-in
+# via D_TEST_REPORT_ENABLE_ARCHIVE and stays inert here — the console +
+# single-PDF path has no archive dependency).
 #
 #   INCLUDES:
 #     inc/djinterp/cpp/util/counter   -> bare  #include "counter.hpp"
@@ -35,6 +36,7 @@ djinterp_add_test_executable(counter_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/counter_tests_runner.cpp"
         ${_sources}
+        "${DJINTERP_SRC_ROOT}/djinterp/c/util/counter/counter.c"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/util/counter"
         "${_tests_dir}")

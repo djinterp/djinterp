@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_thread.hpp
+* djinterp [cpp][test]                                           test_thread.hpp
 *
 *   Exception-capturing test thread: a managed thread wrapper for the
 * DTest framework that captures exceptions, records timings, and
@@ -9,22 +9,23 @@
 *   The class is intentionally thin - it adds three things to a raw
 * std::thread:
 *
-*     1. EXCEPTION CAPTURE
+*     1. Exception capture
 *        Any exception thrown by the user-supplied callable is caught
 *        and stored as a std::exception_ptr.  The harness can rethrow
 *        on the main thread (rethrow_if_failed) or query the message
 *        (exception_what).
 *
-*     2. TIMING
+*     2. Timing
 *        The thread records its start and stop time using a
 *        std::chrono::steady_clock, exposing started_at(),
 *        stopped_at(), and elapsed().
 *
-*     3. IDENTITY
+*     3. Identity
 *        Each thread carries a logical id (size_type) assigned by the
 *        runner and an optional human-readable name.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later for <thread> and <chrono>.  On C++98/03
 * the class compiles to a single-threaded stub: every operation runs
 * synchronously on the calling thread and start()/join() are no-ops.
@@ -34,13 +35,30 @@
 * preprocessor branching at the call site.
 *
 *
-*   FOLDED MODULES (2026.07):
+* FOLDED MODULES (2026.07)
+* ------------------------
 *   The SFINAE trait surface (formerly test_thread_traits.hpp) and the
 * C++20 concept layer (formerly test_thread_concepts.hpp) now live in this
 * header under namespace djinterp::test::traits, guarded for C++11+ and
 * C++20+ respectively.  The two standalone headers are retired - include
 * this header instead.  test_thread itself is unchanged and still degrades
 * to the single-threaded C++98 stub.
+*
+* HOW TO USE
+* ----------
+*     test_thread t = make_test_thread(1, [] { work(); });
+*
+*     t.start();
+*     t.join();
+*     t.rethrow_if_failed();
+*
+* OPTIONS
+* -------
+*   A thread's id and optional name.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_thread.hpp
@@ -711,7 +729,10 @@ public:
 
     // emplace
     //   constructs a new test_thread in place at the back of
-    // the group with the given id, name, and worker.
+    // the group with the given id, name, and worker.  The
+    // reference returned, like every reference into the group,
+    // holds until the next emplace or clear, which may move the
+    // threads; reach earlier ones again by at().
     test_thread& emplace(
         size_type   _id,
         std::string _name,

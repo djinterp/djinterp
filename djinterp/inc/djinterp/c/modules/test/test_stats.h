@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                 test_stats.h
+* djinterp [c][test]                                                test_stats.h
 *
 *   Aggregate statistics tracking for the DTest framework.
 *   Provides a structure that holds counters for all test element types,
@@ -9,6 +9,20 @@
 * - dj_test_statistics struct for aggregating counters across categories
 * - Convenience macros for incrementing specific counter types
 * - Utility functions for statistics manipulation
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_stats.h
@@ -407,10 +421,12 @@ struct dj_test_statistics
 void d_test_stat_counter_reset(
     struct dj_test_stat_counter* _counter
 );
+
 void d_test_stat_counter_add(
     struct dj_test_stat_counter*       _dest,
     const struct dj_test_stat_counter* _src
 );
+
 size_t d_test_stat_counter_total(
     const struct dj_test_stat_counter* _counter
 );
@@ -419,22 +435,28 @@ size_t d_test_stat_counter_total(
 void d_test_statistics_reset(
     struct dj_test_statistics* _stats
 );
+
 void d_test_statistics_add(
     struct dj_test_statistics*       _dest,
     const struct dj_test_statistics* _src
 );
+
 size_t d_test_statistics_total_run(
     const struct dj_test_statistics* _stats
 );
+
 size_t d_test_statistics_total_passed(
     const struct dj_test_statistics* _stats
 );
+
 size_t d_test_statistics_total_failed(
     const struct dj_test_statistics* _stats
 );
+
 size_t d_test_statistics_total_skipped(
     const struct dj_test_statistics* _stats
 );
+
 bool d_test_statistics_all_passed(
     const struct dj_test_statistics* _stats
 );
@@ -443,6 +465,7 @@ bool d_test_statistics_all_passed(
 void d_test_statistics_start_timer(
     struct dj_test_statistics* _stats
 );
+
 void d_test_statistics_stop_timer(
     struct dj_test_statistics* _stats
 );
@@ -451,6 +474,7 @@ void d_test_statistics_stop_timer(
 double d_test_stat_counter_pass_rate(
     const struct dj_test_stat_counter* _counter
 );
+
 double d_test_stat_counter_assert_rate(
     const struct dj_test_statistics* _stats
 );

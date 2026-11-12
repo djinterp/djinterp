@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            dstring_tests_dup.c
+* djinterp [c]                                               dstring_tests_dup.c
 *
 *   Unit tests for dj_string duplication functions:
 *     - d_string_dup

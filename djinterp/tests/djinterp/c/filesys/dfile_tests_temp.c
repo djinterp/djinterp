@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_temp.c
+* djinterp [c][filesys]                                       dfile_tests_temp.c
 *
 *   Tests for temporary file operations (tmpfile, mkstemp, tmpnam).
 *

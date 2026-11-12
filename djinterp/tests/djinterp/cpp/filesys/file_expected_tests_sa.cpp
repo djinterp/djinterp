@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [test]                                     file_expected_tests_sa.cpp
+* djinterp [cpp][filesys]                             file_expected_tests_sa.cpp
 *
 *   Unit tests for the re_std::expected surface (inc/djinterp/cpp/filesys/
 * file_expected.hpp), the top rung of the tier ladder. Same harness and same three
 * rules as the sibling suites.
 *
-*   The ladder here has TWO rungs, and that is the demonstration: an error-code
-* baseline that runs on EVERY standard, and an expected group that is ADDED on
+*   The ladder here has two rungs, and that is the demonstration: an error-code
+* baseline that runs on every standard, and an expected group that is added on
 * C++11. On C++98 the second group is omitted -- not an empty group, not a
 * green "skipped" -- so the count grows from base to base+expected exactly at
 * the standard where re_std::expected arrives. A higher standard adds; it never

@@ -1,16 +1,16 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                        test_pack_tests.hpp
+* djinterp [cpp][test]                                       test_pack_tests.hpp
 *
 *   Declarations, shared fixtures, and the authored suite spec for the
 * test_pack.hpp unit suite - the bridge that turns a runtime packaging request
 * (the pack / compressor / archive_format knobs of a test_option_set) into the
 * matching compile-time facade call.  Two faces, selected by DTEST_SPEC_MODE:
-*   - NORMAL mode (the four section TUs): includes the header under test and
+*   - normal mode (the four section TUs): includes the header under test and
 *     exposes the check helper + the option setters; the TUs define
 *     the tests_* bodies against an instrumented compress / archive facade.
-*   - SPEC mode (the runner): includes the authoring surface and exposes
+*   - spec mode (the runner): includes the authoring surface and exposes
 *     pack_spec(), the module_spec provider the runner hands to run_module.
-* The tests_* DECLARATIONS are visible in both modes.
+* The tests_* declarations are visible in both modes.
 *
 *   Sections -> one translation unit each:
 *   - test_pack_tests_naming.cpp        the pure string helpers (base-name,
@@ -160,35 +160,56 @@ void tp_set_output_path(
 
 // naming helpers
 bool tests_naming_doc_ext();
+
 bool tests_naming_basename_unix();
+
 bool tests_naming_basename_windows();
+
 bool tests_naming_container_strip();
+
 bool tests_naming_tar_gz_double_strip();
+
 bool tests_naming_no_extension();
+
 bool tests_naming_empty_and_dotfile();
 
 // availability
 bool tests_avail_pack_enabled();
+
 bool tests_avail_codec_routing();
+
 bool tests_avail_codec_default();
+
 bool tests_avail_format_routing();
+
 bool tests_avail_format_default();
 
 // internal dispatch
 bool tests_dispatch_compress_routing();
+
 bool tests_dispatch_compress_opt_payload();
+
 bool tests_dispatch_compress_default();
+
 bool tests_dispatch_archive_routing();
+
 bool tests_dispatch_archive_items();
+
 bool tests_dispatch_archive_default();
 
 // pack_report
 bool tests_report_none();
+
 bool tests_report_clears_out();
+
 bool tests_report_compress();
+
 bool tests_report_archive();
+
 bool tests_report_archive_name_variants();
+
 bool tests_report_compress_failure();
+
 bool tests_report_archive_failure();
 
 

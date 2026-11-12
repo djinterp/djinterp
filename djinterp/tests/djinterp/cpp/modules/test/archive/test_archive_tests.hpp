@@ -1,43 +1,43 @@
 /*******************************************************************************
-* djinterp [tests]                                        test_archive_tests.hpp
+* djinterp [cpp][test]                                    test_archive_tests.hpp
 *
 *   Suite header for test_archive.hpp - the shared verification surface for
 * the archive facade.  Declares every test body, supplies the fixtures the
 * bodies need, and (in DTEST_SPEC_MODE) exposes the spec provider the runner
 * hands to run_module.
 *
-*   BUILD PREREQUISITE - THE RUNNER NEEDS D_TEST_REPORT_ENABLE_ARCHIVE.
+*   Build prerequisite - the runner needs D_TEST_REPORT_ENABLE_ARCHIVE.
 *   This is a property of the framework, not of the module under test, and it
-* applies to EVERY DTest runner rather than to this suite alone.  A runner
+* applies to every DTest runner rather than to this suite alone.  A runner
 * includes test_defaults.hpp to reach run_module; test_defaults.hpp includes
 * output/test_report_runner.hpp; and that header spells `byte_blob` in two
 * places - DPendingDoc::bytes and write_bytes_to_file's parameter - which is a
 * typedef reachable only through the archive include guarded by
 * D_TEST_REPORT_ENABLE_ARCHIVE.  Without the macro the runner does not compile
 * at C++17 or higher (eight errors).  The leaf CMakeLists therefore defines it
-* on the target.  The SECTION translation units do not need it: they include
+* on the target.  The section translation units do not need it: they include
 * the module under test directly and never reach the report machinery.
 *
 *   The fix belongs in test_report_runner.hpp - spell those two uses
 * std::string, or include compress.hpp unconditionally - not here; per the
 * authoring guide a broken dependency is reported rather than patched.
 *
-*   HOW THE SNIFFERS ARE COVERED.
+*   How the sniffers are covered.
 *   The format sniffers read leading and trailing bytes; they need no backend
-* at all.  So the suite BUILDS containers byte by byte - ta_make_zip assembles
+* at all.  So the suite builds containers byte by byte - ta_make_zip assembles
 * local file headers and an end-of-central-directory record from first
 * principles, ta_make_tar_blocks lays down a ustar header and the mandatory
 * zero tail - and hands them to the sniffers.  That reaches every branch,
 * including the ones a real writer never produces: a truncated local-header
 * chain, an EOCD that is absent, a tar whose zero tail is one byte short.
-* Where a genuine container IS available the suite cross-checks the synthetic
+* Where a genuine container is available the suite cross-checks the synthetic
 * result against it, so the hand-built bytes cannot drift from reality.
 *
-*   FINDING - format_is_writable DISAGREES WITH try_archive FOR zip AND tar.
+*   Finding - format_is_writable disagrees with try_archive for zip and tar.
 *   archive_create dispatches straight to the per-format writer without ever
 * consulting format_can_write, and the built-in zip (store-only) and tar
 * writers need no third-party library.  So on a build with no archive library
-* linked, format_is_writable<formats::zip>() reports FALSE while
+* linked, format_is_writable<formats::zip>() reports false while
 * try_archive<formats::zip>() returns status_ok and produces a valid,
 * extractable container; the same holds for tar.  The two queries answer
 * different questions - "is a library linked" versus "did the call work" - and
@@ -52,7 +52,8 @@
 * format_can_write to admit the built-in writers - shows up as a failing test
 * rather than silently changing what every other body here means.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   The module is C++98-clean; this suite is written to the same baseline
 * except for the fixtures, which use std::vector.  Built at C++20 by the DTest
 * CMake helper.
@@ -471,54 +472,88 @@ bool ta_format_contract_holds(
 
 // I.   ENDIAN   (test_archive_tests_endian.cpp)
 bool tests_archive_read_u16_le_byte_order();
+
 bool tests_archive_read_u16_le_range_and_offset();
+
 bool tests_archive_read_u32_le_byte_order();
+
 bool tests_archive_read_u32_le_range_and_offset();
 
 // II.  ENTRIES   (test_archive_tests_entries.cpp)
 bool tests_archive_make_entry_records_every_field();
+
 bool tests_archive_make_file_entry_defaults();
+
 bool tests_archive_make_text_entry_matches_file_entry();
+
 bool tests_archive_make_dir_entry_carries_no_data();
+
 bool tests_archive_entries_carry_binary_payloads();
+
 bool tests_archive_entries_are_independent_values();
 
 // III. INSPECTION   (test_archive_tests_inspection.cpp)
 bool tests_archive_normalize_name_drops_slash();
+
 bool tests_archive_normalize_name_edge_cases();
+
 bool tests_archive_find_entry_locates_by_name();
+
 bool tests_archive_find_entry_is_slash_tolerant();
+
 bool tests_archive_find_entry_returns_null_when_absent();
+
 bool tests_archive_find_entry_returns_first_match();
+
 bool tests_archive_has_entry_matches_find_entry();
+
 bool tests_archive_count_files_and_dirs();
 
 // IV.  PAYLOAD   (test_archive_tests_payload.cpp)
 bool tests_archive_file_data_fetches_contents();
+
 bool tests_archive_file_data_rejects_directory_and_absent();
+
 bool tests_archive_files_preserved_accepts_faithful_copy();
+
 bool tests_archive_files_preserved_rejects_damage();
+
 bool tests_archive_files_preserved_ignores_directories();
 
 // V.   SNIFFERS   (test_archive_tests_sniffers.cpp)
 bool tests_archive_zip_find_eocd_locates_record();
+
 bool tests_archive_zip_find_eocd_rejects_absent_and_short();
+
 bool tests_archive_looks_like_zip_front_signatures();
+
 bool tests_archive_looks_like_zip_rejects_malformed();
+
 bool tests_archive_zip_total_entries_reads_count();
+
 bool tests_archive_zip_local_methods_walks_chain();
+
 bool tests_archive_zip_local_methods_rejects_truncated();
+
 bool tests_archive_looks_like_gzip_checks_three_bytes();
+
 bool tests_archive_tar_has_ustar_magic_at_offset();
+
 bool tests_archive_tar_is_terminated_checks_zero_tail();
+
 bool tests_archive_sniffers_agree_with_real_containers();
 
 // VI.  ROUNDTRIP   (test_archive_tests_roundtrip.cpp)
 bool tests_archive_roundtrip_reports_facade_status();
+
 bool tests_archive_roundtrip_preserves_files();
+
 bool tests_archive_roundtrip_contract_all_formats();
+
 bool tests_archive_roundtrip_accepts_options();
+
 bool tests_archive_roundtrip_handles_degenerate_lists();
+
 bool tests_archive_writability_is_independent();
 
 

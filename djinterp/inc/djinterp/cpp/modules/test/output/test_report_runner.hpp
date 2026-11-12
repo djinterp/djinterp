@@ -1,52 +1,43 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                     test_report_runner.hpp
+* djinterp [cpp][test]                                    test_report_runner.hpp
 *
 *   The runner-facing front end for the report subsystem.  A report_builder
-* collects a run into a test_report (test_report.hpp) WHILE printing the
+* collects a run into a test_report (test_report.hpp) while printing the
 * familiar live console output, then - at finish() - renders the configured
 * document(s) through the matching emitter (test_pdf_report.hpp for PDF) and
 * returns the process exit code.  It is what a hand-written *_tests_runner.cpp
 * drives instead of a bespoke pass/fail loop: open a module, run named boolean
 * tests, finish.
 *
-*   WHAT IT REPLACES:
+* WHAT IT REPLACES
+* ----------------
 *   The standalone runners each carried their own counters, their own printf
 * of "[PASS]/[FAIL] name" lines, and their own "passed: X failed: Y" tally.
-* report_builder folds all of that into one object that ALSO accumulates the
+* report_builder folds all of that into one object that also accumulates the
 * structured report the PDF (and any future emitter) needs - so the console
 * and the document come from a single source and never disagree.
 *
-*   LIVE CONSOLE vs DOCUMENT:
+*   Live console vs document:
 *   As each test runs, its result line is emitted immediately (the run-as-you-
 * watch behavior the old runners had).  The per-module results box, the
 * cross-module comprehensive summary, and the overall assessment are printed
 * by finish(), which then writes the document(s).  The console layout mirrors
 * the report sample so the text and PDF faces read alike.
 *
-*   OPTIONS:
-*   The builder owns a test_option_set (default_test_options()).  Set
-* `document` to test_doc_type::pdf to have finish() emit a PDF; tune
-* split (whole_run vs per_module) / show / output_file via the option set
-* exactly as documented in test_options.hpp, and the report metadata
-* (title / subtitle / author) via the set_title()-family helpers below. The
-* per-file NAME is a builder-local pattern (set_file_name_pattern(), folded
-* through test_report.hpp's expand_report_file_name) rather than an option
-* slot - test_options.hpp carries no file_name_pattern slot today; see that
-* header's "FILE NAMING" note. With the default `text` document no file is
-* written - the run is console-only - so a runner opts into PDF explicitly.
-*
-*   PDF RENDERING:
-*   finish()/emit_document() render through test_render_pdf.hpp's CURRENT
+* PDF RENDERING
+* -------------
+*   finish()/emit_document() render through test_render_pdf.hpp's current
 * entry points (render_report_pdf_bytes / render_module_pdf_bytes +
 * pdf_default_layout), not a save_pdf_report() free function - that symbol
 * never existed; this builder predates test_render_pdf.hpp and was updated to
 * call it directly.
 *
-*   OUTPUT PACKAGING (opt-in):
-*   The `archive` pack mode IS wired for the PDF path, but only when the caller
+* OUTPUT PACKAGING (opt-in)
+* -------------------------
+*   The `archive` pack mode is wired for the PDF path, but only when the caller
 * defines D_TEST_REPORT_ENABLE_ARCHIVE before including this header.  Enabled,
 * write_pdf_report() renders every document (whole_run -> 1, per_module -> N),
-* then, when `pack` is `archive`, bundles them into ONE container - the
+* then, when `pack` is `archive`, bundles them into one container - the
 * `archive_format` (e.g. sevenzip -> .7z), tuned by `archive_opts`, written to
 * the `output_file` path, through DDocumentBundle and write_to_disk.  When
 * `pack` is `compress`, each document is written beside where it would have
@@ -54,20 +45,50 @@
 * the codec's suffix: report.pdf becomes report.pdf.gz.  Whether a container's
 * entries are stored or compressed is `archive_opts.store_only`, and the
 * build's defaults for all of it are cfg_test_options.h's.  Left undefined
-* (the default), packaging is inert and the builder has NO archive dependency -
+* (the default), packaging is inert and the builder has no archive dependency -
 * a console-only or single-PDF runner pays nothing for it.
 *
-*   ADDITIONAL TEST_PRINTER SUPPORT:
+* ADDITIONAL TEST_PRINTER SUPPORT
+* -------------------------------
 *   The report-style console presets and configure_report_printer() helper
 * this layer relies on live in test_printer.hpp; a caller wanting a
 * DTestPrinter-driven console (rather than report_builder's built-in
 * emission) configures one with that helper and walks a module's units.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++17 for now: core/container/buffer/buffer.hpp, which it reaches, needs
 * C++17, so the header is empty below it.  The builder core itself is C++11
 * (console + report accumulation), and PDF emission rides the C++17 pdf gate.
 * No third-party dependency.
+*
+* HOW TO USE
+* ----------
+*     report_builder rb(default_test_options());
+*
+*     // open a module, run named boolean tests
+*     return rb.finish();
+*
+*   run_named_tests runs a list of named bool() tests in one call.
+*
+* OPTIONS
+* -------
+*   The builder owns a test_option_set (default_test_options()).  Set
+* `document` to test_doc_type::pdf to have finish() emit a PDF; tune
+* split (whole_run vs per_module) / show / output_file via the option set
+* exactly as documented in test_options.hpp, and the report metadata
+* (title / subtitle / author) via the set_title()-family helpers below. The
+* per-file name is a builder-local pattern (set_file_name_pattern(), folded
+* through test_report.hpp's expand_report_file_name) rather than an option
+* slot - test_options.hpp carries no file_name_pattern slot today; see that
+* header's "FILE NAMING" note. With the default `text` document no file is
+* written - the run is console-only - so a runner opts into PDF explicitly.
+*
+* CONFIGURATION
+* -------------
+*   D_TEST_REPORT_ENABLE_ARCHIVE compiles the packaged-output paths in (C++17
+* and up); D_TEST_REPORT_RULE_COLS sets the console rule's width (80). No
+* D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_report_runner.hpp

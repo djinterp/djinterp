@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               djinterp_tests.c
+* djinterp [c]                                                  djinterp_tests.c
 *
 * Master test suite implementation - aggregates all test modules.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                 test_race_tests_atomicity.cpp
+* djinterp [cpp][test]                             test_race_tests_atomicity.cpp
 *
 *   Section TU: DAtomicityObserverReport and DAtomicityObserver<T>.
 *

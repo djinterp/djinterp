@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                    test_archive_options_tests_builders.cpp
+* djinterp [cpp][test]                   test_archive_options_tests_builders.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/archive/test_archive_options_tests_builders.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./test_archive_options_tests.hpp"
@@ -57,7 +57,7 @@ tests_archive_options_level_builder
   Tests the following:
   - the requested effort reaches the archive-level field unclamped
   - nothing else moves, and the codec stays pristine
-  - requesting the default effort produces a still-pristine set
+  - requesting the unset effort, the default, produces a still-pristine set
 */
 bool tests_archive_options_level_builder()
 {
@@ -67,7 +67,7 @@ bool tests_archive_options_level_builder()
     D_AO_CHECK(o.level == 6);
     D_AO_CHECK(dt::describe_diff_from_default(o) == "level");
     D_AO_CHECK(dt::codec_is_default(o));
-    D_AO_CHECK(!o.store_only);
+    D_AO_CHECK(o.store_only == fresh.store_only);
 
     // any value passes through
     D_AO_CHECK(dt::level_options(0).level == 0);
@@ -75,11 +75,15 @@ bool tests_archive_options_level_builder()
     D_AO_CHECK(dt::level_options(-7).level == -7);
     D_AO_CHECK(dt::level_options(100).level == 100);
 
-    // -1 IS the default, so that set is pristine
-    const dj::archive_options at_default = dt::level_options(-1);
+    // unset IS the default, so that set is pristine; -1 is a value like any
+    // other and moves the field
+    const dj::archive_options at_default =
+        dt::level_options(dj::archive_knob_unset);
 
     D_AO_CHECK(dt::options_are_default(at_default));
     D_AO_CHECK(dt::describe_diff_from_default(at_default).empty());
+    D_AO_CHECK(dt::describe_diff_from_default(dt::level_options(-1)) ==
+               "level");
 
     // and the codec's own level did not follow
     D_AO_CHECK(o.codec.level == fresh.codec.level);
@@ -118,8 +122,9 @@ bool tests_archive_options_codec_level_builder()
     D_AO_CHECK(dt::zip_options_equal(fresh.zip, o.zip));
     D_AO_CHECK(dt::rar_options_equal(fresh.rar, o.rar));
 
-    // -1 is the codec default, so that set is pristine
-    D_AO_CHECK(dt::options_are_default(dt::codec_level_options(-1)));
+    // unset is the codec default, so that set is pristine
+    D_AO_CHECK(dt::options_are_default(
+                   dt::codec_level_options(D_COMPRESS_KNOB_UNSET)));
 
     return true;
 }
@@ -169,11 +174,14 @@ tests_archive_options_zip_method_builder
   - the other four ZIP fields stay pristine, as does everything outside the
     ZIP block
   - the diff names zip.method alone
+  - putting the fresh method back leaves the set pristine
+  A fresh set leaves the method unset, which no zip_method names, so the test
+  requests a real method rather than the next one up.
 */
 bool tests_archive_options_zip_method_builder()
 {
     const dj::archive_options fresh;
-    const dj::zip_method      alt = ao_bump(fresh.zip.method);
+    const dj::zip_method      alt = dj::zip_method_bzip2;
     const dj::archive_options o   = dt::zip_method_options(alt);
 
     D_AO_CHECK(o.zip.method == alt);
@@ -193,11 +201,14 @@ bool tests_archive_options_zip_method_builder()
     D_AO_CHECK(dt::sevenzip_options_equal(fresh.sevenzip, o.sevenzip));
     D_AO_CHECK(dt::rar_options_equal(fresh.rar, o.rar));
     D_AO_CHECK(o.level == fresh.level);
-    D_AO_CHECK(!o.store_only);
+    D_AO_CHECK(o.store_only == fresh.store_only);
 
-    // requesting the default method leaves the set pristine
-    D_AO_CHECK(dt::options_are_default(
-                   dt::zip_method_options(fresh.zip.method)));
+    // the fresh method put back: pristine, so the builder moved nothing else
+    dj::archive_options back = o;
+
+    back.zip.method = fresh.zip.method;
+
+    D_AO_CHECK(dt::options_are_default(back));
 
     return true;
 }
@@ -209,11 +220,12 @@ tests_archive_options_zip_encrypted
   - both the scheme and the passphrase reach their fields
   - exactly those two fields move, so the diff names both and nothing else
   - the passphrase is stored verbatim, including punctuation
+  A fresh set leaves the scheme unset, so any real scheme moves it.
 */
 bool tests_archive_options_zip_encrypted()
 {
     const dj::archive_options fresh;
-    const dj::zip_encryption  scheme = ao_bump(fresh.zip.encryption);
+    const dj::zip_encryption  scheme = dj::zip_encryption_aes_256;
     const dj::archive_options o =
         dt::zip_encrypted_options(scheme, "s3cr3t!");
 
@@ -255,13 +267,15 @@ tests_archive_options_zip_encrypted_empty_pw
   Tests the following:
   - an empty passphrase is stored as given rather than being rejected
   - since the empty string IS the default, only the scheme is reported moved
-  - requesting the default scheme with an empty passphrase leaves the set
-    pristine
+  - with the fresh scheme put back, nothing at all has moved
+  - with a passphrase and the fresh scheme put back, only the passphrase has
+  A fresh set leaves the scheme unset, which no zip_encryption names, so the
+  fresh scheme is put back on the field rather than requested.
 */
 bool tests_archive_options_zip_encrypted_empty_pw()
 {
     const dj::archive_options fresh;
-    const dj::zip_encryption  scheme = ao_bump(fresh.zip.encryption);
+    const dj::zip_encryption  scheme = dj::zip_encryption_aes_256;
 
     const dj::archive_options o =
         dt::zip_encrypted_options(scheme, std::string());
@@ -272,17 +286,20 @@ bool tests_archive_options_zip_encrypted_empty_pw()
     // the passphrase matches the default, so only the scheme is named
     D_AO_CHECK(dt::describe_diff_from_default(o) == "zip.encryption");
 
-    // the default scheme with an empty passphrase moves nothing at all
-    const dj::archive_options none =
-        dt::zip_encrypted_options(fresh.zip.encryption, std::string());
+    // the fresh scheme with an empty passphrase: nothing at all has moved
+    dj::archive_options none =
+        dt::zip_encrypted_options(scheme, std::string());
+
+    none.zip.encryption = fresh.zip.encryption;
 
     D_AO_CHECK(dt::options_are_default(none));
     D_AO_CHECK(dt::describe_diff_from_default(none).empty());
     D_AO_CHECK(dt::zip_options_equal(fresh.zip, none.zip));
 
     // a passphrase without a scheme change names only the passphrase
-    const dj::archive_options pw_only =
-        dt::zip_encrypted_options(fresh.zip.encryption, "pw");
+    dj::archive_options pw_only = dt::zip_encrypted_options(scheme, "pw");
+
+    pw_only.zip.encryption = fresh.zip.encryption;
 
     D_AO_CHECK(dt::describe_diff_from_default(pw_only) == "zip.password");
     D_AO_CHECK(pw_only.zip.encryption == fresh.zip.encryption);

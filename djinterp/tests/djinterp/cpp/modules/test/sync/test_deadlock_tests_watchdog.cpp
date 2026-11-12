@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [tests]                              test_deadlock_tests_watchdog.cpp
+* djinterp [cpp][test]                          test_deadlock_tests_watchdog.cpp
 *
 *   Section TU: deadlock_watchdog - configuration, the arm/disarm cycle, and
 * the fire path.
 *
-*   Timing discipline: tests that must observe a FIRE arm a short deadline and
-* then wait an order of magnitude longer; tests that must observe NO fire arm
+*   Timing discipline: tests that must observe a fire arm a short deadline and
+* then wait an order of magnitude longer; tests that must observe no fire arm
 * a deadline no test will reach and disarm at once.  Neither direction is a
 * race.
 *

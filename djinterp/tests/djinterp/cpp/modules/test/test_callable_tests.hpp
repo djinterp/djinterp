@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                    test_callable_tests.hpp
+* djinterp [cpp][test]                                   test_callable_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_callable.hpp.  Each free
 * function exercises one facet of DTestCallableTable - the out-of-line store
@@ -21,19 +21,23 @@
 * boolean.  The D_CALL_CHECK macro is the intended call site.
 *
 *   Fixtures.  DCountingThunk is the workhorse: a bool()-returning callable
-* that returns a fixed value AND bumps a caller-owned counter each time it
-* runs.  Handed to the table by value, its internal counter POINTER is shared,
+* that returns a fixed value and bumps a caller-owned counter each time it
+* runs.  Handed to the table by value, its internal counter pointer is shared,
 * so a test can witness two things the truth tables alone cannot - that a
 * short-circuited clause is never evaluated (its counter stays put), and that
 * invoke re-runs the thunk on every call rather than memoizing.  An empty
 * thunk_type{} models the "row exists but holds no callable" state that
 * separates has() from mere index-in-range.
 *
-*   PORTABILITY: the class is C++11 (std::function, lambdas), present at every
-* standard this suite is built under, so - unlike a C++17-gated header - the
-* test bodies need no language guard.
+* PORTABILITY
+* -----------
+*   The class is C++11 (std::function, lambdas), present at every standard this
+* suite is built under, so - unlike a C++17-gated header - the test bodies need
+* no language guard.
 *
-*   NOTE: DTestCallableTable lives in djinterp::test; the tests live, flat, in
+* NOTE
+* ----
+*   DTestCallableTable lives in djinterp::test; the tests live, flat, in
 * djinterp::testing (hence the `dt` alias below).
 *
 *
@@ -136,35 +140,56 @@ struct DCountingThunk
 
 // binding: add / size / empty / clear / has
 bool tests_binding_add_issues_1based_ids();
+
 bool tests_binding_empty_and_size();
+
 bool tests_binding_has_sentinel_and_out_of_range();
+
 bool tests_binding_has_empty_row_is_false();
+
 bool tests_binding_clear_empties();
+
 bool tests_binding_add_after_clear_reissues();
 
 // invocation: invoke
 bool tests_invoke_bound_returns_thunk_result();
+
 bool tests_invoke_unbound_and_sentinel_false();
+
 bool tests_invoke_empty_row_false();
+
 bool tests_invoke_reruns_each_call();
+
 bool tests_invoke_const_table();
 
 // composition: compose_and / compose_or
 bool tests_compose_and_truth_table();
+
 bool tests_compose_or_truth_table();
+
 bool tests_compose_and_short_circuits();
+
 bool tests_compose_or_short_circuits();
+
 bool tests_compose_chaining_accumulates();
+
 bool tests_compose_mixed_and_or();
+
 bool tests_compose_unbound_is_noop();
+
 bool tests_compose_empty_row_binds_clause();
+
 bool tests_compose_survives_reallocation();
 
 // transform: transform
 bool tests_transform_wraps_existing();
+
 bool tests_transform_receives_current_thunk();
+
 bool tests_transform_unbound_is_noop();
+
 bool tests_transform_empty_row_is_noop();
+
 bool tests_transform_to_empty_disables_row();
 
 

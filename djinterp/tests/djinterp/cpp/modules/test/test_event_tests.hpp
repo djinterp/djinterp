@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                       test_event_tests.hpp
+* djinterp [cpp][test]                                      test_event_tests.hpp
 *
-*   Unit-test suite for test_event.hpp - the DTest event ALPHABET.  This header
-* is DECLARATIONS + SHARED FIXTURES only; every test body lives in one of the
+*   Unit-test suite for test_event.hpp - the DTest event alphabet.  This header
+* is declarations + shared fixtures only; every test body lives in one of the
 * four section translation units:
 *
 *     test_event_tests_node.cpp       I.   node forward declarations
@@ -12,28 +12,30 @@
 *     test_event_tests_alphabet.cpp   II.  the twelve built-in tags: payloads,
 *                                          names, distinctness, traits, concepts
 *     test_event_tests_macros.cpp     III. D_TEST_EVENT / _MSG / _X
-*     test_event_tests_dispatch.cpp   the alphabet's actual PROMISE: a tag -
+*     test_event_tests_dispatch.cpp   the alphabet's actual promise: a tag -
 *                                          built-in or custom - binds and fires
 *                                          through the event subsystem with the
 *                                          payload it declares
 *
-*   Every test is a `bool tests_*()` sitting FLAT in djinterp::testing.
+*   Every test is a `bool tests_*()` sitting flat in djinterp::testing.
 *
-*   WHAT IS BEING TESTED, EXACTLY:
+* WHAT IS BEING TESTED, EXACTLY
+* -----------------------------
 *   test_event.hpp declares no functions - it is an alphabet.  So "coverage"
-* here means every declared TYPE is pinned (payload tuple, name, identity,
-* distinctness), every MACRO is expanded and pinned, and the whole alphabet is
+* here means every declared type is pinned (payload tuple, name, identity,
+* distinctness), every macro is expanded and pinned, and the whole alphabet is
 * shown to satisfy the event subsystem it is declared against.  The payload
 * shapes are the load-bearing part: they must match the framework's fire sites
-* (test_handler.hpp fires DOnSessionStart / on_session_end / the node tags), so
+* (test_handler.hpp fires DOnSessionStart / DOnSessionEnd / the node tags), so
 * the payload assertions below are what would catch a tag drifting away from its
 * caller.
 *
-*   NAMESPACE NOTE (a real discrepancy, pinned deliberately):
+* NAMESPACE NOTE (a real discrepancy, pinned deliberately)
+* --------------------------------------------------------
 *   test_event.hpp's banner says the built-in tags live "in the
 * `djinterp::test::events` sub-namespace".  They do not - the file opens
 * NS_DJINTERP / NS_TEST and nothing else, so they are in `djinterp::test`.  There
-* is no `events` namespace anywhere in the header.  These tests pin the CODE
+* is no `events` namespace anywhere in the header.  These tests pin the code
 * (djinterp::test); if the banner is the intended truth, the header must gain the
 * namespace and these tests move with it.
 *
@@ -180,11 +182,17 @@ D_NODISCARD inline DLogPtr make_log()
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_event_basic_test_is_the_default_test_object();
+
 bool tests_event_basic_test_agrees_with_test_object_realias();
+
 bool tests_event_basic_test_status_type_is_uint8();
+
 bool tests_event_basic_test_metadata_type_is_test_metadata();
+
 bool tests_event_node_payload_is_a_pointer_not_a_value();
+
 bool tests_event_tags_work_against_an_incomplete_node_type();
+
 bool tests_event_forward_declaration_accepts_the_option_pack();
 
 
@@ -193,19 +201,33 @@ bool tests_event_forward_declaration_accepts_the_option_pack();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_event_on_session_start_has_empty_payload();
+
 bool tests_event_on_session_end_carries_two_counts();
+
 bool tests_event_module_tags_carry_the_node();
+
 bool tests_event_test_lifecycle_tags_carry_the_node();
+
 bool tests_event_terminal_status_tags_carry_the_node();
+
 bool tests_event_on_test_error_carries_node_and_message();
+
 bool tests_event_on_status_change_carries_node_and_both_statuses();
+
 bool tests_event_on_listener_threw_carries_two_c_strings();
+
 bool tests_event_every_tag_names_its_own_identifier();
+
 bool tests_event_every_tag_is_a_distinct_type();
+
 bool tests_event_every_tag_satisfies_event_traits();
+
 bool tests_event_arity_agrees_with_payload_size();
+
 bool tests_event_node_tags_all_share_one_payload_shape();
+
 bool tests_event_has_args_partitions_the_alphabet();
+
 bool tests_event_tags_satisfy_the_event_concepts();
 
 
@@ -214,15 +236,25 @@ bool tests_event_tags_satisfy_the_event_concepts();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_event_d_test_event_declares_a_node_tag();
+
 bool tests_event_d_test_event_matches_the_builtin_lifecycle_shape();
+
 bool tests_event_d_test_event_msg_declares_a_node_plus_message_tag();
+
 bool tests_event_d_test_event_msg_matches_the_on_test_error_shape();
+
 bool tests_event_d_test_event_x_appends_one_extra_domain();
+
 bool tests_event_d_test_event_x_appends_several_extra_domains();
+
 bool tests_event_custom_tags_name_their_own_identifiers();
+
 bool tests_event_custom_tags_are_distinct_from_builtins();
+
 bool tests_event_custom_tags_are_distinct_from_each_other();
+
 bool tests_event_macros_are_namespace_agnostic();
+
 bool tests_event_custom_tags_satisfy_event_traits();
 
 
@@ -231,18 +263,31 @@ bool tests_event_custom_tags_satisfy_event_traits();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_event_dispatch_binds_and_fires_a_node_tag();
+
 bool tests_event_dispatch_delivers_a_usable_node();
+
 bool tests_event_dispatch_empty_payload_tag_fires_with_no_arguments();
+
 bool tests_event_dispatch_two_count_payload_arrives_intact();
+
 bool tests_event_dispatch_status_change_payload_arrives_intact();
+
 bool tests_event_dispatch_error_payload_carries_the_message();
+
 bool tests_event_dispatch_listener_threw_payload_arrives_intact();
+
 bool tests_event_dispatch_custom_tag_binds_exactly_like_a_builtin();
+
 bool tests_event_dispatch_void_listener_is_an_always_pass();
+
 bool tests_event_dispatch_consume_verdict_halts_propagation();
+
 bool tests_event_dispatch_every_bound_listener_is_invoked();
+
 bool tests_event_dispatch_tags_are_independent_channels();
+
 bool tests_event_dispatch_unbound_tag_invokes_nothing();
+
 bool tests_event_dispatch_unbind_removes_the_listener();
 
 
@@ -283,11 +328,11 @@ dt::module_spec event_spec()
                 "and the event_traits / concept surface.",
                 {
                     { "tests_event_on_session_start_has_empty_payload",              "on_session_start carries an empty payload", &tests_event_on_session_start_has_empty_payload },
-                    { "tests_event_on_session_end_carries_two_counts",               "on_session_end carries two count arguments", &tests_event_on_session_end_carries_two_counts },
+                    { "tests_event_on_session_end_carries_two_counts",               "DOnSessionEnd carries two count arguments", &tests_event_on_session_end_carries_two_counts },
                     { "tests_event_module_tags_carry_the_node",                      "the module lifecycle tags carry the node pointer", &tests_event_module_tags_carry_the_node },
                     { "tests_event_test_lifecycle_tags_carry_the_node",              "the test lifecycle tags carry the node pointer", &tests_event_test_lifecycle_tags_carry_the_node },
                     { "tests_event_terminal_status_tags_carry_the_node",             "the terminal-status tags carry the node pointer", &tests_event_terminal_status_tags_carry_the_node },
-                    { "tests_event_on_test_error_carries_node_and_message",          "on_test_error carries the node plus an error message", &tests_event_on_test_error_carries_node_and_message },
+                    { "tests_event_on_test_error_carries_node_and_message",          "DOnTestError carries the node plus an error message", &tests_event_on_test_error_carries_node_and_message },
                     { "tests_event_on_status_change_carries_node_and_both_statuses", "on_status_change carries the node and both the before and after statuses", &tests_event_on_status_change_carries_node_and_both_statuses },
                     { "tests_event_on_listener_threw_carries_two_c_strings",         "on_listener_threw carries two C-string arguments", &tests_event_on_listener_threw_carries_two_c_strings },
                     { "tests_event_every_tag_names_its_own_identifier",              "every tag reports its own identifier via name()", &tests_event_every_tag_names_its_own_identifier },
@@ -306,7 +351,7 @@ dt::module_spec event_spec()
                     { "tests_event_d_test_event_declares_a_node_tag",             "D_TEST_EVENT declares a node-scoped tag", &tests_event_d_test_event_declares_a_node_tag },
                     { "tests_event_d_test_event_matches_the_builtin_lifecycle_shape","a D_TEST_EVENT tag matches the built-in lifecycle payload shape", &tests_event_d_test_event_matches_the_builtin_lifecycle_shape },
                     { "tests_event_d_test_event_msg_declares_a_node_plus_message_tag","D_TEST_EVENT_MSG declares a node-plus-message tag", &tests_event_d_test_event_msg_declares_a_node_plus_message_tag },
-                    { "tests_event_d_test_event_msg_matches_the_on_test_error_shape","a D_TEST_EVENT_MSG tag matches the on_test_error payload shape", &tests_event_d_test_event_msg_matches_the_on_test_error_shape },
+                    { "tests_event_d_test_event_msg_matches_the_on_test_error_shape","a D_TEST_EVENT_MSG tag matches the DOnTestError payload shape", &tests_event_d_test_event_msg_matches_the_on_test_error_shape },
                     { "tests_event_d_test_event_x_appends_one_extra_domain",      "D_TEST_EVENT_X appends one extra payload domain", &tests_event_d_test_event_x_appends_one_extra_domain },
                     { "tests_event_d_test_event_x_appends_several_extra_domains", "D_TEST_EVENT_X appends several extra payload domains", &tests_event_d_test_event_x_appends_several_extra_domains },
                     { "tests_event_custom_tags_name_their_own_identifiers",       "custom tags report their own identifiers via name()", &tests_event_custom_tags_name_their_own_identifiers },

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   cow_tests_ptr_detach_swap.cpp
+* djinterp [cpp][sync]                             cow_tests_ptr_detach_swap.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_ptr_detach_swap.cpp

@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                   test_compress_options_tests_pristine.cpp
+* djinterp [cpp][test]                  test_compress_options_tests_pristine.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_options_tests_pristine.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./test_compress_options_tests.hpp"
@@ -31,16 +31,17 @@ bool tests_compress_options_default_is_pristine()
                    dt::default_compress_options()));
     D_CO_CHECK(dt::describe_compress_diff_from_default(a).empty());
 
-    // the documented defaults themselves, spot-checked where they are not
-    // simply zero - these are the values every mutator moves away from
-    D_CO_CHECK(a.level == -1);
-    D_CO_CHECK(a.lzma.lc == -1);
-    D_CO_CHECK(a.lzma.lp == -1);
-    D_CO_CHECK(a.lzma.pb == -1);
-    D_CO_CHECK(a.zstd.content_size_flag);
-    D_CO_CHECK(a.zstd.dict_id_flag);
-    D_CO_CHECK(!a.zstd.checksum_flag);
-    D_CO_CHECK(a.brotli.quality == -1);
+    // every knob starts unset, the value every mutator moves away from; the
+    // core resolves each one at dispatch, to its own pinned default
+    D_CO_CHECK(a.level == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.deflate.strategy == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.lzma.lc == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.lzma.lp == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.lzma.pb == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.zstd.content_size_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.zstd.dict_id_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.zstd.checksum_flag == D_COMPRESS_KNOB_UNSET);
+    D_CO_CHECK(a.brotli.quality == D_COMPRESS_KNOB_UNSET);
 
     return true;
 }

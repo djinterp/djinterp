@@ -1,24 +1,45 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     counter.hpp
+* djinterp [cpp][utility]                                            counter.hpp
 *
 * djinterp counter header:
 *   This header provides a bounded, nestable counter with configurable value
-* type. A counter can be incremented, decremented, or queried for whether its
-* minimum or maximum limit has been reached.
+* type, and the five operations every counter and timer in djinterp shares:
+* increment, decrement, compare, merge and reset. A counter can also be
+* queried for whether its minimum or maximum limit has been reached.
+*   Its thread-safe forms are atomic_counter.hpp and mutex_counter.hpp; the
+* bindings that move any of the three when an event fires are
+* counter_event.hpp's. C's counterpart is c/util/counter/counter.h.
 *
 *   Counters support two nesting models:
 *   - owning:      parent stores child counters by value (lifetime-bound)
 *   - non-owning:  parent observes external counters via pointer (view)
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   This header uses env.h for C++ version detection and djinterp.hpp for
 * namespace macros. Requires C++17 or later.
+*
+* HOW TO USE
+* ----------
+*     counter<int> hits;                  // at 0, unbounded
+*     counter<int> slots(0, 0, 8);        // initial, min, max
+*
+*     hits.increment();
+*     slots.decrement(2);                 // false: held at 0
+*
+* OPTIONS
+* -------
+*   The value type, and the initial value and bounds given to the constructor.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/util/counter/counter.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COUNTER_COUNTER_HPP
@@ -32,6 +53,7 @@
 
 // std
 #include <limits>
+#include <type_traits>
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
@@ -104,17 +126,39 @@ public:
     // -----------------------------------------------------------------
 
     // increment
-    //   increments the counter by `_amount`. returns false and clamps
-    // to max if the operation would exceed the upper bound.
+    //   increments the counter by `_amount`; a negative amount moves it
+    // down. returns false and clamps to the bound it would pass: max for a
+    // rise, min for a fall. the sum is compared through distance() or
+    // falls_below() before it is formed, so a step that would overflow the
+    // value type clamps instead.
     bool increment(
         value_type _amount = value_type{1}
     ) D_NOEXCEPT
     {
-        if (m_value + _amount > m_max)
+        // past the ceiling already, or a rise larger than the room left
+        if ( (m_max < m_value) ||
+             ( (value_type{0} < _amount) &&
+               (distance(m_value,
+                         m_max) < _amount) ) )
         {
             m_value = m_max;
 
             return false;
+        }
+
+        // only a signed type can step down
+        if constexpr (std::is_signed_v<value_type>)
+        {
+            // a fall past the floor
+            if ( (_amount < value_type{0}) &&
+                 (falls_below(m_value,
+                              _amount,
+                              m_min)) )
+            {
+                m_value = m_min;
+
+                return false;
+            }
         }
 
         m_value += _amount;
@@ -123,17 +167,38 @@ public:
     }
 
     // decrement
-    //   decrements the counter by `_amount`. returns false and clamps
-    // to min if the operation would exceed the lower bound.
+    //   decrements the counter by `_amount`; a negative amount moves it
+    // up. returns false and clamps to the bound it would pass: min for a
+    // fall, max for a rise. as with increment, the difference is never
+    // formed unless it fits.
     bool decrement(
         value_type _amount = value_type{1}
     ) D_NOEXCEPT
     {
-        if (m_value - _amount < m_min)
+        // below the floor already, or a fall larger than the room left
+        if ( (m_value < m_min) ||
+             ( (value_type{0} < _amount) &&
+               (distance(m_min,
+                         m_value) < _amount) ) )
         {
             m_value = m_min;
 
             return false;
+        }
+
+        // only a signed type can step up here
+        if constexpr (std::is_signed_v<value_type>)
+        {
+            // a rise past the ceiling
+            if ( (_amount < value_type{0}) &&
+                 (rises_above(m_value,
+                              _amount,
+                              m_max)) )
+            {
+                m_value = m_max;
+
+                return false;
+            }
         }
 
         m_value -= _amount;
@@ -164,6 +229,150 @@ public:
         }
 
         return;
+    }
+
+    // compare
+    //   three-way comparison by value: -1, 0 or 1 as this counter is below,
+    // equal to or above `_other`. initial values and bounds play no part.
+    constexpr int compare(
+        const self_type& _other
+    ) const D_NOEXCEPT
+    {
+        return (m_value < _other.m_value)
+                   ? -1
+                   : ( (_other.m_value < m_value) ? 1 : 0 );
+    }
+
+    // merge
+    //   adds `_other`'s movement since its start (its value less its
+    // initial value) to this counter, clamping as increment and decrement
+    // do; returns false when clamped. a movement too large for the value
+    // type is held at the type's range first -- a rise at max(), a fall at
+    // lowest() -- and that is reported too, as the C counter's
+    // d_counter_merge reports it. children are not merged. merging a counter
+    // into itself adds its own movement once.
+    //
+    //   Movement, not value: two counters that start at 10 and each count 3
+    // merge to 16, which is what one counter counting all 6 would hold.
+    bool merge(
+        const self_type& _other
+    ) D_NOEXCEPT
+    {
+        // read both first: `_other` may be this counter
+        const value_type value   = _other.m_value;
+        const value_type initial = _other.m_initial;
+
+        // moved up, or not at all; a rise too large is held at max()
+        if (!(value < initial))
+        {
+            const bool is_exact = increment(distance(initial,
+                                                     value));
+
+            return ( (is_exact) &&
+                     (distance_fits(initial,
+                                    value)) );
+        }
+
+        // moved down, by a fall the type holds
+        if (distance_fits(value,
+                          initial))
+        {
+            return decrement(distance(value,
+                                      initial));
+        }
+
+        // a larger fall is held at lowest(), the largest fall a signed
+        // movement holds, and is exact only when it is that fall
+        const bool is_exact =
+            increment(std::numeric_limits<value_type>::lowest());
+
+        return ( (is_exact) &&
+                 (falls_by_lowest(value,
+                                  initial)) );
+    }
+
+    // distance
+    //   returns how far `_to` lies above `_from` (`_to` must not be below
+    // `_from`). for signed integer types the distance may not fit, and is
+    // held at the type's maximum instead of overflowing.
+    static constexpr value_type distance(
+        value_type _from,
+        value_type _to
+    ) D_NOEXCEPT
+    {
+        // a signed difference can overflow; saturate it
+        if (!distance_fits(_from,
+                           _to))
+        {
+            return std::numeric_limits<value_type>::max();
+        }
+
+        return static_cast<value_type>(_to - _from);
+    }
+
+    // distance_fits
+    //   whether the distance from `_from` up to `_to` fits the value type,
+    // so that distance returns it rather than the type's maximum. only a
+    // signed integer difference can overflow.
+    static constexpr bool distance_fits(
+        value_type _from,
+        value_type _to
+    ) D_NOEXCEPT
+    {
+        if constexpr ( (std::is_integral_v<value_type>) &&
+                       (std::is_signed_v<value_type>) )
+        {
+            return !( (_from < value_type{0}) &&
+                      (_to > (std::numeric_limits<value_type>::max() +
+                              _from)) );
+        }
+
+        return true;
+    }
+
+    // falls_by_lowest
+    //   whether `_value` lies exactly -lowest() below `_initial`, for a fall
+    // that distance_fits has refused: `_value` is then negative and
+    // `_initial` is not, so neither side of the comparison overflows.
+    static constexpr bool falls_by_lowest(
+        value_type _value,
+        value_type _initial
+    ) D_NOEXCEPT
+    {
+        return ( (_initial - value_type{1}) ==
+                 (_value + std::numeric_limits<value_type>::max()) );
+    }
+
+    // falls_below
+    //   whether `_value` plus the negative `_amount` would leave the value
+    // type or land below `_floor`. lowest() - _amount cannot overflow while
+    // `_amount` is negative, so the sum is formed only once it is known to
+    // fit.
+    static constexpr bool falls_below(
+        value_type _value,
+        value_type _amount,
+        value_type _floor
+    ) D_NOEXCEPT
+    {
+        return ( (_value < (std::numeric_limits<value_type>::lowest() -
+                            _amount)) ||
+                 ((_value + _amount) < _floor) );
+    }
+
+    // rises_above
+    //   whether `_value` minus the negative `_amount` would leave the value
+    // type or land above `_ceiling`. max() + _amount cannot overflow while
+    // `_amount` is negative, so the difference is formed only once it is
+    // known to fit.
+    static constexpr bool rises_above(
+        value_type _value,
+        value_type _amount,
+        value_type _ceiling
+    ) D_NOEXCEPT
+    {
+        return ( (_value > (std::numeric_limits<value_type>::max() +
+                            _amount)) ||
+                 (_ceiling < (_value - _amount)) );
     }
 
     // -----------------------------------------------------------------

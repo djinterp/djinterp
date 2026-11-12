@@ -1,13 +1,13 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_builder_tests_inline_ops.cpp
+* djinterp [cpp][test]                         test_builder_tests_inline_ops.cpp
 *
-*   The immediate and imperative surface.  check / expect add an ANONYMOUS leaf
-* evaluated RIGHT NOW - folded into the tree's counts (and the inline_checks
+*   The immediate and imperative surface.  check / expect add an anonymous leaf
+* evaluated right now - folded into the tree's counts (and the inline_checks
 * tally) without a callable row and without becoming the current test, so a
 * following assert_ still binds onto the real open test; a throwing inline
 * thunk records as error.  skip marks the current test skipped and tag writes
 * metadata onto it, both no-ops with no test open.  add splices a body against
-* the LIVE cursor (no save / restore, unlike the scoped forms), and add_if does
+* the live cursor (no save / restore, unlike the scoped forms), and add_if does
 * so only when its condition - value or predicate, evaluated now - holds.
 *
 *

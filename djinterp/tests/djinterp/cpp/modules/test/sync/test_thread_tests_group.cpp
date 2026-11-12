@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                   test_thread_tests_group.cpp
+* djinterp [cpp][test]                               test_thread_tests_group.cpp
 *
 *   Section TU: DTestThreadGroup - membership, bulk start/join, aggregate
 * verdict queries, and iteration.
@@ -70,12 +70,13 @@ bool tests_group_emplace_auto_id()
     DHtWorkerRan s0, s1, s2;
     dt::DTestThreadGroup g;
 
-    dt::test_thread& a = g.emplace(ht_make_stamp(s0));
-    dt::test_thread& b = g.emplace(ht_make_stamp(s1));
+    // each emplace may move the ones before it, so read them back by index
+    (void)g.emplace(ht_make_stamp(s0));
+    (void)g.emplace(ht_make_stamp(s1));
     dt::test_thread& c = g.emplace(ht_make_stamp(s2));
 
-    D_HT_CHECK(a.id() == 0u);
-    D_HT_CHECK(b.id() == 1u);
+    D_HT_CHECK(g.at(0).id() == 0u);
+    D_HT_CHECK(g.at(1).id() == 1u);
     D_HT_CHECK(c.id() == 2u);
     D_HT_CHECK(g.size() == 3u);
 

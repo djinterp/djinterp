@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                          test_defaults.hpp
+* djinterp [cpp][test]                                         test_defaults.hpp
 *
 *   Default test framework configuration: the six built-in test kinds, the
 * framework's default kind set, the node factories that stamp per-node
@@ -14,7 +14,8 @@
 * test_tree.hpp is intentionally kind-agnostic; this header supplies the
 * concrete vocabulary they resolve against.
 *
-*   KINDS, NOT A REGISTRY:
+* KINDS, NOT A REGISTRY
+* ---------------------
 *   The old test_type<Container> registry (and its test_type.hpp) is retired.
 * Kinds now live as a flat range of test_kind records (test_kind.hpp); the
 * resolved-query free functions (rank_of / is_leaf / can_be_child_of / ...)
@@ -22,14 +23,16 @@
 * ready to seed a test_tree so its rank-checked append_child structurally
 * enforces the nesting suite > module > block > unit_test > {test_fn, assert}.
 *
-*   TEST METADATA (name + descriptor):
-*   Presentation metadata is NOT an option slot (the test_option enum carries
+* TEST METADATA (name + descriptor)
+* ---------------------------------
+*   Presentation metadata is not an option slot (the test_option enum carries
 * rendering/packaging knobs only, no metadata key).  It lives on each node's
 * DTestMetadata container (test_object.hpp): every factory here stamps a
 * "name" and a "descriptor" entry, and those are exactly what the report
 * model and the PDF renderer read back out.
 *
-*   BUILT-IN KINDS (ranked lowest to highest):
+* BUILT-IN KINDS (ranked lowest to highest)
+* -----------------------------------------
 *     0  assert       - single boolean assertion             (leaf)
 *     1  test_fn      - a wrapper around one bool() function  (leaf)
 *     2  unit_test    - one named test (a group of asserts)  (interior)
@@ -37,7 +40,8 @@
 *     4  test_module  - a module: a group of blocks          (interior)
 *     5  test_suite   - the whole run: a group of modules    (interior)
 *
-*   ENRICHED AUTHORING:
+* ENRICHED AUTHORING
+* ------------------
 *   module_spec / block_spec / test_spec are plain-data descriptions of a
 * module's tests (each test carries a name, a descriptor, and its bool()
 * pointer).  build_enriched_tree() lowers a module_spec into a six-kind
@@ -46,12 +50,13 @@
 * A runner then hands that same spec to a report_builder for the PDF (name
 * -> unit header, descriptor -> the unit's assertion line).
 *
-*   RUNNER BRIDGE (the two views of one spec):
-*   The one-call runners that lower a spec into BOTH framework models live
+* RUNNER BRIDGE (the two views of one spec)
+* -----------------------------------------
+*   The one-call runners that lower a spec into both framework models live
 * here too.  They were factored out into test_spec_runner.hpp while that stayed
 * a separate file; that header is now a thin shim onto this one.  run_module /
 * run_suite build the six-kind tree and describe it (view 1: structure +
-* per-node metadata) AND project the same spec onto a report_builder feeding
+* per-node metadata) and project the same spec onto a report_builder feeding
 * the console and an optional PDF (view 2: the roll-up the document renders).
 * describe_tree / tree_summary / drive_report are the lower-level pieces, so a
 * runner can compose its own flow.
@@ -59,15 +64,40 @@
 *   Bringing the runners here means this header now pulls in the report / PDF
 * stack (test_report_runner.hpp) - the reporter is no longer opt-in per
 * translation unit.  A consumer that wants only the kinds / factories / handler
-* and NOT the reporter should include the granular headers it needs
+* and not the reporter should include the granular headers it needs
 * (test_kind.hpp, test_object.hpp, test_tree.hpp, test_handler.hpp) directly.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum for the authoring surface, the tree, and the handler.  The
 * report bridge rides the pdf stack's C++17 gate: below C++17 the document is
 * simply skipped and a run stays console-only (see test_report_runner.hpp).
 * Uses env.h for version detection and djinterp.hpp for namespace macros and
 * constexpr support.
+*
+* HOW TO USE
+* ----------
+*   A suite lists its tests as a module_spec of block_specs of test_specs
+* (Sections 2 to 7 of docs/djinterp_testing.md), and its runner hands the spec
+* over:
+*
+*     int main()
+*     {
+*         return run_module(counter_spec(), "test_counter");
+*     }
+*
+*   run_suite runs several modules as one; build_enriched_tree and describe_tree
+* are the lower-level pieces.
+*
+* OPTIONS
+* -------
+*   A test_option_set (test_options.hpp), whose defaults come from
+* default_test_options(). run_module and run_suite take one, and the console and
+* PDF reports follow it.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_defaults.hpp
@@ -1085,7 +1115,7 @@ D_EVENT(DOnTestEvent64, re_std::int64_t, const char*, const char*);
 //   DDefaultTestHandler extends test_handler with a printer
 // listener bundle that:
 //
-//     - Lifecycle events (DOnTestPassed, on_test_failed, etc.)
+//     - Lifecycle events (DOnTestPassed, DOnTestFailed, etc.)
 //       ALWAYS forward to the printer; there is no value gate.
 //
 //     - Value-tagged events (on_test_event_N) are forwarded to
@@ -1259,9 +1289,9 @@ private:
                     return;
                 }));
 
-        // on_test_failed: render the leaf with failed status.
+        // DOnTestFailed: render the leaf with failed status.
         m_printer_listener_ids.push_back(
-            events().bind<on_test_failed>(
+            events().bind<DOnTestFailed>(
                 [_printer](const basic_test* _obj) D_NOEXCEPT
                 {
                     if ( (_printer == nullptr) ||
@@ -1301,10 +1331,10 @@ private:
                     return;
                 }));
 
-        // on_test_error: render the leaf with error status and
+        // DOnTestError: render the leaf with error status and
         // the diagnostic message carried by the event.
         m_printer_listener_ids.push_back(
-            events().bind<on_test_error>(
+            events().bind<DOnTestError>(
                 [_printer](const basic_test* _obj,
                            const char*       _msg) D_NOEXCEPT
                 {

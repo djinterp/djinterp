@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       dstring_tests_register.c
+* djinterp [c]                                          dstring_tests_register.c
 *
 * dstring.h's suite, block "register": the register's decisions on dstring.
 *

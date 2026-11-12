@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        cow_tests_exceptions.cpp
+* djinterp [cpp][sync]                                  cow_tests_exceptions.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_exceptions.cpp

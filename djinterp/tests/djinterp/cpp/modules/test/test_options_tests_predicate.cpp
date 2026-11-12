@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_options_tests_predicate.cpp
+* djinterp [cpp][test]                          test_options_tests_predicate.cpp
 *
 *   Sections A.II / A.III - match_context and the runtime predicate IR.  Every
 * match kind is exercised through its value-level builder: any / none, exact

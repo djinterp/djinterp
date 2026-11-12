@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      dstring_tests_case_conv.c
+* djinterp [c]                                         dstring_tests_case_conv.c
 *
 *
 * path:      /tests/djinterp/c/dstring_tests_case_conv.c

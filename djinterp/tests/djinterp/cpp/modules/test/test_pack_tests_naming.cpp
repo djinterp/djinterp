@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                 test_pack_tests_naming.cpp
+* djinterp [cpp][test]                                test_pack_tests_naming.cpp
 *
 *   The pure string helpers of section I.  pack_doc_ext_helper maps a document
 * format to its extension.  pack_entry_name_helper derives the name the report
@@ -8,7 +8,7 @@
 * container extension - and the residual ".tar" a ".tar.<comp>" leaves behind -
 * then apply the document extension.  The edges covered: unix vs windows
 * separators, ".tar.gz" double-strip, a name with no extension, an empty path, a
-* trailing separator, a leading-dot dotfile (whose dot at index 0 is NOT a
+* trailing separator, a leading-dot dotfile (whose dot at index 0 is not a
 * strippable extension), and a trailing-dot name.
 *
 *

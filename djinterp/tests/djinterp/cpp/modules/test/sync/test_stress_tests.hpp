@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                         test_stress_tests.hpp
+* djinterp [cpp][test]                                     test_stress_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_stress.hpp -
 * the high-volume stress harness (fixed-iteration, timed, and weighted chaos
@@ -17,12 +17,15 @@
 *   ------------------------------------------------------------------------
 *   BUILD PREREQUISITE - make_stress / make_timed_stress do not compile
 *   ------------------------------------------------------------------------
-*   STATUS:  the factory block of this suite is gated OFF by default
-*            (D_HS_FACTORY_RETURNABLE = 0) and the module under test is NOT
-*            patched by this delivery.  Apply the substitution below, then
-*            build with -DD_HS_FACTORY_RETURNABLE=1 to enable the block.
 *
-*   EXACT SUBSTITUTION, in inc/djinterp/cpp/modules/test/sync/test_stress.hpp, after the
+* STATUS
+* ------
+*   The factory block of this suite is gated off by default
+* (D_HS_FACTORY_RETURNABLE = 0) and the module under test is not patched by this
+* delivery.  Apply the substitution below, then build with
+* -DD_HS_FACTORY_RETURNABLE=1 to enable the block.
+*
+*   Exact substitution, in inc/djinterp/cpp/modules/test/sync/test_stress.hpp, after the
 *   deleted-copy lines of each class:
 *
 *       DStressRunner(const DStressRunner&)            = delete;
@@ -35,10 +38,11 @@
 *   +   DTimedStress(DTimedStress&&)                  = default;
 *   +   DTimedStress& operator=(DTimedStress&&)       = default;
 *
-*   WHY:
+* WHY
+* ---
 *   make_stress() and make_timed_stress() end in `return runner;` / `return
 * stress;` where the local is a DStressRunner / DTimedStress.  Both classes
-* user-declare a deleted copy constructor and declare NO move constructor, so
+* user-declare a deleted copy constructor and declare no move constructor, so
 * the implicit move is suppressed and returning by value selects the deleted
 * copy constructor: the templates are ill-formed on instantiation.  (This is
 * the same defect as make_concurrent_runner in test_concurrent.hpp.)
@@ -184,62 +188,103 @@ inline std::chrono::milliseconds hs_timed_span() { return std::chrono::milliseco
 
 // I.   STRESS REPORT                   (test_stress_tests_report.cpp)
 bool tests_sreport_defaults();
+
 bool tests_sreport_success_follows_underlying();
+
 bool tests_sreport_ops_per_second_zero_wall();
+
 bool tests_sreport_ops_per_second_computed();
+
 bool tests_sreport_to_test_object_success();
+
 bool tests_sreport_to_test_object_failure();
+
 bool tests_sreport_to_test_object_custom_name();
 
 // II.  STRESS RUNNER                   (test_stress_tests_stress_runner.cpp)
 bool tests_srunner_defaults();
+
 bool tests_srunner_setters();
+
 bool tests_srunner_run_zero_threads();
+
 bool tests_srunner_run_zero_iterations();
+
 bool tests_srunner_run_without_operation();
+
 bool tests_srunner_run_total_ops();
+
 bool tests_srunner_run_ops_per_thread();
+
 bool tests_srunner_run_iteration_indices();
+
 bool tests_srunner_run_thread_ids();
+
 bool tests_srunner_run_success_outcome();
+
 bool tests_srunner_run_operation_throws();
+
 bool tests_srunner_run_wall_clock();
+
 bool tests_srunner_run_repeatable();
 
 // III. TIMED STRESS                    (test_stress_tests_timed.cpp)
 bool tests_stimed_run_zero_threads();
+
 bool tests_stimed_run_without_operation();
+
 bool tests_stimed_run_performs_work();
+
 bool tests_stimed_run_respects_duration();
+
 bool tests_stimed_run_ops_per_thread_sizes();
+
 bool tests_stimed_run_success_outcome();
+
 bool tests_stimed_run_join_grace();
 
 // IV.  STRESS OP DESCRIPTOR            (test_stress_tests_op.cpp)
 bool tests_sop_default_construct();
+
 bool tests_sop_value_construct();
+
 bool tests_sop_action_invocable();
+
 bool tests_sop_assignable();
 
 // V.   CHAOS RUNNER                    (test_stress_tests_chaos.cpp)
 bool tests_schaos_defaults();
+
 bool tests_schaos_add_op_named();
+
 bool tests_schaos_add_op_anonymous();
+
 bool tests_schaos_run_without_ops();
+
 bool tests_schaos_run_zero_threads();
+
 bool tests_schaos_run_total_ops();
+
 bool tests_schaos_run_op_names_reported();
+
 bool tests_schaos_run_kind_counts_sum();
+
 bool tests_schaos_run_weight_bias();
+
 bool tests_schaos_run_zero_weight_treated_as_one();
+
 bool tests_schaos_seed_determinism();
+
 bool tests_schaos_seed_changes_mix();
 
 // VI.  FACTORY HELPERS                 (test_stress_tests_factory.cpp)
 #if D_HS_FACTORY_RETURNABLE
 bool tests_sfactory_make_stress();
+
 bool tests_sfactory_make_stress_runs();
+
 bool tests_sfactory_make_timed_stress();
+
 #endif  // D_HS_FACTORY_RETURNABLE
 
 

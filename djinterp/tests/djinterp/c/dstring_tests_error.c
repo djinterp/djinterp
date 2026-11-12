@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dstring_tests_error.c
+* djinterp [c]                                             dstring_tests_error.c
 *
 *   Unit tests for dj_string error functions:
 *     - d_string_error

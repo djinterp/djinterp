@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              atomic_counter.hpp
+* djinterp [cpp][utility]                                     atomic_counter.hpp
 *
 * Lock-free atomic counter with bounded increment/decrement.
 *   Uses std::atomic with CAS loops to enforce [min, max] bounds without
@@ -7,34 +7,56 @@
 * progress is required (e.g. reference counts, connection limits,
 * concurrent work-item tracking).
 *
-*   Unlike mutex_counter, atomic_counter does NOT support children
+*   Unlike mutex_counter, atomic_counter does not support children
 * (owning or observed).  Nesting requires coordination that cannot be
 * expressed lock-free.  If nesting is needed, use mutex_counter instead.
 *
-* DESIGN:
+* DESIGN
+* ------
 *   All operations use compare_exchange_weak CAS loops with configurable
 * memory ordering.  The default ordering is acquire-release, which is
 * correct for most producer-consumer patterns.  Callers may override
 * for relaxed counting or sequentially-consistent fences.
 *
-* RELATIONSHIP TO atomic_size:
+* Relationship to atomic_size:
 *   atomic_size (in container::threadsafe) is an unbounded semantic
 * wrapper around std::atomic<size_t>.  atomic_counter adds bounded
 * clamping, an initial-value reset, and supports signed types.
 *
-* SEE ALSO:
+* SEE ALSO
+* --------
 *   counter.hpp        — unsynchronized base
 *   mutex_counter.hpp  — lock-policy-based variant (supports children)
 *   atomic.hpp         — atomic_size, atomic_version (container module)
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later.  C++20 adds wait/notify support.
+*
+* HOW TO USE
+* ----------
+*     atomic_counter<long> hits;
+*
+*     hits.increment();                   // from any thread
+*     hits.value();
+*
+*   A thread that counts a lot may keep a counter<> of its own and merge it in
+* once.
+*
+* OPTIONS
+* -------
+*   The initial value and bounds, fixed at construction, and the memory orders
+* each operation takes (acq_rel and acquire by default).
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/util/counter/atomic_counter.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COUNTER_ATOMIC_COUNTER_HPP
@@ -52,6 +74,7 @@
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
+#include "./counter.hpp"  // counter, counter::distance
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t
 
@@ -80,6 +103,10 @@ class atomic_counter
 {
     static_assert(std::is_integral_v<ValueType>,
                   "`ValueType` must be an integral type.");
+
+private:
+    using self_type = atomic_counter<ValueType>;
+    using base_type = counter<ValueType>;
 
 public:
     using value_type = ValueType;
@@ -125,8 +152,8 @@ public:
     // -----------------------------------------------------------------
 
     // increment
-    //   atomically increments by `_amount`. returns false and clamps
-    // to max if the operation would exceed the upper bound.
+    //   atomically increments by `_amount`; a negative amount moves it
+    // down. returns false and clamps to the bound it would pass.
     //
     // uses a CAS loop: loads the current value, computes the desired
     // value (clamped), and attempts to swap.  Retries on contention.
@@ -142,7 +169,10 @@ public:
         for (;;)
         {
             // would exceed upper bound
-            if (current + _amount > m_max)
+            if ( (m_max < current) ||
+                 ( (value_type{0} < _amount) &&
+                   (base_type::distance(current,
+                                        m_max) < _amount) ) )
             {
                 // already at max — nothing to do
                 if (current >= m_max)
@@ -162,6 +192,33 @@ public:
                 continue;
             }
 
+            // only a signed type can step down
+            if constexpr (std::is_signed_v<value_type>)
+            {
+                // a fall past the floor
+                if ( (_amount < value_type{0}) &&
+                     (base_type::falls_below(current,
+                                             _amount,
+                                             m_min)) )
+                {
+                    // already at or below min: nothing to do
+                    if (current <= m_min)
+                    {
+                        return false;
+                    }
+
+                    // clamp to min
+                    if (m_value.compare_exchange_weak(
+                            current, m_min,
+                            _success, _failure))
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+            }
+
             // normal increment
             if (m_value.compare_exchange_weak(
                     current, current + _amount,
@@ -175,8 +232,8 @@ public:
     }
 
     // decrement
-    //   atomically decrements by `_amount`. returns false and clamps
-    // to min if the operation would exceed the lower bound.
+    //   atomically decrements by `_amount`; a negative amount moves it
+    // up. returns false and clamps to the bound it would pass.
     bool decrement(
         value_type        _amount  = value_type{1},
         std::memory_order _success = std::memory_order_acq_rel,
@@ -189,7 +246,10 @@ public:
         for (;;)
         {
             // would exceed lower bound
-            if (current - _amount < m_min)
+            if ( (current < m_min) ||
+                 ( (value_type{0} < _amount) &&
+                   (base_type::distance(m_min,
+                                        current) < _amount) ) )
             {
                 // already at min — nothing to do
                 if (current <= m_min)
@@ -208,6 +268,33 @@ public:
                 continue;
             }
 
+            // only a signed type can step up here
+            if constexpr (std::is_signed_v<value_type>)
+            {
+                // a rise past the ceiling
+                if ( (_amount < value_type{0}) &&
+                     (base_type::rises_above(current,
+                                             _amount,
+                                             m_max)) )
+                {
+                    // already at or above max: nothing to do
+                    if (current >= m_max)
+                    {
+                        return false;
+                    }
+
+                    // clamp to max
+                    if (m_value.compare_exchange_weak(
+                            current, m_max,
+                            _success, _failure))
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+            }
+
             // normal decrement
             if (m_value.compare_exchange_weak(
                     current, current - _amount,
@@ -221,9 +308,9 @@ public:
     // fetch_increment
     //   atomically increments and returns the value BEFORE the
     // increment.  Returns the clamped-to value if the bound was hit.
-    // `_succeeded` is set to false if clamping occurred.
+    // `_is_successful` is set to false if clamping occurred.
     value_type fetch_increment(
-        bool&             _succeeded,
+        bool&             _is_successful,
         value_type        _amount  = value_type{1},
         std::memory_order _success = std::memory_order_acq_rel,
         std::memory_order _failure = std::memory_order_acquire
@@ -234,11 +321,14 @@ public:
 
         for (;;)
         {
-            if (current + _amount > m_max)
+            if ( (m_max < current) ||
+                 ( (value_type{0} < _amount) &&
+                   (base_type::distance(current,
+                                        m_max) < _amount) ) )
             {
                 if (current >= m_max)
                 {
-                    _succeeded = false;
+                    _is_successful = false;
 
                     return current;
                 }
@@ -247,7 +337,7 @@ public:
                         current, m_max,
                         _success, _failure))
                 {
-                    _succeeded = false;
+                    _is_successful = false;
 
                     return current;
                 }
@@ -255,11 +345,42 @@ public:
                 continue;
             }
 
+            // only a signed type can step down
+            if constexpr (std::is_signed_v<value_type>)
+            {
+                // a fall past the floor
+                if ( (_amount < value_type{0}) &&
+                     (base_type::falls_below(current,
+                                             _amount,
+                                             m_min)) )
+                {
+                    // already at or below min: nothing to do
+                    if (current <= m_min)
+                    {
+                        _is_successful = false;
+
+                        return current;
+                    }
+
+                    // clamp to min
+                    if (m_value.compare_exchange_weak(
+                            current, m_min,
+                            _success, _failure))
+                    {
+                        _is_successful = false;
+
+                        return current;
+                    }
+
+                    continue;
+                }
+            }
+
             if (m_value.compare_exchange_weak(
                     current, current + _amount,
                     _success, _failure))
             {
-                _succeeded = true;
+                _is_successful = true;
 
                 return current;
             }
@@ -268,9 +389,9 @@ public:
 
     // fetch_decrement
     //   atomically decrements and returns the value BEFORE the
-    // decrement.  `_succeeded` is set to false if clamping occurred.
+    // decrement.  `_is_successful` is set to false if clamping occurred.
     value_type fetch_decrement(
-        bool&             _succeeded,
+        bool&             _is_successful,
         value_type        _amount  = value_type{1},
         std::memory_order _success = std::memory_order_acq_rel,
         std::memory_order _failure = std::memory_order_acquire
@@ -281,11 +402,14 @@ public:
 
         for (;;)
         {
-            if (current - _amount < m_min)
+            if ( (current < m_min) ||
+                 ( (value_type{0} < _amount) &&
+                   (base_type::distance(m_min,
+                                        current) < _amount) ) )
             {
                 if (current <= m_min)
                 {
-                    _succeeded = false;
+                    _is_successful = false;
 
                     return current;
                 }
@@ -294,7 +418,7 @@ public:
                         current, m_min,
                         _success, _failure))
                 {
-                    _succeeded = false;
+                    _is_successful = false;
 
                     return current;
                 }
@@ -302,11 +426,42 @@ public:
                 continue;
             }
 
+            // only a signed type can step up here
+            if constexpr (std::is_signed_v<value_type>)
+            {
+                // a rise past the ceiling
+                if ( (_amount < value_type{0}) &&
+                     (base_type::rises_above(current,
+                                             _amount,
+                                             m_max)) )
+                {
+                    // already at or above max: nothing to do
+                    if (current >= m_max)
+                    {
+                        _is_successful = false;
+
+                        return current;
+                    }
+
+                    // clamp to max
+                    if (m_value.compare_exchange_weak(
+                            current, m_max,
+                            _success, _failure))
+                    {
+                        _is_successful = false;
+
+                        return current;
+                    }
+
+                    continue;
+                }
+            }
+
             if (m_value.compare_exchange_weak(
                     current, current - _amount,
                     _success, _failure))
             {
-                _succeeded = true;
+                _is_successful = true;
 
                 return current;
             }
@@ -323,6 +478,45 @@ public:
         m_value.store(m_initial, _order);
 
         return;
+    }
+
+    // compare
+    //   three-way comparison by value: -1, 0 or 1 as this counter is below,
+    // equal to or above `_other`. each value is loaded once, so the answer
+    // holds for two moments that may differ.
+    int compare(
+        const self_type&  _other,
+        std::memory_order _order = std::memory_order_acquire
+    ) const noexcept
+    {
+        const value_type mine   = m_value.load(_order);
+        const value_type theirs = _other.m_value.load(_order);
+
+        return (mine < theirs) ? -1 : ( (theirs < mine) ? 1 : 0 );
+    }
+
+    // merge
+    //   adds `_other`'s movement since its start to this counter, as
+    // counter::merge does; `_other` is loaded once. returns false when
+    // clamped.
+    bool merge(
+        const self_type&  _other,
+        std::memory_order _order = std::memory_order_acquire
+    ) noexcept
+    {
+        return add_movement(_other.m_initial,
+                            _other.m_value.load(_order));
+    }
+
+    // merge
+    //   adds a plain counter's movement since its start: how a thread folds
+    // its own tally into a shared one with a single atomic step.
+    bool merge(
+        const base_type& _other
+    ) noexcept
+    {
+        return add_movement(_other.initial(),
+                            _other.value());
     }
 
     // -----------------------------------------------------------------
@@ -436,33 +630,70 @@ public:
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-    // wait
-    //   blocks until the value differs from `_old`.
-    void wait(
-        value_type        _old,
-        std::memory_order _order = std::memory_order_acquire
-    ) const noexcept
-    {
-        m_value.wait(_old, _order);
-    }
+        // wait
+        //   blocks until the value differs from `_old`.
+        void wait(
+            value_type        _old,
+            std::memory_order _order = std::memory_order_acquire
+        ) const noexcept
+        {
+            m_value.wait(_old, _order);
+        }
 
-    // notify_one
-    //   unblocks one thread waiting on this counter.
-    void notify_one() noexcept
-    {
-        m_value.notify_one();
-    }
+        // notify_one
+        //   unblocks one thread waiting on this counter.
+        void notify_one() noexcept
+        {
+            m_value.notify_one();
+        }
 
-    // notify_all
-    //   unblocks all threads waiting on this counter.
-    void notify_all() noexcept
-    {
-        m_value.notify_all();
-    }
+        // notify_all
+        //   unblocks all threads waiting on this counter.
+        void notify_all() noexcept
+        {
+            m_value.notify_all();
+        }
 
 #endif  // C++20
 
 private:
+    // add_movement
+    //   moves this counter by (`_value` - `_initial`), up or down, in one
+    // atomic step, as counter::merge moves a counter: a movement too large
+    // for the value type is held at max() or lowest(), and reported.
+    bool add_movement(
+        value_type _initial,
+        value_type _value
+    ) noexcept
+    {
+        // moved up, or not at all; a rise too large is held at max()
+        if (!(_value < _initial))
+        {
+            const bool is_exact = increment(base_type::distance(_initial,
+                                                                _value));
+
+            return ( (is_exact) &&
+                     (base_type::distance_fits(_initial,
+                                               _value)) );
+        }
+
+        // moved down, by a fall the type holds
+        if (base_type::distance_fits(_value,
+                                     _initial))
+        {
+            return decrement(base_type::distance(_value,
+                                                 _initial));
+        }
+
+        // a larger fall is held at lowest()
+        const bool is_exact =
+            increment(std::numeric_limits<value_type>::lowest());
+
+        return ( (is_exact) &&
+                 (base_type::falls_by_lowest(_value,
+                                             _initial)) );
+    }
+
     std::atomic<value_type> m_value;
     const value_type        m_initial;
     const value_type        m_min;

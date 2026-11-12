@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   test_options_tests_getters.c
+* djinterp [c][test]                                test_options_tests_getters.c
 *
 * test_options.h's suite, block "config_getter_all": each d_test_options_get_*
 * getter, and the getters on a NULL config, which read the registry's defaults.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          datomic_tests_store.c
+* djinterp [c][sync]                                       datomic_tests_store.c
 *
 *
 * path:      /tests/djinterp/c/sync/datomic_tests_store.c

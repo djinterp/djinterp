@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                          reclamation_common_tests_published.cpp
+* djinterp [cpp][sync]                    reclamation_common_tests_published.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/reclamation_common_tests_published.cpp

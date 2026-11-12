@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_session_tests_state.cpp
+* djinterp [cpp][test]                              test_session_tests_state.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_session_tests_state.cpp

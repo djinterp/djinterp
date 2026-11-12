@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_handler_tests_result.cpp
+* djinterp [cpp][test]                             test_handler_tests_result.cpp
 *
 *   Section III - session results.  DSessionResult is a plain counter snapshot
 * with three derived predicates, so these checks set its public fields and read
 * the predicates back.  all_passed holds only when at least one leaf was seen
-* AND every one passed (pending is deliberately NOT a pass).  any_failed holds
+* and every one passed (pending is deliberately not a pass).  any_failed holds
 * when a failure or an error was seen.  verdict is the three-way roll-up with a
 * fixed precedence: empty (nothing seen) is distinguished from passed, a real
 * failure or error outranks any amount of pending, and pending is reported only

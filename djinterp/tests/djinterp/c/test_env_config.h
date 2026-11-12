@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core] unit tests                                   test_env_config.h
+* djinterp [c][env]                                            test_env_config.h
 *
 * test environment configuration helper
 * This header demonstrates how to simulate different environments for testing

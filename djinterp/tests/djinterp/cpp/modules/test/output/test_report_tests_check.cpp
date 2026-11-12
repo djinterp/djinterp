@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_report_tests_check.cpp
+* djinterp [cpp][test]                               test_report_tests_check.cpp
 *
-*   Section II of the test_report suite: THE CHECK.
+*   Section II of the test_report suite: the check.
 *
 *   report_check is the leaf of the model - one assertion line - and the smallest
 * thing in the header.  It has exactly one behaviour worth pinning beyond its
-* fields: a DEFAULT-CONSTRUCTED check is `pending`, not `passed`.  That is the
+* fields: a default-constructed check is `pending`, not `passed`.  That is the
 * safe default (an unfilled check does not silently count as a success) and it is
 * the one an aggregate-initialising caller is most likely to get wrong.
 *

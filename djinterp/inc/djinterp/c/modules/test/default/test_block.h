@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                 test_block.h
+* djinterp [c][test]                                                test_block.h
 *
 *   Test block structures for grouping multiple tests with shared configuration
 * and lifecycle hooks. A test block can contain individual tests, other test
@@ -8,6 +8,21 @@
 *   Configuration and lifecycle hooks are managed externally through the
 * dj_test_options structure, which is attached at the dj_test_type wrapper
 * level via D_TEST_TYPE_FROM_TEST_BLOCK_CONFIG.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   Its tests, blocks and modules take optional arguments (struct dj_test_arg
+* lists) that become entries of a test option set, test_options.h.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/default/test_block.h
@@ -98,12 +113,14 @@ struct dj_test_block* d_test_block_new(
     struct dj_test_type** _children,
     size_t                _child_count
 );
+
 struct dj_test_block* d_test_block_new_args(
     struct dj_test_arg*   _args,
     size_t                _arg_count,
     struct dj_test_type** _children,
     size_t                _child_count
 );
+
 struct dj_test_options* d_test_block_validate_args(
     struct dj_test_arg* _args,
     size_t              _arg_count
@@ -122,17 +139,21 @@ bool d_test_block_add_child(
     struct dj_test_block* _block,
     struct dj_test_type*  _child
 );
+
 bool d_test_block_add_test(
     struct dj_test_block* _block,
     struct dj_test*       _test
 );
+
 bool d_test_block_add_block(
     struct dj_test_block* _parent,
     struct dj_test_block* _child
 );
+
 size_t d_test_block_child_count(
     const struct dj_test_block* _block
 );
+
 struct dj_test_type* d_test_block_get_child_at(
     const struct dj_test_block* _block,
     size_t                      _index
@@ -158,9 +179,11 @@ void d_test_block_print(
     const char*                 _prefix,
     size_t                      _prefix_length
 );
+
 size_t d_test_block_count_tests(
     const struct dj_test_block* _block
 );
+
 size_t d_test_block_count_blocks(
     const struct dj_test_block* _block
 );

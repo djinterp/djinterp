@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              counter_tests.hpp
+* djinterp [cpp][utility]                                      counter_tests.hpp
 *
 * djinterp counter unit-test header:
 *   Declarations, helper types, and helper macros for the counter.hpp unit
@@ -12,7 +12,8 @@
 * recursive reset_all, the bound-query accessors, and both the owning
 * (by-value) and observing (by-pointer) child models.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   This header pulls in counter.hpp (which provides the namespace macros and
 * the portable noexcept specifier). Requires C++17 or later.
 *
@@ -20,7 +21,7 @@
 * path:      /tests/djinterp/cpp/util/counter/counter_tests.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.24
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTILITY_COUNTER_TESTS_
@@ -33,6 +34,10 @@
 #include <type_traits>
 // djinterp
 #include "../../../../../inc/djinterp/cpp/util/counter/counter.hpp"
+#include "../../../../../inc/djinterp/cpp/util/counter/atomic_counter.hpp"
+#include "../../../../../inc/djinterp/cpp/util/counter/mutex_counter.hpp"
+#include "../../../../../inc/djinterp/cpp/util/counter/counter_event.hpp"
+#include "../../../../../inc/djinterp/cpp/event/event_dispatcher.hpp"
 
 
 // D_CTR_CHECK
@@ -93,61 +98,146 @@ constexpr std::int64_t k_highest = std::numeric_limits<std::int64_t>::max();
 
 // constructors (counter_tests_constructors.cpp)
 bool tests_counter_default_ctor();
+
 bool tests_counter_value_ctor();
+
 bool tests_counter_value_ctor_default_bounds();
+
 bool tests_counter_value_ctor_min_only();
+
 bool tests_counter_negative_bounds();
 
 // operations: increment / decrement / reset / reset_all
 // (counter_tests_operations.cpp)
 bool tests_counter_increment();
+
 bool tests_counter_increment_amount();
+
 bool tests_counter_increment_to_max();
+
 bool tests_counter_increment_past_max();
+
 bool tests_counter_decrement();
+
 bool tests_counter_decrement_amount();
+
 bool tests_counter_decrement_to_min();
+
 bool tests_counter_decrement_past_min();
+
 bool tests_counter_increment_decrement_sequence();
+
 bool tests_counter_reset();
+
 bool tests_counter_reset_nonzero_initial();
+
 bool tests_counter_reset_preserves_children();
+
 bool tests_counter_reset_all_recurses();
+
 bool tests_counter_reset_all_leaf();
+
 bool tests_counter_reset_all_preserves_observed();
 
 // accessors: value / initial / min / max / at_min / at_max
 // (counter_tests_accessors.cpp)
 bool tests_counter_value();
+
 bool tests_counter_initial();
+
 bool tests_counter_min();
+
 bool tests_counter_max();
+
 bool tests_counter_at_min_equal();
+
 bool tests_counter_at_min_below();
+
 bool tests_counter_at_min_above();
+
 bool tests_counter_at_max_equal();
+
 bool tests_counter_at_max_above();
+
 bool tests_counter_at_max_below();
+
 bool tests_counter_const_accessors();
+
 bool tests_counter_default_bounds_extremes();
 
 // children, owning (counter_tests_children.cpp)
 bool tests_counter_add_child();
+
 bool tests_counter_add_child_with_bounds();
+
 bool tests_counter_multiple_children();
+
 bool tests_counter_child_access();
+
 bool tests_counter_child_access_const();
+
 bool tests_counter_child_count();
+
 bool tests_counter_children_independent();
+
 bool tests_counter_copy_deep_copies_children();
 
 // children, non-owning / observed (counter_tests_observed.cpp)
 bool tests_counter_observe();
+
 bool tests_counter_observe_multiple();
+
 bool tests_counter_observed_out_of_range();
+
 bool tests_counter_observed_live_view();
+
 bool tests_counter_observed_count();
+
 bool tests_counter_observe_non_owning();
+
+// compare and merge, the three counters (counter_tests_merge.cpp)
+bool tests_counter_compare();
+
+bool tests_counter_merge_movement();
+
+bool tests_counter_merge_clamps();
+
+bool tests_counter_merge_self();
+
+bool tests_counter_steps_never_overflow();
+
+bool tests_atomic_counter_compare_merge();
+
+bool tests_mutex_counter_compare_merge();
+
+// parity with the C counter (counter_tests_parity.cpp)
+bool tests_counter_parity_steps();
+
+bool tests_counter_parity_merge();
+
+bool tests_counter_parity_compare_reset();
+
+// -----------------------------------------------------------------
+// event tags for the bindings
+// -----------------------------------------------------------------
+
+// DEvCtrTick / DEvCtrAmount / DEvCtrLabel
+//   type: an event with no payload, one carrying an amount, and one
+// carrying a value no counter can add.
+D_EVENT_EMPTY(DEvCtrTick);
+D_EVENT(DEvCtrAmount, std::int64_t);
+D_EVENT(DEvCtrLabel, const char*);
+
+// event bindings (counter_tests_event.cpp)
+bool tests_counter_event_counts();
+
+bool tests_counter_event_operations();
+
+bool tests_counter_event_add_payload();
+
+bool tests_counter_event_unbind();
+
+bool tests_counter_event_other_counters();
 
 
 NS_END  // testing

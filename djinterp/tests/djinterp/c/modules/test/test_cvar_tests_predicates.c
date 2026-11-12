@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   test_cvar_tests_predicates.c
+* djinterp [c][test]                                test_cvar_tests_predicates.c
 *
 * test_cvar.h's suite, block "cvar_predicate_all": each row's command_flags,
 * IS_CONFIG and IS_METADATA where they belong and nowhere else, IS_REQUIRED on

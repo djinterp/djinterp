@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 dmutex_tests_mutex_recursive.c
+* djinterp [c][sync]                              dmutex_tests_mutex_recursive.c
 *
 *
 * path:      /tests/djinterp/c/sync/dmutex_tests_mutex_recursive.c

@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_container_tests_concepts.cpp
+* djinterp [cpp][test]                         test_container_tests_concepts.cpp
 *
-*   Section IV of the test_container suite: the C++20 CONCEPT layer.  Five
+*   Section IV of the test_container suite: the C++20 concept layer.  Five
 * structural concepts (value_typed / iterable / sized / rootable / growable)
 * and three contract concepts (test_object_container / rooted_test_container /
 * buildable_test_container), each pinned positive and negative, then the
 * header's central claim - every concept forwards to the trait of the same
-* shape, so the two agree BY CONSTRUCTION - checked directly by asserting
+* shape, so the two agree by construction - checked directly by asserting
 * concept == trait across a spread of fixtures.  Cv/ref normalization (the
 * concepts run clean_t as the traits do) closes the section.
 *

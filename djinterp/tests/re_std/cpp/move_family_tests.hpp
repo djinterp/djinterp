@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          move_family_tests.hpp
+* djinterp [re_std]                                        move_family_tests.hpp
 *
 *   Unit-test suite header for the re_std "move family": the utility cast
 * (re_std::move) and move_if_noexcept, the move / move_backward algorithms, the
@@ -10,23 +10,27 @@
 *
 *     - default face: the flat declarations of every tests_* predicate plus the
 *       shared fixtures the section TUs build against.  Every
-*       move_family_tests_*.cpp includes the header this way and DEFINES the
+*       move_family_tests_*.cpp includes the header this way and defines the
 *       predicates it owns.
 *
-*     - spec-provider face (DTEST_SPEC_MODE defined): the above PLUS
+*     - spec-provider face (DTEST_SPEC_MODE defined): the above plus
 *       move_family_spec(), which the runner hands to run_module.  Only the
 *       runner defines DTEST_SPEC_MODE, so the spec is compiled exactly once.
 *
-*   LANGUAGE FLOOR: this is a move library — every header is gated on rvalue
-* references and does nothing below C++11.  The suite therefore targets C++11
-* and up; the handful of dialect-conditional checks (variable-template _v forms
-* at C++14, move_iterator::iterator_concept at C++20) are guarded internally.
+* LANGUAGE FLOOR
+* --------------
+*   This is a move library — every header is gated on rvalue references and does
+* nothing below C++11.  The suite therefore targets C++11 and up; the handful of
+* dialect-conditional checks (variable-template _v forms at C++14,
+* move_iterator::iterator_concept at C++20) are guarded internally.
 *
-*   NOTE ON DEPENDENCIES: the headers under test pull in a wide swath of re_std
-* (remove_reference, is_assignable, iterator_traits, addressof, destroy_at,
-* pair, ...).  In the harness those are thin, std-backed stand-ins so the family
-* can be exercised in isolation; the suite asserts only the behaviour of the
-* move-family headers themselves, cross-checking the traits against <type_traits>.
+* NOTE ON DEPENDENCIES
+* --------------------
+*   The headers under test pull in a wide swath of re_std (remove_reference,
+* is_assignable, iterator_traits, addressof, destroy_at, pair, ...).  In the
+* harness those are thin, std-backed stand-ins so the family can be exercised in
+* isolation; the suite asserts only the behaviour of the move-family headers
+* themselves, cross-checking the traits against <type_traits>.
 *
 *
 * path:      /tests/re_std/cpp/move_family_tests.hpp
@@ -208,65 +212,101 @@ struct proxy_iter
 
 // -- section: utility move (move_family_tests_utility_move.cpp)
 bool tests_move_type();
+
 bool tests_move_noexcept();
+
 bool tests_move_semantics();
+
 bool tests_move_constexpr();
 
 // -- section: move_if_noexcept (move_family_tests_move_if_noexcept.cpp)
 bool tests_move_if_noexcept_nothrow_type();
+
 bool tests_move_if_noexcept_throwing_copyable();
+
 bool tests_move_if_noexcept_move_only();
+
 bool tests_move_if_noexcept_semantics();
 
 // -- section: move algorithm (move_family_tests_algorithm_move.cpp)
 bool tests_algorithm_move_basic();
+
 bool tests_algorithm_move_semantics();
+
 bool tests_algorithm_move_empty();
+
 bool tests_algorithm_move_overload_coexist();
 
 // -- section: move_backward (move_family_tests_move_backward.cpp)
 bool tests_move_backward_basic();
+
 bool tests_move_backward_overlap();
+
 bool tests_move_backward_semantics();
+
 bool tests_move_backward_empty();
 
 // -- section: uninitialized_move (move_family_tests_uninitialized_move.cpp)
 bool tests_uninitialized_move_basic();
+
 bool tests_uninitialized_move_semantics();
+
 bool tests_uninitialized_move_exception_safety();
 
 // -- section: uninitialized_move_n (move_family_tests_uninitialized_move_n.cpp)
 bool tests_uninitialized_move_n_basic();
+
 bool tests_uninitialized_move_n_semantics();
+
 bool tests_uninitialized_move_n_exception_safety();
 
 // -- section: move_iterator (move_family_tests_move_iterator.cpp)
 bool tests_move_iterator_reference_ref();
+
 bool tests_move_iterator_reference_proxy();
+
 bool tests_move_iterator_deref_moves();
+
 bool tests_move_iterator_base();
+
 bool tests_move_iterator_arithmetic();
+
 bool tests_move_iterator_relational();
+
 bool tests_move_iterator_converting_ctor();
+
 bool tests_move_iterator_index();
+
 bool tests_move_iterator_arrow();
+
 bool tests_move_iterator_make();
+
 bool tests_move_iterator_category();
 
 // -- section: iter_move (move_family_tests_iter_move.cpp)
 bool tests_iter_move_default_type();
+
 bool tests_iter_move_rvalue_reference_alias();
+
 bool tests_iter_move_proxy_passthrough();
+
 bool tests_iter_move_adl_customization();
+
 bool tests_iter_move_moves();
 
 // -- section: move traits (move_family_tests_traits.cpp)
 bool tests_is_move_constructible();
+
 bool tests_is_move_assignable();
+
 bool tests_is_nothrow_move_constructible();
+
 bool tests_is_nothrow_move_assignable();
+
 bool tests_is_trivially_move_constructible();
+
 bool tests_is_trivially_move_assignable();
+
 bool tests_traits_v_forms();
 
 

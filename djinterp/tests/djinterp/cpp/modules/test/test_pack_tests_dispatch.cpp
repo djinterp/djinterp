@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_pack_tests_dispatch.cpp
+* djinterp [cpp][test]                              test_pack_tests_dispatch.cpp
 *
 *   Section I's runtime -> compile-time hop.  pack_compress_helper switches a
 * test_compressor onto try_compress<Tag>; pack_archive_helper switches a

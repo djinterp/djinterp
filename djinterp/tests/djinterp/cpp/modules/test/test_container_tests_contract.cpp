@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_container_tests_contract.cpp
+* djinterp [cpp][test]                         test_container_tests_contract.cpp
 *
-*   Section III of the test_container suite: the three-rung CONTRACT LADDER.
+*   Section III of the test_container suite: the three-rung contract ladder.
 *   - is_test_object_container   the read/run minimum (value_type whose
 *                                element is evaluable, begin/end, size/empty).
-*   - is_rooted_test_container   the minimum PLUS root().
-*   - is_buildable_test_container the rooted rung PLUS append_child().
+*   - is_rooted_test_container   the minimum plus root().
+*   - is_buildable_test_container the rooted rung plus append_child().
 *
 *   Each rung is pinned with a positive and the specific negatives that
 * isolate it: for the minimum, four fixtures each withholding one required
@@ -15,12 +15,12 @@
 * that is rooted but has no append_child(), and one that has append_child()
 * but no root() (buildable is layered on the rooted floor, so it must fail).
 *
-*   Two cross-cutting laws close the section: LADDER MONOTONICITY (buildable
+*   Two cross-cutting laws close the section: ladder monotonicity (buildable
 * implies rooted implies object container, over a spread of fixtures) and
-* CV/REF NORMALIZATION (the contract predicates run clean_t first, so a
+* CV/ref normalization (the contract predicates run clean_t first, so a
 * const / reference / cv-qualified container agrees with its bare form) - the
 * latter contrasted against the raw expression probe, which queries the type
-* directly and so does NOT normalize.
+* directly and so does not normalize.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_container_tests_contract.cpp

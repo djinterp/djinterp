@@ -1,19 +1,23 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                 test_report_tests_unit.cpp
+* djinterp [cpp][test]                                test_report_tests_unit.cpp
 *
-*   Section III of the test_report suite: THE UNIT.
+*   Section III of the test_report suite: the unit.
 *
-*   A unit is the first place the model FOLDS: its checks derive its verdict.  Two
+*   A unit is the first place the model folds: its checks derive its verdict.  Two
 * behaviours here are worth more than the rest of the section put together, and
 * both are traps rather than bugs:
 *
-*   1. THE LATCH.  `verdict` is a PUBLIC field, but the "was it set explicitly?"
-*      flag behind it is PRIVATE and only set_verdict() raises it.  So assigning
-*      u.verdict = failed LOOKS like pinning the verdict and is not: the next
+* 1. THE LATCH
+* ------------
+*   `verdict` is a public field, but the "was it set explicitly?"
+*      flag behind it is private and only set_verdict() raises it.  So assigning
+*      u.verdict = failed looks like pinning the verdict and is not: the next
 *      add_check() re-derives it and silently throws the assignment away.  Two
 *      spellings, one of which quietly does nothing.
 *
-*   2. THE ALL-SKIPPED PASS.  A unit whose every check was skipped derives to
+* 2. THE ALL-SKIPPED PASS
+* -----------------------
+*   A unit whose every check was skipped derives to
 *      `passed`, with zero passed checks behind it.  (The fold's doing - see the
 *      verdict section - but this is where it becomes visible on a real object.)
 *

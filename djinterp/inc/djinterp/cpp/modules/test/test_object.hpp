@@ -1,17 +1,19 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_object.hpp
+* djinterp [cpp][test]                                           test_object.hpp
 *
 *   Unified test object for the DTest framework.  A single flat struct
 * holding the per-instance state of one test element: type identity,
 * result, status, and a user-supplied metadata container.
 *
-*   TYPE IDENTITY:
+* TYPE IDENTITY
+* -------------
 *   Every DTestObject carries a DTestTypeId - a signed 32-bit integer
 * that identifies the kind of test it represents.  Resolution of that
 * id to a kind classification is handled outside DTestObject, via the
 * test_kind set wrapper held elsewhere (typically by the tree).
 *
-*   IDENTITY AND DEPTH (NOT STORED):
+* IDENTITY AND DEPTH (NOT STORED)
+* -------------------------------
 *   A DTestObject carries neither a unique id nor a depth.  Both are
 * facts of a node's position within the owning tree, not properties of
 * the node itself: structural identity is the node's address (its path
@@ -21,11 +23,12 @@
 * node is anonymous and its address - conferred by the owning queue -
 * is the identity that masking and reporting key on.
 *
-*   DEFERRED-CALLABLE HANDLE:
+* DEFERRED-CALLABLE HANDLE
+* ------------------------
 *   A DTestObject carries a DTestCallableId - a 1-based index into an
 * out-of-line DTestCallableTable (test_callable.hpp) holding the node's
 * deferred boolean work as a `() -> bool` thunk.  The node stays flat,
-* trivially copyable, and constexpr-friendly precisely BECAUSE the closure
+* trivially copyable, and constexpr-friendly precisely because the closure
 * does not live inline: the node references a table row by id only.  The
 * reserved id k_no_callable (0) means "no deferred work" - such a node is
 * already fully described by its m_status.  The table's owner
@@ -34,7 +37,8 @@
 * later runs it with table.invoke(callable_id()) before writing the
 * verdict onto the node via evaluate().
 *
-*   METADATA CONTAINER:
+* METADATA CONTAINER
+* ------------------
 *   In the previous revision the DTestObject held two non-owning
 * pointers - a const char* name and a const dtest_option_set* options
 * pointer - inline.  Both have been removed.  In their place is a
@@ -56,7 +60,8 @@
 * key, mapped value, and backing container, and callers that need
 * a different shape substitute their own metadata container.
 *
-*   THE VERDICT IS DERIVED, NOT STORED:
+* THE VERDICT IS DERIVED, NOT STORED
+* ----------------------------------
 *   A `bool m_result` sat beside m_status until the two proved never to be
 * independent.  Every constructor and evaluate() wrote them in lockstep, so the
 * only way to hold a result disagreeing with the status was to call set_status
@@ -70,17 +75,18 @@
 * `m_status == status_passed`, which is what every one of them already returned
 * in every state the two agreed on.
 *
-*   The ACCESSORS STAY on the surface: is_test_evaluable probes result() and
+*   The accessors stay on the surface: is_test_evaluable probes result() and
 * the boolean conversion structurally, test_container.hpp defers to that trait
 * and test_tree.hpp static-asserts it on every element.  What was removed is
 * the member, not the protocol.
 *
-*   TEST OBJECT PROTOCOL:
+* TEST OBJECT PROTOCOL
+* --------------------
 *   DTestObject satisfies the test object protocol detected by
 * test_object_traits.hpp:
 *     - operator bool()    boolean conversion (result)
 *     - status()           status accessor
-*     - result()           verdict accessor, DERIVED from status
+*     - result()           verdict accessor, derived from status
 *     - type_id()          DTestTypeId accessor
 *     - callable_id()      deferred-callable id accessor
 *     - metadata()         metadata container accessor
@@ -88,13 +94,29 @@
 *   Naming, messaging, and option access - if needed - live on the
 * metadata container the user supplied, not on DTestObject itself.
 *
-*   CONSTEXPR:
+* CONSTEXPR
+* ---------
 *   Accessors and simple mutators are constexpr where the metadata
 * container permits.  Evaluation is D_TEST_CONSTEXPR (constexpr on
 * C++14+).
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.
+*
+* HOW TO USE
+* ----------
+*     basic_test leaf = make_test(kind_id, true);
+*
+*     leaf.metadata().set("name", "parses empty input");
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_object.hpp

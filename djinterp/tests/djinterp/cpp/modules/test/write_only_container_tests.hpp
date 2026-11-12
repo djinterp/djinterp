@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [tests]                             write_only_container_tests.hpp
+* djinterp [cpp][test]                            write_only_container_tests.hpp
 *
 *   Suite header for write_only_container.hpp - the append-only sink, the
 * strictest member of the access trio.  Declares every test body, supplies the
 * fixtures the bodies need, and (in DTEST_SPEC_MODE) exposes the spec provider
 * the runner hands to run_module.
 *
-*   BUILD PREREQUISITE - THE MODULE'S INCLUDE PATHS DO NOT RESOLVE AS WRITTEN.
+*   Build prerequisite - the module's include paths do not resolve as written.
 *   write_only_container.hpp sits at core/container/access/ and includes:
 *
 *       #include "../djinterp.hpp"          -> core/container/djinterp.hpp
@@ -14,22 +14,22 @@
 *                                  -> core/container/meta/write_only.hpp
 *
 *   Neither target is where the named header ships.  The capability tag
-* `write_only` ships at core/container/access/write_only.hpp - a SIBLING of the
+* `write_only` ships at core/container/access/write_only.hpp - a sibling of the
 * wrapper, per its own banner - so the include should read "write_only.hpp".
 * And djinterp.hpp ships at core/djinterp.hpp, which from access/ is
 * "../../djinterp.hpp".  All three access wrappers share both defects.
 *
-*   Worth noting alongside it: the capability TAG headers are themselves
+*   Worth noting alongside it: the capability tag headers are themselves
 * inconsistent on the second path.  read_only.hpp and read_write.hpp use
 * "../../djinterp.hpp", which resolves correctly; write_only.hpp uses
 * "../djinterp.hpp", which does not.  The harness supplies forwarding shims at
 * the as-written locations so every header compiles unchanged; the fix belongs
 * in the include blocks, not here.
 *
-*   WHAT THIS OVERLAY CLAIMS, AND HOW IT IS TESTED.
+*   What this overlay claims, and how it is tested.
 *   write_only forwards push_back, emplace_back and clear, plus size and empty
 * - and nothing else.  The claim is that a holder may put data in and reset,
-* but never read it back out.  That is a claim about ABSENCE, so it needs
+* but never read it back out.  That is a claim about absence, so it needs
 * compile-time detection rather than a runtime call, and the suite carries a
 * battery of SFINAE detectors rolled into one wo_caps row per type.
 *
@@ -39,10 +39,11 @@
 * back, no data, no begin or end, no cbegin or cend - and no position-dependent
 * edit either, since insert, erase, pop_back, pop_front and resize would all
 * require observing the contents first.  size and empty survive because they
-* reveal how MANY elements are present without revealing any element's value;
+* reveal how many elements are present without revealing any element's value;
 * the suite pins that distinction explicitly.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   The module targets C++11.  size and empty are D_CONSTEXPR; the append
 * operations are constexpr only where C++14 relaxed constexpr permits a
 * non-const member to be one.  Built at C++20 by the DTest CMake helper.
@@ -50,11 +51,21 @@
 *
 * TABLE OF CONTENTS
 * =================
+*
 * I.    CONSTRUCTION  (write_only_container_tests_construction.cpp)
+* -----------------------------------------------------------------
+*
 * II.   TRAITS        (write_only_container_tests_traits.cpp)
+* -----------------------------------------------------------
+*
 * III.  METADATA      (write_only_container_tests_metadata.cpp)
+* -------------------------------------------------------------
+*
 * IV.   APPEND        (write_only_container_tests_append.cpp)
+* -----------------------------------------------------------
+*
 * V.    SEAL          (write_only_container_tests_seal.cpp)
+* ---------------------------------------------------------
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/write_only_container_tests.hpp
@@ -374,43 +385,69 @@ struct wo_probe_type
 
 // I.   CONSTRUCTION   (write_only_container_tests_construction.cpp)
 bool tests_write_only_default_construction();
+
 bool tests_write_only_wraps_a_container_value();
+
 bool tests_write_only_emplaces_from_arguments();
+
 bool tests_write_only_copy_and_move_construction();
+
 bool tests_write_only_variadic_ctor_excludes_self();
+
 bool tests_write_only_factory_deduces_container();
+
 bool tests_write_only_holds_an_independent_copy();
 
 // II.  TRAITS   (write_only_container_tests_traits.cpp)
 bool tests_write_only_exposes_container_type();
+
 bool tests_write_only_exposes_value_type();
+
 bool tests_write_only_capability_is_write_only();
+
 bool tests_write_only_capability_tag_semantics();
+
 bool tests_write_only_typedefs_track_container();
 
 // III. METADATA   (write_only_container_tests_metadata.cpp)
 bool tests_write_only_size_reports_the_count();
+
 bool tests_write_only_empty_agrees_with_size();
+
 bool tests_write_only_metadata_tracks_appends();
+
 bool tests_write_only_metadata_is_value_free();
+
 bool tests_write_only_metadata_is_constexpr();
 
 // IV.  APPEND   (write_only_container_tests_append.cpp)
 bool tests_write_only_push_back_appends();
+
 bool tests_write_only_emplace_back_forwards_args();
+
 bool tests_write_only_clear_empties_the_sink();
+
 bool tests_write_only_append_and_reset_cycle();
+
 bool tests_write_only_append_stores_the_element();
+
 bool tests_write_only_append_surface_tracks_container();
 
 // V.   SEAL   (write_only_container_tests_seal.cpp)
 bool tests_write_only_exposes_no_reader();
+
 bool tests_write_only_seal_holds_for_every_container();
+
 bool tests_write_only_omits_positional_edits();
+
 bool tests_write_only_never_yields_the_container();
+
 bool tests_write_only_no_member_returns_an_element();
+
 bool tests_write_only_is_stricter_than_read_write();
+
 bool tests_write_only_is_disjoint_from_read_only();
+
 bool tests_write_only_detection_battery_is_sound();
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    atomic_tests_flag_guard.cpp
+* djinterp [cpp][sync]                               atomic_tests_flag_guard.cpp
 *
 *   Section III - DAtomicFlagGuard.  The RAII guard test-and-sets a
 * std::atomic_flag on construction and clears it on destruction, reporting via
@@ -7,7 +7,7 @@
 * observable behaviours: was_set() false on a clear flag, was_set() true when
 * the flag is already set, that construction actually sets the flag, and that
 * destruction actually clears it.  A final case documents that the guard is a
-* SCOPED test-and-set (it always clears on the way out), not a persistent
+* scoped test-and-set (it always clears on the way out), not a persistent
 * one-shot latch.
 *
 *

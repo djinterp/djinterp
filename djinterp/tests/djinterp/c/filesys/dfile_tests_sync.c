@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_sync.c
+* djinterp [c][filesys]                                       dfile_tests_sync.c
 *
 *   Tests for file synchronization operations (fsync, fflush).
 *

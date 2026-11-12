@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         dtime_tests_register.c
+* djinterp [c]                                            dtime_tests_register.c
 *
 * dtime.h's suite, block "register": the register's decisions on dtime.
 *   #26 (the Windows clocks) and #27's MSVC branch are platform paths: on

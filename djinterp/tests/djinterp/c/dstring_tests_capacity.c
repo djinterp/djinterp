@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [test]                                       dstring_tests_capacity.c
+* djinterp [c]                                          dstring_tests_capacity.c
 *
 *   Unit tests for dj_string capacity management functions:
-*     - d_string_reserve
+*     - d_string_reserve, huge requests included
 *     - d_string_shrink_to_fit
 *     - d_string_capacity
 *     - d_string_resize
@@ -11,11 +11,14 @@
 * path:      /tests/djinterp/c/dstring_tests_capacity.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
+// std
+#include <stdlib.h>  // getenv
+#include <string.h>  // strcmp, strstr
 // djinterp
-#include "dstring_tests.h"
+#include "dstring_tests.h"  // the suite's declarations
 
 
 /******************************************************************************
@@ -234,6 +237,120 @@ bool d_tests_dstring_reserve(struct dj_test_suite* _suite)
     return true;
 }
 
+
+/******************************************************************************
+* d_tests_dstring_reserve_huge
+******************************************************************************/
+
+// D_TESTS_DSTRING_UNDER_ASAN
+//   constant: 1 when AddressSanitizer is compiled in, whose allocator aborts on
+// a huge request unless ASAN_OPTIONS lets it return NULL.
+#if defined(__SANITIZE_ADDRESS__)
+    #define D_TESTS_DSTRING_UNDER_ASAN 1
+#elif defined(__has_feature)
+    #if __has_feature(address_sanitizer)
+        #define D_TESTS_DSTRING_UNDER_ASAN 1
+    #endif
+#endif
+#ifndef D_TESTS_DSTRING_UNDER_ASAN
+    #define D_TESTS_DSTRING_UNDER_ASAN 0
+#endif
+
+/*
+d_tests_dstring_reserve_huge
+  Tests d_string_reserve() with requests no allocator can meet. Growth doubled
+a string's capacity in a loop until it held the request, and for a request
+above SIZE_MAX / 2 the doubling wrapped to 0 and never ended. A capacity that
+cannot double now takes the request exactly, through d_ckd_mul (c/dckdint.h),
+so such a request is tried once and refused by the allocator.
+  Under AddressSanitizer the allocator aborts on such a request instead of
+returning NULL, unless ASAN_OPTIONS holds allocator_may_return_null=1, so the
+test is skipped there without it.
+
+Test cases:
+  1. A request just above SIZE_MAX / 2 returns (the loop ends) and fails,
+     leaving the text and the capacity as they were
+  2. A request of SIZE_MAX does the same
+  3. An ordinary request still grows by doubling, keeping the text
+
+Parameter(s):
+  _suite: the suite the checks are recorded in.
+Return:
+  true, once the checks are recorded.
+*/
+bool d_tests_dstring_reserve_huge(struct dj_test_suite* _suite)
+{
+    const size_t      huge = (size_t)-1;
+    struct dj_string* str;
+    size_t            capacity;
+
+    d_test_suite_test(_suite, "d_string_reserve, huge requests");
+
+#if D_TESTS_DSTRING_UNDER_ASAN
+    {
+        const char* const options = getenv("ASAN_OPTIONS");
+
+        if ( (!options) ||
+             (!strstr(options, "allocator_may_return_null=1")) )
+        {
+            d_test_suite_skip(_suite,
+                              "AddressSanitizer aborts on a huge request; set "
+                              "ASAN_OPTIONS=allocator_may_return_null=1");
+
+            return true;
+        }
+    }
+#endif  // D_TESTS_DSTRING_UNDER_ASAN
+
+    str = d_string_new_from_cstr("abc");
+
+    D_TEST_CHECK_MSG(_suite,
+                     "string_made",
+                     (str != NULL),
+                     "d_string_new_from_cstr(\"abc\") should succeed");
+
+    if (!str)
+    {
+        return true;
+    }
+
+    capacity = str->capacity;
+
+    // test 1: just above SIZE_MAX / 2
+    D_TEST_CHECK_MSG(_suite,
+                     "above_half_fails",
+                     !d_string_reserve(str, ((huge / 2u) + 2u)),
+                     "a request above SIZE_MAX / 2 should fail");
+    D_TEST_CHECK_MSG(_suite,
+                     "above_half_keeps_string",
+                     ( (str->capacity == capacity) &&
+                       (strcmp(str->text, "abc") == 0) ),
+                     "the refused request should leave the string as it was");
+
+    // test 2: SIZE_MAX
+    D_TEST_CHECK_MSG(_suite,
+                     "size_max_fails",
+                     !d_string_reserve(str, huge),
+                     "a request of SIZE_MAX should fail");
+    D_TEST_CHECK_MSG(_suite,
+                     "size_max_keeps_string",
+                     ( (str->capacity == capacity) &&
+                       (strcmp(str->text, "abc") == 0) ),
+                     "the refused request should leave the string as it was");
+
+    // test 3: an ordinary growth still doubles past the request
+    D_TEST_CHECK_MSG(_suite,
+                     "ordinary_growth",
+                     ( (d_string_reserve(str, (capacity + 1u))) &&
+                       (str->capacity >= (capacity + 1u)) &&
+                       (strcmp(str->text, "abc") == 0) ),
+                     "an ordinary request should still grow, keeping the "
+                     "text");
+
+    d_string_free(str);
+
+    return true;
+}
 
 /******************************************************************************
 * d_tests_dstring_shrink_to_fit
@@ -774,6 +891,7 @@ bool d_tests_dstring_capacity_all(struct dj_test_suite* _suite)
 
     // run all capacity management tests
     d_tests_dstring_reserve(_suite);
+    d_tests_dstring_reserve_huge(_suite);
     d_tests_dstring_shrink_to_fit(_suite);
     d_tests_dstring_capacity(_suite);
     d_tests_dstring_resize(_suite);

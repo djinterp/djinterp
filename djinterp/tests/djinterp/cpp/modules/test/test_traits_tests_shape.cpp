@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_traits_tests_shape.cpp
+* djinterp [cpp][test]                               test_traits_tests_shape.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests_shape.cpp

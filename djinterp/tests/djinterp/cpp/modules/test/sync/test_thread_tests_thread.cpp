@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                  test_thread_tests_thread.cpp
+* djinterp [cpp][test]                              test_thread_tests_thread.cpp
 *
 *   Section TU: the test_thread class and DTestThreadState enum.  Normal-mode
 * include of the suite header brings the header under test, the fixtures, and

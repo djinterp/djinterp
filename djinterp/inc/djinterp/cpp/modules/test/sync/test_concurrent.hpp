@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                        test_concurrent.hpp
+* djinterp [cpp][test]                                       test_concurrent.hpp
 *
 *   The DTest concurrent runner: a workhorse for executing a callable
 * concurrently from N threads under controlled conditions.
@@ -7,30 +7,31 @@
 *   The runner orchestrates the four awkward parts of writing a
 * concurrent test by hand:
 *
-*     1. STARTING ALL THREADS AT ONCE
+*     1. Starting all threads at once
 *        Threads spawned through std::thread don't actually start
 *        running together - there is unavoidable scheduling jitter.
 *        The runner uses DSimultaneousStart to hold every worker at
 *        a gate until they have all checked in, then fires the gate.
 *
-*     2. JOINING WITH A TIMEOUT
+*     2. Joining with a timeout
 *        Real concurrent bugs deadlock.  Joining without a timeout
 *        means the test framework deadlocks alongside the bug.  The
 *        runner enforces a hard timeout and reports surviving
 *        threads as failures.
 *
-*     3. EXCEPTION AGGREGATION
+*     3. Exception aggregation
 *        Each worker can throw independently.  The runner aggregates
 *        every captured exception into a per-thread report and
 *        produces a single DTestObject summarizing the run.
 *
-*     4. PER-THREAD RESULT COLLECTION
+*     4. Per-thread result collection
 *        Many concurrent tests compute a per-thread value (e.g.
 *        local sum, observed sequence) that the assertion checks
 *        post-hoc.  The runner provides a typed result vector keyed
 *        by thread id.
 *
-*   EXECUTION PATTERNS:
+* EXECUTION PATTERNS
+* ------------------
 *   The runner exposes several pre-canned patterns:
 *
 *     run_simultaneous   - every thread runs the same callable
@@ -44,11 +45,28 @@
 *                          threads progress together through
 *                          phases via an internal barrier
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later.  On C++98/03 the runner degrades to
 * a sequential executor: every "thread" runs one after another on
 * the calling thread.  Tests still complete and produce results;
 * they just can't exercise concurrency.
+*
+* HOW TO USE
+* ----------
+*   Make a runner, give it a thread count and a worker, and run it; the report
+* converts to a basic_test with to_test_object:
+*
+*     DConcurrentRunner runner = make_concurrent_runner(8, worker);
+*
+* OPTIONS
+* -------
+*   The thread count, the worker or phases, a simultaneous start and a join
+* timeout, each set on the runner.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_concurrent.hpp

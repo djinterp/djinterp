@@ -1,22 +1,26 @@
 /*******************************************************************************
-* djinterp [test]                                            file_tests_link.cpp
+* djinterp [cpp][filesys]                                    file_tests_link.cpp
 *
-*   VII. LINKS (file_link.hpp) -- create one, read what it says, ask whether a
+*   VII. Links (file_link.hpp) -- create one, read what it says, ask whether a
 * path is one.
 *
-*   TWO GATES, FOR TWO DIFFERENT REASONS. The section is compiled out entirely
-* where the platform has no symbolic links (D_FILE_LINK_IS_AVAILABLE), and the
-* creation cases are additionally admitted only when this process can actually
-* MAKE one -- the API existing does not imply the privilege to use it, which is
-* the usual state of an unprivileged Windows runner. The second gate uses
-* add_if, so the cases are ABSENT rather than vacuously passing: a suite that
-* reports green for work it never did is worse than one that reports less.
+* TWO GATES, FOR TWO DIFFERENT REASONS
+* ------------------------------------
+*   The section is compiled out entirely where the platform has no symbolic
+* links (D_FILE_LINK_IS_AVAILABLE), and the creation cases are additionally
+* admitted only when this process can actually make one -- the API existing does
+* not imply the privilege to use it, which is the usual state of an unprivileged
+* Windows runner. The second gate uses add_if, so the cases are absent rather
+* than vacuously passing: a suite that reports green for work it never did is
+* worse than one that reports less.
 *
-*   A DANGLING LINK IS A VALID LINK. read_symlink returns what the link SAYS,
-* not what it reaches, so it works perfectly on a link whose target does not
-* exist -- and that is the case most likely to be broken by an implementation
-* that "helpfully" resolves. The dangling case below asserts the whole triple:
-* the link is a link, its text is readable, and following it finds nothing.
+* A DANGLING LINK IS A VALID LINK
+* -------------------------------
+*   read_symlink returns what the link says, not what it reaches, so it works
+* perfectly on a link whose target does not exist -- and that is the case most
+* likely to be broken by an implementation that "helpfully" resolves. The
+* dangling case below asserts the whole triple: the link is a link, its text is
+* readable, and following it finds nothing.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_link.cpp

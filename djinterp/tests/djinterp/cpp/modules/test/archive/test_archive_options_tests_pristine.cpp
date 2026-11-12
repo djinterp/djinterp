@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                    test_archive_options_tests_pristine.cpp
+* djinterp [cpp][test]                   test_archive_options_tests_pristine.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/archive/test_archive_options_tests_pristine.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./test_archive_options_tests.hpp"
@@ -21,7 +21,8 @@ tests_archive_options_default_is_pristine
   - a default-constructed set reports pristine, as does the factory result
   - its embedded codec reports pristine too
   - the diff against default is empty
-  - the documented non-zero defaults are the values every mutator moves from
+  - every knob starts unset, the value every mutator moves from; the kernel
+    resolves each one when a container is written (d_archive_options_resolve)
 */
 bool tests_archive_options_default_is_pristine()
 {
@@ -32,25 +33,28 @@ bool tests_archive_options_default_is_pristine()
     D_AO_CHECK(dt::codec_is_default(a));
     D_AO_CHECK(dt::describe_diff_from_default(a).empty());
 
-    // the defaults that are not simply zero or empty
-    D_AO_CHECK(a.level == -1);
-    D_AO_CHECK(!a.store_only);
-    D_AO_CHECK(a.preserve_permissions);
-    D_AO_CHECK(a.preserve_mtime);
-    D_AO_CHECK(a.zip.utf8_names);
-    D_AO_CHECK(!a.tar.numeric_owner);
-    D_AO_CHECK(!a.gz.store_name);
-    D_AO_CHECK(a.gz.store_mtime);
-    D_AO_CHECK(a.sevenzip.solid);
-    D_AO_CHECK(a.sevenzip.header_compression);
-    D_AO_CHECK(!a.sevenzip.header_encryption);
-    D_AO_CHECK(a.sevenzip.threads == 0);
-    D_AO_CHECK(a.rar.level == -1);
-    D_AO_CHECK(!a.rar.solid);
-    D_AO_CHECK(!a.rar.recovery_record);
+    // every knob unset, the codec's too
+    D_AO_CHECK(a.level == dj::archive_knob_unset);
+    D_AO_CHECK(a.store_only == dj::archive_knob_unset);
+    D_AO_CHECK(a.preserve_permissions == dj::archive_knob_unset);
+    D_AO_CHECK(a.preserve_mtime == dj::archive_knob_unset);
+    D_AO_CHECK(a.zip.method == dj::archive_knob_unset);
+    D_AO_CHECK(a.zip.utf8_names == dj::archive_knob_unset);
+    D_AO_CHECK(a.tar.numeric_owner == dj::archive_knob_unset);
+    D_AO_CHECK(a.gz.store_name == dj::archive_knob_unset);
+    D_AO_CHECK(a.gz.store_mtime == dj::archive_knob_unset);
+    D_AO_CHECK(a.sevenzip.solid == dj::archive_knob_unset);
+    D_AO_CHECK(a.sevenzip.header_compression == dj::archive_knob_unset);
+    D_AO_CHECK(a.sevenzip.header_encryption == dj::archive_knob_unset);
+    D_AO_CHECK(a.sevenzip.threads == dj::archive_knob_unset);
+    D_AO_CHECK(a.rar.level == dj::archive_knob_unset);
+    D_AO_CHECK(a.rar.solid == dj::archive_knob_unset);
+    D_AO_CHECK(a.rar.recovery_record == dj::archive_knob_unset);
+    D_AO_CHECK(a.codec.level == D_COMPRESS_KNOB_UNSET);
 
-    // and the embedded codec carries the compress vocabulary's own defaults
-    D_AO_CHECK(a.codec.level == -1);
+    // the strings are simply empty
+    D_AO_CHECK(a.comment.empty());
+    D_AO_CHECK(a.zip.password.empty());
 
     return true;
 }

@@ -1,13 +1,13 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_options.hpp
+* djinterp [cpp][test]                                          test_options.hpp
 *
 *   The configuration vocabulary for the DTest subframework.  A configuration
-* is `test_option_set`: ONE type at every level from the module's floor
+* is `test_option_set`: one type at every level from the module's floor
 * (C++11) up, a struct with a named member per aspect and keyed access to the
 * same members, `get<test_option::K>()` and `set<test_option::K>(v)`.  The
 * framework reads it through free accessors.
 *
-*   ONE SHAPE (lane B, 2026.11.05). Until this revision the set was an
+*   One shape (lane B, 2026.11.05). Until this revision the set was an
 * option_set<> at C++20 and a plain struct below, so a level changed what a
 * shared type was, which the C++ guide rules out ("no level changes what a
 * shared type is"), and code that wrote an option needed an #if at each site:
@@ -17,47 +17,72 @@
 * Both spellings, `opts.set<test_option::show>(v)` and `opts.show = v`,
 * compile everywhere.
 *
-*     PART A - RUNTIME CORE (C++11, ungated).  The canonical layer every other
+*     Part A - runtime core (C++11, ungated).  The canonical layer every other
 *       test module compiles against: the value enums the knobs range over, the
 *       match_context a node presents to a route, the runtime DTestPredicate IR
 *       (+ value builders), test_route (+ make_route), and DTestResolved.  These
 *       carry no auto NTTP, no carrier, and no option<> of their own, so they sit
 *       at the framework's C++11 floor - test_kind.hpp holds a const
 *       test_option_set* and test_session.hpp owns one.
-*     PART B - CONFIGURATION SET (one shape).  `test_option` keys one member
+*     Part B - configuration set (one shape).  `test_option` keys one member
 *       per aspect; `test_option_set` holds them, and its get<>/set<> reach a
 *       member by key.  A uniform layer of free accessors (line_width(opts),
 *       routes(opts), ...) is the read surface the rest of the framework uses.
 *       default_test_options() returns the framework defaults, which the
 *       struct's constructor carries, and resolve() folds the routes for one
 *       node into a flat DTestResolved verdict.
-*     PART C - ROUTE AUTHORING (C++20).  The type-level vocabulary for writing
+*     Part C - route authoring (C++20).  The type-level vocabulary for writing
 *       the conditional override list - a test_match predicate vocabulary and
 *       route_<> - lowered by make_routes<...>() to the std::vector<test_route>
 *       that seeds the `routes` slot.  Routes were always structural (a predicate
 *       is a tree; the list is ordered and repeatable), so they were never an
 *       DOptionGenerator concern; the flat key/value stream does not model them.
 *
-*   AUTHORING:
+* AUTHORING
+* ---------
 *   Knobs are set imperatively on a default_test_options() result -
 * opts.set<test_option::line_width>(100), or opts.line_width = 100 - because
 * several slots (output_file, the format_* templates, routes, and the
 * compress_opts / archive_opts aggregates) carry std::string / std::vector /
-* class-type runtime values.  set<> covers EVERY knob at every level.
+* class-type runtime values.  set<> covers every knob at every level.
 *
-*   ON OUTPUT PACKAGING (compress_options.hpp / archive_options.hpp):
-*   A configuration can ask that the report FILE be compressed or archived once
+* ON OUTPUT PACKAGING (compress_options.hpp / archive_options.hpp)
+* ----------------------------------------------------------------
+*   A configuration can ask that the report file be compressed or archived once
 * the run finishes.  The selection knobs (pack, compressor, archive_format) are
-* their own slots; the COMPLETE per-codec / per-format tuning rides two aggregate
-* slots, compress_opts and archive_opts, which ARE the full surface of
+* their own slots; the complete per-codec / per-format tuning rides two aggregate
+* slots, compress_opts and archive_opts, which are the full surface of
 * compress_options.hpp / archive_options.hpp.  Packaging is a whole-report
 * decision, so it sits on the set beside output_file and is deliberately absent
 * from the per-node DTestResolved.
-*   PORTABILITY:
-*   PARTS A and B are C++11 (the module's floor), and the same at every level
-* above it.  PART C carries fixed_string literals and keeps the stricter
+*
+* PORTABILITY
+* -----------
+*   Parts A and B are C++11 (the module's floor), and the same at every level
+* above it.  Part C carries fixed_string literals and keeps the stricter
 * D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS gate: a feature that exists
 * from the level that can express it, beside a type that does not change.
+*
+* HOW TO USE
+* ----------
+*   Start from the defaults and set what a run changes:
+*
+*     test_option_set opts = default_test_options();
+*
+*     opts.set<test_option::show>(DTestShow::failures_only);
+*
+* OPTIONS
+* -------
+*   This header is the run-time option vocabulary: test_option_set, one member
+* per aspect (what is shown, how output is split and named, the sinks,
+* packaging, routes), read with get<test_option::K>() and written with
+* set<test_option::K>(v).
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TEST_OUTPUT_PACK, D_CFG_TEST_OUTPUT_CODEC and
+* D_CFG_TEST_OUTPUT_FORMAT, in config/cpp/modules/test/cfg_test_options.h,
+* choose what default_test_options() packs the report with.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_options.hpp

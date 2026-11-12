@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_util.c
+* djinterp [c][filesys]                                        file_tests_util.c
 *
 *   Shared test-environment machinery for the fs suite: it stands up an
 * isolated, absolute-pathed scratch directory with one standard fixture file
@@ -7,7 +7,7 @@
 * the point -- a d_dir_set_current test can leave the working directory anywhere and the
 * rest of the suite still resolves its fixtures.
 *
-*   Fixture CONTENT is written with raw stdio, never d_file_write_all, so a bug in
+*   Fixture content is written with raw stdio, never d_file_write_all, so a bug in
 * the code under test cannot quietly stage (or fail to stage) a fixture and
 * thereby hide a failure in an unrelated module. The directory scaffolding does
 * dogfood d_dir_get_current / d_path_join / d_dir_create: they are the portability layer this

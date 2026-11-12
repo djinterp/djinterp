@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            rcu_tests_runner.cpp
+* djinterp [cpp][sync]                                      rcu_tests_runner.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/rcu_tests_runner.cpp

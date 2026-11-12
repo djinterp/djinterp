@@ -1,35 +1,39 @@
 /*******************************************************************************
-* djinterp [test]                            concurrency_strategy_tags_tests.hpp
+* djinterp [cpp][sync]                       concurrency_strategy_tags_tests.hpp
 *
 *   Declarations for the concurrency_strategy_tags.hpp unit-test suite, plus
 * the helper types the sections share.
 *
-*   WHAT THE HEADER UNDER TEST OFFERS, AND HOW IT IS TESTED:
-*   The header is a VOCABULARY header - it declares no functions and holds no
-* state, so every claim it makes is a claim about TYPES.  The suite therefore
+* WHAT THE HEADER UNDER TEST OFFERS, AND HOW IT IS TESTED
+* -------------------------------------------------------
+*   The header is a vocabulary header - it declares no functions and holds no
+* state, so every claim it makes is a claim about types.  The suite therefore
 * tests it the way the trait system consumes it: it (a) reads the shape of the
 * seven tag structs, (b) exercises the `using concurrency_strategy_tag = ...;`
 * fast path with self-tagging mocks, and (c) pins each enumerator of the four
 * signature enums to its documented value, order, and scoping.
 *
-*   THE HELPERS BELOW ARE DELIBERATELY LOCAL.  has_strategy_tag /
-* strategy_tag_of re-implement, in miniature, the fast path that
-* concurrency_strategy_traits.hpp runs - and mock_signature / mock_signature_of
-* re-implement the signature aggregate and the strategy -> signature mapping
-* that the same trait header owns.  Neither is imported, because importing them
-* would defeat the point: the header under test claims to be usable BENEATH the
-* trait layer, with no dependency but djinterp.hpp.  A suite that included the
-* trait header could not observe that claim being broken.  The mapping in
-* mock_signature_of is illustrative only; the canonical one is the trait
-* header's.
+* THE HELPERS BELOW ARE DELIBERATELY LOCAL
+* ----------------------------------------
+*   has_strategy_tag / strategy_tag_of re-implement, in miniature, the fast path
+* that concurrency_strategy_traits.hpp runs - and mock_signature /
+* mock_signature_of re-implement the signature aggregate and the strategy ->
+* signature mapping that the same trait header owns.  Neither is imported,
+* because importing them would defeat the point: the header under test claims to
+* be usable beneath the trait layer, with no dependency but djinterp.hpp.  A
+* suite that included the trait header could not observe that claim being
+* broken.  The mapping in mock_signature_of is illustrative only; the canonical
+* one is the trait header's.
 *
 *   The tests are flat in djinterp::testing and every section TU includes this
 * header and nothing else from djinterp - so the whole suite is also a standing
 * proof that the header stands alone.
 *
-*   PORTABILITY: the suite requires C++11 (the framework's floor).  Section I
-* of the header under test is C++98-shaped and section II is C++11-gated; both
-* claims are themselves tested (tests_tag_types_are_cpp98_pods and
+* PORTABILITY
+* -----------
+*   The suite requires C++11 (the framework's floor).  Section I of the header
+* under test is C++98-shaped and section II is C++11-gated; both claims are
+* themselves tested (tests_tag_types_are_cpp98_pods and
 * tests_vocabulary_is_gated_to_cpp11).
 *
 *
@@ -523,125 +527,213 @@ struct mock_signature_of<hybrid_strategy_tag>
 // a.   the header contract
 //////////////////////////////////////////
 bool tests_header_include_guard();
+
 bool tests_header_is_idempotent();
+
 bool tests_header_requires_cpp();
+
 bool tests_header_pulls_only_the_core();
+
 bool tests_header_has_no_trait_layer_cycle();
+
 bool tests_header_defines_no_stray_macros();
+
 bool tests_entities_live_in_the_djinterp_namespace();
+
 bool tests_vocabulary_is_gated_to_cpp11();
 
 // b.   the seven strategy tags
 //////////////////////////////////////////
 bool tests_tag_types_are_complete();
+
 bool tests_tag_types_are_empty();
+
 bool tests_tag_types_are_trivial();
+
 bool tests_tag_types_are_standard_layout();
+
 bool tests_tag_types_size_and_alignment();
+
 bool tests_tag_types_are_default_constructible();
+
 bool tests_tag_types_are_copyable_and_movable();
+
 bool tests_tag_types_are_aggregates();
+
 bool tests_tag_types_are_not_polymorphic();
+
 bool tests_tag_types_are_constexpr_friendly();
+
 bool tests_tag_types_pass_by_value();
+
 bool tests_tag_types_are_cpp98_pods();
 
 // c.   tag identity + composition
 //////////////////////////////////////////
 bool tests_tags_are_pairwise_distinct();
+
 bool tests_tags_are_identical_to_themselves();
+
 bool tests_tags_are_unrelated_by_inheritance();
+
 bool tests_tags_do_not_interconvert();
+
 bool tests_tag_dispatch_selects_the_matching_overload();
+
 bool tests_tag_dispatch_accepts_a_derived_tag();
+
 bool tests_tags_key_template_specializations();
+
 bool tests_the_header_declares_exactly_seven_tags();
+
 bool tests_tags_support_empty_base_optimization();
+
 bool tests_tags_compose_by_multiple_inheritance();
+
 bool tests_hybrid_is_a_peer_not_a_composite();
+
 bool tests_the_tag_predicate_rejects_non_tags();
 
 // d.   the self-tagging protocol
 //////////////////////////////////////////
 bool tests_self_tagging_is_detected();
+
 bool tests_the_declared_tag_is_recovered();
+
 bool tests_every_tag_is_declarable();
+
 bool tests_untagged_types_are_not_detected();
+
 bool tests_detection_is_sfinae_safe();
+
 bool tests_a_private_alias_is_not_detected();
+
 bool tests_the_typedef_form_is_equivalent();
+
 bool tests_an_inherited_alias_is_detected();
+
 bool tests_a_shadowing_alias_wins();
+
 bool tests_a_template_can_self_tag();
+
 bool tests_the_alias_need_not_name_a_known_tag();
+
 bool tests_detection_after_decay();
 
 // e.   concurrency_progress
 //////////////////////////////////////////
 bool tests_progress_enumerator_values();
+
 bool tests_progress_is_an_enum_not_an_integer();
+
 bool tests_progress_is_scoped();
+
 bool tests_progress_underlying_type();
+
 bool tests_progress_size_and_alignment();
+
 bool tests_progress_is_a_total_order();
+
 bool tests_progress_equality();
+
 bool tests_progress_round_trips_through_the_underlying_type();
+
 bool tests_progress_in_constant_expressions();
+
 bool tests_progress_switch_covers_every_grade();
+
 bool tests_progress_has_exactly_four_grades();
+
 bool tests_progress_out_of_range_value_falls_through();
 
 // f.   concurrency_arity
 //////////////////////////////////////////
 bool tests_arity_enumerator_values();
+
 bool tests_arity_is_scoped();
+
 bool tests_arity_underlying_type();
+
 bool tests_arity_size_and_alignment();
+
 bool tests_arity_is_a_total_order();
+
 bool tests_arity_is_not_a_boolean();
+
 bool tests_arity_round_trips_through_the_underlying_type();
+
 bool tests_arity_in_constant_expressions();
+
 bool tests_arity_switch_covers_both_arities();
+
 bool tests_arity_has_exactly_two_arities();
+
 bool tests_arity_out_of_range_value_falls_through();
 
 // g.   iteration_consistency
 //////////////////////////////////////////
 bool tests_iteration_enumerator_values();
+
 bool tests_iteration_is_scoped();
+
 bool tests_iteration_underlying_type();
+
 bool tests_iteration_orders_the_overlap_semantics();
+
 bool tests_iteration_the_degenerate_is_the_floor();
+
 bool tests_iteration_round_trips_through_the_underlying_type();
+
 bool tests_iteration_in_constant_expressions();
+
 bool tests_iteration_switch_covers_every_semantics();
+
 bool tests_iteration_has_exactly_three_semantics();
+
 bool tests_iteration_out_of_range_value_falls_through();
 
 // h.   reclamation_obligation
 //////////////////////////////////////////
 bool tests_reclamation_enumerator_values();
+
 bool tests_reclamation_is_scoped();
+
 bool tests_reclamation_underlying_type();
+
 bool tests_reclamation_orders_the_disciplines();
+
 bool tests_reclamation_none_is_the_floor();
+
 bool tests_reclamation_round_trips_through_the_underlying_type();
+
 bool tests_reclamation_in_constant_expressions();
+
 bool tests_reclamation_switch_covers_every_obligation();
+
 bool tests_reclamation_has_exactly_six_obligations();
+
 bool tests_reclamation_out_of_range_value_falls_through();
+
 bool tests_reclamation_enumerators_do_not_collide_with_the_tags();
 
 // i.   the signature vocabulary
 //////////////////////////////////////////
 bool tests_the_four_enums_are_distinct_types();
+
 bool tests_the_enums_do_not_interconvert();
+
 bool tests_coincident_values_are_not_coincident_types();
+
 bool tests_the_enums_are_not_arithmetic();
+
 bool tests_the_vocabulary_composes_into_a_signature();
+
 bool tests_a_strategy_to_signature_mapping_is_expressible();
+
 bool tests_the_signature_is_a_compile_time_value();
+
 bool tests_every_enumerator_is_reachable();
+
 bool tests_the_vocabulary_needs_no_trait_header();
 
 

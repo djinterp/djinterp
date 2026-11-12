@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_stat.c
+* djinterp [c][filesys]                                        file_tests_stat.c
 *
-*   VIII. METADATA (file_stat) -- interrogating a path or descriptor. The whole
+*   VIII. Metadata (file_stat) -- interrogating a path or descriptor. The whole
 * dj_stat_t is checked for the fields that matter: st_size against the fixture's
 * exact length, st_mode through the portable S_ISREG / S_ISDIR macros, and the
-* deliberately-renamed st_modified (NOT st_mtime, which glibc and macOS both
+* deliberately-renamed st_modified (not st_mtime, which glibc and macOS both
 * macro-hijack) for a plausible timestamp. d_file_stat_fd and d_file_size_stream are
 * descriptor-based and report ENOSYS on the ISO C backend. The boolean queries
 * (exists / is_file / is_dir) are checked in all three states -- present file,

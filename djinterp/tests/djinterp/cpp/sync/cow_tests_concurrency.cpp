@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       cow_tests_concurrency.cpp
+* djinterp [cpp][sync]                                 cow_tests_concurrency.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_concurrency.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              dfile_tests_dir.c
+* djinterp [c][filesys]                                        dfile_tests_dir.c
 *
 *   Tests for directory operations (mkdir, rmdir, opendir, readdir).
 *

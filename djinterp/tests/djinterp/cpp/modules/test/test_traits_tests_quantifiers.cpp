@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_traits_tests_quantifiers.cpp
+* djinterp [cpp][test]                         test_traits_tests_quantifiers.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests_quantifiers.cpp

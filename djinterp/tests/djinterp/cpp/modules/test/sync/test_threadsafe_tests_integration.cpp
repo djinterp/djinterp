@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                         test_threadsafe_tests_integration.cpp
+* djinterp [cpp][test]                     test_threadsafe_tests_integration.cpp
 *
 *   Section TU: short end-to-end flows spanning several submodules at once.
 *

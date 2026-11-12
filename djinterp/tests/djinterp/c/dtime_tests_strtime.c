@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dtime_tests_strtime.c
+* djinterp [c]                                             dtime_tests_strtime.c
 *
 *   Tests for string parsing and formatting functions (strptime, strftime_s).
 *

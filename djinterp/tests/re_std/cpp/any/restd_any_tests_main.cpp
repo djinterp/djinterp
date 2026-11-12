@@ -1,10 +1,11 @@
 /*******************************************************************************
-* djinterp [test]                                       restd_any_tests_main.cpp
+* djinterp [re_std]                                     restd_any_tests_main.cpp
 *
 * re_std::any test runner main:
 *   Walks the registered test-case linked list and reports results.
 *
-*   USAGE:
+* USAGE
+* -----
 *     ./restd_any_tests              - run all tests
 *     ./restd_any_tests <suite-name> - run only the named suite
 *

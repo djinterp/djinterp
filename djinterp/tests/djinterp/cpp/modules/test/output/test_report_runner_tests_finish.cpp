@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                        test_report_runner_tests_finish.cpp
+* djinterp [cpp][test]                       test_report_runner_tests_finish.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_runner_tests_finish.cpp

@@ -38,12 +38,17 @@
 *           -Wformat -Werror -DT_DSTDINT_FREESTANDING                         \
 *           tests/re_std/c/cstdint/t_dstdint.c
 *   ci/check_dstdint.sh runs the whole matrix.
+*   Built with -DT_DSTDINT_DTEST and DTest's C face
+* (src/djinterp/c/modules/test/test_suite.c), as the leaf
+* build/cmake/config/testing/re_std/c/cstdint builds it, the harness is a
+* DTest suite: the same checks, recorded in the suite and reported in its
+* table, with the build's profile as the module's note.
 *
 *
 * path:      /tests/re_std/c/cstdint/t_dstdint.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 // std
 #include <limits.h>  // CHAR_BIT
@@ -57,6 +62,12 @@
 // djinterp
 #include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_USING_CPP,
                                                // D_ENV_LANG_C_STANDARD
+// DTest, when the leaf builds the harness as a suite (T_DSTDINT_DTEST); after
+// the header under test, so the header is read as a standalone build reads it
+#if ( (defined(T_DSTDINT_DTEST)) &&                                           \
+      (!defined(T_DSTDINT_FREESTANDING)) )
+    #include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // C face
+#endif
 
 
 // <stdio.h> and <string.h> come before the header. Where they bring the
@@ -90,10 +101,17 @@
 static int fails  = 0;
 static int checks = 0;
 
+#ifdef T_DSTDINT_DTEST
+    // t_suite
+    //   the suite the checks are recorded in, when built as one.
+    static struct dj_test_suite* t_suite = NULL;
+#endif  // T_DSTDINT_DTEST
+
 
 /*
 t_check
-  Counts one check, and reports it by `_what` if `_ok` is 0.
+  Counts one check, and reports it by `_what` if `_ok` is 0. Built as a
+suite, the check is the suite's, and the report says it.
 */
 static void
 t_check(
@@ -105,9 +123,22 @@ t_check(
 
     if (!_ok)
     {
-        printf("  FAIL %s\n", _what);
         ++fails;
     }
+
+#ifdef T_DSTDINT_DTEST
+    (void)d_test_suite_check_msg(t_suite,
+                                 (_ok != 0),
+                                 _what,
+                                 _what,
+                                 __FILE__,
+                                 __LINE__);
+#else
+    if (!_ok)
+    {
+        printf("  FAIL %s\n", _what);
+    }
+#endif  // T_DSTDINT_DTEST
 
     return;
 }
@@ -124,13 +155,38 @@ t_check_text(
     const char* _want
 )
 {
+    const int ok = (strcmp(_got, _want) == 0);
+
     ++checks;
 
-    if (strcmp(_got, _want) != 0)
+    if (!ok)
     {
-        printf("  FAIL %s: got \"%s\", want \"%s\"\n", _what, _got, _want);
         ++fails;
     }
+
+#ifdef T_DSTDINT_DTEST
+    (void)d_test_suite_check_msg(t_suite,
+                                 (ok != 0),
+                                 _what,
+                                 _what,
+                                 __FILE__,
+                                 __LINE__);
+
+    // what a failed comparison read, beside it
+    if (!ok)
+    {
+        (void)d_test_suite_note(t_suite,
+                                "%s: got \"%s\", want \"%s\"",
+                                _what,
+                                _got,
+                                _want);
+    }
+#else
+    if (!ok)
+    {
+        printf("  FAIL %s: got \"%s\", want \"%s\"\n", _what, _got, _want);
+    }
+#endif  // T_DSTDINT_DTEST
 
     return;
 }
@@ -554,6 +610,88 @@ t_fast(void)
 }
 
 
+#ifdef T_DSTDINT_DTEST
+
+/*
+main
+  The runner, built as a suite: one module, one block, a test per group of
+families, and the build's profile as the module's note.
+*/
+int
+main(
+    int   _argc,
+    char* _argv[]
+)
+{
+    struct dj_test_suite_options options;
+    int                          rc;
+
+    d_test_suite_options_init(&options);
+    rc = d_test_suite_options_parse(&options,
+                                    _argc,
+                                    _argv);
+
+    // --help, or a command line refused
+    if (rc != 0)
+    {
+        return (rc > 0) ? D_TEST_SUITE_EXIT_PASSED : D_TEST_SUITE_EXIT_ERROR;
+    }
+
+    t_suite = d_test_suite_new();
+
+    // nowhere to record
+    if (!t_suite)
+    {
+        return D_TEST_SUITE_EXIT_ERROR;
+    }
+
+    d_test_suite_set_options(t_suite,
+                             &options);
+    (void)d_test_suite_module(t_suite,
+                              "dstdint");
+    (void)d_test_suite_describe(t_suite,
+                                "re_std/c/cstdint/dstdint.h: the formats of "
+                                "the fixed-width integers");
+#if (D_ENV_LANG_USING_CPP == 1)
+    (void)d_test_suite_note(t_suite,
+                            "language=C++ %ld",
+                            (long)__cplusplus);
+#else
+    (void)d_test_suite_note(t_suite,
+                            "language=C %ld",
+                            (long)D_ENV_LANG_C_STANDARD);
+#endif
+    (void)d_test_suite_note(t_suite,
+                            "iso_strict=%d\nbackend=%s\npresent=%s",
+                            (int)(RE_STD_CFG_ISO_STRICT != 0),
+                            RE_STD_STDINT_BACKEND_NAME,
+                            t_families);
+
+    (void)d_test_suite_block(t_suite,
+                             "formats");
+    (void)d_test_suite_test(t_suite,
+                            "exact-width families");
+    t_exact();
+    (void)d_test_suite_test(t_suite,
+                            "least-width families");
+    t_least();
+    (void)d_test_suite_test(t_suite,
+                            "intptr_t, uintptr_t and intmax_t");
+    t_pointer_and_max();
+    (void)d_test_suite_test(t_suite,
+                            "fast families");
+    t_fast();
+
+    rc = d_test_suite_run(t_suite,
+                          NULL);
+    d_test_suite_free(t_suite);
+    t_suite = NULL;
+
+    return rc;
+}
+
+#else
+
 int
 main(void)
 {
@@ -580,6 +718,8 @@ main(void)
     return (fails == 0) ? 0 : 1;
 }
 
+#endif  // T_DSTDINT_DTEST
+
 #else  // T_DSTDINT_FREESTANDING
 
 /*
@@ -605,6 +745,7 @@ dialect, which GCC names gnu_printf and gnu_scanf.
 
 int t_format_printf(const char* _format, ...)
     __attribute__((format(T_FORMAT_PRINTF, 1, 2)));
+
 int t_format_scanf(const char* _format, ...)
     __attribute__((format(T_FORMAT_SCANF, 1, 2)));
 

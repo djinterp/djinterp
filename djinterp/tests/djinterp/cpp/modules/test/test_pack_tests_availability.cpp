@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_pack_tests_availability.cpp
+* djinterp [cpp][test]                          test_pack_tests_availability.cpp
 *
 *   Section II.  pack_enabled reports whether the option set asks for any
 * packaging.  report_codec_available / report_format_available map a runtime
 * enum onto codec_is_available<Tag> / format_is_writable<Tag>; each enumerator
 * is checked by comparing the router's answer to the facade's own answer for the
-* EXPECTED tag - so a mis-routed case (e.g. gzip -> the deflate tag) is caught
+* expected tag - so a mis-routed case (e.g. gzip -> the deflate tag) is caught
 * without needing to force any codec on or off.  The unreachable default arm
 * (an out-of-range enum) is checked to return false.
 *

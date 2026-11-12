@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                              test_threadsafe_tests_traits.cpp
+* djinterp [cpp][test]                          test_threadsafe_tests_traits.cpp
 *
 *   Section TU: the folded threadsafe-testable trait and concept surface
 * arrives through the umbrella.

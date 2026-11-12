@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     t_file_wasi.c
+* djinterp [c][filesys]                                            t_file_wasi.c
 *
 *   Runtime harness for c/filesys on WASI, beside t_file_noplat.c, which holds
 * it to what every build on the ISO C backend must do. WASI's libc has no

@@ -1,28 +1,32 @@
 /*******************************************************************************
-* djinterp [test]                                          file_tests_status.cpp
+* djinterp [cpp][filesys]                                  file_tests_status.cpp
 *
 *   III. FILE_STATUS (file_stat.hpp) -- one stat, then as many questions as you
 * like, every answer describing the same snapshot.
 *
-*   THE CONTRACT MOST LIKELY TO BE GOT WRONG. An absent file is NOT a failure
-* here. status() on a path that does not exist CLEARS the error and returns
-* type_not_found, mirroring std::filesystem -- "I looked, and there is nothing
-* there" is an answer, not an error. A caller who tests _ec.failed() to decide
-* whether a file exists will therefore conclude that every missing file exists.
-* The cases below pin this, and pin the deliberate asymmetry beside it:
+* THE CONTRACT MOST LIKELY TO BE GOT WRONG
+* ----------------------------------------
+*   An absent file is not a failure here. status() on a path that does not exist
+* clears the error and returns type_not_found, mirroring std::filesystem -- "I
+* looked, and there is nothing there" is an answer, not an error. A caller who
+* tests _ec.failed() to decide whether a file exists will therefore conclude
+* that every missing file exists. The cases below pin this, and pin the
+* deliberate asymmetry beside it:
 *
-*     status(missing)      -> type_not_found, _ec CLEAR
+*     status(missing)      -> type_not_found, _ec clear
 *     file_size(missing)   -> 0,              _ec = ENOENT
 *
 *   file_size is a question about a file's contents, so being handed no file is
 * a failure to answer; status is a question about what is there, so "nothing"
 * is the answer. Both spellings are intentional and both are asserted.
 *
-*   THE SNAPSHOT PROPERTY. The header's whole argument for this type is that
-* is_regular_file() and size() on ONE file_status cannot race, because there is
-* no second syscall between them. The consistency case below reads every
-* question off a single snapshot and checks they agree -- which is the property
-* the type exists to provide.
+* THE SNAPSHOT PROPERTY
+* ---------------------
+*   The header's whole argument for this type is that is_regular_file() and
+* size() on one file_status cannot race, because there is no second syscall
+* between them. The consistency case below reads every question off a single
+* snapshot and checks they agree -- which is the property the type exists to
+* provide.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_status.cpp

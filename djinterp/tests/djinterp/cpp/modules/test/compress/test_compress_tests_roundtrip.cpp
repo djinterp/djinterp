@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_compress_tests_roundtrip.cpp
+* djinterp [cpp][test]                         test_compress_tests_roundtrip.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/compress/test_compress_tests_roundtrip.cpp

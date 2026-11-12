@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_seek.c
+* djinterp [c][filesys]                                        file_tests_seek.c
 *
-*   V. POSITION (file_seek) -- 64-bit positioning and truncation. The stream
+*   V. Position (file_seek) -- 64-bit positioning and truncation. The stream
 * positioners run on every backend; truncation is descriptor-based and reports
 * ENOSYS on the ISO C backend. d_file_truncate_fd is checked in both directions --
 * shrinking discards the tail, extending zero-fills -- since neither is a

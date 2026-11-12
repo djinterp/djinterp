@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_link.c
+* djinterp [c][filesys]                                        file_tests_link.c
 *
-*   XIII. LINKS (file_link) -- symbolic links. The whole section is compiled
+*   XIII. Links (file_link) -- symbolic links. The whole section is compiled
 * out where the platform has no symbolic links at all (D_FILE_LINK_IS_AVAILABLE
 * is 0), and the runner splices it in only then. Even where the API exists,
-* actually CREATING a link can fail for want of privilege (notably on Windows),
+* actually creating a link can fail for want of privilege (notably on Windows),
 * so the creation-dependent cases run behind a one-time runtime probe. The
 * parameter-validation cases and is_symlink-on-a-regular-file run regardless,
 * since they need no link to exist.

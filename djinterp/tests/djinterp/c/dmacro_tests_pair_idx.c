@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        dmacro_tests_pair_idx.c
+* djinterp [c]                                           dmacro_tests_pair_idx.c
 *
 *   Unit tests for `dmacro.h` pair and indexed iteration section.
 *   Tests D_FOR_EACH_PAIR, D_FOR_EACH_TRIPLE, D_FOR_EACH_4TUPLE concepts.

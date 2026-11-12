@@ -1,38 +1,42 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                              test_pack.hpp
+* djinterp [cpp][test]                                             test_pack.hpp
 *
 *   The bridge between the DTest configuration vocabulary and the portable
 * compression / archive facades.  test_options.hpp lets a configuration ask
-* that the report FILE be compressed or placed in an archive (the `pack`,
+* that the report file be compressed or placed in an archive (the `pack`,
 * `compressor`, `archive_format` knobs and the embedded compress_options /
 * archive_options); this header turns that runtime request into the right
 * facade call and hands back the packed bytes.
 *
-*   THE DISPATCH:
+* THE DISPATCH
+* ------------
 *   The facades (compress.hpp / archive.hpp) select a codec / format with a
-* TAG TYPE at compile time (codecs::gzip, formats::zip); the configuration
-* selects with a runtime ENUM (test_compressor, test_archive_format), because a
+* tag type at compile time (codecs::gzip, formats::zip); the configuration
+* selects with a runtime enum (test_compressor, test_archive_format), because a
 * test_option_set is a runtime value.  The one thing this header does, then, is
 * the runtime -> compile-time hop: a switch over the enum that instantiates the
 * matching try_compress<Tag> / try_archive<Tag>.  Everything else (the actual
 * backend work) lives behind the facades' non-template leaves, compiled once in
 * compress.cpp / archive.cpp.
 *
-*   READING THE OPTION SET:
-*   Configuration values are read through the test_options.hpp FREE ACCESSORS
+* READING THE OPTION SET
+* ----------------------
+*   Configuration values are read through the test_options.hpp free accessors
 * (pack(_o), compressor(_o), document(_o), output_path(_o), ...), the read
 * surface the whole framework shares.  (test_option_set has one shape at every
 * level; the accessors once also hid a C++20 option_set<> face.)
 *
-*   WHAT IT PRODUCES:
+* WHAT IT PRODUCES
+* ----------------
 *   pack_report renders the assembled report bytes into `out` per the option
-* set and returns a djinterp::status.  It does NOT touch the filesystem - the
+* set and returns a djinterp::status.  It does not touch the filesystem - the
 * caller (DTestRunner) writes `out` to output_path - so the transform stays
 * pure and testable.  An unavailable codec / format yields status_unavailable
 * exactly as the facades describe, and the caller can fall back to writing the
 * report unpacked.
 *
-*   DEPENDENCY:
+* DEPENDENCY
+* ----------
 *   Pulling in test_options.hpp and the facades in one translation unit requires
 * that the facades already source their option structs from compress_options.hpp
 * / archive_options.hpp (i.e. that compress.hpp / archive.hpp include those
@@ -42,6 +46,21 @@
 *
 *   Portable to the framework floor (C++11); it adds only a switch over the
 * runtime enums on top of the facades, which are themselves C++98 - C++23.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call directly: the runner packs a finished report through it when
+* the options ask for compression or an archive.
+*
+* OPTIONS
+* -------
+*   The pack, compressor and archive_format slots of a test_option_set, and its
+* embedded compress_options and archive_options.
+*
+* CONFIGURATION
+* -------------
+*   DTEST_PACK_USE_FACADE_DOUBLE, set by the test_pack suite, swaps in
+* pack_facade/'s instrumented doubles. No D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_pack.hpp

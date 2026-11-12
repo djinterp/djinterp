@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_context.hpp
+* djinterp [cpp][test]                                          test_context.hpp
 *
 *   The focus type for the DTest document layer: a "fat" nullable context
 * whose four parts (run / module / unit / check) name the four depths of a
@@ -9,7 +9,8 @@
 * fragment if that part is null - matching binding_env's lenient missing-key
 * rule and DTextTemplate's lenient missing-source rule.
 *
-*   SCOPE BY FOCUS (NO SCOPE MECHANISM):
+* SCOPE BY FOCUS (NO SCOPE MECHANISM)
+* -----------------------------------
 *   Keys live in one flat namespace.  "Scope" - a run-level title vs a
 * module-level module_name - is simply which part of the focus the projection
 * reads.  Iteration (per_module / per_unit_in_module / per_check_in_unit,
@@ -18,7 +19,8 @@
 * a null part and yields empty, so a check-level skeleton handed a module-
 * level focus draws blank check fields rather than crashing.
 *
-*   INDICES (1-BASED FOR DISPLAY):
+* INDICES (1-BASED FOR DISPLAY)
+* -----------------------------
 *   The three indices ride alongside the pointers so that "Module 3 of 5",
 * "Check 1", etc. read straight off the ctx.  test_document's standard
 * sections populate them when refocusing; outside iteration they are zero.
@@ -26,16 +28,31 @@
 * naturally than a 0-based one); refocus closures install (i + 1) when
 * refocusing for iteration i.
 *
-*   DTEST-AGNOSTIC ABOVE THIS LINE:
+* DTEST-AGNOSTIC ABOVE THIS LINE
+* ------------------------------
 *   binding_env<test_context> and section<test_context> are still generic at
 * the core layer - they see _Ctx as opaque.  The DTest-specific shape lives
-* HERE; nothing in binding_env / section / template / document mentions a
+* here; nothing in binding_env / section / template / document mentions a
 * test_report.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++17 (the test_report this builds against is C++11, but the document
 * stack from binding_env on up is C++17).  Self-suppresses below C++17,
 * parallel to binding_env.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: the document layer instantiates binding_env and section
+* against test_context; a projection reads the part it needs.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_context.hpp

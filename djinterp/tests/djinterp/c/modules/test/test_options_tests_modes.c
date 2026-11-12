@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     test_options_tests_modes.c
+* djinterp [c][test]                                  test_options_tests_modes.c
 *
 * test_options.h's suite, block "config_mode_all": the D_TEST_MODE_* modes, the
 * D_TEST_OPTIONS_PRESET_* aliases of them, and D_TEST_SETTINGS_STACK_PUSH_ALL.

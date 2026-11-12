@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                test_invariant_tests_scope.cpp
+* djinterp [cpp][test]                            test_invariant_tests_scope.cpp
 *
 *   Section TU: DInvariantScope - RAII monitoring around a block.  The ctor
 * starts the monitor and the dtor stops it, so the report taken after the

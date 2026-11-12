@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_test_printer.h
+* djinterp [c][test]                                          cfg_test_printer.h
 *
 *   Build-time configuration for the test printer: which of its optional parts
 * are compiled, and the symbols it prints for a result.
@@ -10,10 +10,27 @@
 *             c/modules/test/test_session.c -> D_TEST_SYMBOL_*
 *   requires: cfg_common.h (helpers, D_CFG_TESTING); djinterp.h (D_ENABLED)
 *
-*   ONE HOME FOR WHAT WAS TWO.  This file replaces config/core/test/cfg_test.h
-* and config/c/modules/test/test_config.h, which held the same knobs and
-* symbols word for word under two names, neither of them the cfg_ name of the
-* module they serve. The README's rule is one canonical default per knob.
+* ONE HOME FOR WHAT WAS TWO
+* -------------------------
+*   This file replaces config/core/test/cfg_test.h and
+* config/c/modules/test/test_config.h, which held the same knobs and symbols
+* word for word under two names, neither of them the cfg_ name of the module
+* they serve. The README's rule is one canonical default per knob.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: dconfig.h includes this file. Define a knob before that, or
+* pass it with -D, to change its default.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TEST_ENABLE_CLI, D_CFG_TEST_ENABLE_FILE_IO and D_CFG_TEST_ENABLE_TIME,
+* which of the classic printer's parts are compiled, and the D_TEST_SYMBOL_* it
+* prints for a result.
 *
 *
 * path:      /inc/djinterp/config/c/modules/test/cfg_test_printer.h

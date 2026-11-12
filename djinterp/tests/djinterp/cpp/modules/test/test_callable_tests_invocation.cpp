@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                         test_callable_tests_invocation.cpp
+* djinterp [cpp][test]                        test_callable_tests_invocation.cpp
 *
 *   Running a row.  invoke returns the bound thunk's boolean when the id names
 * a live row, and returns false - never throwing - when it does not: the

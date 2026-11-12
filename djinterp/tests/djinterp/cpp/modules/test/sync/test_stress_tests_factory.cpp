@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                 test_stress_tests_factory.cpp
+* djinterp [cpp][test]                             test_stress_tests_factory.cpp
 *
 *   Section TU: make_stress / make_timed_stress.
 *

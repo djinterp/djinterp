@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    test_options_tests_struct.c
+* djinterp [c][test]                                 test_options_tests_struct.c
 *
 * test_options.h's suite, block "config_struct_all": dj_test_options' members,
 * its size and its layout.

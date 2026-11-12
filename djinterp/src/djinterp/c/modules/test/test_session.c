@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_session.c
+* djinterp [c][test]                                              test_session.c
 *
 *   Implementation of test session - the top-level DTest coordinator.
 *   Manages test execution, output formatting, and result aggregation.

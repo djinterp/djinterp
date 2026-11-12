@@ -1,9 +1,9 @@
 /*******************************************************************************
-* djinterp [c/test]                                                 test_event.h
+* djinterp [c][test]                                                test_event.h
 *
-*   The DTest event module: the observation RECORD, the lifecycle ALPHABET,
+*   The DTest event module: the observation record, the lifecycle alphabet,
 * each summand's payload signature, and a dispatch table over both.  Compiled
-* by BOTH C and C++.
+* by both C and C++.
 *
 *
 * TWO THINGS IN ONE FILE, AND THE SEAM IS DELIBERATE
@@ -13,50 +13,52 @@
 * blended, because a reader who needs one of them should be able to see where
 * the other begins:
 *
-*     THE RECORD (§I) is `struct dj_test_event` -- an {id, status, message}
+*     The record (§I) is `struct dj_test_event` -- an {id, status, message}
 *     observation, plain data, built by one constructor.  It was extracted
 *     from test_common.h so that module could be event-agnostic, then had no
 *     home for two revisions.  This is the home.
 *
-*     THE ALPHABET (§II onward) is the twelve lifecycle summands, their
+*     The alphabet (§II onward) is the twelve lifecycle summands, their
 *     payload signatures, and the dispatch table that fires them.  It was
 *     test_event_common.h.
 *
-*   THEY DO NOT REFER TO EACH OTHER.  The record does not know a kind exists;
-* dispatch does not carry a record.  The one thing they share is a rule -- an
-* out-of-range status is stored as `error` -- and §VII.a is where that is now
-* stated once instead of twice.
+* THEY DO NOT REFER TO EACH OTHER
+* -------------------------------
+*   The record does not know a kind exists; dispatch does not carry a record.
+* The one thing they share is a rule -- an out-of-range status is stored as
+* `error` -- and §VII.a is where that is now stated once instead of twice.
 *
 *
 * WHAT WAS COALESCED, AND WHAT WAS DELIBERATELY NOT
 * =================================================
 *   test_event.hpp declares twelve lifecycle tags through the D_EVENT family
 * from core/event/event_common.hpp.  In that subsystem an event is not an
-* instance but a TYPE -- a tag carrying a nested `payload_type` (a std::tuple
-* of value domains) and a `name()` -- and, in its own words, "the type IS the
+* instance but a type -- a tag carrying a nested `payload_type` (a std::tuple
+* of value domains) and a `name()` -- and, in its own words, "the type is the
 * registration".
 *
 *   Two different things are wrapped up in that sentence and they coalesce
 * differently:
 *
-*     THE ALPHABET is data.  Twelve summands, each with a name, an arity, and
+*     The alphabet is data.  Twelve summands, each with a name, an arity, and
 *     an ordered list of payload domains.  That is a signature -- the F of
 *     F_test -- and it is the thing every walker, handler and reporter in the
 *     framework agrees about.  It lives here.
 *
-*     TAG-AS-TYPE is notation.  Registration by declaration, tuple payloads,
-*     and bind-time compatibility checking are how C++ SPELLS the alphabet;
-*     they are not what the alphabet MEANS.  Per goals §11 and the decision
+*     Tag-as-type is notation.  Registration by declaration, tuple payloads,
+*     and bind-time compatibility checking are how C++ spells the alphabet;
+*     they are not what the alphabet means.  Per goals §11 and the decision
 *     log -- "notation is not semantics", "C needs the object, not the
 *     notation" -- C gets the signature table and a switch, and the tags stay
 *     in the C++ face, unchanged at every call site.
 *
-*   THE OPEN ALPHABET IS OPEN IN BOTH FORKS AND CHECKED IN NEITHER.  A user tag
-* declared with D_TEST_EVENT needs no enrolment call in C++; in C it takes a
-* kind id at or above D_TEST_EVENT_KIND_COUNT and a context its listeners
-* understand.  An earlier revision claimed C recovered at runtime what C++
-* rejects at bind time -- "enforcement differs between the languages;
-* behaviour does not" -- via a signature table and a MISMATCH return.  That was
+* THE OPEN ALPHABET IS OPEN IN BOTH FORKS AND CHECKED IN NEITHER
+* --------------------------------------------------------------
+*   A user tag declared with D_TEST_EVENT needs no enrolment call in C++; in C
+* it takes a kind id at or above D_TEST_EVENT_KIND_COUNT and a context its
+* listeners understand.  An earlier revision claimed C recovered at runtime what
+* C++ rejects at bind time -- "enforcement differs between the languages;
+* behaviour does not" -- via a signature table and a mismatch return.  That was
 * not true even then: a user tag had no way to add a table row, so its payload
 * was validated against nothing and its arguments were silently discarded.  The
 * claim is withdrawn rather than restated.  What C++ still has is each tag's
@@ -66,7 +68,7 @@
 *
 * WHY THERE IS NO DEPENDENCY ON THE EVENT SUBFRAMEWORK
 * ====================================================
-*   core/event/event_common.hpp is ABSENT from the working set, and step C's
+*   core/event/event_common.hpp is absent from the working set, and step C's
 * handoff records event_dispatcher.hpp as absent too -- while noting that
 * test_counter and DTestTimer were both written to accept a bridge that
 * nothing yet supplies.
@@ -92,7 +94,7 @@
 * std::tuple_size<payload_type>, so a tag whose tuple grows a domain without
 * the table learning about it fails to compile.
 *
-*   TWO mechanisms now, not three.  A tuple that disagrees with the table is a
+*   Two mechanisms now, not three.  A tuple that disagrees with the table is a
 * compile error and a table that disagrees with itself is a static assertion in
 * the .c.  The third -- a fire-site check that a payload's slots matched the
 * signature -- went with the slots, and §III says what that cost.
@@ -103,7 +105,7 @@
 *   The listener array is borrowed, never owned, never grown -- the pattern
 * step C made binding for this half of the relay, and which dj_pack_sink,
 * d_archive_extract and dj_counter already use.  d_test_dispatch_on returns
-* FULL rather than reallocating.  A suite's listener count is a property of
+* full rather than reallocating.  A suite's listener count is a property of
 * the suite, which is written down, so the bound is knowable.
 *
 *
@@ -111,13 +113,13 @@
 * =============================================
 *   Listeners for one kind fire in the order they were bound.  This is a
 * contract rather than an implementation detail: an event stream is only
-* comparable across two forks if its ORDER is a function of the inputs, and a
+* comparable across two forks if its order is a function of the inputs, and a
 * handler that fired in table order would reorder the moment either fork's
 * binding sequence changed.  Each listener carries the sequence number it was
 * issued, so the order is recoverable from the table alone and a parity body
 * can record it directly rather than inferring it from side effects.
 *
-*   IT IS NOT CONFIGURABLE, AND THE KNOB THAT SAID IT WAS IS GONE.
+*   It is not configurable, and the knob that said it was is gone.
 * D_CFG_TEST_EVENT_STABLE_ORDER was defined, validated and normalised into
 * D_INTERNAL_TEST_EVENT_STABLE_ORDER, which nothing read -- so the off path
 * compiled clean, produced identical object code, and read as supported.  The
@@ -125,6 +127,28 @@
 * was deleted rather than wired, on the same argument rev08 makes for
 * D_CFG_EVENT_TABLE_ORDERED_ITERATION.  Deleting it changed no behaviour,
 * because it never had any.
+*
+* HOW TO USE
+* ----------
+*   Initialize a dispatch over caller-provided listener storage, bind listeners
+* per event kind, and fire:
+*
+*     struct dj_test_dispatch dispatch = D_TEST_DISPATCH_INIT;
+*
+*     d_test_dispatch_bind_listeners(&dispatch, storage, capacity);
+*     d_test_dispatch_on(&dispatch, D_TEST_EVENT_TEST_FAILED, fn, ctx);
+*     d_test_dispatch_fire(&dispatch, &payload);
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   Set before dconfig.h is included, or with -D; each defaults in
+* config/c/modules/test/cfg_test_event.h: D_CFG_TEST_EVENT_ID_TYPE,
+* D_CFG_TEST_EVENT_MAX_LISTENERS, D_CFG_TEST_EVENT_STABLE_ORDER,
+* D_CFG_TEST_EVENT_VALIDATE_PAYLOAD.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_event.h
@@ -712,9 +736,11 @@ struct dj_test_event d_test_event_make(
 const char* d_test_event_kind_name(
     enum dj_test_event_kind _kind
 );
+
 int d_test_event_arity(
     enum dj_test_event_kind _kind
 );
+
 int d_test_event_kind_is_builtin(
     int32_t _kind
 );
@@ -778,25 +804,30 @@ struct dj_test_event_payload d_test_event_payload_make(
 enum dj_test_dispatch_result d_test_dispatch_init(
     struct dj_test_dispatch* _dispatch
 );
+
 enum dj_test_dispatch_result d_test_dispatch_bind_listeners(
     struct dj_test_dispatch* _dispatch,
     struct dj_test_listener* _storage,
     size_t                   _capacity
 );
+
 enum dj_test_dispatch_result d_test_dispatch_on(
     struct dj_test_dispatch* _dispatch,
     enum dj_test_event_kind  _kind,
     dj_test_listener_fn      _notify,
     void*                    _context
 );
+
 enum dj_test_dispatch_result d_test_dispatch_fire(
     struct dj_test_dispatch*            _dispatch,
     const struct dj_test_event_payload* _payload
 );
+
 size_t d_test_dispatch_count_for(
     const struct dj_test_dispatch* _dispatch,
     enum dj_test_event_kind        _kind
 );
+
 const char* d_test_dispatch_result_name(
     enum dj_test_dispatch_result _r
 );

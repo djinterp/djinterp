@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_report_tests_rates.cpp
+* djinterp [cpp][test]                               test_report_tests_rates.cpp
 *
-*   Section VI of the test_report suite: THE PASS-RATE HELPERS.
+*   Section VI of the test_report suite: the pass-rate helpers.
 *
 *   Two small formatters, and the only two places in the model where a number turns
 * into a string.  Both are printed on every summary page in every dialect, so their

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            test_edge_cases.cpp
+* djinterp [re_std]                                          test_edge_cases.cpp
 *
 * re_std::any edge-case tests:
 *   - any of any (nested type erasure)

@@ -1,19 +1,21 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_report_tests_filename.cpp
+* djinterp [cpp][test]                            test_report_tests_filename.cpp
 *
-*   Section VII of the test_report suite: FILE-NAME EXPANSION.
+*   Section VII of the test_report suite: file-name expansion.
 *
 *   expand_report_file_name lowers a pattern into a path by folding in the run's
 * facts - {module}, {index}, {title}, {date}, {time}, {ext} - sanitizing the two
 * components that come from user data so a module name is safe on disk.  It is the
 * mechanism behind the file_name_pattern option and the document_per_module layout,
-* which means the strings it produces are CREATED AS FILES.  That raises the stakes
+* which means the strings it produces are created as files.  That raises the stakes
 * on everything below: a bug here is not a wrong label in a report, it is a file
 * written somewhere unintended.
 *
-*   AND THERE IS ONE.  The expansion is six sequential replace_all passes over the
-* pattern, and a value substituted by an EARLY pass is re-scanned by every LATER
-* one.  Sanitization maps hostile characters to '_' but leaves BRACES alone - so a
+* AND THERE IS ONE
+* ----------------
+*   The expansion is six sequential replace_all passes over the pattern, and a
+* value substituted by an early pass is re-scanned by every later one.
+* Sanitization maps hostile characters to '_' but leaves braces alone - so a
 * module named "{title}" survives sanitization intact, is substituted into the
 * pattern by the {module} pass, and is then read as a placeholder by the {title}
 * pass that follows it.  The module name pulls in the report title.  Same for

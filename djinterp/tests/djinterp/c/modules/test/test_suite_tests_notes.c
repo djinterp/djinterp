@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       test_suite_tests_notes.c
+* djinterp [c][test]                                    test_suite_tests_notes.c
 *
 * test_suite.h's notes: where a note attaches, when the report prints it, and
 * how it reads.

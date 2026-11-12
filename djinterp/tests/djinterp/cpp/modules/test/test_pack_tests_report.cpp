@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                 test_pack_tests_report.cpp
+* djinterp [cpp][test]                                test_pack_tests_report.cpp
 *
 *   Section III - the one public entry.  pack_report dispatches on the pack
 * mode: none copies the report through (status_ok); compress routes to the

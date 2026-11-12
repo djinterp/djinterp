@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                         test_thread_tests.hpp
+* djinterp [cpp][test]                                     test_thread_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_thread.hpp.
 *
@@ -9,7 +9,7 @@
 *     - spec  mode  (runner):      pulls in test_defaults.hpp, exposes the
 *       thread_spec() provider; no fixtures compiled.
 *
-*   The bool tests_*(); declarations are visible in BOTH modes: the section
+*   The bool tests_*(); declarations are visible in both modes: the section
 * TUs define them, the provider references them by address.
 *
 *   Blocks (one section TU each):
@@ -223,93 +223,168 @@ struct DRichProbe
 
 // I.   TEST THREAD + STATE ENUM        (test_thread_tests_thread.cpp)
 bool tests_thread_state_enum_values();
+
 bool tests_thread_default_construct();
+
 bool tests_thread_construct_id_name_worker();
+
 bool tests_thread_construct_id_worker();
+
 bool tests_thread_set_name();
+
 bool tests_thread_set_worker_before_start();
+
 bool tests_thread_start_runs_worker();
+
 bool tests_thread_start_without_worker_noop();
+
 bool tests_thread_start_twice_noop();
+
 bool tests_thread_state_query_transitions();
+
 bool tests_thread_join_idempotent();
+
 bool tests_thread_worker_receives_id();
+
 bool tests_thread_exception_capture();
+
 bool tests_thread_exception_what();
+
 bool tests_thread_exception_what_empty_on_success();
+
 bool tests_thread_rethrow_if_failed();
+
 bool tests_thread_rethrow_noop_on_success();
+
 bool tests_thread_timing_monotonic();
+
 bool tests_thread_elapsed_zero_when_idle();
+
 bool tests_thread_detach_state();
+
 bool tests_thread_try_join_for_success();
+
 bool tests_thread_try_join_for_timeout();
+
 bool tests_thread_move_construct();
 
 // II.  THREAD GROUP                    (test_thread_tests_group.cpp)
 bool tests_group_default_empty();
+
 bool tests_group_emplace_id_name_worker();
+
 bool tests_group_emplace_id_worker();
+
 bool tests_group_emplace_auto_id();
+
 bool tests_group_at_access();
+
 bool tests_group_start_join_all();
+
 bool tests_group_any_failed_false_on_success();
+
 bool tests_group_any_failed_true_on_throw();
+
 bool tests_group_all_completed_requires_nonempty();
+
 bool tests_group_failure_count();
+
 bool tests_group_first_exception_in_id_order();
+
 bool tests_group_rethrow_first_failure();
+
 bool tests_group_rethrow_noop_when_clean();
+
 bool tests_group_clear();
+
 bool tests_group_range_iteration();
+
 bool tests_group_try_join_all_for();
 
 // III. FACTORY HELPERS                 (test_thread_tests_factory.cpp)
 bool tests_factory_make_test_thread();
+
 bool tests_factory_make_named_test_thread();
+
 bool tests_factory_make_and_run();
+
 bool tests_factory_worker_forwarding();
 
 // IV.  SFINAE TRAITS                   (test_thread_tests_traits.cpp)
 bool tests_traits_negative_all_false();
+
 bool tests_traits_has_thread_safety_level();
+
 bool tests_traits_has_concurrency_strategy_tag();
+
 bool tests_traits_has_lock_policy_type();
+
 bool tests_traits_has_mutex_type();
+
 bool tests_traits_has_cow_state_type();
+
 bool tests_traits_has_rcu_protected_type();
+
 bool tests_traits_has_hazard_domain_type();
+
 bool tests_traits_has_try_lock_method();
+
 bool tests_traits_has_atomic_load_store_cas();
+
 bool tests_traits_has_atomic_interface();
+
 bool tests_traits_has_publish_and_cow_interface();
+
 bool tests_traits_full_lock_interface();
+
 bool tests_traits_is_rcu_testable();
+
 bool tests_traits_is_hazard_testable();
+
 bool tests_traits_is_cow_testable();
+
 bool tests_traits_is_locked_testable();
+
 bool tests_traits_is_lock_free_testable();
+
 bool tests_traits_is_threadsafe_testable();
+
 bool tests_traits_thread_test_class_flags();
 
 // V.   C++20 CONCEPTS                  (test_thread_tests_concepts.cpp)
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 bool tests_concepts_negative();
+
 bool tests_concepts_safety_level_aware();
+
 bool tests_concepts_strategy_tagged();
+
 bool tests_concepts_lock_policy_aware();
+
 bool tests_concepts_mutex_aware();
+
 bool tests_concepts_cow_state_aware();
+
 bool tests_concepts_rcu_protected_aware();
+
 bool tests_concepts_hazard_domain_aware();
+
 bool tests_concepts_try_lockable();
+
 bool tests_concepts_atomic_capable();
+
 bool tests_concepts_publishable_and_cow_capable();
+
 bool tests_concepts_lock_free_testable();
+
 bool tests_concepts_threadsafe_testable();
+
 bool tests_concepts_classified_thread_test();
+
 bool tests_concepts_race_testable();
+
 bool tests_concepts_fully_described();
+
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 

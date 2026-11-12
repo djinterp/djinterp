@@ -942,6 +942,13 @@ of the C++ framework, and compiles as C at C99 to C23 and as C++ at every level
 from strict C++98. Use it for every C suite, and for a C++ suite that must run
 below C++17, where `test_defaults.hpp` is empty.
 
+At C++98 and C++03, GCC and Clang take variadic macros as an extension, so
+the framework defines them there (`D_TEST_NOTE` here, and `D_ALLOC_SIZE` and
+`D_NONNULL` in `env/c/env_vendor_attributes.h`). The extension is only a
+warning, but `-pedantic-errors` makes it an error, and no macro tells the
+headers that flag is set. A C++98 or C++03 build under `-pedantic-errors`
+therefore adds `-Wno-variadic-macros`.
+
 It is not thread-safe: a suite is built and run by one thread, and one suite
 runs at a time in a process (a test that starts threads joins them first).
 
@@ -1144,8 +1151,10 @@ two `|...|` tables of 8.2; and the exit code `run_module` returns.
 
 **Shared**: the status values of `c/modules/test/test_common.h`
 (`D_TEST_STATUS_*`, with C++'s `test_status` over the same values), and the
-field-form tally `dj_test_counter` of `test_counter.h` with
-`d_test_counter_reset` and `_add` (style #79).
+counters of 13.1. The field-form tally that stood here until 2026-11-09
+(`dj_test_counter` with four `size_t` fields, `d_test_counter_reset` and
+`_add`, style #79) is replaced by the owner's ruling of that date; 13.1 says
+how to move.
 
 **Not frozen**, and not to be written against: the classic C tree
 (`default/test.h`, `test_block.h`, `test_module.h`, `assert.h`,
@@ -1154,15 +1163,133 @@ umbrella), which does not compile yet and is being ported (B5: its sources
 stay, its old `_sa` suites are gone, and its suites are written against the C
 face when it is ported); the C++ framework's internals
 (`test_tree`, `test_kind`, `test_session`, the report model and the output
-headers), which may change under the surface above; and `test_counter` /
-`test_timer` derived from the C `counter.h` and `timer.h` with thread-safe
-versions (style #79), which arrive once lane D's modules exist, as new types
-beside `dj_test_counter`, so nothing frozen changes shape.
+headers), which may change under the surface above, including `test_session`'s
+status counts, which it now keeps in a tally (13.1).
 
 **Retired** (the owner's ruling of 2026-11-06, register 4.6): the standalone
 framework, `test_standalone.h` and `.c`, its defaults header and
 `d_assert_standalone`. Nothing runs a `_tests_sa*` suite any more; one still in
 the tree is converted (14.2) before its module's tests count.
+
+### 13.1 The counters (the owner's rulings of 2026-11-09 and 11-10)
+
+DTest's counters know nothing of what they count. A tally holds one test
+counter per key, and the caller chooses the keys. A test counter is the
+generic counter of `c/util/counter` or `cpp/util/counter` plus a step; a
+test timer is the generic timer of `c/util/timer` or `cpp/util/timer`.
+Neither knows about events: both are used by hand, and events reach them
+only through the tie-in modules below.
+
+**C** (`c/modules/test/test_counter.h`, `test_timer.h`):
+
+- `struct dj_test_counter` is `{ counter, step }`: a `struct dj_counter`
+  and what one occurrence moves it by. `d_test_counter_init` /
+  `_init_with`, `_record` (one occurrence, one step), the five operations
+  (`_increment`, `_decrement`, `_compare`, `_merge`, `_reset`), `_value`,
+  `_step` and `_as_counter`.
+- `struct dj_test_tally` keeps up to `D_TEST_TALLY_CAPACITY` test counters
+  by `dj_test_key`, a `uint64_t` the caller chooses: `d_test_tally_init`,
+  `_track`, `_find`, `_record`, `_increment`, `_count`, `_overflow`,
+  `_reset`, `_merge`, `_clear`. A zero-filled tally is usable.
+- `struct dj_test_timer` is `{ timer }` with the timer's operations and
+  `d_test_timer_elapsed_ms`.
+
+**C++** (`cpp/modules/test/test_counter.hpp`, C++17 and up;
+`test_timer.hpp`, C++11 and up):
+
+- `test_counter<V>` is a `djinterp::counter<V>` plus a step and `record()`;
+  `test_tally<V>` keeps one per key type (any type; one with a static
+  `name()` lends it to reports), with no capacity, and has `record<Key>()`.
+- `DTestTimer<Clock, Duration>` is a `djinterp::timer` plus `elapsed_ms()`.
+
+**Events, through the tie-ins (the owner's ruling of 2026-11-10).** Each
+counter and timer family has one event module, separate from everything
+else, that couples a handler to a counter or timer and hands the handler
+off. The caller binds it wherever handlers are bound; no counter, timer or
+DTest runner includes a tie-in.
+
+| Tie-in                                      | What it hands off                                                       |
+|---------------------------------------------|-------------------------------------------------------------------------|
+| `c/util/counter/counter_event.h`            | a `dj_event_step` moving any counter (`struct dj_counter_ref`)          |
+| `c/util/timer/timer_event.h`                | a `dj_event_step` starting, stopping or moving any timer                |
+| `cpp/util/counter/counter_event.hpp`        | `counter_handler<Counter>`, for any counter type                        |
+| `cpp/util/timer/timer_event.hpp`            | `timer_handler<Timer>`, for any timer type                              |
+| `c/modules/test/test_counter_event.h`       | a step recording a tally key; a test counter's `counter_event.h` binding |
+| `c/modules/test/test_timer_event.h`         | a start and a stop binding on a test timer                              |
+| `cpp/modules/test/test_counter_event.hpp`   | `tally_handler<Key, Tally>`; a test counter's `counter_handler`         |
+| `cpp/modules/test/test_timer_event.hpp`     | a start and a stop `timer_handler` on a test timer                      |
+
+The C tie-ins work on every kind of counter or timer through one interface:
+`counter.h` and `timer.h` define a table of operations
+(`struct dj_counter_vtable`, `struct dj_timer_vtable`) and a reference that
+pairs one with a counter or timer (`struct dj_counter_ref`,
+`struct dj_timer_ref`); `d_counter_ref`, `d_counter_atomic_ref`,
+`d_counter_mutex_ref` and the timer three make them, and the
+`d_counter_ref_*` / `d_timer_ref_*` functions use them.
+
+```c
+struct dj_test_tally_event failures;
+
+d_test_tally_event_init(&failures,
+                        &tally,
+                        MY_TESTS_FAILED);
+d_event_dispatcher_bind(&dispatcher,
+                        KEY_TEST_FAILED,
+                        d_test_tally_event_step(&failures),
+                        NULL,
+                        &id);
+```
+
+**Moving from the field form.** Each old field becomes a key the suite
+defines, and each operation the tally's:
+
+| Field form (before 2026-11-09)            | Now                                                      |
+|-------------------------------------------|----------------------------------------------------------|
+| `struct dj_test_counter c = {0};`         | `struct dj_test_tally t = {0};` (or `d_test_tally_init`) |
+| `c.tests_total++`                         | `d_test_tally_increment(&t, MY_TESTS_RUN, 1)`            |
+| `c.assertions_passed` (read)              | `d_test_tally_count(&t, MY_ASSERTIONS_PASSED)`           |
+| `d_test_counter_add(&dest, &src)`         | `d_test_tally_merge(&dest, &src)`                        |
+| `d_test_counter_reset(&c)`                | `d_test_tally_reset(&t)`                                 |
+
+`MY_TESTS_RUN` and the like are `dj_test_key` values the suite chooses; a
+suite that fires events binds `test_counter_event.h`'s handlers instead of
+counting by hand. `d_test_counter_reset` keeps its name, on one test counter. A C-face
+suite needs none of this, since its report already counts tests and checks;
+the old fields were the standalone tier's.
+
+**Settings, in three layers, each optional.** A build that sets nothing gets
+unbounded counters that step by one and a tally of 16 that refuses a 17th
+key.
+
+1. *Knobs* (`config/c/modules/test/cfg_test_counter.h`):
+
+   | Knob                          | Default | Meaning                                                 |
+   |-------------------------------|---------|---------------------------------------------------------|
+   | `D_CFG_TEST_TALLY_CAPACITY`   | 16      | a C tally's storage, 1 to 4096                          |
+   | `D_CFG_TEST_TALLY_WHEN_FULL`  | 0       | a full C tally refuses a key (0) or overflows (1)       |
+   | `D_CFG_TEST_COUNTER_STEP`     | 1       | how far one occurrence moves a counter; not 0           |
+   | `D_CFG_TEST_COUNTER_FLOOR`    | 0       | hold counters at or above zero (1)                      |
+   | `D_CFG_TEST_COUNTER_MACHINE`  | 0       | compile the option_env schema of layer 3 (1)            |
+
+2. *Run-time options*: C's `struct dj_test_counter_options { step,
+   has_floor }` and `struct dj_test_tally_options { limit, when_full,
+   counter }`, whose `_options_init` functions read the knobs, passed to
+   `d_test_counter_init_with` and `d_test_tally_init`. A tally's `limit` may
+   be lower than its capacity, never higher. C++'s
+   `test_counter_options<V> { step, has_floor }` starts at the knobs and is
+   taken by `test_counter`'s and `test_tally`'s constructors.
+3. *The abstract machine*, opt-in with `D_CFG_TEST_COUNTER_MACHINE`:
+   `d_test_counter_env_vars()` is a schema for `c/option/option_env.h`
+   (`tally_limit`, `tally_when_full` = `refuse` | `overflow`,
+   `counter_step`, `counter_floor`) whose defaults are the knobs, and
+   `d_test_tally_options_from_env` reads a frame into tally options, so text,
+   a script, the environment or the command line can set them.
+
+Under `D_TEST_TALLY_FULL_OVERFLOW`, a key a full tally cannot track is
+counted in the tally's overflow counter (`d_test_tally_overflow`), and merge,
+reset and clear carry it; totals stay whole, and the overflow says how much
+was not told apart. `test_session`'s own status counts step by one and are
+floored whatever the knobs say: they count tests.
 
 ---
 
@@ -1260,3 +1387,37 @@ the face-neutral option setters may drop the `#if` (Section 9). A C++ suite
 that must also run below C++17 lists its test functions in a C spec table
 (12.2) — they are `bool ()` already — and gets a second runner over
 `d_test_run_modules`.
+
+### 14.5 The `dj_tests_section` tables (`--from section`)
+
+Lanes F and G wrote suites as tables of `struct dj_tests_section { name,
+run }` (`tests/.../modules/parse/tests_section.h`) walked by a runner of
+their own. `--from section` turns each table into the C face's spec form in
+place:
+
+- `struct dj_tests_section X[] = { { "name", fn }, ... }` becomes
+  `struct dj_test_case_spec X[]` with `{ "name", "", fn }` rows. The
+  functions are `bool (void)` in both, so they are not touched.
+- The table keeps its name, its linkage and its `#if`s: rows built under a
+  language level or a configuration move with their conditions.
+- Beside each table goes a block spec, `X_block`, named after the table, and
+  an `extern` for each in the header that declared the table.
+- `tests_section.h`'s include becomes `test_suite.h`'s.
+- Each table gets one `DTEST-CONVERT:` mark asking for its rows' descriptors
+  (3.5), since the tables have none, and each block one for its own.
+- A runner over the old tables walks `.run` and `.name`. It is marked, not
+  converted. The converter prints, on standard error, a runner over every
+  non-static block it converted: one module of those blocks, run by
+  `d_test_run_modules`. Merge it with the suite's own setup and fill in
+  `MODULE` and `TITLE`.
+
+C++ tables (`cli_tests.cpp`, say) convert the same way and then compile
+against the C face as C++, which is the form for a C++ suite below C++17
+(14.4).
+
+```
+python3 scripts/dtest/dtest_convert.py --from section --report \
+    tests/djinterp/c/modules/parse/*.c
+python3 scripts/dtest/dtest_convert.py --from section --in-place \
+    tests/djinterp/c/modules/parse/*.[ch]
+```

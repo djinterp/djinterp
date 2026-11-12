@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              env_tests_build.c
+* djinterp [c][env]                                            env_tests_build.c
 *
 * Unit tests for `env.h` build configuration detection (section VIII).
 * Tests the D_ENV_BUILD_* macros that detect debug/release build configuration.

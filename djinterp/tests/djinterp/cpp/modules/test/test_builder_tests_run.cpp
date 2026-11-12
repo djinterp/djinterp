@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                 test_builder_tests_run.cpp
+* djinterp [cpp][test]                                test_builder_tests_run.cpp
 *
 *   The terminal and the read surface.  run() walks the forest, evaluates each
 * deferred leaf, and summarize() folds the result into a tally: passed /
 * failed / skipped / errored come from the evaluated nodes, while pending is
-* corrected to LEAF-ONLY by subtracting the perpetually-pending structural
+* corrected to leaf-only by subtracting the perpetually-pending structural
 * interiors (the modules, the blocks, and the conjunctive root).  A thunk that
 * throws is caught in evaluate as `error` with its diagnostic stashed under the
 * "error" metadata key (a std::exception's what(), or "unknown exception").

@@ -1,16 +1,18 @@
 /*******************************************************************************
-* djinterp [test]                                            file_tests_path.cpp
+* djinterp [cpp][filesys]                                    file_tests_path.cpp
 *
-*   II. PATH (file_path.hpp) -- the lexical path value. Purely textual, no
+*   II. Path (file_path.hpp) -- the lexical path value. Purely textual, no
 * syscalls, so every case here is deterministic.
 *
-*   WHAT THIS SECTION IS FOR. file_path.hpp says every operation delegates to
-* c/filesys/file_path and that "if parent() ever disagrees with d_path_dirname, one of
-* them is a bug". The c/filesys suite already pins d_path_dirname and friends, so
-* repeating their whole truth table here would test the C layer twice. What is
-* NOT covered there, and is covered here, is everything the C++ type ADDS:
-* value semantics, the invalid state a move leaves behind, and the two places
-* the C++ surface deliberately DIFFERS from the C one --
+* WHAT THIS SECTION IS FOR
+* ------------------------
+*   file_path.hpp says every operation delegates to c/filesys/file_path and that
+* "if parent() ever disagrees with d_path_dirname, one of them is a bug". The
+* c/filesys suite already pins d_path_dirname and friends, so repeating their
+* whole truth table here would test the C layer twice. What is not covered
+* there, and is covered here, is everything the C++ type adds: value semantics,
+* the invalid state a move leaves behind, and the two places the C++ surface
+* deliberately differs from the C one --
 *
 *     extension()  returns ""  where d_path_extension returns NULL
 *     c_str()      returns ""  where a C caller would hold a null pointer
@@ -19,10 +21,11 @@
 * asserted below, because a "helpful" change back to NULL would compile fine
 * and segfault at the call sites.
 *
-*   SEPARATORS. Expected strings are written with '/' and rewritten through
-* sep_path to whatever D_FILE_PATH_SEP is, so one expectation holds on POSIX
-* and Windows alike. Inputs keep '/', which every grammar this layer parses
-* accepts.
+* SEPARATORS
+* ----------
+*   Expected strings are written with '/' and rewritten through sep_path to
+* whatever D_FILE_PATH_SEP is, so one expectation holds on POSIX and Windows
+* alike. Inputs keep '/', which every grammar this layer parses accepts.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_path.cpp

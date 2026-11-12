@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            dmacro_tests_eval.c
+* djinterp [c]                                               dmacro_tests_eval.c
 *
 *   Unit tests for `dmacro.h` macro expansion and evaluation (Section III).
 *   Tests D_INC, D_EVAL, and iteration macro results.

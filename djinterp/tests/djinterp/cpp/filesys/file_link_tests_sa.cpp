@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [test]                                         file_link_tests_sa.cpp
+* djinterp [cpp][filesys]                                 file_link_tests_sa.cpp
 *
 *   Unit tests for the symlink operations in inc/djinterp/cpp/filesys/file_link.hpp --
 * create_symlink, read_symlink, is_symlink -- and, because this suite can
-* finally CREATE a symlink, the follow-vs-no-follow difference that
+* finally create a symlink, the follow-vs-no-follow difference that
 * status_tests_sa.cpp had to defer: status() follows a link, symlink_status()
 * does not. That deferral is closed here, on a real symlink, not faked there.
 *
-*   These are free functions with no handle -- FLAT tier ladder, same count on
+*   These are free functions with no handle -- flat tier ladder, same count on
 * every standard. Fixtures create real symlinks through create_symlink (the API
-* under test) and remove them with remove() (ISO C, which removes the LINK, not
+* under test) and remove them with remove() (ISO C, which removes the link, not
 * its target); no symlink()/readlink() is called directly.
 *
 *

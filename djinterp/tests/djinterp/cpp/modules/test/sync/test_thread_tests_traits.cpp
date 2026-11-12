@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [tests]                                  test_thread_tests_traits.cpp
+* djinterp [cpp][test]                              test_thread_tests_traits.cpp
 *
 *   Section TU: the folded threadsafe-testable SFINAE trait surface
 * (djinterp::test::traits).  Each axis is asserted with a positive probe (the
 * fixture carrying that marker) and the marker-free negative probe.
 *
-*   NOTE on the re-exported method probes (has_read_lock_method /
+*   Note on the re-exported method probes (has_read_lock_method /
 * has_write_lock_method / has_snapshot_method): these are defined upstream in
 * concurrency_strategy_traits.hpp and re-exported by the trait header.  The
 * fixtures here match the documented shape (read_lock() const, write_lock(),

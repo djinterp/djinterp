@@ -1,25 +1,50 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       timer.hpp
+* djinterp [cpp][utility]                                              timer.hpp
 *
 * djinterp timer header:
 *   This header provides a nestable timer with configurable clock and duration
 * types. A timer can be started, stopped, queried for elapsed time, and
 * optionally bounded by a maximum duration after which it is considered
-* expired.
+* expired. It shares the five operations every counter and timer in djinterp
+* has -- increment and decrement, which add and remove time directly;
+* compare, by elapsed time; merge, which adds another timer's elapsed time;
+* and reset.
+*   Its thread-safe forms are atomic_timer.hpp and mutex_timer.hpp; the
+* bindings that drive any of them when an event fires are timer_event.hpp's.
+* C's counterpart is c/util/timer/timer.h.
 *
 *   Timers support two nesting models:
 *   - owning:      parent stores child timers by value (lifetime-bound)
 *   - non-owning:  parent observes external timers via pointer (view)
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   This header uses env.h for C++ version detection and djinterp.hpp for
 * namespace macros. Requires C++17 or later.
+*
+* HOW TO USE
+* ----------
+*     timer<> span;
+*
+*     span.start();
+*     // the work
+*     span.stop();
+*     span.elapsed();                     // a Duration
+*
+* OPTIONS
+* -------
+*   The clock and the duration, as template arguments, and the limit given to
+* the constructor, after which the timer reads as expired.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/util/timer/timer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_TIMER_TIMER_HPP
@@ -54,7 +79,7 @@ NS_DJINTERP
 // requirement. `Duration` must be a std::chrono::duration
 // specialization.
 // =========================================================================
-template<typename Clock     = std::chrono::steady_clock,
+template<typename Clock    = std::chrono::steady_clock,
          typename Duration = typename Clock::duration>
 class timer
 {
@@ -127,7 +152,8 @@ public:
 
     // stop
     //   stops the timer and accumulates elapsed time since the last
-    // start. has no effect if not running.
+    // start, held at Duration::max() as increment holds it. has no effect if
+    // not running.
     void stop() D_NOEXCEPT
     {
         if (!m_running)
@@ -135,9 +161,12 @@ public:
             return;
         }
 
-        m_accumulated += std::chrono::duration_cast<Duration>(
-                             Clock::now() - m_start_point);
-        m_running      = false;
+        bool is_exact = true;
+
+        m_accumulated = add_held(m_accumulated,
+                                 open_interval(),
+                                 is_exact);
+        m_running     = false;
 
         return;
     }
@@ -151,6 +180,73 @@ public:
         m_accumulated = Duration::zero();
 
         return;
+    }
+
+    // increment
+    //   adds `_amount` to the accumulated time, either sign; a running
+    // timer's open interval runs on top of it. accumulated time is held
+    // between zero and Duration::max(), and the result returns false when
+    // it was held at either.
+    bool increment(
+        Duration _amount
+    ) D_NOEXCEPT
+    {
+        bool exact = true;
+
+        m_accumulated = add_held(m_accumulated,
+                                 _amount,
+                                 exact);
+
+        return exact;
+    }
+
+    // decrement
+    //   removes `_amount` from the accumulated time, as increment adds it.
+    // only closed intervals are shortened: removing more than they hold
+    // stops at zero.
+    bool decrement(
+        Duration _amount
+    ) D_NOEXCEPT
+    {
+        // a positive amount, and zero, negate safely
+        if (!(_amount < Duration::zero()))
+        {
+            return increment(Duration::zero() - _amount);
+        }
+
+        // a negative amount rises; Duration::min() has no negation, so the
+        // rise is taken one tick short and then that tick
+        const bool first  = increment(Duration::zero() -
+                                      (_amount + Duration(1)));
+        const bool second = increment(Duration(1));
+
+        return ( (first) &&
+                 (second) );
+    }
+
+    // compare
+    //   three-way comparison by elapsed time, a running timer's open
+    // interval included: -1, 0 or 1 as this timer has run less than, as
+    // long as, or longer than `_other`.
+    int compare(
+        const self_type& _other
+    ) const D_NOEXCEPT
+    {
+        const Duration mine   = elapsed();
+        const Duration theirs = _other.elapsed();
+
+        return (mine < theirs) ? -1 : ( (theirs < mine) ? 1 : 0 );
+    }
+
+    // merge
+    //   adds `_other`'s elapsed time, its open interval included, to this
+    // timer's accumulated time, as increment does. children are not merged;
+    // merging a timer into itself doubles its time once.
+    bool merge(
+        const self_type& _other
+    ) D_NOEXCEPT
+    {
+        return increment(_other.elapsed());
     }
 
     // reset_all
@@ -174,14 +270,17 @@ public:
 
     // elapsed
     //   returns the total accumulated duration. if the timer is
-    // currently running, includes time since the last start.
+    // currently running, includes time since the last start; the sum is
+    // held at Duration::max() rather than overflow.
     Duration elapsed() const D_NOEXCEPT
     {
         if (m_running)
         {
-            return m_accumulated
-                   + std::chrono::duration_cast<Duration>(
-                         Clock::now() - m_start_point);
+            bool is_exact = true;
+
+            return add_held(m_accumulated,
+                            open_interval(),
+                            is_exact);
         }
 
         return m_accumulated;
@@ -332,6 +431,55 @@ public:
     }
 
 private:
+    // open_interval
+    //   returns the time since the last start, held at zero should the
+    // clock read earlier than it did then, as the C timer holds it.
+    Duration open_interval() const D_NOEXCEPT
+    {
+        const Duration open =
+            std::chrono::duration_cast<Duration>(Clock::now() -
+                                                 m_start_point);
+
+        return (open < Duration::zero()) ? Duration::zero() : open;
+    }
+
+    // add_held
+    //   returns `_value` + `_amount` held to [zero, Duration::max()], with
+    // `_is_exact` cleared when it was held. `_value` lies in that range, so
+    // the sum is formed only where it cannot overflow.
+    static Duration add_held(
+        Duration _value,
+        Duration _amount,
+        bool&    _is_exact
+    ) D_NOEXCEPT
+    {
+        // a rise: compared against the room left before adding
+        if (Duration::zero() < _amount)
+        {
+            if ( (Duration::max() - _amount) < _value )
+            {
+                _is_exact = false;
+
+                return Duration::max();
+            }
+
+            return _value + _amount;
+        }
+
+        // a fall: _value is not negative, so the sum cannot overflow
+        const Duration sum = _value + _amount;
+
+        // held at zero
+        if (sum < Duration::zero())
+        {
+            _is_exact = false;
+
+            return Duration::zero();
+        }
+
+        return sum;
+    }
+
     Duration      m_accumulated;
     Duration      m_max;
     time_point    m_start_point;

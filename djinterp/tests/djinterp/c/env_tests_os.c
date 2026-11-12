@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 env_tests_os.c
+* djinterp [c][env]                                               env_tests_os.c
 *
 * Unit tests for `env.h` operating system detection (section VII).
 * Tests the D_ENV_OS_* macros that detect operating systems and properties.

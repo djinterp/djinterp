@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_suite_tests.h
+* djinterp [c][test]                                          test_suite_tests.h
 *
 * DTest's suite for its own C face, test_suite.h.
 *   The suite is written in the form it tests, the C spec form, and is the
@@ -67,11 +67,13 @@ D_EXTERN_C_BEGIN
 // d_tests_test_suite_contains says whether a report holds a piece of text.
 struct dj_test_suite* d_tests_test_suite_quiet(int    _show,
                                                FILE** _stream);
+
 char*                 d_tests_test_suite_report(
                           struct dj_test_suite*   _suite,
                           FILE*                   _stream,
                           int*                    _code,
                           struct dj_test_summary* _summary);
+
 bool                  d_tests_test_suite_contains(const char* _report,
                                                   const char* _text);
 
@@ -84,43 +86,69 @@ bool                  d_tests_test_suite_contains(const char* _report,
 // 2.1    Building
 //------------------------------------------------------------------------------
 bool d_tests_test_suite_new_and_free(void);
+
 bool d_tests_test_suite_counts_checks(void);
+
 bool d_tests_test_suite_open_closes(void);
+
 bool d_tests_test_suite_check_opens_test(void);
+
 bool d_tests_test_suite_null_suite(void);
+
 bool d_tests_test_suite_describe(void);
+
 bool d_tests_test_suite_skip(void);
+
 bool d_tests_test_suite_check_msg(void);
 
 // 2.2    Specs
 //------------------------------------------------------------------------------
 bool d_tests_test_suite_spec_runs_once(void);
+
 bool d_tests_test_suite_spec_require(void);
+
 bool d_tests_test_suite_spec_false_return(void);
+
 bool d_tests_test_suite_spec_null_fn(void);
+
 bool d_tests_test_suite_spec_skip(void);
+
 bool d_tests_test_suite_spec_filter(void);
+
 bool d_tests_test_suite_spec_nesting(void);
 
 // 2.3    Report and options
 //------------------------------------------------------------------------------
 bool d_tests_test_suite_exit_codes(void);
+
 bool d_tests_test_suite_empty_is_failure(void);
+
 bool d_tests_test_suite_table_format(void);
+
 bool d_tests_test_suite_table_escape(void);
+
 bool d_tests_test_suite_show_levels(void);
+
 bool d_tests_test_suite_options_defaults(void);
+
 bool d_tests_test_suite_options_parse(void);
+
 bool d_tests_test_suite_many_checks(void);
+
 bool d_tests_test_suite_str_equal(void);
 
 // 2.4    Notes
 //------------------------------------------------------------------------------
 bool d_tests_test_suite_note_attaches(void);
+
 bool d_tests_test_suite_note_test_shown(void);
+
 bool d_tests_test_suite_note_heading_shown(void);
+
 bool d_tests_test_suite_note_layout(void);
+
 bool d_tests_test_suite_note_format(void);
+
 bool d_tests_test_suite_note_spec(void);
 
 

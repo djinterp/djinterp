@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [tests]                              test_invariant_tests_factory.cpp
+* djinterp [cpp][test]                          test_invariant_tests_factory.cpp
 *
 *   Section TU: make_invariant_monitor.
 *
 *   Unlike the factories in test_concurrent / test_stress / test_race, this
-* one returns a PRVALUE (`return DInvariantMonitor(...)`) rather than a named
+* one returns a prvalue (`return DInvariantMonitor(...)`) rather than a named
 * local, so guaranteed copy elision applies and no move constructor is needed.
-* The block is therefore NOT gated.
+* The block is therefore not gated.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/sync/test_invariant_tests_factory.cpp

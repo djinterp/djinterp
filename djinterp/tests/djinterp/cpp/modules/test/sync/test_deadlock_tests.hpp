@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                       test_deadlock_tests.hpp
+* djinterp [cpp][test]                                   test_deadlock_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_deadlock.hpp
 * - the deadlock detection toolkit (a one-shot watchdog timer, a lock-order
@@ -16,21 +16,26 @@
 *   ------------------------------------------------------------------------
 *   BUILD PREREQUISITE - make_deadlock_watchdog does not compile
 *   ------------------------------------------------------------------------
-*   STATUS:  the factory block of this suite is gated OFF by default
-*            (D_HD_FACTORY_RETURNABLE = 0) and the module under test is NOT
-*            patched by this delivery.  Apply the substitution below, then
-*            build with -DD_HD_FACTORY_RETURNABLE=1 to enable the block.
 *
-*   NOTE: unlike the sibling defects in test_concurrent / test_stress /
-*   test_race, this one CANNOT be fixed by declaring a defaulted move.
+* STATUS
+* ------
+*   The factory block of this suite is gated off by default
+* (D_HD_FACTORY_RETURNABLE = 0) and the module under test is not patched by this
+* delivery.  Apply the substitution below, then build with
+* -DD_HD_FACTORY_RETURNABLE=1 to enable the block.
+*
+* NOTE
+* ----
+*   Unlike the sibling defects in test_concurrent / test_stress /
+*   test_race, this one cannot be fixed by declaring a defaulted move.
 *   deadlock_watchdog holds a std::mutex and a std::condition_variable,
 *   neither of which is movable, so `= default` would itself be deleted.  A
 *   configured watchdog cannot be returned by value at all while the return
-*   statement names a local.  The fix is to make the return a PRVALUE, which
+*   statement names a local.  The fix is to make the return a prvalue, which
 *   C++17 elides with no constructor required - and that needs a configuring
 *   constructor to exist.
 *
-*   EXACT SUBSTITUTION, part 1, in inc/djinterp/cpp/modules/test/sync/test_deadlock.hpp,
+*   Exact substitution, part 1, in inc/djinterp/cpp/modules/test/sync/test_deadlock.hpp,
 *   in class deadlock_watchdog, added to the public section:
 *
 *   +   template<typename _Rep, typename _Period>
@@ -43,7 +48,7 @@
 *   +       set_description(static_cast<std::string&&>(_description));
 *   +   }
 *
-*   EXACT SUBSTITUTION, part 2, in the same header, the body of
+*   Exact substitution, part 2, in the same header, the body of
 *   make_deadlock_watchdog - replace the three configuring lines and the
 *   named return with one prvalue return:
 *
@@ -54,10 +59,11 @@
 *   +   return deadlock_watchdog(
 *   +       _timeout, static_cast<std::string&&>(_description));
 *
-*   WHY:
+* WHY
+* ---
 *   make_deadlock_watchdog() ends in `return wd;` where `wd` is a named local
 * deadlock_watchdog.  deadlock_watchdog user-declares a deleted copy
-* constructor and declares NO move constructor, so the implicit move is
+* constructor and declares no move constructor, so the implicit move is
 * suppressed and the return selects the deleted copy constructor: the
 * template is ill-formed on instantiation.  (Same defect as
 * make_concurrent_runner, make_stress, make_timed_stress, and
@@ -67,12 +73,12 @@
 *   ------------------------------------------------------------------------
 *   A NOTE ON TIMING
 *   ------------------------------------------------------------------------
-*   The watchdog is a real timer.  Tests that must observe a FIRE use a short
-* timeout and then wait several times that long; tests that must observe NO
+*   The watchdog is a real timer.  Tests that must observe a fire use a short
+* timeout and then wait several times that long; tests that must observe no
 * fire use a long timeout and disarm promptly.  Both directions have an
 * order-of-magnitude margin, so neither is a race.
 *
-*   set_fatal_on_fire(true) is deliberately NEVER exercised with a firing
+*   set_fatal_on_fire(true) is deliberately never exercised with a firing
 * watchdog: the fire path calls std::abort(), which would take the whole test
 * process down.  Only the setter's acceptance of the flag is covered.
 *
@@ -177,62 +183,106 @@ std::chrono::seconds hd_long_timeout()
 
 // I.   EVENTS AND REPORT               (test_deadlock_tests_report.cpp)
 bool tests_dreport_event_kind_values();
+
 bool tests_dreport_event_defaults();
+
 bool tests_dreport_event_fields();
+
 bool tests_dreport_defaults();
+
 bool tests_dreport_ok_predicate();
+
 bool tests_dreport_ok_requires_all_clear();
+
 bool tests_dreport_event_count();
+
 bool tests_dreport_to_test_object_pass();
+
 bool tests_dreport_to_test_object_fail();
+
 bool tests_dreport_to_test_object_custom_name();
 
 // II.  DEADLOCK WATCHDOG               (test_deadlock_tests_watchdog.cpp)
 bool tests_dwatchdog_default_construct();
+
 bool tests_dwatchdog_set_timeout_records();
+
 bool tests_dwatchdog_set_fatal_flag_accepted();
+
 bool tests_dwatchdog_arm_disarm_no_fire();
+
 bool tests_dwatchdog_arm_twice();
+
 bool tests_dwatchdog_disarm_without_arm();
+
 bool tests_dwatchdog_disarm_twice();
+
 bool tests_dwatchdog_fires_on_timeout();
+
 bool tests_dwatchdog_fire_records_event();
+
 bool tests_dwatchdog_fire_sets_stop_requested();
+
 bool tests_dwatchdog_fire_invokes_callback();
+
 bool tests_dwatchdog_description_in_event();
+
 bool tests_dwatchdog_default_description();
+
 bool tests_dwatchdog_reset_clears_report();
+
 bool tests_dwatchdog_reset_ignored_while_armed();
+
 bool tests_dwatchdog_rearm_after_fire();
+
 bool tests_dwatchdog_destructor_disarms();
 
 // III. LOCK ORDER TRACKER              (test_deadlock_tests_lock_order.cpp)
 bool tests_dorder_empty();
+
 bool tests_dorder_single_acquire_no_edge();
+
 bool tests_dorder_nested_acquire_adds_edge();
+
 bool tests_dorder_edges_deduplicated();
+
 bool tests_dorder_release_pops_held();
+
 bool tests_dorder_release_unknown_thread();
+
 bool tests_dorder_sequential_no_edge();
+
 bool tests_dorder_consistent_order_no_cycle();
+
 bool tests_dorder_ab_ba_detected();
+
 bool tests_dorder_ab_ba_event_fields();
+
 bool tests_dorder_analyze_clean_graph();
+
 bool tests_dorder_analyze_finds_long_cycle();
+
 bool tests_dorder_analyze_preserves_prior();
+
 bool tests_dorder_reset();
+
 bool tests_dorder_concurrent_recording_mt();
 
 // IV.  SCOPED WATCHDOG                 (test_deadlock_tests_scoped.cpp)
 bool tests_dscoped_arms_and_disarms();
+
 bool tests_dscoped_no_fire_when_prompt();
+
 bool tests_dscoped_sets_timeout();
+
 bool tests_dscoped_fire_inside_scope();
 
 // V.   FACTORY HELPERS                 (test_deadlock_tests_factory.cpp)
 #if D_HD_FACTORY_RETURNABLE
 bool tests_dfactory_make_deadlock_watchdog();
+
 bool tests_dfactory_make_with_description();
+
 #endif  // D_HD_FACTORY_RETURNABLE
 
 

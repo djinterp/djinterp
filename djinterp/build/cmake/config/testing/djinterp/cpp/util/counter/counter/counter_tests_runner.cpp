@@ -90,6 +90,26 @@ int main()
     D_CTR_RUN(tests_counter_observed_count);
     D_CTR_RUN(tests_counter_observe_non_owning);
 
+    // compare and merge
+    D_CTR_RUN(tests_counter_compare);
+    D_CTR_RUN(tests_counter_merge_movement);
+    D_CTR_RUN(tests_counter_merge_clamps);
+    D_CTR_RUN(tests_counter_merge_self);
+    D_CTR_RUN(tests_counter_steps_never_overflow);
+    D_CTR_RUN(tests_atomic_counter_compare_merge);
+    D_CTR_RUN(tests_mutex_counter_compare_merge);
+    // parity with the C counter
+    D_CTR_RUN(tests_counter_parity_steps);
+    D_CTR_RUN(tests_counter_parity_merge);
+    D_CTR_RUN(tests_counter_parity_compare_reset);
+
+    // event bindings
+    D_CTR_RUN(tests_counter_event_counts);
+    D_CTR_RUN(tests_counter_event_operations);
+    D_CTR_RUN(tests_counter_event_add_payload);
+    D_CTR_RUN(tests_counter_event_unbind);
+    D_CTR_RUN(tests_counter_event_other_counters);
+
     return rb.finish();
 }
 

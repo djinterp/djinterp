@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                           test_race_tests.hpp
+* djinterp [cpp][test]                                       test_race_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_race.hpp -
 * the data-race detection toolkit (repeated-run race probe, atomicity observer,
@@ -16,12 +16,15 @@
 *   ------------------------------------------------------------------------
 *   BUILD PREREQUISITE - make_race_probe does not compile
 *   ------------------------------------------------------------------------
-*   STATUS:  the factory block of this suite is gated OFF by default
-*            (D_HR_FACTORY_RETURNABLE = 0) and the module under test is NOT
-*            patched by this delivery.  Apply the substitution below, then
-*            build with -DD_HR_FACTORY_RETURNABLE=1 to enable the block.
 *
-*   EXACT SUBSTITUTION, in inc/djinterp/cpp/modules/test/sync/test_race.hpp, in class
+* STATUS
+* ------
+*   The factory block of this suite is gated off by default
+* (D_HR_FACTORY_RETURNABLE = 0) and the module under test is not patched by this
+* delivery.  Apply the substitution below, then build with
+* -DD_HR_FACTORY_RETURNABLE=1 to enable the block.
+*
+*   Exact substitution, in inc/djinterp/cpp/modules/test/sync/test_race.hpp, in class
 *   DRaceProbe, immediately after the two deleted-copy lines:
 *
 *       DRaceProbe(const DRaceProbe&)            = delete;
@@ -29,10 +32,11 @@
 *   +   DRaceProbe(DRaceProbe&&)                 = default;
 *   +   DRaceProbe& operator=(DRaceProbe&&)      = default;
 *
-*   WHY:
+* WHY
+* ---
 *   make_race_probe() ends in `return probe;` where `probe` is a local
 * DRaceProbe.  DRaceProbe user-declares a deleted copy constructor and
-* declares NO move constructor, so the implicit move is suppressed and the
+* declares no move constructor, so the implicit move is suppressed and the
 * return selects the deleted copy constructor: the template is ill-formed on
 * instantiation.  (Same defect as make_concurrent_runner in test_concurrent
 * and make_stress / make_timed_stress in test_stress.)
@@ -48,7 +52,7 @@
 *   A NOTE ON DETERMINISM
 *   ------------------------------------------------------------------------
 *   This module exists to detect races, which are by nature probabilistic.
-*   Tests here therefore never assert that a race IS detected in racy code -
+*   Tests here therefore never assert that a race is detected in racy code -
 *   that would be flaky.  They assert the harness's own contract: that a
 *   correct workload produces no evidence, that a deliberately-broken
 *   invariant produces evidence on every run, that counters and reports
@@ -169,62 +173,106 @@ void hr_fill_log(
 
 // I.   RACE PROBE                      (test_race_tests_probe.cpp)
 bool tests_rprobe_report_defaults();
+
 bool tests_rprobe_report_probability_zero_runs();
+
 bool tests_rprobe_report_probability_estimate();
+
 bool tests_rprobe_report_success_predicate();
+
 bool tests_rprobe_report_to_test_object();
+
 bool tests_rprobe_run_zero_threads();
+
 bool tests_rprobe_run_zero_iterations();
+
 bool tests_rprobe_run_zero_runs();
+
 bool tests_rprobe_run_without_operation();
+
 bool tests_rprobe_run_without_invariant();
+
 bool tests_rprobe_run_clean_workload();
+
 bool tests_rprobe_run_counts_runs();
+
 bool tests_rprobe_run_total_iterations();
+
 bool tests_rprobe_run_setup_per_run();
+
 bool tests_rprobe_run_failing_invariant();
+
 bool tests_rprobe_run_throwing_operation();
+
 bool tests_rprobe_run_throwing_invariant();
 
 // II.  ATOMICITY OBSERVER              (test_race_tests_atomicity.cpp)
 bool tests_ratomicity_report_defaults();
+
 bool tests_ratomicity_report_success_predicate();
+
 bool tests_ratomicity_report_to_test_object();
+
 bool tests_ratomicity_run_zero_observers();
+
 bool tests_ratomicity_run_zero_observations();
+
 bool tests_ratomicity_run_without_reader();
+
 bool tests_ratomicity_run_without_allowed();
+
 bool tests_ratomicity_run_all_allowed();
+
 bool tests_ratomicity_run_all_forbidden();
+
 bool tests_ratomicity_run_counts_partition();
+
 bool tests_ratomicity_run_reader_invoked();
 
 // III. LINEARIZATION LOG               (test_race_tests_linearization.cpp)
 bool tests_rlog_event_defaults();
+
 bool tests_rlog_empty();
+
 bool tests_rlog_record_event();
+
 bool tests_rlog_begin_end_event();
+
 bool tests_rlog_begin_without_end();
+
 bool tests_rlog_event_fields();
+
 bool tests_rlog_snapshot_is_copy();
+
 bool tests_rlog_clear();
+
 bool tests_rlog_ordering_preserved();
+
 bool tests_rlog_concurrent_append_mt();
 
 // IV.  CONSISTENCY CHECK               (test_race_tests_consistency.cpp)
 bool tests_rconsistency_report_defaults();
+
 bool tests_rconsistency_report_to_test_object();
+
 bool tests_rconsistency_empty_log();
+
 bool tests_rconsistency_well_formed_log();
+
 bool tests_rconsistency_counts_events();
+
 bool tests_rconsistency_interval_violation();
+
 bool tests_rconsistency_ordering_violation();
+
 bool tests_rconsistency_threads_independent();
 
 // V.   FACTORY HELPERS                 (test_race_tests_factory.cpp)
 #if D_HR_FACTORY_RETURNABLE
 bool tests_rfactory_make_race_probe();
+
 bool tests_rfactory_make_and_run();
+
 #endif  // D_HR_FACTORY_RETURNABLE
 
 

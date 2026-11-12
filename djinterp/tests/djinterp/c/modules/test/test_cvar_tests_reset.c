@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        test_cvar_tests_reset.c
+* djinterp [c][test]                                     test_cvar_tests_reset.c
 *
 * test_cvar.h's suite, block "cvar_reset_all_fn": d_test_registry_reset, of an
 * unknown flag too, and d_test_registry_reset_all, run twice.

@@ -122,7 +122,6 @@
 #include "djinterp/config/c/modules/test/cfg_test_metadata.h"
 #include "djinterp/config/c/modules/test/cfg_test_event.h"
 #include "djinterp/config/c/modules/test/cfg_test_counter.h"
-#include "djinterp/config/c/modules/test/cfg_test_timer.h"
 #include "djinterp/config/c/modules/test/cfg_test_parity.h"
 #include "djinterp/config/c/modules/test/cfg_test.h"
 // parse: the substrate, the argument parser, the command-line kit, then

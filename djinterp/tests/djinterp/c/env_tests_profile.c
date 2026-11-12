@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            env_tests_profile.c
+* djinterp [c][env]                                          env_tests_profile.c
 *
 *   The build profile env's suite notes on its module: the report
 * env_printer.h's d_env_report_here collects for this unit, every entry once,

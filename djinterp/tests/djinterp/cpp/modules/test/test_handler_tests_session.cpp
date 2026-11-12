@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_handler_tests_session.cpp
+* djinterp [cpp][test]                            test_handler_tests_session.cpp
 *
 *   Section IV (session / printer / sink).  start_session zeroes the counters
-* and fires DOnSessionStart; end_session fires on_session_end carrying the
+* and fires DOnSessionStart; end_session fires DOnSessionEnd carrying the
 * current pass/fail counts (and leaves the counters intact).  The printer is a
 * non-owning attachment: set_printer stores the pointer and calls the (virtual)
 * install hook; clear_printer calls uninstall and forgets the pointer; both are
@@ -66,7 +66,7 @@ bool tests_session_start_resets_and_fires()
 }
 
 // tests_session_end_fires_with_counts
-//   end_session fires on_session_end with the current pass/fail counts and does
+//   end_session fires DOnSessionEnd with the current pass/fail counts and does
 // not clear the counters.
 bool tests_session_end_fires_with_counts()
 {

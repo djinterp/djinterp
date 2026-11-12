@@ -1,20 +1,21 @@
 /*******************************************************************************
-* djinterp [test]                                             test_constexpr.cpp
+* djinterp [re_std]                                           test_constexpr.cpp
 *
 * re_std::any compile-time evaluation tests:
 *
-*   LITERAL-TYPE REQUIREMENT:
+* LITERAL-TYPE REQUIREMENT
+* ------------------------
 *   For `any` to be usable as a constexpr variable, it must satisfy
 * the literal-type rules of [basic.types].  In particular, it needs
 * either a trivial destructor or - from C++20 onward - a constexpr
 * destructor.  Because re_std::any must run heap cleanup, the
 * destructor is non-trivial; consequently:
 *
-*     - C++11 / C++14 / C++17: `any` is NOT a literal type.
+*     - C++11 / C++14 / C++17: `any` is not a literal type.
 *       Member functions may be marked constexpr (and they are),
 *       but they cannot actually be invoked in a constant-
 *       expression context because no constexpr `any` instance
-*       can exist.  What DOES work at compile time:
+*       can exist.  What does work at compile time:
 *         - the any_type_id_of<T>::value traits
 *         - the internal::any_category_of<T>::value traits
 *         - the internal::is_sbo_type<T>::value predicate

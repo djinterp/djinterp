@@ -1,8 +1,8 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                      test_runner_tests.hpp
+* djinterp [cpp][test]                                     test_runner_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_runner.hpp - the top-level
-* RUN facade that composes a test_handler, a test_option_set, and an
+* run facade that composes a test_handler, a test_option_set, and an
 * option-driven reporter bound to the event alphabet.  Each free function
 * exercises one facet and returns true if every check inside it passed.  Tests
 * are grouped into translation units by the section of the header they cover:
@@ -26,15 +26,19 @@
 * (with its stringized expression and source location) and forwards the boolean.
 * The D_TR_CHECK macro is the intended call site.
 *
-*   OBSERVATION.  The internal helpers are pure and are called directly.  The
-* runner's rendered output is observed by redirecting its console sink into an
+* OBSERVATION
+* -----------
+*   The internal helpers are pure and are called directly.  The runner's
+* rendered output is observed by redirecting its console sink into an
 * ostringstream (set_console) and reading the captured text; file output is
 * observed by pointing output_path at a scratch file and reading it back.
 * Counters / verdict / exit_code are read from the facade after run().  Nodes
 * are built with make_leaf / make_interior (basic_test values whose type_id
 * selects leaf vs interior and whose "name" metadata drives rendering).
 *
-*   NOTE: the runner lives in djinterp::test; the event vocabulary (verdict,
+* NOTE
+* ----
+*   The runner lives in djinterp::test; the event vocabulary (verdict,
 * DHandlerId) lives in djinterp; the tests live, flat, in djinterp::testing.
 *
 *
@@ -216,49 +220,84 @@ std::size_t count_occurrences(
 
 // internal reporter helpers
 bool tests_helper_status_of();
+
 bool tests_helper_status_str();
+
 bool tests_helper_shown_all();
+
 bool tests_helper_shown_failures_only();
+
 bool tests_helper_shown_failures_and_skipped();
+
 bool tests_helper_shown_summary_and_silent();
+
 bool tests_helper_subst();
+
 bool tests_helper_split_tags();
 
 // facade
 bool tests_facade_default_options();
+
 bool tests_facade_explicit_options();
+
 bool tests_facade_options_mutable();
+
 bool tests_facade_set_options();
+
 bool tests_facade_set_console();
+
 bool tests_facade_handler_access();
+
 bool tests_facade_run_counters();
+
 bool tests_facade_verdict();
+
 bool tests_facade_exit_code();
+
 bool tests_facade_result_snapshot();
 
 // rendering
 bool tests_render_leaf_line();
+
 bool tests_render_index_increments();
+
 bool tests_render_status_tokens();
+
 bool tests_render_name_and_message();
+
 bool tests_render_numbering_off();
+
 bool tests_render_module_header();
+
 bool tests_render_summary();
+
 bool tests_render_width_clamp();
+
 bool tests_render_duration_timing_empty();
+
 bool tests_render_tags_metadata_path();
 
 // show policies / routing / free functions
 bool tests_show_all();
+
 bool tests_show_failures_only();
+
 bool tests_show_failures_and_skipped();
+
 bool tests_show_summary_only();
+
 bool tests_show_silent();
+
 bool tests_route_file_stream();
+
 bool tests_route_console_and_file();
+
 bool tests_route_no_output_path();
+
 bool tests_route_pack_compress();
+
 bool tests_route_pack_archive_fallback();
+
 bool tests_free_run_tests();
 
 

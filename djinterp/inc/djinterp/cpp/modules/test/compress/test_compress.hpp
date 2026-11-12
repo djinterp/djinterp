@@ -1,39 +1,54 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                          test_compress.hpp
+* djinterp [cpp][test]                                         test_compress.hpp
 *
-*   A common testing module for compression.  This is NOT the unit-test suite
+*   A common testing module for compression.  This is not the unit-test suite
 * for any one codec; it is the shared, reusable surface any test suite reaches
-* for when it needs to VERIFY compressed output - whether that output came from
+* for when it needs to verify compressed output - whether that output came from
 * compress.hpp directly or from some higher-level module that leans on it (the
 * archive layer, the pdf writer, a document bundler, and so on).
 *
 *   It offers four things a compression-consuming test repeatedly wants:
-*   - PAYLOADS      deterministic input corpora (empty, tiny, text, repetitive,
+*   - payloads      deterministic input corpora (empty, tiny, text, repetitive,
 *                   incompressible, NUL-bearing, and large enough to cross the
 *                   codecs' internal chunk boundaries), so every suite exercises
 *                   the same representative battery.
-*   - SIGNATURES    magic-byte predicates that answer "is this really a gzip /
+*   - signatures    magic-byte predicates that answer "is this really a gzip /
 *                   zlib / bzip2 / xz / zstd / lz4 stream?", plus a tag-dispatched
 *                   has_expected_signature<Codec> that maps a codec tag to the
 *                   framing it is required to emit (store / raw-deflate / brotli
 *                   carry no fixed magic and always pass).
-*   - VERIFICATION  the core reusable checks - roundtrip<Codec> (a full
+*   - verification  the core reusable checks - roundtrip<Codec> (a full
 *                   compress/decompress cycle rolled up into an inspectable
 *                   report), roundtrips<Codec> (strict: expects the codec
 *                   present), facade_roundtrip_ok<Codec> (build-agnostic: a
-*                   correct facade either round-trips OR reports the codec
+*                   correct facade either round-trips or reports the codec
 *                   unavailable), decompresses_to<Codec> and is_valid_stream<Codec>
 *                   (verify another module's emitted bytes).
-*   - AVAILABILITY  is_available<Codec>, a thin re-export so a suite can gate a
+*   - availability  is_available<Codec>, a thin re-export so a suite can gate a
 *                   real-codec assertion on what this build actually compiled.
 *
 *   Every helper is built on the NON-throwing facade API (try_compress /
 * try_decompress), so this header compiles and works whether or not C++
 * exceptions are enabled in the translation unit that includes it.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  Header-only; the only djinterp dependency is the compress
 * facade it is written to exercise.
+*
+* HOW TO USE
+* ----------
+*   Make a payload (make_text, make_repeated, make_pattern, make_incompressible,
+* make_with_nuls), round-trip it with roundtrip or roundtrips<Codec>, and check
+* the output with has_expected_signature and is_valid_stream.
+*
+* OPTIONS
+* -------
+*   The compress_options roundtrip takes.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/compress/test_compress.hpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dmacro_tests_member.c
+* djinterp [c]                                             dmacro_tests_member.c
 *
 *
 * path:      /tests/djinterp/c/dmacro_tests_member.c

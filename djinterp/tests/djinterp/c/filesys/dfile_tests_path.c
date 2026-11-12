@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_path.c
+* djinterp [c][filesys]                                       dfile_tests_path.c
 *
 *   Tests for path utility operations (getcwd, realpath, dirname, basename).
 *

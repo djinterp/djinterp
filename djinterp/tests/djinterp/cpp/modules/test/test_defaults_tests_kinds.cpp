@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_defaults_tests_kinds.cpp
+* djinterp [cpp][test]                             test_defaults_tests_kinds.cpp
 *
 *   Sections III / IV - the six built-in kind constants (ranked 0..5, the two
 * leaves lowest), their back-compat aliases, and default_test_kinds().  The

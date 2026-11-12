@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 sync_common_tests_ownership.cpp
+* djinterp [cpp][sync]                           sync_common_tests_ownership.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/sync_common_tests_ownership.cpp

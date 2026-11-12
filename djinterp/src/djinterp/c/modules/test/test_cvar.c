@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                  test_cvar.c
+* djinterp [c][test]                                                 test_cvar.c
 *
 * The test registry of test_cvar.h: the static table of DTest's config and
 * metadata rows, the dj_registry over it, and its lookups and resets.

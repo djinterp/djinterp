@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_options_tests_enums.cpp
+* djinterp [cpp][test]                              test_options_tests_enums.cpp
 *
 *   Section A.I - the value enums and, chiefly, DTestSink's bitwise algebra: the
 * union (operator|), intersection (operator&), complement within the defined

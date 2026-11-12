@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            test_options_tests_utility_macros.c
+* djinterp [c][test]                         test_options_tests_utility_macros.c
 *
 * test_options.h's suite, block "config_utility_macro_all": D_TEST_HAS_FLAG,
 * _HAS_ANY_FLAG, _GET_MESSAGE_FLAGS, _GET_SETTINGS_FLAGS, _IS_SILENT,

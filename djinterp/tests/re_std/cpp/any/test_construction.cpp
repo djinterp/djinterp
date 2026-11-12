@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          test_construction.cpp
+* djinterp [re_std]                                        test_construction.cpp
 *
 * re_std::any construction tests:
 *   Exercises every constructor path on every C++ standard, plus

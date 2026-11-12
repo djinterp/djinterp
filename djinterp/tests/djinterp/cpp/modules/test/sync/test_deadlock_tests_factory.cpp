@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [tests]                               test_deadlock_tests_factory.cpp
+* djinterp [cpp][test]                           test_deadlock_tests_factory.cpp
 *
 *   Section TU: make_deadlock_watchdog.
 *
 *   Gated on D_HD_FACTORY_RETURNABLE (default 0): the factory returns a named
 * local deadlock_watchdog, whose copy constructor is deleted and which
 * declares no move constructor, so the return is ill-formed on instantiation.
-* Note that a defaulted move would ALSO be deleted here, because the class
+* Note that a defaulted move would also be deleted here, because the class
 * holds a std::mutex and a std::condition_variable; the practical fix is to
 * rewrite the factory body to return a prvalue.  See the suite header banner.
 *

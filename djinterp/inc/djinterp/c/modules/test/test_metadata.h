@@ -1,52 +1,58 @@
 /*******************************************************************************
-* djinterp [c/test]                                              test_metadata.h
+* djinterp [c][test]                                             test_metadata.h
 *
 *   The metadata container: a flat, borrowed, back-insertable row sequence with
 * linear-scan lookup.  Extracted from test_object.h (revision.md §6).
 *
-*   WHY THIS IS ITS OWN MODULE.  The node used to hold the container BY VALUE,
-* which made metadata mandatory: every translation unit that knew what a node
-* was also had to know what a row was, and the node's LAYOUT moved when the
-* container's did.  The node now holds a POINTER that may be null, so the
-* C-side dependency breaks completely -- test_object.h names this module only
-* through an incomplete type and test_object.c calls nothing in it.  That is
-* the pointer's real payoff and it is invisible in a diff, which is why it is
-* written here.
+* WHY THIS IS ITS OWN MODULE
+* --------------------------
+*   The node used to hold the container by value, which made metadata mandatory:
+* every translation unit that knew what a node was also had to know what a row
+* was, and the node's layout moved when the container's did.  The node now holds
+* a pointer that may be null, so the C-side dependency breaks completely --
+* test_object.h names this module only through an incomplete type and
+* test_object.c calls nothing in it.  That is the pointer's real payoff and it
+* is invisible in a diff, which is why it is written here.
 *
-*   DIRECTION OF DEPENDENCY.  This header includes test_object.h, not
-* the other way round, and that is deliberate: the OPTIONAL module may depend
-* on the MANDATORY one, never the reverse.  What it needs from there is
-* enum dj_test_object_result, which stays with the node (revision.md §5) so the
-* ten-plus consumers of D_TEST_OBJECT_OK and friends are untouched.  There is
-* no cycle, because the node reaches back only through
-* `struct dj_test_metadata;`.
+* DIRECTION OF DEPENDENCY
+* -----------------------
+*   This header includes test_object.h, not the other way round, and that is
+* deliberate: the optional module may depend on the mandatory one, never the
+* reverse.  What it needs from there is enum dj_test_object_result, which stays
+* with the node (revision.md §5) so the ten-plus consumers of D_TEST_OBJECT_OK
+* and friends are untouched.  There is no cycle, because the node reaches back
+* only through `struct dj_test_metadata;`.
 *
 *
 * WHAT THIS REVISION CHANGES, AND WHAT IT DELIBERATELY DOES NOT
 * ============================================================
-*   THE VALUE GAINS A WIDTH AND A MEANING, NOT AN OWNER.  A row was an interned
-* key beside an untyped `void*`, and that pointer is still borrowed, still
-* never dereferenced or freed by the container, still the caller's business in
-* every respect that matters.  What it lacked was any statement of how many
-* bytes it leads to or what they mean -- so TWO METADATA VALUES COULD NOT BE
-* COMPARED.  dj_option has d_option_carrier_eq for exactly this; metadata had
-* nothing, so a parity diff over metadata could compare keys and pointer
-* identity and no more.  Metadata is where a suite attaches its names, which
-* makes that the half of the record the oracle most wants.
+*
+* THE VALUE GAINS A WIDTH AND A MEANING, NOT AN OWNER
+* ---------------------------------------------------
+*   A row was an interned key beside an untyped `void*`, and that pointer is
+* still borrowed, still never dereferenced or freed by the container, still the
+* caller's business in every respect that matters.  What it lacked was any
+* statement of how many bytes it leads to or what they mean -- so two metadata
+* Values could not be compared.  dj_option has d_option_carrier_eq for exactly
+* this; metadata had nothing, so a parity diff over metadata could compare keys
+* and pointer identity and no more.  Metadata is where a suite attaches its
+* names, which makes that the half of the record the oracle most wants.
 *
 *   The row grows from two members to five and, at the default key width, from
 * sixteen bytes to twenty-four.  That is the same trade test_object.h makes for
 * `status` in its own words -- widening costs bytes and removes a question --
 * rather than a new principle.
 *
-*   IT IS NOT A KNOB.  A knob that adds or removes a member of dj_test_kv is
-* precisely the dconfig 6.2 hazard this header already names about
-* dj_test_object: optionality that alters a shared struct, with two translation
-* units disagreeing about sizeof and no diagnostic anywhere.  The optionality
-* stays at the module grain, where D_CFG_TEST_METADATA already puts it, and the
-* eight bytes are paid unconditionally.
+* IT IS NOT A KNOB
+* ----------------
+*   A knob that adds or removes a member of dj_test_kv is precisely the dconfig
+* 6.2 hazard this header already names about dj_test_object: optionality that
+* alters a shared struct, with two translation units disagreeing about sizeof
+* and no diagnostic anywhere.  The optionality stays at the module grain, where
+* D_CFG_TEST_METADATA already puts it, and the eight bytes are paid
+* unconditionally.
 *
-*   THE FIELD-DESCRIPTOR HALF OF kv DOES NOT APPLY HERE, and it would be a
+*   The field-descriptor half of kv does not apply here, and it would be a
 * mistake to force it.  dj_test_kv's layout is fixed and known: two direct
 * members, no offsets to compute, nothing for a dj_kv_field to describe that the
 * struct does not already say.  What this module takes from kv is the width and
@@ -56,12 +62,31 @@
 * WHAT STILL DOES NOT CONVERGE WITH C++
 * =====================================
 *   DBasicMetadata<> is std::string to std::string, owning and allocating; this
-* is an interned id to a borrowed void*.  Those are not divergent in LAYOUT,
-* they are divergent in OWNERSHIP, and no amount of descriptor work closes
+* is an interned id to a borrowed void*.  Those are not divergent in layout,
+* they are divergent in ownership, and no amount of descriptor work closes
 * that.  Typing the value narrows the gap -- values become comparable across
 * the boundary -- and the interned key closes the key half outright, since
 * interning a std::string at the boundary is what interning is for.  The value
 * half waits for dj_string, exactly as test_object.h says.
+*
+* HOW TO USE
+* ----------
+*   Bind the container to a node's storage, then set and read rows by key id:
+*
+*     struct dj_test_metadata meta = D_TEST_METADATA_INIT;
+*
+*     d_test_metadata_set(&meta, KEY_NAME, (void*)"parse");
+*     d_test_metadata_get(&meta, KEY_NAME);
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   Set before dconfig.h is included, or with -D; each defaults in
+* config/c/modules/test/cfg_test_metadata.h: D_CFG_TEST_METADATA,
+* D_CFG_TEST_METADATA_REPLACE, D_CFG_TEST_METADATA_MAX, D_CFG_TEST_KEY_ID_TYPE.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_metadata.h
@@ -249,27 +274,33 @@ D_STATIC_ASSERT(offsetof(struct dj_test_metadata, count) >
 enum dj_test_object_result d_test_metadata_init(
     struct dj_test_metadata* _metadata
 );
+
 enum dj_test_object_result d_test_metadata_bind(
     struct dj_test_metadata* _metadata,
     struct dj_test_kv*       _storage,
     size_t                   _capacity
 );
+
 enum dj_test_object_result d_test_metadata_set(
     struct dj_test_metadata* _metadata,
     dj_test_key_id           _key,
     void*                    _value
 );
+
 void* d_test_metadata_get(
     const struct dj_test_metadata* _metadata,
     dj_test_key_id                 _key
 );
+
 int d_test_metadata_contains(
     const struct dj_test_metadata* _metadata,
     dj_test_key_id                 _key
 );
+
 size_t d_test_metadata_count(
     const struct dj_test_metadata* _metadata
 );
+
 const struct dj_test_kv* d_test_metadata_row(
     const struct dj_test_metadata* _metadata,
     size_t                         _index

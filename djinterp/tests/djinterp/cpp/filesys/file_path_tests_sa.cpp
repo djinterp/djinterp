@@ -1,35 +1,35 @@
 /*******************************************************************************
-* djinterp [test]                                         file_path_tests_sa.cpp
+* djinterp [cpp][filesys]                                 file_path_tests_sa.cpp
 *
 *   Unit tests for djinterp::path (inc/djinterp/cpp/filesys/file_path.hpp). One
 * file for one class, so the test mirrors the thing it tests -- exactly as the
 * c/filesys suite is one source per module.
 *
-*   THREE RULES, the first two inherited from the file_tests_sa suite and the
+*   Three rules, the first two inherited from the file_tests_sa suite and the
 * third specific to the C++ layer.
 *
-*   1. A test that cannot run is OMITTED, never passed.
+*   1. A test that cannot run is omitted, never passed.
 *      djinterp::path is portable C++98 -> C++26, and a move constructor is a
-*      C++11 addition. On C++98 the move assertions are ABSENT, not a green
+*      C++11 addition. On C++98 the move assertions are absent, not a green
 *      "skipped" -- the group simply has fewer, and the group name says why.
-*      The old dfile suite reported PASS for symlink code that never executed;
+*      The old dfile suite reported pass for symlink code that never executed;
 *      this suite says nothing about what it did not run.
 *
-*   2. Capability is asked at COMPILE time, not probed at runtime.
+*   2. Capability is asked at compile time, not probed at runtime.
 *      D_MOVE_ENABLED, D_FILE_PATH_UNDERSTANDS_WINDOWS and D_INTERNAL_PATH_-
-*      THROW are compile-time facts the language and the config already
+*      throw are compile-time facts the language and the config already
 *      resolved. The tests #if on them; there is nothing to discover at run
 *      time, and a runtime probe for a compile-time fact is a test of the
 *      probe.
 *
-*   3. The tier rule is DEMONSTRATED, not asserted in prose.
+*   3. The tier rule is demonstrated, not asserted in prose.
 *      This is one source. It is meant to be built on every standard from
-*      C++98 to C++23 -- and the higher tiers only ADD assertions (the move
+*      C++98 to C++23 -- and the higher tiers only add assertions (the move
 *      group), they never change one. If a tier needs different source, the
 *      additive-never-divergent contract has already broken, and no assertion
 *      inside the file can catch that; building the same file everywhere can.
 *
-*   WHY THIS FILE CARRIES ITS OWN HARNESS.
+*   Why this file carries its own harness.
 *      The C test framework was not C++-consumable, and it is not yet
 *   djinterp::path was the framework's first C++ consumer of dstring and found
 *   the restrict / D_INLINE / extern "C" blockers there. This test carries the
@@ -38,8 +38,8 @@
 *   build. It provides d_test_object_new_leaf / _new_interior, the D_ASSERT_*
 *   macros and the derived-count group helper directly.
 *
-*   It also carries D_TEST_PATH_STR_EQUAL over a FUNCTION rather than the
-*   framework's D_ASSERT_STR_EQUAL macro, for the reason SHORTCOMINGS 2.2 gives:
+*   It also carries D_TEST_PATH_STR_EQUAL over a function rather than the
+*   framework's D_ASSERT_STR_EQUAL macro, for the reason shortcomings 2.2 gives:
 *   the macro's `(_str1) && (_str2)` tests an array's address when handed a
 *   string literal, so `-Waddress` fires on every call. A function parameter
 *   decays the array to a pointer and the NULL check is real. Same shape as the

@@ -1,22 +1,23 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_builder.hpp
+* djinterp [cpp][test]                                          test_builder.hpp
 *
 *   The fluent, functional builder over a test_tree.  Where test_tree.hpp
-* is the storage and test_object.hpp the node, this module is the AUTHORING
+* is the storage and test_object.hpp the node, this module is the authoring
 * surface: a single chainable object that grows a rank-checked forest of
 * test_objects and binds each leaf's deferred work into a
 * DTestCallableTable, then walks the forest to evaluate it.
 *
-*   ONE OBJECT, MANY IDIOMS:
+* ONE OBJECT, MANY IDIOMS
+* -----------------------
 *   Every mutating method returns `test_builder&`, so the same surface
 * serves three authoring styles with no separate API:
 *
-*     PROCEDURAL - statements in sequence, each standing alone:
+*     Procedural - statements in sequence, each standing alone:
 *         suite.test_module("foo");
 *         suite.test_block("flat props");
 *         suite.test("is mutable").assert_(cond);
 *
-*     FUNCTIONAL - one chained expression, plus the scoped lambda forms
+*     Functional - one chained expression, plus the scoped lambda forms
 *     (module/block taking a `void(test_builder&)` body) for clean nesting
 *     and the predicate-driven add_if / assert_all / assert_any:
 *         make_suite()
@@ -27,7 +28,7 @@
 *             })
 *             .run();
 *
-*     HYBRID - mix freely (the example in the design brief):
+*     Hybrid - mix freely (the example in the design brief):
 *         suite.test_module("foo")
 *              .test_block("")
 *                  .test("is flat, static, mutable")
@@ -40,33 +41,36 @@
 *                      .test_fn(&test_holds_elements)
 *              .run();
 *
-*   A TEST IS A THUNK (THE FUNCTIONAL CORE):
+* A TEST IS A THUNK (THE FUNCTIONAL CORE)
+* ---------------------------------------
 *   A leaf's pass/fail is the value produced by a deferred `() -> bool`
 * thunk held in the callable table; the node itself stores only the id.
-* assert_ / test_fn / assert_all / assert_any COMPOSE thunks under boolean
-* algebra (short-circuit AND across conjoined clauses, OR for any_of),
+* assert_ / test_fn / assert_all / assert_any compose thunks under boolean
+* algebra (short-circuit and across conjoined clauses, or for any_of),
 * mirroring functional/predicate.hpp's combinators.  A leaf with no clause
 * bound stays `pending` - a not-yet-implemented test, never a failure.
 *
-*   NAMED vs ANONYMOUS:
-*   test()/module()/block() add NAMED nodes evaluated later, at run().
-* check()/expect() add ANONYMOUS leaves evaluated IMMEDIATELY, folding
+*   Named vs anonymous:
+*   test()/module()/block() add named nodes evaluated later, at run().
+* check()/expect() add anonymous leaves evaluated immediately, folding
 * their outcome into the same tree (and so the same counts) without a name
 * or a callable row.
 *
-*   RANK SAFETY:
+* RANK SAFETY
+* -----------
 *   The builder seeds the tree's kind set with three default kinds -
 * module > block > test by rank, test a leaf - so test_tree's rank-checked
 * append_child structurally forbids nonsense (a module inside a test).
 * Callers may register their own kinds before building to extend the
 * vocabulary.
 *
-*   EVENTS (LIFECYCLE + CUSTOM):
+* EVENTS (LIFECYCLE + CUSTOM)
+* ---------------------------
 *   The builder owns an `DEventDispatcher` (core/event).  run() fires the
 * framework's lifecycle events from test_event.hpp as it walks - one
-* DOnSessionStart, an on_module_start per interior node, the full
-* on_test_start / DOnStatusChange / DOnTestPassed|failed|skipped|error /
-* DOnTestEnd sequence per leaf, and on_session_end carrying the pass/fail
+* DOnSessionStart, a DOnModuleStart per interior node, the full
+* DOnTestStart / DOnStatusChange / DOnTestPassed|failed|skipped|error /
+* DOnTestEnd sequence per leaf, and DOnSessionEnd carrying the pass/fail
 * counts.  Subscribe with the chainable on_passed / on_failed / on_skipped /
 * on_error sugar, the generic on<Event>(handler), or events().bind<Event>()
 * when you need the DHandlerId back.  Emit your own (e.g. value-tagged) events
@@ -75,16 +79,37 @@
 * of that event's word); a handler that throws is caught and re-reported as
 * DOnListenerThrew rather than aborting the run.
 *
-*   WHAT THIS MODULE DOES NOT OWN:
-*   The rank-aware STRUCTURAL walk (enter/leave subtree pairing).  run() is a
-* FLAT pre-order walk, so it fires on_module_start on entry but leaves the
+* WHAT THIS MODULE DOES NOT OWN
+* -----------------------------
+*   The rank-aware structural walk (enter/leave subtree pairing).  run() is a
+* flat pre-order walk, so it fires DOnModuleStart on entry but leaves the
 * paired DOnModuleEnd to a structural driver; hand it tree() + events() to
 * emit the leave events.  Swapping the flat walk for that structural one is a
 * localized change behind the same event surface.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum (lambdas, std::function via test_callable.hpp,
 * perfect forwarding).
+*
+* HOW TO USE
+* ----------
+*   Grow a forest with the chainable methods, binding each leaf's work, then run
+* it; every mutating method returns the builder:
+*
+*     test_builder<> suite;
+*
+*     suite.test_module("foo").test_block("props")
+*          .test("is mutable").assert_([]{ return true; });
+*     DTestSummary s = suite.run();
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_builder.hpp
@@ -735,7 +760,7 @@ public:
     // on_passed / on_failed / on_skipped / on_error
     //   named sugar binding a handler to the matching per-test status event.
     // on_failed is the principled replacement for "do X when a test fails":
-    // run() fires on_test_failed for every failing leaf, so the handler runs
+    // run() fires DOnTestFailed for every failing leaf, so the handler runs
     // once per failure with that leaf as a `const basic_test*`.  on_error's
     // handler additionally receives the diagnostic `const char*`.  Each
     // returns *this for chaining.
@@ -757,7 +782,7 @@ public:
         Callable&& _handler
     )
     {
-        m_events.bind<on_test_failed>(
+        m_events.bind<DOnTestFailed>(
             std::forward<Callable>(_handler));
 
         return *this;
@@ -781,7 +806,7 @@ public:
         Callable&& _handler
     )
     {
-        m_events.bind<on_test_error>(
+        m_events.bind<DOnTestError>(
             std::forward<Callable>(_handler));
 
         return *this;
@@ -881,17 +906,17 @@ public:
 
     // run
     //   walks the forest once and fires the framework's lifecycle events as
-    // it goes: one DOnSessionStart up front, an on_module_start as each
+    // it goes: one DOnSessionStart up front, a DOnModuleStart as each
     // interior (module / block) node is entered, and for every leaf test the
-    // full on_test_start -> [evaluate] -> DOnStatusChange? -> status event
-    // (DOnTestPassed / on_test_failed / DOnTestSkipped / on_test_error) ->
-    // DOnTestEnd sequence, closing with on_session_end carrying the pass and
+    // full DOnTestStart -> [evaluate] -> DOnStatusChange? -> status event
+    // (DOnTestPassed / DOnTestFailed / DOnTestSkipped / DOnTestError) ->
+    // DOnTestEnd sequence, closing with DOnSessionEnd carrying the pass and
     // fail counts.  A leaf carrying a bound thunk is evaluated here (a throw
-    // becomes `error` with the diagnostic captured for on_test_error); inline
+    // becomes `error` with the diagnostic captured for DOnTestError); inline
     // and pending leaves keep the status they already hold.  Idempotent
     // enough to call again after adding more tests.
     //
-    //   This is a FLAT pre-order walk, so on_module_start fires on entry but
+    //   This is a FLAT pre-order walk, so DOnModuleStart fires on entry but
     // the paired DOnModuleEnd is left to a structural driver (hand it
     // tree() + events()).  Conjunctive-root and unknown-kind nodes are
     // skipped.
@@ -909,7 +934,7 @@ public:
 
             if (is_interior_node(node))
             {
-                safe_fire<on_module_start>(&node);
+                safe_fire<DOnModuleStart>(&node);
             }
             else if (is_test_node(node))
             {
@@ -917,7 +942,7 @@ public:
             }
         }
 
-        safe_fire<on_session_end>(passed, failed);
+        safe_fire<DOnSessionEnd>(passed, failed);
 
         return summarize();
     }
@@ -1209,7 +1234,7 @@ private:
 
     // is_interior_node
     //   true if _node is a rank-aware interior node (a module or a block) -
-    // the nodes for which run() fires on_module_start.
+    // the nodes for which run() fires DOnModuleStart.
     static bool
     is_interior_node(
         const value_type& _node
@@ -1233,7 +1258,7 @@ private:
     // fire_test_lifecycle
     //   fires the full per-leaf event sequence for one test node, evaluating
     // it first if it carries a bound thunk.  Threads the running pass / fail
-    // counts for the closing on_session_end.
+    // counts for the closing DOnSessionEnd.
     void
     fire_test_lifecycle(
         value_type&  _node,
@@ -1241,7 +1266,7 @@ private:
         std::size_t& _failed
     )
     {
-        safe_fire<on_test_start>(&_node);
+        safe_fire<DOnTestStart>(&_node);
 
         test_status before = static_cast<test_status>(_node.status());
 
@@ -1286,7 +1311,7 @@ private:
                 break;
 
             case test_status::failed:
-                safe_fire<on_test_failed>(&_node);
+                safe_fire<DOnTestFailed>(&_node);
                 ++_failed;
                 break;
 
@@ -1300,7 +1325,7 @@ private:
                 // const char* payload cannot dangle inside a handler.
                 std::string message = _node.metadata().get("error");
 
-                safe_fire<on_test_error>(
+                safe_fire<DOnTestError>(
                     &_node,
                     message.empty() ? nullptr : message.c_str());
                 break;
@@ -1371,7 +1396,7 @@ private:
     // evaluate_node
     //   invokes the node's bound thunk and writes pass/fail back.  A throw
     // records `error` and stashes the diagnostic under the "error" metadata
-    // key, where fire_test_lifecycle reads it for the on_test_error payload.
+    // key, where fire_test_lifecycle reads it for the DOnTestError payload.
     void
     evaluate_node(
         value_type& _node

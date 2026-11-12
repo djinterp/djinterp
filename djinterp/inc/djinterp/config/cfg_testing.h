@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_testing.h
+* djinterp [c][test]                                               cfg_testing.h
 *
 * The testing / debug preset.
 *   The one visible home for what differs in a test or debug build.
@@ -24,6 +24,26 @@
 *             subframework it serves and the cfg_*.h that reads it
 *   requires: cfg_common.h, which includes this file; a direct include is
 *             redirected to it
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: cfg_common.h applies this preset when D_CFG_TESTING is 1,
+* which follows the D_TESTING build flag. Suppress it with
+* -DD_CFG_NO_TESTING_PRESET, or substitute another with D_CFG_TESTING_HEADER.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_CFG_TESTING, D_CFG_NO_TESTING_PRESET, D_CFG_TESTING_HEADER,
+* D_CFG_TESTING_DEFINE_INLINE, D_CFG_TESTING_DEFINE_STATIC and
+* D_CFG_TESTING_STRIP_CONSTEXPR; under the preset it also turns on
+* D_CFG_DEBUG_ASSERTS, D_CFG_FILE_ASSERT_PARAMS, the archive and compress checks
+* (D_CFG_ARCHIVE_*, D_CFG_COMPRESS_*), D_CFG_PARSE_MACHINE_TRACE and the parity
+* knobs (D_CFG_TEST_PARITY, D_CFG_TEST_PARITY_STRICT).
+*
 *
 * path:      /inc/djinterp/config/cfg_testing.h
 * link(s):   TBA
@@ -57,10 +77,7 @@ TABLE OF CONTENTS
          3.  D_CFG_COMPRESS_VALIDATE
     4.  Parse
          1.  D_CFG_PARSE_MACHINE_TRACE
-    5.  Test counter
-         1.  D_CFG_TEST_COUNTER_ENFORCE_BOUNDS
-         2.  D_CFG_TEST_COUNTER_EVENTS
-    6.  Parity oracle
+    5.  Parity oracle
          1.  D_CFG_TEST_PARITY
          2.  D_CFG_TEST_PARITY_STRICT
 */
@@ -247,32 +264,11 @@ TABLE OF CONTENTS
     #define D_CFG_PARSE_MACHINE_TRACE 1
 #endif
 
-// 2.5    Test counter
-//------------------------------------------------------------------------------
-//   Read by cfg_test_counter.h, which also forces both gates on in a test
-// build: a counter that neither clamps nor notifies is not the counter this
-// framework ships, so a suite against one is not testing it.
-
-// 2.5.1
-// D_CFG_TEST_COUNTER_ENFORCE_BOUNDS
-//   knob: clamp at the bounds.
-#ifndef D_CFG_TEST_COUNTER_ENFORCE_BOUNDS
-    #define D_CFG_TEST_COUNTER_ENFORCE_BOUNDS 1
-#endif  // D_CFG_TEST_COUNTER_ENFORCE_BOUNDS
-
-// 2.5.2
-// D_CFG_TEST_COUNTER_EVENTS
-//   knob: notify observers on change; a suite that asserts event order cannot
-// run against a counter built without them.
-#ifndef D_CFG_TEST_COUNTER_EVENTS
-    #define D_CFG_TEST_COUNTER_EVENTS 1
-#endif  // D_CFG_TEST_COUNTER_EVENTS
-
-// 2.6    Parity oracle
+// 2.5    Parity oracle
 //------------------------------------------------------------------------------
 //   Read by cfg_test_parity.h.
 
-// 2.6.1
+// 2.5.1
 // D_CFG_TEST_PARITY
 //   knob: compile the parity oracle; it exists to be run in a test build.
 // cfg_test_parity.h defaults it to D_CFG_TESTING, so it follows testing mode
@@ -281,7 +277,7 @@ TABLE OF CONTENTS
     #define D_CFG_TEST_PARITY 1
 #endif  // D_CFG_TEST_PARITY
 
-// 2.6.2
+// 2.5.2
 // D_CFG_TEST_PARITY_STRICT
 //   knob: a truncated path or a refused sink fails the run. A record that
 // silently lost rows compares equal to another that lost the same rows, so a

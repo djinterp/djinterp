@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_context_tests_context.cpp
+* djinterp [cpp][test]                            test_context_tests_context.cpp
 *
-*   Section I of the test_context suite: the FOCUS STRUCT itself.  test_context
+*   Section I of the test_context suite: the focus struct itself.  test_context
 * is a plain aggregate - four nullable report-node pointers (run / module_ /
 * unit / check) and three 1-based display indices (module_index / unit_index /
 * check_index) - so the units here pin the properties an aggregate of that

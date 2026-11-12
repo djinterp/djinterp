@@ -1,27 +1,31 @@
 /*******************************************************************************
-* djinterp [test]                                             file_tests_dir.cpp
+* djinterp [cpp][filesys]                                     file_tests_dir.cpp
 *
-*   V. DIRECTORY (file_dir.hpp) -- the RAII directory handle and the range-for
+*   V. Directory (file_dir.hpp) -- the RAII directory handle and the range-for
 * built on it.
 *
-*   THE DOT ENTRIES ARE GONE, AND THAT IS A DIFFERENCE. The C layer hands "."
-* and ".." to the caller (its SKIP_DOTS knob defaults off, which the c/filesys suite
-* asserts). This layer removes them, because a C++ directory walk is expected
-* to yield contents rather than bookkeeping. The two suites therefore assert
-* OPPOSITE things about the same directory, on purpose -- and the case below
-* names that, so a later "fix" that makes them agree fails loudly here.
+* THE DOT ENTRIES ARE GONE, AND THAT IS A DIFFERENCE
+* --------------------------------------------------
+*   The C layer hands "." and ".." to the caller (its SKIP_DOTS knob defaults
+* off, which the c/filesys suite asserts). This layer removes them, because a
+* C++ directory walk is expected to yield contents rather than bookkeeping. The
+* two suites therefore assert opposite things about the same directory, on
+* purpose -- and the case below names that, so a later "fix" that makes them
+* agree fails loudly here.
 *
-*   THE READDIR TRAP, TESTED. d_dir_read's entry is borrowed and dies at the
-* next call; DDirectoryEntry promises to COPY the name instead. That promise is
-* invisible until you keep an entry and walk on, so the case below does exactly
-* that -- reads one entry, advances the walk past it, and then reads the name
-* it kept. Against a borrowing implementation that is a use-after-free; against
-* this one it is just a name.
+* THE READDIR TRAP, TESTED
+* ------------------------
+*   d_dir_read's entry is borrowed and dies at the next call; DDirectoryEntry
+* promises to copy the name instead. That promise is invisible until you keep an
+* entry and walk on, so the case below does exactly that -- reads one entry,
+* advances the walk past it, and then reads the name it kept. Against a
+* borrowing implementation that is a use-after-free; against this one it is just
+* a name.
 *
-*   ENDING vs FAILING. read() returns false for both, and distinguishes them
+*   Ending vs failing. read() returns false for both, and distinguishes them
 * through _ec: clear on a clean end, set on a real error. A walk that treated
 * an error as an ending would silently truncate. The clean-end case pins the
-* error CLEAR, which is the half that a naive implementation gets wrong.
+* error clear, which is the half that a naive implementation gets wrong.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_dir.cpp

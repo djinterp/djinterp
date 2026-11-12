@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                             test_concurrent_tests_factory.cpp
+* djinterp [cpp][test]                         test_concurrent_tests_factory.cpp
 *
 *   Section TU: make_concurrent_runner.
 *

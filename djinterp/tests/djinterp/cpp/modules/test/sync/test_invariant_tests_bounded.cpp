@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                              test_invariant_tests_bounded.cpp
+* djinterp [cpp][test]                          test_invariant_tests_bounded.cpp
 *
 *   Section TU: DBoundedGuard<T> - enforcement that observed values stay
 * inside an inclusive [low, high] range.

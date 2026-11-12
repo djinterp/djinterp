@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_kind_tests_queries.cpp
+* djinterp [cpp][test]                               test_kind_tests_queries.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_kind_tests_queries.cpp

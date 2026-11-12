@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                       test_timer_tests.hpp
+* djinterp [cpp][test]                                      test_timer_tests.hpp
 *
 * djinterp DTestTimer unit-test header:
 *   Declarations, helper types, and a helper macro for the test_timer.hpp
@@ -7,25 +7,24 @@
 * `djinterp::testing`; a test returns true on success and false on the first
 * failed check.
 *
-*   DTestTimer wraps util::timer and adds an optional event-dispatch layer, so
-* the suite is driven over a single deterministic instantiation,
+*   DTestTimer is the generic timer with elapsed_ms(), so the suite is driven
+* over a single deterministic instantiation,
 *     tt = DTestTimer<test_clock, std::chrono::milliseconds>   (aliased `tt`),
-* where test_clock is a manually-advanced fake clock (no real sleeping). Event
-* behaviour is observed by binding a DTimerEventLog to a dispatcher via
-* bind_timer_log() and triggering timer operations; the log counts the
-* on_start / on_stop / on_expire / on_reset events and captures their
-* argument counts. The helpers are named for the suite (see
-* test_counter_tests.hpp: the umbrella links both suites into one program).
+* where test_clock is a manually-advanced fake clock (no real sleeping). The
+* event block binds test_timer_event.hpp's handlers to the suite's own events
+* (DTtOpen, DTtClose), prefixed for the one-process umbrella, which links
+* every suite together.
 *
-*   PORTABILITY:
-*   Requires C++17 or later (the helper DEventDispatcher stand-in and the test
-* harness use C++17 library facilities). test_timer.hpp itself targets C++11.
+* PORTABILITY
+* -----------
+*   Requires C++17 or later (the tie-in and the test harness use C++17).
+* test_timer.hpp itself targets C++11.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_timer_tests.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.24
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_TIMER_TESTS_
@@ -42,6 +41,8 @@
 #include <djinterp/cpp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/modules/test/test_timer.hpp"
+#include "../../../../../inc/djinterp/cpp/modules/test/test_timer_event.hpp"
+#include "../../../../../inc/djinterp/cpp/event/event_dispatcher.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/cpp/modules/test/test_defaults.hpp"   // spec mode: module_spec + run_module
@@ -146,61 +147,16 @@ using tt = test::DTestTimer<test_clock, DMsec>;
 
 
 // -----------------------------------------------------------------
-// event observation
+// the suite's events
 // -----------------------------------------------------------------
 
-// DTimerEventLog
-//   helper: tallies the events a dispatcher receives from a tt, and captures
-// the argument count carried by the last on_stop / on_reset.
-struct DTimerEventLog
-{
-    int starts  = 0;
-    int stops   = 0;
-    int expires = 0;
-    int resets  = 0;
+// DTtOpen
+//   event: what starts a timer, through the start handler.
+D_EVENT_EMPTY(DTtOpen);
 
-    tt::rep_type last_stop_count  = -1;
-    tt::rep_type last_reset_count = -1;
-};
-
-// bind_timer_log
-//   helper: wires a DTimerEventLog to a dispatcher for tt's four event tags, so
-// that firing any tt event updates the log. Mirrors the documented usage,
-// e.g. `disp.bind<tt::on_stop>(...)`.
-inline
-void bind_timer_log(
-    DEventDispatcher& _disp,
-    DTimerEventLog&        _log
-)
-{
-    _disp.bind<tt::on_start>(
-        [&_log]()
-        {
-            ++_log.starts;
-        });
-
-    _disp.bind<tt::on_stop>(
-        [&_log](tt::rep_type _count)
-        {
-            ++_log.stops;
-            _log.last_stop_count = _count;
-        });
-
-    _disp.bind<tt::on_expire>(
-        [&_log]()
-        {
-            ++_log.expires;
-        });
-
-    _disp.bind<tt::on_reset>(
-        [&_log](tt::rep_type _count)
-        {
-            ++_log.resets;
-            _log.last_reset_count = _count;
-        });
-
-    return;
-}
+// DTtClose
+//   event: what stops it.
+D_EVENT_EMPTY(DTtClose);
 
 // reset_clock
 //   helper: returns the shared simulated clock to zero. Called at the start
@@ -223,57 +179,44 @@ void reset_clock() D_NOEXCEPT
 
 // construction (test_timer_tests_construction.cpp)
 bool tests_test_timer_default_ctor();
-bool tests_test_timer_max_ctor();
-bool tests_test_timer_max_handler_ctor();
-bool tests_test_timer_handler_ctor();
 
-// operations: start / stop / reset / reset_all + event firing
+bool tests_test_timer_max_ctor();
+
+// operations: the generic timer's, as the test timer's
 // (test_timer_tests_operations.cpp)
-bool tests_test_timer_start_fires_on_start();
-bool tests_test_timer_start_twice_one_event();
+bool tests_test_timer_start_stop_accumulate();
+
+bool tests_test_timer_start_twice_noop();
+
 bool tests_test_timer_start_when_expired_noop();
-bool tests_test_timer_stop_fires_on_stop();
-bool tests_test_timer_stop_fires_on_expire();
+
 bool tests_test_timer_stop_not_running_noop();
-bool tests_test_timer_reset_fires_on_reset();
-bool tests_test_timer_reset_all_leaf();
+
+bool tests_test_timer_reset();
+
 bool tests_test_timer_reset_all_recurses();
-bool tests_test_timer_multiple_cycles_accumulate();
 
 // accessors: elapsed / max / has_max / running / expired / remaining
 // (test_timer_tests_accessors.cpp)
 bool tests_test_timer_elapsed();
+
 bool tests_test_timer_max();
+
 bool tests_test_timer_has_max();
+
 bool tests_test_timer_running();
+
 bool tests_test_timer_expired();
+
 bool tests_test_timer_remaining();
 
-// children, owning (test_timer_tests_children.cpp)
-bool tests_test_timer_add_child();
-bool tests_test_timer_add_child_with_max();
-bool tests_test_timer_multiple_children();
-bool tests_test_timer_child_access();
-bool tests_test_timer_child_access_const();
-bool tests_test_timer_child_count();
-bool tests_test_timer_children_independent();
-bool tests_test_timer_copy_deep_copies_children();
+// DTest's addition (test_timer_tests_reports.cpp)
+bool tests_test_timer_elapsed_ms();
 
-// children, non-owning / observed (test_timer_tests_observed.cpp)
-bool tests_test_timer_observe();
-bool tests_test_timer_observe_multiple();
-bool tests_test_timer_observed_out_of_range();
-bool tests_test_timer_observed_live_view();
-bool tests_test_timer_observed_count();
-bool tests_test_timer_observe_non_owning();
+// the event tie-in (test_timer_tests_event.cpp)
+bool tests_test_timer_event_span();
 
-// events: tags, handler access, dispatch on/off (test_timer_tests_events.cpp)
-bool tests_test_timer_event_tag_names();
-bool tests_test_timer_event_tag_args();
-bool tests_test_timer_no_handler_noop();
-bool tests_test_timer_handler_accessor();
-bool tests_test_timer_set_handler_attach_detach();
-bool tests_test_timer_set_handler_swaps();
+bool tests_test_timer_event_unbind();
 
 
 #ifdef DTEST_SPEC_MODE
@@ -288,35 +231,28 @@ dt::module_spec timer_spec()
 {
     return dt::module_spec{
         "test_timer",
-        "test_timer.hpp - util::timer wrapped with an optional event-dispatch "
-        "layer, driven over a deterministic fake clock: construction, the "
-        "start / stop / reset operations and their events, the accessors, the "
-        "owning and observed child timers, and the event alphabet.",
+        "test_timer.hpp - the generic timer as DTest's, with elapsed_ms() for "
+        "reports, and test_timer_event.hpp's handlers timing the span between "
+        "two events, driven over a deterministic fake clock.",
         {
             dt::block_spec{
                 "construction",
-                "The four constructors and their initial state.",
+                "The generic timer's constructors, as the test timer's.",
                 {
-                    { "tests_test_timer_default_ctor",       "the default constructor's initial state", &tests_test_timer_default_ctor },
-                    { "tests_test_timer_max_ctor",           "the max-duration constructor, whose handler argument defaults to null", &tests_test_timer_max_ctor },
-                    { "tests_test_timer_max_handler_ctor",   "the max-plus-handler constructor", &tests_test_timer_max_handler_ctor },
-                    { "tests_test_timer_handler_ctor",       "the handler-only constructor (no maximum limit)", &tests_test_timer_handler_ctor },
+                    { "tests_test_timer_default_ctor", "the default constructor's initial state", &tests_test_timer_default_ctor },
+                    { "tests_test_timer_max_ctor",     "the max-duration constructor", &tests_test_timer_max_ctor },
                 }
             },
             dt::block_spec{
                 "operations",
-                "start / stop / reset / reset_all and the events they fire.",
+                "start / stop / reset / reset_all.",
                 {
-                    { "tests_test_timer_start_fires_on_start",       "start() transitions to running and fires on_start once", &tests_test_timer_start_fires_on_start },
-                    { "tests_test_timer_start_twice_one_event",      "starting an already-running timer is a no-op for events", &tests_test_timer_start_twice_one_event },
-                    { "tests_test_timer_start_when_expired_noop",    "starting an expired timer does not transition or fire", &tests_test_timer_start_when_expired_noop },
-                    { "tests_test_timer_stop_fires_on_stop",         "stop() accumulates elapsed time and fires on_stop with the count", &tests_test_timer_stop_fires_on_stop },
-                    { "tests_test_timer_stop_fires_on_expire",       "stopping at or beyond the limit additionally fires on_expire", &tests_test_timer_stop_fires_on_expire },
-                    { "tests_test_timer_stop_not_running_noop",      "stopping a non-running timer is a no-op", &tests_test_timer_stop_not_running_noop },
-                    { "tests_test_timer_reset_fires_on_reset",       "reset() clears elapsed time and fires on_reset with the prior count", &tests_test_timer_reset_fires_on_reset },
-                    { "tests_test_timer_reset_all_leaf",             "reset_all() on a childless timer (the empty-recursion case)", &tests_test_timer_reset_all_leaf },
-                    { "tests_test_timer_reset_all_recurses",         "reset_all() resets this timer and every owned descendant, each firing on_reset through the inherited dispatcher", &tests_test_timer_reset_all_recurses },
-                    { "tests_test_timer_multiple_cycles_accumulate", "successive start/stop cycles accumulate elapsed time", &tests_test_timer_multiple_cycles_accumulate },
+                    { "tests_test_timer_start_stop_accumulate",   "start/stop cycles accumulate elapsed time", &tests_test_timer_start_stop_accumulate },
+                    { "tests_test_timer_start_twice_noop",        "starting a running timer changes nothing", &tests_test_timer_start_twice_noop },
+                    { "tests_test_timer_start_when_expired_noop", "an expired timer does not start", &tests_test_timer_start_when_expired_noop },
+                    { "tests_test_timer_stop_not_running_noop",   "stopping a stopped timer changes nothing", &tests_test_timer_stop_not_running_noop },
+                    { "tests_test_timer_reset",                   "reset() stops the timer and clears its time", &tests_test_timer_reset },
+                    { "tests_test_timer_reset_all_recurses",      "reset_all() resets this timer and every owned descendant", &tests_test_timer_reset_all_recurses },
                 }
             },
             dt::block_spec{
@@ -332,41 +268,18 @@ dt::module_spec timer_spec()
                 }
             },
             dt::block_spec{
-                "children_owning",
-                "The owned child timers, held by value.",
+                "reports",
+                "DTest's addition: milliseconds for reports.",
                 {
-                    { "tests_test_timer_add_child",                "add_child() with no maximum, including dispatcher inheritance", &tests_test_timer_add_child },
-                    { "tests_test_timer_add_child_with_max",       "add_child(max), including dispatcher inheritance", &tests_test_timer_add_child_with_max },
-                    { "tests_test_timer_multiple_children",        "several children coexist with their own configuration", &tests_test_timer_multiple_children },
-                    { "tests_test_timer_child_access",             "the non-const child() accessor returns a mutable reference", &tests_test_timer_child_access },
-                    { "tests_test_timer_child_access_const",       "the const child() overload via a const reference", &tests_test_timer_child_access_const },
-                    { "tests_test_timer_child_count",              "child_count() tracks additions", &tests_test_timer_child_count },
-                    { "tests_test_timer_children_independent",     "children hold independent state", &tests_test_timer_children_independent },
-                    { "tests_test_timer_copy_deep_copies_children","the owning contract - children are held by value, so a copy owns an independent subtree", &tests_test_timer_copy_deep_copies_children },
+                    { "tests_test_timer_elapsed_ms", "elapsed_ms() is elapsed() in milliseconds", &tests_test_timer_elapsed_ms },
                 }
             },
             dt::block_spec{
-                "children_observed",
-                "The non-owning observed timers.",
+                "event",
+                "test_timer_event.hpp: start and stop handlers timing a span between two events.",
                 {
-                    { "tests_test_timer_observe",              "a single observe() registration", &tests_test_timer_observe },
-                    { "tests_test_timer_observe_multiple",     "several observed timers are tracked in order", &tests_test_timer_observe_multiple },
-                    { "tests_test_timer_observed_out_of_range","the bounds check in observed()", &tests_test_timer_observed_out_of_range },
-                    { "tests_test_timer_observed_live_view",   "the observed pointer is a live view of the external timer", &tests_test_timer_observed_live_view },
-                    { "tests_test_timer_observed_count",       "observed_count() tracks registrations", &tests_test_timer_observed_count },
-                    { "tests_test_timer_observe_non_owning",   "observed timers are non-owning - reset_all() does not touch them", &tests_test_timer_observe_non_owning },
-                }
-            },
-            dt::block_spec{
-                "events",
-                "The event alphabet, handler access, and dispatch on/off.",
-                {
-                    { "tests_test_timer_event_tag_names",         "each nested event tag reports its documented name", &tests_test_timer_event_tag_names },
-                    { "tests_test_timer_event_tag_args",          "the argument tuple of each event tag (a compile-time contract)", &tests_test_timer_event_tag_args },
-                    { "tests_test_timer_no_handler_noop",         "the zero-overhead path - with no dispatcher, every operation runs and dispatches nothing", &tests_test_timer_no_handler_noop },
-                    { "tests_test_timer_handler_accessor",        "handler() reports the attached dispatcher", &tests_test_timer_handler_accessor },
-                    { "tests_test_timer_set_handler_attach_detach","set_handler() attaches and detaches dispatch at runtime", &tests_test_timer_set_handler_attach_detach },
-                    { "tests_test_timer_set_handler_swaps",       "set_handler() can redirect dispatch from one dispatcher to another", &tests_test_timer_set_handler_swaps },
+                    { "tests_test_timer_event_span",   "the handler pair times the span between the two events", &tests_test_timer_event_span },
+                    { "tests_test_timer_event_unbind", "the dispatcher's handler ids unbind both handlers", &tests_test_timer_event_unbind },
                 }
             },
         }

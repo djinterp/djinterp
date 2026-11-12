@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      condvar_tests_hardware.cpp
+* djinterp [cpp][sync]                                condvar_tests_hardware.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/condvar_tests_hardware.cpp

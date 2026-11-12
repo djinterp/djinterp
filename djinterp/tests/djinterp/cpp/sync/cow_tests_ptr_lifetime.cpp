@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      cow_tests_ptr_lifetime.cpp
+* djinterp [cpp][sync]                                cow_tests_ptr_lifetime.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_ptr_lifetime.cpp

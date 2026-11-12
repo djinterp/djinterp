@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                      test_sync_tests_gate.cpp
+* djinterp [cpp][test]                                  test_sync_tests_gate.cpp
 *
 *   Section TU: test_gate - manual reset gate.  State and pass accounting are
 * asserted single-threaded; the blocking release is asserted with a real

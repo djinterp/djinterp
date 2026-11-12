@@ -1,17 +1,19 @@
 /*******************************************************************************
-* djinterp [test]                                           file_tests_error.cpp
+* djinterp [cpp][filesys]                                   file_tests_error.cpp
 *
-*   I. ERROR (file_common.hpp) -- the errno carrier every operation in the
+*   I. Error (file_common.hpp) -- the errno carrier every operation in the
 * layer reports through. Small surface, entirely pure, so every case here is
 * deterministic on a machine with no filesystem at all.
 *
-*   THE ABSENT CONVERSION IS A FEATURE. file_common.hpp is explicit that error
-* has NO operator bool, because `if (ec)` reads as "if error" to one author and
-* "if ok" to the next. That is a design decision, and a decision worth testing:
-* the case below asserts the conversion does not exist, so re-adding it fails
-* here rather than silently making every call site ambiguous. It is checked
-* with a type trait at compile time -- the only way to assert that something is
-* NOT callable without failing to compile.
+* THE ABSENT CONVERSION IS A FEATURE
+* ----------------------------------
+*   file_common.hpp is explicit that error has no operator bool, because `if
+* (ec)` reads as "if error" to one author and "if ok" to the next. That is a
+* design decision, and a decision worth testing: the case below asserts the
+* conversion does not exist, so re-adding it fails here rather than silently
+* making every call site ambiguous. It is checked with a type trait at compile
+* time -- the only way to assert that something is not callable without failing
+* to compile.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_error.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_options.c
+* djinterp [c][test]                                              test_options.c
 *
 * The option set of test_options.h: creating, copying and releasing one, and
 * reading and overriding the registry's config keys through it.

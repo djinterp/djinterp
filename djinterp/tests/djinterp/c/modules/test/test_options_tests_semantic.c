@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  test_options_tests_semantic.c
+* djinterp [c][test]                               test_options_tests_semantic.c
 *
 * test_options.h's suite, block "config_semantic_all": the
 * D_TEST_SHOULD_COUNT_*, D_TEST_SHOULD_PRINT_* and D_TEST_SHOULD_PUSH_* checks.

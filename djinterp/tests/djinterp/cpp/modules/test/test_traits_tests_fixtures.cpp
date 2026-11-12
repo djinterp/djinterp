@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_traits_tests_fixtures.cpp
+* djinterp [cpp][test]                            test_traits_tests_fixtures.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests_fixtures.cpp

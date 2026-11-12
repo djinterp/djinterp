@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    t_file_width.c
+* djinterp [c][filesys]                                           t_file_width.c
 *
 *   Runtime harness for c/filesys's two widths (file_common.h has the rules).
 * It builds as C from C99 at either width, and as C++ from C++98 -- below the

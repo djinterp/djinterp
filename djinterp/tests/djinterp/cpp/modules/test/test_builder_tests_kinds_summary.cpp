@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                       test_builder_tests_kinds_summary.cpp
+* djinterp [cpp][test]                      test_builder_tests_kinds_summary.cpp
 *
 *   The builder's supporting vocabulary: the default kind set it seeds a tree
 * with (module > block > test by rank, only test a leaf), the reserved kind

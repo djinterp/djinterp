@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                       concurrency_strategy_tags_tests_arity.cpp
+* djinterp [cpp][sync]                 concurrency_strategy_tags_tests_arity.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/concurrency_strategy_tags_tests_arity.cpp

@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                          test_deadlock.hpp
+* djinterp [cpp][test]                                         test_deadlock.hpp
 *
 *   Deadlock detection and timeout watchdog primitives for the DTest
 * multithreading harness.  Provides two complementary mechanisms:
 *
-*     1. DEADLOCK WATCHDOG
+*     1. Deadlock watchdog
 *        A timer-based fail-fast guard.  Arm the watchdog with a
 *        timeout; if disarm() is not called within the deadline the
 *        watchdog fires its on-fire callback (default: records a
@@ -12,7 +12,7 @@
 *        join, lock, or condition-variable wait that should never
 *        block indefinitely.
 *
-*     2. LOCK ORDER TRACKER
+*     2. Lock order tracker
 *        Records the order in which locks are acquired by each
 *        thread (using thread-local-storage keyed by lock id),
 *        builds an acquisition order graph, and detects cycles
@@ -23,16 +23,32 @@
 *   Both mechanisms produce a deadlock_report convertible to a
 * basic_test for the DTest tree via to_test_object().
 *
-*   USE WITH CARE:
-*   Watchdog firing does NOT abort the program by default - it
+* USE WITH CARE
+* -------------
+*   Watchdog firing does not abort the program by default - it
 * records the event and signals the SUT to stop cooperatively
 * via an atomic stop flag.  An optional fatal mode can be enabled
 * to call std::abort() when a deadlock is detected, but this is
 * not the default because tests should fail gracefully.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later.  C++98 builds receive degenerate
 * stubs (single-threaded; watchdog never fires; tracker is a no-op).
+*
+* HOW TO USE
+* ----------
+*   Arm a deadlock_watchdog (or a DScopedDeadlockWatchdog) around a wait that
+* must end; record lock order with a lock_order_tracker to find cycles.
+*
+* OPTIONS
+* -------
+*   The watchdog's timeout, on-fire callback and whether firing is fatal; set on
+* the watchdog.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_deadlock.hpp

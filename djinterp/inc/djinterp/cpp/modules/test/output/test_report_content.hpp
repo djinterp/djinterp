@@ -1,31 +1,34 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                    test_report_content.hpp
+* djinterp [cpp][test]                                   test_report_content.hpp
 *
-*   The CONTENT half of the layout-driven report render: what a body_ref leaf
+*   The content half of the layout-driven report render: what a body_ref leaf
 * named by the report's layout term resolves to.  The layout term
-* (test_layout.hpp) carries only STRUCTURE -- a cover, a toc, a section per
+* (test_layout.hpp) carries only structure -- a cover, a toc, a section per
 * module, a section per unit -- and names its content by key.  This header binds
 * those keys to render_actions that drive a DDocumentRenderer, and it is the only
 * place in the render path that knows what a report_check looks like.
 *
-*   WHY IT IS ITS OWN HEADER.  Everything here is plain DDocumentRenderer calls
-* over the report model: no expression term, no cofree, no interpreter.  That
-* makes it independently compilable and independently testable, which the
-* structural half is not -- and it is where all the DTest-specific detail lives,
-* so it is what a maintainer edits.  Splitting the two along that line keeps the
-* editable part cheap to verify.
+* WHY IT IS ITS OWN HEADER
+* ------------------------
+*   Everything here is plain DDocumentRenderer calls over the report model: no
+* expression term, no cofree, no interpreter.  That makes it independently
+* compilable and independently testable, which the structural half is not -- and
+* it is where all the DTest-specific detail lives, so it is what a maintainer
+* edits.  Splitting the two along that line keeps the editable part cheap to
+* verify.
 *
-*   WHAT REPLACES WHAT.  test_render.hpp bound each {token} a per-format
-* report_layout literal could name to a projection over the current focus, and
-* walked the report four levels deep emitting those literals into a sink.
-* test_render_pdf.hpp did the same walk again against a styled-op list.  Both
-* traversals disappear: the walk is now the interpreter's single fold over the
-* term, and per-format literals are gone entirely -- a renderer decides
-* realisation, so there is nothing left to vary per format.  The PROJECTIONS
-* survive, as the bodies of the actions below; that part was always the useful
-* half.
+* WHAT REPLACES WHAT
+* ------------------
+*   test_render.hpp bound each {token} a per-format report_layout literal could
+* name to a projection over the current focus, and walked the report four levels
+* deep emitting those literals into a sink. test_render_pdf.hpp did the same
+* walk again against a styled-op list.  Both traversals disappear: the walk is
+* now the interpreter's single fold over the term, and per-format literals are
+* gone entirely -- a renderer decides realisation, so there is nothing left to
+* vary per format.  The projections survive, as the bodies of the actions below;
+* that part was always the useful half.
 *
-*   THE KEY SCHEME is positional and stable:
+*   The key scheme is positional and stable:
 *       "run.summary"        the whole-run figure block
 *       "module.<m>.summary" one module's figures
 *       "unit.<m>.<u>"       one unit's assertion table
@@ -34,15 +37,29 @@
 *   graceful hole (the interpreter's contract), not a crash -- so a term that
 *   names content this header does not supply still renders.
 *
-*   ASSERTION TABLES go through the DDocumentRenderer table protocol, so one
+*   Assertion tables go through the DDocumentRenderer table protocol, so one
 * emission serves monospace, Markdown, XML, HTML and PDF.  The `style` hint each
-* RESULT cell carries is what a PDF or HTML dialect turns into a coloured
+* result cell carries is what a PDF or HTML dialect turns into a coloured
 * verdict; a plain one drops it.  This single emission is what replaced both the
 * monospace-block table arm and the hand-painted ruled one.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 baseline (DDocumentRenderer's floor); no dependency on the expression
 * or interpreter layers.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call directly: test_layout.hpp binds its body keys to the render
+* actions here.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_report_content.hpp

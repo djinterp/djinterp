@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_lock.c
+* djinterp [c][filesys]                                        file_tests_lock.c
 *
-*   VII. LOCKING (file_lock) -- advisory whole-file locks. Descriptor-based, so
+*   VII. Locking (file_lock) -- advisory whole-file locks. Descriptor-based, so
 * ENOSYS on the ISO C backend. Elsewhere a process takes and releases its own
 * shared and exclusive locks (non-blocking, to keep the suite from ever
 * stalling), and the operation-validation guard is checked: exactly one of
-* SHARED / EXCLUSIVE / UNLOCK is required, so both "two modes at once" and "no
+* shared / exclusive / unlock is required, so both "two modes at once" and "no
 * mode at all" are rejected.
 *
 *

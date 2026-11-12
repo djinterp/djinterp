@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_meta.c
+* djinterp [c][filesys]                                       dfile_tests_meta.c
 *
 *   Tests for file metadata operations (stat, fstat, chmod, access).
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_open.c
+* djinterp [c][filesys]                                       dfile_tests_open.c
 *
 *   Tests for secure file opening operations (fopen, fopen_s, freopen, fdopen).
 *

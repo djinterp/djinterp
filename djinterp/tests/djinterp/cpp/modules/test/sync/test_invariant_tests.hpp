@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                      test_invariant_tests.hpp
+* djinterp [cpp][test]                                  test_invariant_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_invariant.hpp
 * - the invariant monitoring toolkit (a polling background monitor, monotonic
@@ -18,7 +18,7 @@
 *   NOTE: this module's factory is NOT gated
 *   ------------------------------------------------------------------------
 *   DInvariantMonitor also deletes its copy constructor without declaring a
-* move constructor, but make_invariant_monitor() returns a PRVALUE
+* move constructor, but make_invariant_monitor() returns a prvalue
 * (`return DInvariantMonitor(...)`) rather than a named local, so C++17's
 * guaranteed copy elision applies and no constructor is required.  That is
 * why this factory compiles while make_concurrent_runner / make_stress /
@@ -27,7 +27,7 @@
 *   ------------------------------------------------------------------------
 *   A NOTE ON THE POLLING MONITOR
 *   ------------------------------------------------------------------------
-*   The background monitor polls on a cadence, so the NUMBER of checks it
+*   The background monitor polls on a cadence, so the number of checks it
 * performs in a given window is inherently non-deterministic.  Tests here
 * never assert an exact background poll count.  They assert what is
 * contractual: check_now() is synchronous and exact, a failing predicate is
@@ -141,66 +141,112 @@ void hi_settle()
 
 // I.   INVARIANT REPORT                (test_invariant_tests_report.cpp)
 bool tests_ireport_violation_defaults();
+
 bool tests_ireport_violation_value_construct();
+
 bool tests_ireport_defaults();
+
 bool tests_ireport_success_predicate();
+
 bool tests_ireport_to_test_object_pass();
+
 bool tests_ireport_to_test_object_fail();
+
 bool tests_ireport_to_test_object_custom_name();
 
 // II.  INVARIANT MONITOR               (test_invariant_tests_monitor.cpp)
 bool tests_imonitor_default_construct();
+
 bool tests_imonitor_predicate_construct();
+
 bool tests_imonitor_check_now_without_predicate();
+
 bool tests_imonitor_check_now_true();
+
 bool tests_imonitor_check_now_false();
+
 bool tests_imonitor_check_now_accumulates();
+
 bool tests_imonitor_check_now_throwing_predicate();
+
 bool tests_imonitor_detail_provider();
+
 bool tests_imonitor_detail_provider_throws();
+
 bool tests_imonitor_max_violations_recorded();
+
 bool tests_imonitor_start_stop_running();
+
 bool tests_imonitor_start_without_predicate();
+
 bool tests_imonitor_start_twice();
+
 bool tests_imonitor_stop_idempotent();
+
 bool tests_imonitor_start_resets_report();
+
 bool tests_imonitor_background_polls();
+
 bool tests_imonitor_background_detects_violation();
+
 bool tests_imonitor_success_and_violation_count();
 
 // III. MONOTONIC GUARD                 (test_invariant_tests_monotonic.cpp)
 bool tests_imonotonic_default_construct();
+
 bool tests_imonotonic_initial_construct();
+
 bool tests_imonotonic_observe_increasing();
+
 bool tests_imonotonic_observe_equal_allowed();
+
 bool tests_imonotonic_observe_decreasing();
+
 bool tests_imonotonic_max_seen_tracks();
+
 bool tests_imonotonic_max_unchanged_by_violation();
+
 bool tests_imonotonic_observation_count();
+
 bool tests_imonotonic_success_predicate();
+
 bool tests_imonotonic_concurrent_observers_mt();
 
 // IV.  BOUNDED GUARD                   (test_invariant_tests_bounded.cpp)
 bool tests_ibounded_construct_range();
+
 bool tests_ibounded_observe_inside();
+
 bool tests_ibounded_observe_at_bounds();
+
 bool tests_ibounded_observe_below();
+
 bool tests_ibounded_observe_above();
+
 bool tests_ibounded_current_tracks();
+
 bool tests_ibounded_observation_count();
+
 bool tests_ibounded_success_predicate();
+
 bool tests_ibounded_concurrent_observers_mt();
 
 // V.   INVARIANT SCOPE                 (test_invariant_tests_scope.cpp)
 bool tests_iscope_reports_on_exit();
+
 bool tests_iscope_interval_construct();
+
 bool tests_iscope_monitor_access();
+
 bool tests_iscope_check_now_through_monitor();
+
 bool tests_iscope_detects_violation();
 
 // VI.  FACTORY HELPERS                 (test_invariant_tests_factory.cpp)
 bool tests_ifactory_make_invariant_monitor();
+
 bool tests_ifactory_make_and_check();
+
 bool tests_ifactory_make_and_run_background();
 
 

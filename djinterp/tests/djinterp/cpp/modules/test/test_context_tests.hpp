@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                     test_context_tests.hpp
+* djinterp [cpp][test]                                    test_context_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_context.hpp.  Each free
 * function exercises one facet of the DTest document layer's focus type and
@@ -14,26 +14,29 @@
 * (with its stringized expression and source location) and forwards the
 * boolean.  The D_CTX_CHECK macro is the intended call site.
 *
-*   PORTABILITY (why the bodies are C++17-gated):
+* PORTABILITY (why the bodies are C++17-gated)
+* --------------------------------------------
 *   test_context.hpp self-suppresses below C++17 (it builds on the document
 * stack, which is C++17), so test_context, at_run, at_module, at_unit and
 * at_check simply do not exist under an older standard.  Every test body is
 * therefore wrapped in `#if D_ENV_LANG_IS_CPP17_OR_HIGHER ... #else return
-* true;`, so the suite still COMPILES at C++11/14 (each unit passing vacuously)
+* true;`, so the suite still compiles at C++11/14 (each unit passing vacuously)
 * and does real work at C++17 and above - the same self-suppression the header
 * under test performs.  The check helper, the fixture and the declarations name
 * only the C++11 report node types, so they stay unconditional.
 *
 *   Fixtures.  DReportFixture holds one default-constructed instance of each of
 * the four report nodes (test_report / report_module / report_unit /
-* report_check), giving a test four stable, DISTINCT addresses to hand to the
+* report_check), giving a test four stable, distinct addresses to hand to the
 * focus parts - which is all the builders ever do with them (store, never
 * dereference), so default-constructed nodes are sufficient and a heavier,
 * populated report would witness nothing more.
 *
-*   NOTE: the entities under test live in djinterp::test; the tests themselves
-* live, flat, in djinterp::testing (hence the `dt` alias below names the
-* focus type and its builders).
+* NOTE
+* ----
+*   The entities under test live in djinterp::test; the tests themselves live,
+* flat, in djinterp::testing (hence the `dt` alias below names the focus type
+* and its builders).
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_context_tests.hpp
@@ -123,19 +126,30 @@ struct DReportFixture
 
 // I.  test_context (the focus struct)
 bool tests_context_default_members();
+
 bool tests_context_aggregate_init();
+
 bool tests_context_field_assignment();
+
 bool tests_context_copy_semantics();
 
 // II. focus builders (at_run / at_module / at_unit / at_check)
 bool tests_builder_at_run();
+
 bool tests_builder_at_module();
+
 bool tests_builder_at_unit();
+
 bool tests_builder_at_check();
+
 bool tests_builder_nullptr_accepted();
+
 bool tests_builder_pointer_distinctness();
+
 bool tests_builder_const_pointees();
+
 bool tests_builder_index_verbatim();
+
 bool tests_builder_focus_depth_invariant();
 
 

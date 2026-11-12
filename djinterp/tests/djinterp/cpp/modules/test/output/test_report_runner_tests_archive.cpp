@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                       test_report_runner_tests_archive.cpp
+* djinterp [cpp][test]                      test_report_runner_tests_archive.cpp
 *
 * report_runner's suite, block "archive": the archive pack mode, which puts
 * every rendered document in one container, and how the container's entries

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                      test_stress_tests_op.cpp
+* djinterp [cpp][test]                                  test_stress_tests_op.cpp
 *
 *   Section TU: DStressOp - the weighted operation descriptor consumed by the
 * chaos runner.  A plain aggregate, so the whole section is single-threaded.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_defaults_tests_metadata.cpp
+* djinterp [cpp][test]                          test_defaults_tests_metadata.cpp
 *
 *   Section II - the sorted tag-metadata helpers.  metadata_insert keeps the
 * vector sorted and drops duplicates; metadata_contains is a binary search;

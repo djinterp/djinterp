@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              string_fn_tests.h
+* djinterp [c]                                                 string_fn_tests.h
 *
 * string_fn.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block holds the register's decisions on string_fn (#11, #12 and
@@ -52,7 +52,9 @@ D_EXTERN_C_BEGIN
 // 1.1    The register's decisions
 //------------------------------------------------------------------------------
 bool d_tests_string_fn_strerror_r(void);
+
 bool d_tests_string_fn_ascii_only(void);
+
 bool d_tests_string_fn_casestr_embedded_nul(void);
 
 
@@ -115,12 +117,19 @@ d_tests_string_fn_spec(void)
 // The tests built call by call (section 3), which the runner calls after
 // adding the spec.
 bool d_tests_string_fn_run_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_length_aware_cmp_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_counting_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_hash_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_index_search_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_replace_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_prefix_suffix_all(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_validation_all(struct dj_test_suite* _suite);
 
 
@@ -173,12 +182,15 @@ bool d_tests_string_fn_validation_all(struct dj_test_suite* _suite);
  *****************************************************************************/
 
 bool d_tests_string_fn_setup(void);
+
 bool d_tests_string_fn_teardown(void);
+
 void d_tests_string_fn_fill_buffer(
     char*  _buffer,
     size_t _size,
     char   _pattern
 );
+
 bool d_tests_string_fn_compare_buffers(
     const char* _buf1,
     const char* _buf2,
@@ -187,45 +199,61 @@ bool d_tests_string_fn_compare_buffers(
 
 // safe string copy tests
 bool d_tests_string_fn_strcpy_s(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strncpy_s(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strcat_s(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strncat_s(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_safe_copy_all(struct dj_test_suite* _suite);
 
 // string duplication tests
 bool d_tests_string_fn_strdup(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strndup(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_duplication_all(struct dj_test_suite* _suite);
 
 // case-insensitive comparison tests
 bool d_tests_string_fn_strcasecmp(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strncasecmp(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_case_comparison_all(struct dj_test_suite* _suite);
 
 // string tokenization tests
 bool d_tests_string_fn_strtok_r(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_tokenization_all(struct dj_test_suite* _suite);
 
 // string length tests
 bool d_tests_string_fn_strnlen(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_length_all(struct dj_test_suite* _suite);
 
 // string search tests
 bool d_tests_string_fn_strcasestr(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strchrnul(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_search_all(struct dj_test_suite* _suite);
 
 // case conversion tests
 bool d_tests_string_fn_strlwr(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strupr(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_case_conversion_all(struct dj_test_suite* _suite);
 
 // string manipulation tests
 bool d_tests_string_fn_strrev(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_manipulation_all(struct dj_test_suite* _suite);
 
 // error handling tests
 bool d_tests_string_fn_strerror_r_cases(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_error_handling_all(struct dj_test_suite* _suite);
 
 // null parameter tests
@@ -236,50 +264,77 @@ bool d_tests_string_fn_boundary_conditions_all(struct dj_test_suite* _suite);
 
 // length-aware comparison tests
 bool d_tests_string_fn_strcmp_n(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strncmp_n(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strcasecmp_n(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strncasecmp_n(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strequals(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strequals_nocase(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_length_aware_cmp_all(struct dj_test_suite* _suite);
 
 // validation tests
 bool d_tests_string_fn_str_is_valid(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_str_is_ascii(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_str_is_numeric(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_str_is_alpha(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_str_is_alnum(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_str_is_whitespace(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_validation_all(struct dj_test_suite* _suite);
 
 // counting tests
 bool d_tests_string_fn_strcount_char(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strcount_substr(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_counting_all(struct dj_test_suite* _suite);
 
 // hash tests
 bool d_tests_string_fn_strhash(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_hash_all(struct dj_test_suite* _suite);
 
 // prefix, suffix, and containment tests
 bool d_tests_string_fn_strstartswith(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strendswith(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strcontains(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strcontains_char(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_prefix_suffix_all(struct dj_test_suite* _suite);
 
 // index-returning search tests
 bool d_tests_string_fn_strchr_index(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strchr_index_from(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strrchr_index(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strstr_index(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strstr_index_from(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strrstr_index(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_strcasestr_index(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_index_search_all(struct dj_test_suite* _suite);
 
 // in-place character replacement tests
 bool d_tests_string_fn_strreplace_char(struct dj_test_suite* _suite);
+
 bool d_tests_string_fn_replace_all(struct dj_test_suite* _suite);
 
 // master test runner

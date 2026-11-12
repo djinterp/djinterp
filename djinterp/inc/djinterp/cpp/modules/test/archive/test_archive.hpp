@@ -1,25 +1,27 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_archive.hpp
+* djinterp [cpp][test]                                          test_archive.hpp
 *
-*   Shared, DEPENDENCY-LIGHT verification helpers for the archive facade
+*   Shared, dependency-light verification helpers for the archive facade
 * (core/util/archive/archive.hpp).  It exists so that any test suite whose module
-* PRODUCES or CONSUMES an archive -- not just archive.hpp's own tests -- can
+* produces or consumes an archive -- not just archive.hpp's own tests -- can
 * assert facts about the bytes without re-deriving container layouts each time:
 * build sample entries, round-trip a set through a format, confirm the payload
 * survived, and sniff a blob's shape (is this really a zip / gzip / ustar, how
 * many members does its directory claim, which method did each entry use).
 *
-*   WHY IT LIVES HERE (not inside a single suite):
+* WHY IT LIVES HERE (not inside a single suite)
+* ---------------------------------------------
 *   Several modules lean on archiving (report packaging, bundle writers, and
 * the archive module itself).  Their tests all need the same handful of
 * checks, so they are collected once, in djinterp::test, alongside the other
 * shared test utilities (e.g. test_zip_store.hpp).  Everything here is built
-* strictly on archive.hpp's PUBLIC surface (entry / entry_list / byte_blob /
+* strictly on archive.hpp's public surface (entry / entry_list / byte_blob /
 * the format tags / try_archive / try_extract / format_is_writable), so it adds
 * no dependency a caller of the facade does not already have, and it never
 * reaches into archive.cpp internals.
 *
-*   WHAT IT IS NOT:
+* WHAT IT IS NOT
+* --------------
 *   Not an assertion framework and not a test itself -- it returns plain bool /
 * status / counts that a suite feeds to its own D_xx_CHECK macros.  The sniffers
 * are intentionally lenient structural probes (front signature + trailing
@@ -27,13 +29,28 @@
 * tar); they confirm "this looks like format X and carries N members", not
 * byte-for-byte bit-exactness, which belongs to a specific suite.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Target floor C++98, effective floor C++11 -- djinterp.hpp gates below it,
 * so no includer compiles at C++98 today.  No third-party include.
 *   Availability-aware by
 * construction: the round-trip drivers report whatever status the facade
 * returns, so on a build lacking a codec (gz unavailable, say) a caller sees
 * status_unavailable rather than a spurious failure.
+*
+* HOW TO USE
+* ----------
+*   Build entries (make_file_entry, make_text_entry, make_dir_entry), round-trip
+* them through a format with roundtrip, and check what came back with has_entry,
+* file_data and files_preserved.
+*
+* OPTIONS
+* -------
+*   The archive_options roundtrip takes.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/archive/test_archive.hpp

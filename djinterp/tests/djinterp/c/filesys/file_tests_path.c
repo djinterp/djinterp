@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_path.c
+* djinterp [c][filesys]                                        file_tests_path.c
 *
-*   IX. PATHS (file_path) -- purely lexical, zero syscalls, so every case here
+*   IX. Paths (file_path) -- purely lexical, zero syscalls, so every case here
 * is deterministic on a machine with no filesystem at all. The documented
 * input/output pairs in file_path.c's own headers are reproduced as assertions;
 * the internal branch structure (root handling, trailing-separator trimming,

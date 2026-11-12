@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                     test_options_tests.hpp
+* djinterp [cpp][test]                                    test_options_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_options.hpp - the option
 * subframework: the value enums (and DTestSink's bitwise algebra), match_context,
@@ -22,21 +22,27 @@
 *                                              defaults, read through every free
 *                                              accessor, via default_test_options
 *
-*   OBSERVATION.  Everything in PART A is pure and is exercised directly.  The
-* option set is written portably: reads go through the free accessors (the
-* face-agnostic seam), the defaults come from default_test_options(), and the
-* one write the tests need - installing routes - goes through the set_routes
-* helper, which uses the option_set slot API on C++20 and the plain-struct field
-* below it.  resolve is then driven with a defaulted base plus hand-built routes.
+* OBSERVATION
+* -----------
+*   Everything in part A is pure and is exercised directly.  The option set is
+* written portably: reads go through the free accessors (the face-agnostic
+* seam), the defaults come from default_test_options(), and the one write the
+* tests need - installing routes - goes through the set_routes helper, which
+* uses the option_set slot API on C++20 and the plain-struct field below it.
+* resolve is then driven with a defaulted base plus hand-built routes.
 *
-*   SCOPE.  PART C (the C++20 type-level route-authoring vocabulary - payload
-* carriers, override sugar, DNameIs<>/all_of<>/route_, and make_routes) lowers to
-* the very std::vector<test_route> that resolve consumes; test_route and resolve
-* are covered exhaustively here.  Exercising the lowering itself would require
-* the foundational meta/option infrastructure (option_set / option / carrier /
+* SCOPE
+* -----
+*   Part C (the C++20 type-level route-authoring vocabulary - payload carriers,
+* override sugar, DNameIs<>/all_of<>/route_, and make_routes) lowers to the very
+* std::vector<test_route> that resolve consumes; test_route and resolve are
+* covered exhaustively here.  Exercising the lowering itself would require the
+* foundational meta/option infrastructure (option_set / option / carrier /
 * fixed_string / make_option_set), so it is out of this suite's scope.
 *
-*   NOTE: the option vocabulary lives in djinterp::test; the tests live, flat, in
+* NOTE
+* ----
+*   The option vocabulary lives in djinterp::test; the tests live, flat, in
 * djinterp::testing.
 *
 *
@@ -148,50 +154,86 @@ void set_routes(
 
 // enums + DTestSink algebra
 bool tests_enums_sink_or();
+
 bool tests_enums_sink_and();
+
 bool tests_enums_sink_not();
+
 bool tests_enums_sink_or_assign();
+
 bool tests_enums_sink_has();
+
 bool tests_enums_sink_values();
 
 // predicate IR
 bool tests_pred_default_any();
+
 bool tests_pred_any_none();
+
 bool tests_pred_name_eq();
+
 bool tests_pred_name_contains();
+
 bool tests_pred_name_regex();
+
 bool tests_pred_kind();
+
 bool tests_pred_status();
+
 bool tests_pred_tag();
+
 bool tests_pred_all_of();
+
 bool tests_pred_any_of();
+
 bool tests_pred_negate();
+
 bool tests_pred_nested();
 
 // route + resolve
 bool tests_route_default();
+
 bool tests_route_make();
+
 bool tests_tribool_helper();
+
 bool tests_resolve_seed();
+
 bool tests_resolve_tribool_fold();
+
 bool tests_resolve_show_override();
+
 bool tests_resolve_format_override();
+
 bool tests_resolve_document_override();
+
 bool tests_resolve_sinks_add();
+
 bool tests_resolve_sinks_replace();
+
 bool tests_resolve_nonmatch_skipped();
+
 bool tests_resolve_order_later_wins();
+
 bool tests_resolve_predicate_selectivity();
 
 // option set + accessors + defaults
 bool tests_opt_defaults_numbering_timing();
+
 bool tests_opt_defaults_layout();
+
 bool tests_opt_defaults_presentation();
+
 bool tests_opt_defaults_destinations();
+
 bool tests_opt_defaults_filtering();
+
 bool tests_opt_defaults_formats();
+
 bool tests_opt_defaults_packaging();
+
 bool tests_opt_defaults_routes();
+
 bool tests_opt_keyed_access();
 
 

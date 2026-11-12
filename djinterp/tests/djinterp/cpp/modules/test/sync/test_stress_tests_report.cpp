@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                  test_stress_tests_report.cpp
+* djinterp [cpp][test]                              test_stress_tests_report.cpp
 *
 *   Section TU: DStressReport - defaults, verdict delegation to the underlying
 * concurrent run report, throughput, and the to_test_object lowering.  Plain

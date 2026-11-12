@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               env_tests_lang.c
+* djinterp [c][env]                                             env_tests_lang.c
 *
 * Unit tests for `env.h` language environment section (Section II).
 * Tests C and C++ standard detection, version constants, and comparison macros.

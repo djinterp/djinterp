@@ -1,9 +1,9 @@
 /*******************************************************************************
-* djinterp [c/test]                                                test_object.h
+* djinterp [c][test]                                               test_object.h
 *
-*   The shared test NODE: type identity, status, a deferred-callable handle,
+*   The shared test node: type identity, status, a deferred-callable handle,
 * and a metadata container.  The verdict is read out of the status, not stored
-* beside it.  Compiled by BOTH C and C++.  Step E of
+* beside it.  Compiled by both C and C++.  Step E of
 * the relay -- the last leaf before the tree.
 *
 *
@@ -13,17 +13,17 @@
 * every one of those decisions survives coalescence unchanged because they are
 * semantic rather than notational:
 *
-*     NO UNIQUE ID AND NO DEPTH.  Both are facts of a node's POSITION in the
+*     No unique ID and no depth.  Both are facts of a node's position in the
 *     owning tree, not properties of the node.  Structural identity is the
 *     node's address -- its path from the root -- and depth is that path's
 *     length; the handler computes and tracks them during the walk.  A node is
 *     anonymous.  This is why the parity body for a tree can record a node's
 *     path without the node having ever carried one.
 *
-*     NO CLASSIFICATION.  Leaf-vs-interior is resolved through a test_kind set
+*     No classification.  Leaf-vs-interior is resolved through a test_kind set
 *     held by the tree.  In isolation the type_id acts as the rank.
 *
-*     NO INLINE CLOSURE.  A node carries a callable ID -- a 1-based index into
+*     No inline closure.  A node carries a callable ID -- a 1-based index into
 *     an out-of-line table -- and never the thunk.  That is what keeps the node
 *     flat, trivially copyable and memcpy-able, and it is the same reason the
 *     framework's payload bytes use offsets rather than pointers.
@@ -36,26 +36,27 @@
 *
 *   The C++ default container is DBasicMetadata<> -- a std::string-keyed,
 * std::vector-backed key/value store.  Its own header specifies the contract:
-* a back-insertable sequence of DKvPair rows, LOOKUP BY LINEAR SCAN, keys
+* a back-insertable sequence of DKvPair rows, lookup by linear scan, keys
 * compared with operator==, and get() returning a value-initialised mapped
 * type on a miss.  Nothing in that contract requires ownership, ordering, or
 * an allocator; it requires a sequence and a scan.
 *
-*   So the kernel takes the rows as CALLER-PROVIDED STORAGE -- the pattern
+*   So the kernel takes the rows as caller-provided storage -- the pattern
 * step C fixed for the child arrays, and which dj_pack_sink, d_archive_extract
 * and dj_counter already use -- with borrowed const char* keys and values.  A
 * miss returns the empty string rather than null, which is what a
 * value-initialised std::string is, so the two languages agree about the miss
 * case without either one special-casing it.
 *
-*   WHAT IS LOST IS OWNERSHIP, AND IT IS LOST ON PURPOSE.  A node cannot own a
-* name it computed at runtime until dj_string exists at step J.  Every name in
-* a suite is a literal in the source, because a suite is a spec and a spec is
-* written down -- so the bound is knowable, exactly as the child-array bound
-* is.  When dj_string lands, an owning container becomes one more way to supply
-* the rows and nothing in this header changes.
+* WHAT IS LOST IS OWNERSHIP, AND IT IS LOST ON PURPOSE
+* ----------------------------------------------------
+*   A node cannot own a name it computed at runtime until dj_string exists at
+* step J.  Every name in a suite is a literal in the source, because a suite is
+* a spec and a spec is written down -- so the bound is knowable, exactly as the
+* child-array bound is.  When dj_string lands, an owning container becomes one
+* more way to supply the rows and nothing in this header changes.
 *
-*   THE ALTERNATIVE WAS TO BLOCK THIS STEP ON J, and it was rejected for the
+*   The alternative was to block this step on j, and it was rejected for the
 * reason the roadmap gives for the spine generally: it would strand test_tree,
 * test_handler and test_session behind three thousand lines none of them need.
 *
@@ -74,6 +75,26 @@
 * record both sides.  This is the third instance of roadmap §3's corollary in
 * four modules, which is less a coincidence than a characteristic of the
 * codebase: it states things twice, in good faith, and never checks.
+*
+* HOW TO USE
+* ----------
+*   Make a node, give it its result, and read its status:
+*
+*     struct dj_test_object leaf = d_test_make(MY_KIND, 0);
+*
+*     d_test_object_evaluate(&leaf, passed);
+*     d_test_object_status(&leaf);         // D_TEST_STATUS_*
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   Set before dconfig.h is included, or with -D; each defaults in
+* config/c/modules/test/cfg_test_object.h and cfg_test_metadata.h:
+* D_CFG_TEST_TYPE_ID_TYPE, D_CFG_TEST_STATUS_TYPE, D_CFG_TEST_CALLABLE_ID_TYPE,
+* D_CFG_TEST_OBJECT_VALIDATE_STATUS, D_CFG_TEST_METADATA_REPLACE.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_object.h
@@ -278,22 +299,27 @@ D_STATIC_ASSERT(D_TEST_STATUS_ERROR   == 4, "test_object: error must be 4");
 enum dj_test_object_result d_test_object_init(
     struct dj_test_object* _object
 );
+
 enum dj_test_object_result d_test_object_init_typed(
     struct dj_test_object* _object,
     dj_test_type_id        _type_id
 );
+
 enum dj_test_object_result d_test_object_evaluate(
     struct dj_test_object* _object,
     int                    _result
 );
+
 enum dj_test_object_result d_test_object_set_status(
     struct dj_test_object* _object,
     dj_test_status         _status
 );
+
 enum dj_test_object_result d_test_object_set_type_id(
     struct dj_test_object* _object,
     dj_test_type_id        _type_id
 );
+
 enum dj_test_object_result d_test_object_set_callable_id(
     struct dj_test_object* _object,
     dj_test_callable_id    _id
@@ -302,15 +328,19 @@ enum dj_test_object_result d_test_object_set_callable_id(
 bool d_test_object_result_of(
     const struct dj_test_object* _object
 );
+
 dj_test_status d_test_object_status(
     const struct dj_test_object* _object
 );
+
 int d_test_object_passed(
     const struct dj_test_object* _object
 );
+
 int d_test_object_is_deferred(
     const struct dj_test_object* _object
 );
+
 const char* d_test_object_result_name(
     enum dj_test_object_result _result
 );
@@ -323,6 +353,7 @@ struct dj_test_object d_test_make(
     dj_test_type_id _type_id,
     int             _result
 );
+
 struct dj_test_object d_test_make_interior(
     dj_test_type_id _type_id
 );

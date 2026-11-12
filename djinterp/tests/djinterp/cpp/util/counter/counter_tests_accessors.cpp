@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     counter_tests_accessors.cpp
+* djinterp [cpp][utility]                            counter_tests_accessors.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/counter/counter_tests_accessors.cpp

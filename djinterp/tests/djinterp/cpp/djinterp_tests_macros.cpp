@@ -5,7 +5,7 @@
 * path:      /tests/djinterp/cpp/djinterp_tests_macros.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // djinterp
 #include "djinterp_tests.hpp"
@@ -66,12 +66,28 @@ NS_PARADIGM
     constexpr int dt_ns_probe_paradigm = 119;
 NS_END
 
-NS_RESTD
-    constexpr int dt_ns_probe_restd = 120;
+NS_CONCEPTS
+    constexpr int dt_ns_probe_concepts = 120;
+NS_END
+
+NS_CONTAINER
+    constexpr int dt_ns_probe_container = 122;
+NS_END
+
+NS_TRAITS
+    constexpr int dt_ns_probe_traits = 123;
 NS_END
 
 NS_TEST
     constexpr int dt_ns_probe_test = 121;
+NS_END
+
+NS_INTERP
+    constexpr int dt_ns_probe_interp = 124;
+NS_END
+
+NS_UI
+    constexpr int dt_ns_probe_ui = 125;
 NS_END
 
 
@@ -134,7 +150,7 @@ NS_TESTING
     void dt_noexcept_unspecified()           {}
     void dt_noexcept_if_true()    D_NOEXCEPT_IF(true) {}
     void dt_noexcept_if_false()   D_NOEXCEPT_IF(false) {}
-    void dt_noexcept_if_comma()   D_NOEXCEPT_IF(std::is_same<int, int>::value) {}
+    void dt_noexcept_if_comma()   D_NOEXCEPT_IF((std::is_same<int, int>::value)) {}
 
     static_assert(noexcept(dt_noexcept_yes()),
                   "D_NOEXCEPT must produce a non-throwing function.");
@@ -145,7 +161,7 @@ NS_TESTING
     static_assert(!noexcept(dt_noexcept_if_false()),
                   "D_NOEXCEPT_IF(false) must be potentially throwing.");
     static_assert(noexcept(dt_noexcept_if_comma()),
-                  "D_NOEXCEPT_IF must forward a comma-bearing condition.");
+                  "D_NOEXCEPT_IF must take a parenthesized comma-bearing condition.");
 
 #endif  // C++11+
 
@@ -155,8 +171,8 @@ tests_macros_keywords
   Tests the following:
   - the framework keyword macros expand to the documented identifier tokens
   - covers keywords contributed by the C core (framework name, internal,
-    testing, error, exception, math, message, test, database) and by the C++
-    header (cpp, paradigm, re_std, stl, traits)
+    testing, error, exception, math, message, test, database, interp) and by
+    the C++ header (cpp, paradigm, stl, traits, concepts, container, ui)
 */
 bool tests_macros_keywords()
 {
@@ -172,13 +188,16 @@ bool tests_macros_keywords()
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_MESSAGE),        "message")   == 0);
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_TEST),           "test")      == 0);
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_DATABASE),       "database")  == 0);
+    D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_INTERP),         "interp")    == 0);
 
     // C++-header keywords
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_CPP),            "cpp")       == 0);
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_PARADIGM),       "paradigm")  == 0);
-    D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_RE_STD),          "re_std")     == 0);
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_STL),            "stl")       == 0);
     D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_TRAITS),         "traits")    == 0);
+    D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_CONCEPTS),       "concepts")  == 0);
+    D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_CONTAINER),      "container") == 0);
+    D_DT_CHECK(_ok, std::strcmp(D_DT_STR(D_KEYWORD_USER_INTERFACE), "ui")        == 0);
 
     return _ok;
 }
@@ -189,7 +208,8 @@ tests_macros_namespaces
   - D_NAMESPACE opens an arbitrarily-named namespace and NS_END closes it
   - every NS_* macro opens a namespace of the documented name (database,
     djinterp, internal, testing, error, exception, math, message, paradigm,
-    re_std, test), confirmed by resolving a probe at its fully-qualified path
+    concepts, container, traits, test, interp, ui), confirmed by resolving a
+    probe at its fully-qualified path
   - nesting works: djinterp::internal and djinterp::testing built via macros
 */
 bool tests_macros_namespaces()
@@ -206,8 +226,12 @@ bool tests_macros_namespaces()
     D_DT_CHECK(_ok, ::math::dt_ns_probe_math == 117);
     D_DT_CHECK(_ok, ::message::dt_ns_probe_message == 118);
     D_DT_CHECK(_ok, ::paradigm::dt_ns_probe_paradigm == 119);
-    D_DT_CHECK(_ok, ::re_std::dt_ns_probe_restd == 120);
+    D_DT_CHECK(_ok, ::concepts::dt_ns_probe_concepts == 120);
+    D_DT_CHECK(_ok, ::container::dt_ns_probe_container == 122);
+    D_DT_CHECK(_ok, ::traits::dt_ns_probe_traits == 123);
     D_DT_CHECK(_ok, ::test::dt_ns_probe_test == 121);
+    D_DT_CHECK(_ok, ::interp::dt_ns_probe_interp == 124);
+    D_DT_CHECK(_ok, ::ui::dt_ns_probe_ui == 125);
 
     return _ok;
 }
@@ -250,7 +274,8 @@ tests_macros_noexcept
   - D_NOEXCEPT marks a function non-throwing, versus a bare function which is
     potentially throwing
   - D_NOEXCEPT_IF(true) / D_NOEXCEPT_IF(false) track their condition
-  - D_NOEXCEPT_IF forwards a condition containing a top-level comma intact
+  - D_NOEXCEPT_IF takes a condition containing a comma when it is
+    parenthesized (the macro has one parameter)
   Note: only the C++11+ resolution (noexcept) is reachable in this build; the
   pre-C++11 (throw()) and C (no-op) branches are alternate compilations.
 */

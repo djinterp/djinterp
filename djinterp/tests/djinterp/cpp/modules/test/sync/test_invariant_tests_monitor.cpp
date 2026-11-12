@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                              test_invariant_tests_monitor.cpp
+* djinterp [cpp][test]                          test_invariant_tests_monitor.cpp
 *
 *   Section TU: DInvariantMonitor - synchronous checking, violation recording,
 * and the background polling lifecycle.

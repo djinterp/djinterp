@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 dmutex_tests.c
+* djinterp [c][sync]                                              dmutex_tests.c
 *
 *
 * path:      /tests/djinterp/c/sync/dmutex_tests.c

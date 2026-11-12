@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              env_tests_posix.c
+* djinterp [c][env]                                            env_tests_posix.c
 *
 * Unit tests for `env.h` POSIX standards detection section (Section III).
 * Tests POSIX version detection, XSI detection, feature macros, and utilities.

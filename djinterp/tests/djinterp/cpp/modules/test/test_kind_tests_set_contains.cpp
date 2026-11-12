@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_kind_tests_set_contains.cpp
+* djinterp [cpp][test]                          test_kind_tests_set_contains.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_kind_tests_set_contains.cpp

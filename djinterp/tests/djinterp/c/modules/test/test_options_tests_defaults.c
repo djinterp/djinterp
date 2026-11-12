@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  test_options_tests_defaults.c
+* djinterp [c][test]                               test_options_tests_defaults.c
 *
 * test_options.h's suite, block "config_default_all": D_TEST_DEFAULT_INDENT,
 * _MAX_INDENT, _MAX_FAILURES and _TIMEOUT.

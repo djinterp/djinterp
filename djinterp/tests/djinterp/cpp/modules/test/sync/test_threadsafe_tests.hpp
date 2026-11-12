@@ -1,18 +1,18 @@
 /*******************************************************************************
-* djinterp [tests]                                     test_threadsafe_tests.hpp
+* djinterp [cpp][test]                                 test_threadsafe_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_threadsafe.hpp - the
 * umbrella that pulls the whole test/sync subframework (and the production
 * threadsafe subframework it sits on) into one include.
 *
-*   The umbrella declares nothing of its own, so this suite is a REACHABILITY
+*   The umbrella declares nothing of its own, so this suite is a reachability
 * contract rather than a behavioural one: after a single include of
 * test_threadsafe.hpp, is every public entity of every submodule visible,
 * correctly namespaced, and usable?  A regression here means an include was
 * dropped, reordered into a cycle, or moved between namespaces - all of which
 * are silent breakages for downstream users who include only the umbrella.
 *
-*   This TU therefore deliberately does NOT include any submodule header
+*   This TU therefore deliberately does not include any submodule header
 * directly.  Everything it names must arrive through the umbrella alone.
 *
 *   Two-faced per the DTest authoring guide (DTEST_SPEC_MODE).  Blocks map one
@@ -22,11 +22,13 @@
 *     production    - the production threadsafe types the harness consumes
 *     integration   - a short end-to-end flow spanning several submodules
 *
-*   NOTE ON THE FOLD: test_thread_traits.hpp and test_thread_concepts.hpp were
-* folded into test_thread.hpp, and the umbrella's two #include lines for them
-* were removed.  The traits block below is precisely the regression test for
-* that change: the trait surface must still be reachable through the umbrella,
-* now by way of test_thread.hpp.
+* NOTE ON THE FOLD
+* ----------------
+*   test_thread_traits.hpp and test_thread_concepts.hpp were folded into
+* test_thread.hpp, and the umbrella's two #include lines for them were removed.
+* The traits block below is precisely the regression test for that change: the
+* trait surface must still be reachable through the umbrella, now by way of
+* test_thread.hpp.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/sync/test_threadsafe_tests.hpp
@@ -108,33 +110,51 @@ struct DHuPlain
 
 // I.   REACHABILITY                    (test_threadsafe_tests_reachability.cpp)
 bool tests_ureach_thread_module();
+
 bool tests_ureach_sync_module();
+
 bool tests_ureach_concurrent_module();
+
 bool tests_ureach_stress_module();
+
 bool tests_ureach_race_module();
+
 bool tests_ureach_invariant_module();
+
 bool tests_ureach_deadlock_module();
+
 bool tests_ureach_enums();
+
 bool tests_ureach_factories();
 
 // II.  FOLDED TRAIT SURFACE            (test_threadsafe_tests_traits.cpp)
 bool tests_utraits_namespace_reachable();
+
 bool tests_utraits_positive_and_negative();
+
 bool tests_utraits_composites_reachable();
+
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 bool tests_utraits_concepts_reachable();
+
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 // III. PRODUCTION SUBFRAMEWORK         (test_threadsafe_tests_production.cpp)
 bool tests_uprod_atomic_size();
+
 bool tests_uprod_exclusive_lock_policy();
+
 bool tests_uprod_condvar_and_once();
+
 bool tests_uprod_thread_helpers();
 
 // IV.  INTEGRATION                     (test_threadsafe_tests_integration.cpp)
 bool tests_uintegration_thread_and_sync();
+
 bool tests_uintegration_concurrent_and_invariant();
+
 bool tests_uintegration_stress_over_concurrent();
+
 bool tests_uintegration_race_over_concurrent();
 
 

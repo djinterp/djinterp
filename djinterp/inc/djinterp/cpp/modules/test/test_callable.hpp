@@ -1,24 +1,26 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                          test_callable.hpp
+* djinterp [cpp][test]                                         test_callable.hpp
 *
 *   The DTestCallableTable: the out-of-line store of deferred test work
 * that test_common.hpp / test_object.hpp already reference but do not
 * define.  A DTestObject stays a flat, trivially-copyable, constexpr-
-* friendly value precisely BECAUSE its runtime work does not live inline:
+* friendly value precisely because its runtime work does not live inline:
 * the node carries only a DTestCallableId, and the actual closure lives
 * here, in a table the handler (or the builder in test_builder.hpp) binds
 * and invokes during the tree walk.
 *
-*   A TEST IS A THUNK:
+* A TEST IS A THUNK
+* -----------------
 *   The unit stored here is a deferred boolean computation - a
 * `std::function<bool()>`.  This is the functional core of the whole
 * framework: a leaf's pass/fail is the value produced by running its
-* thunk, and richer leaves are built by COMPOSING thunks under boolean
-* algebra (short-circuit AND for conjoined assertions, OR for
+* thunk, and richer leaves are built by composing thunks under boolean
+* algebra (short-circuit and for conjoined assertions, or for
 * alternatives).  The node remains data; the behaviour is a value in
 * this table.
 *
-*   ID DISCIPLINE:
+* ID DISCIPLINE
+* -------------
 *   Ids are 1-based.  The value 0 (k_no_callable, from test_common.hpp)
 * is the reserved "no deferred work" sentinel and is never handed out:
 * a node carrying id 0 is fully evaluated by data already in its
@@ -26,7 +28,8 @@
 * table grows by append, so an id, once issued, is stable for the life
 * of the table.
 *
-*   COMPOSITION:
+* COMPOSITION
+* -----------
 *   compose_and / compose_or fold a new clause into the thunk already
 * bound to an id, under the obvious short-circuit semantics.  These are
 * the table-level spelling of the predicate combinators in
@@ -34,14 +37,31 @@
 * any_of); the table erases the clause types to thunk_type so leaves of
 * mixed assertion shapes share one storage row.
 *
-*   RUNTIME ONLY:
+* RUNTIME ONLY
+* ------------
 *   std::function is a runtime facility; binding and invocation are not
 * constant expressions.  This matches the framework's existing split:
-* DTestObject EVALUATION may be constexpr (D_TEST_CONSTEXPR), but
+* DTestObject evaluation may be constexpr (D_TEST_CONSTEXPR), but
 * deferred-callable dispatch - like event dispatch - is runtime-only.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum (std::function, lambdas, <utility>).
+*
+* HOW TO USE
+* ----------
+*     DTestCallableTable table;
+*     DTestCallableId    id = table.add([]{ return 1 + 1 == 2; });
+*
+*     table.invoke(id);
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_callable.hpp

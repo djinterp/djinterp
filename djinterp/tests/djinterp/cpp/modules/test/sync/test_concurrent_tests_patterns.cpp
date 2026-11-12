@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                            test_concurrent_tests_patterns.cpp
+* djinterp [cpp][test]                        test_concurrent_tests_patterns.cpp
 *
 *   Section TU: the convenience execution patterns - run_simultaneous,
 * run_simultaneous_with_timeout, and run_reader_writer.

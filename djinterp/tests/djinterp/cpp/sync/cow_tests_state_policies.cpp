@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    cow_tests_state_policies.cpp
+* djinterp [cpp][sync]                              cow_tests_state_policies.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_state_policies.cpp

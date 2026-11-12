@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      djinterp_tests_register.c
+* djinterp [c]                                         djinterp_tests_register.c
 *
 * djinterp.h's suite, block "register": the register's decisions on the root.
 *

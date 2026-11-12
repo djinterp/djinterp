@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                   test_concurrent_tests_concurrent_runner.cpp
+* djinterp [cpp][test]               test_concurrent_tests_concurrent_runner.cpp
 *
 *   Section TU: DConcurrentRunner - configuration, worker resolution, and the
 * outcomes produced by run().

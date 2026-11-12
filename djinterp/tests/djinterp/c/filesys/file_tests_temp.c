@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_temp.c
+* djinterp [c][filesys]                                        file_tests_temp.c
 *
-*   XII. TEMPORARIES (file_temp) -- temporary files and the temporary
+*   XII. Temporaries (file_temp) -- temporary files and the temporary
 * directory. d_file_temp_stream / d_file_temp_create choose a name and open it in one step;
 * d_file_temp_create is descriptor-based and reports ENOSYS on the ISO C backend, and it
 * rewrites the caller's template in place, so the template must be a mutable

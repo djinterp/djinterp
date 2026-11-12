@@ -1,13 +1,13 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_builder_tests_assertions.cpp
+* djinterp [cpp][test]                         test_builder_tests_assertions.cpp
 *
 *   The predicate algebra conjoined into the current test.  assert_ (and its
-* intent-named twin test_fn) tells a deferred PREDICATE - evaluated at run() -
-* from a bare boolean VALUE captured now, wrapping each into a thunk; the
+* intent-named twin test_fn) tells a deferred predicate - evaluated at run() -
+* from a bare boolean value captured now, wrapping each into a thunk; the
 * timing difference is the crisp observable, so a predicate reading a variable
 * mutated after authoring sees the run()-time value while a captured value does
-* not.  Repeated assertions conjoin under short-circuit AND; assert_all /
-* assert_any fold a whole clause list under AND / OR (vacuously true / false
+* not.  Repeated assertions conjoin under short-circuit and; assert_all /
+* assert_any fold a whole clause list under and / or (vacuously true / false
 * when empty).  With no test open, every assertion is a no-op that binds
 * nothing; a test never given a clause stays pending.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                        test_threadsafe.hpp
+* djinterp [cpp][test]                                       test_threadsafe.hpp
 *
 * Umbrella header for the DTest multithreading and threadsafe-behavior
 * testing suite.  Includes every submodule of the multithreaded test
@@ -7,7 +7,7 @@
 *
 *   test_thread.hpp           - exception-capturing thread wrapper
 *                               (test_thread, DTestThreadGroup);
-*                               ALSO carries the threadsafe-testable
+*                               also carries the threadsafe-testable
 *                               SFINAE traits and C++20 concepts
 *                               (formerly test_thread_traits.hpp /
 *                                test_thread_concepts.hpp, folded in
@@ -38,21 +38,30 @@
 *                               (deadlock_watchdog, lock_order_tracker,
 *                                DScopedDeadlockWatchdog)
 *
-*   test_thread_traits.hpp    - RETIRED: folded into test_thread.hpp.
+*   test_thread_traits.hpp    - retired: folded into test_thread.hpp.
 *   test_thread_concepts.hpp    Both are gone as standalone headers;
 *                               their contents (the SFINAE trait
 *                               surface and the C++20 concept layer)
 *                               now live in test_thread.hpp above.
 *                               Include test_thread.hpp for them.
 *
-*   COMPLEMENTS:
+* COMPLEMENTS
+* -----------
 *   This suite complements the threadsafe foundation module
 * (../../core/sync/threadsafe.hpp) which provides the production-side
 * primitives (lock_policy, atomic, condvar, cow, hazard_pointer, rcu).
 * The test suite consumes those primitives to exercise threadsafe
 * code under controlled concurrent load.
 *
-*   USAGE PATTERN:
+* PORTABILITY
+* -----------
+*   All submodules require C++11 minimum (uses <thread>, <mutex>,
+* <chrono>, <atomic>, <condition_variable>).  C++98 fallbacks are
+* provided where feasible - typically as single-threaded degenerate
+* stubs that always succeed.
+*
+* HOW TO USE
+* ----------
 *   Each module produces a *_report struct convertible to a basic_test
 * via to_test_object(DTestTypeId, name).  Test cases adopt the
 * resulting basic_test into their suite tree, integrating multithreaded
@@ -62,11 +71,13 @@
 * headers directly.  Existing code that includes this umbrella header
 * continues to work unchanged.
 *
-*   PORTABILITY:
-*   All submodules require C++11 minimum (uses <thread>, <mutex>,
-* <chrono>, <atomic>, <condition_variable>).  C++98 fallbacks are
-* provided where feasible - typically as single-threaded degenerate
-* stubs that always succeed.
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_threadsafe.hpp

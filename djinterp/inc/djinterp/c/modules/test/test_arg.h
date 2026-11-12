@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                     test_arg.h
+* djinterp [c][test]                                                  test_arg.h
 *
 * A key-value argument, and a list of them, for the C test framework's older
 * forms.
@@ -8,6 +8,21 @@
 * used the two structs and none declared them: the rewrite of 2026.08.08
 * dropped them from test_common.h, which keeps only the status and identifier
 * vocabulary, so they are declared here, once, in the shape they had.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   Its tests, blocks and modules take optional arguments (struct dj_test_arg
+* lists) that become entries of a test option set, test_options.h.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_arg.h

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                     test_sync_tests_latch.cpp
+* djinterp [cpp][test]                                 test_sync_tests_latch.cpp
 *
 *   Section TU: test_latch - one-shot countdown latch.  Countdown/arrival
 * accounting is asserted single-threaded; release is asserted with real

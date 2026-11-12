@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_timer_tests_accessors.cpp
+* djinterp [cpp][test]                            test_timer_tests_accessors.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_timer_tests_accessors.cpp

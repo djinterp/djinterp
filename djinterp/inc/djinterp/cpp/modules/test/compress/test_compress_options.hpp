@@ -1,39 +1,59 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                  test_compress_options.hpp
+* djinterp [cpp][test]                                 test_compress_options.hpp
 *
-*   RE-EXPORT SHIM.  The comparison, pristine and diff surfaces this header
-* used to define now live on the vocabulary they describe --
-* core/util/compress/compress_options.hpp -- implemented over the kernel's
-* knob table rather than as a hand-written fifty-field walk.  What remains
-* here is a set of using-declarations, so that every existing `dt::` call site
-* keeps compiling unchanged.
+* RE-EXPORT SHIM
+* --------------
+*   The comparison, pristine and diff surfaces this header used to define now
+* live on the vocabulary they describe --
+* core/util/compress/compress_options.hpp -- implemented over the kernel's knob
+* table rather than as a hand-written fifty-field walk.  What remains here is a
+* set of using-declarations, so that every existing `dt::` call site keeps
+* compiling unchanged.
 *
-*   WHY THE MOVE:
+* WHY THE MOVE
+* ------------
 *   compress_options grew d_compress_options_equal, _are_default and _diff in
-* the C kernel, backed by a dense knob table that carries each knob's NAME and
+* the C kernel, backed by a dense knob table that carries each knob's name and
 * owning codec.  This header's field-by-field chain was a second
 * implementation of that table -- one that had to be edited by hand every time
 * a knob was added, and would silently stop covering the new knob if it was
 * not.  compress_common.h is the single walk now.
 *
-*   WHAT THIS COSTS A CALLER: nothing, and that is measured rather than
-* assumed.  A differential harness ran both implementations over 19 option
-* sets (361 ordered pairs) across every function here: ZERO divergences.  The
-* diff strings are byte-identical, because the kernel's knob name table
-* carries the same spellings ("zstd.window_log") the hand-written chain used.
+* WHAT THIS COSTS A CALLER
+* ------------------------
+*   Nothing, and that is measured rather than assumed.  A differential harness
+* ran both implementations over 19 option sets (361 ordered pairs) across every
+* function here: zero divergences.  The diff strings are byte-identical, because
+* the kernel's knob name table carries the same spellings ("zstd.window_log")
+* the hand-written chain used.
 *
-*   MIGRATION:
+* MIGRATION
+* ---------
 *   New code should include core/util/compress/compress_options.hpp and drop
 * the `dt::` qualification; the names resolve in ::djinterp.  This header can
 * go once no call site names it.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Target floor C++98, effective floor C++11 -- djinterp.hpp gates below it,
 * so no includer compiles at C++98 today.  Verified at C++11/17/20.  Note
 * that the surface is no longer link-free: the kernel walk lives in
 * compress_common.c, so a TU using these comparators links it.  It already did
 * in practice, since compress_options.hpp's operator== has forwarded to
 * d_compress_options_equal since the kernel refactor.
+*
+* HOW TO USE
+* ----------
+*   Nothing new: it keeps existing dt:: call sites compiling. New code includes
+* core/util/compress/compress_options.hpp.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/compress/test_compress_options.hpp

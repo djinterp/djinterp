@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     test_options_tests_masks.c
+* djinterp [c][test]                                  test_options_tests_masks.c
 *
 * test_options.h's suite, block "config_mask_all": each D_TEST_MASK_* mask, and
 * that the message and settings masks do not overlap.

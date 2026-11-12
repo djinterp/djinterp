@@ -1,17 +1,19 @@
 /*******************************************************************************
-* djinterp [test]                                          file_ops_tests_sa.cpp
+* djinterp [cpp][filesys]                                  file_ops_tests_sa.cpp
 *
 *   Unit tests for the whole-file operations in inc/djinterp/cpp/filesys/file_ops.hpp
 * -- remove, remove_file, rename, copy_file. One file for the module, sibling to
 * the path/file/status/directory suites, same harness and same three rules.
 *
-*   These are FREE FUNCTIONS with no handle, so the tier ladder is FLAT: the
+*   These are free functions with no handle, so the tier ladder is flat: the
 * same source builds identically C++98 -> C++23 with the same count, because
 * there is no move to add. As with the status suite, that flat ladder is itself
 * the claim -- an operation over paths carries none of the ceremony a handle
 * does.
 *
-*   FIXTURES. Files are made and inspected with fopen/fread/remove (ISO C); an
+* FIXTURES
+* --------
+*   Files are made and inspected with fopen/fread/remove (ISO C); an
 * empty-directory fixture is made with djinterp's own create_directory (tested
 * on its own in the directory suite, used here only as a tool). The test calls
 * no unlink/rename/mkdir directly -- it drives the real syscalls only through

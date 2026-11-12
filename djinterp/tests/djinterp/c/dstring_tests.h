@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                dstring_tests.h
+* djinterp [c]                                                   dstring_tests.h
 *
 * dstring.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   Two faces, chosen by DTEST_SPEC_MODE as in every C suite: the section
@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/c/dstring_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_DSTRING_TESTS_H
@@ -63,10 +63,15 @@ D_EXTERN_C_BEGIN
 // 1.1    The register's decisions
 //------------------------------------------------------------------------------
 bool d_tests_dstring_tokenize_updates_size(void);
+
 bool d_tests_dstring_split_tokens(void);
+
 bool d_tests_dstring_split_growth(void);
+
 bool d_tests_dstring_split_only_delimiters(void);
+
 bool d_tests_dstring_npos_counts_clamp(void);
+
 bool d_tests_dstring_self_operands(void);
 
 
@@ -138,6 +143,7 @@ d_tests_dstring_spec(void)
 // The tests built call by call (section 3), which the runner calls after
 // adding the spec.
 bool d_tests_dstring_all(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_concat_all(struct dj_test_suite* _suite);
 
 
@@ -210,182 +216,313 @@ bool d_tests_dstring_concat_all(struct dj_test_suite* _suite);
 
 // I. CREATION & DESTRUCTION TESTS
 bool d_tests_dstring_new(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_with_capacity(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_from_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_from_cstr_n(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_from_buffer(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_copy(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_fill(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_new_formatted(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_free(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_free_contents(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_creation_all(struct dj_test_suite* _suite);
 
 // II. CAPACITY MANAGEMENT TESTS
 bool d_tests_dstring_reserve(struct dj_test_suite* _suite);
+
+bool d_tests_dstring_reserve_huge(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_shrink_to_fit(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_capacity(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_resize(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_capacity_all(struct dj_test_suite* _suite);
 
 // III. ACCESS FUNCTION TESTS
 bool d_tests_dstring_length(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_size(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_data(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_is_empty(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_char_at(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_set_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_front(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_back(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_access_all(struct dj_test_suite* _suite);
 
 // IV. SAFE COPY TESTS
 bool d_tests_dstring_copy_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_copy_cstr_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncopy_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncopy_cstr_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_to_buffer_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_copy_all(struct dj_test_suite* _suite);
 
 // V. CONCATENATION TESTS
 bool d_tests_dstring_cat_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_cat_cstr_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncat_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncat_cstr_s(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_concat_all(struct dj_test_suite* _suite);
 
 // VI. DUPLICATION TESTS
 bool d_tests_dstring_dup(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ndup(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_substr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_dup_all(struct dj_test_suite* _suite);
 
 // VII. COMPARISON TESTS
 bool d_tests_dstring_cmp(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_cmp_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncmp(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncmp_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_casecmp(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_casecmp_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncasecmp(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ncasecmp_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_equals(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_equals_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_equals_ignore_case(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_equals_cstr_ignore_case(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_compare_all(struct dj_test_suite* _suite);
 
 // VIII. SEARCH TESTS
 bool d_tests_dstring_find_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_find_char_from(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_rfind_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_chr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_rchr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_chrnul(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_find(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_find_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_find_from(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_find_cstr_from(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_rfind(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_rfind_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_str(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_casefind(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_casefind_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_casestr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_contains(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_contains_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_contains_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_starts_with(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_starts_with_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ends_with(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_ends_with_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_spn(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_cspn(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_pbrk(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_search_all(struct dj_test_suite* _suite);
 
 // IX. MODIFICATION TESTS
 bool d_tests_dstring_assign(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_assign_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_assign_buffer(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_assign_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_append(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_append_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_append_buffer(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_append_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_append_formatted(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_prepend(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_prepend_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_prepend_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_insert(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_insert_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_insert_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_erase(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_erase_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_clear(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_replace(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_replace_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_replace_all(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_replace_all_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_replace_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_modify_all(struct dj_test_suite* _suite);
 
 // X. CASE CONVERSION TESTS
 bool d_tests_dstring_to_lower(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_to_upper(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_lower(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_upper(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_case_all(struct dj_test_suite* _suite);
 
 // XI. REVERSAL TESTS
 bool d_tests_dstring_reverse(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_reversed(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_reversal_all(struct dj_test_suite* _suite);
 
 // XII. TRIMMING TESTS
 bool d_tests_dstring_trim(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trim_left(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trim_right(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trim_chars(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trimmed(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trimmed_left(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trimmed_right(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_trim_all(struct dj_test_suite* _suite);
 
 // XIII. TOKENIZATION TESTS
 bool d_tests_dstring_tokenize(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_split(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_split_free(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_token_all(struct dj_test_suite* _suite);
 
 // XIV. JOIN TESTS
 bool d_tests_dstring_join(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_join_cstr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_concat(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_join_all(struct dj_test_suite* _suite);
 
 // XV. UTILITY TESTS
 bool d_tests_dstring_is_valid(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_is_ascii(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_is_numeric(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_is_alpha(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_is_alnum(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_is_whitespace(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_count_char(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_count_substr(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_hash(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_util_all(struct dj_test_suite* _suite);
 
 // XVI. ERROR STRING TESTS
 bool d_tests_dstring_error(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_error_r(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_error_all(struct dj_test_suite* _suite);
 
 // XVII. FORMATTED STRING TESTS
 bool d_tests_dstring_printf(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_vprintf(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_sprintf(struct dj_test_suite* _suite);
+
 bool d_tests_dstring_format_all(struct dj_test_suite* _suite);
 
 // master test runner

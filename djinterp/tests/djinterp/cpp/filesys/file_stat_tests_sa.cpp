@@ -1,25 +1,25 @@
 /*******************************************************************************
-* djinterp [test]                                         file_stat_tests_sa.cpp
+* djinterp [cpp][filesys]                                 file_stat_tests_sa.cpp
 *
 *   Unit tests for djinterp::file_status (inc/djinterp/cpp/filesys/file_stat.hpp) and the
 * free queries over it -- status, symlink_status, exists, is_regular_file,
 * is_directory, file_size. One file for the class, sibling to path_tests_sa.cpp
 * and file_tests_sa.cpp, same harness and same three rules.
 *
-*   file_status is a VALUE, not a resource -- a captured snapshot with no
-* handle. So its tier ladder is FLAT: nothing is added on a higher standard,
+*   file_status is a value, not a resource -- a captured snapshot with no
+* handle. So its tier ladder is flat: nothing is added on a higher standard,
 * because there is no move to add. The suite still builds it on every standard
 * (rule 3), and the count is the same every time -- which is exactly the claim
 * being demonstrated, that a snapshot needs none of the ceremony `file` does.
 *
-*   WHAT THIS FILE CANNOT RUN, AND SAYS SO.
-*      The difference between status() and symlink_status() shows ONLY on an
+*   What this file cannot run, and says so.
+*      The difference between status() and symlink_status() shows only on an
 *   actual symlink -- one follows the final link, the other does not. Creating a
 *   symlink is not something ISO C can do, and this file keeps the no-platform-
 *   call discipline of its siblings (fixtures are a regular file via fopen, an
 *   always-present directory ".", and an absent path). So the symlink_status
-*   group here exercises its CODE PATH (the no-follow stat) on non-symlinks and
-*   confirms it agrees with status there; the follow-vs-no-follow DIFFERENCE on
+*   group here exercises its code path (the no-follow stat) on non-symlinks and
+*   confirms it agrees with status there; the follow-vs-no-follow difference on
 *   a real symlink is verified in the full tree, not faked with a green leaf
 *   here. Same honesty as the non-copyable note in the file suite.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_util.c
+* djinterp [c][filesys]                                       dfile_tests_util.c
 *
 *   Utility functions for dfile module tests.
 *   Provides test environment setup, teardown, and path helpers.

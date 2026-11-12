@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                              test_sync.hpp
+* djinterp [cpp][test]                                             test_sync.hpp
 *
 *   Synchronization primitives for the DTest multithreading test
 * harness: portable barriers, latches, gates, and rendezvous points
@@ -12,7 +12,8 @@
 * don't (e.g. arrival counts, last-to-arrive flags, timing of every
 * arrival).
 *
-*   PRIMITIVES:
+* PRIMITIVES
+* ----------
 *     test_latch       - one-shot countdown latch (count_down/wait)
 *     test_barrier     - reusable N-way barrier with optional
 *                        completion callable
@@ -22,7 +23,8 @@
 *     DSimultaneousStart - convenience type built on test_gate
 *                          for "all threads go on my mark" patterns
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later for the active implementations.  On
 * C++98/03 every primitive degrades to a single-threaded stub: the
 * counters still advance but wait() and arrive() never block (there
@@ -31,6 +33,19 @@
 *   On C++20, test_latch is implemented in terms of std::latch when
 * available, and test_barrier in terms of std::barrier.  The
 * fallback path uses portable_condvar from condvar.hpp.
+*
+* HOW TO USE
+* ----------
+*   Coordinate test threads at chosen moments with test_barrier, test_latch,
+* test_gate, DSimultaneousStart or DTestRendezvous.
+*
+* OPTIONS
+* -------
+*   Each primitive's count, and a barrier's completion function.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_sync.hpp

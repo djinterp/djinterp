@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           dstring_tests_copy.c
+* djinterp [c]                                              dstring_tests_copy.c
 *
 *   Unit tests for dj_string safe copy functions:
 *     - d_string_copy_s

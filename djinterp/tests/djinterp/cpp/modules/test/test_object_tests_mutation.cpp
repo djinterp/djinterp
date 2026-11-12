@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_object_tests_mutation.cpp
+* djinterp [cpp][test]                            test_object_tests_mutation.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_object_tests_mutation.cpp

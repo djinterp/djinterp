@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_container_tests_element.cpp
+* djinterp [cpp][test]                          test_container_tests_element.cpp
 *
-*   Section II of the test_container suite: the guarded ELEMENT PROTOCOL.  The
-* internal container_element_evaluable trait has two arms - a PRIMARY (for a
+*   Section II of the test_container suite: the guarded element protocol.  The
+* internal container_element_evaluable trait has two arms - a primary (for a
 * type with no value_type) that is unconditionally false, and a
-* SPECIALIZATION (value_type present) that defers to is_test_evaluable on the
+* Specialization (value_type present) that defers to is_test_evaluable on the
 * element type.  Both arms are pinned here, together with the property the
 * guard exists for: naming the element check on a type that lacks value_type
 * must stay well-formed rather than hard-erroring - the fact that these units
-* COMPILE is itself the proof.
+* compile is itself the proof.
 *
 *   The is_test_evaluable element protocol the specialization forwards to is
 * anchored with a structural positive (DMiniEvaluable, not basic_test) and a

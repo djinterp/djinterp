@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_timer_tests_operations.cpp
+* djinterp [cpp][test]                           test_timer_tests_operations.cpp
+*
+* The test_timer suite, block "operations": the generic timer's start, stop,
+* reset and reset_all, as the test timer's own.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_timer_tests_operations.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // djinterp
 #include "test_timer_tests.hpp"
@@ -16,54 +19,53 @@ NS_TESTING
 
 
 /*
-tests_test_timer_start_fires_on_start
-  Verifies start() transitions to running and fires on_start once.
+tests_test_timer_start_stop_accumulate
+  Verifies successive start/stop cycles accumulate elapsed time.
   Tests the following:
-  - the timer is running after start()
-  - exactly one on_start event is dispatched on the transition
+  - one cycle of 30ms gives 30ms
+  - time while stopped does not count
+  - a second cycle of 20ms gives 50ms in all
 */
-bool tests_test_timer_start_fires_on_start()
+bool tests_test_timer_start_stop_accumulate()
 {
     reset_clock();
 
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
+    tt t;
 
     t.start();
+    test_clock::advance(DMsec(30));
+    t.stop();
+    D_TT_CHECK(t.elapsed() == DMsec(30));
 
-    D_TT_CHECK(t.running() == true);
-    D_TT_CHECK(log.starts  == 1);
-    D_TT_CHECK(log.stops   == 0);
+    test_clock::advance(DMsec(100));
+    t.start();
+    test_clock::advance(DMsec(20));
+    t.stop();
+    D_TT_CHECK(t.elapsed() == DMsec(50));
 
     return true;
 }
 
 
 /*
-tests_test_timer_start_twice_one_event
-  Verifies that starting an already-running timer is a no-op for events.
+tests_test_timer_start_twice_noop
+  Verifies starting a running timer changes nothing.
   Tests the following:
-  - a second start() does not dispatch a second on_start (the timer was
-    already running, so there is no transition)
+  - a second start() does not restart the open interval
 */
-bool tests_test_timer_start_twice_one_event()
+bool tests_test_timer_start_twice_noop()
 {
     reset_clock();
 
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
+    tt t;
 
     t.start();
+    test_clock::advance(DMsec(10));
     t.start();
+    test_clock::advance(DMsec(5));
+    t.stop();
 
-    D_TT_CHECK(t.running() == true);
-    D_TT_CHECK(log.starts  == 1);
+    D_TT_CHECK(t.elapsed() == DMsec(15));
 
     return true;
 }
@@ -71,93 +73,24 @@ bool tests_test_timer_start_twice_one_event()
 
 /*
 tests_test_timer_start_when_expired_noop
-  Verifies that starting an expired timer does not transition or fire.
+  Verifies an expired timer does not start.
   Tests the following:
-  - an expired timer stays not-running when start() is called
-  - no on_start is dispatched (the start did not take effect)
+  - a timer that met its limit reports expired and stays stopped on start()
 */
 bool tests_test_timer_start_when_expired_noop()
 {
     reset_clock();
 
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(DMsec(100), &eh);
-
-    t.start();
-    test_clock::advance(DMsec(100));
-    t.stop();
-
-    D_TT_CHECK(t.expired() == true);
-
-    const int starts_before = log.starts;
-
-    t.start();
-
-    D_TT_CHECK(t.running() == false);
-    D_TT_CHECK(log.starts  == starts_before);
-
-    return true;
-}
-
-
-/*
-tests_test_timer_stop_fires_on_stop
-  Verifies stop() accumulates elapsed time and fires on_stop with the count.
-  Tests the following:
-  - the timer is not running after stop()
-  - one on_stop event is dispatched carrying the accumulated count
-  - no on_expire fires when there is no maximum limit
-*/
-bool tests_test_timer_stop_fires_on_stop()
-{
-    reset_clock();
-
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
+    tt t(DMsec(50));
 
     t.start();
     test_clock::advance(DMsec(50));
     t.stop();
-
-    D_TT_CHECK(t.running()         == false);
-    D_TT_CHECK(log.stops           == 1);
-    D_TT_CHECK(log.last_stop_count == 50);
-    D_TT_CHECK(log.expires         == 0);
-
-    return true;
-}
-
-
-/*
-tests_test_timer_stop_fires_on_expire
-  Verifies that stopping at or beyond the limit additionally fires on_expire.
-  Tests the following:
-  - on_stop fires with the accumulated count
-  - on_expire fires because accumulated time met the maximum
-*/
-bool tests_test_timer_stop_fires_on_expire()
-{
-    reset_clock();
-
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(DMsec(100), &eh);
+    D_TT_CHECK(t.expired());
 
     t.start();
-    test_clock::advance(DMsec(100));
-    t.stop();
 
-    D_TT_CHECK(log.stops           == 1);
-    D_TT_CHECK(log.last_stop_count == 100);
-    D_TT_CHECK(log.expires         == 1);
+    D_TT_CHECK(!t.running());
 
     return true;
 }
@@ -165,121 +98,19 @@ bool tests_test_timer_stop_fires_on_expire()
 
 /*
 tests_test_timer_stop_not_running_noop
-  Verifies that stopping a non-running timer is a no-op.
+  Verifies stopping a stopped timer changes nothing.
   Tests the following:
-  - no on_stop is dispatched when stop() is called on a stopped timer
+  - stop() on a fresh timer leaves it stopped at zero
 */
 bool tests_test_timer_stop_not_running_noop()
 {
     reset_clock();
 
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
+    tt t;
 
     t.stop();
 
-    D_TT_CHECK(log.stops == 0);
-
-    return true;
-}
-
-
-/*
-tests_test_timer_reset_fires_on_reset
-  Verifies reset() clears elapsed time and fires on_reset with the prior count.
-  Tests the following:
-  - one on_reset event is dispatched carrying the count before clearing
-  - elapsed time is zero after reset()
-*/
-bool tests_test_timer_reset_fires_on_reset()
-{
-    reset_clock();
-
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
-
-    t.start();
-    test_clock::advance(DMsec(30));
-    t.stop();
-
-    t.reset();
-
-    D_TT_CHECK(log.resets           == 1);
-    D_TT_CHECK(log.last_reset_count == 30);
-    D_TT_CHECK(t.elapsed()          == DMsec(0));
-
-    return true;
-}
-
-
-/*
-tests_test_timer_reset_all_leaf
-  Verifies reset_all() on a childless timer (the empty-recursion case).
-  Tests the following:
-  - one on_reset fires for the timer itself with the prior count
-  - elapsed time is cleared and the timer still owns no children
-*/
-bool tests_test_timer_reset_all_leaf()
-{
-    reset_clock();
-
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
-
-    t.start();
-    test_clock::advance(DMsec(40));
-    t.stop();
-
-    t.reset_all();
-
-    D_TT_CHECK(log.resets           == 1);
-    D_TT_CHECK(log.last_reset_count == 40);
-    D_TT_CHECK(t.elapsed()          == DMsec(0));
-    D_TT_CHECK(t.child_count()      == 0);
-
-    return true;
-}
-
-
-/*
-tests_test_timer_reset_all_recurses
-  Verifies reset_all() resets this timer and every owned descendant, with each
-  firing on_reset through the inherited dispatcher.
-  Tests the following:
-  - one on_reset fires per timer in the tree (root + two children + a
-    grandchild == four)
-  - the root's elapsed time is cleared
-*/
-bool tests_test_timer_reset_all_recurses()
-{
-    reset_clock();
-
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
-
-    t.add_child();
-    t.add_child();
-    t.child(0).add_child();
-
-    t.start();
-    test_clock::advance(DMsec(10));
-    t.stop();
-
-    t.reset_all();
-
-    D_TT_CHECK(log.resets  == 4);
+    D_TT_CHECK(!t.running());
     D_TT_CHECK(t.elapsed() == DMsec(0));
 
     return true;
@@ -287,35 +118,52 @@ bool tests_test_timer_reset_all_recurses()
 
 
 /*
-tests_test_timer_multiple_cycles_accumulate
-  Verifies that successive start/stop cycles accumulate elapsed time.
+tests_test_timer_reset
+  Verifies reset() stops the timer and clears its time.
   Tests the following:
-  - elapsed time is the sum across cycles
-  - on_stop fires once per cycle, the last carrying the cumulative count
+  - a running timer with time on it is stopped at zero
 */
-bool tests_test_timer_multiple_cycles_accumulate()
+bool tests_test_timer_reset()
 {
     reset_clock();
 
-    DEventDispatcher eh;
-    DTimerEventLog   log;
-    bind_timer_log(eh, log);
-
-    tt t(&eh);
-
-    t.start();
-    test_clock::advance(DMsec(20));
-    t.stop();
-
-    D_TT_CHECK(log.last_stop_count == 20);
+    tt t;
 
     t.start();
     test_clock::advance(DMsec(30));
-    t.stop();
+    t.reset();
 
-    D_TT_CHECK(t.elapsed()         == DMsec(50));
-    D_TT_CHECK(log.stops           == 2);
-    D_TT_CHECK(log.last_stop_count == 50);
+    D_TT_CHECK(!t.running());
+    D_TT_CHECK(t.elapsed() == DMsec(0));
+
+    return true;
+}
+
+
+/*
+tests_test_timer_reset_all_recurses
+  Verifies reset_all() resets this timer and every owned descendant.
+  Tests the following:
+  - the root and a grandchild both return to zero
+*/
+bool tests_test_timer_reset_all_recurses()
+{
+    reset_clock();
+
+    tt t;
+
+    (void)t.add_child();
+    (void)t.add_child().add_child();
+    t.start();
+    t.child(1).child(0).start();
+    test_clock::advance(DMsec(25));
+    t.stop();
+    t.child(1).child(0).stop();
+
+    t.reset_all();
+
+    D_TT_CHECK(t.elapsed() == DMsec(0));
+    D_TT_CHECK(t.child(1).child(0).elapsed() == DMsec(0));
 
     return true;
 }

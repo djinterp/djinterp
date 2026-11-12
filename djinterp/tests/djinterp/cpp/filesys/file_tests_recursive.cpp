@@ -1,25 +1,26 @@
 /*******************************************************************************
-* djinterp [test]                                       file_tests_recursive.cpp
+* djinterp [cpp][filesys]                               file_tests_recursive.cpp
 *
-*   X. RECURSION (file_recursive.hpp) -- walking a tree and removing one. Pure
+*   X. Recursion (file_recursive.hpp) -- walking a tree and removing one. Pure
 * composition over directory, status and the operations, so what is tested here
 * is the COMPOSITION's promises rather than any new syscall.
 *
-*   THREE PROMISES, EACH WITH A FAILURE MODE WORTH CATCHING:
+* THREE PROMISES, EACH WITH A FAILURE MODE WORTH CATCHING
+* -------------------------------------------------------
 *
-*     PRE-ORDER. walk visits a directory BEFORE its contents. A visitor that
+*     Pre-order. walk visits a directory before its contents. A visitor that
 *   builds a tree, or creates mirror directories as it goes, breaks outright on
 *   post-order -- so the ordering case records the visit sequence and checks a
 *   parent's index precedes its children's rather than merely that both appear.
 *
-*     SYMLINKS ARE NOT FOLLOWED. A walk that follows links can loop forever on
+*     Symlinks are not followed. A walk that follows links can loop forever on
 *   a link to an ancestor. The case below builds exactly that -- a link back to
 *   the tree root -- and requires the walk to terminate and to classify the
 *   link as a non-directory. An implementation that regressed here would not
 *   fail this case so much as hang in it, which is why the fixture is a real
 *   cycle rather than a link to a sibling.
 *
-*     REMOVE_ALL IS IDEMPOTENT. Removing something already gone is SUCCESS, not
+*     REMOVE_ALL is idempotent. Removing something already gone is success, not
 *   ENOENT, so cleanup code can run twice without special-casing. That is the
 *   opposite of remove()'s behaviour on the same input, and both are asserted.
 *

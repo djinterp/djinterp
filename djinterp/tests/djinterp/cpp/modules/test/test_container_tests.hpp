@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                   test_container_tests.hpp
+* djinterp [cpp][test]                                  test_container_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_container.hpp.  Each
 * free function exercises one facet of the test_container contract - the
 * trait + concept surface that detects whether an arbitrary container may
-* HOLD and RUN test_objects - and returns true iff every check inside it
+* hold and run test_objects - and returns true iff every check inside it
 * passed.  Tests are grouped into translation units by the section of
 * test_container.hpp they cover:
 *
@@ -17,7 +17,8 @@
 * check (with its stringized expression and source location) and forwards the
 * boolean.  The D_TC_CHECK macro is the intended call site.
 *
-*   WHAT IS UNDER TEST IS COMPILE-TIME:
+* WHAT IS UNDER TEST IS COMPILE-TIME
+* ----------------------------------
 *   test_container.hpp is entirely traits and concepts, so every check is a
 * comparison of a compile-time constant (a trait's ::value, a `_v` companion,
 * or a concept) against its expected boolean.  The checks are therefore
@@ -25,16 +26,20 @@
 * test_container_check keeps the probes, the contract, and the concepts on the
 * one uniform reporting path the six-kind tree and the report/PDF read back.
 *
-*   FIXTURES.  The container fixtures are hand-rolled minimal types, each
-* carrying exactly the subset of the detected surface a given check needs, so
-* every structural probe and every rung of the contract ladder is exercised in
-* isolation - adding OR withholding a single member flips exactly one result.
-* The element fixtures (DMiniEvaluable / DNotEvaluable, plus the framework's
-* own basic_test and a std::vector of it) drive the element protocol both ways.
-* object_container_min deliberately exposes NON-const begin()/end() so the
-* documented raw-probe-vs-contract normalization asymmetry can be witnessed.
+* FIXTURES
+* --------
+*   The container fixtures are hand-rolled minimal types, each carrying exactly
+* the subset of the detected surface a given check needs, so every structural
+* probe and every rung of the contract ladder is exercised in isolation - adding
+* or withholding a single member flips exactly one result. The element fixtures
+* (DMiniEvaluable / DNotEvaluable, plus the framework's own basic_test and a
+* std::vector of it) drive the element protocol both ways. object_container_min
+* deliberately exposes NON-const begin()/end() so the documented
+* raw-probe-vs-contract normalization asymmetry can be witnessed.
 *
-*   NOTE: the entities under test live in djinterp::test (and
+* NOTE
+* ----
+*   The entities under test live in djinterp::test (and
 * djinterp::test::internal); the tests themselves live, flat, in
 * djinterp::testing.  The alias `dt` below binds the former.
 *
@@ -340,40 +345,66 @@ struct DAppendNoRoot
 
 // I.   structural member probes
 bool tests_probe_has_value_type();
+
 bool tests_probe_has_size_accessor();
+
 bool tests_probe_has_empty_method();
+
 bool tests_probe_has_begin_end();
+
 bool tests_probe_has_root_method();
+
 bool tests_probe_has_clear_method();
+
 bool tests_probe_has_append_child_method();
+
 bool tests_probe_value_type_cv_normalized();
+
 bool tests_probe_v_companions();
 
 // II.  element protocol
 bool tests_element_evaluable_positive();
+
 bool tests_element_evaluable_negative();
+
 bool tests_element_guard_primary_no_value_type();
+
 bool tests_element_guard_specialization_evaluable();
+
 bool tests_element_guard_specialization_non_evaluable();
+
 bool tests_element_guard_wellformed_without_value_type();
 
 // III. test-container contract
 bool tests_contract_object_positive();
+
 bool tests_contract_object_missing_members();
+
 bool tests_contract_object_element_gate();
+
 bool tests_contract_rooted_positive_negative();
+
 bool tests_contract_buildable_positive_negative();
+
 bool tests_contract_ladder_monotonicity();
+
 bool tests_contract_cv_ref_normalization();
+
 bool tests_contract_raw_probe_vs_contract_asymmetry();
+
 bool tests_contract_v_companions();
 
 // IV.  concepts (C++20+)
 bool tests_concepts_structural_positive();
+
 bool tests_concepts_structural_negative();
+
 bool tests_concepts_contract_positive();
+
 bool tests_concepts_contract_negative();
+
 bool tests_concepts_mirror_traits();
+
 bool tests_concepts_cv_ref_normalization();
 
 

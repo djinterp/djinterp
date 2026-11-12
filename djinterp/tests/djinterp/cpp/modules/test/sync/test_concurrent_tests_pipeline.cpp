@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                            test_concurrent_tests_pipeline.cpp
+* djinterp [cpp][test]                        test_concurrent_tests_pipeline.cpp
 *
 *   Section TU: DPipelineRunner - phase registration and barrier-separated
 * phase execution.

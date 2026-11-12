@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                        test_counter_tests_construction.cpp
+* djinterp [cpp][test]                       test_counter_tests_construction.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_counter_tests_construction.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // djinterp
 #include "test_counter_tests.hpp"
@@ -21,7 +21,7 @@ tests_test_counter_default_ctor
   Tests the following:
   - value and initial are zero
   - bounds default to the value type's extremes
-  - it owns no children, observes nothing, and has no event handler
+  - it owns no children and observes nothing
 */
 bool tests_test_counter_default_ctor()
 {
@@ -33,7 +33,6 @@ bool tests_test_counter_default_ctor()
     D_TC_CHECK(c.max()            == std::numeric_limits<int>::max());
     D_TC_CHECK(c.child_count()    == 0);
     D_TC_CHECK(c.observed_count() == 0);
-    D_TC_CHECK(c.handler()        == nullptr);
 
     return true;
 }
@@ -41,11 +40,10 @@ bool tests_test_counter_default_ctor()
 
 /*
 tests_test_counter_value_ctor
-  Verifies the value-only constructor (bounds and handler default).
+  Verifies the value-only constructor (bounds default).
   Tests the following:
   - value and initial take the supplied value
   - bounds default to the value type's extremes
-  - the handler defaults to nullptr
 */
 bool tests_test_counter_value_ctor()
 {
@@ -55,7 +53,6 @@ bool tests_test_counter_value_ctor()
     D_TC_CHECK(c.initial() == 7);
     D_TC_CHECK(c.min()     == std::numeric_limits<int>::lowest());
     D_TC_CHECK(c.max()     == std::numeric_limits<int>::max());
-    D_TC_CHECK(c.handler() == nullptr);
 
     return true;
 }
@@ -63,10 +60,9 @@ bool tests_test_counter_value_ctor()
 
 /*
 tests_test_counter_value_bounds_ctor
-  Verifies the value-plus-bounds constructor (handler defaults).
+  Verifies the value-plus-bounds constructor.
   Tests the following:
   - value, initial, min, and max are all stored
-  - the handler defaults to nullptr when only bounds are supplied
 */
 bool tests_test_counter_value_bounds_ctor()
 {
@@ -76,28 +72,6 @@ bool tests_test_counter_value_bounds_ctor()
     D_TC_CHECK(c.initial() == 5);
     D_TC_CHECK(c.min()     == 0);
     D_TC_CHECK(c.max()     == 100);
-    D_TC_CHECK(c.handler() == nullptr);
-
-    return true;
-}
-
-
-/*
-tests_test_counter_value_bounds_handler_ctor
-  Verifies the full constructor with an event dispatcher.
-  Tests the following:
-  - value and bounds are stored
-  - the supplied dispatcher is stored
-*/
-bool tests_test_counter_value_bounds_handler_ctor()
-{
-    DEventDispatcher eh;
-    tc c(5, 0, 100, &eh);
-
-    D_TC_CHECK(c.value()   == 5);
-    D_TC_CHECK(c.min()     == 0);
-    D_TC_CHECK(c.max()     == 100);
-    D_TC_CHECK(c.handler() == &eh);
 
     return true;
 }

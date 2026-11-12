@@ -1,12 +1,13 @@
 /*******************************************************************************
-* djinterp [test]                                            test_std_compat.cpp
+* djinterp [re_std]                                          test_std_compat.cpp
 *
 * re_std::any vs std::any compatibility tests:
 *   For every operation, verify that re_std::any and std::any behave
 * identically given the same inputs.  These tests run only on
 * C++17+ where <any> is available.
 *
-* COVERAGE:
+* COVERAGE
+* --------
 *   - construction parity
 *   - has_value parity
 *   - reset parity

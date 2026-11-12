@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_test.h
+* djinterp [c][test]                                                  cfg_test.h
 *
 *   The DTest config umbrella.  Includes the three per-module config headers
 * and declares nothing of its own.
@@ -7,12 +7,14 @@
 *   targets:  nothing directly
 *   requires: cfg_test_object.h, cfg_test_metadata.h, cfg_test_event.h
 *
-*   A MODULE MUST NOT INCLUDE THIS FILE.  Each module includes the one config
-* that owns its knobs -- test_event.h includes cfg_test_event.h and nothing
-* else.  This umbrella exists for CONSUMERS: a build script, a preset, or a
-* tool that wants every DTest knob resolved without naming three headers.
+* A MODULE MUST NOT INCLUDE THIS FILE
+* -----------------------------------
+*   Each module includes the one config that owns its knobs -- test_event.h
+* includes cfg_test_event.h and nothing else.  This umbrella exists for
+* consumers: a build script, a preset, or a tool that wants every DTest knob
+* resolved without naming three headers.
 *
-*   IT USED TO BE THE OPPOSITE, and that is why the warning is here rather than
+*   It used to be the opposite, and that is why the warning is here rather than
 * left implied.  Until rev13 this file held every knob for four modules, having
 * absorbed cfg_test_common.h and cfg_test_object.h at revision.md §8 and
 * cfg_test_event.h at rev11.  Each absorption was argued from "one file, one
@@ -21,11 +23,27 @@
 * reaching for this umbrella instead of its own config would rebuild the same
 * thing one include at a time.
 *
-*   WHAT MOVED OUT ENTIRELY.  The D_TEST_*_ID_TYPE roll-up aliases are gone.  A
-* knob still originates in a config header; the typedef that turns it into a
-* type now lives at the top of the module header that owns the type, so a
-* reader looking for dj_test_event_id finds it in test_event.h.  The alias layer
-* only ever renamed one macro to another and put the answer in a third file.
+* WHAT MOVED OUT ENTIRELY
+* -----------------------
+*   The D_TEST_*_ID_TYPE roll-up aliases are gone.  A knob still originates in a
+* config header; the typedef that turns it into a type now lives at the top of
+* the module header that owns the type, so a reader looking for dj_test_event_id
+* finds it in test_event.h.  The alias layer only ever renamed one macro to
+* another and put the answer in a third file.
+*
+* HOW TO USE
+* ----------
+*   Include it from a build script, a preset or a tool that wants every DTest
+* knob resolved; a module never includes it.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it includes cfg_test_object.h, cfg_test_metadata.h and
+* cfg_test_event.h.
 *
 *
 * path:      /inc/djinterp/config/c/modules/test/cfg_test.h

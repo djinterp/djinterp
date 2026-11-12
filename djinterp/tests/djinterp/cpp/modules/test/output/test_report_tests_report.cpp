@@ -1,24 +1,24 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_report_tests_report.cpp
+* djinterp [cpp][test]                              test_report_tests_report.cpp
 *
-*   Section V of the test_report suite: THE RUN.
+*   Section V of the test_report suite: the run.
 *
 *   The top of the fold.  test_report rolls the modules up into the comprehensive
 * figures the summary page prints, and produces the process exit code.
 *
-*   THE THING THIS SECTION IS REALLY ABOUT is what `empty` means, because the two
+*   The thing this section is really about is what `empty` means, because the two
 * levels of the model answer that differently and nobody wrote it down:
 *
 *       report_module::failed_units()    excludes empty units   (verdict != empty)
 *       test_report::failed_modules()    counts  !passed()       -- no such guard
 *
-*   `empty` is not a pass, so an empty MODULE lands in failed_modules() while an
-* empty UNIT lands in neither of its module's counts.  The unit counts therefore do
+*   `empty` is not a pass, so an empty module lands in failed_modules() while an
+* empty unit lands in neither of its module's counts.  The unit counts therefore do
 * not partition their total and the module counts always do - the same word, two
 * rules, one level apart.
 *
 *   Its sharpest form is a report of nothing but empty modules, which simultaneously
-* reports verdict EMPTY, N failed modules, and exit code 1.  Pinned below.
+* reports verdict empty, n failed modules, and exit code 1.  Pinned below.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/output/test_report_tests_report.cpp

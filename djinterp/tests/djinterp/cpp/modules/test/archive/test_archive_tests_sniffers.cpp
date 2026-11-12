@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_archive_tests_sniffers.cpp
+* djinterp [cpp][test]                           test_archive_tests_sniffers.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/archive/test_archive_tests_sniffers.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                t_file_width.cpp
+* djinterp [cpp][filesys]                                       t_file_width.cpp
 *
 *   Runtime harness for core/filesys at the C layer's D_FILE_WIDTH (dfile.hpp
 * has the rules). It builds at every level from ISO strict C++98, at either

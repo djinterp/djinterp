@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  test_cvar_tests_value_union.c
+* djinterp [c][test]                               test_cvar_tests_value_union.c
 *
 * test_cvar.h's suite, block "cvar_value_union_all": each member of
 * dj_test_value (pointer, size_t, uint32_t, uint16_t, int32_t, bool) holds its

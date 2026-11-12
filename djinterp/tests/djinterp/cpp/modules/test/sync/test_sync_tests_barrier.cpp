@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                   test_sync_tests_barrier.cpp
+* djinterp [cpp][test]                               test_sync_tests_barrier.cpp
 *
 *   Section TU: test_barrier - reusable N-way barrier with an optional
 * completion callable.  Phase accounting is asserted on a 1-way barrier (which

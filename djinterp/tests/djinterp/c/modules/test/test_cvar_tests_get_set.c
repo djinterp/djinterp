@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      test_cvar_tests_get_set.c
+* djinterp [c][test]                                   test_cvar_tests_get_set.c
 *
 * test_cvar.h's suite, block "cvar_get_set_all": d_test_registry_get and _set:
 * the default, a set read back, an unknown flag, a bool round trip.

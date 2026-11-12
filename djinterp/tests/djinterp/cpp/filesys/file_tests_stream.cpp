@@ -1,30 +1,35 @@
 /*******************************************************************************
-* djinterp [test]                                          file_tests_stream.cpp
+* djinterp [cpp][filesys]                                  file_tests_stream.cpp
 *
-*   IV. FILE (file_stream.hpp) -- the RAII core of the layer, and the section
+*   IV. File (file_stream.hpp) -- the RAII core of the layer, and the section
 * with the most to say that the c/filesys suite could not.
 *
-*   WHAT OWNERSHIP MEANS, TESTED. A file owns a FILE*, so the cases below check
-* the things ownership promises rather than the things fread does:
+* WHAT OWNERSHIP MEANS, TESTED
+* ----------------------------
+*   A file owns a FILE*, so the cases below check the things ownership promises
+* rather than the things fread does:
 *
-*     - copying is ILL-FORMED, not merely discouraged (a trait, at compile time)
-*     - a move TRANSFERS the stream and leaves the source closed, so the
+*     - copying is ill-formed, not merely discouraged (a trait, at compile time)
+*     - a move transfers the stream and leaves the source closed, so the
 *       destructor of the husk cannot double-close
 *     - self-move does not destroy the stream it is about to adopt
-*     - the destructor closes, and closing FLUSHES -- verified by reading the
+*     - the destructor closes, and closing flushes -- verified by reading the
 *       bytes back with raw stdio after the file has gone out of scope, which
 *       is the only way to see a flush that never happened
 *
-*   THE CLOSED HANDLE. Every operation on a closed file reports EBADF and
-* changes nothing; close() itself is the exception, being idempotent success so
-* that closing twice -- or closing a default-constructed file -- is not an
-* error. Both spellings are asserted, since "EBADF everywhere except close" is
-* easy to get half right.
+* THE CLOSED HANDLE
+* -----------------
+*   Every operation on a closed file reports EBADF and changes nothing; close()
+* itself is the exception, being idempotent success so that closing twice -- or
+* closing a default-constructed file -- is not an error. Both spellings are
+* asserted, since "EBADF everywhere except close" is easy to get half right.
 *
-*   CONSTRUCTORS CANNOT REPORT. file(p, mode) has no error channel, so a failed
-* open leaves is_open() false and the reason unreadable; open(p, mode, ec) on a
-* default-constructed file is the form that says why. Both are exercised, and
-* the difference is the point rather than an oversight.
+* CONSTRUCTORS CANNOT REPORT
+* --------------------------
+*   file(p, mode) has no error channel, so a failed open leaves is_open() false
+* and the reason unreadable; open(p, mode, ec) on a default-constructed file is
+* the form that says why. Both are exercised, and the difference is the point
+* rather than an oversight.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_stream.cpp

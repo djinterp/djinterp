@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 dmutex_tests.h
+* djinterp [c][sync]                                              dmutex_tests.h
 *
 *   Unit test declarations for `dmutex.h` module.
 *   Provides comprehensive testing of all dmutex functions including
@@ -35,18 +35,23 @@
 bool d_tests_mutex_init(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_mutex_destroy(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_mutex_lock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_mutex_trylock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_mutex_unlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_mutex_timedlock(
     struct dj_test_suite* _suite
 );
@@ -63,18 +68,23 @@ bool d_tests_mutex_basic_all(
 bool d_tests_recursive_mutex_init(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_recursive_mutex_destroy(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_recursive_mutex_lock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_recursive_mutex_trylock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_recursive_mutex_unlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_recursive_mutex_reentrant(
     struct dj_test_suite* _suite
 );
@@ -91,18 +101,23 @@ bool d_tests_mutex_recursive_all(
 bool d_tests_thread_create_join(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_thread_detach(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_thread_current(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_thread_equal(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_thread_yield(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_thread_sleep(
     struct dj_test_suite* _suite
 );
@@ -119,9 +134,11 @@ bool d_tests_thread_ops_all(
 bool d_tests_tss_create_delete(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_tss_get_set(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_tss_per_thread(
     struct dj_test_suite* _suite
 );
@@ -138,15 +155,19 @@ bool d_tests_tss_all(
 bool d_tests_cond_init_destroy(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_cond_signal(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_cond_broadcast(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_cond_wait(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_cond_timedwait(
     struct dj_test_suite* _suite
 );
@@ -163,27 +184,35 @@ bool d_tests_cond_all(
 bool d_tests_rwlock_init_destroy(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_rdlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_wrlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_tryrdlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_trywrlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_unlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_timedrdlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_timedwrlock(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_rwlock_concurrent_readers(
     struct dj_test_suite* _suite
 );
@@ -200,6 +229,7 @@ bool d_tests_rwlock_all(
 bool d_tests_call_once(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_call_once_concurrent(
     struct dj_test_suite* _suite
 );

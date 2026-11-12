@@ -1,12 +1,13 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_session.hpp
+* djinterp [cpp][test]                                          test_session.hpp
 *
 *   Test session: the top-level runtime context for executing tests.
 * A session owns a test tree, maintains quasi-global options,
 * records statistical counters (pass/fail/skip/pending/error),
 * and provides pause/resume lifecycle control.
 *
-*   CURRENT SCOPE:
+* CURRENT SCOPE
+* -------------
 *   The session ties together the framework's execution
 * primitives: it owns a tree, drives a handler, manages timer
 * and counter state, and exposes the verdict at the end.  The
@@ -18,7 +19,8 @@
 *   - reporter/formatter attachment beyond the handler's
 *     own listener bundle
 *
-*   SUITE COMPOSITION (REMOVED):
+* SUITE COMPOSITION (REMOVED)
+* ---------------------------
 *   The previous compose / compose_and_run free functions grafted
 * several independent module subtrees under one fresh root via the
 * tree-level combine_subtrees() factory.  The refactored
@@ -32,40 +34,56 @@
 * test_tree convenience aliases in test_defaults.hpp - once its
 * shape is settled.
 *
-*   SESSION STATE:
+* SESSION STATE
+* -------------
 *   A session transitions through a linear state machine:
 *     idle --> running --> paused --> running --> ... --> finished
 *   The state is tracked as a simple enum.  Transitions are
 *   validated; invalid transitions are no-ops.
 *
-*   OPTIONS:
-*   The session carries a test_option_set for quasi-global
-* configuration.  Individual test elements may consult the
-* session's options for defaults (max failures, verbosity,
-* handler).
+* COUNTERS
+* --------
+*   The session keeps a test_tally keyed by the status event tags,
+* used only as types (DOnTestPassed, DOnTestFailed,
+* DOnTestSkipped, DOnTestError, and the session's own
+* pending_key). When run(test_handler&) returns, every counter
+* reflects the most recent run's tally, synced from the handler's
+* DSessionResult. A caller who wants events to count into the
+* tally binds test_counter_event.hpp's handlers.
 *
-*   COUNTERS:
-*   The session owns a test_counter for each status category.
-* When run(test_handler&) returns, every counter reflects the
-* most recent run's tally - synced from the handler's
-* DSessionResult via on_reset / on_increment events so any
-* listener bound to those gets a faithful event stream even
-* though the underlying tally came from outside the session.
-*
-*   TIMER:
+* TIMER
+* -----
 *   The session owns a DTestTimer measuring wall-clock
 * execution time.  The timer starts on run(), pauses on
 * pause(), resumes on resume(), and stops on finish().
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  Uses djinterp.hpp for namespace macros
 * and constexpr support.
+*
+* HOW TO USE
+* ----------
+*   A session owns a tree and runs it through a handler; its tally and timer
+* hold the run's counts and wall-clock time:
+*
+*     session.run(handler);
+*     session.passed().value();
+*
+* OPTIONS
+* -------
+*   The session carries a test_option_set for quasi-global configuration; test
+* elements may read their defaults (max failures, verbosity, handler) from it.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_session.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -154,6 +172,7 @@ public:
     using underlying_type = Underlying;
     using tree_type       = test_tree<Element, Underlying>;
     using counter_type    = test_counter<re_std::int64_t>;
+    using tally_type      = test_tally<re_std::int64_t>;
     using timer_type      = DTestTimer<>;
     using size_type       = std::size_t;
 
@@ -161,17 +180,33 @@ public:
     //  construction
     // -----------------------------------------------------------------
 
+    // pending_key
+    //   struct: the tally key the session's pending count is kept under. The
+    // other four keys are the lifecycle event tags, used only as types.
+    struct pending_key
+    {
+        static const char* name() noexcept
+        {
+            return "pending";
+        }
+    };
+
     // default
+    //   tracks the five status counters, each at zero and held at or
+    // above it, so the const accessors always find them. They count tests,
+    // one at a time, whatever the knobs say.
     test_session()
         : m_tree(),
           m_state(DSessionState::idle),
-          m_passed(0, 0),
-          m_failed(0, 0),
-          m_skipped(0, 0),
-          m_pending(0, 0),
-          m_errors(0, 0),
+          m_tally(session_options()),
           m_timer()
-    {}
+    {
+        (void)m_tally.template track<DOnTestPassed>();
+        (void)m_tally.template track<DOnTestFailed>();
+        (void)m_tally.template track<DOnTestSkipped>();
+        (void)m_tally.template track<pending_key>();
+        (void)m_tally.template track<DOnTestError>();
+    }
 
     // -----------------------------------------------------------------
     //  state
@@ -364,11 +399,7 @@ public:
     {
         m_state = DSessionState::idle;
         m_tree.clear();
-        m_passed.reset();
-        m_failed.reset();
-        m_skipped.reset();
-        m_pending.reset();
-        m_errors.reset();
+        m_tally.reset();
         m_timer.reset();
 
         return;
@@ -398,67 +429,80 @@ public:
     // passed
     counter_type& passed() noexcept
     {
-        return m_passed;
+        return status<DOnTestPassed>();
     }
 
     const counter_type& passed() const noexcept
     {
-        return m_passed;
+        return status<DOnTestPassed>();
     }
 
     // failed
     counter_type& failed() noexcept
     {
-        return m_failed;
+        return status<DOnTestFailed>();
     }
 
     const counter_type& failed() const noexcept
     {
-        return m_failed;
+        return status<DOnTestFailed>();
     }
 
     // skipped
     counter_type& skipped() noexcept
     {
-        return m_skipped;
+        return status<DOnTestSkipped>();
     }
 
     const counter_type& skipped() const noexcept
     {
-        return m_skipped;
+        return status<DOnTestSkipped>();
     }
 
     // pending
     counter_type& pending() noexcept
     {
-        return m_pending;
+        return status<pending_key>();
     }
 
     const counter_type& pending() const noexcept
     {
-        return m_pending;
+        return status<pending_key>();
     }
 
     // errors
     counter_type& errors() noexcept
     {
-        return m_errors;
+        return status<DOnTestError>();
     }
 
     const counter_type& errors() const noexcept
     {
-        return m_errors;
+        return status<DOnTestError>();
+    }
+
+    // tally
+    //   returns the session's tally: the five status counters, and any
+    // other event a caller tracks in it.
+    tally_type& tally() noexcept
+    {
+        return m_tally;
+    }
+
+    const tally_type& tally() const noexcept
+    {
+        return m_tally;
     }
 
     // total
     //   returns the sum of all status counters.
     re_std::int64_t total() const noexcept
     {
-        return m_passed.value()  +
-               m_failed.value()  +
-               m_skipped.value() +
-               m_pending.value() +
-               m_errors.value();
+        return passed().value()  +
+               failed().value()  +
+               skipped().value() +
+               pending().value() +
+               errors().value();
     }
 
     // -----------------------------------------------------------------
@@ -508,35 +552,75 @@ private:
     //  internal: counter sync and verdict
     // -----------------------------------------------------------------
 
+    // session_options
+    //   the options the status counters start from: a step of one and a
+    // floor at zero, since they count tests and a count cannot go below it.
+    static typename tally_type::options_type session_options() noexcept
+    {
+        typename tally_type::options_type options;
+
+        options.step      = 1;
+        options.has_floor = true;
+
+        return options;
+    }
+
+    // status
+    //   the status counter kept under `Key`; the constructor tracked all
+    // five, so it is always there.
+    template<typename Key>
+    counter_type& status() noexcept
+    {
+        return *m_tally.template find<Key>();
+    }
+
+    template<typename Key>
+    const counter_type& status() const noexcept
+    {
+        return *m_tally.template find<Key>();
+    }
+
     // sync_counters_from
     //   Copies the per-status totals from a DSessionResult
-    // (produced by test_handler) into this session's owned
-    // counters.  Each counter is reset to its initial value
-    // and then incremented to the result's tally; the counter
-    // emits its on_reset and on_increment events, so any
-    // listener bound to those gets a faithful event stream
-    // even though the underlying tally came from outside the
-    // session.
+    // (produced by test_handler) into this session's status
+    // counters: each is reset to its start and then incremented
+    // to the result's tally.
     void sync_counters_from(
         const DSessionResult& _r
     )
     {
-        m_passed.reset();
-        m_failed.reset();
-        m_skipped.reset();
-        m_pending.reset();
-        m_errors.reset();
+        m_tally.reset();
 
-        if (_r.passed  > 0) m_passed.increment(
-                                static_cast<counter_value_type>(_r.passed));
-        if (_r.failed  > 0) m_failed.increment(
-                                static_cast<counter_value_type>(_r.failed));
-        if (_r.skipped > 0) m_skipped.increment(
-                                static_cast<counter_value_type>(_r.skipped));
-        if (_r.pending > 0) m_pending.increment(
-                                static_cast<counter_value_type>(_r.pending));
-        if (_r.errors  > 0) m_errors.increment(
-                                static_cast<counter_value_type>(_r.errors));
+        // each status the result counted
+        if (_r.passed > 0)
+        {
+            (void)passed().increment(
+                static_cast<counter_value_type>(_r.passed));
+        }
+
+        if (_r.failed > 0)
+        {
+            (void)failed().increment(
+                static_cast<counter_value_type>(_r.failed));
+        }
+
+        if (_r.skipped > 0)
+        {
+            (void)skipped().increment(
+                static_cast<counter_value_type>(_r.skipped));
+        }
+
+        if (_r.pending > 0)
+        {
+            (void)pending().increment(
+                static_cast<counter_value_type>(_r.pending));
+        }
+
+        if (_r.errors > 0)
+        {
+            (void)errors().increment(
+                static_cast<counter_value_type>(_r.errors));
+        }
 
         return;
     }
@@ -551,11 +635,11 @@ private:
     //     - passed otherwise
     session_verdict current_verdict() const D_NOEXCEPT
     {
-        const auto p = m_passed.value();
-        const auto f = m_failed.value();
-        const auto s = m_skipped.value();
-        const auto pn = m_pending.value();
-        const auto e = m_errors.value();
+        const auto p  = passed().value();
+        const auto f  = failed().value();
+        const auto s  = skipped().value();
+        const auto pn = pending().value();
+        const auto e  = errors().value();
 
         const auto t = p + f + s + pn + e;
 
@@ -585,11 +669,7 @@ private:
 
     tree_type     m_tree;
     DSessionState m_state;
-    counter_type  m_passed;
-    counter_type  m_failed;
-    counter_type  m_skipped;
-    counter_type  m_pending;
-    counter_type  m_errors;
+    tally_type    m_tally;
     timer_type    m_timer;
 };
 

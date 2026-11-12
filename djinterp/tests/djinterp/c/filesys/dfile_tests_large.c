@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            dfile_tests_large.c
+* djinterp [c][filesys]                                      dfile_tests_large.c
 *
 *   Tests for large file support operations (fseeko, ftello, ftruncate).
 *

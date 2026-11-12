@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               env_tests_arch.c
+* djinterp [c][env]                                             env_tests_arch.c
 *
 * Unit tests for `env.h` architecture detection (section VI).
 * Tests the D_ENV_ARCH_* macros that detect CPU architectures and properties.

@@ -1,14 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_traits.hpp
+* djinterp [cpp][test]                                           test_traits.hpp
 *
 *   The trait-TESTING toolkit: the shorthands and idioms a unit test needs in
 * order to interrogate a SFINAE / detection trait, as opposed to the machinery
-* used to WRITE one.  trait_detect.hpp emits traits; type_traits.hpp section
+* used to write one.  trait_detect.hpp emits traits; type_traits.hpp section
 * 0.2 supplies the detection idiom they are built from; this header is the
 * third corner - the vocabulary for asking whether the trait a suite is
 * testing actually behaves like a trait.
 *
-*   WHY IT HAS TO BE ITS OWN THING:
+* WHY IT HAS TO BE ITS OWN THING
+* ------------------------------
 *   A trait test cannot be written the way an ordinary test is written.  The
 * negative case - "this expression is NOT valid for Type" - cannot be spelled
 * by writing the expression, because an ill-formed expression is a hard error,
@@ -17,12 +18,13 @@
 * wrong, and it is currently re-derived by hand in every suite that touches a
 * trait.  This header names it once.
 *
-*   WHAT A TRAIT TEST ACTUALLY ASKS:
+* WHAT A TRAIT TEST ACTUALLY ASKS
+* -------------------------------
 *     1. is the probed expression well-formed for Type?             (I, II)
 *     2. and what does it yield - which type exactly, in which value
 *        category, throwing or not, constant or not?                 (I, II)
-*     3. does that answer hold across a SET of types?                (III)
-*     4. is the trait ITSELF a well-formed bool trait - `::value`,
+*     3. does that answer hold across a set of types?                (III)
+*     4. is the trait itself a well-formed bool trait - `::value`,
 *        `value_type`, `::type`, and a `_v` companion that agrees?   (IV)
 *     5. does it answer identically for `Type`, `const Type&`,
 *        `Type&&`, ...?                                             (V)
@@ -30,7 +32,8 @@
 *     7. (C++20) does its concept face agree with it, and does the
 *        refinement ladder genuinely subsume?                        (VIII)
 *
-*   USES, DOES NOT RE-SPELL:
+* USES, DOES NOT RE-SPELL
+* -----------------------
 *   The detection idiom already exists - is_detected, is_detected_exact,
 * is_detected_convertible, detected_t, detected_or_t and nonesuch, all in
 * type_traits.hpp section 0.2, all reachable unqualified from djinterp::test.
@@ -42,16 +45,17 @@
 * first false and would therefore hide a later cell that does not compile),
 * trait-shape conformance, the cv-ref agreement matrix, and the fixture zoo.
 *
-*   HARD FAILURE vs REPORTED FAILURE:
+*   Hard failure vs reported failure:
 *   Almost everything here reduces to a `constexpr bool`, and that is a
 * deliberate choice: a suite hands the bool to its own check macro, and a
 * broken trait then shows up as a red line in the console and the PDF.
-* D_TEST_STATIC (VII) is the opposite choice - it fails the BUILD.  Reach for
+* D_TEST_STATIC (VII) is the opposite choice - it fails the build.  Reach for
 * it only where a regression should stop the line, because a dead build
 * produces no report at all.
 *
-*   PORTABILITY:
-*   C++17.  That floor is set by the detection idiom this header READS, not by
+* PORTABILITY
+* -----------
+*   C++17.  That floor is set by the detection idiom this header reads, not by
 * anything written here: type_traits.hpp section 0.2 spells its template-
 * template parameters `template<typename...> typename Op`, which is C++17
 * (P0522), notwithstanding the C++11 claim in its own comment block.  Beyond
@@ -62,6 +66,21 @@
 * probes', so a trait with a defaulted second parameter (`is_bool_trait`'s
 * `typename = void`) binds on Clang before 19 too, which does not apply
 * P0522's relaxed matching to a unary template-template parameter.
+*
+* HOW TO USE
+* ----------
+*   Ask whether a trait behaves like a trait: the counting and quantifier
+* helpers (count_true, holds_for_all, holds_for_none) run it over a pack of the
+* fixture types (empty, final_type, abstract, incomplete, ...).
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   D_KEYWORD_FIXTURES names the namespace the fixture types live in (fixtures
+* by default). No D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_traits.hpp

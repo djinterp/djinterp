@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              test_options_tests_combinations.c
+* djinterp [c][test]                           test_options_tests_combinations.c
 *
 * test_options.h's suite, block "config_combination_all": the
 * D_TEST_MSG_COUNT_*, D_TEST_MSG_PRINT_* and D_TEST_MSG_ALL combinations, and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                 test_event.c
+* djinterp [c][test]                                                test_event.c
 *
 *   Implementation of the DTest event module -- the observation record and
 * the dispatch kernel.  Compiled by both languages from this one source.

@@ -1,47 +1,47 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_sa.cpp
+* djinterp [cpp][filesys]                                      file_tests_sa.cpp
 *
 *   Unit tests for djinterp::file (inc/djinterp/cpp/file.hpp) and the
 * djinterp::error it reports through (inc/djinterp/cpp/error.hpp). One file for
 * the class, sibling to path_tests_sa.cpp -- same three rules, same harness,
-* one difference that matters: `file` is a RESOURCE, not a value. `path` could
+* one difference that matters: `file` is a resource, not a value. `path` could
 * be tested with pure comparisons and no world; `file` owns an open FILE*, so
 * these assertions do real I/O against a real scratch file and then check what
 * the class did. That is the point of testing it at all.
 *
-*   THE THREE RULES, unchanged from the sibling suite.
+*   The three rules, unchanged from the sibling suite.
 *
-*   1. A test that cannot run is OMITTED, never passed.
+*   1. A test that cannot run is omitted, never passed.
 *      The move handoff is a C++11 addition. On C++98 the ownership group holds
 *      fewer assertions and its name says why; it does not report a green
 *      "skipped" for a move that the language cannot express.
 *
-*   2. Capability is asked at COMPILE time, not probed at runtime.
+*   2. Capability is asked at compile time, not probed at runtime.
 *      D_MOVE_ENABLED is a fact the language already settled. The move group
 *      is #if'd on it. There is nothing to discover at run time.
 *
-*   3. The tier rule is DEMONSTRATED, not asserted in prose.
-*      One source, built C++98 -> C++23. The higher tiers ADD the move group
+*   3. The tier rule is demonstrated, not asserted in prose.
+*      One source, built C++98 -> C++23. The higher tiers add the move group
 *      and change nothing else. Building the same file on every standard is the
 *      only check that can catch an additive-contract break; no assertion
 *      inside the file can.
 *
-*   WHAT IS NOT ASSERTED HERE, AND WHY.
+*   What is not asserted here, and why.
 *      `file` is non-copyable on every tier -- the copy constructor and
-*   copy-assignment are DELETED. That is a COMPILE-TIME guarantee: there is no
+*   copy-assignment are deleted. That is a compile-time guarantee: there is no
 *   run-time behaviour to observe, because the program that copies a file does
 *   not compile. It is verified by a negative-compile check outside this file
 *   (a TU that copies a file and must fail to build), not by a leaf in the tree
 *   -- asserting it at run time would require the very code that cannot exist.
 *
-*   WHY THIS FILE CARRIES ITS OWN HARNESS.
+*   Why this file carries its own harness.
 *      Identical reason to the sibling: the C harness is not yet
 *   C++-consumable (no extern "C"; it pulls dfile.h / dstring.h / dtime.h), so
 *   the Section 0 shim stands in and mirrors that API exactly. The day the real
 *   header is C++-ready, this file drops the shim, includes it, and the bodies
 *   below do not change a line.
 *
-*   THE SCRATCH FILE.
+*   The scratch file.
 *      Groups that need a file make one with d_tests_file_scratch() (a distinct
 *   name per call) and remove() it when done -- remove() and fopen() are
 *   standard C, so the test itself keeps the header's discipline: no platform

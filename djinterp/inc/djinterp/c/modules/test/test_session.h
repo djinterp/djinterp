@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_session.h
+* djinterp [c][test]                                              test_session.h
 *
 *   Test session - top-level test runner and coordinator.
 *   A session manages the entire test execution lifecycle including:
@@ -14,6 +14,21 @@
 *
 *   Each level only knows about itself and its children, with configuration
 *   flowing downward through run functions.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   Its tests, blocks and modules take optional arguments (struct dj_test_arg
+* lists) that become entries of a test option set, test_options.h.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_session.h
@@ -253,22 +268,27 @@ struct dj_test_session
  *****************************************************************************/
 
 struct dj_test_session* d_test_session_new(void);
+
 struct dj_test_session* d_test_session_new_with_config(
     struct dj_test_options* _config
 );
+
 struct dj_test_session* d_test_session_new_with_modules(
     struct dj_test_type** _modules,
     size_t                _count
 );
+
 struct dj_test_session* d_test_session_new_with_modules_and_config(
     struct dj_test_options* _config,
     struct dj_test_type**   _modules,
     size_t                  _count
 );
+
 struct dj_test_options* d_test_session_validate_args(
     struct dj_test_arg* _args,
     size_t              _arg_count
 );
+
 /*******************************************************************************
  * CONFIGURATION FUNCTIONS
  *****************************************************************************/
@@ -278,22 +298,27 @@ bool d_test_session_set_option(
     enum DTestSessionOption _option,
     const void*             _value
 );
+
 void* d_test_session_get_option(
     const struct dj_test_session* _session,
     enum DTestSessionOption       _option
 );
+
 bool d_test_session_set_output_format(
     struct dj_test_session* _session,
     enum DTestOutputFormat  _format
 );
+
 bool d_test_session_set_output_file(
     struct dj_test_session* _session,
     const char*             _filename
 );
+
 bool d_test_session_set_verbosity(
     struct dj_test_session* _session,
     enum DTestVerbosity     _verbosity
 );
+
 bool d_test_session_enable_color(
     struct dj_test_session* _session,
     bool                    _enable
@@ -308,18 +333,22 @@ bool d_test_session_add_child(
     struct dj_test_session* _session,
     struct dj_test_type*    _child
 );
+
 bool d_test_session_add_children(
     struct dj_test_session* _session,
     struct dj_test_type**   _children,
     size_t                  _count
 );
+
 size_t d_test_session_child_count(
     const struct dj_test_session* _session
 );
+
 struct dj_test_type* d_test_session_get_child_at(
     const struct dj_test_session* _session,
     size_t                        _index
 );
+
 bool d_test_session_clear_children(
     struct dj_test_session* _session
 );
@@ -346,12 +375,15 @@ bool d_test_session_run_by_name(
 bool d_test_session_pause(
     struct dj_test_session* _session
 );
+
 bool d_test_session_resume(
     struct dj_test_session* _session
 );
+
 bool d_test_session_abort(
     struct dj_test_session* _session
 );
+
 bool d_test_session_reset(
     struct dj_test_session* _session
 );
@@ -376,9 +408,11 @@ void d_test_session_writeln(
 void d_test_session_write_header(
     struct dj_test_session* _session
 );
+
 void d_test_session_write_footer(
     struct dj_test_session* _session
 );
+
 void d_test_session_write_summary(
     struct dj_test_session* _session
 );
@@ -387,6 +421,7 @@ void d_test_session_write_module_start(
     struct dj_test_session*    _session,
     const struct dj_test_type* _module
 );
+
 void d_test_session_write_module_end(
     struct dj_test_session*    _session,
     const struct dj_test_type* _module,
@@ -417,18 +452,23 @@ const struct dj_test_statistics* d_test_session_get_stats(
 bool d_test_session_all_passed(
     const struct dj_test_session* _session
 );
+
 size_t d_test_session_total_run(
     const struct dj_test_session* _session
 );
+
 size_t d_test_session_total_passed(
     const struct dj_test_session* _session
 );
+
 size_t d_test_session_total_failed(
     const struct dj_test_session* _session
 );
+
 size_t d_test_session_total_skipped(
     const struct dj_test_session* _session
 );
+
 double d_test_session_duration_ms(
     const struct dj_test_session* _session
 );
@@ -449,6 +489,7 @@ const char* d_test_session_status_to_string(
 bool d_test_session_is_running(
     const struct dj_test_session* _session
 );
+
 bool d_test_session_is_complete(
     const struct dj_test_session* _session
 );
@@ -461,6 +502,7 @@ bool d_test_session_is_complete(
 void d_test_session_print(
     const struct dj_test_session* _session
 );
+
 int d_test_session_exit_code(
     const struct dj_test_session* _session
 );

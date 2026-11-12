@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    dio_tests.h
+* djinterp [c]                                                       dio_tests.h
 *
 * dio.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   The first block tests the framework's own checked scanf engine (style #38,
@@ -59,12 +59,19 @@ D_EXTERN_C_BEGIN
 // 1.1    The checked scanf engine
 //------------------------------------------------------------------------------
 bool d_tests_dio_sscanf_s_correct(void);
+
 bool d_tests_dio_sscanf_s_size_zero(void);
+
 bool d_tests_dio_sscanf_s_size_one(void);
+
 bool d_tests_dio_sscanf_s_scanset(void);
+
 bool d_tests_dio_sscanf_s_too_small(void);
+
 bool d_tests_dio_sscanf_s_size_type(void);
+
 bool d_tests_dio_sscanf_s_constraints(void);
+
 bool d_tests_dio_fscanf_s_stream(void);
 
 
@@ -160,18 +167,23 @@ bool d_tests_dio_run_all(struct dj_test_suite* _suite);
 bool d_tests_dio_sscanf(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_sscanf_s(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_vsscanf(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_vsscanf_s(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_fscanf(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_fscanf_s(
     struct dj_test_suite* _suite
 );
@@ -188,12 +200,15 @@ bool d_tests_dio_formatted_input_all(
 bool d_tests_dio_sprintf_s(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_vsprintf_s(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_snprintf(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_vsnprintf(
     struct dj_test_suite* _suite
 );
@@ -210,9 +225,11 @@ bool d_tests_dio_formatted_output_all(
 bool d_tests_dio_gets_s(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_fputs(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_fgets(
     struct dj_test_suite* _suite
 );
@@ -242,12 +259,15 @@ bool d_tests_dio_file_positioning_all(
 bool d_tests_dio_perror(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_feof(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_ferror(
     struct dj_test_suite* _suite
 );
+
 bool d_tests_dio_clearerr(
     struct dj_test_suite* _suite
 );

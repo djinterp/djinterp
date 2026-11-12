@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                         test_invariant.hpp
+* djinterp [cpp][test]                                        test_invariant.hpp
 *
 *   Concurrent invariant monitoring for the DTest multithreading
 * harness.  An invariant is a predicate that should hold at every
@@ -9,13 +9,13 @@
 *
 *   Two complementary models are provided:
 *
-*     1. POLLING INVARIANT
+*     1. Polling invariant
 *        A background thread evaluates a user-supplied predicate
 *        at a fixed cadence.  Each false result is recorded with
 *        timestamp.  Best for invariants that may briefly be false
 *        and re-true themselves.
 *
-*     2. MONOTONIC GUARD
+*     2. Monotonic guard
 *        A specialized form for "value never decreases" or "value
 *        never exceeds bound" - extremely common assertions about
 *        atomic counters, sequence numbers, version stamps.  No
@@ -26,8 +26,24 @@
 * watcher thread; stop_monitoring() joins.  The accumulated report
 * is then converted to a basic_test for the test tree.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later.
+*
+* HOW TO USE
+* ----------
+*   Give a DInvariantMonitor a predicate and a poll interval, run the code under
+* test, and read its report; DMonotonicGuard and DBoundedGuard check common
+* invariants at each step.
+*
+* OPTIONS
+* -------
+*   The predicate, the poll interval, a detail provider and the most violations
+* recorded, each set on the monitor.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_invariant.hpp

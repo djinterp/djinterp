@@ -1,34 +1,54 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                        test_report_pdf.hpp
+* djinterp [cpp][test]                                       test_report_pdf.hpp
 *
 *   The PDF entry points for a finished report -- the drop-in replacement for
 * test_render_pdf_table.hpp's `render_report_pdf_bytes_table`, and the reason
 * that file could be deleted.
 *
-*   WHY IT IS ITS OWN HEADER.  test_report_document.hpp describes the document
-* and deliberately carries NO PDF dependency, so a text-only build includes it
-* freely.  This header is the pairing of that description with the canvas-backed
-* renderer, and it is the only place in the DTest output layer that pulls in
-* pdf.hpp.  Same opt-in split the document layer keeps between
-* document_renderer.hpp and pdf_document_renderer.hpp.
+* WHY IT IS ITS OWN HEADER
+* ------------------------
+*   test_report_document.hpp describes the document and deliberately carries no
+* PDF dependency, so a text-only build includes it freely.  This header is the
+* pairing of that description with the canvas-backed renderer, and it is the
+* only place in the DTest output layer that pulls in pdf.hpp.  Same opt-in split
+* the document layer keeps between document_renderer.hpp and
+* pdf_document_renderer.hpp.
 *
-*   WHAT REPLACED WHAT.  The old entry point painted every cell directly on
-* DPdfDocument: filled rectangles for backgrounds, stroked rectangles for rules,
-* metric-placed glyphs, 882 lines of it, because the foundation's table helper
-* could not express per-cell fills.  It can now (DPdfCanvas's DCellFormat), and
-* the page design is a template (test_report_document.hpp), so this is the whole
-* of what remains: register the verdict palette, set the stripe, compose, and
-* ask for the bytes.
+* WHAT REPLACED WHAT
+* ------------------
+*   The old entry point painted every cell directly on DPdfDocument: filled
+* rectangles for backgrounds, stroked rectangles for rules, metric-placed
+* glyphs, 882 lines of it, because the foundation's table helper could not
+* express per-cell fills.  It can now (DPdfCanvas's DCellFormat), and the page
+* design is a template (test_report_document.hpp), so this is the whole of what
+* remains: register the verdict palette, set the stripe, compose, and ask for
+* the bytes.
 *
-*   THE SAME DOCUMENT, NOT THE SAME MILLIMETRES.  The painter hard-coded the
-* design reference's margins and card metrics; the template delegates geometry
-* to the renderer.  Output is recognisably the same report -- banded suites,
-* ruled and shaded assertion tables, coloured verdicts, repeating headers across
-* page breaks -- but it will not diff byte-for-byte against the old painter, and
-* the status chips fill their cell rather than sitting inset within it.
+* THE SAME DOCUMENT, NOT THE SAME MILLIMETRES
+* -------------------------------------------
+*   The painter hard-coded the design reference's margins and card metrics; the
+* template delegates geometry to the renderer.  Output is recognisably the same
+* report -- banded suites, ruled and shaded assertion tables, coloured verdicts,
+* repeating headers across page breaks -- but it will not diff byte-for-byte
+* against the old painter, and the status chips fill their cell rather than
+* sitting inset within it.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 baseline (the renderer's floor).
+*
+* HOW TO USE
+* ----------
+*   Render a finished report to PDF through a DPdfCanvasDocumentRenderer, after
+* apply_report_pdf_palette has set its colours.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_report_pdf.hpp

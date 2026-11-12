@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        dstring_tests_reverse.c
+* djinterp [c]                                           dstring_tests_reverse.c
 *
 *   Unit tests for dj_string reversal functions:
 *     - d_string_reverse

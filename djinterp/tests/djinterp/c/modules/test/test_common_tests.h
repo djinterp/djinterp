@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            test_common_tests.h
+* djinterp [c][test]                                         test_common_tests.h
 *
 * test_common.h's suite in DTest's C face (c/modules/test/test_suite.h).
 *   test_common.h is the DTest vocabulary: the status value set, the three
@@ -46,14 +46,19 @@ D_EXTERN_C_BEGIN
 // 1.1    Values and identifiers
 //------------------------------------------------------------------------------
 bool d_tests_test_common_status_values(void);
+
 bool d_tests_test_common_identifier_types(void);
 
 // 1.2    Operations
 //------------------------------------------------------------------------------
 bool d_tests_test_common_is_valid(void);
+
 bool d_tests_test_common_or_error(void);
+
 bool d_tests_test_common_is_terminal(void);
+
 bool d_tests_test_common_name(void);
+
 bool d_tests_test_common_worse_of(void);
 
 

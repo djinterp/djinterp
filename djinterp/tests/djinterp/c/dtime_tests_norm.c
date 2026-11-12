@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dtime_tests_norm.c
+* djinterp [c]                                                dtime_tests_norm.c
 *
 *
 * path:      /tests/djinterp/c/dtime_tests_norm.c

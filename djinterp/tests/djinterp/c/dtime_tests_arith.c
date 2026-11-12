@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            dtime_tests_arith.c
+* djinterp [c]                                               dtime_tests_arith.c
 *
 *   Tests for time arithmetic functions (timespec_add, timespec_sub,
 * timespec_cmp, conversions to/from ms/us/ns).

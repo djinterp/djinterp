@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    test_cvar_tests_valid_arg.c
+* djinterp [c][test]                                 test_cvar_tests_valid_arg.c
 *
 * test_cvar.h's suite, block "cvar_valid_arg_all": d_test_registry_is_valid_arg
 * with config and metadata keys, the wrong flag, NULL and an unknown key.

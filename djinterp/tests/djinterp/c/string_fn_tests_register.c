@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     string_fn_tests_register.c
+* djinterp [c]                                        string_fn_tests_register.c
 *
 * string_fn.h's suite, block "register": the register's decisions on
 * string_fn.

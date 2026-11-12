@@ -1,23 +1,27 @@
 /*******************************************************************************
-* djinterp [test]                                          file_dir_tests_sa.cpp
+* djinterp [cpp][filesys]                                  file_dir_tests_sa.cpp
 *
 *   Unit tests for djinterp::directory, its range-for iterator, DDirectoryEntry,
 * and the free create_directory / remove_directory (inc/djinterp/cpp/filesys/
 * file_dir.hpp). One file for the class, sibling to the path/file/status
 * suites, same harness and same three rules.
 *
-*   FIXTURES. A directory test needs directories, and ISO C cannot make one --
-* so the fixtures go through djinterp's own create_directory (also tested on its
-* own, in group VI) and fill them with fopen, which IS ISO C. The test itself
-* calls no mkdir/opendir/readdir directly; it keeps the no-platform-call
-* discipline of its siblings, driving the real syscalls only through the API
-* under test. Entry ORDER from a directory is not guaranteed, so every check is
-* by COUNT and by NAME-membership, never by position.
+* FIXTURES
+* --------
+*   A directory test needs directories, and ISO C cannot make one -- so the
+* fixtures go through djinterp's own create_directory (also tested on its own,
+* in group VI) and fill them with fopen, which is ISO C. The test itself calls
+* no mkdir/opendir/readdir directly; it keeps the no-platform-call discipline of
+* its siblings, driving the real syscalls only through the API under test. Entry
+* order from a directory is not guaranteed, so every check is by count and by
+* NAME-membership, never by position.
 *
-*   WHAT IS NOT ASSERTED HERE. directory is non-copyable (deleted copy ops) --
-* a compile-time guarantee with no run-time behaviour, verified by a negative-
-* compile check outside this file, exactly as in the file suite. The move group
-* is C++11+ and ADDITIVE; on C++98 it is absent, not a green skip.
+* WHAT IS NOT ASSERTED HERE
+* -------------------------
+*   Directory is non-copyable (deleted copy ops) -- a compile-time guarantee
+* with no run-time behaviour, verified by a negative- compile check outside this
+* file, exactly as in the file suite. The move group is C++11+ and additive; on
+* C++98 it is absent, not a green skip.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_dir_tests_sa.cpp

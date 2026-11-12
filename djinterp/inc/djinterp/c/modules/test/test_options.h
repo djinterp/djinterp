@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_options.h
+* djinterp [c][test]                                              test_options.h
 *
 * The C test framework's option set: packed message and settings flags, and a
 * map of overrides for the registry's config keys.
@@ -8,6 +8,26 @@
 * at bit 16. The macros build, mask and test them. The functions create an
 * option set, read a config key through it (its override, else the registry's
 * default, test_cvar.h) and override one.
+*
+* HOW TO USE
+* ----------
+*   Create an option set, read config keys through it and override the ones a
+* run changes:
+*
+*     struct dj_test_options* opts =
+*         d_test_options_new_preset(D_TEST_MODE_NORMAL);
+*
+*     d_test_options_set_size_t(opts, D_TEST_OPTIONS_MAX_FAILURES, 1);
+*     d_test_options_free(opts);
+*
+* OPTIONS
+* -------
+*   The set is the options: the message and settings flags (D_TEST_MSG_*,
+* D_TEST_MODE_*) and per-key overrides of the registry's defaults.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_options.h
@@ -852,14 +872,19 @@ void d_test_options_free(struct dj_test_options* _config);
 // get_string their own type's only, and get_bool and get_ptr any key.
 bool        d_test_options_get_bool(const struct dj_test_options* _config,
                                     uint32_t                      _key);
+
 size_t      d_test_options_get_size_t(const struct dj_test_options* _config,
                                       uint32_t                      _key);
+
 int32_t     d_test_options_get_int32(const struct dj_test_options* _config,
                                      uint32_t                      _key);
+
 uint32_t    d_test_options_get_uint32(const struct dj_test_options* _config,
                                       uint32_t                      _key);
+
 const char* d_test_options_get_string(const struct dj_test_options* _config,
                                       uint32_t                      _key);
+
 void*       d_test_options_get_ptr(const struct dj_test_options* _config,
                                    uint32_t                      _key);
 

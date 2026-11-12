@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                           test_sync_tests.hpp
+* djinterp [cpp][test]                                       test_sync_tests.hpp
 *
 *   DTest suite header for inc/djinterp/cpp/modules/test/sync/test_sync.hpp -
 * the test coordination primitives (latch, barrier, gate, rendezvous,
@@ -85,58 +85,99 @@ inline std::chrono::seconds      hy_settle() { return std::chrono::seconds(2); }
 
 // I.   TEST LATCH                      (test_sync_tests_latch.cpp)
 bool tests_latch_construct();
+
 bool tests_latch_count_down_single();
+
 bool tests_latch_count_down_amount();
+
 bool tests_latch_reaches_zero_opens();
+
 bool tests_latch_count_down_clamped();
+
 bool tests_latch_wait_returns_when_open();
+
 bool tests_latch_wait_for_timeout();
+
 bool tests_latch_wait_for_success();
+
 bool tests_latch_arrival_count_tracks();
+
 bool tests_latch_arrive_and_wait_single();
+
 bool tests_latch_is_open_alias();
+
 bool tests_latch_blocks_until_zero_mt();
+
 bool tests_latch_arrive_and_wait_mt();
 
 // II.  TEST BARRIER                    (test_sync_tests_barrier.cpp)
 bool tests_barrier_construct();
+
 bool tests_barrier_single_way_advances();
+
 bool tests_barrier_reusable();
+
 bool tests_barrier_completion_runs();
+
 bool tests_barrier_arrive_returns_phase();
+
 bool tests_barrier_nway_mt();
+
 bool tests_barrier_completion_once_per_phase_mt();
+
 bool tests_barrier_arrive_and_drop_mt();
 
 // III. TEST GATE                       (test_sync_tests_gate.cpp)
 bool tests_gate_starts_closed();
+
 bool tests_gate_open_close();
+
 bool tests_gate_wait_when_open();
+
 bool tests_gate_wait_for_timeout();
+
 bool tests_gate_wait_for_success();
+
 bool tests_gate_pass_count_accumulates();
+
 bool tests_gate_wait_for_no_increment_on_timeout();
+
 bool tests_gate_reclose();
+
 bool tests_gate_blocks_until_open_mt();
 
 // IV.  TEST RENDEZVOUS                 (test_sync_tests_rendezvous.cpp)
 bool tests_rendezvous_try_receive_empty();
+
 bool tests_rendezvous_try_receive_null_empty();
+
 bool tests_rendezvous_send_receive_mt();
+
 bool tests_rendezvous_receive_first_mt();
+
 bool tests_rendezvous_try_receive_after_send_mt();
+
 bool tests_rendezvous_payload_string_mt();
+
 bool tests_rendezvous_multiple_exchanges_mt();
 
 // V.   SIMULTANEOUS START              (test_sync_tests_simultaneous.cpp)
 bool tests_simultaneous_construct();
+
 bool tests_simultaneous_ready_increments();
+
 bool tests_simultaneous_wait_until_ready_immediate();
+
 bool tests_simultaneous_wait_until_ready_for_timeout();
+
 bool tests_simultaneous_signal_sets_fired();
+
 bool tests_simultaneous_go_after_signal();
+
 bool tests_simultaneous_ready_and_go_after_signal();
+
 bool tests_simultaneous_full_cycle_mt();
+
 bool tests_simultaneous_wait_then_signal_mt();
 
 

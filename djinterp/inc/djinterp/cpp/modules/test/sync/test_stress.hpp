@@ -1,19 +1,21 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_stress.hpp
+* djinterp [cpp][test]                                           test_stress.hpp
 *
 *   Stress-test harness for the DTest multithreading module: drives a
 * set of operations many times across many threads, with optional
 * iteration limits, time bounds, randomized op-mix selection, and a
 * reproducible RNG seed for re-runnable failures.
 *
-*   STRESS TESTING IS ABOUT VOLUME AND VARIATION.  A bug that
-* manifests once in 10,000 interleavings will not be caught by a
-* single deterministic run.  This harness multiplies a target
-* operation by tens of thousands of executions across many threads,
-* with each thread choosing its next operation by weighted random
-* draw, and reports the result as a single DTestObject.
+* STRESS TESTING IS ABOUT VOLUME AND VARIATION
+* --------------------------------------------
+*   A bug that manifests once in 10,000 interleavings will not be caught by a
+* single deterministic run.  This harness multiplies a target operation by tens
+* of thousands of executions across many threads, with each thread choosing its
+* next operation by weighted random draw, and reports the result as a single
+* DTestObject.
 *
-*   COMPONENTS:
+* COMPONENTS
+* ----------
 *
 *     DStressRunner     - fixed-iteration stress driver
 *     DTimedStress      - time-bounded variant (run for N seconds)
@@ -22,17 +24,33 @@
 *                         and callable for DChaosRunner
 *     DStressReport     - per-op counters, total iterations, errors
 *
-*   REPRODUCIBILITY:
+* REPRODUCIBILITY
+* ---------------
 *   DChaosRunner accepts a 64-bit seed.  Given the same seed and the
 * same op set, two runs produce the same op-selection sequence
 * (subject to scheduling - the threads interleave differently each
 * time, but each thread's local op stream is deterministic).
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++11 or later for <thread> and <random>.  C++98/03
 * code falls back to a sequential single-threaded driver: the same
 * iteration count is performed but on the calling thread, with no
 * randomness (each op runs in declaration order).
+*
+* HOW TO USE
+* ----------
+*   Add operations to a DStressRunner (or a DTimedStress), set the threads and
+* iterations, and run; a failing run is re-runnable from its seed.
+*
+* OPTIONS
+* -------
+*   The thread count, iterations or duration, the op mix, the RNG seed and the
+* join timeout and grace, each set on the runner.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/sync/test_stress.hpp

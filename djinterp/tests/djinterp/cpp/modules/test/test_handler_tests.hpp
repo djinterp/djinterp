@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                     test_handler_tests.hpp
+* djinterp [cpp][test]                                    test_handler_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_handler.hpp - the DTest
 * session root that composes a typed DEventDispatcher with per-session counters
@@ -26,15 +26,19 @@
 * (with its stringized expression and source location) and forwards the
 * boolean.  The D_TH_CHECK macro is the intended call site.
 *
-*   OBSERVATION.  Counters and DSessionResult are read directly (public state /
-* pure predicates).  The event side is observed by BINDING listeners: the
+* OBSERVATION
+* -----------
+*   Counters and DSessionResult are read directly (public state / pure
+* predicates).  The event side is observed by binding listeners: the
 * DLifecycleRecorder binds one recorder to every built-in lifecycle event and
-* tallies invocations (plus an order log and the on_session_end payload), so a
+* tallies invocations (plus an order log and the DOnSessionEnd payload), so a
 * run() or fire() can be checked by what actually dispatched.  Nodes are built
 * with make_leaf / make_leaf_raw / make_interior - basic_test values whose
 * type_id selects leaf (<=1) vs interior and whose status drives the walk.
 *
-*   NOTE: the handler lives in djinterp::test; the event vocabulary (verdict,
+* NOTE
+* ----
+*   The handler lives in djinterp::test; the event vocabulary (verdict,
 * DHandlerId, DEventDispatcher) lives in djinterp; the tests live, flat, in
 * djinterp::testing.  Hence the `dt` alias plus unqualified verdict/handler_id.
 *
@@ -162,7 +166,7 @@ dt::basic_test make_interior()
 
 // DLifecycleRecorder
 //   fixture: binds one recording listener to every built-in lifecycle event on
-// a handler and tallies invocations, capturing the on_session_end payload and
+// a handler and tallies invocations, capturing the DOnSessionEnd payload and
 // an order log (each event pushes a distinct marker as it fires).  Bind it,
 // drive the handler, then read the counters.
 struct DLifecycleRecorder
@@ -203,24 +207,24 @@ struct DLifecycleRecorder
     {
         _h.on<dt::DOnSessionStart>(
             [this]() { ++session_start; order.push_back(m_session_start); return verdict::pass; });
-        _h.on<dt::on_session_end>(
+        _h.on<dt::DOnSessionEnd>(
             [this](std::size_t _p, std::size_t _f)
             { ++session_end; end_passed = _p; end_failed = _f; order.push_back(m_session_end); return verdict::pass; });
-        _h.on<dt::on_module_start>(
+        _h.on<dt::DOnModuleStart>(
             [this](const dt::basic_test*) { ++module_start; order.push_back(m_module_start); return verdict::pass; });
         _h.on<dt::DOnModuleEnd>(
             [this](const dt::basic_test*) { ++module_end; order.push_back(m_module_end); return verdict::pass; });
-        _h.on<dt::on_test_start>(
+        _h.on<dt::DOnTestStart>(
             [this](const dt::basic_test*) { ++test_start; order.push_back(m_test_start); return verdict::pass; });
         _h.on<dt::DOnTestEnd>(
             [this](const dt::basic_test*) { ++test_end; order.push_back(m_test_end); return verdict::pass; });
         _h.on<dt::DOnTestPassed>(
             [this](const dt::basic_test*) { ++passed; order.push_back(m_passed); return verdict::pass; });
-        _h.on<dt::on_test_failed>(
+        _h.on<dt::DOnTestFailed>(
             [this](const dt::basic_test*) { ++failed; order.push_back(m_failed); return verdict::pass; });
         _h.on<dt::DOnTestSkipped>(
             [this](const dt::basic_test*) { ++skipped; order.push_back(m_skipped); return verdict::pass; });
-        _h.on<dt::on_test_error>(
+        _h.on<dt::DOnTestError>(
             [this](const dt::basic_test*, const char*) { ++error; order.push_back(m_error); return verdict::pass; });
     }
 };
@@ -234,56 +238,95 @@ struct DLifecycleRecorder
 
 // DSessionResult / session_verdict
 bool tests_result_default_zero();
+
 bool tests_result_all_passed();
+
 bool tests_result_any_failed();
+
 bool tests_result_verdict_empty();
+
 bool tests_result_verdict_passed();
+
 bool tests_result_verdict_pending();
+
 bool tests_result_verdict_failed_dominates();
 
 // counters
 bool tests_counters_record_each_status();
+
 bool tests_counters_total_accumulates();
+
 bool tests_counters_reset();
+
 bool tests_counters_accessors_reflect();
+
 bool tests_counters_result_snapshot();
 
 // dispatch (event facade)
 bool tests_dispatch_on_fire_invoked();
+
 bool tests_dispatch_fire_multiple();
+
 bool tests_dispatch_fire_consume_halts();
+
 bool tests_dispatch_off();
+
 bool tests_dispatch_enable_disable();
+
 bool tests_dispatch_has_listeners_for();
+
 bool tests_dispatch_queue_process_all();
+
 bool tests_dispatch_process_partial();
+
 bool tests_dispatch_process_empty();
+
 bool tests_dispatch_macros();
+
 bool tests_dispatch_events_accessor();
 
 // walk (run + private helpers)
 bool tests_walk_leaf_status_counters();
+
 bool tests_walk_leaf_events_order();
+
 bool tests_walk_status_event_mapping();
+
 bool tests_walk_pending_no_status_event();
+
 bool tests_walk_interior_module_events();
+
 bool tests_walk_leaf_vs_interior_boundary();
+
 bool tests_walk_to_test_status_default();
+
 bool tests_walk_no_listeners_still_counts();
+
 bool tests_walk_session_brackets();
+
 bool tests_walk_mixed_tree();
+
 bool tests_walk_empty_tree();
+
 bool tests_walk_start_resets_counters();
 
 // session lifecycle / printer wiring / sink
 bool tests_session_start_resets_and_fires();
+
 bool tests_session_end_fires_with_counts();
+
 bool tests_printer_set_get_clear();
+
 bool tests_printer_replace();
+
 bool tests_printer_clear_idempotent();
+
 bool tests_printer_install_uninstall_hooks();
+
 bool tests_printer_dtor_unbinds();
+
 bool tests_sink_push_and_enumerate();
+
 bool tests_sink_clear();
 
 
@@ -444,7 +487,7 @@ dt::module_spec handler_spec()
                       "start_session zeroes counters and fires on_session_start",
                       &tests_session_start_resets_and_fires },
                     { "session_end_fires_with_counts",
-                      "end_session fires on_session_end with the pass/fail counts",
+                      "end_session fires DOnSessionEnd with the pass/fail counts",
                       &tests_session_end_fires_with_counts },
                     { "printer_set_get_clear",
                       "set_printer stores the pointer; clear_printer forgets it",

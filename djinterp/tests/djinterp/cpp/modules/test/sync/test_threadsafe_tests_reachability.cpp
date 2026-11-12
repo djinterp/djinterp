@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                        test_threadsafe_tests_reachability.cpp
+* djinterp [cpp][test]                    test_threadsafe_tests_reachability.cpp
 *
 *   Section TU: every submodule's public entities resolve and construct after
 * a single include of the umbrella.

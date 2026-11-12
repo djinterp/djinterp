@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                           test_runner_tests_show_route.cpp
+* djinterp [cpp][test]                          test_runner_tests_show_route.cpp
 *
 *   Sections II (show/routing) and III (free functions).  The show policy
 * decides which leaves and which structural lines reach a sink: all emits every

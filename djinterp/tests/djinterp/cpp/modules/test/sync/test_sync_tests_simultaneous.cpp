@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                              test_sync_tests_simultaneous.cpp
+* djinterp [cpp][test]                          test_sync_tests_simultaneous.cpp
 *
 *   Section TU: DSimultaneousStart - the "all threads stand at the line, fire
 * on my signal" helper.

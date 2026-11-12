@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  dtime_tests.c
+* djinterp [c]                                                     dtime_tests.c
 *
 *   Master test runner for the dtime module (cross-platform time utilities).
 *   Aggregates all test categories and manages test environment lifecycle.

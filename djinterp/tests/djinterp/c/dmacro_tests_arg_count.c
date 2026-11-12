@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       dmacro_tests_arg_count.c
+* djinterp [c]                                          dmacro_tests_arg_count.c
 *
 *   Unit tests for `dmacro.h` argument counting utilities (Section II).
 *   Tests D_VARG_COUNT, D_HAS_ARGS, and related argument inspection macros.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 test_common_tests_operations.c
+* djinterp [c][test]                              test_common_tests_operations.c
 *
 * test_common.h's suite, block "operations": the five operations on a status.
 *   The values past INT32_MAX are the regression for the argument width: while

@@ -1,11 +1,12 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                         test_packaging.hpp
+* djinterp [cpp][test]                                        test_packaging.hpp
 *
-*   The one place DTest's packaging KNOBS meet the framework's packaging
-* VOCABULARY, and the one path a run's documents take to a sink.
+*   The one place DTest's packaging knobs meet the framework's packaging
+* vocabulary, and the one path a run's documents take to a sink.
 *
-*   WHAT IT REPLACES.  Three paths did render -> name -> compress/archive ->
-* sink:
+* WHAT IT REPLACES
+* ----------------
+*   Three paths did render -> name -> compress/archive -> sink:
 *     DDocumentBundle + output_packaging   the designed one, reached only from
 *                                          the now-deleted test_output.hpp
 *     test_pack.hpp                        an enum -> tag hop straight into the
@@ -17,7 +18,7 @@
 *   modes.  This header re-homes the live path onto it, so the other two have
 *   nothing left to do.
 *
-*   THE MAPPINGS ARE SWITCHES, NOT CASTS -- deliberately, and permanently.
+*   The mappings are switches, not casts -- deliberately, and permanently.
 * output_packaging.hpp says it outright: test_archive_format and format_id order
 * `tar_gz` and `gz` differently, so a static_cast silently produces the wrong
 * container.  The facades own DCodecId / format_id because compress.cpp and
@@ -26,13 +27,28 @@
 * real work rather than an accident -- and being three explicit switches is what
 * keeps it correct when either side gains a member.
 *
-*   ONE ENUM DID collapse: the document format.  test_doc_type, doc_format and
+*   One enum did collapse: the document format.  test_doc_type, doc_format and
 * DDocumentFormat are now one type, so that arm of the old bridge is gone
 * entirely.  What remains here is only the packaging axis.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++17 (output_packaging's floor -- output_config carries a std::function
 * naming policy); self-suppresses below it, as DDocumentBundle does.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call directly: a run's documents reach their sink through it,
+* packaged as the options say.
+*
+* OPTIONS
+* -------
+*   The packaging slots of a test_option_set (pack, compressor, archive_format
+* and their options).
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_packaging.hpp

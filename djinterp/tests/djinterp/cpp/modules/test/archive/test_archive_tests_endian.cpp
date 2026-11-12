@@ -1,11 +1,11 @@
 /*******************************************************************************
-* djinterp [cpp/test]                              test_archive_tests_endian.cpp
+* djinterp [cpp][test]                             test_archive_tests_endian.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/archive/test_archive_tests_endian.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.09
 *******************************************************************************/
 // djinterp
 #include "./test_archive_tests.hpp"
@@ -14,8 +14,9 @@ NS_DJINTERP
 NS_TESTING
 
 // avi
-//   type: the module's internal little-endian readers.
-namespace avi = ::djinterp::test::archive_verify_internal;
+//   type: the little-endian readers, which moved with the format sniffers to
+// the library's archive_detect.hpp and are internal there.
+namespace avi = ::djinterp::archive_detect_internal;
 
 
 /*

@@ -1,38 +1,38 @@
 /*******************************************************************************
-* djinterp [tests]                                test_archive_options_tests.hpp
+* djinterp [cpp][test]                            test_archive_options_tests.hpp
 *
 *   Suite header for test_archive_options.hpp - the comparison, pristine and
-* diff surface for the archive OPTION vocabulary.  Declares every test body,
+* diff surface for the archive option vocabulary.  Declares every test body,
 * supplies the fixtures the bodies need, and (in DTEST_SPEC_MODE) exposes the
 * spec provider the runner hands to run_module.
 *
-*   BUILD PREREQUISITE - THE RUNNER NEEDS D_TEST_REPORT_ENABLE_ARCHIVE.
+*   Build prerequisite - the runner needs D_TEST_REPORT_ENABLE_ARCHIVE.
 *   This is a property of the framework, not of the module under test, and it
-* applies to EVERY DTest runner rather than to this suite alone.  A runner
+* applies to every DTest runner rather than to this suite alone.  A runner
 * includes test_defaults.hpp to reach run_module; test_defaults.hpp includes
 * output/test_report_runner.hpp; and that header spells `byte_blob` in two
 * places - DPendingDoc::bytes and write_bytes_to_file's parameter - which is a
 * typedef reachable only through the archive include guarded by
 * D_TEST_REPORT_ENABLE_ARCHIVE.  Without the macro the runner does not compile
 * at C++17 or higher (eight errors).  The leaf CMakeLists therefore defines it
-* on the target.  The SECTION translation units do not need it: they include
+* on the target.  The section translation units do not need it: they include
 * the module under test directly and never reach the report machinery.
 *
 *   The fix belongs in test_report_runner.hpp - spell those two uses
 * std::string, or include compress.hpp unconditionally - not here; per the
 * authoring guide a broken dependency is reported rather than patched.
 *
-*   HOW THIS SUITE REACHES 100% FIELD COVERAGE.
+*   How this suite reaches 100% field coverage.
 *   archive_options carries twenty-five fields of its own - five at the
 * archive level and twenty spread over the zip, tar, gz, 7z and rar blocks -
 * plus an embedded compress_options carrying a further fifty.  As in the
-* companion compress-options suite, the coverage is driven by ONE table:
+* companion compress-options suite, the coverage is driven by one table:
 * ao_all_mutators() pairs the exact label describe_option_diff must emit with
 * a mutator that moves that field and nothing else.  Mutations are taken
 * relative to the current value, so no row depends on knowing a default.
 *
-*   THE TWO GRANULARITIES.
-*   The module deliberately reports the embedded codec COARSELY: codec.level
+*   The two granularities.
+*   The module deliberately reports the embedded codec coarsely: codec.level
 * is named, but the six per-codec blocks collapse to "codec.zstd" and friends
 * rather than naming which of nineteen zstd knobs moved.  The suite tests both
 * halves of that contract - ao_all_mutators() carries the twenty-five own
@@ -40,7 +40,8 @@
 * representative sweep of codec sub-fields to prove each one collapses onto
 * its block label rather than escaping as a field name.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   The module is C++98-clean; this suite is written to the same baseline
 * except for the fixture table, which uses std::vector.  Built at C++20 by the
 * DTest CMake helper.
@@ -49,7 +50,7 @@
 * path:      /tests/djinterp/cpp/modules/test/archive/test_archive_options_tests.hpp
 * link(s):   TBA
 * author(s): DTest contributors                              created: 2026.07.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -268,7 +269,9 @@ inline void ao_m_rar_password(dj::archive_options& o)
 
 // ao_all_mutators
 //   function: the complete table - one row per archive_options field plus the
-// seven coarse codec labels, in the order describe_option_diff walks them.
+// seven coarse codec labels, in the order describe_option_diff walks them,
+// which is the kernel's knob order (dj_archive_knob).  The LZMA block is
+// labelled by the codec it tunes, xz.
 inline
 std::vector<ao_field> ao_all_mutators()
 {
@@ -276,10 +279,10 @@ std::vector<ao_field> ao_all_mutators()
 
     t.push_back(ao_field("level", "archive", &ao_m_level));
     t.push_back(ao_field("store_only", "archive", &ao_m_store_only));
-    t.push_back(ao_field("comment", "archive", &ao_m_comment));
     t.push_back(ao_field("preserve_permissions", "archive",
                          &ao_m_preserve_permissions));
     t.push_back(ao_field("preserve_mtime", "archive", &ao_m_preserve_mtime));
+    t.push_back(ao_field("comment", "archive", &ao_m_comment));
 
     t.push_back(ao_field("codec.level", "codec", &ao_m_codec_level));
     t.push_back(ao_field("codec.deflate", "codec", &ao_m_codec_deflate));
@@ -291,9 +294,9 @@ std::vector<ao_field> ao_all_mutators()
 
     t.push_back(ao_field("zip.method", "zip", &ao_m_zip_method));
     t.push_back(ao_field("zip.encryption", "zip", &ao_m_zip_encryption));
-    t.push_back(ao_field("zip.password", "zip", &ao_m_zip_password));
     t.push_back(ao_field("zip.zip64", "zip", &ao_m_zip_zip64));
     t.push_back(ao_field("zip.utf8_names", "zip", &ao_m_zip_utf8_names));
+    t.push_back(ao_field("zip.password", "zip", &ao_m_zip_password));
 
     t.push_back(ao_field("tar.format", "tar", &ao_m_tar_format));
     t.push_back(ao_field("tar.numeric_owner", "tar",
@@ -309,8 +312,8 @@ std::vector<ao_field> ao_all_mutators()
                          &ao_m_7z_header_compression));
     t.push_back(ao_field("sevenzip.header_encryption", "sevenzip",
                          &ao_m_7z_header_encryption));
-    t.push_back(ao_field("sevenzip.password", "sevenzip", &ao_m_7z_password));
     t.push_back(ao_field("sevenzip.threads", "sevenzip", &ao_m_7z_threads));
+    t.push_back(ao_field("sevenzip.password", "sevenzip", &ao_m_7z_password));
 
     t.push_back(ao_field("rar.level", "rar", &ao_m_rar_level));
     t.push_back(ao_field("rar.solid", "rar", &ao_m_rar_solid));
@@ -496,48 +499,79 @@ std::vector<std::string> ao_split_csv(
 
 // I.   BLOCKS   (test_archive_options_tests_blocks.cpp)
 bool tests_archive_options_blocks_reflexive();
+
 bool tests_archive_options_zip_equal_all_fields();
+
 bool tests_archive_options_tar_equal_all_fields();
+
 bool tests_archive_options_gz_equal_all_fields();
+
 bool tests_archive_options_sevenzip_equal_all_fields();
+
 bool tests_archive_options_rar_equal_all_fields();
+
 bool tests_archive_options_blocks_are_independent();
+
 bool tests_archive_options_blocks_compare_strings();
 
 // II.  AGGREGATE   (test_archive_options_tests_aggregate.cpp)
 bool tests_archive_options_equal_reflexive();
+
 bool tests_archive_options_equal_symmetric();
+
 bool tests_archive_options_equal_all_own_fields();
+
 bool tests_archive_options_equal_detects_embedded_codec();
+
 bool tests_archive_options_equal_multi_change();
+
 bool tests_archive_options_equal_survives_copy();
 
 // III. PRISTINE   (test_archive_options_tests_pristine.cpp)
 bool tests_archive_options_default_is_pristine();
+
 bool tests_archive_options_default_returns_fresh_value();
+
 bool tests_archive_options_are_default_rejects_all();
+
 bool tests_archive_options_codec_default_tracks();
+
 bool tests_archive_options_codec_default_rejects();
+
 bool tests_archive_options_mutator_table_is_complete();
 
 // IV.  DIFF   (test_archive_options_tests_diff.cpp)
 bool tests_archive_options_diff_empty_when_equal();
+
 bool tests_archive_options_diff_names_every_field();
+
 bool tests_archive_options_diff_codec_is_block_granular();
+
 bool tests_archive_options_diff_codec_level_is_named();
+
 bool tests_archive_options_diff_separator_and_order();
+
 bool tests_archive_options_diff_lists_all_fields_at_once();
+
 bool tests_archive_options_diff_is_symmetric();
+
 bool tests_archive_options_diff_from_default_matches();
+
 bool tests_archive_options_diff_delegates();
 
 // V.   BUILDERS   (test_archive_options_tests_builders.cpp)
 bool tests_archive_options_store_only_builder();
+
 bool tests_archive_options_level_builder();
+
 bool tests_archive_options_codec_level_builder();
+
 bool tests_archive_options_level_builders_are_distinct();
+
 bool tests_archive_options_zip_method_builder();
+
 bool tests_archive_options_zip_encrypted();
+
 bool tests_archive_options_zip_encrypted_empty_pw();
 
 

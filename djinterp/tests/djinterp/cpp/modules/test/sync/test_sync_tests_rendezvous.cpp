@@ -1,12 +1,14 @@
 /*******************************************************************************
-* djinterp [tests]                                test_sync_tests_rendezvous.cpp
+* djinterp [cpp][test]                            test_sync_tests_rendezvous.cpp
 *
 *   Section TU: DTestRendezvous<T> - two-thread meeting point with payload
 * exchange.
 *
-*   NOTE: send() blocks until a receiver consumes the value, so every send in
-* this section is paired with a receiver on another thread.  Only the
-* empty-state try_receive probes are safe single-threaded.
+* NOTE
+* ----
+*   send() blocks until a receiver consumes the value, so every send in this
+* section is paired with a receiver on another thread.  Only the empty-state
+* try_receive probes are safe single-threaded.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/sync/test_sync_tests_rendezvous.cpp

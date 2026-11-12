@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_runner_tests_render.cpp
+* djinterp [cpp][test]                              test_runner_tests_render.cpp
 *
 *   Section II (rendering) - the reporter's rendered output, observed by
 * redirecting the console sink into an ostringstream.  A leaf renders its format

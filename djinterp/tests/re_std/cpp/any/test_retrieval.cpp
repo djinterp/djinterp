@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_retrieval.cpp
+* djinterp [re_std]                                           test_retrieval.cpp
 *
 * re_std::any retrieval tests:
 *   get<T>() (by-value retrieval, all SBO categories + heap)

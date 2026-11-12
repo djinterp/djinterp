@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                             test_tree_tests_forwarding.cpp
+* djinterp [cpp][test]                            test_tree_tests_forwarding.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_tree_tests_forwarding.cpp

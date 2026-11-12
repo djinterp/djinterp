@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     test_cvar_tests_defaults.c
+* djinterp [c][test]                                  test_cvar_tests_defaults.c
 *
 * test_cvar.h's suite, block "cvar_default_all": the defaults after reset_all,
 * by flag and by key, after a set, and against the compile-time constants.

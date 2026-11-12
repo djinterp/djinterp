@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       atomic_tests_version.cpp
+* djinterp [cpp][sync]                                  atomic_tests_version.cpp
 *
 *   Section II - atomic_version.  The generation-counter wrapper mirrors
 * atomic_size but exposes fetch_add plus the documented bump() mutation

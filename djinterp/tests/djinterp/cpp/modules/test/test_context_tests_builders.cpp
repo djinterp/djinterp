@@ -1,20 +1,20 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_context_tests_builders.cpp
+* djinterp [cpp][test]                           test_context_tests_builders.cpp
 *
-*   Section II of the test_context suite: the FOCUS BUILDERS.  at_run,
+*   Section II of the test_context suite: the focus builders.  at_run,
 * at_module, at_unit and at_check each name a common focus shape by populating
 * a prefix of the four parts (and the indices that ride alongside them).  Each
 * builder is pinned on both call forms - with its trailing index arguments
 * given and with them defaulted to zero - confirming it fills exactly the
 * fields it names and leaves the rest at their defaults.
 *
-*   Four cross-cutting properties close the section: NULL TOLERANCE (the
+*   Four cross-cutting properties close the section: NULL tolerance (the
 * builders store a pointer, never dereference it, so a null part is stored
-* faithfully), POINTER DISTINCTNESS (four distinct nodes land in their own
-* fields with no cross-wiring), CONST POINTEES (the parts are pointer-to-const,
-* so const nodes are accepted), and INDEX VERBATIM (an index is stored exactly
+* faithfully), pointer distinctness (four distinct nodes land in their own
+* fields with no cross-wiring), const pointees (the parts are pointer-to-const,
+* so const nodes are accepted), and index verbatim (an index is stored exactly
 * as passed - the 1-based display convention is the caller's to apply, so no
-* builder adds a phantom offset).  A final sweep states the FOCUS-DEPTH
+* builder adds a phantom offset).  A final sweep states the focus-depth
 * invariant uniformly: each builder nulls every part deeper than its level and
 * zeroes every index it does not set.
 *

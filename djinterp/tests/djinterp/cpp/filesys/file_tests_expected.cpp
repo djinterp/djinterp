@@ -1,21 +1,23 @@
 /*******************************************************************************
-* djinterp [test]                                        file_tests_expected.cpp
+* djinterp [cpp][filesys]                                file_tests_expected.cpp
 *
-*   XII. EXPECTED (file_expected.hpp) -- the return surface by value, where the
+*   XII. Expected (file_expected.hpp) -- the return surface by value, where the
 * value and the reason travel together instead of through an out-parameter.
 *
 *   The section builds from C++11, where file_expected.hpp defines its
 * overloads on re_std::expected (D_INTERNAL_HAVE_EXPECTED); below C++11 it
 * compiles to nothing, as the header does.
 *
-*   THE SEMANTICS MUST MATCH THE OTHER FORM. These overloads exist beside the
-* error& ones, and a caller must be able to switch between them without
-* learning new rules. The subtle one is status(): an absent file is a VALUE
-* whose exists() is false, not an unexpected -- exactly as the error-code form
-* reports it with a CLEARED error. If the expected form treated absence as a
-* failure the two spellings would disagree about what "not there" means, so
-* that equivalence is what the cases below pin, function by function, against
-* the error& form's answer rather than against a restated constant.
+* THE SEMANTICS MUST MATCH THE OTHER FORM
+* ---------------------------------------
+*   These overloads exist beside the error& ones, and a caller must be able to
+* switch between them without learning new rules. The subtle one is status(): an
+* absent file is a value whose exists() is false, not an unexpected -- exactly
+* as the error-code form reports it with a cleared error. If the expected form
+* treated absence as a failure the two spellings would disagree about what "not
+* there" means, so that equivalence is what the cases below pin, function by
+* function, against the error& form's answer rather than against a restated
+* constant.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_expected.cpp

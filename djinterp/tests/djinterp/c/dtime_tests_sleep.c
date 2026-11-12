@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            dtime_tests_sleep.c
+* djinterp [c]                                               dtime_tests_sleep.c
 *
 *   Tests for sleep functions (nanosleep, usleep, sleep_ms).
 *

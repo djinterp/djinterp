@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                        test_tree_tests_rank_validation.cpp
+* djinterp [cpp][test]                       test_tree_tests_rank_validation.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_tree_tests_rank_validation.cpp

@@ -1,20 +1,20 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                  test_event_tests_node.cpp
+* djinterp [cpp][test]                                 test_event_tests_node.cpp
 *
 *   Section I of the DTestEvent suite: the node forward declarations.
 *
 *   This section is small but it guards the header's structural reason for
-* existing.  test_event.hpp deliberately does NOT include test_object.hpp: it
+* existing.  test_event.hpp deliberately does not include test_object.hpp: it
 * forward-declares the DTestObject template and spells `basic_test` as a pointer
-* payload, so the alphabet stays a LEAF of the include graph (test_handler.hpp
+* payload, so the alphabet stays a leaf of the include graph (test_handler.hpp
 * and test_builder.hpp both include it first, before the node type is complete).
 * The tests below pin both halves of that:
 *
 *     - the alias resolves to the right node type, and agrees with the
 *       re-declaration test_object.hpp makes (the header claims this is a "legal
 *       redeclaration" - it only is if the two spellings name the same type);
-*     - a tag's payload really is a POINTER, and D_EVENT really does accept an
-*       INCOMPLETE type - demonstrated against a type that is never defined at
+*     - a tag's payload really is a pointer, and D_EVENT really does accept an
+*       incomplete type - demonstrated against a type that is never defined at
 *       all, which is the strongest form of the claim.
 *
 *
@@ -122,7 +122,7 @@ bool tests_event_node_payload_is_a_pointer_not_a_value()
 {
     using first = typename std::tuple_element<0, DNodePayload>::type;
 
-    D_TE_CHECK((std::is_same<payload_of<dt::on_test_failed>,
+    D_TE_CHECK((std::is_same<payload_of<dt::DOnTestFailed>,
                              DNodePayload>::value));
     D_TE_CHECK(std::is_pointer<first>::value);
     D_TE_CHECK((std::is_same<first, const dt::basic_test*>::value));

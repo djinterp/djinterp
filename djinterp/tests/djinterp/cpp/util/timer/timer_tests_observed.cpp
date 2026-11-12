@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        timer_tests_observed.cpp
+* djinterp [cpp][utility]                               timer_tests_observed.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/timer/timer_tests_observed.cpp

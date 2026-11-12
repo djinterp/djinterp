@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         dmacro_tests_utility.c
+* djinterp [c]                                            dmacro_tests_utility.c
 *
 *   Unit tests for `dmacro.h` utility operators section.
 *   Tests D_PRINT_OP, D_PRINT_VAL_OP, D_DECLARE_VAR_OP, D_DECLARE_TYPED_OP,

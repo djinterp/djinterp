@@ -1,24 +1,27 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                           test_printer.hpp
+* djinterp [cpp][test]                                          test_printer.hpp
 *
 *   Template-backed printer for the test framework.  Walks a test tree
 * depth-first and renders each node through configurable DTextTemplate
 * instances.  Output is directed to a pluggable sink function.
 *
-*   DESIGN PRINCIPLE:
+* DESIGN PRINCIPLE
+* ----------------
 *   Tree depth equates to indentation depth.  A node at depth 3 in the
 * test tree is rendered with 3 repetitions of the indent unit string,
 * exposed via the {indent} specifier.  This is the default behavior
 * and requires no configuration.
 *
-*   FOR-EACH:
+* FOR-EACH
+* --------
 *   The printer walks any iterable container of test-protocol elements.
 * For each element, it binds per-node specifiers to the node template,
 * renders, and emits to the sink.  The walk accumulates counters for
 * the summary.  Users supply extraction functions for name, message,
 * depth, status, and optionally is_leaf / child_count / elapsed.
 *
-*   SYMBOLS:
+* SYMBOLS
+* -------
 *   The {symbol} specifier (e.g. "[PASS]", "[FAIL]") is resolved by a
 * configurable symbol function: std::function<string(test_status)>.
 * The default produces bracketed uppercase labels.  Users may replace
@@ -26,14 +29,16 @@
 * Similarly, {status} is resolved by a configurable status string
 * function (default: lowercase word).
 *
-*   NUMBERING:
+* NUMBERING
+* ---------
 *   The {number} specifier is controlled by a numbering mode:
 *     none       - always empty string
 *     global     - monotonically increasing across all nodes
 *     per_depth  - resets to 1 each time depth changes
 *     leaves_only- numbers only leaf nodes; interior nodes get ""
 *
-*   LINE NUMBERING:
+* LINE NUMBERING
+* --------------
 *   The {line} specifier resolves to a global render-line counter
 * that increments by one for every node emission.  Line numbers
 * persist across header / section / footer boundaries within a
@@ -43,7 +48,8 @@
 * the visible line number; when the format produces multiple lines
 * per render, {line} marks the first line of the rendered node.
 *
-* ELAPSED TIME:
+* ELAPSED TIME
+* ------------
 *   Each rendered node may carry a wall-clock duration (in nanoseconds)
 * supplied by an optional extraction function:
 *     _elapsed_fn(elem) -> re_std::int64_t   // nanoseconds
@@ -55,7 +61,9 @@
 *     {elapsed_us} - integer microseconds  (truncated)
 *     {elapsed_ms} - integer milliseconds  (truncated)
 *     {elapsed_s}  - decimal seconds       (two-place)
-* TEMPLATE SECTIONS:
+*
+* TEMPLATE SECTIONS
+* -----------------
 *   The printer owns six DBoundTemplate instances (a format-owning
 * DTextTemplate plus its own binding set), each with its own format
 * string.  Placeholders use "{key}" syntax.
@@ -65,7 +73,9 @@
 *     section_footer  - rendered at the end of each depth-0 group
 *     summary         - rendered once after the walk
 *     footer          - rendered once at the very end
-* BUILT-IN NODE SPECIFIERS:
+*
+* BUILT-IN NODE SPECIFIERS
+* ------------------------
 *     {name}       - element name / description
 *     {status}     - status string ("passed", "failed", ...)
 *     {symbol}     - status symbol ("[PASS]", "[FAIL]", ...)
@@ -81,7 +91,9 @@
 *     {elapsed_us} - elapsed time, integer microseconds (truncated)
 *     {elapsed_ms} - elapsed time, integer milliseconds (truncated)
 *     {elapsed_s}  - elapsed time, two-place decimal seconds
-* BUILT-IN SUMMARY SPECIFIERS:
+*
+* BUILT-IN SUMMARY SPECIFIERS
+* ---------------------------
 *     {total}      - total node count
 *     {passed}     - passed count
 *     {failed}     - failed count
@@ -91,9 +103,24 @@
 *     {symbol}     - overall pass/fail symbol
 *     {pass_rate}  - percentage string (e.g. "100.00%")
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++17 for now: it takes std::string_view throughout, so it is empty below
 * C++17.
+*
+* HOW TO USE
+* ----------
+*   Give a DTestPrinter a sink and its templates, then walk a tree with it;
+* test_handler drives one when one is set.
+*
+* OPTIONS
+* -------
+*   The templates, the sink, the indent unit and the numbering mode, each set on
+* the printer.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_printer.hpp

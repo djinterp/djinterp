@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                            test_callable_tests_binding.cpp
+* djinterp [cpp][test]                           test_callable_tests_binding.cpp
 *
 *   The storage and query surface of DTestCallableTable: add issues stable,
 * monotonic, 1-based ids (never the reserved sentinel); size / empty / clear

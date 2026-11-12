@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_common.hpp
+* djinterp [cpp][test]                                           test_common.hpp
 *
 *   DTest framework common definitions header.  Provides the foundational
 * types, enumerations, and event infrastructure shared by all DTest modules:
@@ -10,7 +10,8 @@
 *   - event handler function pointer type for runtime event dispatch
 *   - portable constexpr support macros for compile-time evaluation
 *
-*   TEST TYPE IDENTIFICATION:
+* TEST TYPE IDENTIFICATION
+* ------------------------
 *   Every DTestObject carries a DTestTypeId - a signed 32-bit integer
 * that identifies the kind of test it represents.  In isolation (no
 * test_type registry), the id acts as a numeric rank: a child's id
@@ -18,17 +19,33 @@
 * registry, matching ids resolve to their test_kind definition, which
 * supplies rank, leaf/interior classification, and default options.
 *
-*   CONSTEXPR EVALUATION:
+* CONSTEXPR EVALUATION
+* --------------------
 *   Test objects support dual-mode evaluation: constexpr (compile-time)
 * and runtime.  The D_TEST_CONSTEXPR macro resolves to D_CONSTEXPR when
 * the language standard permits relaxed constexpr (C++14+), enabling
 * test logic to be verified at compile time.  Event dispatch is
 * runtime-only.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   This header uses env.h for C++ version detection and djinterp.hpp
 * for namespace macros and constexpr support.  Minimum requirement is
 * C++11.
+*
+* HOW TO USE
+* ----------
+*   Include it for the vocabulary every DTest header shares: test_status,
+* DTestTypeId, the metadata container (DBasicMetadata, DTestMetadata) and
+* DTestEvent.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_common.hpp

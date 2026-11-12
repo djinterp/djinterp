@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                                          dtest
 *
-*   dTest -- for those who DETEST unit testing.
+*   dTest -- for those who detest unit testing.
 *
 *   Unified include for the DTest testing framework. Including this single
 * file brings in the complete test framework with all subsystems:
@@ -22,6 +22,20 @@
 *
 *   Hierarchy (outermost to innermost):
 *     session -> module -> block -> test -> assertion / test_fn
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/test/c/dtest

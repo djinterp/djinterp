@@ -1,49 +1,59 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                   test_archive_options.hpp
+* djinterp [cpp][test]                                  test_archive_options.hpp
 *
-*   RE-EXPORT SHIM.  The comparison, pristine and diff surfaces this header
-* used to define now live on the vocabulary they describe --
-* core/util/archive/archive_options.hpp -- implemented over the kernel's knob
-* table rather than as a hand-written block-by-block walk.  What remains here
-* is a set of using-declarations, so that every existing `dt::` call site
-* keeps compiling unchanged.
+* RE-EXPORT SHIM
+* --------------
+*   The comparison, pristine and diff surfaces this header used to define now
+* live on the vocabulary they describe -- core/util/archive/archive_options.hpp
+* -- implemented over the kernel's knob table rather than as a hand-written
+* block-by-block walk.  What remains here is a set of using-declarations, so
+* that every existing `dt::` call site keeps compiling unchanged.
 *
-*   WHY THE MOVE:
+* WHY THE MOVE
+* ------------
 *   archive_options grew d_archive_options_equal, _are_default,
 * _codec_is_default and _diff in the C kernel, backed by a dense knob table
 * carrying each knob's name and owning format.  This header's field chain was
 * a second implementation of that table -- one that had to be edited by hand
 * every time a knob was added.  archive_common.h is the single walk now.
 *
-*   MEASURED, NOT ASSUMED: a differential harness ran both implementations
-* over 28 option sets (784 ordered pairs, 8498 checks).  They agree on every
-* predicate and every comparator, including the text knobs -- "unset" and
-* "set to empty" compare equal under both, which is what archive_options::span
-* documents.  The ONLY divergence is field ORDER in describe_option_diff: the
-* kernel emits in knob-table declaration order, where the hand-written chain
-* emitted some text knobs ahead of lower-numbered numeric siblings
-* ("comment, preserve_permissions" vs "preserve_permissions, comment").  The
-* field SET is identical in every case.  All seven exact-string assertions in
-* the existing suites still hold, since none of them spans two knobs whose
-* relative order changed.
+* MEASURED, NOT ASSUMED
+* ---------------------
+*   A differential harness ran both implementations over 28 option sets (784
+* ordered pairs, 8498 checks).  They agree on every predicate and every
+* comparator, including the text knobs -- "unset" and "set to empty" compare
+* equal under both, which is what archive_options::span documents.  The only
+* divergence is field order in describe_option_diff: the kernel emits in
+* knob-table declaration order, where the hand-written chain emitted some text
+* knobs ahead of lower-numbered numeric siblings ("comment,
+* preserve_permissions" vs "preserve_permissions, comment").  The field set is
+* identical in every case.  All seven exact-string assertions in the existing
+* suites still hold, since none of them spans two knobs whose relative order
+* changed.
 *
-*   THE COARSE CODEC GRANULARITY IS PRESERVED.  describe_option_diff still
-* names archive-level and per-format knobs individually and reports the
-* embedded codec at BLOCK granularity ("codec.zstd"), with codec.level called
-* out by name.  That contract is now derived from d_compress_knob_codec and
-* d_codec_id_name rather than hand-maintained, so it cannot drift from the
-* codec set.
+* THE COARSE CODEC GRANULARITY IS PRESERVED
+* -----------------------------------------
+*   describe_option_diff still names archive-level and per-format knobs
+* individually and reports the embedded codec at block granularity
+* ("codec.zstd"), with codec.level called out by name.  That contract is now
+* derived from d_compress_knob_codec and the knob names (d_compress_knob_name)
+* rather than hand-maintained, so it cannot drift from the codec set: a moved
+* block is named by its knobs' prefix, the knob name up to its dot, so the
+* coarse name is the prefix of every fine one ("codec.lzma" for the lzma.*
+* knobs, though the container that codec writes is xz).
 *
-*   LAYERING (unchanged): this header still gives you both surfaces, because
+*   Layering (unchanged): this header still gives you both surfaces, because
 * archive_options.hpp includes compress_options.hpp and this includes
 * test_compress_options.hpp.
 *
-*   MIGRATION:
+* MIGRATION
+* ---------
 *   New code should include core/util/archive/archive_options.hpp and drop the
 * `dt::` qualification; the names resolve in ::djinterp.  This header can go
 * once no call site names it.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Target floor C++98, effective floor C++11 -- djinterp.hpp gates below it,
 * so no includer compiles at C++98 today.  Verified at C++11/17/20.  The
 * surface is no longer link-free: the kernel walk lives in archive_common.c
@@ -51,11 +61,24 @@
 * already did in practice, since archive_options.hpp's operator== has
 * forwarded to d_archive_options_equal since the kernel refactor.
 *
+* HOW TO USE
+* ----------
+*   Nothing new: it keeps existing dt:: call sites compiling. New code includes
+* core/util/archive/archive_options.hpp.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
+*
 *
 * path:      /inc/djinterp/cpp/modules/test/archive/test_archive_options.hpp
 * link(s):   archive_common.c, compress_common.c
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_ARCHIVE_OPTIONS_HPP

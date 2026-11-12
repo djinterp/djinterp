@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                lock_policy_c_tests_spinlock.cpp
+* djinterp [cpp][sync]                          lock_policy_c_tests_spinlock.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/lock_policy_c_tests_spinlock.cpp

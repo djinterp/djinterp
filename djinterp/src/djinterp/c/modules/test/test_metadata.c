@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                              test_metadata.c
+* djinterp [c][test]                                             test_metadata.c
 *
 *   Implementation of the metadata container.  Compiled by both languages from
 * this one source.  Extracted from test_object.c (revision.md §6).

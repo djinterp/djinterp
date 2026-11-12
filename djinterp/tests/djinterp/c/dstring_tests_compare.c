@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        dstring_tests_compare.c
+* djinterp [c]                                           dstring_tests_compare.c
 *
 *   Unit tests for dj_string comparison functions:
 *     - d_string_compare

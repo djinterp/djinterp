@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         dmacro_tests_boolean.c
+* djinterp [c]                                            dmacro_tests_boolean.c
 *
 *
 * path:      /tests/djinterp/c/dmacro_tests_boolean.c

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_observers.cpp
+* djinterp [re_std]                                           test_observers.cpp
 *
 * re_std::any observer tests:
 *   has_value(), category(), type(), holds<T>(), is_sbo(),

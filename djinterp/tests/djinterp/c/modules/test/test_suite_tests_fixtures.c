@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    test_suite_tests_fixtures.c
+* djinterp [c][test]                                 test_suite_tests_fixtures.c
 *
 * The shared fixtures of test_suite.h's suite: quiet inner suites and their
 * reports read back.

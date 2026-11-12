@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              string_fn_tests.c
+* djinterp [c]                                                 string_fn_tests.c
 *
 *
 * path:      /tests/djinterp/c/string_fn_tests.c

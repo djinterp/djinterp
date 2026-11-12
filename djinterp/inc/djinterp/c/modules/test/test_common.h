@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                test_common.h
+* djinterp [c][test]                                               test_common.h
 *
 *   This module defines the DTest vocabulary common to both the C and C++
 * implementations. Specifies the status (`dj_test_status`) and two identifier
@@ -9,16 +9,16 @@
 *
 * Notes
 * =====
-*  1. `dj_test_status` is a C++ SCOPED enum (`test_status::passed`) but C has no
+*  1. `dj_test_status` is a C++ scoped enum (`test_status::passed`) but C has no
 *     equivalent.
-*     - Therefore, the VALUES are written once, as macros.  Each language then
+*     - Therefore, the values are written once, as macros.  Each language then
 *       declares the enum in the form it can express; both declarations read
 *       the same macros.
 *  2. event-agnostic by design
 *     - included by `test_event.h` but not the other way around.
 *  3. widths come from the config (not from this file)
 *
-*     AN EARLIER BANNER ARGUED THE OPPOSITE for the event id, and it is worth
+*     An earlier banner argued the opposite for the event id, and it is worth
 * saying why it was superseded rather than letting it look like an oversight.
 * It read: left as size_t rather than pinned, "because pinning it would change
 * the existing surface for a benefit the parity oracle already provides" --
@@ -54,7 +54,7 @@
 *
 *   IMPORTANT:
 *   ----------
-*   Code names the typedef, NEVER the underlying type:
+*   Code names the typedef, never the underlying type:
 *   - A knob that names a type (instead of a typedef) cannot be checked against
       a declared bit count the way a width knob can
       - Therefore: the assertions check the PROPERTIES the code depends on
@@ -63,6 +63,23 @@
 *     breaks silently the moment the width is reconfigured. That is the one
 *     thing this mechanism exists to prevent.
 *   - As per dconfig 6.1: misconfiguration results in a build-time failure.
+*
+* HOW TO USE
+* ----------
+*   Include it for the status values both faces share: D_TEST_STATUS_PASSED,
+* _FAILED, _SKIPPED, _PENDING and _ERROR, and the functions that name, check and
+* combine them (d_test_status_name, d_test_status_worse_of).
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   Set before dconfig.h is included, or with -D; each defaults in
+* config/c/modules/test/cfg_test_object.h and cfg_test_event.h:
+* D_CFG_TEST_STATUS_TYPE, D_CFG_TEST_TYPE_ID_TYPE, D_CFG_TEST_CALLABLE_ID_TYPE,
+* D_CFG_TEST_EVENT_ID_TYPE.
 *
 *
 * path:      /inc/djinterp/c/modules/test/test_common.h

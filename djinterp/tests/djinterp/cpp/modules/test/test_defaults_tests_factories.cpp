@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_defaults_tests_factories.cpp
+* djinterp [cpp][test]                         test_defaults_tests_factories.cpp
 *
 *   Sections V / VI - the node-identity helpers and the object factories that
 * route through them.  set_identity stamps "name" and (when non-null)

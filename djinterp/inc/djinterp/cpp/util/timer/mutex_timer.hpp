@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 mutex_timer.hpp
+* djinterp [cpp][utility]                                        mutex_timer.hpp
 *
 * Lock-policy-based thread-safe timer.
 *   Wraps the base `timer<Clock, Duration>` with a configurable lock
@@ -10,26 +10,48 @@
 *   The underlying timer is accessed only through the lock — no public
 * method exposes an unguarded reference to the internal state.
 *
-* LOCK ORDERING:
+* LOCK ORDERING
+* -------------
 *   Parent locks are always acquired before child locks.  Children must
 * not hold references back to the parent to avoid deadlock.
 *
-* NOTE: an atomic_timer module is not provided.  Timer state consists of
-* three coupled fields (accumulated duration, start time_point, running
-* flag) that cannot be updated atomically without either a lock or a
-* double-width CAS.  Use mutex_timer for all concurrent timer access.
+* NOTE
+* ----
+*   atomic_timer.hpp is the lock-free form. It folds the three coupled fields
+* (accumulated duration, start time_point, running flag) into one word, at the
+* cost of half the duration's range, of a decrement that may shorten an open
+* interval, and of children. Use mutex_timer where any of those matter.
 *
-* SEE ALSO:
-*   timer.hpp  — unsynchronized base
+* SEE ALSO
+* --------
+*   timer.hpp         — unsynchronized base
+*   atomic_timer.hpp  — lock-free variant (no children)
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   Requires C++17 or later.
+*
+* HOW TO USE
+* ----------
+*     mutex_timer<> busy;
+*
+*     busy.start();                       // under the lock
+*     busy.stop();
+*
+* OPTIONS
+* -------
+*   The clock, the duration and the lock policy, as template arguments, and the
+* limit given to the constructor.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/util/timer/mutex_timer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_TIMER_MUTEX_TIMER_HPP
@@ -60,16 +82,16 @@ NS_DJINTERP
 //
 //   Wraps `timer<Clock, Duration>` by composition.  Read operations
 // acquire a shared lock (when the policy supports it); write operations
-// acquire an exclusive lock.  Children are mutex_timers with the same
+// acquire an exclusive lock.  Children are mutex_timer objects with the same
 // clock, duration, and policy, each with their own mutex.
 //
 //   Template parameter `Clock` must satisfy the Clock named requirement.
 //   Template parameter `Duration` must be a std::chrono::duration.
 //   Template parameter `Policy` must be a lock policy struct.
 // =========================================================================
-template<typename Clock     = std::chrono::steady_clock,
+template<typename Clock    = std::chrono::steady_clock,
          typename Duration = typename Clock::duration,
-         typename Policy    = default_lock_policy>
+         typename Policy   = default_lock_policy>
 class mutex_timer
 {
 private:
@@ -163,6 +185,62 @@ public:
         m_timer.reset();
 
         return;
+    }
+
+    // increment
+    //   timer::increment under the write lock: adds `_amount` to the
+    // accumulated time.
+    bool increment(
+        Duration _amount
+    )
+    {
+        write_guard guard(m_mutex);
+
+        return m_timer.increment(_amount);
+    }
+
+    // decrement
+    //   timer::decrement under the write lock.
+    bool decrement(
+        Duration _amount
+    )
+    {
+        write_guard guard(m_mutex);
+
+        return m_timer.decrement(_amount);
+    }
+
+    // compare
+    //   three-way comparison by elapsed time; each timer is read under its
+    // own lock, one lock at a time.
+    int compare(
+        const self_type& _other
+    ) const
+    {
+        const Duration mine   = elapsed();
+        const Duration theirs = _other.elapsed();
+
+        return (mine < theirs) ? -1 : ( (theirs < mine) ? 1 : 0 );
+    }
+
+    // merge
+    //   adds `_other`'s elapsed time. `_other` is read under its read lock
+    // and released before this timer's write lock is taken, so no thread
+    // holds two of these locks and a timer may merge itself.
+    bool merge(
+        const self_type& _other
+    )
+    {
+        return increment(_other.elapsed());
+    }
+
+    // merge
+    //   adds a plain timer's elapsed time, read before the lock is taken.
+    bool merge(
+        const base_type& _other
+    )
+    {
+        return increment(_other.elapsed());
     }
 
     // reset_all

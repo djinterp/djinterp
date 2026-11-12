@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     test_options_tests_enums.c
+* djinterp [c][test]                                  test_options_tests_enums.c
 *
 * test_options.h's suite, block "config_enum_all": the values of
 * DTestMessageFlag, DTestSettingsFlag, DTestConfigKey, DTestMetadataFlag and

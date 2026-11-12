@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           env_tests_compiler.c
+* djinterp [c][env]                                         env_tests_compiler.c
 *
 * Unit tests for `env.h` compiler detection section (Section IV).
 * Tests compiler detection, version info, version comparison, VA_OPT detection,

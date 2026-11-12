@@ -82,7 +82,7 @@ tests_uninitialized_move_n_basic()
     raw_block<int, 4> block;
     int* d = block._typed;
 
-    std::pair<int*, int*> pr = re_std::uninitialized_move_n(&src[0], 4, d);
+    re_std::pair<int*, int*> pr = re_std::uninitialized_move_n(&src[0], 4, d);
 
     bool ok = true;
 
@@ -114,7 +114,7 @@ tests_uninitialized_move_n_semantics()
     c.moves  = 0;
     c.copies = 0;
 
-    std::pair<move_only*, move_only*> pr =
+    re_std::pair<move_only*, move_only*> pr =
         re_std::uninitialized_move_n(&src[0], 3, d);
 
     bool ok = true;

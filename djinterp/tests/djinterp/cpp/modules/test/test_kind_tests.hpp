@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                        test_kind_tests.hpp
+* djinterp [cpp][test]                                       test_kind_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_kind.hpp.  Each free
 * function exercises one facet of the header and returns true iff every check
@@ -7,29 +7,31 @@
 * section of test_kind.hpp they cover (Section III, the kind-set wrapper, is
 * split across three files along its internal banners):
 *
-*   - test_kind_tests_record.cpp           -> I.   TEST KIND RECORD
-*   - test_kind_tests_factory.cpp          -> II.  FACTORY FUNCTION
+*   - test_kind_tests_record.cpp           -> I.   Test kind record
+*   - test_kind_tests_factory.cpp          -> II.  Factory function
 *   - test_kind_tests_set_construction.cpp -> III. set: ctors / underlying /
 *                                                   aliases
 *   - test_kind_tests_set_surface.cpp      -> III. set: size/empty/clear/
 *                                                   insert/erase/find/iterate
 *   - test_kind_tests_set_contains.cpp     -> III. set: contains + dispatch
-*   - test_kind_tests_queries.cpp          -> IV.  RESOLVED QUERIES
-*   - test_kind_tests_detection.cpp        -> V.   STRUCTURAL DETECTION
+*   - test_kind_tests_queries.cpp          -> IV.  Resolved queries
+*   - test_kind_tests_detection.cpp        -> V.   Structural detection
 *
 *   Helpers (all flat in djinterp::testing):
 *   - test_kind_check : reports a failing check, forwards the boolean.
 *   - flat_set<Value, Key, HasContains> : a tiny vector-backed set satisfying
 *       the structural set-like surface DTestKindSet forwards to.  The
-*       HasContains parameter toggles a native contains() member so BOTH of
+*       HasContains parameter toggles a native contains() member so both of
 *       DTestKindSet::contains()'s dispatch branches (native vs. find()
 *       fallback) can be exercised deterministically.  Three aliases are used:
-*           DIdSet     : flat set of DTestTypeId, WITH    contains()
-*           DIdSetNc  : flat set of DTestTypeId, WITHOUT contains()
-*           DKindSet   : flat set of test_kind keyed by id, WITH contains()
+*           DIdSet     : flat set of DTestTypeId, with    contains()
+*           DIdSetNc  : flat set of DTestTypeId, without contains()
+*           DKindSet   : flat set of test_kind keyed by id, with contains()
 *
-*   NOTE: the entities under test live in djinterp::test; the tests themselves
-* live, flat, in djinterp::testing.
+* NOTE
+* ----
+*   The entities under test live in djinterp::test; the tests themselves live,
+* flat, in djinterp::testing.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_kind_tests.hpp
@@ -245,50 +247,77 @@ using DKindSet  = flat_set< ::djinterp::test::test_kind,
 
 // I.   TEST KIND RECORD
 bool tests_test_kind_aggregate();
+
 bool tests_test_kind_members();
+
 bool tests_test_kind_traits();
+
 bool tests_test_kind_values();
 
 // II.  FACTORY FUNCTION
 bool tests_make_test_kind_basic();
+
 bool tests_make_test_kind_default_arg();
+
 bool tests_make_test_kind_constexpr();
+
 bool tests_make_test_kind_noexcept();
 
 // III. TEST KIND SET -- construction / underlying / aliases
 bool tests_set_aliases();
+
 bool tests_set_default_ctor();
+
 bool tests_set_copy_ctor();
+
 bool tests_set_move_ctor();
+
 bool tests_set_underlying();
+
 bool tests_set_ctor_noexcept();
 
 // III. TEST KIND SET -- forwarded surface + iteration
 bool tests_set_size_empty();
+
 bool tests_set_clear();
+
 bool tests_set_insert();
+
 bool tests_set_erase();
+
 bool tests_set_find();
+
 bool tests_set_iteration();
 
 // III. TEST KIND SET -- contains + dispatch
 bool tests_set_contains_native();
+
 bool tests_set_contains_fallback();
+
 bool tests_set_contains_detection();
 
 // IV.  RESOLVED QUERIES
 bool tests_find_kind();
+
 bool tests_rank_of();
+
 bool tests_is_leaf();
+
 bool tests_is_interior();
+
 bool tests_name_of();
+
 bool tests_default_options();
+
 bool tests_can_be_child_of();
+
 bool tests_queries_compose();
 
 // V.   STRUCTURAL DETECTION
 bool tests_is_test_kind_set();
+
 bool tests_is_test_kind_set_cvref();
+
 bool tests_is_test_kind_set_variable();
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dtime_tests_convert.c
+* djinterp [c]                                             dtime_tests_convert.c
 *
 *   Tests for thread-safe time conversion functions (localtime, gmtime,
 * ctime, asctime).

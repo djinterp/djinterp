@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         test_cvar_tests_init.c
+* djinterp [c][test]                                      test_cvar_tests_init.c
 *
 * test_cvar.h's suite, block "cvar_init_all": d_test_registry_init, run twice,
 * and d_test_registry_registry: non-NULL, 25 rows, the static rows flag.

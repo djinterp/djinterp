@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         dstring_tests_concat.c
+* djinterp [c]                                            dstring_tests_concat.c
 *
 *
 * path:      /tests/djinterp/c/dstring_tests_concat.c

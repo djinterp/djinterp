@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                      test_report_tests.hpp
+* djinterp [cpp][test]                                     test_report_tests.hpp
 *
 *   Unit-test suite for test_report.hpp - the presentation-side data model for a
 * DTest run, and the single source of every figure the renderers print.  Nothing
 * in this header evaluates anything; it counts, folds, and formats.  That makes it
-* unusually testable, and unusually worth testing: EVERY tally in every rendered
+* unusually testable, and unusually worth testing: every tally in every rendered
 * report - text, xml, html, PDF - is read off these functions.  A miscount here is
 * a miscount in all four faces at once, and none of them would disagree with each
 * other loudly enough to notice.
 *
-*   DECLARATIONS + SHARED FIXTURES only; every test body lives in one of seven
+*   Declarations + shared fixtures only; every test body lives in one of seven
 * section translation units, one per section of the header's own table of
 * contents:
 *
@@ -21,18 +21,22 @@
 *     …_tests_rates.cpp       VI.  report_pass_rate / report_ratio
 *     …_tests_filename.cpp    VII. expand_report_file_name + its helpers
 *
-*   Every test is a `bool tests_*()` sitting FLAT in djinterp::testing.
+*   Every test is a `bool tests_*()` sitting flat in djinterp::testing.
 *
-*   WHAT THIS SUITE IS ACTUALLY LOOKING FOR.  The model is a three-level fold -
-* checks fold into a unit verdict, units into a module verdict, modules into a run
-* verdict - and the interesting behaviour is entirely in how the DEGENERATE cases
-* propagate up those levels: what an empty unit does to its module, what a skipped
-* check does to its unit, what a pending unit does to a "failed" count.  The
-* sections below are therefore heavy on the empty / skipped / pending / mixed
-* cases, because those are the ones the ordinary happy-path run never exercises
-* and the ones the fold gets wrong.
+* WHAT THIS SUITE IS ACTUALLY LOOKING FOR
+* ---------------------------------------
+*   The model is a three-level fold - checks fold into a unit verdict, units
+* into a module verdict, modules into a run verdict - and the interesting
+* behaviour is entirely in how the degenerate cases propagate up those levels:
+* what an empty unit does to its module, what a skipped check does to its unit,
+* what a pending unit does to a "failed" count.  The sections below are
+* therefore heavy on the empty / skipped / pending / mixed cases, because those
+* are the ones the ordinary happy-path run never exercises and the ones the fold
+* gets wrong.
 *
-*   NAMING NOTE.  `internal` is AMBIGUOUS here: both ::djinterp::internal and
+* NAMING NOTE
+* -----------
+*   `internal` is ambiguous here: both ::djinterp::internal and
 * ::djinterp::test::internal exist, and an unqualified `internal::` inside
 * djinterp::testing resolves to the former.  Every helper below is therefore
 * reached as dt::internal::.
@@ -257,15 +261,25 @@ D_NODISCARD inline bool contains(
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_verdict_has_four_members();
+
 bool tests_report_verdict_word_names_every_member();
+
 bool tests_report_verdict_word_default_arm_reads_empty();
+
 bool tests_report_verdict_is_pass_only_for_passed();
+
 bool tests_report_counts_helper_zero_total_is_empty();
+
 bool tests_report_counts_helper_any_failure_is_failed();
+
 bool tests_report_counts_helper_an_error_is_a_failure();
+
 bool tests_report_counts_helper_pending_outranks_passed();
+
 bool tests_report_counts_helper_failure_outranks_pending();
+
 bool tests_report_counts_helper_all_passed_is_passed();
+
 bool tests_report_counts_helper_skipped_alone_reads_as_passed();
 
 
@@ -274,8 +288,11 @@ bool tests_report_counts_helper_skipped_alone_reads_as_passed();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_check_defaults_to_pending();
+
 bool tests_report_check_carries_its_description_and_status();
+
 bool tests_report_check_passed_is_true_only_for_passed();
+
 bool tests_report_check_is_a_copyable_value();
 
 
@@ -284,18 +301,31 @@ bool tests_report_check_is_a_copyable_value();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_unit_defaults_to_an_empty_pending_free_unit();
+
 bool tests_report_unit_named_constructor();
+
 bool tests_report_unit_add_check_appends_and_derives();
+
 bool tests_report_unit_add_check_rederives_on_every_call();
+
 bool tests_report_unit_add_result_maps_bool_to_status();
+
 bool tests_report_unit_set_verdict_pins_it_against_later_checks();
+
 bool tests_report_unit_assigning_the_verdict_field_does_not_pin_it();
+
 bool tests_report_unit_check_tallies();
+
 bool tests_report_unit_failed_checks_counts_errors_too();
+
 bool tests_report_unit_failed_checks_ignores_skipped_and_pending();
+
 bool tests_report_unit_an_all_skipped_unit_reads_as_passed();
+
 bool tests_report_unit_derives_every_status();
+
 bool tests_report_unit_an_unknown_status_splits_the_verdict_from_the_tally();
+
 bool tests_report_unit_carries_its_elapsed_time_untouched();
 
 
@@ -304,16 +334,27 @@ bool tests_report_unit_carries_its_elapsed_time_untouched();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_module_defaults_and_named_construction();
+
 bool tests_report_module_add_unit_appends_and_returns_the_stored_unit();
+
 bool tests_report_module_add_unit_invalidates_the_previous_reference();
+
 bool tests_report_module_add_result_unit_names_the_check_after_the_unit();
+
 bool tests_report_module_unit_tally();
+
 bool tests_report_module_failed_units_counts_pending_as_failed();
+
 bool tests_report_module_failed_units_excludes_empty_units();
+
 bool tests_report_module_check_tallies_sum_over_units();
+
 bool tests_report_module_verdict_folds_the_unit_verdicts();
+
 bool tests_report_module_verdict_ignores_empty_units();
+
 bool tests_report_module_verdict_precedence();
+
 bool tests_report_module_of_no_units_is_empty_and_not_passed();
 
 
@@ -322,18 +363,31 @@ bool tests_report_module_of_no_units_is_empty_and_not_passed();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_report_defaults_to_empty_metadata();
+
 bool tests_report_report_carries_its_metadata_verbatim();
+
 bool tests_report_report_add_module_and_the_module_convenience();
+
 bool tests_report_report_add_module_invalidates_the_previous_reference();
+
 bool tests_report_report_module_tally();
+
 bool tests_report_report_failed_modules_counts_an_empty_module_as_failed();
+
 bool tests_report_report_module_counts_partition_but_unit_counts_do_not();
+
 bool tests_report_report_unit_tally_sums_across_modules();
+
 bool tests_report_report_check_tally_sums_across_modules();
+
 bool tests_report_report_verdict_folds_the_module_verdicts();
+
 bool tests_report_report_verdict_ignores_empty_modules();
+
 bool tests_report_report_of_only_empty_modules_contradicts_itself();
+
 bool tests_report_report_exit_code_is_zero_only_on_a_clean_pass();
+
 bool tests_report_report_tallies_agree_end_to_end();
 
 
@@ -342,12 +396,19 @@ bool tests_report_report_tallies_agree_end_to_end();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_pass_rate_of_a_zero_total_is_zero_not_a_division();
+
 bool tests_report_pass_rate_formats_two_decimal_places();
+
 bool tests_report_pass_rate_rounds_rather_than_truncates();
+
 bool tests_report_pass_rate_of_everything_is_one_hundred();
+
 bool tests_report_pass_rate_exceeds_one_hundred_when_passed_exceeds_total();
+
 bool tests_report_pass_rate_overflows_its_buffer_on_absurd_input();
+
 bool tests_report_ratio_formats_the_fraction();
+
 bool tests_report_ratio_survives_the_largest_counts();
 
 
@@ -356,24 +417,43 @@ bool tests_report_ratio_survives_the_largest_counts();
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tests_report_sanitize_replaces_every_hostile_character();
+
 bool tests_report_sanitize_replaces_control_characters();
+
 bool tests_report_sanitize_lets_del_through();
+
 bool tests_report_sanitize_passes_utf8_through();
+
 bool tests_report_sanitize_does_not_trim_despite_the_comment();
+
 bool tests_report_sanitize_keeps_benign_punctuation();
+
 bool tests_report_sanitize_of_empty_is_empty();
+
 bool tests_report_sanitize_does_not_escape_braces();
+
 bool tests_report_replace_all_replaces_every_occurrence();
+
 bool tests_report_replace_all_of_an_empty_token_is_the_subject();
+
 bool tests_report_replace_all_is_not_recursive_within_a_call();
+
 bool tests_report_replace_all_leaves_an_absent_token_alone();
+
 bool tests_report_expand_empty_pattern_falls_back();
+
 bool tests_report_expand_folds_every_placeholder();
+
 bool tests_report_expand_preserves_literals_and_directories();
+
 bool tests_report_expand_leaves_an_unknown_placeholder_alone();
+
 bool tests_report_expand_sanitizes_module_and_title_but_not_ext();
+
 bool tests_report_expand_dates_from_the_live_clock();
+
 bool tests_report_expand_repeats_a_placeholder();
+
 bool tests_report_expand_is_vulnerable_to_placeholder_injection();
 
 

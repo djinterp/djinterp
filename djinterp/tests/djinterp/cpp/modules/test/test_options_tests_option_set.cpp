@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                          test_options_tests_option_set.cpp
+* djinterp [cpp][test]                         test_options_tests_option_set.cpp
 *
 *   Sections B.II / B.III / B.IV - the option set's defaults, read through the
 * free accessor seam.  default_test_options() yields a fully-defaulted set, and

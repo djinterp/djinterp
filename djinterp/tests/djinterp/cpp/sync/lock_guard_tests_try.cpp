@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        lock_guard_tests_try.cpp
+* djinterp [cpp][sync]                                  lock_guard_tests_try.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/lock_guard_tests_try.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           test_options_tests.c
+* djinterp [c][test]                                        test_options_tests.c
 *
 * test_options.h's suite: d_tests_options_run_all, which runs the thirteen
 * blocks of test_options_tests.h in order.

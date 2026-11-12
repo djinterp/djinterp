@@ -1,22 +1,22 @@
 /*******************************************************************************
-* djinterp [cpp/test]                               test_report_tests_module.cpp
+* djinterp [cpp][test]                              test_report_tests_module.cpp
 *
-*   Section IV of the test_report suite: THE MODULE.
+*   Section IV of the test_report suite: the module.
 *
-*   A module folds UNITS into a verdict, and keeps two independent tallies over
+*   A module folds units into a verdict, and keeps two independent tallies over
 * them: a unit-test tally (over unit verdicts) and an assertion tally (over every
 * check in every unit).  The renderers read both, which is why they both matter.
 *
-*   THE INTERESTING PART IS `failed_units()`, and it is doing two things nobody
+*   The interesting part is `failed_units()`, and it is doing two things nobody
 * would guess from its name:
 *
 *       if ( (units[i].verdict == failed) ||
 *            (!units[i].passed() && (units[i].verdict != empty)) )
 *
-*   The second clause is TRUE for failed and for PENDING.  So (a) pending units are
+*   The second clause is true for failed and for pending.  So (a) pending units are
 * counted as failed, and (b) the first clause is entirely subsumed by the second
 * and can never fire on its own - it is dead.  Meanwhile `empty` units are excluded
-* from BOTH tallies, so passed_units() + failed_units() does not equal
+* from both tallies, so passed_units() + failed_units() does not equal
 * total_units().  All three properties are pinned below.
 *
 *

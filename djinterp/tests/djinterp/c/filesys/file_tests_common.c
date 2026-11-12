@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [test]                                            file_tests_common.c
+* djinterp [c][filesys]                                      file_tests_common.c
 *
-*   I. FOUNDATION (file_common) -- the naming helpers and the notification
+*   I. Foundation (file_common) -- the naming helpers and the notification
 * system that the rest of the subframework reports through. d_backend_name and
 * d_file_notify_level_name are pure and checked against their whole documented
 * range, including the out-of-range "unknown". The handler machinery is
 * exercised end to end where notifications are compiled in
-* (D_FILE_NOTIFY_IS_ACTIVE): a counter handler is installed, a real ERROR
+* (D_FILE_NOTIFY_IS_ACTIVE): a counter handler is installed, a real error
 * notice is provoked by a parameter-validation failure (which is exactly the
 * path that raises one), the counter is checked, and the original handler is
 * always put back so no later section inherits ours.

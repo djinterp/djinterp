@@ -1,13 +1,15 @@
 /*******************************************************************************
-* djinterp [test]                                                    env_tests.c
+* djinterp [c][env]                                                  env_tests.c
 *
 *   Master test suite aggregator for all env module tests.
 *   Calls all submodule test functions and aggregates results.
 *
-*   NOTE: This file contains ONLY d_tests_env_all (the master function).
-*         Each section's aggregator is in its own file (env_tests_build.c's
-*         d_tests_env_build_all, and so on); the build profile is in
-*         env_tests_profile.c.
+* NOTE
+* ----
+*   This file contains only d_tests_env_all (the master function). Each
+* section's aggregator is in its own file (env_tests_build.c's
+* d_tests_env_build_all, and so on); the build profile is in
+* env_tests_profile.c.
 *
 *
 * path:      /tests/djinterp/c/env_tests.c

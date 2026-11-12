@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                              test_tree.hpp
+* djinterp [cpp][test]                                             test_tree.hpp
 *
 *   The default, general-use test container.  test_tree is one concrete
 * implementation of the test_container contract (test_container.hpp);
@@ -7,18 +7,20 @@
 * contract is acceptable - but it is the framework reference and is
 * tuned to suit the common case.
 *
-*   SHAPE:
+* SHAPE
+* -----
 *   test_tree pairs a set of test kinds with a forest of root
 *   test_objects:
 *       test_tree = { kinds ; <forest of root test_objects> }
 *   The forest is a single backing tree (default nary_tree<Element>)
-* whose ROOT NODE is the implied conjunctive root of the formal model:
+* whose root node is the implied conjunctive root of the formal model:
 * the sequential test roots (the queue) are its immediate children, and
 * the whole run succeeds iff every root succeeds.  The conjunctive root
 * is created on first use and is an ordinary node in the walk; the owning
 * handler derives its status from its children during evaluation.
 *
-*   KINDS AND RANK:
+* KINDS AND RANK
+* --------------
 *   The kinds are stored as any range of test_kind records (default
 * std::vector<test_kind>; a DTestKindSet<C> works equally, since the
 * resolved-query free functions in test_kind.hpp accept either).  They
@@ -29,14 +31,16 @@
 * unconstrained - the conjunctive root admits any sequence.  The
 * ValidateRank flag compiles the checks out entirely when false.
 *
-*   RUN SURFACE:
+* RUN SURFACE
+* -----------
 *   A sequential counting surface (count_passed / count_failed /
 * count_skipped / count_pending, all_passed, any_failed) aggregates node
 * status across the forest.  DTestObject carries no rank or identity of
 * its own - the kind set supplies rank/leaf classification, and the
 * handler supplies address and depth during the walk.
 *
-*   DESIGN:
+* DESIGN
+* ------
 *   test_tree delegates all storage to its backing forest, adding the
 * kind metadata, the rank-checked build surface, and the run surface on
 * top.  It is templated so callers may vary the element type, the forest
@@ -47,8 +51,24 @@
 * test_tree_concepts.hpp: only is_test_tree (recogniser for this class
 * template) remains, restated here as a trait and a C++20 concept.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  `_v` companions on C++14+.  Concepts on C++20.
+*
+* HOW TO USE
+* ----------
+*   Seed a tree with a kind set, then append nodes; append_child refuses a node
+* whose rank does not fit under its parent:
+*
+*     test_tree<basic_test> tree(default_test_kinds());
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_tree.hpp

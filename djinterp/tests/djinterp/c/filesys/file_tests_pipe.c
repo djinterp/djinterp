@@ -1,7 +1,7 @@
 /*******************************************************************************
-* djinterp [test]                                              file_tests_pipe.c
+* djinterp [c][filesys]                                        file_tests_pipe.c
 *
-*   XIV. PIPES (file_pipe) -- running a command and streaming its input or
+*   XIV. Pipes (file_pipe) -- running a command and streaming its input or
 * output. Compiled out where the platform has no command pipes
 * (D_FILE_PIPE_IS_AVAILABLE is 0). The read path runs a command with known
 * output and checks the bytes; the write path streams into a consumer; and the

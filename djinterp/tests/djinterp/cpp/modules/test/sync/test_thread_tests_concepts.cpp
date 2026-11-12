@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                test_thread_tests_concepts.cpp
+* djinterp [cpp][test]                            test_thread_tests_concepts.cpp
 *
 *   Section TU: the folded C++20 concept layer (djinterp::test::traits).  The
 * whole body is gated on D_ENV_CPP_FEATURE_LANG_CONCEPTS - on a compiler

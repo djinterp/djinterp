@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                                       test.h
+* djinterp [c][test]                                                      test.h
 *
 *   Core test framework providing individual test structures that can contain
 * a mix of test functions and assertions. Tests can be created via the D_TEST
@@ -12,6 +12,21 @@
 * Configuration is resolved at runtime by combining the test's own config with
 * the run config passed to d_test_run(). Parent types pass their resolved
 * config down when executing children.
+*
+* HOW TO USE
+* ----------
+*   Not yet. This header is part of the classic C tree, which does not compile
+* while it is ported (docs/djinterp_testing.md, section 13). Write C suites
+* against test_suite.h.
+*
+* OPTIONS
+* -------
+*   Its tests, blocks and modules take optional arguments (struct dj_test_arg
+* lists) that become entries of a test option set, test_options.h.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/c/modules/test/default/test.h
@@ -87,6 +102,7 @@ struct dj_test_type* d_test_type_new(
     enum DTestTypeFlag _type,
     void*              _data
 );
+
 void d_test_type_free(
     struct dj_test_type* _type
 );
@@ -318,12 +334,14 @@ struct dj_test* d_test_new(
     struct dj_test_type** _children,
     size_t                _child_count
 );
+
 struct dj_test* d_test_new_args(
     struct dj_test_arg*   _args,
     size_t                _arg_count,
     struct dj_test_type** _children,
     size_t                _child_count
 );
+
 struct dj_test_options* d_test_validate_args(
     struct dj_test_arg* _args,
     size_t              _arg_count
@@ -333,6 +351,7 @@ struct dj_test_options* d_test_validate_args(
 struct dj_test_fn* d_test_fn_new(
     fn_test _fn
 );
+
 struct dj_test_options* d_test_fn_validate_args(
     struct dj_test_arg* _args,
     size_t              _arg_count
@@ -343,17 +362,21 @@ bool d_test_add_child(
     struct dj_test*      _test,
     struct dj_test_type* _child
 );
+
 bool d_test_add_assertion(
     struct dj_test*   _test,
     struct dj_assert* _assertion
 );
+
 bool d_test_add_function(
     struct dj_test* _test,
     fn_test         _fn
 );
+
 size_t d_test_child_count(
     const struct dj_test* _test
 );
+
 struct dj_test_type* d_test_get_child_at(
     const struct dj_test* _test,
     size_t                _index
@@ -365,6 +388,7 @@ bool d_test_set_stage_hook(
     enum DTestStage _stage,
     fn_stage        _hook
 );
+
 fn_stage d_test_get_stage_hook(
     const struct dj_test* _test,
     enum DTestStage       _stage
@@ -382,6 +406,7 @@ void d_test_print(
     const char*           _prefix,
     size_t                _prefix_length
 );
+
 const char* d_test_type_flag_to_string(
     enum DTestTypeFlag _type
 );
@@ -390,6 +415,7 @@ const char* d_test_type_flag_to_string(
 void d_test_fn_free(
     struct dj_test_fn* _test_fn
 );
+
 void d_test_free(
     struct dj_test* _test
 );

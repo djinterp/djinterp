@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dio_tests_error_handling.c
+* djinterp [c]                                        dio_tests_error_handling.c
 *
 *
 * path:      /tests/djinterp/c/dio_tests_error_handling.c

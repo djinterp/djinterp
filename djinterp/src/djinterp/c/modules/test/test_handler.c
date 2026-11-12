@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/test]                                               test_handler.c
+* djinterp [c][test]                                              test_handler.c
 *
 * TBA
 *

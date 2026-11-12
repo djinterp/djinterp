@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         test_cvar_tests_find.c
+* djinterp [c][test]                                      test_cvar_tests_find.c
 *
 * test_cvar.h's suite, block "cvar_find_all": d_test_registry_find by key
 * (valid, NULL, unknown) and d_test_registry_find_by_flag (valid, unknown).

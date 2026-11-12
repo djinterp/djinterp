@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                test_traits_tests_cvref.cpp
+* djinterp [cpp][test]                               test_traits_tests_cvref.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_traits_tests_cvref.cpp

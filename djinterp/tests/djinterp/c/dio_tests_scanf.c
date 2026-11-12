@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              dio_tests_scanf.c
+* djinterp [c]                                                 dio_tests_scanf.c
 *
 * dio.h's suite, block "scanf": the framework's own checked scanf engine,
 * style #38 (kept by the owner's ruling of 2026.11.04, and tested here).

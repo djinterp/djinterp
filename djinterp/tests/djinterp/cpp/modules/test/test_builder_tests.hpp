@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                     test_builder_tests.hpp
+* djinterp [cpp][test]                                    test_builder_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_builder.hpp - the
 * fluent, functional authoring surface over a test_tree.  Each free function
@@ -14,7 +14,7 @@
 *                                             forms, cursor discipline, rank safety
 *   - test_builder_tests_assertions.cpp    -> V assertions: assert_ / test_fn /
 *                                             assert_all / assert_any, value-vs-
-*                                             predicate wrapping, AND conjunction
+*                                             predicate wrapping, and conjunction
 *   - test_builder_tests_inline_ops.cpp    -> V inline check / expect, node ops
 *                                             skip / tag, composition add / add_if
 *   - test_builder_tests_events.cpp        -> V events: on_* / fire / events(),
@@ -32,18 +32,22 @@
 * observable: DNodeCounter counts per-node firings, DConsumingCounter also
 * returns verdict::consume to prove the word halts, DThrowingHandler escapes to
 * drive the DOnListenerThrew capture path, and DThrewRecorder / DErrorRecorder
-* / DSessionEndRecorder read the payloads of DOnListenerThrew / on_test_error
-* / on_session_end.  A custom event tag (DOnCustomProbe) exercises the generic
+* / DSessionEndRecorder read the payloads of DOnListenerThrew / DOnTestError
+* / DOnSessionEnd.  A custom event tag (DOnCustomProbe) exercises the generic
 * on<>/ fire<> surface.  leaf_block_kinds is a kind set in which `block` is a
 * leaf, used to drive test_tree's rank rejection through the builder.
 *
-*   PORTABILITY: the builder is C++11, present at every standard this suite is
-* built under, so the test bodies need no language guard.
+* PORTABILITY
+* -----------
+*   The builder is C++11, present at every standard this suite is built under,
+* so the test bodies need no language guard.
 *
-*   NOTE: test_builder and its neighbours live in djinterp::test; the tests
-* live, flat, in djinterp::testing (hence the `dt` alias below).  The lifecycle
-* event tags are djinterp::test names, so they are spelled dt::DOnTestPassed
-* etc.; `verdict` resolves unqualified, as in the event suite.
+* NOTE
+* ----
+*   test_builder and its neighbours live in djinterp::test; the tests live,
+* flat, in djinterp::testing (hence the `dt` alias below).  The lifecycle event
+* tags are djinterp::test names, so they are spelled dt::DOnTestPassed etc.;
+* `verdict` resolves unqualified, as in the event suite.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_builder_tests.hpp
@@ -159,7 +163,7 @@ struct DThrowingHandler
 };
 
 // DThrewRecorder
-//   fixture: an DOnListenerThrew handler; counts firings and records the
+//   fixture: a DOnListenerThrew handler; counts firings and records the
 // offending event's name (its first C-string payload).
 struct DThrewRecorder
 {
@@ -174,7 +178,7 @@ struct DThrewRecorder
 };
 
 // DErrorRecorder
-//   fixture: an on_test_error handler; counts firings and records the
+//   fixture: a DOnTestError handler; counts firings and records the
 // diagnostic message payload.
 struct DErrorRecorder
 {
@@ -192,7 +196,7 @@ struct DErrorRecorder
 };
 
 // DSessionEndRecorder
-//   fixture: an on_session_end handler; captures the (passed, failed) counts
+//   fixture: a DOnSessionEnd handler; captures the (passed, failed) counts
 // the walk reports.
 struct DSessionEndRecorder
 {
@@ -250,62 +254,104 @@ std::vector<dt::test_kind> leaf_block_kinds()
 
 // kinds / summary / factory
 bool tests_default_kinds_records();
+
 bool tests_kind_id_constants();
+
 bool tests_summary_default_zeroed();
+
 bool tests_summary_all_passed_any_failed();
+
 bool tests_make_suite_fresh();
 
 // structure
 bool tests_structure_module_block_test_counts();
+
 bool tests_structure_multiple_and_nesting();
+
 bool tests_structure_block_without_module_toplevel();
+
 bool tests_structure_test_without_scope_toplevel();
+
 bool tests_structure_scoped_restores_cursor();
+
 bool tests_structure_scoped_empty_body();
+
 bool tests_structure_rank_rejection_leaf_block();
+
 bool tests_structure_explicit_tree_keeps_kinds();
 
 // assertions
 bool tests_assert_value_true_false();
+
 bool tests_assert_predicate_deferred_timing();
+
 bool tests_assert_conjunction_and();
+
 bool tests_assert_all_and_semantics();
+
 bool tests_assert_any_or_semantics();
+
 bool tests_assert_all_any_vacuous();
+
 bool tests_assert_no_open_test_is_noop();
+
 bool tests_assert_pending_without_clause();
 
 // inline checks / node ops / composition
 bool tests_inline_check_immediate();
+
 bool tests_inline_expect_named();
+
 bool tests_inline_check_not_current_test();
+
 bool tests_inline_check_throw_is_error();
+
 bool tests_nodeops_skip();
+
 bool tests_nodeops_tag();
+
 bool tests_nodeops_skip_tag_no_test_noop();
+
 bool tests_compose_add_runs_body();
+
 bool tests_compose_add_if_conditional();
 
 // events
 bool tests_events_on_passed_failed_counts();
+
 bool tests_events_on_skipped_and_error();
+
 bool tests_events_status_change_fired();
+
 bool tests_events_module_start_per_interior();
+
 bool tests_events_session_end_counts();
+
 bool tests_events_verdict_consume_halts();
+
 bool tests_events_listener_exception_captured();
+
 bool tests_events_fire_custom_and_on();
+
 bool tests_events_survive_clear();
 
 // run / summarize / traversal / clear / accessors
 bool tests_run_summary_tally();
+
 bool tests_run_pending_is_leaf_only();
+
 bool tests_run_evaluate_throw_error_message();
+
 bool tests_run_idempotent_and_incremental();
+
 bool tests_traversal_each_visits_all();
+
 bool tests_traversal_count_if();
+
 bool tests_traversal_fold();
+
 bool tests_clear_resets_state();
+
 bool tests_accessors_tree_and_callables();
 
 
@@ -454,10 +500,10 @@ dt::module_spec builder_spec()
                       "on_status_change fires when a deferred leaf resolves",
                       &tests_events_status_change_fired },
                     { "events_module_start_per_interior",
-                      "on_module_start fires once per interior node",
+                      "DOnModuleStart fires once per interior node",
                       &tests_events_module_start_per_interior },
                     { "events_session_end_counts",
-                      "on_session_end carries the pass/fail counts",
+                      "DOnSessionEnd carries the pass/fail counts",
                       &tests_events_session_end_counts },
                     { "events_verdict_consume_halts",
                       "verdict::consume halts the rest of an event's word",

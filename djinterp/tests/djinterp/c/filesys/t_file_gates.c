@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    t_file_gates.c
+* djinterp [c][filesys]                                           t_file_gates.c
 *
 *   Not a program: a probe scripts/ci/check_filesys_platforms.sh preprocesses,
 * once per target, to read what c/filesys's configuration resolves to there.

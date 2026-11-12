@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       rcu_tests_epoch_guard.cpp
+* djinterp [cpp][sync]                                 rcu_tests_epoch_guard.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/rcu_tests_epoch_guard.cpp

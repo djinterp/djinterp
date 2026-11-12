@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      test_cvar_tests_aliases.c
+* djinterp [c][test]                                   test_cvar_tests_aliases.c
 *
 * test_cvar.h's suite, block "cvar_alias_all": the aliases enabled, indent,
 * indent-max and indent-level, timeout-ms, framework, module and submodule.

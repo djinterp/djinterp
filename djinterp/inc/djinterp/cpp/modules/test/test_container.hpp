@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                         test_container.hpp
+* djinterp [cpp][test]                                        test_container.hpp
 *
 *   The test_container contract.  test_container is not a concrete type:
 * it is the trait + concept surface that detects whether an arbitrary
-* container qualifies to HOLD and RUN test_objects - the test-domain
+* container qualifies to hold and run test_objects - the test-domain
 * analogue of set_traits / set_concepts, expressed the way every other
 * container category in the framework is.
 *
 *   The contract is layered, leanest first:
-*   - is_test_object_container    the MINIMUM: a value_type whose element
+*   - is_test_object_container    the minimum: a value_type whose element
 *                                 satisfies the test object protocol
 *                                 (is_test_evaluable), sequential
 *                                 traversal (begin/end), and capacity
@@ -38,8 +38,23 @@
 * specific surface (underlying_container_type, validate_rank, the
 * nary-backing predicates) is dropped.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum.  `_v` companions on C++14+.  Concepts on C++20.
+*
+* HOW TO USE
+* ----------
+*   Nothing to call: use the traits (is_test_object_container,
+* is_buildable_test_container, is_rooted_test_container) to check that a
+* container of your own qualifies to hold and run test_objects.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/test_container.hpp

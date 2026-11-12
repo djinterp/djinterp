@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                              test_concurrent_tests_report.cpp
+* djinterp [cpp][test]                          test_concurrent_tests_report.cpp
 *
 *   Section TU: DThreadReport, concurrent_run_report, the DConcurrentRunOutcome
 * enum, and the to_test_object lowering.  These are plain aggregates, so the

@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [test]                                        file_space_tests_sa.cpp
+* djinterp [cpp][filesys]                                file_space_tests_sa.cpp
 *
 *   Unit tests for djinterp::space / space_info (inc/djinterp/cpp/filesys/file_space.hpp).
 * One file for the facility, sibling to the other suites, same harness and same
-* three rules. A free query over a value type -- FLAT tier ladder.
+* three rules. A free query over a value type -- flat tier ladder.
 *
 *   The capacity numbers are real (from the filesystem the build runs on), so
-* the checks are INVARIANTS, not exact values: capacity is positive, and the
+* the checks are invariants, not exact values: capacity is positive, and the
 * three counts nest as available <= free <= capacity -- available excludes the
 * root reserve that free still counts, and neither can exceed the whole.
 *

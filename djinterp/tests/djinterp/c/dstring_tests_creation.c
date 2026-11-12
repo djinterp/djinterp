@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       dstring_tests_creation.c
+* djinterp [c]                                          dstring_tests_creation.c
 *
 *   Unit tests for dj_string creation and destruction functions:
 *     - d_string_new

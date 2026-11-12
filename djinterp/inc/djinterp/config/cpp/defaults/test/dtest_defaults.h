@@ -1,9 +1,21 @@
 /*******************************************************************************
-* djinterp [config]                                             dtest_defaults.h
+* djinterp [cpp][test]                                          dtest_defaults.h
 *
 *   Standalone test framework with simple tree structure for tests and
 * assertions. Supports nested test blocks/groups, template-based output,
 * and unified test runner with chainable module execution.
+*
+* HOW TO USE
+* ----------
+*   Nothing yet: the header is an empty shell under its 64-bit floor.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/config/cpp/defaults/test/dtest_defaults.h

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 lock_policy_c_tests_mutexes.cpp
+* djinterp [cpp][sync]                           lock_policy_c_tests_mutexes.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/lock_policy_c_tests_mutexes.cpp

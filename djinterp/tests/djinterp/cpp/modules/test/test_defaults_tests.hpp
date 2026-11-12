@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                    test_defaults_tests.hpp
+* djinterp [cpp][test]                                   test_defaults_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_defaults.hpp - the
 * top-level test-authoring surface.  This suite exercises the plain-data +
@@ -21,7 +21,7 @@
 *                                              DUnitTestTally, status_word
 *   - test_defaults_tests_integration.cpp -> integration tier: build_enriched_tree
 *                                              / drive_report / run_module / run_suite,
-*                                              observed on the REAL test_tree and
+*                                              observed on the real test_tree and
 *                                              report_builder (rb.report() model +
 *                                              exit codes)
 *
@@ -108,47 +108,77 @@ bool double_eq(
 
 // metadata helpers
 bool tests_metadata_insert_sorted();
+
 bool tests_metadata_insert_duplicate();
+
 bool tests_metadata_contains();
+
 bool tests_metadata_remove();
+
 bool tests_metadata_interleaved_order();
 
 // kind constants + default set
 bool tests_kinds_constant_values();
+
 bool tests_kinds_aliases();
+
 bool tests_kinds_default_set_size();
+
 bool tests_kinds_default_ranks();
+
 bool tests_kinds_default_leaf_flags();
+
 bool tests_kinds_default_names();
+
 bool tests_kinds_default_options_null();
 
 // identity helpers + factories
 bool tests_factory_set_identity();
+
 bool tests_factory_node_readers();
+
 bool tests_factory_make_assert();
+
 bool tests_factory_make_assert_messages();
+
 bool tests_factory_make_test_fn();
+
 bool tests_factory_interior_nodes();
+
 bool tests_factory_leaf_verdicts();
 
 // authoring aggregates, status_for, tally, status_word
 bool tests_authoring_spec_shape();
+
 bool tests_authoring_status_for();
+
 bool tests_authoring_tally_default();
+
 bool tests_authoring_tally_pass_rate();
+
 bool tests_authoring_status_word();
 
 // integration tier (build_enriched_tree / drive_report / run_module / run_suite)
 bool tests_integration_tree_shape();
+
 bool tests_integration_tree_kinds();
+
 bool tests_integration_tree_all_pass();
+
 bool tests_integration_tree_all_fail();
+
 bool tests_integration_tree_multi_module();
+
 bool tests_integration_drive_report();
+
 bool tests_integration_drive_report_events();
+
 bool tests_integration_run_module_pass();
+
 bool tests_integration_run_module_fail();
+
 bool tests_integration_run_suite();
+
 bool tests_integration_describe_summary();
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              test_cvar_tests.c
+* djinterp [c][test]                                           test_cvar_tests.c
 *
 * test_cvar.h's suite: d_tests_cvar_run_all, which runs the thirteen blocks of
 * test_cvar_tests.h in order.

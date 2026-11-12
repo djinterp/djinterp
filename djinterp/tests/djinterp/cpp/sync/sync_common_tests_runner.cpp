@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    sync_common_tests_runner.cpp
+* djinterp [cpp][sync]                              sync_common_tests_runner.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/sync_common_tests_runner.cpp

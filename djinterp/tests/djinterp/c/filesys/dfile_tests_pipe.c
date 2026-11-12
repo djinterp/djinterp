@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             dfile_tests_pipe.c
+* djinterp [c][filesys]                                       dfile_tests_pipe.c
 *
 *   Tests for pipe operations (popen, pclose).
 *

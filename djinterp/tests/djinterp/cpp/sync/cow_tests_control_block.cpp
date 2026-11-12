@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     cow_tests_control_block.cpp
+* djinterp [cpp][sync]                               cow_tests_control_block.cpp
 *
 *
 * path:      /tests/djinterp/cpp/sync/cow_tests_control_block.cpp

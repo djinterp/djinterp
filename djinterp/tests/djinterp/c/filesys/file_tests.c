@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   file_tests.c
+* djinterp [c][filesys]                                             file_tests.c
 *
 *
 * path:      /tests/djinterp/c/filesys/file_tests.c

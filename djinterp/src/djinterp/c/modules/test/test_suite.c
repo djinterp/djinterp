@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   test_suite.c
+* djinterp [c][test]                                                test_suite.c
 *
 * DTest's C face: the suite, its builders, the spec runner and the report.
 *   A suite keeps its nodes (modules, blocks and tests) in one array, in the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                   test_race_tests_factory.cpp
+* djinterp [cpp][test]                               test_race_tests_factory.cpp
 *
 *   Section TU: make_race_probe.
 *

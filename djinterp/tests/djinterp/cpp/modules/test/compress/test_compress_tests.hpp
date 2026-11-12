@@ -1,48 +1,49 @@
 /*******************************************************************************
-* djinterp [tests]                                       test_compress_tests.hpp
+* djinterp [cpp][test]                                   test_compress_tests.hpp
 *
 *   Suite header for test_compress.hpp - the shared verification surface any
 * suite reaches for when it needs to check compressed output.  Declares every
 * test body, supplies the fixtures the bodies need, and (in DTEST_SPEC_MODE)
 * exposes the spec provider the runner hands to run_module.
 *
-*   BUILD PREREQUISITE - THE RUNNER NEEDS D_TEST_REPORT_ENABLE_ARCHIVE.
+*   Build prerequisite - the runner needs D_TEST_REPORT_ENABLE_ARCHIVE.
 *   This is a property of the framework, not of the module under test, and it
-* applies to EVERY DTest runner rather than to this suite alone.  A runner
+* applies to every DTest runner rather than to this suite alone.  A runner
 * includes test_defaults.hpp to reach run_module; test_defaults.hpp includes
 * output/test_report_runner.hpp; and that header spells `byte_blob` in two
 * places - DPendingDoc::bytes and write_bytes_to_file's parameter - which is a
 * typedef reachable only through the archive include guarded by
 * D_TEST_REPORT_ENABLE_ARCHIVE.  Without the macro the runner does not compile
 * at C++17 or higher (eight errors).  The leaf CMakeLists therefore defines it
-* on the target.  The SECTION translation units do not need it: they include
+* on the target.  The section translation units do not need it: they include
 * the module under test directly and never reach the report machinery.
 *
 *   The fix belongs in test_report_runner.hpp - spell those two uses
 * std::string, or include compress.hpp unconditionally - not here; per the
 * authoring guide a broken dependency is reported rather than patched.
 *
-*   BUILD-AGNOSTIC BY CONSTRUCTION.
+*   Build-agnostic by construction.
 *   Which codecs exist is a property of the build, not of the module, and a
 * suite that asserted "gzip round-trips" would pass or fail depending on what
 * was linked.  So every assertion here is written against the contract the
 * module itself documents:
 *
 *     available   -> the cycle completes and reproduces the input
-*     unavailable -> compression SAYS status_unavailable and emits nothing
+*     unavailable -> compression says status_unavailable and emits nothing
 *
 *   That is exactly facade_roundtrip_ok's promise, and it holds on every
 * build.  Where a body needs a codec that genuinely works, it uses
 * codecs::store - the identity codec, which is always compiled in - so the
 * round-trip machinery is exercised for real rather than only in its
 * unavailable branch.  Bodies that would otherwise be vacuous on a bare build
-* assert BOTH branches explicitly, gated on is_available<_Codec>().
+* assert both branches explicitly, gated on is_available<_Codec>().
 *
 *   The signature predicates need no backend at all: they read leading bytes,
 * so the suite hands them hand-built buffers and covers every branch - correct
 * magic, truncated input, and a wrong byte at each position.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++11 minimum, matching the header under test.  Built at C++20 by the
 * DTest CMake helper.
 *
@@ -375,50 +376,86 @@ bool tc_facade_contract_holds(
 
 // I.   PAYLOADS   (test_compress_tests_payloads.cpp)
 bool tests_compress_make_repeated_size_and_content();
+
 bool tests_compress_make_repeated_degenerate();
+
 bool tests_compress_make_pattern_cycles_byte_range();
+
 bool tests_compress_make_pattern_degenerate();
+
 bool tests_compress_make_text_length_and_tiling();
+
 bool tests_compress_make_text_degenerate();
+
 bool tests_compress_make_incompressible_is_deterministic();
+
 bool tests_compress_make_incompressible_seed_behaviour();
+
 bool tests_compress_make_incompressible_spread();
+
 bool tests_compress_make_with_nuls_layout();
+
 bool tests_compress_standard_corpus_shape();
+
 bool tests_compress_standard_corpus_is_deterministic();
 
 // II.  SIGNATURES   (test_compress_tests_signatures.cpp)
 bool tests_compress_gzip_magic();
+
 bool tests_compress_zlib_magic_accepts_valid_header();
+
 bool tests_compress_zlib_magic_rejects_bad_header();
+
 bool tests_compress_bzip2_magic();
+
 bool tests_compress_xz_magic();
+
 bool tests_compress_zstd_magic();
+
 bool tests_compress_lz4_frame_magic();
+
 bool tests_compress_magic_predicates_reject_empty();
+
 bool tests_compress_expected_signature_dispatch();
+
 bool tests_compress_expected_signature_unframed_codecs();
 
 // III. ROUNDTRIP   (test_compress_tests_roundtrip.cpp)
 bool tests_compress_roundtrip_report_is_fully_populated();
+
 bool tests_compress_roundtrip_store_reproduces_input();
+
 bool tests_compress_roundtrip_unavailable_codec_contract();
+
 bool tests_compress_roundtrip_empty_input();
+
 bool tests_compress_roundtrip_large_input();
+
 bool tests_compress_roundtrip_accepts_options();
+
 bool tests_compress_roundtrips_is_strict();
+
 bool tests_compress_facade_roundtrip_ok_is_build_agnostic();
+
 bool tests_compress_facade_roundtrip_ok_over_corpus();
+
 bool tests_compress_roundtrip_never_throws_on_garbage();
 
 // IV.  VERIFICATION   (test_compress_tests_verification.cpp)
 bool tests_compress_decompresses_to_matching_payload();
+
 bool tests_compress_decompresses_to_rejects_mismatch();
+
 bool tests_compress_decompresses_to_empty_cases();
+
 bool tests_compress_is_valid_stream_accepts_own_output();
+
 bool tests_compress_is_valid_stream_rejects_undecodable();
+
 bool tests_compress_is_available_matches_facade();
+
 bool tests_compress_is_available_agrees_with_report();
+
 bool tests_compress_verification_helpers_agree();
 
 

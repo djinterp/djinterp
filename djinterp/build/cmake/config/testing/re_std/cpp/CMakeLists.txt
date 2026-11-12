@@ -12,13 +12,13 @@
 # automatically. The leaf therefore only needs the tests directory on the
 # include path (for the bare "move_family_tests.hpp" include).
 #
-#   Slug: djinterp/restd/move_family
-#     suite header : ${DJINTERP_TESTS_ROOT}/djinterp/restd/move_family/move_family_tests.hpp
-#     sections     : ${DJINTERP_TESTS_ROOT}/djinterp/restd/move_family/move_family_tests_*.cpp
+#   Slug: re_std/cpp/move_family
+#     suite header : ${DJINTERP_TESTS_ROOT}/re_std/cpp/move_family_tests.hpp
+#     sections     : ${DJINTERP_TESTS_ROOT}/re_std/cpp/move_family_tests_*.cpp
 #     runner       : ${CMAKE_CURRENT_SOURCE_DIR}/move_family_tests_runner.cpp
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/restd/move_family")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/re_std/cpp")
 
 # every per-section translation unit for this suite
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/move_family_tests_*.cpp")
@@ -35,3 +35,6 @@ djinterp_add_test_executable(move_family_tests
         ${_sources}
     INCLUDES
         "${_tests_dir}")
+
+# and the leaves below: re_std's C++ suites by component
+djinterp_add_test_subtree(all_re_std_cpp)

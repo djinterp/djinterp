@@ -96,6 +96,21 @@ int main()
     D_TM_RUN(tests_timer_observed_count);
     D_TM_RUN(tests_timer_observe_non_owning);
 
+    // increment, decrement, compare and merge
+    D_TM_RUN(tests_timer_increment);
+    D_TM_RUN(tests_timer_decrement);
+    D_TM_RUN(tests_timer_held_in_range);
+    D_TM_RUN(tests_timer_compare);
+    D_TM_RUN(tests_timer_merge);
+    D_TM_RUN(tests_mutex_timer_operations);
+    // parity with the C timer
+    D_TM_RUN(tests_timer_parity_scripts);
+
+    // event bindings
+    D_TM_RUN(tests_timer_event_span);
+    D_TM_RUN(tests_timer_event_operations);
+    D_TM_RUN(tests_timer_event_mutex_timer);
+
     return rb.finish();
 }
 

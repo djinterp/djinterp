@@ -1,28 +1,33 @@
 /*******************************************************************************
-* djinterp [test]                                            file_tests_pipe.cpp
+* djinterp [cpp][filesys]                                    file_tests_pipe.cpp
 *
-*   XI. PROCESS (file_pipe.hpp) -- a child run through the shell with a pipe on
+*   XI. Process (file_pipe.hpp) -- a child run through the shell with a pipe on
 * its input or output. Compiled out where the platform has no pipes.
 *
-*   A NON-ZERO EXIT IS NOT A FAILURE. This is the contract worth the section.
-* close() reports whether the pipe CLOSED and the child was REAPED; the child's
-* own exit code is a separate question, asked through exit_status(). A command
-* that runs and exits 3 has not failed as an I/O operation -- it has answered.
-* An implementation that folded the exit code into close()'s bool would make
-* every non-zero-exiting command look like a broken pipe, so the case below
-* requires close() to SUCCEED while exit_status() is non-zero.
+* A NON-ZERO EXIT IS NOT A FAILURE
+* --------------------------------
+*   This is the contract worth the section. close() reports whether the pipe
+* closed and the child was reaped; the child's own exit code is a separate
+* question, asked through exit_status(). A command that runs and exits 3 has not
+* failed as an I/O operation -- it has answered. An implementation that folded
+* the exit code into close()'s bool would make every non-zero-exiting command
+* look like a broken pipe, so the case below requires close() to succeed while
+* exit_status() is non-zero.
 *
-*   THE RAW STATUS IS NOT THE EXIT CODE. exit_status() hands back what pclose
-* returned, undecoded -- on POSIX a wait status whose exit code sits in the
-* high byte, so `exit 3` yields 768 rather than 3. The cases therefore assert
-* zero versus non-zero, never a specific number: asserting 3 would pass on a
-* platform that decodes and fail on one that does not, which is a bug in the
-* test rather than in the code.
+* THE RAW STATUS IS NOT THE EXIT CODE
+* -----------------------------------
+*   exit_status() hands back what pclose returned, undecoded -- on POSIX a wait
+* status whose exit code sits in the high byte, so `exit 3` yields 768 rather
+* than 3. The cases therefore assert zero versus non-zero, never a specific
+* number: asserting 3 would pass on a platform that decodes and fail on one that
+* does not, which is a bug in the test rather than in the code.
 *
-*   COMMANDS ARE LITERAL. Every command below is a fixed string. file_pipe.hpp
-* is emphatic that d_pipe_open goes through a shell and that building a command
-* from outside input is a command-injection hole; a test suite is exactly the
-* place not to model the bad habit.
+* COMMANDS ARE LITERAL
+* --------------------
+*   Every command below is a fixed string. file_pipe.hpp is emphatic that
+* d_pipe_open goes through a shell and that building a command from outside
+* input is a command-injection hole; a test suite is exactly the place not to
+* model the bad habit.
 *
 *
 * path:      /tests/djinterp/cpp/filesys/file_tests_pipe.cpp

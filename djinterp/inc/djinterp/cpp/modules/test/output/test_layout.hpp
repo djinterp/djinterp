@@ -1,21 +1,21 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                            test_layout.hpp
+* djinterp [cpp][test]                                           test_layout.hpp
 *
-*   The STRUCTURAL half of the layout-driven report render: fold a finished
+*   The structural half of the layout-driven report render: fold a finished
 * test_report into a layout term, and hand that term to the interpreter.  This
 * is what retires the two hand-written traversals.
 *
-*   WHAT IT REPLACES.
+*   What it replaces.
 *     test_render.hpp      report_layout (7 literal slots) + render_report, one
 *                          walk per string format, plus escaping_sink and four
 *                          layout_*() literal tables.
 *     test_render_pdf.hpp  pdf_layout (the same 7 slots as styled-op lists) +
-*                          a SECOND walk, structurally identical, differing only
+*                          a second walk, structurally identical, differing only
 *                          in emission.  Its own banner named the two traversals
 *                          "a candidate to factor into one visitor-driven walk".
 *   Both are now one fold to a term plus the interpreter's single fold over it.
 *
-*   DTEST DEFINES NO NEW CONSTRUCTS -- and that is the point.  A test report is
+*   Dtest defines no new constructs -- and that is the point.  A test report is
 * a cover, a table of contents, and nested numbered sections holding content;
 * report_dialect.hpp already names exactly that set (body / cover / clearpage /
 * toc / section, with content as a body_ref leaf).  So this header registers
@@ -24,26 +24,43 @@
 * construct the dialect lacks, the fix would be a lowering in a dialect header,
 * not a special case here.
 *
-*   THE MAPPING.
+*   The mapping.
 *       test_report   -> body{ cover, clearpage, toc, clearpage, sections... }
 *       report_module -> section(module name) { content(module summary), units }
 *       report_unit   -> section(unit name)   { content(assertion table) }
-*       report_check  -> a ROW of that table  (see test_report_content.hpp)
+*       report_check  -> a row of that table  (see test_report_content.hpp)
 *   Numbering and the table of contents fall out of the interpreter's passes:
 *   modules number 1, 2, 3 and their units 1.1, 1.2 -- which the old flat
-*   report_layout could not express at all, since it had one literal per LEVEL
+*   report_layout could not express at all, since it had one literal per level
 *   and no notion of depth.
 *
-*   CONTENT IS RESOLVED LATE, BY NAME.  The term carries keys, not text; the
-* resolver binds them against the report at render time
-* (test_report_content.hpp).  The report is borrowed BY REFERENCE into that
-* closure, so it MUST outlive the render call -- the same lifetime rule
-* test_output's deferred producers already carry, and it holds by construction
-* for the entry points below, which build and render within one call.
+* CONTENT IS RESOLVED LATE, BY NAME
+* ---------------------------------
+*   The term carries keys, not text; the resolver binds them against the report
+* at render time (test_report_content.hpp).  The report is borrowed by reference
+* into that closure, so it must outlive the render call -- the same lifetime
+* rule test_output's deferred producers already carry, and it holds by
+* construction for the entry points below, which build and render within one
+* call.
 *
-*   PORTABILITY:
+* PORTABILITY
+* -----------
 *   C++14 (layout.hpp's floor -- the interpreter's higher-order deduction);
 * self-suppresses below it.
+*
+* HOW TO USE
+* ----------
+*     render_test_report(report, renderer);
+*
+*   render_report_layout takes a layout term and signature of the caller's own.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header.
 *
 *
 * path:      /inc/djinterp/cpp/modules/test/output/test_layout.hpp

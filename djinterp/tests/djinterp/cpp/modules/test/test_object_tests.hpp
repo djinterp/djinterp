@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/test]                                      test_object_tests.hpp
+* djinterp [cpp][test]                                     test_object_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_object.hpp.  Each free
 * function exercises one facet of the header and returns true iff every check
@@ -31,8 +31,10 @@
 *                         DTestObject's D_NOEXCEPT_IF qualifiers propagate the
 *                         container's exception specification.
 *
-*   NOTE: the entities under test live in djinterp::test; the tests themselves
-* live, flat, in djinterp::testing.
+* NOTE
+* ----
+*   The entities under test live in djinterp::test; the tests themselves live,
+* flat, in djinterp::testing.
 *
 *
 * path:      /tests/djinterp/cpp/modules/test/test_object_tests.hpp
@@ -137,51 +139,76 @@ using DThrowObject = ::djinterp::test::DTestObject<std::uint8_t, throwmeta>;
 
 // -- DTestMetadata (helper class) --------------------------------------------
 bool tests_test_metadata_types();
+
 bool tests_test_metadata_set();
+
 bool tests_test_metadata_get();
+
 bool tests_test_metadata_contains();
 
 // -- aliases, status constants, storage, traits ------------------------------
 bool tests_object_aliases();
+
 bool tests_object_status_constants();
+
 bool tests_object_storage();
+
 bool tests_object_traits();
 
 // -- construction ------------------------------------------------------------
 bool tests_object_ctor_default();
+
 bool tests_object_ctor_type_id();
+
 bool tests_object_ctor_type_result();
+
 bool tests_object_ctor_metadata();
+
 bool tests_object_ctor_noexcept();
 
 // -- read-only query surface -------------------------------------------------
 bool tests_object_bool_conversion();
+
 bool tests_object_status_result();
+
 bool tests_object_passed_failed();
+
 bool tests_object_type_id();
+
 bool tests_object_callable_query();
 
 // -- mutation ----------------------------------------------------------------
 bool tests_object_evaluate();
+
 bool tests_object_skip();
+
 bool tests_object_set_status();
+
 bool tests_object_set_type_id();
+
 bool tests_object_set_callable_id();
+
 bool tests_object_mutation_sequence();
 
 // -- metadata access ---------------------------------------------------------
 bool tests_object_metadata_accessor();
+
 bool tests_object_set_metadata_copy();
+
 bool tests_object_set_metadata_move();
+
 bool tests_object_metadata_noexcept();
 
 // -- convenience aliases -----------------------------------------------------
 bool tests_basic_test();
+
 bool tests_tagged_test();
 
 // -- factory functions -------------------------------------------------------
 bool tests_make_test();
+
 bool tests_make_interior();
+
 bool tests_make_interior_named();
 
 

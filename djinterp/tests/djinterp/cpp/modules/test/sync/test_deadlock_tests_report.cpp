@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                test_deadlock_tests_report.cpp
+* djinterp [cpp][test]                            test_deadlock_tests_report.cpp
 *
 *   Section TU: DDeadlockEventKind, deadlock_event, and deadlock_report -
 * the plain aggregates the detection machinery fills in.  Single-threaded
