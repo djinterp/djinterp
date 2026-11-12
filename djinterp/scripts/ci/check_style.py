@@ -30,7 +30,10 @@
 #     W  a line over 80 characters (the limit is a target: a long path or
 #        string may pass it)
 #     C  an #include without a trailing comment
-#     F  a function body over 100 lines (ruling cli a)
+#     F  a function body over 100 lines (ruling cli a), unless the body is
+#        constant data (ruling E8): its first line is the comment
+#        "// constant data: exempt from the 100-line limit", and each of its
+#        statements is a static or const declaration or a return
 #     M  an include guard with every segment kept where ruling #71 merges
 #        them: still accepted, while the tree's headers move
 #   Generated files (a banner or first lines that say so) are left out, as
@@ -311,6 +314,43 @@ def check_includes(path, lines, report):
                     name, comment, want))
 
 
+def is_test_data(path):
+    """Whether a path is in a data folder under tests/: a test's input, such
+    as a lexer's corpus, keeps its language's extension but is not code."""
+    return path.startswith('tests/') and '/data/' in path
+
+
+CONSTANT_DATA = '// constant data: exempt from the 100-line limit'
+
+
+def is_constant_data(body):
+    """Whether a function body holds only constant data: each statement at
+    its top level is a static or const declaration or a return.
+    Preprocessor lines, comments, strings and characters are left out."""
+    text = '\n'.join(line for line in body
+                     if not line.lstrip().startswith('#'))
+    text = re.sub(r'/\*.*?\*/', ' ', text, flags=re.S)
+    text = re.sub(r'//[^\n]*', ' ', text)
+    text = re.sub(r'"(\\.|[^"\\\n])*"', '""', text)
+    text = re.sub(r"'(\\.|[^'\\\n])*'", "''", text)
+    statements, depth, current = [], 0, []
+    for character in text:
+        if character in '{(':
+            depth += 1
+        elif character in '})':
+            depth -= 1
+        if character == ';' and depth == 0:
+            statements.append(''.join(current).strip())
+            current = []
+        else:
+            current.append(character)
+    if ''.join(current).strip():
+        return False
+    return bool(statements) and all(
+        re.match(r'(static|const|return)\b', statement)
+        for statement in statements)
+
+
 def check_functions(lines, report):
     """Function bodies over 100 lines: a { alone at the start of a line to a
     } alone at the start of one, where the { does not open a namespace, a
@@ -328,7 +368,15 @@ def check_functions(lines, report):
         elif start is not None and re.match(r'^\}\s*(//.*)?$', line):
             length = number - start - 1
             if length > 100:
-                report('F', start, 'a function body of %d lines' % length)
+                body = lines[start:number - 1]
+                marked = [entry.strip() for entry in body if entry.strip()]
+                if marked and marked[0] == CONSTANT_DATA:
+                    if not is_constant_data(body):
+                        report('F', start, 'a function body of %d lines, '
+                               'marked as constant data but with other '
+                               'statements' % length)
+                else:
+                    report('F', start, 'a function body of %d lines' % length)
             start = None
         elif start is not None and line.startswith('};'):
             start = None
@@ -399,6 +447,7 @@ def collect(paths, changed):
         names += result.stdout.splitlines()
         return sorted(set(name for name in names
                           if name.endswith(EXTENSIONS) and
+                          not is_test_data(name) and
                           os.path.isfile(os.path.join(TREE, name))))
     files = []
     for item in paths or ['inc', 'src', 'tests']:
@@ -409,6 +458,8 @@ def collect(paths, changed):
             continue
         for directory, names, entries in os.walk(full):
             names.sort()
+            if is_test_data(rel(directory) + '/'):
+                continue
             for entry in sorted(entries):
                 if entry.endswith(EXTENSIONS):
                     files.append(rel(os.path.join(directory, entry)))

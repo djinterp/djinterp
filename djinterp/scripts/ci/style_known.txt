@@ -1480,7 +1480,6 @@ tests/djinterp/tools/vparse/workbench_core_tests.cpp	B	1
 tests/parse/corpus_group.c	B	1
 tests/parse/corpus_items.c	B	1
 tests/parse/corpus_lex.c	B	1
-tests/parse/data/stress.cpp	B	1
 tests/parse/decode_literals.c	B	1
 tests/parse/diff_lex.c	B	1
 tests/parse/dump_items.c	B	1

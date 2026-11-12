@@ -69,7 +69,8 @@ def main():
                     continue
                 path = os.path.join(directory, entry)
                 name = os.path.relpath(path, tree).replace(os.sep, '/')
-                if name in EXEMPT or name.startswith(EXEMPT_DIRS):
+                if (name in EXEMPT or name.startswith(EXEMPT_DIRS) or
+                        (name.startswith('tests/') and '/data/' in name)):
                     continue
                 with open(path, encoding='utf-8', errors='replace') as handle:
                     headers = DIRECT.findall(handle.read())
