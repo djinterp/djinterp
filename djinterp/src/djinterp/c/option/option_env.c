@@ -717,10 +717,17 @@ d_internal_option_env_is_named(
     return 0;
 }
 
+// D_INTERNAL_OPTION_ENV_REFUSABLE
+//   constant: the sources a row may refuse: every one but DEFAULT.
+#define D_INTERNAL_OPTION_ENV_REFUSABLE                                        \
+    ( (D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_OVERRIDE) << 1) -              \
+      D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_PROGRAM) )
+
 /**
  * @brief Whether a declaration is well formed: an identifier for a name and
- *        any alias, a known kind, names for a choice or flags, and a default
- *        the row itself accepts: an int's within its range or named.
+ *        any alias, a known kind, names for a choice or flags, sources it
+ *        may refuse, and a default the row itself accepts: an int's within
+ *        its range or named.
  *
  * @param[in] _var  the declaration.
  * @return 1 or 0.
@@ -738,7 +745,8 @@ d_internal_option_env_well_formed(
          ( (_var->unbuilt == NULL) &&
            (_var->unbuilt_count != 0u) )                             ||
          ( (_var->names == NULL) &&
-           (_var->name_count != 0u) ) )
+           (_var->name_count != 0u) )                                ||
+         ( (_var->refused & ~D_INTERNAL_OPTION_ENV_REFUSABLE) != 0u ) )
     {
         return 0;
     }
@@ -2230,6 +2238,12 @@ d_internal_option_env_bind(
     if (d_internal_option_env_source_ok(_source) == 0)
     {
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    }
+
+    // a source the row refuses fails by name, as an unbuilt value does
+    if ((decl->refused & D_OPTION_ENV_REFUSES(_source)) != 0u)
+    {
+        return d_option_fail((int32_t)D_OPTION_STATUS_POLICY_REJECTED);
     }
 
     const uint64_t key  = D_INTERNAL_OPTION_ENV_KEY(_scope, _source, _var);

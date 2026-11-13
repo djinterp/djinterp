@@ -10,10 +10,11 @@
 * while a dispatch runs, unbind turns a letter into a zombie instead of
 * releasing it, and the outermost dispatch reaps the zombies on its way out.
 *
+*
 * path:      /src/djinterp/c/event/event_table_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_table_common.h"  // corresponding header
 // std

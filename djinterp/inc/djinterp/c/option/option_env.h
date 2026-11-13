@@ -78,6 +78,8 @@ TABLE OF CONTENTS
          7.  D_OPTION_ENV_CHOICE
          8.  D_OPTION_ENV_FLAGS
          9.  D_OPTION_ENV_INT_RANGE_NAMED
+        10.  D_OPTION_ENV_ROW_REFUSING
+        11.  D_OPTION_ENV_REFUSES
     3.  Declaring a variable from a knob
          1.  D_OPTION_ENV_BOOL_KNOB
          2.  D_OPTION_ENV_INT_KNOB
@@ -185,6 +187,11 @@ struct dj_option_env_name
 // a default must be one of these. A name in `unbuilt` is ruled
 // but not built: refused by name, with D_OPTION_STATUS_POLICY_REJECTED,
 // never accepted and ignored.
+//   A row may refuse sources, too (1.2.10): a binding from one fails with
+// D_OPTION_STATUS_POLICY_REJECTED, by name, as an unbuilt value does. A row
+// whose value chooses what code a program loads refuses ENVIRONMENT, say, so
+// that only the program, a file it reads and its command line set it.
+// DEFAULT cannot be refused.
 struct dj_option_env_var
 {
     const char*                      name;           // "key_width"
@@ -204,7 +211,9 @@ struct dj_option_env_var
     uint32_t                         name_count;     // entries in names
     uint32_t                         unbuilt_count;  // entries in unbuilt
     int32_t                          kind;           // enum dj_option_env_kind
-    uint32_t                         reserved;       // 0
+    uint32_t                         refused;        // sources it refuses:
+                                                     // D_OPTION_ENV_REFUSES
+                                                     // bits; 0 for none
 };
 
 // 1.2    Declaring a variable
@@ -300,6 +309,24 @@ struct dj_option_env_var
     D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, name, names,                       \
                      sizeof(names) / sizeof((names)[0]), NULL, 0u, NULL, dflt, \
                      minimum, maximum, 0.0, NULL, NULL, help)
+
+// 1.2.10
+// D_OPTION_ENV_ROW_REFUSING
+//   macro: a whole row as D_OPTION_ENV_ROW, which also names the sources it
+// refuses: D_OPTION_ENV_REFUSES bits, joined by '|'; DEFAULT's is not one.
+#define D_OPTION_ENV_ROW_REFUSING(kind, name, names, name_count, unbuilt,      \
+                                  unbuilt_count, text, integer, minimum,       \
+                                  maximum, real, alias, knob, help, refused)   \
+    { (name), (help), (alias), (knob), (names), (unbuilt), (text),             \
+      (int64_t)(integer), (int64_t)(minimum), (int64_t)(maximum),              \
+      (double)(real), (uint32_t)(name_count), (uint32_t)(unbuilt_count),       \
+      (int32_t)(kind), (uint32_t)(refused) }
+
+// 1.2.11
+// D_OPTION_ENV_REFUSES
+//   macro: the bit of a row's refused sources that stands for one source.
+#define D_OPTION_ENV_REFUSES(source)                                           \
+    ((uint32_t)1u << (uint32_t)(source))
 
 // 1.3    Declaring a variable from a knob
 //------------------------------------------------------------------------------

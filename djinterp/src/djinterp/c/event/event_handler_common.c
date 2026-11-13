@@ -6,10 +6,11 @@
 * sequencing node, and the one fold of a word that dispatch and the fused
 * word both use.
 *
+*
 * path:      /src/djinterp/c/event/event_handler_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_handler_common.h"  // corresponding header
 // std

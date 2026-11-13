@@ -18,7 +18,7 @@
 * path:      /src/djinterp/c/option/option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env_registry.h"  // corresponding header
 // std
@@ -546,10 +546,51 @@ d_option_env_registry_import(
     return failure.is_ok ? d_option_ok(count) : failure;
 }
 
+/**
+ * @brief Whether a full name names a bool, for the command line's bare
+ *        forms.
+ *
+ * @param[in] _registry  the registry.
+ * @param[in] _name      the name; need not end in a NUL.
+ * @param[in] _size      its length.
+ * @return 1 for a bool; 0 for a setting of another kind; -1 for a name
+ *         that names nothing, which binding then reports.
+ */
+static int
+d_internal_option_env_registry_is_bool(
+    struct dj_option_env_registry* _registry,
+    const char*                    _name,
+    size_t                         _size
+)
+{
+    struct dj_option_env* const target =
+        d_option_env_registry_target(_registry, _name, _size);
+    struct dj_option_env_value  value;
+    uint32_t                    scope = D_OPTION_ENV_GLOBAL;
+
+    if (target == NULL)
+    {
+        return -1;
+    }
+
+    const struct dj_option_result found =
+        d_option_env_resolve(target, _name, _size, &scope);
+
+    if ( (!found.is_ok) ||
+         (!d_option_env_get(target, scope, found.payload.value,
+                            &value).is_ok) )
+    {
+        return -1;
+    }
+
+    return (value.kind == (int32_t)D_OPTION_ENV_KIND_BOOL) ? 1 : 0;
+}
+
 /*
 d_option_env_registry_take_option
-  dsettings' forms. "--NAME" is the text "true", which only a bool reads, so
-a flag of another kind is refused rather than guessed at.
+  dsettings' forms. A bare "--NAME" or "--no-NAME" is a bool's alone: a
+setting of another kind is refused before anything is bound, since a TEXT
+would take the words "true" and "false" as its text.
 */
 int32_t
 d_option_env_registry_take_option(
@@ -609,6 +650,17 @@ d_option_env_registry_take_option(
 
     const size_t size = (equals != NULL) ? (size_t)(equals - body)
                                          : strlen(body);
+
+    if ( (equals == NULL) &&
+         (d_internal_option_env_registry_is_bool(_registry, body, size) == 0) )
+    {
+        if (_result != NULL)
+        {
+            *_result = result;
+        }
+
+        return -1;
+    }
 
     result = d_option_env_registry_assign(_registry,
                                           body,

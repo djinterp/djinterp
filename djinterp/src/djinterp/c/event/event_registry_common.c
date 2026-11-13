@@ -8,10 +8,11 @@
 * the fused word runs over its snapshot, so the two paths cannot diverge in
 * how a step is invoked, how the unit passes, or where consume cuts off.
 *
+*
 * path:      /src/djinterp/c/event/event_registry_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_registry_common.h"  // corresponding header
 // std

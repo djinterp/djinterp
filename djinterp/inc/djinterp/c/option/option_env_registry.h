@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/option/option_env_registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -271,6 +271,9 @@ struct dj_option_result d_option_env_registry_import(
  * @brief Takes one setting off a command line: "--set NAME=VALUE",
  *        "--NAME=VALUE", "--NAME" for a bool's true, "--no-NAME" for its
  *        false; NAME a full name, bound from the command line.
+ *
+ * @note "--NAME" and "--no-NAME" are a bool's alone: on a setting of any
+ *       other kind they are -1, INVALID_ARGUMENT, and nothing is bound.
  *
  * @param[in,out] _registry  the registry.
  * @param[in]     _argc      the arguments' count.

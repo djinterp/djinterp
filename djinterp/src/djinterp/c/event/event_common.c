@@ -5,10 +5,11 @@
 *   Defines the one out-of-line function event_common.h declares: the prime
 * sizing of bucket arrays. Everything else in that header is inline.
 *
+*
 * path:      /src/djinterp/c/event/event_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_common.h"  // corresponding header
 // std

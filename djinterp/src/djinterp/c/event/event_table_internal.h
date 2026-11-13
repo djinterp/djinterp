@@ -11,10 +11,11 @@
 * public header leaves unassigned (the high bits of the table's flags and of
 * an entry's mask byte) and exist only while a dispatch is running.
 *
+*
 * path:      /src/djinterp/c/event/event_table_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 #ifndef DJINTERP_C_EVENT_EVENT_TABLE_INTERNAL_H

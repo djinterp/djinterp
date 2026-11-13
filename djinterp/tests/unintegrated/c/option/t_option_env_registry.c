@@ -17,7 +17,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -493,6 +493,46 @@ d_tests_registry_bad_options(
 }
 
 /*
+d_tests_registry_bare_forms
+  Tests the following:
+  - "--NAME" and "--no-NAME" on a TEXT setting are -1, INVALID_ARGUMENT,
+    and bind nothing: the title stays its default (lane G's E-9)
+*/
+static void
+d_tests_registry_bare_forms(
+    struct dj_option_env_registry* _registry,
+    struct dj_option_env*          _printer,
+    char**                         _argv,
+    int                            _argc
+)
+{
+    struct dj_option_result result;
+    const uint32_t          title =
+        d_option_env_find(_printer, "title", 5u).payload.value;
+    int                     at;
+
+    for (at = 12; at <= 13; ++at)
+    {
+        const int start = at;
+
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_take_option(_registry,
+                                                                   _argc,
+                                                                   _argv, &at,
+                                                                   &result)
+                                 == -1) &&
+                                (result.payload.error ==
+                                 (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) );
+        D_TESTS_REGISTRY_CHECK(at == start);
+        D_TESTS_REGISTRY_CHECK(strcmp(d_option_env_text(_printer, 0u, title),
+                                      "report") == 0);
+        D_TESTS_REGISTRY_CHECK(d_option_env_source(_printer, 0u, title) ==
+                               D_OPTION_ENV_SOURCE_DEFAULT);
+    }
+
+    return;
+}
+
+/*
 d_tests_registry_command_line
   Tests the following:
   - "--set NAME=VALUE", "--NAME=VALUE", "--NAME", "--no-NAME", each bound
@@ -526,7 +566,9 @@ d_tests_registry_command_line(void)
         (char*)"--printer.stlye=json",
         (char*)"--logger.level",
         (char*)"--set",
-        (char*)"-"
+        (char*)"-",
+        (char*)"--printer.title",
+        (char*)"--no-printer.title"
     };
     const int                            argc = (int)(sizeof(argv) /
                                                       sizeof(argv[0]));
@@ -572,6 +614,7 @@ d_tests_registry_command_line(void)
     D_TESTS_REGISTRY_CHECK(!d_option_env_bool(&registry.frame, 0u, 0u));
 
     d_tests_registry_bad_options(&registry, argv, argc);
+    d_tests_registry_bare_forms(&registry, &printer, argv, argc);
 
     return;
 }

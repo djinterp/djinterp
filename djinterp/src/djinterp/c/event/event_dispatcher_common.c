@@ -14,10 +14,11 @@
 * of the re-entrancy guarantee, plus two refusals while processing -- a
 * nested process, and discarding the occurrence in flight.
 *
+*
 * path:      /src/djinterp/c/event/event_dispatcher_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/event/event_dispatcher_common.h"  // corresponding header
 // std
@@ -225,7 +226,8 @@ int d_event_queue_init(
         return D_EVENT_ERR_ALLOC;
     }
 
-    struct dj_event_slot* slots = malloc(capacity * sizeof(struct dj_event_slot));
+    struct dj_event_slot* slots =
+        malloc(capacity * sizeof(struct dj_event_slot));
     unsigned char*       bytes = malloc(bytes_size);
 
     // all or nothing

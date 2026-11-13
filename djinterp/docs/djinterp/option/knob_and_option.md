@@ -107,6 +107,29 @@ registry:
   for its scope's life and gives it back; in C, `d_option_env_set_value` with
   `D_OPTION_ENV_SOURCE_OVERRIDE`, then `d_option_env_unset_from`.
 
+A **row may refuse sources** it should not trust. A binding from a refused
+source fails by name, with `D_OPTION_STATUS_POLICY_REJECTED`, as an unbuilt
+value does; the value is untouched, and `import` reports the refusal and
+reads the rest. A row whose value chooses what code a program loads refuses
+the environment, so that only the program, a file it reads and its command
+line set it:
+
+```c
+D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search", NULL, 0u,
+                          NULL, 0u, D_CFG_CLI_PLUGIN_SEARCH, 0, INT64_MIN,
+                          INT64_MAX, 0.0, NULL, "D_CFG_CLI_PLUGIN_SEARCH",
+                          "where modules are loaded from",
+                          (D_CFG_CLI_PLUGIN_VARIABLE != 0)
+                              ? 0u
+                              : D_OPTION_ENV_REFUSES(
+                                    D_OPTION_ENV_SOURCE_ENVIRONMENT))
+```
+
+The refused sources are `D_OPTION_ENV_REFUSES` bits, joined by `|`; any source
+but `DEFAULT` may be refused, and a row that names another is not declared.
+Use them where trust decides, not for taste: a setting a user may want from
+the environment should not refuse it.
+
 ## 3. The row says where its value came from
 
 - `d_option_env_get` gives the value in force with its `source` (`DEFAULT`
@@ -167,21 +190,55 @@ parent.
 
 ## To agree by Friday 11-13
 
+Each point says who has agreed to it so far. Lane G answered on 11-10 and
+lane F on 11-11; lanes A and H answer on 11-12.
+
 1. **Djin names** are module slugs: `net`, `cli`, `env_printer`; full names
    are `djin[.scope].variable`.
+   - Agreed by lane G (the kit's own rows go in `cli`) and lane F (`parse`).
 2. **The environment prefix.** Proposed: the registry root's name, upper-cased,
    then `_`: the program's registry is "djinterp", so `DJINTERP_`; a tool's
    own registry, `d_option_env_registry_init(&registry, "dawk")`, `DAWK_`.
+   - Agreed by lane G for `djinterp`. A program of the kit imports
+     `DJINTERP_` and then its own prefix, as `BITWISEDOM_`: for a setting
+     both name, the program's wins, since the second import's binding
+     replaces the first's; a setting only `DJINTERP_` names still binds.
+     Lane G's probe checks all three.
 3. **The CLI's `set`.** Proposed: it binds from `COMMAND_LINE`, so a setting
    typed at the prompt holds over a file and the environment, and a test's
    `OVERRIDE` still holds over it.
+   - Agreed by lane G, by where `set` is typed:
+     - at the 0.9 interpreter's prompt, it binds from `COMMAND_LINE`;
+     - in 0.8, `djinterp set DJIN.KEY=VALUE` is a run of its own, and a
+       binding would die with it, so it writes the statement to the user's
+       settings file, whose bindings are `FILE`'s on the next run;
+     - a one-run override is `--set NAME=VALUE`, which every program of
+       the kit takes through `d_option_env_registry_take_option`.
+   - The settings file is `$XDG_CONFIG_HOME/djinterp/settings` (else
+     `~/.config/djinterp/settings`), and `%APPDATA%\djinterp\settings` on
+     Windows. The program reads it at start, after its djins register, with
+     `d_option_env_registry_load`; a statement that fails is reported by its
+     line, and the rest is read on. A program may read a file of its own
+     after it; both are `FILE`, so its own wins. 0.8 has no system or
+     project file: a project file is one an untrusted checkout could carry,
+     so it waits for rows that refuse it (section 2).
 4. **Threads.** Settings are written before the program starts its threads;
    `d_option_env_cached` is not synchronised, so a read concurrent with a
    write is a race. Proposed for 0.9: publish the generation with
    release/acquire where C11 atomics exist (c/sync), and keep "configure,
    then run" as the rule until then.
+   - Agreed by lane G: the program configures and then runs; 0.8 has no
+     threads of its own.
 5. **Lane G**: `get`, `set` and `--show-origin`'s text. **Lane H**: the knobs
    in net #10, #12, E1, E3 and E9, each mapped to a row.
+   - Agreed by lane G:
+     - `get` and `set` write their values with
+       `d_option_env_format_quoted`, so what they write loads back;
+     - a TEXT that is unset is written by `get` as a comment,
+       `# plugin_path is unset`, so its output still loads;
+     - `--show-origin` shows the source's word, for the binding in force
+       and then the one under it; the file and line come in 0.9, once
+       bindings carry them.
 6. **A per-call options struct.** A module that takes its settings per call,
    as expression core v2 does (`dj_parse_expr_options`,
    `docs/djinterp/parse/expression_core_v2.md`, section 11), keeps the struct,
@@ -189,3 +246,9 @@ parent.
    read through its cache, whose default is the knob. A program that sets
    nothing then still answers to `DJINTERP_PARSE_EXPR_MAX_DEPTH`, and a
    knob that compiles the djin out leaves 0 meaning the knob.
+   - Agreed by lane F. Parse's rows, in a djin named `parse`:
+     - `expr_max_depth`: `D_OPTION_ENV_INT_RANGE_KNOB_NAMED`, 1 to 65535,
+       or `unbounded`;
+     - `expr_max_errors`: `D_OPTION_ENV_INT_RANGE_KNOB`, 1 to 65535;
+     - `expr_error_order`: `D_OPTION_ENV_CHOICE_KNOB` over `leftmost` (1)
+       and `structure_first` (2), its knob defaulting to `leftmost`.

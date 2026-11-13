@@ -2008,6 +2008,118 @@ d_tests_option_env_round_trip_text(void)
     return;
 }
 
+// D_TESTS_REFUSING_ROWS, D_TESTS_REFUSING_BAD
+//   constants: a row that refuses the environment, as lane G's plugin search
+// does when D_CFG_CLI_PLUGIN_VARIABLE is 0; one that refuses a file and the
+// command line; and two rows that refuse what no row may.
+static const struct dj_option_env_var D_TESTS_REFUSING_ROWS[] =
+{
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search", NULL,
+                              0u, NULL, 0u, "/usr/lib", 0, INT64_MIN,
+                              INT64_MAX, 0.0, NULL, NULL, "where code loads",
+                              D_OPTION_ENV_REFUSES(
+                                  D_OPTION_ENV_SOURCE_ENVIRONMENT)),
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_BOOL, "strict", NULL, 0u,
+                              NULL, 0u, NULL, 1, INT64_MIN, INT64_MAX, 0.0,
+                              NULL, NULL, NULL,
+                              D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_FILE) |
+                              D_OPTION_ENV_REFUSES(
+                                  D_OPTION_ENV_SOURCE_COMMAND_LINE))
+};
+
+static const struct dj_option_env_var D_TESTS_REFUSING_BAD[] =
+{
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_INT, "no_default", NULL, 0u,
+                              NULL, 0u, NULL, 0, INT64_MIN, INT64_MAX, 0.0,
+                              NULL, NULL, NULL,
+                              D_OPTION_ENV_REFUSES(
+                                  D_OPTION_ENV_SOURCE_DEFAULT)),
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_INT, "no_source", NULL, 0u,
+                              NULL, 0u, NULL, 0, INT64_MIN, INT64_MAX, 0.0,
+                              NULL, NULL, NULL, D_OPTION_ENV_REFUSES(6))
+};
+
+/*
+d_tests_option_env_refused
+  Tests the following:
+  - a source a row refuses fails by name, with POLICY_REJECTED, from the
+    environment, a file, a statement and the command line alike, and leaves
+    the value as it was
+  - every other source still binds, an override among them
+  - import reports the refusal, and reads the rest
+  - a row that refuses DEFAULT, or a source past OVERRIDE, is not declared
+*/
+static void
+d_tests_option_env_refused(void)
+{
+    struct dj_tests_root_storage storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    struct dj_option_result      result;
+
+    printf("  sources a row refuses\n");
+
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env,
+                                                      D_TESTS_REFUSING_ROWS,
+                                                      2u).is_ok);
+
+    // the environment is refused, and import says so, reading the rest
+#if defined(_WIN32)
+    (void)_putenv_s("DJREFUSE_PLUGIN_SEARCH", "/tmp/elsewhere");
+    (void)_putenv_s("DJREFUSE_STRICT", "false");
+#else
+    (void)setenv("DJREFUSE_PLUGIN_SEARCH", "/tmp/elsewhere", 1);
+    (void)setenv("DJREFUSE_STRICT", "false", 1);
+#endif
+    result = d_option_env_import(&env, "DJREFUSE_");
+    D_TESTS_OPTION_ENV_CHECK( (!result.is_ok) &&
+                              (result.payload.error ==
+                               (int32_t)D_OPTION_STATUS_POLICY_REJECTED) );
+    D_TESTS_OPTION_ENV_CHECK(strcmp(d_option_env_text(&env, 0u, 0u),
+                                    "/usr/lib") == 0);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_source(&env, 0u, 0u) ==
+                             D_OPTION_ENV_SOURCE_DEFAULT);
+    D_TESTS_OPTION_ENV_CHECK( (!d_option_env_bool(&env, 0u, 1u)) &&
+                              (d_option_env_source(&env, 0u, 1u) ==
+                               D_OPTION_ENV_SOURCE_ENVIRONMENT) );
+
+    // every other source binds plugin_search
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_load_from(&env,
+                                                    "plugin_search=/opt/f",
+                                                    D_OPTION_ENV_SOURCE_FILE,
+                                                    NULL).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put_from(&env, "plugin_search=/c",
+                                 D_OPTION_ENV_SOURCE_COMMAND_LINE).is_ok);
+    D_TESTS_OPTION_ENV_CHECK( (strcmp(d_option_env_text(&env, 0u, 0u),
+                                      "/c") == 0) &&
+                              (d_option_env_source(&env, 0u, 0u) ==
+                               D_OPTION_ENV_SOURCE_COMMAND_LINE) );
+
+    // strict refuses a file and the command line, by name, value untouched
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_load_from(&env, "strict=true", D_OPTION_ENV_SOURCE_FILE,
+                               NULL))
+        == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_put_from(&env, "strict=true",
+                              D_OPTION_ENV_SOURCE_COMMAND_LINE))
+        == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
+    D_TESTS_OPTION_ENV_CHECK(!d_option_env_bool(&env, 0u, 1u));
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put_from(&env, "strict=true",
+                                 D_OPTION_ENV_SOURCE_OVERRIDE).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_bool(&env, 0u, 1u));
+
+    // what no row may refuse
+    D_TESTS_OPTION_ENV_CHECK(!d_option_env_declare(&env,
+                                                   &D_TESTS_REFUSING_BAD[0])
+                             .is_ok);
+    D_TESTS_OPTION_ENV_CHECK(!d_option_env_declare(&env,
+                                                   &D_TESTS_REFUSING_BAD[1])
+                             .is_ok);
+
+    return;
+}
+
 /*
 d_tests_option_env_suggestions
   Tests the following:
@@ -2124,6 +2236,7 @@ main(void)
     d_tests_option_env_named_rules();
     d_tests_option_env_round_trip();
     d_tests_option_env_round_trip_text();
+    d_tests_option_env_refused();
     d_tests_option_env_suggestions();
     d_tests_option_env_hot_path();
     d_tests_option_env_random();

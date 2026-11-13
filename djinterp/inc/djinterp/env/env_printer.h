@@ -73,7 +73,7 @@
 * path:      /inc/djinterp/env/env_printer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.12
 *******************************************************************************/
 
 /*
@@ -794,6 +794,7 @@ const char* d_env_style_template(int32_t _style,
 D_STATIC_INLINE const struct dj_env_report*
 d_env_report_here(void)
 {
+    // constant data: exempt from the 100-line limit
     static const struct dj_env_entry language[] =
     {
 #ifdef D_ENV_LANG_CPP_STANDARD_NAME
