@@ -58,18 +58,18 @@
 * that cbrt_c, pow_c and hypot_c are constant expressions, for every family,
 * with the bits they have at run time. It needs no 64-bit integer -- its
 * random numbers come from math_tests_random.h, the same in every build --
-* so that ISO-strict C++98 on a 32-bit target, where d_math_umax has 32
+* so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
 * bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_power.c -o t_power -lm
+*        tests/djinterp/c/modules/math/t_power.c -o t_power -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_power.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MAX, LDBL_MANT_DIG
@@ -203,7 +203,7 @@ d_tests_ulps(long double _got, long double _want, int _mant, int _emin)
 static int
 d_tests_cube_sign(long double _a, long double _mid)
 {
-    const struct d_internal_math_ld_pair cube =
+    const struct dj_internal_math_ld_pair cube =
         d_internal_math_ld_product_exact(_mid, _mid * _mid);
     const long double diff = (cube.high - _a) + cube.low;
 
@@ -1028,7 +1028,7 @@ d_tests_reciprocal_d(
     double _q
 )
 {
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact((long double)_q, (long double)_r);
     const long double rest  = (1.0L - p.high) - p.low;
     const long double above = ( (long double)nextafter(_q, DBL_MAX) -
@@ -2125,14 +2125,14 @@ d_tests_hypot_sign(void)
         const long double b = legs[k][1] / 16.0L;
         const long double m = legs[k][2] / 16.0L;
         // the squares as Dekker's pairs, b's and its neighbours'
-        const struct d_internal_math_ld_pair a2 =
+        const struct dj_internal_math_ld_pair a2 =
             d_internal_math_ld_product_exact(a, a);
-        const struct d_internal_math_ld_pair b2 =
+        const struct dj_internal_math_ld_pair b2 =
             d_internal_math_ld_product_exact(b, b);
-        const struct d_internal_math_ld_pair up =
+        const struct dj_internal_math_ld_pair up =
             d_internal_math_ld_product_exact(d_math_ld_next_up(b),
                                              d_math_ld_next_up(b));
-        const struct d_internal_math_ld_pair down =
+        const struct dj_internal_math_ld_pair down =
             d_internal_math_ld_product_exact(d_math_ld_next_down(b),
                                              d_math_ld_next_down(b));
 

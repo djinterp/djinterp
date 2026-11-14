@@ -118,9 +118,9 @@ parity_make(
         return true;
     }
 
-    const struct d_interval_imax bounds =
-        d_interval_imax_make(static_cast<d_math_imax>(_range.lower),
-                             static_cast<d_math_imax>(_range.upper),
+    const struct dj_interval_imax bounds =
+        d_interval_imax_make(static_cast<dj_math_imax>(_range.lower),
+                             static_cast<dj_math_imax>(_range.upper),
                              D_INTERVAL_CLOSED,
                              0);
 

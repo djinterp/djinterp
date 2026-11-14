@@ -61,14 +61,14 @@ D_EXTERN_C_BEGIN
 //   function: the closed, continuous interval [_lower, _upper], the bounds
 // most tests use.
 D_STATIC_INLINE
-struct d_interval_imax
+struct dj_interval_imax
 d_tests_counter_range(
     int64_t _lower,
     int64_t _upper
 )
 {
-    return d_interval_imax_make((d_math_imax)_lower,
-                                (d_math_imax)_upper,
+    return d_interval_imax_make((dj_math_imax)_lower,
+                                (dj_math_imax)_upper,
                                 D_INTERVAL_CLOSED,
                                 0);
 }

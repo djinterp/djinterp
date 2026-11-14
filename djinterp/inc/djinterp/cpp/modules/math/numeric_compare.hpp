@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/cpp/modules/math/numeric_compare.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -75,7 +75,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../djinterp.hpp"                 // framework root
 #include "../../../c/modules/math/literal.h"  // d_math_literal_length, and
-                                              // d_math_value_order through value.h
+                                              // dj_math_value_order through value.h
 #include "./math_common.hpp"                  // NS_MATH
 // std, from C++17 (the level is known only once the root is in)
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -186,7 +186,7 @@ public:
     typedef std::size_t size_type;
 
     integer_value();
-    integer_value(d_math_umax _value);
+    integer_value(dj_math_umax _value);
     integer_value(numeric_text _digits);
 
     bool        is_zero() const;
@@ -225,15 +225,15 @@ integer_value::integer_value()
     : m_digits()
 {}
 
-// integer_value(d_math_umax)
+// integer_value(dj_math_umax)
 //   the value of an unsigned integer, the widest the build can spell.
 inline
 integer_value::integer_value(
-    d_math_umax _value
+    dj_math_umax _value
 )
     : m_digits()
 {
-    d_math_umax rest = _value;
+    dj_math_umax rest = _value;
 
     // each digit, the least significant first
     while (rest != 0u)
@@ -628,7 +628,7 @@ NS_INTERNAL
 
     // 3.1.2
     // numeric_integer_of_size
-    //   the integer_value of a size_t, which may be wider than d_math_umax.
+    //   the integer_value of a size_t, which may be wider than dj_math_umax.
     inline integer_value
     numeric_integer_of_size(
         std::size_t _count
@@ -777,7 +777,7 @@ private:
 inline
 rational_value::rational_value()
     : m_numerator(),
-      m_denominator(static_cast<d_math_umax>(1u)),
+      m_denominator(static_cast<dj_math_umax>(1u)),
       m_exponent(),
       m_negative(false),
       m_number(true)
@@ -820,7 +820,7 @@ rational_value::m_normalize()
     if (m_numerator.is_zero())
     {
         m_negative    = false;
-        m_denominator = integer_value(static_cast<d_math_umax>(1u));
+        m_denominator = integer_value(static_cast<dj_math_umax>(1u));
         m_exponent    = internal::numeric_signed();
 
         return;
@@ -956,7 +956,7 @@ rational_value::m_compare_magnitude(
 
     // orders two or more apart
     if (apart.magnitude.compare(
-            integer_value(static_cast<d_math_umax>(2u))) >= 0)
+            integer_value(static_cast<dj_math_umax>(2u))) >= 0)
     {
         return (apart.negative) ? 1 : -1;
     }

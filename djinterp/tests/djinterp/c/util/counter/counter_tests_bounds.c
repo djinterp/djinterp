@@ -23,12 +23,12 @@ d_tests_counter_bounds_open
 bool
 d_tests_counter_bounds_open(void)
 {
-    const struct d_interval_imax open     =
+    const struct dj_interval_imax open    =
         d_interval_imax_make(0,
                              10,
                              D_INTERVAL_OPEN,
                              0);
-    const struct d_interval_imax floor    =
+    const struct dj_interval_imax floor   =
         d_interval_imax_make(-3,
                              D_MATH_IMAX_MAX,
                              D_INTERVAL_CLOSED,
@@ -74,7 +74,7 @@ d_tests_counter_bounds_add
 bool
 d_tests_counter_bounds_add(void)
 {
-    const struct d_interval_imax range = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                10);
     bool                         exact = false;
 
@@ -141,7 +141,7 @@ d_tests_counter_bounds_sub
 bool
 d_tests_counter_bounds_sub(void)
 {
-    const struct d_interval_imax range = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                10);
     bool                         exact = false;
 

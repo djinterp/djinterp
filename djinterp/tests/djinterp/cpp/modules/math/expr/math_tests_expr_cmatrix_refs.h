@@ -13,17 +13,17 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/math_tests_expr_cmatrix_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_MATH_EXPR_MATH_TESTS_EXPR_CMATRIX_REFS_H
 #define DJINTERP_TESTS_MATH_EXPR_MATH_TESTS_EXPR_CMATRIX_REFS_H 1
 
 
-// d_tests_cmatrix_ref
+// dj_tests_cmatrix_ref
 //   struct: a matrix's text, its size, and its eigenvalues' parts as text,
 // by real part, then by imaginary part.
-struct d_tests_cmatrix_ref
+struct dj_tests_cmatrix_ref
 {
     const char* text;
     unsigned    n;
@@ -32,7 +32,7 @@ struct d_tests_cmatrix_ref
 };
 
 // the matrices
-static const struct d_tests_cmatrix_ref g_expr_cmatrix_refs[] =
+static const struct dj_tests_cmatrix_ref g_expr_cmatrix_refs[] =
 {
     { "[1, 2; -3, 1]",
       2,

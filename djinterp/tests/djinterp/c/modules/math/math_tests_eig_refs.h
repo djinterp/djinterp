@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/c/modules/math/math_tests_eig_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 
@@ -26,27 +26,27 @@
 #define DJINTERP_TESTS_C_MATH_MATH_TESTS_EIG_REFS_H 1
 
 
-// d_tests_eig_entry
+// dj_tests_eig_entry
 //   struct: a real entry, m 2^e.
-struct d_tests_eig_entry
+struct dj_tests_eig_entry
 {
     long m;
     int  e;
 };
 
-// d_tests_eig_value
+// dj_tests_eig_value
 //   struct: an eigenvalue's two parts, and its condition number, as text.
-struct d_tests_eig_value
+struct dj_tests_eig_value
 {
     const char* re;
     const char* im;
     const char* cond;
 };
 
-// d_tests_eig_case
+// dj_tests_eig_case
 //   struct: an n-by-n matrix, its entries row by row from g_eig_entries at
 // first, its n eigenvalues from g_eig_values at value; what it is.
-struct d_tests_eig_case
+struct dj_tests_eig_case
 {
     int         n;
     int         first;
@@ -57,7 +57,7 @@ struct d_tests_eig_case
 
 // g_eig_entries
 //   every case's entries.
-static const struct d_tests_eig_entry g_eig_entries[] =
+static const struct dj_tests_eig_entry g_eig_entries[] =
 {
     { 0, 0 }, { 3, 0 }, { 0, 0 }, { -1, 0 }, { 1, 0 }, { 0, 0 }, { 1, 1 },
     { 1, 0 }, { 1, 0 }, { 1, 1 }, { 0, 0 }, { 0, 0 }, { 1, 0 }, { 1, 0 },
@@ -1037,7 +1037,7 @@ static const struct d_tests_eig_entry g_eig_entries[] =
 
 // g_eig_values
 //   every case's eigenvalues.
-static const struct d_tests_eig_value g_eig_values[] =
+static const struct dj_tests_eig_value g_eig_values[] =
 {
     { "0",
       "0", "1.00000" },
@@ -2421,7 +2421,7 @@ static const struct d_tests_eig_value g_eig_values[] =
 
 // g_eig_cases
 //   the cases.
-static const struct d_tests_eig_case g_eig_cases[] =
+static const struct dj_tests_eig_case g_eig_cases[] =
 {
     { 1, 0, 0, "zero, order 1" },
     { 1, 1, 1, "[3]" },

@@ -18,7 +18,7 @@
 * (D_MATH_WIDE_SYNTAX). Division truncates, as C's does: the quotient toward
 * zero, and the remainder with the dividend's sign.
 *
-*   LIMBS. The magnitude is kept in limbs of half a word, d_math_umax, the low
+*   LIMBS. The magnitude is kept in limbs of half a word, dj_math_umax, the low
 * limb first. The product of two limbs, plus two limbs more, fits a word, so
 * every step of a product or a quotient is a word's arithmetic. A limb is 32
 * bits where the word is 64, and 16 bits in ISO strict C++98 on a 32-bit
@@ -50,7 +50,7 @@
 * path:      /inc/djinterp/c/modules/math/wide.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -59,14 +59,14 @@ TABLE OF CONTENTS
 1.  LAYOUT AND STATUS
     -----------------
     1.  Limbs
-         1.  d_math_wide_limb
+         1.  dj_math_wide_limb
          2.  D_MATH_WIDE_LIMB_BITS
          3.  D_MATH_WIDE_BITS
          4.  D_MATH_WIDE_LIMBS
     2.  Layout
-         1.  d_math_wide
+         1.  dj_math_wide
     3.  Status
-         1.  d_math_wide_status
+         1.  dj_math_wide_status
     4.  Text
          1.  D_MATH_WIDE_TEXT_SIZE
 2.  LIMB KERNELS
@@ -118,10 +118,10 @@ TABLE OF CONTENTS
 #include <math.h>            // HUGE_VAL
 #include <stddef.h>          // size_t, NULL
 // djinterp
-#include "./math_common.h"   // D_MATH_FN, D_MATH_FN_RT, d_math_imax,
-                             // d_math_umax, D_MATH_UMAX_MAX, D_MATH_IMAX_MAX
-#include "./rational.h"      // d_rational, the two-word helpers,
-                             // d_internal_rational_rounded, _build_f ... _ld
+#include "./math_common.h"   // D_MATH_FN, D_MATH_FN_RT, dj_math_imax,
+                             // dj_math_umax, D_MATH_UMAX_MAX, D_MATH_IMAX_MAX
+#include "./rational.h"      // dj_rational, the two-word helpers,
+                             // dj_internal_rational_rounded, _build_f ... _ld
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // uint16_t, uint32_t,
                                                    // INTMAX_MAX
@@ -135,17 +135,17 @@ TABLE OF CONTENTS
 // 1.1    Limbs
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_math_wide_limb
+// dj_math_wide_limb
 //   type: a limb, half a word: uint32_t where the word is 64 bits, which is
 // where dstdint.h declares intmax_t; uint16_t where it is 32.
 // 1.1.2
 // D_MATH_WIDE_LIMB_BITS
 //   constant: the bits in a limb.
 #if defined(INTMAX_MAX)
-    typedef uint32_t                d_math_wide_limb;
+    typedef uint32_t                dj_math_wide_limb;
     #define D_MATH_WIDE_LIMB_BITS   32u
 #else
-    typedef uint16_t                d_math_wide_limb;
+    typedef uint16_t                dj_math_wide_limb;
     #define D_MATH_WIDE_LIMB_BITS   16u
 #endif
 
@@ -160,32 +160,32 @@ TABLE OF CONTENTS
 // is 16 bits.
 #define D_MATH_WIDE_LIMBS           (D_MATH_WIDE_BITS / D_MATH_WIDE_LIMB_BITS)
 
-D_STATIC_ASSERT( ((sizeof(d_math_wide_limb) * 2u) == sizeof(d_math_umax)),
+D_STATIC_ASSERT( ((sizeof(dj_math_wide_limb) * 2u) == sizeof(dj_math_umax)),
                  "wide.h: a limb must be half a word" );
-D_STATIC_ASSERT( ((sizeof(d_math_wide_limb) * CHAR_BIT) ==
+D_STATIC_ASSERT( ((sizeof(dj_math_wide_limb) * CHAR_BIT) ==
                   D_MATH_WIDE_LIMB_BITS),
                  "wide.h: a limb must have D_MATH_WIDE_LIMB_BITS bits" );
 
 // 1.2    Layout
 //------------------------------------------------------------------------------
 // 1.2.1
-// d_math_wide
+// dj_math_wide
 //   struct: a signed integer of 256 bits: its magnitude in limbs, the low
 // limb first, and its sign. 0 is never negative.
-struct d_math_wide
+struct dj_math_wide
 {
-    d_math_wide_limb limb[D_MATH_WIDE_LIMBS];  // |x|, the low limb first
-    bool             negative;                 // below zero; never for 0
+    dj_math_wide_limb limb[D_MATH_WIDE_LIMBS];  // |x|, the low limb first
+    bool              negative;                 // below zero; never for 0
 };
 
 // 1.3    Status
 //------------------------------------------------------------------------------
 // 1.3.1
-// d_math_wide_status
+// dj_math_wide_status
 //   enum: what a kernel came to. Only D_MATH_WIDE_OK stores a result; the
 // others leave every destination as it was. The first four are rational.h's
 // own, by number too.
-enum d_math_wide_status
+enum dj_math_wide_status
 {
     D_MATH_WIDE_OK       = 0,  // the exact result, stored
     D_MATH_WIDE_OVERFLOW = 1,  // a result its destination cannot hold
@@ -250,8 +250,8 @@ enum d_math_wide_status
 //   the limbs _x needs, its _n limbs less the high ones that are 0: 0 for 0.
 D_MATH_FN size_t
 d_internal_math_wide_length(
-    const d_math_wide_limb* _x,
-    size_t                  _n
+    const dj_math_wide_limb* _x,
+    size_t                   _n
 )
 {
     size_t n = _n;
@@ -270,14 +270,14 @@ d_internal_math_wide_length(
 //   the bits _x needs: 0 for 0, otherwise its top bit's place plus one.
 D_MATH_FN size_t
 d_internal_math_wide_bits(
-    const d_math_wide_limb* _x,
-    size_t                  _n
+    const dj_math_wide_limb* _x,
+    size_t                   _n
 )
 {
     const size_t n = d_internal_math_wide_length(_x, _n);
 
-    d_math_umax top   = 0u;
-    size_t      count = 0u;
+    dj_math_umax top   = 0u;
+    size_t       count = 0u;
 
     // 0
     if (n == 0u)
@@ -285,7 +285,7 @@ d_internal_math_wide_bits(
         return 0u;
     }
 
-    top   = (d_math_umax)_x[n - 1u];
+    top   = (dj_math_umax)_x[n - 1u];
     count = (n - 1u) * (size_t)D_MATH_WIDE_LIMB_BITS;
 
     // the top limb's own bits, one at a time
@@ -306,9 +306,9 @@ d_internal_math_wide_bits(
 // above _b. The highest limb that differs decides.
 D_MATH_FN int
 d_internal_math_wide_cmp(
-    const d_math_wide_limb* _a,
-    const d_math_wide_limb* _b,
-    size_t                  _n
+    const dj_math_wide_limb* _a,
+    const dj_math_wide_limb* _b,
+    size_t                   _n
 )
 {
     size_t i = _n;
@@ -333,57 +333,58 @@ d_internal_math_wide_cmp(
 // d_internal_math_wide_add
 //   _a + _b, _n limbs each, into _out's _n limbs, which may be either
 // operand's; returns the carry out of the top limb, 0 or 1.
-D_MATH_FN d_math_wide_limb
+D_MATH_FN dj_math_wide_limb
 d_internal_math_wide_add(
-    d_math_wide_limb*       _out,
-    const d_math_wide_limb* _a,
-    const d_math_wide_limb* _b,
-    size_t                  _n
+    dj_math_wide_limb*       _out,
+    const dj_math_wide_limb* _a,
+    const dj_math_wide_limb* _b,
+    size_t                   _n
 )
 {
-    d_math_umax carry = 0u;
-    size_t      i     = 0u;
+    dj_math_umax carry = 0u;
+    size_t       i     = 0u;
 
     // limb by limb, the carry passed up
     for (i = 0u; i < _n; ++i)
     {
-        const d_math_umax sum = (d_math_umax)_a[i] + (d_math_umax)_b[i] + carry;
+        const dj_math_umax sum =
+            (dj_math_umax)_a[i] + (dj_math_umax)_b[i] + carry;
 
-        _out[i] = (d_math_wide_limb)(sum & D_INTERNAL_MATH_WIDE_LIMB_MASK);
+        _out[i] = (dj_math_wide_limb)(sum & D_INTERNAL_MATH_WIDE_LIMB_MASK);
         carry   = sum >> D_MATH_WIDE_LIMB_BITS;
     }
 
-    return (d_math_wide_limb)carry;
+    return (dj_math_wide_limb)carry;
 }
 
 // d_internal_math_wide_sub
 //   _a - _b, _n limbs each, into _out's _n limbs, which may be either
 // operand's; returns the borrow out of the top limb, 0 or 1. Where it is 1,
 // _out holds _a - _b + 2^(n h), h the bits in a limb.
-D_MATH_FN d_math_wide_limb
+D_MATH_FN dj_math_wide_limb
 d_internal_math_wide_sub(
-    d_math_wide_limb*       _out,
-    const d_math_wide_limb* _a,
-    const d_math_wide_limb* _b,
-    size_t                  _n
+    dj_math_wide_limb*       _out,
+    const dj_math_wide_limb* _a,
+    const dj_math_wide_limb* _b,
+    size_t                   _n
 )
 {
-    d_math_umax borrow = 0u;
-    size_t      i      = 0u;
+    dj_math_umax borrow = 0u;
+    size_t       i      = 0u;
 
     // limb by limb, the borrow passed up; a word's wrap, cut to a limb, is
     // the difference modulo the limb's range
     for (i = 0u; i < _n; ++i)
     {
-        const d_math_umax have = (d_math_umax)_a[i];
-        const d_math_umax take = (d_math_umax)_b[i] + borrow;
+        const dj_math_umax have = (dj_math_umax)_a[i];
+        const dj_math_umax take = (dj_math_umax)_b[i] + borrow;
 
-        _out[i] = (d_math_wide_limb)((have - take) &
-                                     D_INTERNAL_MATH_WIDE_LIMB_MASK);
+        _out[i] = (dj_math_wide_limb)((have - take) &
+                                      D_INTERNAL_MATH_WIDE_LIMB_MASK);
         borrow  = (have < take) ? 1u : 0u;
     }
 
-    return (d_math_wide_limb)borrow;
+    return (dj_math_wide_limb)borrow;
 }
 
 // 2.5    Products
@@ -392,28 +393,29 @@ d_internal_math_wide_sub(
 // d_internal_math_wide_mul_1
 //   _a * _m + _carry, _a of _n limbs, into _out's _n limbs, which may be
 // _a's; returns the limb carried out of the top.
-D_MATH_FN d_math_wide_limb
+D_MATH_FN dj_math_wide_limb
 d_internal_math_wide_mul_1(
-    d_math_wide_limb*       _out,
-    const d_math_wide_limb* _a,
-    size_t                  _n,
-    d_math_wide_limb        _m,
-    d_math_wide_limb        _carry
+    dj_math_wide_limb*       _out,
+    const dj_math_wide_limb* _a,
+    size_t                   _n,
+    dj_math_wide_limb        _m,
+    dj_math_wide_limb        _carry
 )
 {
-    d_math_umax carry = (d_math_umax)_carry;
-    size_t      i     = 0u;
+    dj_math_umax carry = (dj_math_umax)_carry;
+    size_t       i     = 0u;
 
     // limb by limb: each product, plus the carry, within a word
     for (i = 0u; i < _n; ++i)
     {
-        const d_math_umax part = ((d_math_umax)_a[i] * (d_math_umax)_m) + carry;
+        const dj_math_umax part =
+            ((dj_math_umax)_a[i] * (dj_math_umax)_m) + carry;
 
-        _out[i] = (d_math_wide_limb)(part & D_INTERNAL_MATH_WIDE_LIMB_MASK);
+        _out[i] = (dj_math_wide_limb)(part & D_INTERNAL_MATH_WIDE_LIMB_MASK);
         carry   = part >> D_MATH_WIDE_LIMB_BITS;
     }
 
-    return (d_math_wide_limb)carry;
+    return (dj_math_wide_limb)carry;
 }
 
 // d_internal_math_wide_mul
@@ -423,11 +425,11 @@ d_internal_math_wide_mul_1(
 // within a word.
 D_MATH_FN void
 d_internal_math_wide_mul(
-    d_math_wide_limb*       _out,
-    const d_math_wide_limb* _a,
-    size_t                  _na,
-    const d_math_wide_limb* _b,
-    size_t                  _nb
+    dj_math_wide_limb*       _out,
+    const dj_math_wide_limb* _a,
+    size_t                   _na,
+    const dj_math_wide_limb* _b,
+    size_t                   _nb
 )
 {
     size_t i = 0u;
@@ -441,22 +443,22 @@ d_internal_math_wide_mul(
     // a row for each of _a's limbs, added in at its place
     for (i = 0u; i < _na; ++i)
     {
-        const d_math_umax factor = (d_math_umax)_a[i];
+        const dj_math_umax factor = (dj_math_umax)_a[i];
 
-        d_math_umax carry = 0u;
+        dj_math_umax carry = 0u;
 
         for (j = 0u; j < _nb; ++j)
         {
-            const d_math_umax part = (factor * (d_math_umax)_b[j]) +
-                                     (d_math_umax)_out[i + j] + carry;
+            const dj_math_umax part = (factor * (dj_math_umax)_b[j]) +
+                                      (dj_math_umax)_out[i + j] + carry;
 
-            _out[i + j] = (d_math_wide_limb)(part &
-                                             D_INTERNAL_MATH_WIDE_LIMB_MASK);
+            _out[i + j] = (dj_math_wide_limb)(part &
+                                              D_INTERNAL_MATH_WIDE_LIMB_MASK);
             carry       = part >> D_MATH_WIDE_LIMB_BITS;
         }
 
         // the row's last carry: no earlier row reached this limb
-        _out[i + _nb] = (d_math_wide_limb)carry;
+        _out[i + _nb] = (dj_math_wide_limb)carry;
     }
 
     return;
@@ -468,27 +470,27 @@ d_internal_math_wide_mul(
 // d_internal_math_wide_shl
 //   _a * 2^_s, _a of _n limbs and _s below a limb's bits, into _out's _n
 // limbs, which may be _a's; returns the bits shifted out of the top limb.
-D_MATH_FN d_math_wide_limb
+D_MATH_FN dj_math_wide_limb
 d_internal_math_wide_shl(
-    d_math_wide_limb*       _out,
-    const d_math_wide_limb* _a,
-    size_t                  _n,
-    unsigned                _s
+    dj_math_wide_limb*       _out,
+    const dj_math_wide_limb* _a,
+    size_t                   _n,
+    unsigned                 _s
 )
 {
-    d_math_umax carry = 0u;
-    size_t      i     = 0u;
+    dj_math_umax carry = 0u;
+    size_t       i     = 0u;
 
     // from the low limb up, each limb's top bits carried into the next
     for (i = 0u; i < _n; ++i)
     {
-        const d_math_umax part = ((d_math_umax)_a[i] << _s) | carry;
+        const dj_math_umax part = ((dj_math_umax)_a[i] << _s) | carry;
 
-        _out[i] = (d_math_wide_limb)(part & D_INTERNAL_MATH_WIDE_LIMB_MASK);
+        _out[i] = (dj_math_wide_limb)(part & D_INTERNAL_MATH_WIDE_LIMB_MASK);
         carry   = part >> D_MATH_WIDE_LIMB_BITS;
     }
 
-    return (d_math_wide_limb)carry;
+    return (dj_math_wide_limb)carry;
 }
 
 // d_internal_math_wide_shr
@@ -496,10 +498,10 @@ d_internal_math_wide_shl(
 // _out's _n limbs, which may be _a's.
 D_MATH_FN void
 d_internal_math_wide_shr(
-    d_math_wide_limb*       _out,
-    const d_math_wide_limb* _a,
-    size_t                  _n,
-    unsigned                _s
+    dj_math_wide_limb*       _out,
+    const dj_math_wide_limb* _a,
+    size_t                   _n,
+    unsigned                 _s
 )
 {
     size_t i = 0u;
@@ -507,13 +509,13 @@ d_internal_math_wide_shr(
     // from the low limb up, each limb with the next above it
     for (i = 0u; i < _n; ++i)
     {
-        const d_math_umax high = ((i + 1u) < _n) ? (d_math_umax)_a[i + 1u]
-                                                 : 0u;
-        const d_math_umax pair = (high << D_MATH_WIDE_LIMB_BITS) |
-                                 (d_math_umax)_a[i];
+        const dj_math_umax high = ((i + 1u) < _n) ? (dj_math_umax)_a[i + 1u]
+                                                  : 0u;
+        const dj_math_umax pair = (high << D_MATH_WIDE_LIMB_BITS) |
+                                  (dj_math_umax)_a[i];
 
-        _out[i] = (d_math_wide_limb)((pair >> _s) &
-                                     D_INTERNAL_MATH_WIDE_LIMB_MASK);
+        _out[i] = (dj_math_wide_limb)((pair >> _s) &
+                                      D_INTERNAL_MATH_WIDE_LIMB_MASK);
     }
 
     return;
@@ -526,30 +528,30 @@ d_internal_math_wide_shr(
 //   _a / _d, _a of _n limbs and _d a nonzero limb: the quotient into _q's _n
 // limbs, which may be _a's, and the remainder returned. Each step divides
 // the remainder so far, which is below _d, and the next limb, within a word.
-D_MATH_FN d_math_wide_limb
+D_MATH_FN dj_math_wide_limb
 d_internal_math_wide_divmod_1(
-    d_math_wide_limb*       _q,
-    const d_math_wide_limb* _a,
-    size_t                  _n,
-    d_math_wide_limb        _d
+    dj_math_wide_limb*       _q,
+    const dj_math_wide_limb* _a,
+    size_t                   _n,
+    dj_math_wide_limb        _d
 )
 {
-    d_math_umax rest = 0u;
-    size_t      i    = _n;
+    dj_math_umax rest = 0u;
+    size_t       i    = _n;
 
     // from the highest limb down
     while (i > 0u)
     {
         --i;
 
-        const d_math_umax part = (rest << D_MATH_WIDE_LIMB_BITS) |
-                                 (d_math_umax)_a[i];
+        const dj_math_umax part = (rest << D_MATH_WIDE_LIMB_BITS) |
+                                  (dj_math_umax)_a[i];
 
-        _q[i] = (d_math_wide_limb)(part / (d_math_umax)_d);
-        rest  = part % (d_math_umax)_d;
+        _q[i] = (dj_math_wide_limb)(part / (dj_math_umax)_d);
+        rest  = part % (dj_math_umax)_d;
     }
 
-    return (d_math_wide_limb)rest;
+    return (dj_math_wide_limb)rest;
 }
 
 // d_internal_math_wide_divmod
@@ -567,23 +569,23 @@ d_internal_math_wide_divmod_1(
 // was one too large still, and the divisor is added back (D6).
 D_MATH_FN void
 d_internal_math_wide_divmod(
-    d_math_wide_limb*       _q,
-    d_math_wide_limb*       _r,
-    const d_math_wide_limb* _a,
-    size_t                  _na,
-    const d_math_wide_limb* _b,
-    size_t                  _nb,
-    d_math_wide_limb*       _work
+    dj_math_wide_limb*       _q,
+    dj_math_wide_limb*       _r,
+    const dj_math_wide_limb* _a,
+    size_t                   _na,
+    const dj_math_wide_limb* _b,
+    size_t                   _nb,
+    dj_math_wide_limb*       _work
 )
 {
-    const d_math_umax base = D_INTERNAL_MATH_WIDE_LIMB_MASK + 1u;
+    const dj_math_umax base = D_INTERNAL_MATH_WIDE_LIMB_MASK + 1u;
 
-    d_math_wide_limb* u     = _work;               // _a, _na + 1 limbs
-    d_math_wide_limb* v     = _work + _na + 1u;    // _b, _nb limbs
-    d_math_umax       top   = 0u;
-    unsigned          shift = 0u;
-    size_t            i     = 0u;
-    size_t            j     = 0u;
+    dj_math_wide_limb* u     = _work;              // _a, _na + 1 limbs
+    dj_math_wide_limb* v     = _work + _na + 1u;   // _b, _nb limbs
+    dj_math_umax       top   = 0u;
+    unsigned           shift = 0u;
+    size_t             i     = 0u;
+    size_t             j     = 0u;
 
     // a divisor of one limb: the short division
     if (_nb == 1u)
@@ -595,7 +597,7 @@ d_internal_math_wide_divmod(
 
     // normalized: the divisor shifted until its top bit is set, and the
     // dividend alike, into a limb more
-    top = (d_math_umax)_b[_nb - 1u];
+    top = (dj_math_umax)_b[_nb - 1u];
 
     while ((top & (base >> 1)) == 0u)
     {
@@ -613,26 +615,26 @@ d_internal_math_wide_divmod(
     {
         --j;
 
-        const d_math_umax top_two =
-            ((d_math_umax)u[j + _nb] << D_MATH_WIDE_LIMB_BITS) |
-            (d_math_umax)u[j + _nb - 1u];
+        const dj_math_umax top_two =
+            ((dj_math_umax)u[j + _nb] << D_MATH_WIDE_LIMB_BITS) |
+            (dj_math_umax)u[j + _nb - 1u];
 
-        d_math_umax guess  = top_two / (d_math_umax)v[_nb - 1u];
-        d_math_umax rest   = top_two % (d_math_umax)v[_nb - 1u];
-        d_math_umax carry  = 0u;
-        d_math_umax borrow = 0u;
-        d_math_umax have   = 0u;
-        d_math_umax take   = 0u;
+        dj_math_umax guess  = top_two / (dj_math_umax)v[_nb - 1u];
+        dj_math_umax rest   = top_two % (dj_math_umax)v[_nb - 1u];
+        dj_math_umax carry  = 0u;
+        dj_math_umax borrow = 0u;
+        dj_math_umax have   = 0u;
+        dj_math_umax take   = 0u;
 
         // too large: a limb's range or more, or past what the divisor's
         // second limb allows; the test needs rest below a limb's range
         while ( (guess >= base) ||
-                ( (guess * (d_math_umax)v[_nb - 2u]) >
+                ( (guess * (dj_math_umax)v[_nb - 2u]) >
                   ((rest << D_MATH_WIDE_LIMB_BITS) |
-                   (d_math_umax)u[j + _nb - 2u]) ) )
+                   (dj_math_umax)u[j + _nb - 2u]) ) )
         {
             --guess;
-            rest = rest + (d_math_umax)v[_nb - 1u];
+            rest = rest + (dj_math_umax)v[_nb - 1u];
 
             if (rest >= base)
             {
@@ -644,13 +646,13 @@ d_internal_math_wide_divmod(
         // j + _nb
         for (i = 0u; i < _nb; ++i)
         {
-            const d_math_umax part = (guess * (d_math_umax)v[i]) + carry;
+            const dj_math_umax part = (guess * (dj_math_umax)v[i]) + carry;
 
-            have     = (d_math_umax)u[i + j];
+            have     = (dj_math_umax)u[i + j];
             take     = (part & D_INTERNAL_MATH_WIDE_LIMB_MASK) + borrow;
             carry    = part >> D_MATH_WIDE_LIMB_BITS;
-            u[i + j] = (d_math_wide_limb)((have - take) &
-                                          D_INTERNAL_MATH_WIDE_LIMB_MASK);
+            u[i + j] = (dj_math_wide_limb)((have - take) &
+                                           D_INTERNAL_MATH_WIDE_LIMB_MASK);
             borrow   = (have < take) ? 1u : 0u;
         }
 
@@ -658,7 +660,7 @@ d_internal_math_wide_divmod(
         // is left is below the divisor, so that limb is 0 after, and no step
         // reads it again: the next works a limb lower, and the remainder is
         // the low _nb limbs
-        have = (d_math_umax)u[j + _nb];
+        have = (dj_math_umax)u[j + _nb];
         take = carry + borrow;
 
         // below zero: one too large still, and the divisor added back; its
@@ -670,16 +672,16 @@ d_internal_math_wide_divmod(
 
             for (i = 0u; i < _nb; ++i)
             {
-                const d_math_umax sum = (d_math_umax)u[i + j] +
-                                        (d_math_umax)v[i] + carry;
+                const dj_math_umax sum = (dj_math_umax)u[i + j] +
+                                         (dj_math_umax)v[i] + carry;
 
-                u[i + j] = (d_math_wide_limb)(sum &
-                                              D_INTERNAL_MATH_WIDE_LIMB_MASK);
+                u[i + j] = (dj_math_wide_limb)(sum &
+                                               D_INTERNAL_MATH_WIDE_LIMB_MASK);
                 carry    = sum >> D_MATH_WIDE_LIMB_BITS;
             }
         }
 
-        _q[j] = (d_math_wide_limb)guess;
+        _q[j] = (dj_math_wide_limb)guess;
     }
 
     // the remainder, below the divisor, in the low _nb limbs: shifted back
@@ -701,18 +703,18 @@ d_internal_math_wide_divmod(
 // d_internal_math_wide_limb_at
 //   the bits of _x, _n limbs, from _place up, a limb's worth, as a word;
 // the bits past the top are 0.
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_internal_math_wide_limb_at(
-    const d_math_wide_limb* _x,
-    size_t                  _n,
-    size_t                  _place
+    const dj_math_wide_limb* _x,
+    size_t                   _n,
+    size_t                   _place
 )
 {
     const size_t   at   = _place / (size_t)D_MATH_WIDE_LIMB_BITS;
     const unsigned part = (unsigned)(_place % (size_t)D_MATH_WIDE_LIMB_BITS);
-    const d_math_umax low  = (at < _n) ? (d_math_umax)_x[at] : 0u;
-    const d_math_umax high = ((at + 1u) < _n) ? (d_math_umax)_x[at + 1u]
-                                              : 0u;
+    const dj_math_umax low  = (at < _n) ? (dj_math_umax)_x[at] : 0u;
+    const dj_math_umax high = ((at + 1u) < _n) ? (dj_math_umax)_x[at + 1u]
+                                               : 0u;
 
     return (((high << D_MATH_WIDE_LIMB_BITS) | low) >> part) &
            D_INTERNAL_MATH_WIDE_LIMB_MASK;
@@ -722,9 +724,9 @@ d_internal_math_wide_limb_at(
 //   whether any bit of _x, _n limbs, below _place is set.
 D_MATH_FN bool
 d_internal_math_wide_any_below(
-    const d_math_wide_limb* _x,
-    size_t                  _n,
-    size_t                  _place
+    const dj_math_wide_limb* _x,
+    size_t                   _n,
+    size_t                   _place
 )
 {
     const size_t   whole = _place / (size_t)D_MATH_WIDE_LIMB_BITS;
@@ -745,8 +747,8 @@ d_internal_math_wide_any_below(
     // the low bits of the next
     return ( (part != 0u) &&
              (whole < _n) &&
-             (((d_math_umax)_x[whole] &
-               (((d_math_umax)1 << part) - 1u)) != 0u) );
+             (((dj_math_umax)_x[whole] &
+               (((dj_math_umax)1 << part) - 1u)) != 0u) );
 }
 
 // d_internal_math_wide_round
@@ -755,14 +757,14 @@ d_internal_math_wide_any_below(
 // P bits; otherwise the mantissa is its top P bits, and the bit below them,
 // and whether anything is set below that, round it. A mantissa of P ones
 // that rounds up is 2^(P - 1), a binade up.
-D_MATH_FN struct d_internal_rational_rounded
+D_MATH_FN struct dj_internal_rational_rounded
 d_internal_math_wide_round(
-    const d_math_wide_limb* _x,
-    size_t                  _n,
-    unsigned                _precision
+    const dj_math_wide_limb* _x,
+    size_t                   _n,
+    unsigned                 _precision
 )
 {
-    const struct d_internal_rational_wide one = { 0u, 1u };
+    const struct dj_internal_rational_wide one = { 0u, 1u };
 
     const size_t   bits  = d_internal_math_wide_bits(_x, _n);
     const size_t   low   = (bits > (size_t)_precision)
@@ -770,14 +772,14 @@ d_internal_math_wide_round(
     const unsigned taken = (bits > (size_t)_precision) ? _precision
                                                        : (unsigned)bits;
 
-    struct d_internal_rational_rounded result   = { { 0u, 0u }, 0, 0 };
-    struct d_internal_rational_wide    mantissa = { 0u, 0u };
-    d_math_umax                        part[4]  = { 0u, 0u, 0u, 0u };
-    unsigned                           k        = 0u;
-    int                                exponent = 0;
-    bool                               half     = false;
-    bool                               sticky   = false;
-    bool                               up       = false;
+    struct dj_internal_rational_rounded result   = { { 0u, 0u }, 0, 0 };
+    struct dj_internal_rational_wide    mantissa = { 0u, 0u };
+    dj_math_umax                        part[4]  = { 0u, 0u, 0u, 0u };
+    unsigned                            k        = 0u;
+    int                                 exponent = 0;
+    bool                                half     = false;
+    bool                                sticky   = false;
+    bool                                up       = false;
 
     // the bits taken, a limb's worth at a time from the lowest; those past
     // the top are 0, so the top part needs no cut
@@ -847,26 +849,26 @@ d_internal_math_wide_round(
 //------------------------------------------------------------------------------
 // _x as a wide integer; every value of the family is one.
 
-D_MATH_FN struct d_math_wide
+D_MATH_FN struct dj_math_wide
 d_math_wide_from_umax(
-    d_math_umax _x
+    dj_math_umax _x
 )
 {
-    struct d_math_wide result = { { 0u }, false };
+    struct dj_math_wide result = { { 0u }, false };
 
     // a word is two limbs
-    result.limb[0] = (d_math_wide_limb)(_x & D_INTERNAL_MATH_WIDE_LIMB_MASK);
-    result.limb[1] = (d_math_wide_limb)(_x >> D_MATH_WIDE_LIMB_BITS);
+    result.limb[0] = (dj_math_wide_limb)(_x & D_INTERNAL_MATH_WIDE_LIMB_MASK);
+    result.limb[1] = (dj_math_wide_limb)(_x >> D_MATH_WIDE_LIMB_BITS);
 
     return result;
 }
 
-D_MATH_FN struct d_math_wide
+D_MATH_FN struct dj_math_wide
 d_math_wide_from_imax(
-    d_math_imax _x
+    dj_math_imax _x
 )
 {
-    struct d_math_wide result =
+    struct dj_math_wide result =
         d_math_wide_from_umax(d_internal_rational_magnitude(_x));
 
     result.negative = (_x < 0);
@@ -881,7 +883,7 @@ d_math_wide_from_imax(
 
 D_MATH_FN bool
 d_math_wide_is_valid(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
     return ( (!_x.negative) ||
@@ -898,12 +900,12 @@ d_math_wide_is_valid(
 //------------------------------------------------------------------------------
 // -_x and |_x|, which every wide integer has: the range is symmetric.
 
-D_MATH_FN struct d_math_wide
+D_MATH_FN struct dj_math_wide
 d_math_wide_neg(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
-    struct d_math_wide result = _x;
+    struct dj_math_wide result = _x;
 
     // 0 stays as it is
     result.negative =
@@ -913,12 +915,12 @@ d_math_wide_neg(
     return result;
 }
 
-D_MATH_FN struct d_math_wide
+D_MATH_FN struct dj_math_wide
 d_math_wide_abs(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
-    struct d_math_wide result = _x;
+    struct dj_math_wide result = _x;
 
     result.negative = false;
 
@@ -933,15 +935,15 @@ d_math_wide_abs(
 // add their magnitudes, and a carry out of the top passes 2^256 - 1; unlike
 // signs take the smaller magnitude from the larger, which never fails, and
 // the larger's sign.
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_internal_math_wide_sum(
-    struct d_math_wide* _out,
-    struct d_math_wide  _a,
-    struct d_math_wide  _b,
-    bool                _b_negative
+    struct dj_math_wide* _out,
+    struct dj_math_wide  _a,
+    struct dj_math_wide  _b,
+    bool                 _b_negative
 )
 {
-    struct d_math_wide result = { { 0u }, false };
+    struct dj_math_wide result = { { 0u }, false };
 
     // like signs: the magnitudes add
     if (_a.negative == _b_negative)
@@ -980,21 +982,21 @@ d_internal_math_wide_sum(
 // d_math_wide_add, d_math_wide_sub
 //   _a + _b and _a - _b into *_out, or D_MATH_WIDE_OVERFLOW past 2^256 - 1.
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_add(
-    struct d_math_wide* _out,
-    struct d_math_wide  _a,
-    struct d_math_wide  _b
+    struct dj_math_wide* _out,
+    struct dj_math_wide  _a,
+    struct dj_math_wide  _b
 )
 {
     return d_internal_math_wide_sum(_out, _a, _b, _b.negative);
 }
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_sub(
-    struct d_math_wide* _out,
-    struct d_math_wide  _a,
-    struct d_math_wide  _b
+    struct dj_math_wide* _out,
+    struct dj_math_wide  _a,
+    struct dj_math_wide  _b
 )
 {
     return d_internal_math_wide_sum(_out, _a, _b, !_b.negative);
@@ -1006,11 +1008,11 @@ d_math_wide_sub(
 // d_math_wide_mul
 //   _a * _b into *_out, or D_MATH_WIDE_OVERFLOW past 2^256 - 1: the whole
 // product, of twice the limbs, and its high half must be 0.
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_mul(
-    struct d_math_wide* _out,
-    struct d_math_wide  _a,
-    struct d_math_wide  _b
+    struct dj_math_wide* _out,
+    struct dj_math_wide  _a,
+    struct dj_math_wide  _b
 )
 {
     const size_t na =
@@ -1018,9 +1020,9 @@ d_math_wide_mul(
     const size_t nb =
         d_internal_math_wide_length(_b.limb, D_MATH_WIDE_LIMBS);
 
-    d_math_wide_limb   product[2u * D_MATH_WIDE_LIMBS] = { 0u };
-    struct d_math_wide result = { { 0u }, false };
-    size_t             i      = 0u;
+    dj_math_wide_limb   product[2u * D_MATH_WIDE_LIMBS] = { 0u };
+    struct dj_math_wide result = { { 0u }, false };
+    size_t              i      = 0u;
 
     // the limbs that are not 0, multiplied
     d_internal_math_wide_mul(product, _a.limb, na, _b.limb, nb);
@@ -1054,12 +1056,12 @@ d_math_wide_mul(
 // remainder, with _a's sign, into *_remainder, each where not NULL; _a is
 // the quotient times _b, plus the remainder. A nonzero _a over 0 is
 // D_MATH_WIDE_POLE, and 0 over 0 D_MATH_WIDE_INVALID; nothing else fails.
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_divmod(
-    struct d_math_wide* _quotient,
-    struct d_math_wide* _remainder,
-    struct d_math_wide  _a,
-    struct d_math_wide  _b
+    struct dj_math_wide* _quotient,
+    struct dj_math_wide* _remainder,
+    struct dj_math_wide  _a,
+    struct dj_math_wide  _b
 )
 {
     const size_t na =
@@ -1067,9 +1069,9 @@ d_math_wide_divmod(
     const size_t nb =
         d_internal_math_wide_length(_b.limb, D_MATH_WIDE_LIMBS);
 
-    struct d_math_wide q = { { 0u }, false };
-    struct d_math_wide r = { { 0u }, false };
-    d_math_wide_limb   work[(2u * D_MATH_WIDE_LIMBS) + 1u] = { 0u };
+    struct dj_math_wide q = { { 0u }, false };
+    struct dj_math_wide r = { { 0u }, false };
+    dj_math_wide_limb   work[(2u * D_MATH_WIDE_LIMBS) + 1u] = { 0u };
 
     // by zero
     if (nb == 0u)
@@ -1115,21 +1117,21 @@ d_math_wide_divmod(
 // remainder replacing the smaller until it is 0. gcd(_a, 0) is |_a|, and
 // gcd(0, 0) is 0.
 
-D_MATH_FN struct d_math_wide
+D_MATH_FN struct dj_math_wide
 d_math_wide_gcd(
-    struct d_math_wide _a,
-    struct d_math_wide _b
+    struct dj_math_wide _a,
+    struct dj_math_wide _b
 )
 {
-    const struct d_math_wide none = { { 0u }, false };
+    const struct dj_math_wide none = { { 0u }, false };
 
-    struct d_math_wide larger    = d_math_wide_abs(_a);
-    struct d_math_wide smaller   = d_math_wide_abs(_b);
-    struct d_math_wide rest      = none;
-    d_math_wide_limb   quotient[D_MATH_WIDE_LIMBS]         = { 0u };
-    d_math_wide_limb   work[(2u * D_MATH_WIDE_LIMBS) + 1u] = { 0u };
-    size_t             n_larger  = 0u;
-    size_t             n_smaller =
+    struct dj_math_wide larger   = d_math_wide_abs(_a);
+    struct dj_math_wide smaller  = d_math_wide_abs(_b);
+    struct dj_math_wide rest     = none;
+    dj_math_wide_limb   quotient[D_MATH_WIDE_LIMBS]         = { 0u };
+    dj_math_wide_limb   work[(2u * D_MATH_WIDE_LIMBS) + 1u] = { 0u };
+    size_t              n_larger  = 0u;
+    size_t              n_smaller =
         d_internal_math_wide_length(smaller.limb, D_MATH_WIDE_LIMBS);
 
     // until the remainder is 0
@@ -1171,7 +1173,7 @@ d_math_wide_gcd(
 
 D_MATH_FN int
 d_math_wide_sign(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
     // 0
@@ -1185,7 +1187,7 @@ d_math_wide_sign(
 
 D_MATH_FN unsigned
 d_math_wide_bits(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
     return (unsigned)d_internal_math_wide_bits(_x.limb, D_MATH_WIDE_LIMBS);
@@ -1198,8 +1200,8 @@ d_math_wide_bits(
 
 D_MATH_FN bool
 d_math_wide_eq(
-    struct d_math_wide _a,
-    struct d_math_wide _b
+    struct dj_math_wide _a,
+    struct dj_math_wide _b
 )
 {
     return ( (_a.negative == _b.negative) &&
@@ -1209,8 +1211,8 @@ d_math_wide_eq(
 
 D_MATH_FN int
 d_math_wide_cmp(
-    struct d_math_wide _a,
-    struct d_math_wide _b
+    struct dj_math_wide _a,
+    struct dj_math_wide _b
 )
 {
     const int a_sign = d_math_wide_sign(_a);
@@ -1239,28 +1241,28 @@ d_math_wide_cmp(
 
 // 6.1    The family's integers
 //------------------------------------------------------------------------------
-// _x into *_out, or D_MATH_WIDE_OVERFLOW where it lies outside d_math_imax,
-// or outside d_math_umax: past a word, or, for d_math_umax, below 0.
+// _x into *_out, or D_MATH_WIDE_OVERFLOW where it lies outside dj_math_imax,
+// or outside dj_math_umax: past a word, or, for dj_math_umax, below 0.
 
 // d_internal_math_wide_low_word
 //   _x's low word: its two low limbs.
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_internal_math_wide_low_word(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
-    return (d_math_umax)_x.limb[0] |
-           ((d_math_umax)_x.limb[1] << D_MATH_WIDE_LIMB_BITS);
+    return (dj_math_umax)_x.limb[0] |
+           ((dj_math_umax)_x.limb[1] << D_MATH_WIDE_LIMB_BITS);
 }
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_to_imax(
-    d_math_imax*       _out,
-    struct d_math_wide _x
+    dj_math_imax*       _out,
+    struct dj_math_wide _x
 )
 {
-    const d_math_umax most  = (d_math_umax)D_MATH_IMAX_MAX;
-    const d_math_umax value = d_internal_math_wide_low_word(_x);
+    const dj_math_umax most  = (dj_math_umax)D_MATH_IMAX_MAX;
+    const dj_math_umax value = d_internal_math_wide_low_word(_x);
 
     // past a word, or past the family's end on its side; the negative end
     // is one further
@@ -1273,16 +1275,16 @@ d_math_wide_to_imax(
 
     // below zero: -(value - 1) - 1, which reaches the least without passing
     // the greatest
-    *_out = (_x.negative) ? (-(d_math_imax)(value - 1u) - 1)
-                          : (d_math_imax)value;
+    *_out = (_x.negative) ? (-(dj_math_imax)(value - 1u) - 1)
+                          : (dj_math_imax)value;
 
     return D_MATH_WIDE_OK;
 }
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_to_umax(
-    d_math_umax*       _out,
-    struct d_math_wide _x
+    dj_math_umax*       _out,
+    struct dj_math_wide _x
 )
 {
     // below zero, or past a word
@@ -1303,12 +1305,12 @@ d_math_wide_to_umax(
 // A rational in the one form is an integer where its denominator is 1:
 // d_math_wide_from_rational gives it, and D_MATH_WIDE_FRACTION otherwise.
 // d_math_wide_to_rational gives _x over 1, or D_MATH_WIDE_OVERFLOW where it
-// lies outside d_math_imax.
+// lies outside dj_math_imax.
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_from_rational(
-    struct d_math_wide* _out,
-    struct d_rational   _x
+    struct dj_math_wide* _out,
+    struct dj_rational   _x
 )
 {
     // no integer
@@ -1322,13 +1324,13 @@ d_math_wide_from_rational(
     return D_MATH_WIDE_OK;
 }
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_to_rational(
-    struct d_rational* _out,
-    struct d_math_wide _x
+    struct dj_rational* _out,
+    struct dj_math_wide _x
 )
 {
-    d_math_imax num = 0;
+    dj_math_imax num = 0;
 
     // outside the family
     if (d_math_wide_to_imax(&num, _x) != D_MATH_WIDE_OK)
@@ -1360,13 +1362,13 @@ D_STATIC_ASSERT( ( (DBL_MAX_EXP > (int)D_MATH_WIDE_BITS) &&
 
 D_MATH_FN float
 d_math_wide_to_f(
-    struct d_math_wide _x,
-    int*               _direction
+    struct dj_math_wide _x,
+    int*                _direction
 )
 {
-    struct d_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
-    float                              value   = (float)0;
-    int                                way     = 0;
+    struct dj_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
+    float                               value   = (float)0;
+    int                                 way     = 0;
 
     // 0 is exact; otherwise rounded, and past the range an infinity, above
     // the magnitude
@@ -1398,12 +1400,12 @@ d_math_wide_to_f(
 
 D_MATH_FN double
 d_math_wide_to_d(
-    struct d_math_wide _x,
-    int*               _direction
+    struct dj_math_wide _x,
+    int*                _direction
 )
 {
-    struct d_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
-    double                             value   = (double)0;
+    struct dj_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
+    double                              value   = (double)0;
 
     // 0 is exact; otherwise rounded
     if (d_internal_math_wide_length(_x.limb, D_MATH_WIDE_LIMBS) != 0u)
@@ -1424,12 +1426,12 @@ d_math_wide_to_d(
 
 D_MATH_FN long double
 d_math_wide_to_ld(
-    struct d_math_wide _x,
-    int*               _direction
+    struct dj_math_wide _x,
+    int*                _direction
 )
 {
-    struct d_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
-    long double                        value   = (long double)0;
+    struct dj_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
+    long double                         value   = (long double)0;
 
     // 0 is exact; otherwise rounded
     if (d_internal_math_wide_length(_x.limb, D_MATH_WIDE_LIMBS) != 0u)
@@ -1465,17 +1467,17 @@ d_math_wide_to_ld(
 // ten times greater, plus the digit, and a limb carried out of the top
 // passes 2^256 - 1, where it stays.
 
-D_MATH_FN enum d_math_wide_status
+D_MATH_FN enum dj_math_wide_status
 d_math_wide_from_text(
-    struct d_math_wide* _out,
-    const char*         _text,
-    size_t              _length
+    struct dj_math_wide* _out,
+    const char*          _text,
+    size_t               _length
 )
 {
-    struct d_math_wide result   = { { 0u }, false };
-    size_t             first    = 0u;
-    size_t             i        = 0u;
-    bool               negative = false;
+    struct dj_math_wide result   = { { 0u }, false };
+    size_t              first    = 0u;
+    size_t              i        = 0u;
+    bool                negative = false;
 
     // the sign
     if ( (_length > 0u) &&
@@ -1504,7 +1506,7 @@ d_math_wide_from_text(
     // the digits, the highest first
     for (i = first; i < _length; ++i)
     {
-        const d_math_wide_limb digit = (d_math_wide_limb)(_text[i] - '0');
+        const dj_math_wide_limb digit = (dj_math_wide_limb)(_text[i] - '0');
 
         if (d_internal_math_wide_mul_1(result.limb, result.limb,
                                        D_MATH_WIDE_LIMBS, 10u, digit) != 0u)
@@ -1535,27 +1537,27 @@ d_math_wide_from_text(
 
 D_MATH_FN_RT size_t
 d_math_wide_to_text(
-    char*              _buffer,
-    size_t             _capacity,
-    struct d_math_wide _x
+    char*               _buffer,
+    size_t              _capacity,
+    struct dj_math_wide _x
 )
 {
-    const d_math_wide_limb ten =
-        (d_math_wide_limb)D_INTERNAL_MATH_WIDE_TEN_POWER;
+    const dj_math_wide_limb ten =
+        (dj_math_wide_limb)D_INTERNAL_MATH_WIDE_TEN_POWER;
 
-    struct d_math_wide rest   = _x;
-    char               digits[D_MATH_WIDE_TEXT_SIZE] = { 0 };
-    size_t             n      =
+    struct dj_math_wide rest   = _x;
+    char                digits[D_MATH_WIDE_TEXT_SIZE] = { 0 };
+    size_t              n      =
         d_internal_math_wide_length(_x.limb, D_MATH_WIDE_LIMBS);
-    size_t             count  = 0u;
-    size_t             length = 0u;
-    size_t             at     = 0u;
-    unsigned           k      = 0u;
+    size_t              count  = 0u;
+    size_t              length = 0u;
+    size_t              at     = 0u;
+    unsigned            k      = 0u;
 
     // the groups of digits, the lowest first, and their digits likewise
     do
     {
-        d_math_umax group = (d_math_umax)
+        dj_math_umax group = (dj_math_umax)
             d_internal_math_wide_divmod_1(rest.limb, rest.limb, n, ten);
 
         n = d_internal_math_wide_length(rest.limb, n);

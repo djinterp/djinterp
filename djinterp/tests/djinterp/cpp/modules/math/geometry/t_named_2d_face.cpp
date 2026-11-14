@@ -9,13 +9,13 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/math/geometry/t_named_2d_face.cpp -o t -lm
+*         tests/djinterp/cpp/modules/math/geometry/t_named_2d_face.cpp -o t -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/geometry/t_named_2d_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/geometry/named_2d.hpp"  // tested
 // std

@@ -9,59 +9,56 @@ floating-point kernel exists three times, for float, double and long double
 text, a template below in which @T@ is the type, @S@ the family's suffix and
 @P@, @EMIN@, @EMAX@, @MIN@, @MAX@, @EPS@, @DIG@ its <float.h> properties.
 
-It writes:
+It writes, each into inc/djinterp/c/modules/math/:
 
-  inc/djinterp/c/modules/math/float_order.h     the order of a floating-point
-                                        type's values: successor,
-                                        predecessor, ordinal distance and
-                                        advance -- in pure arithmetic, so
-                                        the same text is constexpr from C++14
-  inc/djinterp/c/modules/math/interval_float.h  interval's floating-point families
-  inc/djinterp/c/modules/math/elementary.h      square root, arc-sine, arc-cosine,
-                                        sine and cosine, each as a
-                                        pure-arithmetic (constexpr) form and a
-                                        C library form, and the long double
-                                        kernels the headers below share
-  inc/djinterp/c/modules/math/exponential.h     exponentials and logarithms, to
-                                        bases e, 2 and 10, in the same two
-                                        forms
-  inc/djinterp/c/modules/math/tangent.h         tangent, arc-tangent and the
-                                        two-argument arc-tangent, in the same
-                                        two forms
-  inc/djinterp/c/modules/math/hyperbolic.h      hyperbolic sine, cosine and tangent,
-                                        in the same two forms
-  inc/djinterp/c/modules/math/power.h           the cube root, the power and the
-                                        hypotenuse, in the same two forms
-  inc/djinterp/c/modules/math/remainder.h       the remainders, fmod, remainder and
-                                        remquo: exact, in the same two forms
-  inc/djinterp/c/modules/math/nearest_integer.h floor, ceil, trunc and round: exact,
-                                        over the whole range, in the same two
-                                        forms
-  inc/djinterp/c/modules/math/vec.h             fixed-size vectors, the C core of
-                                        linear_algebra/vector.hpp
-  inc/djinterp/c/modules/math/mat.h             fixed-size matrices, the C core of
-                                        linear_algebra/matrix.hpp
-  inc/djinterp/c/modules/math/quat.h            quaternions, the C core of both
-                                        quaternion headers
-  inc/djinterp/c/modules/math/coord.h           coordinate systems, the C core of
-                                        math/coordinate/*.hpp
-  inc/djinterp/c/modules/math/isect.h           ray intersections, the C core of the
-                                        geometry headers' ray tests
-  inc/djinterp/c/modules/math/plane.h           the plane: crossings and polygons, the
-                                        C core of shape_2d.hpp
-  inc/djinterp/c/modules/math/decomp.h          LU, QR and Cholesky, the C core of
-                                        linear_algebra/decomposition.hpp
-  inc/djinterp/c/modules/math/cmat.h            complex matrices: LU, inverse,
-                                        solution and eigensystems
+  float_order.h      the order of a floating-point type's values: successor,
+                     predecessor, ordinal distance and advance -- in pure
+                     arithmetic, so the same text is constexpr from C++14
+  interval_float.h   interval's floating-point families
+  elementary.h       square root, arc-sine, arc-cosine, sine and cosine, each
+                     as a pure-arithmetic (constexpr) form and a C library
+                     form, and the long double kernels the headers below share
+  exponential.h      exponentials and logarithms, to bases e, 2 and 10, in the
+                     same two forms
+  tangent.h          tangent, arc-tangent and the two-argument arc-tangent, in
+                     the same two forms
+  hyperbolic.h       hyperbolic sine, cosine and tangent, in the same two
+                     forms
+  power.h            the cube root, the power and the hypotenuse, in the same
+                     two forms
+  remainder.h        the remainders, fmod, remainder and remquo: exact, in the
+                     same two forms
+  nearest_integer.h  floor, ceil, trunc and round: exact, over the whole
+                     range, in the same two forms
+  vec.h              fixed-size vectors, the C core of
+                     linear_algebra/vector.hpp
+  mat.h              fixed-size matrices, the C core of
+                     linear_algebra/matrix.hpp
+  quat.h             quaternions, the C core of both quaternion headers
+  coord.h            coordinate systems, the C core of math/coordinate/*.hpp
+  isect.h            ray intersections, the C core of the geometry headers'
+                     ray tests
+  plane.h            the plane: crossings and polygons, the C core of
+                     shape_2d.hpp
+  decomp.h           LU, QR and Cholesky, the C core of
+                     linear_algebra/decomposition.hpp
+  cplx.h             complex numbers: the complex type, its arithmetic and
+                     C99's complex functions, the C core of complex.hpp
+  cmat.h             complex matrices: LU, inverse, solution and eigensystems
 
 usage:  scripts/gen_c_math_float.py           write every header
         scripts/gen_c_math_float.py --check   exit 1 if any differs from
-                                            what the script would write
+                                              what the script would write
 """
 import os
+import re
+import textwrap
 import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+# the folder every header is written to, from the root
+CORE = "inc/djinterp/c/modules/math"
 
 FAMILIES = [
     # suffix, type, <float.h> prefix, name in prose
@@ -73,9 +70,10 @@ FAMILIES = [
 DATE = "2026.10.04"
 
 
-def banner(filename, path, lines, created_on=DATE, revised_on=DATE):
+def banner(filename, lines, created_on=DATE, revised_on=DATE):
     """the standard header banner, its fixed geometry included."""
-    title = "* djinterp [c]"
+    path = "/" + CORE + "/" + filename
+    title = "* djinterp [c/math]"
     head = title + " " * (80 - len(title) - len(filename)) + filename
     body = "\n".join(("*" + (" " + l if l else "")).rstrip() for l in lines)
     author = "* author(s): Samuel 'teer' Neal-Blim"
@@ -277,11 +275,11 @@ def auto_section(title, specs, exact_specs):
 FLOAT_ORDER_OVERLOADS = [
     ("D_MATH_FN", "@T@", "d_math_next_up", [("@T@", "_x")]),
     ("D_MATH_FN", "@T@", "d_math_next_down", [("@T@", "_x")]),
-    ("D_MATH_FN", "d_math_umax", "d_math_steps", [("@T@", "_from"), ("@T@", "_to")]),
-    ("D_MATH_FN", "@T@", "d_math_advance", [("@T@", "_from"), ("d_math_umax", "_steps")]),
+    ("D_MATH_FN", "dj_math_umax", "d_math_steps", [("@T@", "_from"), ("@T@", "_to")]),
+    ("D_MATH_FN", "@T@", "d_math_advance", [("@T@", "_from"), ("dj_math_umax", "_steps")]),
 ]
 
-IV = "struct d_interval_@S@"
+IV = "struct dj_interval_@S@"
 INTERVAL_FLOAT_OVERLOADS = [
     ("D_MATH_FN", IV, "d_interval_make", [("@T@", "_lower"), ("@T@", "_upper"), ("unsigned", "_bounds"), ("@T@", "_step")]),
     ("D_MATH_FN", "bool", "d_interval_is_valid", [(IV, "_interval")]),
@@ -291,19 +289,19 @@ INTERVAL_FLOAT_OVERLOADS = [
     ("D_MATH_FN", "@T@", "d_interval_inclusive_upper", [(IV, "_interval")]),
     ("D_MATH_FN", "@T@", "d_interval_first", [(IV, "_interval")]),
     ("D_MATH_FN", "@T@", "d_interval_last", [(IV, "_interval")]),
-    ("D_MATH_FN", "d_math_umax", "d_interval_count", [(IV, "_interval")]),
-    ("D_MATH_FN", "@T@", "d_interval_at", [(IV, "_interval"), ("d_math_umax", "_index")]),
+    ("D_MATH_FN", "dj_math_umax", "d_interval_count", [(IV, "_interval")]),
+    ("D_MATH_FN", "@T@", "d_interval_at", [(IV, "_interval"), ("dj_math_umax", "_index")]),
     ("D_MATH_FN", "bool", "d_interval_contains_in_range", [(IV, "_interval"), ("@T@", "_value")]),
     ("D_MATH_FN", "bool", "d_interval_contains", [(IV, "_interval"), ("@T@", "_value")]),
     ("D_MATH_FN", "@T@", "d_interval_clamp", [(IV, "_interval"), ("@T@", "_value")]),
     ("D_MATH_FN", "@T@", "d_interval_clamp_nearest", [(IV, "_interval"), ("@T@", "_value")]),
-    ("D_MATH_FN", "d_math_umax", "d_interval_index_of", [(IV, "_interval"), ("@T@", "_value")]),
+    ("D_MATH_FN", "dj_math_umax", "d_interval_index_of", [(IV, "_interval"), ("@T@", "_value")]),
     ("D_MATH_FN", "bool", "d_interval_overlaps", [(IV, "_left"), (IV, "_right")]),
     ("D_MATH_FN", "bool", "d_interval_overlaps_continuous", [(IV, "_left"), (IV, "_right")]),
     ("D_MATH_FN", "bool", "d_interval_intersects", [(IV, "_left"), (IV, "_right")]),
-    ("D_MATH_FN", "struct d_math_ratio", "d_interval_normalize_terms", [(IV, "_interval"), ("@T@", "_value")]),
-    ("D_MATH_FN", "struct d_math_ratio", "d_interval_normalize_effective_terms", [(IV, "_interval"), ("@T@", "_value")]),
-    ("D_MATH_FN", "struct d_math_ratio", "d_interval_normalize_discrete_terms", [(IV, "_interval"), ("@T@", "_value")]),
+    ("D_MATH_FN", "struct dj_math_ratio", "d_interval_normalize_terms", [(IV, "_interval"), ("@T@", "_value")]),
+    ("D_MATH_FN", "struct dj_math_ratio", "d_interval_normalize_effective_terms", [(IV, "_interval"), ("@T@", "_value")]),
+    ("D_MATH_FN", "struct dj_math_ratio", "d_interval_normalize_discrete_terms", [(IV, "_interval"), ("@T@", "_value")]),
     ("D_MATH_FN_RT", "size_t", "d_interval_format", [("char*", "_buffer"), ("size_t", "_capacity"), (IV, "_interval")]),
 ]
 
@@ -320,10 +318,10 @@ FLOAT_ORDER_TEMPLATE = r"""
 // @SECTION@.1    Internal helpers
 //------------------------------------------------------------------------------
 
-// d_internal_math_@S@_binade
+// dj_internal_math_@S@_binade
 //   struct: a positive normal value's binade: the exponent E and 2^E, so that
 // 2^E <= x < 2^(E + 1).
-struct d_internal_math_@S@_binade
+struct dj_internal_math_@S@_binade
 {
     int exponent;  // E
     @T@ power;     // 2^E, exact
@@ -389,12 +387,12 @@ d_internal_math_@S@_veltkamp(void)
 // itself up toward 1 and dividing once at the end; no value it forms leaves
 // the normal range, so every step is exact and, from C++14, a constant
 // expression.
-D_MATH_FN struct d_internal_math_@S@_binade
+D_MATH_FN struct dj_internal_math_@S@_binade
 d_internal_math_@S@_binade_of(
     @T@ _x
 )
 {
-    struct d_internal_math_@S@_binade result = { 0, (@T@)1 };
+    struct dj_internal_math_@S@_binade result = { 0, (@T@)1 };
     @T@ squares[16] = { 0 };
     int count       = 1;
     int k           = 0;
@@ -459,23 +457,23 @@ d_internal_math_@S@_true_min(void)
     return (@MIN@ * @EPS@);
 }
 
-// d_internal_math_@S@_place
+// dj_internal_math_@S@_place
 //   a non-negative value's place in the order: binade B and offset O within
 // it, so that its ordinal is B * 2^(P-1) + O. B is 0 for zero and the
 // subnormals; O is an integer below 2^(P-1), held exactly in @T@;
 // +inf is the first place past the largest binade.
-struct d_internal_math_@S@_place
+struct dj_internal_math_@S@_place
 {
     int binade;  // B
     @T@ offset;  // O
 };
 
-D_MATH_FN struct d_internal_math_@S@_place
+D_MATH_FN struct dj_internal_math_@S@_place
 d_internal_math_@S@_place_of(
     @T@ _x
 )
 {
-    struct d_internal_math_@S@_place result = { 0, (@T@)0 };
+    struct dj_internal_math_@S@_place result = { 0, (@T@)0 };
 
     // +inf is the order's end: one step past the largest finite value, the
     // first place of the binade after the last
@@ -495,7 +493,7 @@ d_internal_math_@S@_place_of(
     }
 
     {
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(_x);
 
         result.binade = b.exponent - (@EMIN@ - 1) + 1;
@@ -528,22 +526,22 @@ d_internal_math_@S@_value_of(
 }
 
 // d_internal_math_@S@_umax_bits
-//   the bits of d_math_umax, assuming none is padding.
+//   the bits of dj_math_umax, assuming none is padding.
 D_MATH_FN int
 d_internal_math_@S@_umax_bits(void)
 {
-    return (int)(sizeof(d_math_umax) * 8u);
+    return (int)(sizeof(dj_math_umax) * 8u);
 }
 
 // d_internal_math_@S@_full
-//   2^(P-1), the count of one binade, as d_math_umax: asked for only where it
+//   2^(P-1), the count of one binade, as dj_math_umax: asked for only where it
 // fits, and the shift clamped so the expression is well-formed where it does
-// not (a 32-bit d_math_umax and a double's 52).
-D_MATH_FN d_math_umax
+// not (a 32-bit dj_math_umax and a double's 52).
+D_MATH_FN dj_math_umax
 d_internal_math_@S@_full(void)
 {
-    return ((d_math_umax)1)
-               << ( ((@P@ - 1) < (int)(sizeof(d_math_umax) * 8u))
+    return ((dj_math_umax)1)
+               << ( ((@P@ - 1) < (int)(sizeof(dj_math_umax) * 8u))
                         ? (@P@ - 1)
                         : 0 );
 }
@@ -551,21 +549,21 @@ d_internal_math_@S@_full(void)
 // d_internal_math_@S@_steps_up
 //   how many values lie in [_from, _to), for 0 <= _from <= _to, +inf among
 // them: from their places, so the count is exact wherever it fits
-// d_math_umax, however far from zero the two lie; it saturates at
+// dj_math_umax, however far from zero the two lie; it saturates at
 // D_MATH_UMAX_MAX.
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_internal_math_@S@_steps_up(
     @T@ _from,
     @T@ _to
 )
 {
-    const struct d_internal_math_@S@_place low  =
+    const struct dj_internal_math_@S@_place low  =
         d_internal_math_@S@_place_of(_from);
-    const struct d_internal_math_@S@_place high =
+    const struct dj_internal_math_@S@_place high =
         d_internal_math_@S@_place_of(_to);
     const int binades = high.binade - low.binade;
 
-    // a binade holds more than d_math_umax counts: a count fits within one,
+    // a binade holds more than dj_math_umax counts: a count fits within one,
     // or across one edge -- the rest of the lower binade and the start of
     // the upper, each below 2^(P-1) and their sum exact in @T@
     if ((@P@ - 1) >= d_internal_math_@S@_umax_bits())
@@ -581,14 +579,14 @@ d_internal_math_@S@_steps_up(
             return D_MATH_UMAX_MAX;
         }
 
-        return (d_math_umax)count;
+        return (dj_math_umax)count;
     }
 
     {
-        const d_math_umax full        = d_internal_math_@S@_full();
-        const d_math_umax from_offset = (d_math_umax)low.offset;
-        const d_math_umax to_offset   = (d_math_umax)high.offset;
-        const d_math_umax whole       = (d_math_umax)binades;
+        const dj_math_umax full        = d_internal_math_@S@_full();
+        const dj_math_umax from_offset = (dj_math_umax)low.offset;
+        const dj_math_umax to_offset   = (dj_math_umax)high.offset;
+        const dj_math_umax whole       = (dj_math_umax)binades;
 
         // whole * full + to_offset - from_offset, saturating
         if (whole > ((D_MATH_UMAX_MAX - to_offset) / full))
@@ -605,18 +603,18 @@ d_internal_math_@S@_steps_up(
 // largest finite value.
 D_MATH_FN @T@
 d_internal_math_@S@_climb(
-    @T@         _from,
-    d_math_umax _steps
+    @T@          _from,
+    dj_math_umax _steps
 )
 {
-    const struct d_internal_math_@S@_place p =
+    const struct dj_internal_math_@S@_place p =
         d_internal_math_@S@_place_of(_from);
     // the largest binade
     const int top    = (@EMAX@ - (@EMIN@ - 1));
     int       binade = p.binade;
     @T@       offset = p.offset;
 
-    // a binade holds more than d_math_umax: the steps cross at most one edge
+    // a binade holds more than dj_math_umax: the steps cross at most one edge
     if ((@P@ - 1) >= d_internal_math_@S@_umax_bits())
     {
         const @T@ full = d_internal_math_@S@_pow2(@P@ - 1);
@@ -631,12 +629,12 @@ d_internal_math_@S@_climb(
     }
     else
     {
-        const d_math_umax full  = d_internal_math_@S@_full();
-        const d_math_umax whole = _steps / full;
-        d_math_umax       rest  = ((d_math_umax)offset) + (_steps % full);
+        const dj_math_umax full  = d_internal_math_@S@_full();
+        const dj_math_umax whole = _steps / full;
+        dj_math_umax       rest  = ((dj_math_umax)offset) + (_steps % full);
 
         // whole binades first, then what is left within one
-        if (whole > (d_math_umax)top)
+        if (whole > (dj_math_umax)top)
         {
             return (@T@)HUGE_VAL;
         }
@@ -667,16 +665,16 @@ d_internal_math_@S@_climb(
 // place lies past the last binade, which value_of does not build.
 D_MATH_FN @T@
 d_internal_math_@S@_descend(
-    @T@         _from,
-    d_math_umax _steps
+    @T@          _from,
+    dj_math_umax _steps
 )
 {
-    const struct d_internal_math_@S@_place p =
+    const struct dj_internal_math_@S@_place p =
         d_internal_math_@S@_place_of(_from);
     int binade = p.binade;
     @T@ offset = p.offset;
 
-    // a binade holds more than d_math_umax: at most one edge is crossed
+    // a binade holds more than dj_math_umax: at most one edge is crossed
     if ((@P@ - 1) >= d_internal_math_@S@_umax_bits())
     {
         const @T@ back = (@T@)_steps;
@@ -695,9 +693,9 @@ d_internal_math_@S@_descend(
     }
     else
     {
-        const d_math_umax full  = d_internal_math_@S@_full();
-        const d_math_umax rest  = _steps % full;
-        d_math_umax       place = (d_math_umax)offset;
+        const dj_math_umax full  = d_internal_math_@S@_full();
+        const dj_math_umax rest  = _steps % full;
+        dj_math_umax       place = (dj_math_umax)offset;
 
         // whole binades first, then what is left within one
         binade -= (int)(_steps / full);
@@ -759,7 +757,7 @@ d_math_@S@_next_up(
     // a positive normal value: one spacing of its binade up
     if (_x > (@T@)0)
     {
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(_x);
 
         return (_x + (b.power * @EPS@));
@@ -770,7 +768,7 @@ d_math_@S@_next_up(
         // magnitude, which below a power of two is half its own -- except
         // below the least normal value, where it is the subnormal spacing
         const @T@ magnitude = -_x;
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(magnitude);
         const @T@ spacing =
             ( (magnitude == b.power) && (magnitude > @MIN@) )
@@ -800,7 +798,7 @@ d_math_@S@_next_down(
 // give. So advance(a, steps(a, b)) == b wherever steps(a, b) does not
 // saturate.
 
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_math_@S@_steps(
     @T@ _from,
     @T@ _to
@@ -827,9 +825,9 @@ d_math_@S@_steps(
 
     {
         // across zero: up to zero, then on from it, saturating
-        const d_math_umax below =
+        const dj_math_umax below =
             d_internal_math_@S@_steps_up((@T@)0, -_from);
-        const d_math_umax above =
+        const dj_math_umax above =
             d_internal_math_@S@_steps_up((@T@)0, _to);
 
         return (above > (D_MATH_UMAX_MAX - below)) ? D_MATH_UMAX_MAX
@@ -839,8 +837,8 @@ d_math_@S@_steps(
 
 D_MATH_FN @T@
 d_math_@S@_advance(
-    @T@         _from,
-    d_math_umax _steps
+    @T@          _from,
+    dj_math_umax _steps
 )
 {
     // a NaN stays NaN
@@ -865,7 +863,7 @@ d_math_@S@_advance(
     {
         // from below zero: as many steps as reach zero, at most, stay below
         // it -- a count that saturates is more than _steps can be
-        const d_math_umax to_zero =
+        const dj_math_umax to_zero =
             d_internal_math_@S@_steps_up((@T@)0, -_from);
 
         if ( (_steps < to_zero) ||
@@ -909,7 +907,7 @@ TABLE OF CONTENTS
 #include <float.h>           // FLT_MANT_DIG ... LDBL_EPSILON
 #include <math.h>            // HUGE_VAL
 // djinterp
-#include "./math_common.h"   // D_MATH_FN, d_math_umax, D_MATH_UMAX_MAX
+#include "./math_common.h"   // D_MATH_FN, dj_math_umax, D_MATH_UMAX_MAX
 """
 
 FLOAT_ORDER_TAIL = r"""
@@ -932,8 +930,7 @@ def float_order():
         "neighbour. Subnormals are assumed (IEEE 754): a build that flushes them",
         "to zero sees gaps the order does not know about.",
     ]
-    text = banner("float_order.h", "/inc/djinterp/c/modules/math/float_order.h", lines,
-                  DATE, "2026.10.11")
+    text = banner("float_order.h", lines, DATE, "2026.11.07")
     text += "\n" + FLOAT_ORDER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -954,9 +951,9 @@ INTERVAL_FLOAT_TEMPLATE = r"""
 // @SECTION@.1    Layout
 //------------------------------------------------------------------------------
 // @SECTION@.1.1
-// d_interval_@S@
+// dj_interval_@S@
 //   struct: an interval over @NAME@.
-struct d_interval_@S@
+struct dj_interval_@S@
 {
     @T@      lower;   // the lower bound
     @T@      upper;   // the upper bound
@@ -972,9 +969,9 @@ struct d_interval_@S@
 // _step, the product formed apart so no compiler fuses it into the sum.
 D_MATH_FN @T@
 d_internal_interval_@S@_member(
-    @T@         _first,
-    @T@         _step,
-    d_math_umax _index
+    @T@          _first,
+    @T@          _step,
+    dj_math_umax _index
 )
 {
     // the first member is the first, whatever the step (0 * inf is NaN)
@@ -994,16 +991,16 @@ d_internal_interval_@S@_member(
 //   the index of the last member at or below a finite _value, for _value >=
 // _first and finite _first and _step: the rounded quotient, settled by
 // testing the members beside it.
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_internal_interval_@S@_snap_finite(
     @T@ _first,
     @T@ _step,
     @T@ _value
 )
 {
-    const @T@   quotient = (_value - _first) / _step;
-    d_math_umax index    = 0u;
-    int         tries    = 0;
+    const @T@    quotient = (_value - _first) / _step;
+    dj_math_umax index    = 0u;
+    int          tries    = 0;
 
     // the quotient as an index: saturated, or truncated
     if (!(quotient < (@T@)D_MATH_UMAX_MAX))
@@ -1012,7 +1009,7 @@ d_internal_interval_@S@_snap_finite(
     }
     else if (quotient > (@T@)0)
     {
-        index = (d_math_umax)quotient;
+        index = (dj_math_umax)quotient;
     }
 
     // the quotient was rounded: down while the member passes _value...
@@ -1044,7 +1041,7 @@ d_internal_interval_@S@_snap_finite(
 // An infinite first member or step leaves one member, the first; members
 // past the largest finite value round to +inf, one member, after the last
 // finite one.
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_internal_interval_@S@_snap(
     @T@ _first,
     @T@ _step,
@@ -1062,7 +1059,7 @@ d_internal_interval_@S@_snap(
     // +inf: the member after the last finite one
     if (_value > @MAX@)
     {
-        const d_math_umax last =
+        const dj_math_umax last =
             d_internal_interval_@S@_snap_finite(_first, _step, @MAX@);
 
         return (last == D_MATH_UMAX_MAX) ? last : (last + 1u);
@@ -1076,7 +1073,7 @@ d_internal_interval_@S@_snap(
 // bounds, or one point with either bound open.
 D_MATH_FN bool
 d_internal_interval_@S@_is_void(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     return ( (!(_interval.lower <= _interval.upper)) ||
@@ -1090,7 +1087,7 @@ d_internal_interval_@S@_is_void(
 // value (float_order.h's next_up and next_down), so inclusive_lower is the
 // least value the interval holds and inclusive_upper the greatest.
 
-D_MATH_FN struct d_interval_@S@
+D_MATH_FN struct dj_interval_@S@
 d_interval_@S@_make(
     @T@      _lower,
     @T@      _upper,
@@ -1098,10 +1095,10 @@ d_interval_@S@_make(
     @T@      _step
 )
 {
-    struct d_interval_@S@ result = { (@T@)0,
-                                     (@T@)0,
-                                     (@T@)0,
-                                     0u };
+    struct dj_interval_@S@ result = { (@T@)0,
+                                      (@T@)0,
+                                      (@T@)0,
+                                      0u };
 
     result.lower  = _lower;
     result.upper  = _upper;
@@ -1113,7 +1110,7 @@ d_interval_@S@_make(
 
 D_MATH_FN bool
 d_interval_@S@_is_valid(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     return ( (_interval.lower <= _interval.upper) &&
@@ -1122,7 +1119,7 @@ d_interval_@S@_is_valid(
 
 D_MATH_FN bool
 d_interval_@S@_is_discrete(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     return (_interval.step > (@T@)0);
@@ -1130,7 +1127,7 @@ d_interval_@S@_is_discrete(
 
 D_MATH_FN @T@
 d_interval_@S@_inclusive_lower(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     return ((_interval.bounds & D_INTERVAL_LEFT_OPEN) != 0u)
@@ -1140,7 +1137,7 @@ d_interval_@S@_inclusive_lower(
 
 D_MATH_FN @T@
 d_interval_@S@_inclusive_upper(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     return ((_interval.bounds & D_INTERVAL_RIGHT_OPEN) != 0u)
@@ -1150,7 +1147,7 @@ d_interval_@S@_inclusive_upper(
 
 D_MATH_FN bool
 d_interval_@S@_is_empty(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     // an open bound at an infinity excludes it, and nothing lies beyond it
@@ -1176,7 +1173,7 @@ d_interval_@S@_is_empty(
 
 D_MATH_FN @T@
 d_interval_@S@_first(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     return d_interval_@S@_inclusive_lower(_interval);
@@ -1184,7 +1181,7 @@ d_interval_@S@_first(
 
 D_MATH_FN @T@
 d_interval_@S@_last(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     const @T@ low  = d_interval_@S@_inclusive_lower(_interval);
@@ -1203,14 +1200,14 @@ d_interval_@S@_last(
     return high;
 }
 
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_interval_@S@_count(
-    struct d_interval_@S@ _interval
+    struct dj_interval_@S@ _interval
 )
 {
     const @T@ low  = d_interval_@S@_inclusive_lower(_interval);
     const @T@ high = d_interval_@S@_inclusive_upper(_interval);
-    d_math_umax steps = 0u;
+    dj_math_umax steps = 0u;
 
     // an empty interval counts nothing
     if (d_interval_@S@_is_empty(_interval))
@@ -1227,8 +1224,8 @@ d_interval_@S@_count(
 
 D_MATH_FN @T@
 d_interval_@S@_at(
-    struct d_interval_@S@ _interval,
-    d_math_umax           _index
+    struct dj_interval_@S@ _interval,
+    dj_math_umax           _index
 )
 {
     const @T@ low = d_interval_@S@_inclusive_lower(_interval);
@@ -1253,8 +1250,8 @@ d_interval_@S@_at(
 
 D_MATH_FN bool
 d_interval_@S@_contains_in_range(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     const bool left_ok =
@@ -1271,8 +1268,8 @@ d_interval_@S@_contains_in_range(
 
 D_MATH_FN bool
 d_interval_@S@_contains(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     // outside the bounds is outside the interval
@@ -1299,8 +1296,8 @@ d_interval_@S@_contains(
 
 D_MATH_FN @T@
 d_interval_@S@_clamp(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     const @T@ low  = d_interval_@S@_inclusive_lower(_interval);
@@ -1338,8 +1335,8 @@ d_interval_@S@_clamp(
 
 D_MATH_FN @T@
 d_interval_@S@_clamp_nearest(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     // NaN, a continuous interval, and anything outside one: as clamp
@@ -1360,7 +1357,7 @@ d_interval_@S@_clamp_nearest(
         return d_interval_@S@_clamp(_interval, _value);
     }
 
-    const d_math_umax index =
+    const dj_math_umax index =
         d_internal_interval_@S@_snap(low, _interval.step, _value);
     const @T@ below =
         d_internal_interval_@S@_member(low, _interval.step, index);
@@ -1377,10 +1374,10 @@ d_interval_@S@_clamp_nearest(
     return below;
 }
 
-D_MATH_FN d_math_umax
+D_MATH_FN dj_math_umax
 d_interval_@S@_index_of(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     // a value that is not a member has the index one past the last
@@ -1408,8 +1405,8 @@ d_interval_@S@_index_of(
 
 D_MATH_FN bool
 d_interval_@S@_overlaps(
-    struct d_interval_@S@ _left,
-    struct d_interval_@S@ _right
+    struct dj_interval_@S@ _left,
+    struct dj_interval_@S@ _right
 )
 {
     // an empty interval shares a position with nothing
@@ -1427,8 +1424,8 @@ d_interval_@S@_overlaps(
 
 D_MATH_FN bool
 d_interval_@S@_overlaps_continuous(
-    struct d_interval_@S@ _left,
-    struct d_interval_@S@ _right
+    struct dj_interval_@S@ _left,
+    struct dj_interval_@S@ _right
 )
 {
     // an interval empty on the real line meets nothing
@@ -1456,8 +1453,8 @@ d_interval_@S@_overlaps_continuous(
 
 D_MATH_FN bool
 d_interval_@S@_intersects(
-    struct d_interval_@S@ _left,
-    struct d_interval_@S@ _right
+    struct dj_interval_@S@ _left,
+    struct dj_interval_@S@ _right
 )
 {
     // two continuous intervals share a value where their ranges meet
@@ -1476,12 +1473,12 @@ d_interval_@S@_intersects(
 
     {
         // walk the sparser discrete one; test each member in the other
-        const bool                  left_walks =
+        const bool                   left_walks =
             ( (_left.step > (@T@)0) &&
               ( (!(_right.step > (@T@)0)) ||
                 (_left.step >= _right.step) ) );
-        const struct d_interval_@S@ walk  = left_walks ? _left  : _right;
-        const struct d_interval_@S@ other = left_walks ? _right : _left;
+        const struct dj_interval_@S@ walk  = left_walks ? _left  : _right;
+        const struct dj_interval_@S@ other = left_walks ? _right : _left;
         const @T@ first = d_interval_@S@_inclusive_lower(walk);
         const @T@ low   = (first > d_interval_@S@_inclusive_lower(other))
                               ? first
@@ -1490,8 +1487,8 @@ d_interval_@S@_intersects(
                            d_interval_@S@_inclusive_upper(other))
                               ? d_interval_@S@_last(walk)
                               : d_interval_@S@_inclusive_upper(other);
-        const d_math_umax total = d_interval_@S@_count(walk);
-        d_math_umax index = d_internal_interval_@S@_snap(first, walk.step, low);
+        const dj_math_umax total = d_interval_@S@_count(walk);
+        dj_math_umax index = d_internal_interval_@S@_snap(first, walk.step, low);
 
         // the first member at or above the common part's start
         if (d_internal_interval_@S@_member(first, walk.step, index) < low)
@@ -1522,14 +1519,14 @@ d_interval_@S@_intersects(
 //------------------------------------------------------------------------------
 // as for the integer families, the terms in long double.
 
-D_MATH_FN struct d_math_ratio
+D_MATH_FN struct dj_math_ratio
 d_internal_interval_@S@_terms(
     @T@ _origin,
     @T@ _end,
     @T@ _value
 )
 {
-    struct d_math_ratio result = { 0.0L, 1.0L };
+    struct dj_math_ratio result = { 0.0L, 1.0L };
 
     // a degenerate span maps everything to 0
     if (_end == _origin)
@@ -1543,10 +1540,10 @@ d_internal_interval_@S@_terms(
     return result;
 }
 
-D_MATH_FN struct d_math_ratio
+D_MATH_FN struct dj_math_ratio
 d_interval_@S@_normalize_terms(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     return d_internal_interval_@S@_terms(_interval.lower,
@@ -1554,10 +1551,10 @@ d_interval_@S@_normalize_terms(
                                          _value);
 }
 
-D_MATH_FN struct d_math_ratio
+D_MATH_FN struct dj_math_ratio
 d_interval_@S@_normalize_effective_terms(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     return d_internal_interval_@S@_terms(
@@ -1566,10 +1563,10 @@ d_interval_@S@_normalize_effective_terms(
                _value);
 }
 
-D_MATH_FN struct d_math_ratio
+D_MATH_FN struct dj_math_ratio
 d_interval_@S@_normalize_discrete_terms(
-    struct d_interval_@S@ _interval,
-    @T@                   _value
+    struct dj_interval_@S@ _interval,
+    @T@                    _value
 )
 {
     // a continuous interval normalizes over its inclusive bounds
@@ -1578,9 +1575,9 @@ d_interval_@S@_normalize_discrete_terms(
         return d_interval_@S@_normalize_effective_terms(_interval, _value);
     }
 
-    struct d_math_ratio result = { 0.0L, 1.0L };
-    const d_math_umax   count  = d_interval_@S@_count(_interval);
-    const @T@           low    =
+    struct dj_math_ratio result = { 0.0L, 1.0L };
+    const dj_math_umax   count  = d_interval_@S@_count(_interval);
+    const @T@            low    =
         d_interval_@S@_inclusive_lower(_interval);
 
     // one member or none: nothing to spread over
@@ -1602,8 +1599,8 @@ d_interval_@S@_normalize_discrete_terms(
     {
         const long double back = ((long double)low - (long double)_value) /
                                  (long double)_interval.step;
-        const d_math_umax whole =
-            (back < (long double)D_MATH_UMAX_MAX) ? (d_math_umax)back
+        const dj_math_umax whole =
+            (back < (long double)D_MATH_UMAX_MAX) ? (dj_math_umax)back
                                                   : D_MATH_UMAX_MAX;
 
         result.numerator = (whole == 0u) ? 0.0L : -(long double)whole;
@@ -1671,9 +1668,9 @@ d_internal_interval_@S@_put_value(
  */
 D_MATH_FN_RT size_t
 d_interval_@S@_format(
-    char*                 _buffer,
-    size_t                _capacity,
-    struct d_interval_@S@ _interval
+    char*                  _buffer,
+    size_t                 _capacity,
+    struct dj_interval_@S@ _interval
 )
 {
     const char left  =
@@ -1723,7 +1720,7 @@ TABLE OF CONTENTS
 1.  THE FLOAT FAMILY (_f)
     ---------------------
     1.  Layout
-         1.  d_interval_f
+         1.  dj_interval_f
     2.  Internal helpers
     3.  Construction, validity and bounds
     4.  Size and access
@@ -1734,7 +1731,7 @@ TABLE OF CONTENTS
 2.  THE DOUBLE FAMILY (_d)
     ----------------------
     1.  Layout
-         1.  d_interval_d
+         1.  dj_interval_d
     2.  Internal helpers
     3.  Construction, validity and bounds
     4.  Size and access
@@ -1745,7 +1742,7 @@ TABLE OF CONTENTS
 3.  THE LONG DOUBLE FAMILY (_ld)
     ----------------------------
     1.  Layout
-         1.  d_interval_ld
+         1.  dj_interval_ld
     2.  Internal helpers
     3.  Construction, validity and bounds
     4.  Size and access
@@ -1765,8 +1762,8 @@ TABLE OF CONTENTS
 #include <stdio.h>           // sprintf, sscanf
 // djinterp
 #include "./float_order.h"   // d_math_*_next_up, _next_down, _steps, _advance
-#include "./interval.h"      // d_interval_bound, the formatting helpers
-#include "./math_common.h"   // D_MATH_FN, d_math_umax, d_math_ratio
+#include "./interval.h"      // dj_interval_bound, the formatting helpers
+#include "./math_common.h"   // D_MATH_FN, dj_math_umax, dj_math_ratio
 """
 
 INTERVAL_FLOAT_TAIL = r"""
@@ -1794,7 +1791,7 @@ def interval_float():
         "is in no interval.",
         "Every kernel but formatting is pure arithmetic, so constexpr from C++14.",
     ]
-    text = banner("interval_float.h", "/inc/djinterp/c/modules/math/interval_float.h", lines)
+    text = banner("interval_float.h", lines, DATE, "2026.11.07")
     text += "\n" + INTERVAL_FLOAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -1886,10 +1883,10 @@ ELEMENTARY_KERNELS = r"""
 // 1.1    Exact sums and products
 //------------------------------------------------------------------------------
 
-// d_internal_math_ld_pair
+// dj_internal_math_ld_pair
 //   struct: a value as an unevaluated sum, high + low, the low part below the
 // high part's rounding.
-struct d_internal_math_ld_pair
+struct dj_internal_math_ld_pair
 {
     long double high;
     long double low;
@@ -1898,15 +1895,15 @@ struct d_internal_math_ld_pair
 // d_internal_math_ld_two_sum
 //   _a + _b exactly, as high + low: Knuth's two-sum, which needs no order
 // between the operands' magnitudes.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_two_sum(
     long double _a,
     long double _b
 )
 {
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
-    long double                    a_part = 0.0L;
-    long double                    b_part = 0.0L;
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+    long double                     a_part = 0.0L;
+    long double                     b_part = 0.0L;
 
     result.high = _a + _b;
     a_part      = result.high - _b;
@@ -1921,13 +1918,13 @@ d_internal_math_ld_two_sum(
 // Veltkamp's constant 2^ceil(P/2) + 1, P long double's precision
 // (float_order.h). The factors must be normal (or zero) and their product far
 // from overflow.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_product_exact(
     long double _a,
     long double _b
 )
 {
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
     const long double split = d_internal_math_ld_veltkamp();
     const long double ta    = split * _a;
     const long double a_hi  = ta - (ta - _a);
@@ -1994,9 +1991,9 @@ d_internal_math_ld_two_over_pi_digit(
 // long double's precision, and then multiplied by pi/2. Either way r is
 // within 2^-(P+30) of itself, P long double's precision, at every finite x.
 
-// d_internal_math_ld_reduced
+// dj_internal_math_ld_reduced
 //   struct: an argument reduced by pi/2: x = n pi/2 + (r + r_lo).
-struct d_internal_math_ld_reduced
+struct dj_internal_math_ld_reduced
 {
     long double r;         // |r| <= pi/4, rounded once
     long double r_lo;      // the rest, below r's last place
@@ -2021,14 +2018,14 @@ d_internal_math_ld_floor_small(
 
 // d_internal_math_ld_reduce_far
 //   _x reduced by pi/2 by Payne and Hanek's method, for |_x| >= 1 and finite.
-D_MATH_FN struct d_internal_math_ld_reduced
+D_MATH_FN struct dj_internal_math_ld_reduced
 d_internal_math_ld_reduce_far(
     long double _x
 )
 {
     const long double radix   = 16777216.0L;
     const long double ax      = (_x < 0.0L) ? -_x : _x;
-    const struct d_internal_math_ld_binade binade =
+    const struct dj_internal_math_ld_binade binade =
         d_internal_math_ld_binade_of(ax);
     // 2^(24 a) <= |x| < 2^(24 (a + 1))
     const int         a       = binade.exponent / 24;
@@ -2044,7 +2041,7 @@ d_internal_math_ld_reduce_far(
     int               first       = 1;
     int               i           = 0;
     int               c           = 0;
-    struct d_internal_math_ld_reduced result = { 0.0L, 0.0L, 0 };
+    struct dj_internal_math_ld_reduced result = { 0.0L, 0.0L, 0 };
 
     // x's digits, base 2^24, from 2^(24 a) down: six reach 120 bits
     for (i = 0; ( (i < 6) && (y != 0.0L) ); ++i)
@@ -2140,7 +2137,7 @@ d_internal_math_ld_reduce_far(
             // rounded below it
             const long double f_hi = hi + lo;
             const long double f_lo = lo - (f_hi - hi);
-            const struct d_internal_math_ld_pair head =
+            const struct dj_internal_math_ld_pair head =
                 d_internal_math_ld_product_exact(f_hi, pio2_hi);
             const long double rest = head.low +
                                      ((f_hi * pio2_lo) + (f_lo * pio2_hi));
@@ -2171,7 +2168,7 @@ d_internal_math_ld_reduce_far(
 // d_internal_math_ld_reduce
 //   _x reduced by pi/2, _x finite: Cody and Waite's way below 2^20 quarter
 // turns, Payne and Hanek's past them and within 2^-53 of a multiple of pi/2.
-D_MATH_FN struct d_internal_math_ld_reduced
+D_MATH_FN struct dj_internal_math_ld_reduced
 d_internal_math_ld_reduce(
     long double _x
 )
@@ -2214,7 +2211,7 @@ d_internal_math_ld_reduce(
         const long double fourths  = n / 4.0L;
         const long double whole    = ((fourths + magic) - magic);
         long double       quadrant = n - (4.0L * whole);
-        struct d_internal_math_ld_reduced result = { 0.0L, 0.0L, 0 };
+        struct dj_internal_math_ld_reduced result = { 0.0L, 0.0L, 0 };
 
         // the rounding of n / 4 may land a quadrant of -1 or 4
         quadrant = (quadrant < 0.0L) ? (quadrant + 4.0L)
@@ -2248,24 +2245,24 @@ d_internal_math_ld_reduce(
 // r_lo sin r, and each result is kept as a pair, the compensation in its low
 // part.
 
-// d_internal_math_ld_sin_cos
+// dj_internal_math_ld_sin_cos
 //   struct: the sine and cosine of an argument's remainder after its
 // reduction by pi/2, and the quadrant that remainder lies in.
-struct d_internal_math_ld_sin_cos
+struct dj_internal_math_ld_sin_cos
 {
-    struct d_internal_math_ld_pair sine;      // sin(r + r_lo)
-    struct d_internal_math_ld_pair cosine;    // cos(r + r_lo)
-    int                            quadrant;  // n mod 4
+    struct dj_internal_math_ld_pair sine;      // sin(r + r_lo)
+    struct dj_internal_math_ld_pair cosine;    // cos(r + r_lo)
+    int                             quadrant;  // n mod 4
 };
 
 // d_internal_math_ld_sin_cos_of
 //   _x reduced by pi/2, and the sine and cosine of what remains; _x finite.
-D_MATH_FN struct d_internal_math_ld_sin_cos
+D_MATH_FN struct dj_internal_math_ld_sin_cos
 d_internal_math_ld_sin_cos_of(
     long double _x
 )
 {
-    const struct d_internal_math_ld_reduced reduced =
+    const struct dj_internal_math_ld_reduced reduced =
         d_internal_math_ld_reduce(_x);
     const long double r        = reduced.r;
     const long double r2sq     = r * r;
@@ -2276,7 +2273,7 @@ d_internal_math_ld_sin_cos_of(
     long double       sin_term = r;
     long double       cos_term = 1.0L;
     int               k        = 1;
-    struct d_internal_math_ld_sin_cos result =
+    struct dj_internal_math_ld_sin_cos result =
         { { 0.0L, 0.0L }, { 0.0L, 0.0L }, 0 };
 
     for (k = 1; k < 17; ++k)
@@ -2313,19 +2310,19 @@ d_internal_math_ld_sin_cos_of(
 // d_internal_math_ld_trig
 //   sin(_x) when _cosine is false, cos(_x) when it is true, as high + low;
 // _x finite.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_trig(
     long double _x,
     bool        _cosine
 )
 {
-    const struct d_internal_math_ld_sin_cos sc =
+    const struct dj_internal_math_ld_sin_cos sc =
         d_internal_math_ld_sin_cos_of(_x);
     // cos x = sin(x + pi/2): a quarter turn more
     const int quadrant = _cosine ? ((sc.quadrant + 1) % 4)
                                  : sc.quadrant;
     // sin r, cos r, -sin r, -cos r, by quadrant
-    struct d_internal_math_ld_pair result =
+    struct dj_internal_math_ld_pair result =
         ((quadrant % 2) == 0) ? sc.sine : sc.cosine;
 
     if (quadrant >= 2)
@@ -2359,7 +2356,7 @@ d_internal_math_ld_trig(
 // product can neither overflow nor lose its low part. Below 2^(2P) of the
 // normal range's bottom the quotient goes alone: its own rounding is then
 // the result's.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_ratio(
     long double _n_hi,
     long double _n_lo,
@@ -2373,19 +2370,19 @@ d_internal_math_ld_ratio(
                                  : 1.0L;
     const long double n    = _n_hi * lift;
     const long double d    = _d_hi * lift;
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
 
     result.high = n / d;
 
     if (result.high >= d_internal_math_ld_pow2(LDBL_MIN_EXP +
                                                (2 * LDBL_MANT_DIG)))
     {
-        const struct d_internal_math_ld_binade binade =
+        const struct dj_internal_math_ld_binade binade =
             d_internal_math_ld_binade_of(d);
         const long double scale = d_internal_math_ld_pow2(-binade.exponent);
         const long double n2    = n * scale;
         const long double d2    = d * scale;
-        const struct d_internal_math_ld_pair p =
+        const struct dj_internal_math_ld_pair p =
             d_internal_math_ld_product_exact(result.high, d2);
 
         // n - q d: the highs' part exact, the lows' below it
@@ -2400,7 +2397,7 @@ d_internal_math_ld_ratio(
 //   _quarters pi/2 + atan(_u), or _quarters pi/2 - atan(_u) when _minus is
 // true, as high + low, for _u = _u_hi + _u_lo in [0, 1] and _quarters 0, 1
 // or 2.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_atan_reduced(
     long double _u_hi,
     long double _u_lo,
@@ -2449,13 +2446,13 @@ d_internal_math_ld_atan_reduced(
         // t = (u - c) / (1 + c u): the numerator exact, the denominator as
         // a pair, the quotient with its residual
         const long double num  = _u_hi - c;
-        const struct d_internal_math_ld_pair cu =
+        const struct dj_internal_math_ld_pair cu =
             d_internal_math_ld_product_exact(c, _u_hi);
-        const struct d_internal_math_ld_pair den =
+        const struct dj_internal_math_ld_pair den =
             d_internal_math_ld_two_sum(1.0L, cu.high);
         const long double den_lo = den.low + (cu.low + (c * _u_lo));
         const long double t_hi   = num / den.high;
-        const struct d_internal_math_ld_pair td =
+        const struct dj_internal_math_ld_pair td =
             d_internal_math_ld_product_exact(t_hi, den.high);
         const long double t_lo   = ( ((num - td.high) - td.low) +
                                      (_u_lo - (t_hi * den_lo)) ) / den.high;
@@ -2476,7 +2473,7 @@ d_internal_math_ld_atan_reduced(
             const long double tail = (t_hi * z) * h;
             // q pi/2 +- atan c is exact, and so is its sum with +-t; then
             // the small parts below them
-            const struct d_internal_math_ld_pair head =
+            const struct dj_internal_math_ld_pair head =
                 d_internal_math_ld_two_sum(base_hi + (sign * at_hi),
                                            sign * t_hi);
             const long double small = head.low +
@@ -2499,31 +2496,31 @@ d_internal_math_ld_atan_reduced(
 // d_internal_math_ld_cathetus
 //   sqrt(1 - _a^2) as high + low, for 0 <= _a <= 1: the other leg of a right
 // triangle whose hypotenuse is 1 and one leg _a.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_cathetus(
     long double _a
 )
 {
     // 1 - a and 1 + a, exactly
-    const struct d_internal_math_ld_pair below =
+    const struct dj_internal_math_ld_pair below =
         d_internal_math_ld_two_sum(1.0L, -_a);
-    const struct d_internal_math_ld_pair above =
+    const struct dj_internal_math_ld_pair above =
         d_internal_math_ld_two_sum(1.0L, _a);
     // their product, q = 1 - a^2, as q_hi + q_lo (fast two-sum)
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact(below.high, above.high);
     const long double rest = p.low + ( (below.high * above.low) +
                                        (below.low * above.high) );
     const long double q_hi = p.high + rest;
     const long double q_lo = rest - (q_hi - p.high);
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
 
     // q is 0 only at a = 1; elsewhere its correctly rounded root, and the
     // residual's share below it
     if (q_hi > 0.0L)
     {
         const long double root = d_math_ld_sqrt_c(q_hi);
-        const struct d_internal_math_ld_pair square =
+        const struct dj_internal_math_ld_pair square =
             d_internal_math_ld_product_exact(root, root);
 
         result.high = root;
@@ -2536,26 +2533,26 @@ d_internal_math_ld_cathetus(
 
 // d_internal_math_ld_asin_of
 //   asin(_x) as high + low, for -1 <= _x <= 1.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_asin_of(
     long double _x
 )
 {
     const long double ax = (_x < 0.0L) ? -_x : _x;
-    const struct d_internal_math_ld_pair s = d_internal_math_ld_cathetus(ax);
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    const struct dj_internal_math_ld_pair s = d_internal_math_ld_cathetus(ax);
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
 
     // up to 1/sqrt(2): atan(|x| / s); past it pi/2 - atan(s / |x|)
     if (ax <= s.high)
     {
-        const struct d_internal_math_ld_pair u =
+        const struct dj_internal_math_ld_pair u =
             d_internal_math_ld_ratio(ax, 0.0L, s.high, s.low);
 
         result = d_internal_math_ld_atan_reduced(u.high, u.low, 0, false);
     }
     else
     {
-        const struct d_internal_math_ld_pair u =
+        const struct dj_internal_math_ld_pair u =
             d_internal_math_ld_ratio(s.high, s.low, ax, 0.0L);
 
         result = d_internal_math_ld_atan_reduced(u.high, u.low, 1, true);
@@ -2573,18 +2570,18 @@ d_internal_math_ld_asin_of(
 
 // d_internal_math_ld_acos_of
 //   acos(_x) as high + low, for -1 <= _x <= 1.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_acos_of(
     long double _x
 )
 {
     const long double ax = (_x < 0.0L) ? -_x : _x;
-    const struct d_internal_math_ld_pair s = d_internal_math_ld_cathetus(ax);
+    const struct dj_internal_math_ld_pair s = d_internal_math_ld_cathetus(ax);
 
     // from 1/sqrt(2) out: atan(s / |x|), and pi less it below 0
     if (s.high <= ax)
     {
-        const struct d_internal_math_ld_pair u =
+        const struct dj_internal_math_ld_pair u =
             d_internal_math_ld_ratio(s.high, s.low, ax, 0.0L);
 
         return (_x > 0.0L) ? d_internal_math_ld_atan_reduced(u.high, u.low,
@@ -2595,7 +2592,7 @@ d_internal_math_ld_acos_of(
 
     // within it: pi/2 - atan(x / s), and pi/2 + atan(|x| / s) below 0
     {
-        const struct d_internal_math_ld_pair u =
+        const struct dj_internal_math_ld_pair u =
             d_internal_math_ld_ratio(ax, 0.0L, s.high, s.low);
 
         return (_x < 0.0L) ? d_internal_math_ld_atan_reduced(u.high, u.low,
@@ -2608,17 +2605,17 @@ d_internal_math_ld_acos_of(
 
 # the pair each family's square root settles its last bit with; the long
 # double family's is section 1's, which the kernels use too
-ELEMENTARY_PAIR = r"""// d_internal_math_@S@_pair
+ELEMENTARY_PAIR = r"""// dj_internal_math_@S@_pair
 //   struct: a value as an unevaluated sum, high + low, the low part below the
 // high part's rounding.
-struct d_internal_math_@S@_pair
+struct dj_internal_math_@S@_pair
 {
     @T@ high;
     @T@ low;
 };
 """
 
-ELEMENTARY_PAIR_LD = r"""// d_internal_math_ld_pair is section 1's (1.1), which the kernels share.
+ELEMENTARY_PAIR_LD = r"""// dj_internal_math_ld_pair is section 1's (1.1), which the kernels share.
 """
 
 ELEMENTARY_TEMPLATE = r"""
@@ -2648,7 +2645,9 @@ d_internal_math_@S@_nan(void)
 // rounded to long double, and converting it rounds again, which is the same
 // rounding but where _hi lies exactly between two values of the type -- the
 // first rounding having landed on the midpoint, as it does for log(1 - 2^-52)
-// and exp(2^-53) -- and then _lo's sign decides. A long double is _hi.
+// and exp(2^-53) -- and then _lo's sign decides. A finite _hi past the
+// type's range is an infinity, but for the midpoint above the largest finite
+// value with the sum below it, which rounds there. A long double is _hi.
 D_MATH_FN @T@
 d_internal_math_@S@_round_pair(
     long double _hi,
@@ -2658,6 +2657,30 @@ d_internal_math_@S@_round_pair(
     const @T@ near = (@T@)_hi;
     // what the second rounding moved, exactly: at most half a gap
     const long double rest = _hi - (long double)near;
+
+@OVERFLOW{@
+    // a finite _hi the conversion took past the largest finite value
+    if ( ( (near > @MAX@) ||
+           (near < -@MAX@) ) &&
+         (_hi <= LDBL_MAX) &&
+         (_hi >= -LDBL_MAX) )
+    {
+        const long double gap = (long double)@MAX@ -
+                                (long double)d_math_@S@_next_down(@MAX@);
+        const long double mid = (near > (@T@)0) ?
+                                    ((long double)@MAX@ + (gap / 2.0L)) :
+                                    (-(long double)@MAX@ - (gap / 2.0L));
+
+        // the midpoint above it, the sum below: the largest finite value
+        if ( (_hi == mid) &&
+             ( (near > (@T@)0) ? (_lo < 0.0L) : (_lo > 0.0L) ) )
+        {
+            return (near > (@T@)0) ? @MAX@ : -@MAX@;
+        }
+
+        return near;
+    }
+@}OVERFLOW@
 
     // _hi rounded down to near, from the midpoint, and the sum lies above it
     if ( (rest > 0.0L) &&
@@ -2701,12 +2724,12 @@ d_internal_math_@S@_abs(
 //   _c * _c exactly, as high + low: Dekker's product, the factors split by
 // Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). _c must be normal and
 // its square finite.
-D_MATH_FN struct d_internal_math_@S@_pair
+D_MATH_FN struct dj_internal_math_@S@_pair
 d_internal_math_@S@_square_exact(
     @T@ _c
 )
 {
-    struct d_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
+    struct dj_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
     const @T@ split = d_internal_math_@S@_veltkamp();
     const @T@ t     = split * _c;
     const @T@ hi    = t - (t - _c);
@@ -2719,32 +2742,32 @@ d_internal_math_@S@_square_exact(
     return result;
 }
 
-// d_internal_math_@S@_wide
-//   struct: an unsigned integer of two d_math_umax limbs, high * 2^bits + low.
-struct d_internal_math_@S@_wide
+// dj_internal_math_@S@_wide
+//   struct: an unsigned integer of two dj_math_umax limbs, high * 2^bits + low.
+struct dj_internal_math_@S@_wide
 {
-    d_math_umax high;
-    d_math_umax low;
+    dj_math_umax high;
+    dj_math_umax low;
 };
 
 // d_internal_math_@S@_limb_bits
-//   the bits of d_math_umax.
+//   the bits of dj_math_umax.
 D_MATH_FN int
 d_internal_math_@S@_limb_bits(void)
 {
-    return (int)(sizeof(d_math_umax) * 8u);
+    return (int)(sizeof(dj_math_umax) * 8u);
 }
 
 // d_internal_math_@S@_wide_shift
 //   _value * 2^_shift as two limbs, for 0 < _shift < the limb's bits.
-D_MATH_FN struct d_internal_math_@S@_wide
+D_MATH_FN struct dj_internal_math_@S@_wide
 d_internal_math_@S@_wide_shift(
-    d_math_umax _value,
-    int         _shift
+    dj_math_umax _value,
+    int          _shift
 )
 {
     const int bits = d_internal_math_@S@_limb_bits();
-    struct d_internal_math_@S@_wide result = { 0u, 0u };
+    struct dj_internal_math_@S@_wide result = { 0u, 0u };
 
     result.high = _value >> ((bits - _shift) % bits);
     result.low  = _value << (_shift % bits);
@@ -2755,19 +2778,19 @@ d_internal_math_@S@_wide_shift(
 // d_internal_math_@S@_wide_square
 //   _a * _a as two limbs: _a split into half-limbs, so each partial product
 // fits one limb, and the cross term added twice with its carries.
-D_MATH_FN struct d_internal_math_@S@_wide
+D_MATH_FN struct dj_internal_math_@S@_wide
 d_internal_math_@S@_wide_square(
-    d_math_umax _a
+    dj_math_umax _a
 )
 {
-    const int         half  = d_internal_math_@S@_limb_bits() / 2;
-    const d_math_umax mask  = (((d_math_umax)1) << half) - 1u;
-    const d_math_umax ah    = _a >> half;
-    const d_math_umax al    = _a & mask;
-    const d_math_umax cross = ah * al;
-    const d_math_umax lo_in = cross << half;
-    const d_math_umax hi_in = cross >> half;
-    struct d_internal_math_@S@_wide result = { 0u, 0u };
+    const int          half  = d_internal_math_@S@_limb_bits() / 2;
+    const dj_math_umax mask  = (((dj_math_umax)1) << half) - 1u;
+    const dj_math_umax ah    = _a >> half;
+    const dj_math_umax al    = _a & mask;
+    const dj_math_umax cross = ah * al;
+    const dj_math_umax lo_in = cross << half;
+    const dj_math_umax hi_in = cross >> half;
+    struct dj_internal_math_@S@_wide result = { 0u, 0u };
     int pass = 0;
 
     result.high = ah * ah;
@@ -2787,8 +2810,8 @@ d_internal_math_@S@_wide_square(
 //   whether _a < _b.
 D_MATH_FN bool
 d_internal_math_@S@_wide_less(
-    struct d_internal_math_@S@_wide _a,
-    struct d_internal_math_@S@_wide _b
+    struct dj_internal_math_@S@_wide _a,
+    struct dj_internal_math_@S@_wide _b
 )
 {
     return ( (_a.high < _b.high) ||
@@ -2809,13 +2832,13 @@ d_internal_math_@S@_sqrt_settle(
     @T@ _root
 )
 {
-    const @T@         scale = d_internal_math_@S@_pow2(@P@ - 1);
-    const d_math_umax s     = (d_math_umax)scale;
-    const d_math_umax m     = (d_math_umax)(_m * scale);
-    const struct d_internal_math_@S@_wide four_s_m =
+    const @T@          scale = d_internal_math_@S@_pow2(@P@ - 1);
+    const dj_math_umax s     = (dj_math_umax)scale;
+    const dj_math_umax m     = (dj_math_umax)(_m * scale);
+    const struct dj_internal_math_@S@_wide four_s_m =
         d_internal_math_@S@_wide_shift(m, @P@ + 1);
-    d_math_umax       r     = (_root >= (@T@)2) ? ((2u * s) - 1u)
-                                                : (d_math_umax)(_root * scale);
+    dj_math_umax      r     = (_root >= (@T@)2) ? ((2u * s) - 1u)
+                                                : (dj_math_umax)(_root * scale);
     int               tries = 0;
 
     // up while the root lies past the midpoint above...
@@ -2844,19 +2867,19 @@ d_internal_math_@S@_sqrt_settle(
     return ((@T@)r / scale);
 }
 
-// d_internal_math_@S@_digits
+// dj_internal_math_@S@_digits
 //   struct: a whole number in digits of 16 bits, the least first, each held
-// in a d_math_umax: a digit times a digit, with a digit and a carry added,
-// stays below 2^32, which the narrowest d_math_umax holds. Room for numbers
+// in a dj_math_umax: a digit times a digit, with a digit and a carry added,
+// stays below 2^32, which the narrowest dj_math_umax holds. Room for numbers
 // below 2^(2P+4): sqrt_settle_digits's, where two limbs do not hold them --
 // S M, the largest, lies below 2^(2P).
-struct d_internal_math_@S@_digits
+struct dj_internal_math_@S@_digits
 {
-    d_math_umax digit[2 * ((@P@ + 17) / 16)];
+    dj_math_umax digit[2 * ((@P@ + 17) / 16)];
 };
 
 // d_internal_math_@S@_digit_count
-//   the digits a d_internal_math_@S@_digits holds.
+//   the digits a dj_internal_math_@S@_digits holds.
 D_MATH_FN int
 d_internal_math_@S@_digit_count(void)
 {
@@ -2867,15 +2890,16 @@ d_internal_math_@S@_digit_count(void)
 //   the whole part of _value, from 0 to below 2^64, in digits: its two
 // 32-bit halves first, each a whole number that converts exactly, whatever
 // precision the build evaluates the family in.
-D_MATH_FN struct d_internal_math_@S@_digits
+D_MATH_FN struct dj_internal_math_@S@_digits
 d_internal_math_@S@_digits_of(
     @T@ _value
 )
 {
     const @DG_T@ word = (@T@)4294967296.0;  // 2^32
-    const @DG_UMAX@ high = (d_math_umax)(_value / word);
-    const @DG_UMAX@ low  = (d_math_umax)(_value - ((@T@)high * word));
-    struct d_internal_math_@S@_digits result = { { 0u } };
+    const @DG_UMAX@ high = (dj_math_umax)(_value / word);
+    const @DG_UMAX@ low  =
+        (dj_math_umax)(_value - ((@T@)high * word));
+    struct dj_internal_math_@S@_digits result = { { 0u } };
 
     result.digit[0] = low & 0xFFFFu;
     result.digit[1] = (low >> 16) & 0xFFFFu;
@@ -2890,7 +2914,7 @@ d_internal_math_@S@_digits_of(
 // exact while _a lies below 2^P, as every partial sum does then.
 D_MATH_FN @T@
 d_internal_math_@S@_digits_value(
-    struct d_internal_math_@S@_digits _a
+    struct dj_internal_math_@S@_digits _a
 )
 {
     @T@ result = (@T@)0;
@@ -2907,13 +2931,13 @@ d_internal_math_@S@_digits_value(
 // d_internal_math_@S@_digits_step
 //   _a + 1 where _up, and else _a - 1, _a above 0: a carry or a borrow taken
 // up the digits.
-D_MATH_FN struct d_internal_math_@S@_digits
+D_MATH_FN struct dj_internal_math_@S@_digits
 d_internal_math_@S@_digits_step(
-    struct d_internal_math_@S@_digits _a,
+    struct dj_internal_math_@S@_digits _a,
     @DG_BOOL@ _up
 )
 {
-    struct d_internal_math_@S@_digits result = _a;
+    struct dj_internal_math_@S@_digits result = _a;
     int k = 0;
 
     // a digit that can take the step takes it, and ends the carry or the
@@ -2950,21 +2974,21 @@ d_internal_math_@S@_digits_step(
 // d_internal_math_@S@_digits_shift
 //   _a * 2^_bits: each digit moved up _bits / 16 places and _bits % 16 bits,
 // what passes 16 bits carried into the next. The product must fit.
-D_MATH_FN struct d_internal_math_@S@_digits
+D_MATH_FN struct dj_internal_math_@S@_digits
 d_internal_math_@S@_digits_shift(
-    struct d_internal_math_@S@_digits _a,
+    struct dj_internal_math_@S@_digits _a,
     @DG_INTP@ _bits
 )
 {
-    const int   whole = _bits / 16;
-    const int   part  = _bits % 16;
-    d_math_umax carry = 0u;
-    int         k     = 0;
-    struct d_internal_math_@S@_digits result = { { 0u } };
+    const int    whole = _bits / 16;
+    const int    part  = _bits % 16;
+    dj_math_umax carry = 0u;
+    int          k     = 0;
+    struct dj_internal_math_@S@_digits result = { { 0u } };
 
     for (k = 0; (k + whole) < d_internal_math_@S@_digit_count(); ++k)
     {
-        const d_math_umax moved = (_a.digit[k] << part) | carry;
+        const dj_math_umax moved = (_a.digit[k] << part) | carry;
 
         result.digit[k + whole] = moved & 0xFFFFu;
         carry                   = moved >> 16;
@@ -2987,22 +3011,22 @@ d_internal_math_@S@_low_digit_count(void)
 //   _a + _b where _up, and else _a - _b, in the low digits alone, modulo
 // 2^16 to their count: a digit at a time, the carry or the borrow taken into
 // the next, and the one out of the top dropped. The digits above are 0.
-D_MATH_FN struct d_internal_math_@S@_digits
+D_MATH_FN struct dj_internal_math_@S@_digits
 d_internal_math_@S@_digits_low_add(
-    struct d_internal_math_@S@_digits _a,
-    struct d_internal_math_@S@_digits _b,
+    struct dj_internal_math_@S@_digits _a,
+    struct dj_internal_math_@S@_digits _b,
     @DG_BOOL@ _up
 )
 {
-    d_math_umax carry = 0u;
-    int         k     = 0;
-    struct d_internal_math_@S@_digits result = { { 0u } };
+    dj_math_umax carry = 0u;
+    int          k     = 0;
+    struct dj_internal_math_@S@_digits result = { { 0u } };
 
     for (k = 0; k < d_internal_math_@S@_low_digit_count(); ++k)
     {
         if (_up)
         {
-            const d_math_umax sum = (_a.digit[k] + _b.digit[k]) + carry;
+            const dj_math_umax sum = (_a.digit[k] + _b.digit[k]) + carry;
 
             result.digit[k] = sum & 0xFFFFu;
             carry           = sum >> 16;
@@ -3010,7 +3034,7 @@ d_internal_math_@S@_digits_low_add(
         else
         {
             // the digit above lends 2^16, and the borrow pays it back
-            const d_math_umax difference =
+            const dj_math_umax difference =
                 ((_a.digit[k] + 0x10000u) - _b.digit[k]) - carry;
 
             result.digit[k] = difference & 0xFFFFu;
@@ -3026,24 +3050,24 @@ d_internal_math_@S@_digits_low_add(
 // products of two digits that land there, each added in with the digit
 // already there and the carry, which stays below 2^32; the carry out of the
 // top dropped.
-D_MATH_FN struct d_internal_math_@S@_digits
+D_MATH_FN struct dj_internal_math_@S@_digits
 d_internal_math_@S@_digits_low_square(
-    struct d_internal_math_@S@_digits _a
+    struct dj_internal_math_@S@_digits _a
 )
 {
     const int low = d_internal_math_@S@_low_digit_count();
     int       i   = 0;
     int       j   = 0;
-    struct d_internal_math_@S@_digits result = { { 0u } };
+    struct dj_internal_math_@S@_digits result = { { 0u } };
 
     for (i = 0; i < low; ++i)
     {
-        d_math_umax carry = 0u;
+        dj_math_umax carry = 0u;
 
         for (j = 0; (i + j) < low; ++j)
         {
-            const d_math_umax sum = result.digit[i + j] +
-                                    (_a.digit[i] * _a.digit[j]) + carry;
+            const dj_math_umax sum = result.digit[i + j] +
+                                     (_a.digit[i] * _a.digit[j]) + carry;
 
             result.digit[i + j] = sum & 0xFFFFu;
             carry               = sum >> 16;
@@ -3058,7 +3082,7 @@ d_internal_math_@S@_digits_low_square(
 // bit of the top one.
 D_MATH_FN bool
 d_internal_math_@S@_digits_negative(
-    struct d_internal_math_@S@_digits _a
+    struct dj_internal_math_@S@_digits _a
 )
 {
     return ((_a.digit[d_internal_math_@S@_low_digit_count() - 1] >> 15) != 0u);
@@ -3068,8 +3092,8 @@ d_internal_math_@S@_digits_negative(
 //   whether _a < _b: the most significant digit that differs decides.
 D_MATH_FN bool
 d_internal_math_@S@_digits_less(
-    struct d_internal_math_@S@_digits _a,
-    struct d_internal_math_@S@_digits _b
+    struct dj_internal_math_@S@_digits _a,
+    struct dj_internal_math_@S@_digits _b
 )
 {
     int k = 0;
@@ -3087,7 +3111,7 @@ d_internal_math_@S@_digits_less(
 
 // d_internal_math_@S@_sqrt_settle_digits
 //   sqrt_settle where two limbs do not hold (2^(P+1))^2 -- a double where
-// d_math_umax has 32 bits -- in digits of 16 bits instead, exact in
+// dj_math_umax has 32 bits -- in digits of 16 bits instead, exact in
 // integers, so that nothing depends on how the build evaluates floating
 // point. R / S is the rounded root when (2R - 1)^2 < 4 S M < (2R + 1)^2,
 // that is when the residual G = S M - R^2 + R - 1 lies in [0, 2R): R is
@@ -3105,15 +3129,15 @@ d_internal_math_@S@_sqrt_settle_digits(
 )
 {
     const @T@ scale = d_internal_math_@S@_pow2(@P@ - 1);
-    const struct d_internal_math_@S@_digits s =
+    const struct dj_internal_math_@S@_digits s =
         d_internal_math_@S@_digits_of(scale);
     // R from the root's whole part in units of 1 / S, below 2S
     const @T@ top = ((@T@)2 * scale) - (@T@)1;
-    struct d_internal_math_@S@_digits r =
+    struct dj_internal_math_@S@_digits r =
         d_internal_math_@S@_digits_of((_root >= (@T@)2) ? top
                                                         : (_root * scale));
     // G = S M - R^2 + (R - 1), M = m S
-    struct d_internal_math_@S@_digits g =
+    struct dj_internal_math_@S@_digits g =
         d_internal_math_@S@_digits_low_add(
             d_internal_math_@S@_digits_low_add(
                 d_internal_math_@S@_digits_shift(
@@ -3124,7 +3148,7 @@ d_internal_math_@S@_sqrt_settle_digits(
             d_internal_math_@S@_digits_step(r, false),
             true);
     // G - 2R
-    struct d_internal_math_@S@_digits next =
+    struct dj_internal_math_@S@_digits next =
         d_internal_math_@S@_digits_low_add(
             g,
             d_internal_math_@S@_digits_low_add(r, r, true),
@@ -3166,9 +3190,9 @@ d_internal_math_@S@_sqrt_settle_digits(
 //   the correctly rounded square root of _m in [1, 4): Newton's iteration
 // from a line within 6% of it -- six steps pass any precision to a quad's --
 // then the last bit settled. Where two limbs hold (2^(P+1))^2 -- float, and
-// double with a 64-bit d_math_umax -- it is settled in integers
+// double with a 64-bit dj_math_umax -- it is settled in integers
 // (sqrt_settle), exact however the build evaluates floating point. Where
-// they do not and P is below 64 -- a double where d_math_umax has 32 bits,
+// they do not and P is below 64 -- a double where dj_math_umax has 32 bits,
 // which an x87 holds in registers wider than a double -- in integers too, in
 // digits of 16 bits (sqrt_settle_digits). Otherwise -- a long double of 64
 // bits or more -- by the residual m - root^2, taken exactly by Dekker's
@@ -3206,10 +3230,10 @@ d_internal_math_@S@_sqrt_unit(
     // the last bit: up past the upper midpoint, down past the lower one
     for (tries = 0; tries < 3; ++tries)
     {
-        const struct d_internal_math_@S@_pair square =
+        const struct dj_internal_math_@S@_pair square =
             d_internal_math_@S@_square_exact(root);
         const @T@ residual = (_m - square.high) - square.low;
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(root);
         const @T@ above = b.power * @EPS@;
         const @T@ below = (root == b.power) ? (above / (@T@)2) : above;
@@ -3266,7 +3290,7 @@ d_math_@S@_sqrt_c(
         const int lift  = (_x < @MIN@) ? (((@P@ + 1) / 2) * 2) : 0;
         const @T@ value = (lift > 0) ? (_x * d_internal_math_@S@_pow2(lift))
                                      : _x;
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(value);
         // value = m * 4^k with m in [1, 4); k = floor(E / 2)
         const int k = (b.exponent >= 0) ? (b.exponent / 2)
@@ -3331,7 +3355,7 @@ d_math_@S@_asin_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_asin_of((long double)_x);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -3363,7 +3387,7 @@ d_math_@S@_acos_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_acos_of((long double)_x);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -3410,7 +3434,7 @@ d_math_@S@_sin_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_trig((long double)_x, false);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -3430,7 +3454,7 @@ d_math_@S@_cos_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_trig((long double)_x, true);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -3556,8 +3580,7 @@ def elementary():
         "std::is_constant_evaluated -- and, for the square root, cannot be seen to",
         "have picked.",
     ]
-    text = banner("elementary.h", "/inc/djinterp/c/modules/math/elementary.h", lines,
-                  DATE, "2026.10.12")
+    text = banner("elementary.h", lines, DATE, "2026.11.07")
     text += "\n" + ELEMENTARY_HEAD
     text += ELEMENTARY_KERNELS.replace("@TWO_OVER_PI@", two_over_pi_literal()) \
                               .replace("@DIGITS@", str(TWO_OVER_PI_DIGITS)) \
@@ -3566,6 +3589,13 @@ def elementary():
         upper = prose.upper()
         body = ELEMENTARY_TEMPLATE.replace("@SECTION@", str(i + 2)).replace("@UPPER@", upper)
         body = body.replace("@PAIR@", ELEMENTARY_PAIR_LD if suffix == "ld" else ELEMENTARY_PAIR)
+        # round_pair's overflow: a long double is _hi itself, never past its
+        # range where _hi is not, so its family has no such branch
+        if suffix == "ld":
+            body = re.sub(r"@OVERFLOW\{@\n.*?@\}OVERFLOW@\n\n?", "", body,
+                          flags=re.S)
+        else:
+            body = body.replace("@OVERFLOW{@\n", "").replace("@}OVERFLOW@\n", "")
         body = body.replace("@CSQRT@", {"float": "sqrtf", "double": "sqrt", "long double": "sqrtl"}[ctype])
         body = body.replace("@CASIN@", {"float": "asinf", "double": "asin", "long double": "asinl"}[ctype])
         body = body.replace("@CACOS@", {"float": "acosf", "double": "acos", "long double": "acosl"}[ctype])
@@ -3576,9 +3606,9 @@ def elementary():
         body = body.replace("@EVAL_WIDE@", "D_MATH_%s_EVAL_WIDE" % prefix)
         # the digits' declarations and parameters in line, whatever the
         # family's type and suffix
-        width = max(len(ctype), len("d_math_umax"))
-        digits = "struct d_internal_math_%s_digits" % suffix
-        body = body.replace("@DG_T@", ctype.ljust(width)).replace("@DG_UMAX@", "d_math_umax".ljust(width))
+        width = max(len(ctype), len("dj_math_umax"))
+        digits = "struct dj_internal_math_%s_digits" % suffix
+        body = body.replace("@DG_T@", ctype.ljust(width)).replace("@DG_UMAX@", "dj_math_umax".ljust(width))
         body = body.replace("@DG_INT@", "int".ljust(len(ctype)))
         body = body.replace("@DG_BOOL@", "bool".ljust(len(digits))).replace("@DG_INTP@", "int".ljust(len(digits)))
         text += instantiate(body, suffix, ctype, prefix, prose)
@@ -3623,10 +3653,10 @@ EXPONENTIAL_KERNELS = r"""
 // exactly, and every small part joins it in the one last rounding, what it
 // rounds off kept.
 
-// d_internal_math_ld_exp_split
+// dj_internal_math_ld_exp_split
 //   struct: exp(x) as (y + y_lo) 2^k, y within an ulp of [1/sqrt(2),
 // sqrt(2)] and y_lo below its last place.
-struct d_internal_math_ld_exp_split
+struct dj_internal_math_ld_exp_split
 {
     long double y;     // exp(x - k ln 2), rounded once
     long double y_lo;  // the rest
@@ -3640,21 +3670,21 @@ struct d_internal_math_ld_exp_split
 // the division's residual -- and the three summed exactly, so that the
 // series' rounding is confined to its fourth term on, some r^3/8 of the
 // result below its last place, and only the last sum rounds.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_expm1_series(
     long double _r
 )
 {
-    const struct d_internal_math_ld_pair z =
+    const struct dj_internal_math_ld_pair z =
         d_internal_math_ld_product_exact(_r, _r);
     // r^2/2, exactly
     const long double half_hi = z.high / 2.0L;
     const long double half_lo = z.low / 2.0L;
     // r^3/2, exactly but for half_lo r, below 2^-2P of it; then its third
-    const struct d_internal_math_ld_pair cube =
+    const struct dj_internal_math_ld_pair cube =
         d_internal_math_ld_product_exact(half_hi, _r);
     const long double third_hi = cube.high / 3.0L;
-    const struct d_internal_math_ld_pair back =
+    const struct dj_internal_math_ld_pair back =
         d_internal_math_ld_product_exact(third_hi, 3.0L);
     const long double third_lo =
         ((((cube.high - back.high) - back.low) + cube.low) +
@@ -3670,9 +3700,9 @@ d_internal_math_ld_expm1_series(
     {
         // r^4/24 q, as (r^3/6)(r/4) q
         const long double fourth = third_hi * ((_r * q) / 4.0L);
-        const struct d_internal_math_ld_pair head =
+        const struct dj_internal_math_ld_pair head =
             d_internal_math_ld_two_sum(_r, half_hi);
-        const struct d_internal_math_ld_pair next =
+        const struct dj_internal_math_ld_pair next =
             d_internal_math_ld_two_sum(head.high, third_hi);
         const long double small = ((head.low + next.low) + half_lo) +
                                   (third_lo + fourth);
@@ -3685,20 +3715,20 @@ d_internal_math_ld_expm1_series(
 //   exp(_r.high + _r.low), |_r.high| <= ln 2 / 2 (a last place past it does
 // no harm), as high + low: high the value rounded once, low the rest. The
 // base-2 exponential's core (section 1.3) reduces its argument to the same.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_exp_reduced(
-    struct d_internal_math_ld_pair _r
+    struct dj_internal_math_ld_pair _r
 )
 {
     // e^r - 1 by the series, then e^(r + rlo) = e^r (1 + rlo): 1 + (e^r - 1)
     // exactly, and rlo's term and the series' low part below its last place
-    const struct d_internal_math_ld_pair e =
+    const struct dj_internal_math_ld_pair e =
         d_internal_math_ld_expm1_series(_r.high);
-    const struct d_internal_math_ld_pair one =
+    const struct dj_internal_math_ld_pair one =
         d_internal_math_ld_two_sum(1.0L, e.high);
     const long double small =
         one.low + (e.low + (_r.low * (1.0L + e.high)));
-    struct d_internal_math_ld_pair result = { 1.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 1.0L, 0.0L };
 
     // then 1 + (e^r - 1) with them, and what that rounding left (fast
     // two-sum)
@@ -3710,7 +3740,7 @@ d_internal_math_ld_exp_reduced(
 
 // d_internal_math_ld_exp_split_of
 //   exp(_x) as (y + y_lo) 2^k, for |_x| below 2^15: k fits an int.
-D_MATH_FN struct d_internal_math_ld_exp_split
+D_MATH_FN struct dj_internal_math_ld_exp_split
 d_internal_math_ld_exp_split_of(
     long double _x
 )
@@ -3723,11 +3753,11 @@ d_internal_math_ld_exp_split_of(
     const int         k      = (int)((t < 0.0L) ? (t - 0.5L) : (t + 0.5L));
     const long double kk     = (long double)k;
     // r = x - k ln 2: x - k ln2_hi exact, the second difference's error kept
-    const struct d_internal_math_ld_pair r =
+    const struct dj_internal_math_ld_pair r =
         d_internal_math_ld_two_sum(_x - (kk * ln2_hi), -(kk * ln2_lo));
-    const struct d_internal_math_ld_pair y =
+    const struct dj_internal_math_ld_pair y =
         d_internal_math_ld_exp_reduced(r);
-    struct d_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
+    struct dj_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
 
     result.y    = y.high;
     result.y_lo = y.low;
@@ -3745,19 +3775,19 @@ d_internal_math_ld_exp_split_of(
 // exact product -- and e ln2_hi + 2s is taken exactly, so that only the final
 // addition rounds, and what it rounds off is kept.
 
-// d_internal_math_ld_log_arg
+// dj_internal_math_ld_log_arg
 //   struct: a positive finite value as m 2^exponent, m in [1/sqrt(2),
 // sqrt(2)] -- what every family's logarithms hand the kernels.
-struct d_internal_math_ld_log_arg
+struct dj_internal_math_ld_log_arg
 {
     long double m;
     int         exponent;
 };
 
-// d_internal_math_ld_log_parts
+// dj_internal_math_ld_log_parts
 //   struct: log(m) = two_s + two_s_lo + tail, two_s exact and the other two
 // below its last place, for the logarithms in every base.
-struct d_internal_math_ld_log_parts
+struct dj_internal_math_ld_log_parts
 {
     long double two_s;     // 2s
     long double two_s_lo;  // 2 s_lo, what s's rounding left
@@ -3768,7 +3798,7 @@ struct d_internal_math_ld_log_parts
 //   log(1 + _f), 1 + _f in [1/sqrt(2), sqrt(2)], in its three parts: _f
 // itself is exact, so 1 + _f is never formed, and log1p's core (section 1.5)
 // takes it as it is given.
-D_MATH_FN struct d_internal_math_ld_log_parts
+D_MATH_FN struct dj_internal_math_ld_log_parts
 d_internal_math_ld_log1p_parts_of(
     long double _f
 )
@@ -3780,13 +3810,13 @@ d_internal_math_ld_log1p_parts_of(
     // s = f / (2 + f) as s + s_lo: the residual f - s (u + u_lo), its first
     // product exact
     const long double s      = f / u;
-    const struct d_internal_math_ld_pair su =
+    const struct dj_internal_math_ld_pair su =
         d_internal_math_ld_product_exact(s, u);
     const long double s_lo   = (((f - su.high) - su.low) - (s * u_lo)) / u;
     const long double z      = s * s;
     long double       h      = 0.0L;
     int               j      = 0;
-    struct d_internal_math_ld_log_parts result = { 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_log_parts result = { 0.0L, 0.0L, 0.0L };
 
     // 1/3 + z/5 + z^2/7 + ..., from its 24th term in
     for (j = 24; j >= 1; --j)
@@ -3804,7 +3834,7 @@ d_internal_math_ld_log1p_parts_of(
 // d_internal_math_ld_log_parts_of
 //   log(_m), _m in [1/sqrt(2), sqrt(2)], in its three parts: log(1 + f) of
 // f = m - 1, exact by Sterbenz's lemma.
-D_MATH_FN struct d_internal_math_ld_log_parts
+D_MATH_FN struct dj_internal_math_ld_log_parts
 d_internal_math_ld_log_parts_of(
     long double _m
 )
@@ -3815,7 +3845,7 @@ d_internal_math_ld_log_parts_of(
 // d_internal_math_ld_log_of
 //   log(_m 2^_exponent), _m in [1/sqrt(2), sqrt(2)], as high + low: high the
 // value rounded once, low the rest.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log_of(
     int         _exponent,
     long double _m
@@ -3824,11 +3854,11 @@ d_internal_math_ld_log_of(
     const long double ln2_hi = 0.69314718036912381649017333984375L;
     const long double ln2_lo = 1.908214929270587816144265680755001344e-10L;
     const long double e      = (long double)_exponent;
-    const struct d_internal_math_ld_log_parts l =
+    const struct dj_internal_math_ld_log_parts l =
         d_internal_math_ld_log_parts_of(_m);
     // e ln2_hi is exact (at most 15 bits by 32), and so is its sum with 2s,
     // as a pair
-    const struct d_internal_math_ld_pair head =
+    const struct dj_internal_math_ld_pair head =
         d_internal_math_ld_two_sum(e * ln2_hi, l.two_s);
     const long double small = head.low +
                               (l.two_s_lo + (l.tail + (e * ln2_lo)));
@@ -3847,7 +3877,7 @@ d_internal_math_ld_log_of(
 
 // d_internal_math_ld_exp2_split_of
 //   2^_x as (y + y_lo) 2^k, for |_x| below 2^15: k fits an int.
-D_MATH_FN struct d_internal_math_ld_exp_split
+D_MATH_FN struct dj_internal_math_ld_exp_split
 d_internal_math_ld_exp2_split_of(
     long double _x
 )
@@ -3860,13 +3890,13 @@ d_internal_math_ld_exp2_split_of(
     // r = x - k, exact: by Sterbenz's lemma, or x itself where k is 0
     const long double r      = _x - (long double)k;
     // r ln 2 = r ln2_hi + r ln2_lo, the first product exact
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact(r, ln2_hi);
-    const struct d_internal_math_ld_pair u =
+    const struct dj_internal_math_ld_pair u =
         d_internal_math_ld_two_sum(p.high, p.low + (r * ln2_lo));
-    const struct d_internal_math_ld_pair y =
+    const struct dj_internal_math_ld_pair y =
         d_internal_math_ld_exp_reduced(u);
-    struct d_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
+    struct dj_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
 
     result.y    = y.high;
     result.y_lo = y.low;
@@ -3889,7 +3919,7 @@ d_internal_math_ld_exp2_split_of(
 
 // d_internal_math_ld_log2_of
 //   log2(_m 2^_exponent), _m in [1/sqrt(2), sqrt(2)], as high + low.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log2_of(
     int         _exponent,
     long double _m
@@ -3899,16 +3929,16 @@ d_internal_math_ld_log2_of(
     const long double c_hi = 1.4426950407214462757110595703125L;
     const long double c_lo = 1.67517131648865110689392137426645954153e-10L;
     const long double c    = c_hi + c_lo;
-    const struct d_internal_math_ld_log_parts l =
+    const struct dj_internal_math_ld_log_parts l =
         d_internal_math_ld_log_parts_of(_m);
     // 2s c_hi, exactly; the rest of log(m) log2(e) below it
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact(l.two_s, c_hi);
     const long double small = p.low +
                               ((l.two_s * c_lo) +
                                ((l.two_s_lo + l.tail) * c));
     // e + 2s c_hi, exactly
-    const struct d_internal_math_ld_pair head =
+    const struct dj_internal_math_ld_pair head =
         d_internal_math_ld_two_sum((long double)_exponent, p.high);
 
     return d_internal_math_ld_two_sum(head.high, head.low + small);
@@ -3916,7 +3946,7 @@ d_internal_math_ld_log2_of(
 
 // d_internal_math_ld_log10_of
 //   log10(_m 2^_exponent), _m in [1/sqrt(2), sqrt(2)], as high + low.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log10_of(
     int         _exponent,
     long double _m
@@ -3930,16 +3960,16 @@ d_internal_math_ld_log10_of(
     const long double b_lo = 2.508294671164527633848008229439700580367e-11L;
     const long double b    = b_hi + b_lo;
     const long double e    = (long double)_exponent;
-    const struct d_internal_math_ld_log_parts l =
+    const struct dj_internal_math_ld_log_parts l =
         d_internal_math_ld_log_parts_of(_m);
     // 2s b_hi, exactly; the rest of log(m) log10(e) below it
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact(l.two_s, b_hi);
     const long double small = p.low +
                               ((l.two_s * b_lo) +
                                ((l.two_s_lo + l.tail) * b));
     // e a_hi (at most 15 bits by 32) + 2s b_hi, exactly
-    const struct d_internal_math_ld_pair head =
+    const struct dj_internal_math_ld_pair head =
         d_internal_math_ld_two_sum(e * a_hi, p.high);
 
     return d_internal_math_ld_two_sum(head.high,
@@ -3966,17 +3996,17 @@ d_internal_math_ld_log10_of(
 // sqrt(2)], as the logarithm's core takes it: the long double family's
 // argument (its section 4.1) for a value that needs no lift from the
 // subnormals, which the kernels below, ahead of that family, reach.
-D_MATH_FN struct d_internal_math_ld_log_arg
+D_MATH_FN struct dj_internal_math_ld_log_arg
 d_internal_math_ld_log_arg_normal(
     long double _v
 )
 {
-    const struct d_internal_math_ld_binade b =
+    const struct dj_internal_math_ld_binade b =
         d_internal_math_ld_binade_of(_v);
     // past sqrt(2), m / 2 and E + 1
     const long double m    = _v / b.power;
     const bool        high = (m > 1.41421356237309504880L);
-    struct d_internal_math_ld_log_arg result = { 1.0L, 0 };
+    struct dj_internal_math_ld_log_arg result = { 1.0L, 0 };
 
     result.m        = high ? (m / 2.0L) : m;
     result.exponent = b.exponent + (high ? 1 : 0);
@@ -3988,7 +4018,7 @@ d_internal_math_ld_log_arg_normal(
 //   log(1 + _x), _x > -1 finite, as high + low: high the value rounded once,
 // low the rest. _x from 2^-P in magnitude, below which the family's value is
 // _x's own.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log1p_of(
     long double _x
 )
@@ -3997,7 +4027,7 @@ d_internal_math_ld_log1p_of(
     if ( (_x >= -0.29289321881345247559915563789515096L) &&
          (_x <= 0.41421356237309504880168872420969808L) )
     {
-        const struct d_internal_math_ld_log_parts l =
+        const struct dj_internal_math_ld_log_parts l =
             d_internal_math_ld_log1p_parts_of(_x);
 
         return d_internal_math_ld_two_sum(l.two_s, l.two_s_lo + l.tail);
@@ -4005,11 +4035,11 @@ d_internal_math_ld_log1p_of(
 
     {
         // 1 + x = u + u_lo, exactly; log(u) + u_lo / u
-        const struct d_internal_math_ld_pair u =
+        const struct dj_internal_math_ld_pair u =
             d_internal_math_ld_two_sum(1.0L, _x);
-        const struct d_internal_math_ld_log_arg arg =
+        const struct dj_internal_math_ld_log_arg arg =
             d_internal_math_ld_log_arg_normal(u.high);
-        const struct d_internal_math_ld_pair l =
+        const struct dj_internal_math_ld_pair l =
             d_internal_math_ld_log_of(arg.exponent, arg.m);
 
         return d_internal_math_ld_two_sum(l.high, l.low + (u.low / u.high));
@@ -4020,12 +4050,12 @@ d_internal_math_ld_log1p_of(
 //   log(1 + _u.high + _u.low), _u.high > -1, as high + low: log1p's core of
 // the high part, and the low part over 1 + the high part, its own second
 // order below 2^-2P of the result.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log1p_of_pair(
-    struct d_internal_math_ld_pair _u
+    struct dj_internal_math_ld_pair _u
 )
 {
-    const struct d_internal_math_ld_pair l =
+    const struct dj_internal_math_ld_pair l =
         d_internal_math_ld_log1p_of(_u.high);
 
     return d_internal_math_ld_two_sum(l.high,
@@ -4041,7 +4071,7 @@ d_internal_math_ld_log1p_of_pair(
 // 2^k E exact, and 2^k - 1 exact where k is within P of 0, so that the two
 // are summed exactly and nothing magnifies E's error, which e^r's would
 // carry near e^x = 1 (where 2^k e^r - 1 loses e^r's leading bits).
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_expm1_of(
     long double _x
 )
@@ -4063,13 +4093,13 @@ d_internal_math_ld_expm1_of(
         const long double kk     = (long double)k;
         // r = x - k ln 2: x - k ln2_hi exact, the second difference's error
         // kept
-        const struct d_internal_math_ld_pair r =
+        const struct dj_internal_math_ld_pair r =
             d_internal_math_ld_two_sum(_x - (kk * ln2_hi), -(kk * ln2_lo));
         // E = e^r - 1: the series at r's high part, and r's low part times
         // e^r
-        const struct d_internal_math_ld_pair e =
+        const struct dj_internal_math_ld_pair e =
             d_internal_math_ld_expm1_series(r.high);
-        const struct d_internal_math_ld_pair big_e =
+        const struct dj_internal_math_ld_pair big_e =
             d_internal_math_ld_two_sum(
                 e.high,
                 e.low + (r.low * (1.0L + e.high)));
@@ -4081,7 +4111,7 @@ d_internal_math_ld_expm1_of(
         if ( (k <= LDBL_MANT_DIG) &&
              (k >= -LDBL_MANT_DIG) )
         {
-            const struct d_internal_math_ld_pair s =
+            const struct dj_internal_math_ld_pair s =
                 d_internal_math_ld_two_sum(scale - 1.0L, bh);
 
             return d_internal_math_ld_two_sum(s.high, s.low + bl);
@@ -4090,7 +4120,7 @@ d_internal_math_ld_expm1_of(
         // 2^k far past 1: the 1 among 2^k E's low part
         if (k > 0)
         {
-            const struct d_internal_math_ld_pair s =
+            const struct dj_internal_math_ld_pair s =
                 d_internal_math_ld_two_sum(scale, bh);
 
             return d_internal_math_ld_two_sum(s.high, s.low + (bl - 1.0L));
@@ -4098,7 +4128,7 @@ d_internal_math_ld_expm1_of(
 
         // 2^k far below 1: -1 and the rest
         {
-            const struct d_internal_math_ld_pair s =
+            const struct dj_internal_math_ld_pair s =
                 d_internal_math_ld_two_sum(-1.0L, scale + bh);
 
             return d_internal_math_ld_two_sum(s.high, s.low + bl);
@@ -4132,7 +4162,7 @@ d_internal_math_@S@_infinity(void)
 // past the largest finite value, +0 below half the least subnormal.
 D_MATH_FN @T@
 d_internal_math_@S@_exp_scale(
-    struct d_internal_math_ld_exp_split _split
+    struct dj_internal_math_ld_exp_split _split
 )
 {
     const int k = _split.k;
@@ -4205,7 +4235,7 @@ d_internal_math_@S@_exp_scale(
 //   a positive, finite, nonzero _x as m 2^e with m in [1/sqrt(2), sqrt(2)],
 // exactly: a subnormal first scaled into the normal range, then the binade
 // found by its search (float_order.h).
-D_MATH_FN struct d_internal_math_ld_log_arg
+D_MATH_FN struct dj_internal_math_ld_log_arg
 d_internal_math_@S@_log_arg_of(
     @T@ _x
 )
@@ -4215,12 +4245,12 @@ d_internal_math_@S@_log_arg_of(
     // then value = m 2^E with m in [1, 2), exactly
     const @T@ value =
         (lift > 0) ? (_x * d_internal_math_@S@_pow2(lift)) : _x;
-    const struct d_internal_math_@S@_binade b =
+    const struct dj_internal_math_@S@_binade b =
         d_internal_math_@S@_binade_of(value);
     // past sqrt(2), m / 2 and E + 1
     const long double m    = (long double)(value / b.power);
     const bool        high = (m > 1.41421356237309504880L);
-    struct d_internal_math_ld_log_arg result = { 1.0L, 0 };
+    struct dj_internal_math_ld_log_arg result = { 1.0L, 0 };
 
     result.m        = high ? (m / 2.0L) : m;
     result.exponent = (b.exponent - lift) + (high ? 1 : 0);
@@ -4308,9 +4338,9 @@ d_math_@S@_log_c(
     }
 
     {
-        const struct d_internal_math_ld_log_arg arg =
+        const struct dj_internal_math_ld_log_arg arg =
             d_internal_math_@S@_log_arg_of(_x);
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_log_of(arg.exponent, arg.m);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -4418,9 +4448,9 @@ d_math_@S@_log2_c(
     }
 
     {
-        const struct d_internal_math_ld_log_arg arg =
+        const struct dj_internal_math_ld_log_arg arg =
             d_internal_math_@S@_log_arg_of(_x);
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_log2_of(arg.exponent, arg.m);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -4467,9 +4497,9 @@ d_math_@S@_log10_c(
     }
 
     {
-        const struct d_internal_math_ld_log_arg arg =
+        const struct dj_internal_math_ld_log_arg arg =
             d_internal_math_@S@_log_arg_of(_x);
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_log10_of(arg.exponent, arg.m);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -4521,7 +4551,7 @@ d_math_@S@_log1p_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_log1p_of((long double)_x);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -4581,7 +4611,7 @@ d_math_@S@_expm1_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_expm1_of(x);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -4705,8 +4735,7 @@ def exponential():
         "is evaluated, as a constant expression forbids: an infinity is",
         "HUGE_VAL, a NaN NAN.",
     ]
-    text = banner("exponential.h", "/inc/djinterp/c/modules/math/exponential.h", lines,
-                  "2026.10.08", "2026.10.28")
+    text = banner("exponential.h", lines, "2026.10.08", "2026.11.07")
     text += "\n" + EXPONENTIAL_HEAD
     text += EXPONENTIAL_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -4753,23 +4782,23 @@ TANGENT_KERNELS = r"""
 
 // d_internal_math_ld_tan_of
 //   tan(_x) as high + low, _x finite.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_tan_of(
     long double _x
 )
 {
-    const struct d_internal_math_ld_sin_cos sc =
+    const struct dj_internal_math_ld_sin_cos sc =
         d_internal_math_ld_sin_cos_of(_x);
-    const bool                           odd = ((sc.quadrant % 2) != 0);
-    const struct d_internal_math_ld_pair num = odd ? sc.cosine : sc.sine;
-    const struct d_internal_math_ld_pair den = odd ? sc.sine : sc.cosine;
-    const long double                    q   = num.high / den.high;
-    const struct d_internal_math_ld_pair qd  =
+    const bool                            odd = ((sc.quadrant % 2) != 0);
+    const struct dj_internal_math_ld_pair num = odd ? sc.cosine : sc.sine;
+    const struct dj_internal_math_ld_pair den = odd ? sc.sine : sc.cosine;
+    const long double                     q   = num.high / den.high;
+    const struct dj_internal_math_ld_pair qd  =
         d_internal_math_ld_product_exact(q, den.high);
     // num - q den: num.high - qd.high is exact (Sterbenz's lemma)
     const long double q_lo = ( ((num.high - qd.high) - qd.low) +
                                (num.low - (q * den.low)) ) / den.high;
-    struct d_internal_math_ld_pair result =
+    struct dj_internal_math_ld_pair result =
         d_internal_math_ld_two_sum(q, q_lo);
 
     // an odd quadrant's quotient is negated
@@ -4791,7 +4820,7 @@ d_internal_math_ld_tan_of(
 
 // d_internal_math_ld_atan_of
 //   atan(_x) as high + low, _x not NaN; an infinity gives +-pi/2.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_atan_of(
     long double _x
 )
@@ -4801,7 +4830,7 @@ d_internal_math_ld_atan_of(
     const bool        inverted = (ax > 1.0L);
     long double       u_hi     = ax;
     long double       u_lo     = 0.0L;
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
 
     // past 1: u = 1/x, and below x = 2^(P+8) its residual (u x stays far
     // from overflow there; past it u is below pi/2's last place)
@@ -4811,7 +4840,7 @@ d_internal_math_ld_atan_of(
 
         if (ax < d_internal_math_ld_pow2(LDBL_MANT_DIG + 8))
         {
-            const struct d_internal_math_ld_pair ux =
+            const struct dj_internal_math_ld_pair ux =
                 d_internal_math_ld_product_exact(u_hi, ax);
 
             u_lo = ((1.0L - ux.high) - ux.low) / ax;
@@ -4842,7 +4871,7 @@ d_internal_math_ld_atan_of(
 
 // d_internal_math_ld_atan2_of
 //   atan2(_y, _x) as high + low, _y and _x finite and nonzero.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_atan2_of(
     long double _y,
     long double _x
@@ -4852,14 +4881,14 @@ d_internal_math_ld_atan2_of(
     const long double ax       = (_x < 0.0L) ? -_x : _x;
     // past the diagonal, x / y and a quarter turn
     const bool        steep    = (ay > ax);
-    const struct d_internal_math_ld_pair u =
+    const struct dj_internal_math_ld_pair u =
         steep ? d_internal_math_ld_ratio(ax, 0.0L, ay, 0.0L)
               : d_internal_math_ld_ratio(ay, 0.0L, ax, 0.0L);
     // atan u for x > 0, pi - atan u for x < 0; past the diagonal pi/2 -
     // atan u for x > 0 and pi/2 + atan u for x < 0
     const int         quarters = steep ? 1 : ((_x < 0.0L) ? 2 : 0);
     const bool        minus    = steep ? (_x > 0.0L) : (_x < 0.0L);
-    struct d_internal_math_ld_pair result =
+    struct dj_internal_math_ld_pair result =
         d_internal_math_ld_atan_reduced(u.high, u.low, quarters, minus);
 
     if (_y < 0.0L)
@@ -4904,7 +4933,7 @@ d_math_@S@_tan_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_tan_of((long double)_x);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -4943,7 +4972,7 @@ d_math_@S@_atan_c(
     }
 
     {
-        const struct d_internal_math_ld_pair result =
+        const struct dj_internal_math_ld_pair result =
             d_internal_math_ld_atan_of((long double)_x);
 
         return d_internal_math_@S@_round_pair(result.high, result.low);
@@ -5007,7 +5036,7 @@ d_internal_math_@S@_turns(
     bool        _negative
 )
 {
-    const struct d_internal_math_ld_pair angle =
+    const struct dj_internal_math_ld_pair angle =
         d_internal_math_ld_atan_reduced(_u, 0.0L, _quarters, _minus);
     const @T@ value =
         d_internal_math_@S@_round_pair(angle.high, angle.low);
@@ -5077,7 +5106,7 @@ d_math_@S@_atan2_c(
         }
 
         {
-            const struct d_internal_math_ld_pair result =
+            const struct dj_internal_math_ld_pair result =
                 d_internal_math_ld_atan2_of((long double)_y,
                                             (long double)_x);
 
@@ -5174,8 +5203,7 @@ def tangent():
         "library's. tan_c reduces its argument by pi/2 exactly at every finite",
         "value, as elementary.h's sine and cosine do.",
     ]
-    text = banner("tangent.h", "/inc/djinterp/c/modules/math/tangent.h", lines,
-                  "2026.10.09", "2026.10.09")
+    text = banner("tangent.h", lines, "2026.10.09", "2026.11.07")
     text += "\n" + TANGENT_HEAD
     text += TANGENT_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -5222,48 +5250,48 @@ HYPERBOLIC_KERNELS = r"""
 // Dekker's product: the sine loses under a bit to the difference, at a = 1/2,
 // and 1/E is dropped once it lies below 2^-(2P + 8) of E.
 
-// d_internal_math_ld_sinh_cosh
+// dj_internal_math_ld_sinh_cosh
 //   struct: sinh a and cosh a, each 2^exponent times its pair.
-struct d_internal_math_ld_sinh_cosh
+struct dj_internal_math_ld_sinh_cosh
 {
-    struct d_internal_math_ld_pair sinh_part;  // sinh a / 2^exponent
-    struct d_internal_math_ld_pair cosh_part;  // cosh a / 2^exponent
-    int                            exponent;
+    struct dj_internal_math_ld_pair sinh_part;  // sinh a / 2^exponent
+    struct dj_internal_math_ld_pair cosh_part;  // cosh a / 2^exponent
+    int                             exponent;
 };
 
 // d_internal_math_ld_sinh_cosh_of
 //   sinh(_a) and cosh(_a), for _a from 2^-(P/2 + 1) -- where the squares are
 // exact -- to (EMAX + 2) ln 2, where the exponential's k still fits an int.
-D_MATH_FN struct d_internal_math_ld_sinh_cosh
+D_MATH_FN struct dj_internal_math_ld_sinh_cosh
 d_internal_math_ld_sinh_cosh_of(
     long double _a
 )
 {
-    struct d_internal_math_ld_sinh_cosh result = { { 0.0L, 0.0L },
-                                                   { 1.0L, 0.0L },
-                                                   0 };
+    struct dj_internal_math_ld_sinh_cosh result = { { 0.0L, 0.0L },
+                                                    { 1.0L, 0.0L },
+                                                    0 };
 
     // below 1/2: the series
     if (_a < 0.5L)
     {
         // z = a^2, exactly; a^3 = a z_hi + a z_lo
-        const struct d_internal_math_ld_pair z =
+        const struct dj_internal_math_ld_pair z =
             d_internal_math_ld_product_exact(_a, _a);
-        const struct d_internal_math_ld_pair cube =
+        const struct dj_internal_math_ld_pair cube =
             d_internal_math_ld_product_exact(_a, z.high);
         const long double cube_lo = cube.low + (_a * z.low);
         // a^3/6, with its residual
         const long double t3 = cube.high / 6.0L;
-        const struct d_internal_math_ld_pair p3 =
+        const struct dj_internal_math_ld_pair p3 =
             d_internal_math_ld_product_exact(t3, 6.0L);
         const long double t3_lo = (((cube.high - p3.high) - p3.low) +
                                    cube_lo) / 6.0L;
         // a^4 = z_hi^2 + 2 z_hi z_lo, and a^4/24 with its residual
-        const struct d_internal_math_ld_pair fourth =
+        const struct dj_internal_math_ld_pair fourth =
             d_internal_math_ld_product_exact(z.high, z.high);
         const long double fourth_lo = fourth.low + ((2.0L * z.high) * z.low);
         const long double t4 = fourth.high / 24.0L;
-        const struct d_internal_math_ld_pair p4 =
+        const struct dj_internal_math_ld_pair p4 =
             d_internal_math_ld_product_exact(t4, 24.0L);
         const long double t4_lo = (((fourth.high - p4.high) - p4.low) +
                                    fourth_lo) / 24.0L;
@@ -5291,11 +5319,11 @@ d_internal_math_ld_sinh_cosh_of(
             const long double rest_s = (t3 * (z.high / 20.0L)) * gs;
             const long double rest_c = (t4 * (z.high / 30.0L)) * gc;
             // a + a^3/6, and 1 + a^2/2 + a^4/24, exactly
-            const struct d_internal_math_ld_pair s =
+            const struct dj_internal_math_ld_pair s =
                 d_internal_math_ld_two_sum(_a, t3);
-            const struct d_internal_math_ld_pair c1 =
+            const struct dj_internal_math_ld_pair c1 =
                 d_internal_math_ld_two_sum(1.0L, z.high / 2.0L);
-            const struct d_internal_math_ld_pair c2 =
+            const struct dj_internal_math_ld_pair c2 =
                 d_internal_math_ld_two_sum(c1.high, t4);
             // and the small parts below them
             const long double s_small = s.low + (t3_lo + rest_s);
@@ -5313,7 +5341,7 @@ d_internal_math_ld_sinh_cosh_of(
 
     // from 1/2: (E -+ 1/E) / 2, as 2^(k - 1) times (y + y_lo) -+ (1/E) 2^-k
     {
-        const struct d_internal_math_ld_exp_split e =
+        const struct dj_internal_math_ld_exp_split e =
             d_internal_math_ld_exp_split_of(_a);
         long double v    = 0.0L;
         long double v_lo = 0.0L;
@@ -5323,7 +5351,7 @@ d_internal_math_ld_sinh_cosh_of(
         if ((2 * e.k) <= ((2 * LDBL_MANT_DIG) + 8))
         {
             const long double i     = 1.0L / e.y;
-            const struct d_internal_math_ld_pair iy =
+            const struct dj_internal_math_ld_pair iy =
                 d_internal_math_ld_product_exact(i, e.y);
             const long double i_lo  = (((1.0L - iy.high) - iy.low) -
                                        (i * e.y_lo)) / e.y;
@@ -5335,9 +5363,9 @@ d_internal_math_ld_sinh_cosh_of(
 
         {
             // y -+ v exactly, then the small parts below them
-            const struct d_internal_math_ld_pair difference =
+            const struct dj_internal_math_ld_pair difference =
                 d_internal_math_ld_two_sum(e.y, -v);
-            const struct d_internal_math_ld_pair sum =
+            const struct dj_internal_math_ld_pair sum =
                 d_internal_math_ld_two_sum(e.y, v);
             const long double d_small = difference.low + (e.y_lo - v_lo);
             const long double s_small = sum.low + (e.y_lo + v_lo);
@@ -5369,15 +5397,15 @@ d_internal_math_ld_sinh_cosh_of(
 //   sqrt(_s.high + _s.low), _s.high positive and normal, as high + low: the
 // long double root t, and the residual (_s.high - t^2 + _s.low) / (2t), t^2
 // by Dekker's exact product.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_sqrt_pair(
-    struct d_internal_math_ld_pair _s
+    struct dj_internal_math_ld_pair _s
 )
 {
     const long double t = d_math_ld_sqrt_c(_s.high);
-    const struct d_internal_math_ld_pair square =
+    const struct dj_internal_math_ld_pair square =
         d_internal_math_ld_product_exact(t, t);
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
 
     result.high = t;
     result.low  = (((_s.high - square.high) - square.low) + _s.low) /
@@ -5389,14 +5417,14 @@ d_internal_math_ld_sqrt_pair(
 // d_internal_math_ld_log_of_pair
 //   log(_w.high + _w.low), _w.high positive and normal, as high + low: the
 // logarithm's core of the high part, and the low part over it.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log_of_pair(
-    struct d_internal_math_ld_pair _w
+    struct dj_internal_math_ld_pair _w
 )
 {
-    const struct d_internal_math_ld_log_arg arg =
+    const struct dj_internal_math_ld_log_arg arg =
         d_internal_math_ld_log_arg_normal(_w.high);
-    const struct d_internal_math_ld_pair l =
+    const struct dj_internal_math_ld_pair l =
         d_internal_math_ld_log_of(arg.exponent, arg.m);
 
     return d_internal_math_ld_two_sum(l.high, l.low + (_w.low / _w.high));
@@ -5405,12 +5433,12 @@ d_internal_math_ld_log_of_pair(
 // d_internal_math_ld_log_twice
 //   log(2 _a), _a positive and normal, as a pair: _a's exponent one more, so
 // that 2a is never formed and the largest long double has its own.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log_twice(
     long double _a
 )
 {
-    const struct d_internal_math_ld_log_arg arg =
+    const struct dj_internal_math_ld_log_arg arg =
         d_internal_math_ld_log_arg_normal(_a);
 
     return d_internal_math_ld_log_of(arg.exponent + 1, arg.m);
@@ -5419,7 +5447,7 @@ d_internal_math_ld_log_twice(
 // d_internal_math_ld_asinh_of
 //   asinh(_a), _a finite, from 2^-(P/2 + 1), below which the family's value
 // is _a's own, as a pair.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_asinh_of(
     long double _a
 )
@@ -5432,12 +5460,12 @@ d_internal_math_ld_asinh_of(
 
     {
         // a^2 + 1, exactly, and its root as a pair
-        const struct d_internal_math_ld_pair z =
+        const struct dj_internal_math_ld_pair z =
             d_internal_math_ld_product_exact(_a, _a);
-        const struct d_internal_math_ld_pair s0 =
+        const struct dj_internal_math_ld_pair s0 =
             d_internal_math_ld_two_sum(z.high, 1.0L);
-        struct d_internal_math_ld_pair s = s0;
-        struct d_internal_math_ld_pair t = { 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair s = s0;
+        struct dj_internal_math_ld_pair t = { 0.0L, 0.0L };
 
         s.low = s0.low + z.low;
         t     = d_internal_math_ld_sqrt_pair(s);
@@ -5445,9 +5473,9 @@ d_internal_math_ld_asinh_of(
         // from 1/2: log(a + t)
         if (_a >= 0.5L)
         {
-            const struct d_internal_math_ld_pair w0 =
+            const struct dj_internal_math_ld_pair w0 =
                 d_internal_math_ld_two_sum(_a, t.high);
-            struct d_internal_math_ld_pair w = w0;
+            struct dj_internal_math_ld_pair w = w0;
 
             w.low = w0.low + t.low;
 
@@ -5457,18 +5485,18 @@ d_internal_math_ld_asinh_of(
         {
             // below it: log1p(a + a^2 / (1 + t)), the quotient with its
             // residual
-            const struct d_internal_math_ld_pair d0 =
+            const struct dj_internal_math_ld_pair d0 =
                 d_internal_math_ld_two_sum(1.0L, t.high);
             const long double d_lo = d0.low + t.low;
             const long double q    = z.high / d0.high;
-            const struct d_internal_math_ld_pair qd =
+            const struct dj_internal_math_ld_pair qd =
                 d_internal_math_ld_product_exact(q, d0.high);
             const long double q_lo = ( (((z.high - qd.high) - qd.low) +
                                         z.low) -
                                        (q * d_lo) ) / d0.high;
-            const struct d_internal_math_ld_pair u0 =
+            const struct dj_internal_math_ld_pair u0 =
                 d_internal_math_ld_two_sum(_a, q);
-            struct d_internal_math_ld_pair u = u0;
+            struct dj_internal_math_ld_pair u = u0;
 
             u.low = u0.low + q_lo;
 
@@ -5479,7 +5507,7 @@ d_internal_math_ld_asinh_of(
 
 // d_internal_math_ld_acosh_of
 //   acosh(_x), _x above 1 and finite, as a pair.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_acosh_of(
     long double _x
 )
@@ -5493,13 +5521,13 @@ d_internal_math_ld_acosh_of(
     // from 2: log(x + sqrt(x^2 - 1)), x^2 - 1 exactly
     if (_x >= 2.0L)
     {
-        const struct d_internal_math_ld_pair z =
+        const struct dj_internal_math_ld_pair z =
             d_internal_math_ld_product_exact(_x, _x);
-        const struct d_internal_math_ld_pair s0 =
+        const struct dj_internal_math_ld_pair s0 =
             d_internal_math_ld_two_sum(z.high, -1.0L);
-        struct d_internal_math_ld_pair s = s0;
-        struct d_internal_math_ld_pair t = { 0.0L, 0.0L };
-        struct d_internal_math_ld_pair w = { 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair s = s0;
+        struct dj_internal_math_ld_pair t = { 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair w = { 0.0L, 0.0L };
 
         s.low = s0.low + z.low;
         t     = d_internal_math_ld_sqrt_pair(s);
@@ -5512,13 +5540,13 @@ d_internal_math_ld_acosh_of(
     {
         // below 2: log1p(t + sqrt(2t + t^2)), t = x - 1 exact
         const long double t = _x - 1.0L;
-        const struct d_internal_math_ld_pair z =
+        const struct dj_internal_math_ld_pair z =
             d_internal_math_ld_product_exact(t, t);
-        const struct d_internal_math_ld_pair s0 =
+        const struct dj_internal_math_ld_pair s0 =
             d_internal_math_ld_two_sum(2.0L * t, z.high);
-        struct d_internal_math_ld_pair s = s0;
-        struct d_internal_math_ld_pair r = { 0.0L, 0.0L };
-        struct d_internal_math_ld_pair u = { 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair s = s0;
+        struct dj_internal_math_ld_pair r = { 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair u = { 0.0L, 0.0L };
 
         s.low = s0.low + z.low;
         r     = d_internal_math_ld_sqrt_pair(s);
@@ -5531,20 +5559,20 @@ d_internal_math_ld_acosh_of(
 
 // d_internal_math_ld_atanh_of
 //   atanh(_a), _a in [2^-(P/2 + 1), 1), as a pair.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_atanh_of(
     long double _a
 )
 {
     // 1 - a as a pair, and 2a / (1 - a) with its residual
-    const struct d_internal_math_ld_pair d =
+    const struct dj_internal_math_ld_pair d =
         d_internal_math_ld_two_sum(1.0L, -_a);
     const long double two_a = 2.0L * _a;
     const long double q     = two_a / d.high;
-    const struct d_internal_math_ld_pair qd =
+    const struct dj_internal_math_ld_pair qd =
         d_internal_math_ld_product_exact(q, d.high);
-    struct d_internal_math_ld_pair u = { 0.0L, 0.0L };
-    struct d_internal_math_ld_pair l = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair u = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair l = { 0.0L, 0.0L };
 
     u.high = q;
     u.low  = (((two_a - qd.high) - qd.low) - (q * d.low)) / d.high;
@@ -5573,8 +5601,8 @@ HYPERBOLIC_TEMPLATE = r"""
 // the pair rounded, then scaled exactly; +inf past the largest finite value.
 D_MATH_FN @T@
 d_internal_math_@S@_scale_pair(
-    struct d_internal_math_ld_pair _value,
-    int                            _exponent
+    struct dj_internal_math_ld_pair _value,
+    int                             _exponent
 )
 {
     const @T@ value =
@@ -5626,7 +5654,7 @@ d_math_@S@_sinh_c(
     }
 
     {
-        const struct d_internal_math_ld_sinh_cosh h =
+        const struct dj_internal_math_ld_sinh_cosh h =
             d_internal_math_ld_sinh_cosh_of(a);
         const @T@ value =
             d_internal_math_@S@_scale_pair(h.sinh_part, h.exponent);
@@ -5688,7 +5716,7 @@ d_math_@S@_cosh_c(
     }
 
     {
-        const struct d_internal_math_ld_sinh_cosh h =
+        const struct dj_internal_math_ld_sinh_cosh h =
             d_internal_math_ld_sinh_cosh_of(a);
 
         return d_internal_math_@S@_scale_pair(h.cosh_part, h.exponent);
@@ -5740,13 +5768,13 @@ d_math_@S@_tanh_c(
     }
 
     {
-        const struct d_internal_math_ld_sinh_cosh h =
+        const struct dj_internal_math_ld_sinh_cosh h =
             d_internal_math_ld_sinh_cosh_of(a);
         // the quotient with its residual, then one pair again
-        const struct d_internal_math_ld_pair q =
+        const struct dj_internal_math_ld_pair q =
             d_internal_math_ld_ratio(h.sinh_part.high, h.sinh_part.low,
                                      h.cosh_part.high, h.cosh_part.low);
-        const struct d_internal_math_ld_pair t =
+        const struct dj_internal_math_ld_pair t =
             d_internal_math_ld_two_sum(q.high, q.low);
         const @T@ value = d_internal_math_@S@_round_pair(t.high, t.low);
 
@@ -5797,7 +5825,7 @@ d_math_@S@_asinh_c(
     }
 
     {
-        const struct d_internal_math_ld_pair r =
+        const struct dj_internal_math_ld_pair r =
             d_internal_math_ld_asinh_of(a);
 
         return negative ? d_internal_math_@S@_round_pair(-r.high, -r.low)
@@ -5848,7 +5876,7 @@ d_math_@S@_acosh_c(
     }
 
     {
-        const struct d_internal_math_ld_pair r =
+        const struct dj_internal_math_ld_pair r =
             d_internal_math_ld_acosh_of((long double)_x);
 
         return d_internal_math_@S@_round_pair(r.high, r.low);
@@ -5907,7 +5935,7 @@ d_math_@S@_atanh_c(
     }
 
     {
-        const struct d_internal_math_ld_pair r =
+        const struct dj_internal_math_ld_pair r =
             d_internal_math_ld_atanh_of(a);
 
         return negative ? d_internal_math_@S@_round_pair(-r.high, -r.low)
@@ -6026,8 +6054,7 @@ def hyperbolic():
         "bits. C++ before C++11 has no asinh, acosh or atanh, and there the",
         "plain forms are the _c ones.",
     ]
-    text = banner("hyperbolic.h", "/inc/djinterp/c/modules/math/hyperbolic.h", lines,
-                  "2026.10.09", "2026.10.27")
+    text = banner("hyperbolic.h", lines, "2026.10.09", "2026.11.07")
     text += "\n" + HYPERBOLIC_HEAD
     text += HYPERBOLIC_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -6081,10 +6108,10 @@ POWER_KERNELS = r"""
 // carried up through the parts by two-sums, what each leaves kept and its
 // zeros dropped. The sum's sign is its largest part's.
 
-// d_internal_math_ld_expansion
+// dj_internal_math_ld_expansion
 //   struct: an exact sum of up to 16 long doubles, as nonoverlapping parts,
 // the least first, and how many parts are in use.
-struct d_internal_math_ld_expansion
+struct dj_internal_math_ld_expansion
 {
     long double part[16];
     int         count;
@@ -6092,19 +6119,19 @@ struct d_internal_math_ld_expansion
 
 // d_internal_math_ld_expansion_grow
 //   _e + _b, exactly, as an expansion of at most one more part.
-D_MATH_FN struct d_internal_math_ld_expansion
+D_MATH_FN struct dj_internal_math_ld_expansion
 d_internal_math_ld_expansion_grow(
-    struct d_internal_math_ld_expansion _e,
-    long double                         _b
+    struct dj_internal_math_ld_expansion _e,
+    long double                          _b
 )
 {
-    struct d_internal_math_ld_expansion result = { { 0.0L }, 0 };
-    long double                         carry  = _b;
-    int                                 i      = 0;
+    struct dj_internal_math_ld_expansion result = { { 0.0L }, 0 };
+    long double                          carry  = _b;
+    int                                  i      = 0;
 
     for (i = 0; i < _e.count; ++i)
     {
-        const struct d_internal_math_ld_pair s =
+        const struct dj_internal_math_ld_pair s =
             d_internal_math_ld_two_sum(carry, _e.part[i]);
 
         carry = s.high;
@@ -6146,12 +6173,12 @@ d_internal_math_ld_cube_sign_exact(
     long double _h
 )
 {
-    const struct d_internal_math_ld_pair square =
+    const struct dj_internal_math_ld_pair square =
         d_internal_math_ld_product_exact(_t, _t);
     // t^3 = t square.high + t square.low, each exactly
-    const struct d_internal_math_ld_pair c1 =
+    const struct dj_internal_math_ld_pair c1 =
         d_internal_math_ld_product_exact(_t, square.high);
-    const struct d_internal_math_ld_pair c2 =
+    const struct dj_internal_math_ld_pair c2 =
         d_internal_math_ld_product_exact(_t, square.low);
     // 3t^2 h = 3 (h square.high) + 3 (h square.low), and 3t h^2: each
     // tripled exactly as a pair, 2v + v
@@ -6159,13 +6186,13 @@ d_internal_math_ld_cube_sign_exact(
     const long double hb = _h * square.low;
     const long double hh = _h * _h;
     const long double th = _t * hh;
-    const struct d_internal_math_ld_pair d1 =
+    const struct dj_internal_math_ld_pair d1 =
         d_internal_math_ld_two_sum(ha + ha, ha);
-    const struct d_internal_math_ld_pair d2 =
+    const struct dj_internal_math_ld_pair d2 =
         d_internal_math_ld_two_sum(hb + hb, hb);
-    const struct d_internal_math_ld_pair d3 =
+    const struct dj_internal_math_ld_pair d3 =
         d_internal_math_ld_two_sum(th + th, th);
-    struct d_internal_math_ld_expansion sum = { { 0.0L }, 0 };
+    struct dj_internal_math_ld_expansion sum = { { 0.0L }, 0 };
 
     sum = d_internal_math_ld_expansion_grow(sum, -_m);
     sum = d_internal_math_ld_expansion_grow(sum, c1.high);
@@ -6200,9 +6227,9 @@ d_internal_math_ld_cube_sign(
     long double _h
 )
 {
-    const struct d_internal_math_ld_pair square =
+    const struct dj_internal_math_ld_pair square =
         d_internal_math_ld_product_exact(_t, _t);
-    const struct d_internal_math_ld_pair c1 =
+    const struct dj_internal_math_ld_pair c1 =
         d_internal_math_ld_product_exact(_t, square.high);
     const long double g   = c1.high - _m;
     const long double tb  = _t * square.low;
@@ -6272,13 +6299,13 @@ d_internal_math_ld_cbrt_newton(
 
 // d_internal_math_ld_pair_sum
 //   _a + _b, both pairs, as a pair.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_pair_sum(
-    struct d_internal_math_ld_pair _a,
-    struct d_internal_math_ld_pair _b
+    struct dj_internal_math_ld_pair _a,
+    struct dj_internal_math_ld_pair _b
 )
 {
-    const struct d_internal_math_ld_pair s =
+    const struct dj_internal_math_ld_pair s =
         d_internal_math_ld_two_sum(_a.high, _b.high);
 
     return d_internal_math_ld_two_sum(s.high, s.low + (_a.low + _b.low));
@@ -6287,13 +6314,13 @@ d_internal_math_ld_pair_sum(
 // d_internal_math_ld_pair_product
 //   _a _b, both pairs, as a pair; the highs normal or zero, their product far
 // from overflow.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_pair_product(
-    struct d_internal_math_ld_pair _a,
-    struct d_internal_math_ld_pair _b
+    struct dj_internal_math_ld_pair _a,
+    struct dj_internal_math_ld_pair _b
 )
 {
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact(_a.high, _b.high);
 
     return d_internal_math_ld_two_sum(p.high,
@@ -6303,13 +6330,13 @@ d_internal_math_ld_pair_product(
 
 // d_internal_math_ld_pair_of
 //   _high + _low as a pair, _low below _high's last place.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_pair_of(
     long double _high,
     long double _low
 )
 {
-    struct d_internal_math_ld_pair result = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
 
     result.high = _high;
     result.low  = _low;
@@ -6333,7 +6360,7 @@ d_internal_math_ld_pair_of(
 // d_internal_math_ld_log_accurate_of
 //   log(_m 2^_exponent), _m in [1/sqrt(2), sqrt(2)], as a pair, to about
 // 2^-(P + 30) of the value.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_log_accurate_of(
     int         _exponent,
     long double _m
@@ -6342,19 +6369,19 @@ d_internal_math_ld_log_accurate_of(
     const long double ln2_hi = 0.69314718036912381649017333984375L;
     const long double ln2_lo = 1.908214929270587816144265680755001344e-10L;
     // 1/3, 1/5, 1/7, 1/9 and 1/11: heads of 32 bits, exact as written
-    const struct d_internal_math_ld_pair c3 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c3 = d_internal_math_ld_pair_of(
         0.33333333325572311878204345703125L,
         7.761021455128987630208333333333333333333e-11L);
-    const struct d_internal_math_ld_pair c5 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c5 = d_internal_math_ld_pair_of(
         0.19999999995343387126922607421875L,
         4.656612873077392578125e-11L);
-    const struct d_internal_math_ld_pair c7 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c7 = d_internal_math_ld_pair_of(
         0.142857142840512096881866455078125L,
         1.663076026099068777901785714285714285714e-11L);
-    const struct d_internal_math_ld_pair c9 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c9 = d_internal_math_ld_pair_of(
         0.11111111109494231641292572021484375L,
         1.616879469818539089626736111111111111111e-11L);
-    const struct d_internal_math_ld_pair c11 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c11 = d_internal_math_ld_pair_of(
         0.0909090908826328814029693603515625L,
         2.645802768793973055752840909090909090909e-11L);
     // f = m - 1, exact; 2 + f as u + u_lo; s = f / (2 + f) as s + s_lo
@@ -6362,19 +6389,19 @@ d_internal_math_ld_log_accurate_of(
     const long double u    = 2.0L + f;
     const long double u_lo = f - (u - 2.0L);
     const long double s    = f / u;
-    const struct d_internal_math_ld_pair su =
+    const struct dj_internal_math_ld_pair su =
         d_internal_math_ld_product_exact(s, u);
     const long double s_lo = (((f - su.high) - su.low) - (s * u_lo)) / u;
-    const struct d_internal_math_ld_pair two_s =
+    const struct dj_internal_math_ld_pair two_s =
         d_internal_math_ld_pair_of(2.0L * s, 2.0L * s_lo);
     // z = s^2 as a pair: s s exactly, and 2 s s_lo below it
-    const struct d_internal_math_ld_pair ss =
+    const struct dj_internal_math_ld_pair ss =
         d_internal_math_ld_product_exact(s, s);
-    const struct d_internal_math_ld_pair z =
+    const struct dj_internal_math_ld_pair z =
         d_internal_math_ld_two_sum(ss.high, ss.low + ((2.0L * s) * s_lo));
-    struct d_internal_math_ld_pair series = { 0.0L, 0.0L };
-    long double                    q      = 0.0L;
-    int                            j      = 0;
+    struct dj_internal_math_ld_pair series = { 0.0L, 0.0L };
+    long double                     q      = 0.0L;
+    int                             j      = 0;
 
     // 1/13 + z/15 + z^2/17 + ..., from its 19th term in
     for (j = 24; j >= 6; --j)
@@ -6397,7 +6424,7 @@ d_internal_math_ld_log_accurate_of(
 
     {
         // log(m) = 2s + 2s z series
-        const struct d_internal_math_ld_pair log_m =
+        const struct dj_internal_math_ld_pair log_m =
             d_internal_math_ld_pair_sum(
                 two_s,
                 d_internal_math_ld_pair_product(
@@ -6405,11 +6432,11 @@ d_internal_math_ld_log_accurate_of(
         // e ln2_hi (at most 15 bits by 32) and log m's head, exactly; then
         // e ln2_lo's head, exactly, by Dekker's product
         const long double e = (long double)_exponent;
-        const struct d_internal_math_ld_pair el =
+        const struct dj_internal_math_ld_pair el =
             d_internal_math_ld_product_exact(e, ln2_lo);
-        const struct d_internal_math_ld_pair head =
+        const struct dj_internal_math_ld_pair head =
             d_internal_math_ld_two_sum(e * ln2_hi, log_m.high);
-        const struct d_internal_math_ld_pair top =
+        const struct dj_internal_math_ld_pair top =
             d_internal_math_ld_two_sum(head.high, el.high);
 
         return d_internal_math_ld_two_sum(
@@ -6434,30 +6461,30 @@ d_internal_math_ld_log_accurate_of(
 // d_internal_math_ld_exp_accurate
 //   exp(_r.high + _r.low), |_r.high| <= ln 2 / 2 (a last place past it does
 // no harm), as high + low to about 2^-(P + 18): high the value rounded once.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_exp_accurate(
-    struct d_internal_math_ld_pair _r
+    struct dj_internal_math_ld_pair _r
 )
 {
     // 1/6, 1/24 and 1/120: heads of 32 bits, exact as written
-    const struct d_internal_math_ld_pair c6 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c6 = d_internal_math_ld_pair_of(
         0.166666666627861559391021728515625L,
         3.880510727564493815104166666666666666667e-11L);
-    const struct d_internal_math_ld_pair c24 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c24 = d_internal_math_ld_pair_of(
         0.04166666665696538984775543212890625L,
         9.701276818911234537760416666666666666667e-12L);
-    const struct d_internal_math_ld_pair c120 = d_internal_math_ld_pair_of(
+    const struct dj_internal_math_ld_pair c120 = d_internal_math_ld_pair_of(
         0.00833333333139307796955108642578125L,
         1.940255363782246907552083333333333333333e-12L);
     // r^2 as a pair: r r exactly, and 2 r r_lo below it
-    const struct d_internal_math_ld_pair rr =
+    const struct dj_internal_math_ld_pair rr =
         d_internal_math_ld_product_exact(_r.high, _r.high);
-    const struct d_internal_math_ld_pair r2 =
+    const struct dj_internal_math_ld_pair r2 =
         d_internal_math_ld_two_sum(rr.high,
                                    rr.low + ((2.0L * _r.high) * _r.low));
-    struct d_internal_math_ld_pair series = { 0.0L, 0.0L };
-    long double                    g      = 1.0L;
-    int                            n      = 0;
+    struct dj_internal_math_ld_pair series = { 0.0L, 0.0L };
+    long double                     g      = 1.0L;
+    int                             n      = 0;
 
     // 720 g = 1 + r/7 (1 + r/8 (...)), from its 26th term in
     for (n = 26; n >= 7; --n)
@@ -6480,18 +6507,18 @@ d_internal_math_ld_exp_accurate(
     {
         // exp(r) - 1 = r + r^2 series; then 1 + it as three exact parts:
         // one.high + rest.high + rest.low
-        const struct d_internal_math_ld_pair tail =
+        const struct dj_internal_math_ld_pair tail =
             d_internal_math_ld_pair_sum(
                 _r, d_internal_math_ld_pair_product(r2, series));
-        const struct d_internal_math_ld_pair one =
+        const struct dj_internal_math_ld_pair one =
             d_internal_math_ld_two_sum(1.0L, tail.high);
-        const struct d_internal_math_ld_pair rest =
+        const struct dj_internal_math_ld_pair rest =
             d_internal_math_ld_two_sum(one.low, tail.low);
         // the first two rounded together, and what that left (fast
         // two-sum: rest.high lies below one.high's last place)
         long double high = one.high + rest.high;
         long double left = rest.high - (high - one.high);
-        struct d_internal_math_ld_pair result = { 1.0L, 0.0L };
+        struct dj_internal_math_ld_pair result = { 1.0L, 0.0L };
 
         // on a midpoint, the rounding went the way rest.low does not:
         // a whole gap the other way, and what is left changes sign
@@ -6518,9 +6545,9 @@ d_internal_math_ld_exp_accurate(
 // d_internal_math_ld_exp_pair_split_of
 //   exp(_w.high + _w.low) as (y + y_lo) 2^k, for |_w.high| below 2^14: k
 // fits an int.
-D_MATH_FN struct d_internal_math_ld_exp_split
+D_MATH_FN struct dj_internal_math_ld_exp_split
 d_internal_math_ld_exp_pair_split_of(
-    struct d_internal_math_ld_pair _w
+    struct dj_internal_math_ld_pair _w
 )
 {
     const long double log2e  = 1.442695040888963407359924681001892137L;
@@ -6532,15 +6559,15 @@ d_internal_math_ld_exp_pair_split_of(
     const long double kk     = (long double)k;
     // r = w - k ln 2: w_hi - k ln2_hi exact (Sterbenz's lemma), k ln2_lo
     // exactly by Dekker's product, and every error kept
-    const struct d_internal_math_ld_pair c =
+    const struct dj_internal_math_ld_pair c =
         d_internal_math_ld_product_exact(kk, ln2_lo);
-    const struct d_internal_math_ld_pair d =
+    const struct dj_internal_math_ld_pair d =
         d_internal_math_ld_two_sum(_w.high - (kk * ln2_hi), -c.high);
-    const struct d_internal_math_ld_pair y =
+    const struct dj_internal_math_ld_pair y =
         d_internal_math_ld_exp_accurate(
             d_internal_math_ld_two_sum(d.high,
                                        (d.low - c.low) + _w.low));
-    struct d_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
+    struct dj_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
 
     result.y    = y.high;
     result.y_lo = y.low;
@@ -6552,9 +6579,9 @@ d_internal_math_ld_exp_pair_split_of(
 // d_internal_math_ld_exp2_pair_split_of
 //   2^(_v.high + _v.low) as (y + y_lo) 2^k, for |_v.high| below 2^15: k
 // fits an int.
-D_MATH_FN struct d_internal_math_ld_exp_split
+D_MATH_FN struct dj_internal_math_ld_exp_split
 d_internal_math_ld_exp2_pair_split_of(
-    struct d_internal_math_ld_pair _v
+    struct dj_internal_math_ld_pair _v
 )
 {
     // ln 2 = ln2_hi + ln2_lo, ln2_hi cut to 32 bits: exact as written
@@ -6563,17 +6590,17 @@ d_internal_math_ld_exp2_pair_split_of(
     const int         k      = (int)((_v.high < 0.0L) ? (_v.high - 0.5L)
                                                       : (_v.high + 0.5L));
     // r = v - k: v_hi - k exact, by Sterbenz's lemma or as v_hi itself
-    const struct d_internal_math_ld_pair r =
+    const struct dj_internal_math_ld_pair r =
         d_internal_math_ld_two_sum(_v.high - (long double)k, _v.low);
     // r ln 2: r_hi ln2_hi exactly, the rest below it
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact(r.high, ln2_hi);
-    const struct d_internal_math_ld_pair y =
+    const struct dj_internal_math_ld_pair y =
         d_internal_math_ld_exp_accurate(
             d_internal_math_ld_two_sum(
                 p.high,
                 p.low + ((r.high * ln2_lo) + (r.low * (ln2_hi + ln2_lo)))));
-    struct d_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
+    struct dj_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
 
     result.y    = y.high;
     result.y_lo = y.low;
@@ -6642,25 +6669,25 @@ d_internal_math_ld_is_odd(
              !d_internal_math_ld_is_integer(a / 2.0L) );
 }
 
-// d_internal_math_ld_exact_power
+// dj_internal_math_ld_exact_power
 //   struct: whether x^y is exact, and if so x^y as (y + y_lo) 2^k.
-struct d_internal_math_ld_exact_power
+struct dj_internal_math_ld_exact_power
 {
-    bool                                exact;
-    struct d_internal_math_ld_exp_split value;
+    bool                                 exact;
+    struct dj_internal_math_ld_exp_split value;
 };
 
 // d_internal_math_ld_exact_power_of
 //   _a^_y exactly, as (y + y_lo) 2^k, where the section finds it so: _a
 // positive and neither 1 nor a power of 2, _y past 1. Otherwise exact is
 // false.
-D_MATH_FN struct d_internal_math_ld_exact_power
+D_MATH_FN struct dj_internal_math_ld_exact_power
 d_internal_math_ld_exact_power_of(
     long double _a,
     long double _y
 )
 {
-    struct d_internal_math_ld_exact_power result =
+    struct dj_internal_math_ld_exact_power result =
         { false, { 1.0L, 0.0L, 0 } };
     long double root = _a;
     long double n    = _y;
@@ -6689,7 +6716,7 @@ d_internal_math_ld_exact_power_of(
     while (k > 0)
     {
         const long double c = d_math_ld_sqrt_c(root);
-        const struct d_internal_math_ld_pair square =
+        const struct dj_internal_math_ld_pair square =
             d_internal_math_ld_product_exact(c, c);
 
         if ( (square.high != root) ||
@@ -6706,7 +6733,7 @@ d_internal_math_ld_exact_power_of(
         // r = m 2^e: m^n = m^(n-1) m, each power below it exact; each has a
         // bit more than the last -- m is no power of 2 -- so that some 113
         // steps at most are taken
-        const struct d_internal_math_ld_log_arg r =
+        const struct dj_internal_math_ld_log_arg r =
             d_internal_math_ld_log_arg_of(root);
         long double power = r.m;
 
@@ -6717,13 +6744,13 @@ d_internal_math_ld_exact_power_of(
 
         for (i = 1.0L; i < n; i += 1.0L)
         {
-            const struct d_internal_math_ld_pair p =
+            const struct dj_internal_math_ld_pair p =
                 d_internal_math_ld_product_exact(power, r.m);
 
             if ((i + 1.0L) >= n)
             {
                 // m^n = M 2^j, M in [1/sqrt(2), sqrt(2)]: y = M, k = e n + j
-                const struct d_internal_math_ld_log_arg top =
+                const struct dj_internal_math_ld_log_arg top =
                     d_internal_math_ld_log_arg_of(p.high);
 
                 result.exact      = true;
@@ -6797,15 +6824,15 @@ d_internal_math_ld_hypot_root(
 // Dekker's pairs, from its eight terms summed exactly.
 D_MATH_FN int
 d_internal_math_ld_hypot_sign_exact(
-    struct d_internal_math_ld_pair _a2,
-    struct d_internal_math_ld_pair _b2,
-    long double                    _t,
-    long double                    _h
+    struct dj_internal_math_ld_pair _a2,
+    struct dj_internal_math_ld_pair _b2,
+    long double                     _t,
+    long double                     _h
 )
 {
-    const struct d_internal_math_ld_pair t2 =
+    const struct dj_internal_math_ld_pair t2 =
         d_internal_math_ld_product_exact(_t, _t);
-    struct d_internal_math_ld_expansion sum = { { 0.0L }, 0 };
+    struct dj_internal_math_ld_expansion sum = { { 0.0L }, 0 };
 
     sum = d_internal_math_ld_expansion_grow(sum, -_a2.high);
     sum = d_internal_math_ld_expansion_grow(sum, -_a2.low);
@@ -6833,13 +6860,13 @@ d_internal_math_ld_hypot_sign_exact(
 // the sum lies past 16 such half places; the exact sum otherwise.
 D_MATH_FN int
 d_internal_math_ld_hypot_sign(
-    struct d_internal_math_ld_pair _a2,
-    struct d_internal_math_ld_pair _b2,
-    long double                    _t,
-    long double                    _h
+    struct dj_internal_math_ld_pair _a2,
+    struct dj_internal_math_ld_pair _b2,
+    long double                     _t,
+    long double                     _h
 )
 {
-    const struct d_internal_math_ld_pair t2 =
+    const struct dj_internal_math_ld_pair t2 =
         d_internal_math_ld_product_exact(_t, _t);
     const long double g   = t2.high - _a2.high;
     const long double th  = (2.0L * _t) * _h;
@@ -6895,7 +6922,7 @@ d_internal_math_@S@_cbrt_unit(
 
     for (tries = 0; tries < 3; ++tries)
     {
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(root);
         // half the gap above root, and half the gap below it
         const long double above = (long double)(b.power * @EPS@) / 2.0L;
@@ -6938,9 +6965,9 @@ d_internal_math_@S@_hypot_settle(
     int         _s
 )
 {
-    const struct d_internal_math_ld_pair a2 =
+    const struct dj_internal_math_ld_pair a2 =
         d_internal_math_ld_product_exact(_a, _a);
-    const struct d_internal_math_ld_pair b2 =
+    const struct dj_internal_math_ld_pair b2 =
         d_internal_math_ld_product_exact(_b, _b);
     @T@ t = (@T@)_t;
     int tries = 0;
@@ -7041,7 +7068,7 @@ d_math_@S@_cbrt_c(
         const @T@ value =
             (lift > 0) ? (a * d_internal_math_@S@_pow2(lift)) : a;
         // value = M 2^E with M in [1, 2), and E = 3q + j with j in 0 to 2
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(value);
         const int q = (b.exponent >= 0) ? (b.exponent / 3)
                                         : -((2 - b.exponent) / 3);
@@ -7181,7 +7208,7 @@ d_math_@S@_pow_c(
         const @T@ at = (_x < (@T@)0) ? -_x : _x;
         const long double a = (long double)at;
         // |x| = m 2^e, m in [1/sqrt(2), sqrt(2)], exactly
-        const struct d_internal_math_ld_log_arg arg =
+        const struct dj_internal_math_ld_log_arg arg =
             d_internal_math_@S@_log_arg_of(at);
         // 2^v is +inf from v = top and below half the least subnormal from
         // v = bottom; past reach, either way, in v or in log's units
@@ -7216,7 +7243,7 @@ d_math_@S@_pow_c(
             }
             else
             {
-                const struct d_internal_math_ld_pair v =
+                const struct dj_internal_math_ld_pair v =
                     d_internal_math_ld_product_exact(e, y);
 
                 if (v.high > top)
@@ -7239,9 +7266,9 @@ d_math_@S@_pow_c(
             // 1/x = (1/m) 2^-e, 1/m in [1/sqrt(2), sqrt(2)]: the quotient
             // and its remainder, both exact
             const long double quotient = 1.0L / arg.m;
-            const struct d_internal_math_ld_pair p =
+            const struct dj_internal_math_ld_pair p =
                 d_internal_math_ld_product_exact(quotient, arg.m);
-            struct d_internal_math_ld_exp_split split = { 1.0L, 0.0L, 0 };
+            struct dj_internal_math_ld_exp_split split = { 1.0L, 0.0L, 0 };
 
             split.y    = quotient;
             split.y_lo = ((1.0L - p.high) - p.low) / arg.m;
@@ -7250,7 +7277,7 @@ d_math_@S@_pow_c(
         }
         else
         {
-            const struct d_internal_math_ld_exact_power exact =
+            const struct dj_internal_math_ld_exact_power exact =
                 d_internal_math_ld_exact_power_of(a, y);
 
             if (exact.exact)
@@ -7261,7 +7288,7 @@ d_math_@S@_pow_c(
             {
                 // exp(y log x), y log x as a pair: past the reach, a zero or
                 // an infinity by its sign, which keeps the product finite
-                const struct d_internal_math_ld_pair l =
+                const struct dj_internal_math_ld_pair l =
                     d_internal_math_ld_log_accurate_of(arg.exponent, arg.m);
                 const long double size = (l.high < 0.0L) ? -l.high : l.high;
 
@@ -7272,9 +7299,9 @@ d_math_@S@_pow_c(
                 }
                 else
                 {
-                    const struct d_internal_math_ld_pair yl =
+                    const struct dj_internal_math_ld_pair yl =
                         d_internal_math_ld_product_exact(y, l.high);
-                    const struct d_internal_math_ld_pair w =
+                    const struct dj_internal_math_ld_pair w =
                         d_internal_math_ld_two_sum(yl.high,
                                                    yl.low + (y * l.low));
 
@@ -7377,7 +7404,7 @@ d_math_@S@_hypot_c(
             // a = M 2^E, M in [1, 2), a subnormal lifted into the normal
             // range first; 2^s takes a into [1, 2), and b with it, exactly
             const int lift = (a < @MIN@) ? @P@ : 0;
-            const struct d_internal_math_@S@_binade e =
+            const struct dj_internal_math_@S@_binade e =
                 d_internal_math_@S@_binade_of(
                     (lift > 0) ? (a * d_internal_math_@S@_pow2(lift)) : a);
             const int s = lift - e.exponent;
@@ -7517,8 +7544,7 @@ def power():
         "double, its last bit settled by an exact sum, with no overflow or",
         "underflow on the way; C++ before C++11 has no hypot either.",
     ]
-    text = banner("power.h", "/inc/djinterp/c/modules/math/power.h", lines,
-                  "2026.10.10", "2026.10.10")
+    text = banner("power.h", lines, "2026.10.10", "2026.11.07")
     text += "\n" + POWER_HEAD
     text += POWER_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -7979,8 +8005,7 @@ def remainder():
         "C++11 has neither remainder nor remquo, so that there they are the _c",
         "forms.",
     ]
-    text = banner("remainder.h", "/inc/djinterp/c/modules/math/remainder.h", lines,
-                  "2026.10.10", "2026.10.11")
+    text = banner("remainder.h", lines, "2026.10.10", "2026.11.07")
     text += "\n" + REMAINDER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -8032,9 +8057,9 @@ d_internal_math_@S@_own_integer(
 
 // d_internal_math_@S@_whole
 //   the integer part of _a, 0 <= _a < 2^(P-1), exactly. A conversion to
-// d_math_umax truncates exactly any value below 2^W, W its bits: every _a,
+// dj_math_umax truncates exactly any value below 2^W, W its bits: every _a,
 // where P - 1 <= W. Past 2^W -- a quad's long double, or a family under a
-// 32-bit d_math_umax -- _a is taken W bits at a time from the top: each part
+// 32-bit dj_math_umax -- _a is taken W bits at a time from the top: each part
 // a whole multiple of a power of 2^W, each difference exact.
 D_MATH_FN @T@
 d_internal_math_@S@_whole(
@@ -8048,7 +8073,7 @@ d_internal_math_@S@_whole(
 
     if (_a < span)
     {
-        return (@T@)(d_math_umax)_a;
+        return (@T@)(dj_math_umax)_a;
     }
 
     {
@@ -8066,7 +8091,7 @@ d_internal_math_@S@_whole(
         for (;;)
         {
             const @T@ part =
-                (@T@)(d_math_umax)(rest / scale) * scale;
+                (@T@)(dj_math_umax)(rest / scale) * scale;
 
             whole += part;
             rest  -= part;
@@ -8266,7 +8291,7 @@ TABLE OF CONTENTS
 #include <float.h>           // FLT_EPSILON ... LDBL_EPSILON
 #include <math.h>            // floorf ... roundl
 // djinterp
-#include "./math_common.h"   // D_MATH_FN, d_math_umax, D_MATH_UMAX_MAX
+#include "./math_common.h"   // D_MATH_FN, dj_math_umax, D_MATH_UMAX_MAX
 """
 
 NEAREST_INTEGER_TAIL = r"""
@@ -8298,14 +8323,13 @@ def nearest_integer():
         "plain form calls the C library (std:: in C++), fast at run time. Each",
         "is exact -- the integer it picks is a value of the family -- and right",
         "over the whole range: the integer part is taken by conversion to",
-        "d_math_umax, never long long, a wide value's a part at a time, and",
+        "dj_math_umax, never long long, a wide value's a part at a time, and",
         "from 2^(P-1) up every value is its own. So the _c forms agree with the",
         "library bit for bit, a zero's sign included, and a face may use",
         "either and not know which ran. C++ before C++11 has no trunc or round,",
         "so that there those are the _c forms.",
     ]
-    text = banner("nearest_integer.h", "/inc/djinterp/c/modules/math/nearest_integer.h",
-                  lines, "2026.10.11", "2026.10.11")
+    text = banner("nearest_integer.h", lines, "2026.10.11", "2026.11.07")
     text += "\n" + NEAREST_INTEGER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -8677,7 +8701,7 @@ d_internal_vec_@S@_power_of(
     }
 
     {
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(lifted);
 
         *_power = b.power;
@@ -9404,8 +9428,7 @@ def vec():
         "is scaled by a power of two where its sum of squares would leave the",
         "range, and keeps its bits where it does not (S256).",
     ]
-    text = banner("vec.h", "/inc/djinterp/c/modules/math/vec.h", lines, DATE,
-                  "2026.10.29")
+    text = banner("vec.h", lines, DATE, "2026.11.07")
     text += "\n" + VEC_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -10339,8 +10362,7 @@ def mat():
         "header has what knows the shape. Every kernel is a constant expression",
         "from C++14.",
     ]
-    text = banner("mat.h", "/inc/djinterp/c/modules/math/mat.h", lines,
-                  revised_on="2026.10.29")
+    text = banner("mat.h", lines, revised_on="2026.11.07")
     text += "\n" + MAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -10356,23 +10378,2209 @@ def mat():
 # quat.h
 # -----------------------------------------------------------------------------
 
-QUAT_TEMPLATE = r"""
+QUAT_KERNELS_PURE = r"""
+
+//==============================================================================
+// 1.  THE KERNELS
+//==============================================================================
+// Once, in long double, shared by the three families (math_common.h's
+// D_MATH_FN_KERNEL). A family's values are long doubles exactly, and its part
+// is the kernel's rounded once (d_internal_math_*_round_pair). Sums that
+// cancel are carried as pairs (elementary.h's section 1.1), each product of
+// two parts exact by Dekker's, so that a part's error is some 2^-2P of its
+// terms, P long double's precision -- past twice a double's on the x87, and
+// twice a double's where long double is double. Operands are scaled by powers
+// of 2 to a largest part in [1, 2) where Dekker's products could overflow or
+// lose their low parts.
+
+
+// 1.1    Pairs and scaling
+//------------------------------------------------------------------------------
+
+// d_internal_quat_ld_finite
+//   whether each of _v's _n parts is finite.
+D_MATH_FN_KERNEL bool
+d_internal_quat_ld_finite(
+    const long double* _v,
+    size_t             _n
+)
+{
+    size_t i = 0u;
+
+    // a NaN or an infinity among the parts
+    for (i = 0u; i < _n; ++i)
+    {
+        if ( (_v[i] != _v[i]) ||
+             (d_internal_cplx_ld_is_inf(_v[i])) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// d_internal_quat_ld_has_nan
+//   whether any of _v's _n parts is a NaN.
+D_MATH_FN_KERNEL bool
+d_internal_quat_ld_has_nan(
+    const long double* _v,
+    size_t             _n
+)
+{
+    size_t i = 0u;
+
+    // a NaN among the parts
+    for (i = 0u; i < _n; ++i)
+    {
+        if (_v[i] != _v[i])
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// d_internal_quat_ld_has_inf
+//   whether any of _v's _n parts is an infinity.
+D_MATH_FN_KERNEL bool
+d_internal_quat_ld_has_inf(
+    const long double* _v,
+    size_t             _n
+)
+{
+    size_t i = 0u;
+
+    // an infinity among the parts
+    for (i = 0u; i < _n; ++i)
+    {
+        if (d_internal_cplx_ld_is_inf(_v[i]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// d_internal_quat_ld_is_zero
+//   whether each of _v's _n parts is 0, of either sign.
+D_MATH_FN_KERNEL bool
+d_internal_quat_ld_is_zero(
+    const long double* _v,
+    size_t             _n
+)
+{
+    size_t i = 0u;
+
+    // a part that is not 0
+    for (i = 0u; i < _n; ++i)
+    {
+        if (_v[i] != 0.0L)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// d_internal_quat_ld_safe
+//   whether each of _v's _n parts lies where Dekker's products of two such
+// parts neither overflow nor lose their low parts: 0, or from 2^(EMIN/2 + P)
+// to 2^(EMAX/2 - P) in magnitude, as cplx.h's d_internal_cplx_ld_safe.
+D_MATH_FN_KERNEL bool
+d_internal_quat_ld_safe(
+    const long double* _v,
+    size_t             _n
+)
+{
+    const long double low  =
+        d_internal_math_ld_pow2((LDBL_MIN_EXP / 2) + LDBL_MANT_DIG);
+    const long double high =
+        d_internal_math_ld_pow2((LDBL_MAX_EXP / 2) - LDBL_MANT_DIG);
+    size_t            i    = 0u;
+
+    // a part outside the range
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double a = d_internal_cplx_ld_abs(_v[i]);
+
+        if ( (a != 0.0L) &&
+             ( (a < low) ||
+               (a > high) ) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// d_internal_quat_ld_exponent
+//   the binade of the largest magnitude among _v's _n parts, each finite and
+// one not 0.
+D_MATH_FN_KERNEL int
+d_internal_quat_ld_exponent(
+    const long double* _v,
+    size_t             _n
+)
+{
+    long double largest = 0.0L;
+    size_t      i       = 0u;
+
+    // the largest magnitude
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double a = d_internal_cplx_ld_abs(_v[i]);
+
+        if (a > largest)
+        {
+            largest = a;
+        }
+    }
+
+    return d_internal_cplx_ld_exponent(largest);
+}
+
+// d_internal_quat_ld_scale_all
+//   _out = each of _v's _n parts times 2^_k, each rounded once: exact but
+// where it falls into the subnormals, 2^-2P and more below the largest part
+// once that is in [1, 2). _out may be _v.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_scale_all(
+    long double*       _out,
+    const long double* _v,
+    size_t             _n,
+    int                _k
+)
+{
+    size_t i = 0u;
+
+    // each part by the power
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = d_internal_cplx_ld_scale(_v[i], _k);
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_scale_pair
+//   _p 2^_k, each part scaled: exact but past the largest finite value or in
+// the subnormals.
+D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
+d_internal_quat_ld_scale_pair(
+    struct dj_internal_math_ld_pair _p,
+    int                             _k
+)
+{
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+    result.high = d_internal_cplx_ld_scale(_p.high, _k);
+    result.low  = d_internal_cplx_ld_scale(_p.low, _k);
+
+    return result;
+}
+
+// d_internal_quat_ld_fill_nan
+//   _out = _n pairs, each a NaN.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_fill_nan(
+    struct dj_internal_math_ld_pair* _out,
+    size_t                           _n
+)
+{
+    size_t i = 0u;
+
+    // every part a NaN
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i].high = d_internal_math_ld_nan();
+        _out[i].low  = 0.0L;
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_direction
+//   _out = the direction of _v's _n parts, at least one infinite: each
+// infinite part +-1 / sqrt(their count), the rest 0 of their own signs -- the
+// limit of v / |v| as the finite parts are left behind.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_direction(
+    long double*       _out,
+    const long double* _v,
+    size_t             _n
+)
+{
+    size_t      count = 0u;
+    size_t      i     = 0u;
+    long double unit  = 1.0L;
+
+    // the infinite parts' count
+    for (i = 0u; i < _n; ++i)
+    {
+        if (d_internal_cplx_ld_is_inf(_v[i]))
+        {
+            ++count;
+        }
+    }
+
+    // 1 / sqrt(count), for a count of 2, 3 or 4
+    if (count == 2u)
+    {
+        unit = 0.707106781186547524400844362104849039L;
+    }
+    else if (count == 3u)
+    {
+        unit = 0.577350269189625764509148780501957456L;
+    }
+    else if (count == 4u)
+    {
+        unit = 0.5L;
+    }
+
+    // each part along the infinities
+    for (i = 0u; i < _n; ++i)
+    {
+        const bool infinite = d_internal_cplx_ld_is_inf(_v[i]);
+
+        _out[i] = d_internal_cplx_ld_copysign(infinite ? unit : 0.0L, _v[i]);
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_along
+//   _u _s, where _u is 0 a zero, its sign _u's times _s's: a part of a vector
+// that is 0 stays 0, whatever the value it is taken along -- an infinity or a
+// NaN among them -- as an exact 0 times anything is 0.
+D_MATH_FN_KERNEL long double
+d_internal_quat_ld_along(
+    long double _u,
+    long double _s
+)
+{
+    // a zero part: a zero, of the product's sign
+    if (_u == 0.0L)
+    {
+        const long double zero = d_internal_cplx_ld_copysign(0.0L, _s);
+
+        return (d_internal_cplx_ld_copysign(1.0L, _u) < 0.0L) ? -zero : zero;
+    }
+
+    return _u * _s;
+}
+
+// d_internal_quat_ld_dot
+//   the sum of the _n products _a[i] _b[i], in order, as a pair: each product
+// exact (Dekker's, its factors safe or scaled), the high parts summed by
+// two-sums, the low parts and the two-sums' errors after, and the pair
+// renormalized -- Ogita, Rump and Oishi's Dot2, as accurate as the sum
+// computed in twice the precision and rounded once, so that its high part is
+// the sum rounded once wherever it does not cancel past 2^P of its terms. A
+// sum of 0 is +0, as IEEE's arithmetic makes an exact sum of terms not all
+// 0; where every product is 0, their sum in order, -0 where each is -0.
+D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
+d_internal_quat_ld_dot(
+    const long double* _a,
+    const long double* _b,
+    size_t             _n
+)
+{
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+    long double                     high   = 0.0L;
+    long double                     rest   = 0.0L;
+    long double                     zeros  = 0.0L;
+    bool                            zero   = true;
+    size_t                          i      = 0u;
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const struct dj_internal_math_ld_pair p =
+            d_internal_math_ld_product_exact(_a[i], _b[i]);
+        const struct dj_internal_math_ld_pair s =
+            d_internal_math_ld_two_sum(high, p.high);
+        const long double term = _a[i] * _b[i];
+
+        high  = s.high;
+        rest  = rest + (s.low + p.low);
+        zero  = ( (zero) &&
+                  (term == 0.0L) );
+        zeros = (i == 0u) ? term : (zeros + term);
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0, or the zero products' own sum
+    if (result.high == 0.0L)
+    {
+        result.high = zero ? zeros : 0.0L;
+        result.low  = 0.0L;
+    }
+
+    return result;
+}
+
+// d_internal_quat_ld_over
+//   (_u.high + _u.low) / (_n.high + _n.low) as a pair, _n.high in [1, 32):
+// cplx.h's d_internal_cplx_ld_over with its last sum kept as a pair -- the
+// quotient q of the high parts, the residual u - q n formed exactly by
+// Dekker's product, and q with the residual over n -- the quotient to some
+// 2^-2P of it. A zero is q itself, of its sign; a quotient too near the
+// subnormals for Dekker's product q less q n_lo / n.
+D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
+d_internal_quat_ld_over(
+    struct dj_internal_math_ld_pair _u,
+    struct dj_internal_math_ld_pair _n
+)
+{
+    const long double               q0     = _u.high / _n.high;
+    const long double               least  =
+        LDBL_MIN * d_internal_math_ld_pow2(LDBL_MANT_DIG + 4);
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+    result.high = q0;
+
+    // a zero: itself, its sign kept
+    if (q0 == 0.0L)
+    {
+        return result;
+    }
+
+    // too near the subnormals for Dekker's product
+    if (d_internal_cplx_ld_abs(q0) < least)
+    {
+        result.high = q0 - (q0 * (_n.low / _n.high));
+
+        return result;
+    }
+
+    {
+        const struct dj_internal_math_ld_pair t =
+            d_internal_math_ld_product_exact(q0, _n.high);
+        // u - q n: u's high part less t's is exact, the two within an ulp
+        const long double head = (_u.high - t.high) - t.low;
+        const long double r    = (head + _u.low) - (q0 * _n.low);
+
+        result = d_internal_math_ld_two_sum(q0, r / _n.high);
+    }
+
+    return result;
+}
+
+// d_internal_quat_ld_lerp
+//   (1 - _t) _a + _t _b as a pair: 1 - t exactly as a pair, each product
+// a pair, their sum a pair -- exact at t = 0 and t = 1.
+D_MATH_FN_KERNEL struct dj_internal_math_ld_pair
+d_internal_quat_ld_lerp(
+    long double _a,
+    long double _b,
+    long double _t
+)
+{
+    const struct dj_internal_math_ld_pair rest =
+        d_internal_math_ld_two_sum(1.0L, -_t);
+    const struct dj_internal_math_ld_pair from =
+        d_internal_math_ld_pair_product(
+            rest, d_internal_math_ld_pair_of(_a, 0.0L));
+    const struct dj_internal_math_ld_pair to =
+        d_internal_math_ld_product_exact(_t, _b);
+
+    return d_internal_math_ld_pair_sum(from, to);
+}
+
+// d_internal_quat_ld_dot_sign
+//   the sign of _a . _b, _n parts each, finite: their dot product's high part
+// (d_internal_quat_ld_dot), each operand scaled first where it leaves the
+// safe range; 0 where either is 0.
+D_MATH_FN_KERNEL long double
+d_internal_quat_ld_dot_sign(
+    const long double* _a,
+    const long double* _b,
+    size_t             _n
+)
+{
+    long double a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+
+    // a zero operand: no sign
+    if ( (d_internal_quat_ld_is_zero(_a, _n)) ||
+         (d_internal_quat_ld_is_zero(_b, _n)) )
+    {
+        return 0.0L;
+    }
+
+    d_internal_quat_ld_scale_all(a, _a, _n,
+                                 -d_internal_quat_ld_exponent(_a, _n));
+    d_internal_quat_ld_scale_all(b, _b, _n,
+                                 -d_internal_quat_ld_exponent(_b, _n));
+
+    return d_internal_quat_ld_dot(a, b, _n).high;
+}
+
+
+// 1.2    The algebra
+//------------------------------------------------------------------------------
+// Hamilton's product and the quotients, each part a sum of four products as
+// d_internal_quat_ld_dot sums them, for finite operands; the families take
+// the formulas as written where a part is infinite or a NaN.
+
+// d_internal_quat_ld_hamilton
+//   _out = _a _b, each part a pair (d_internal_quat_ld_dot), its four
+// products in the order of the formula (d_quat_*_multiply_fast): x = w x' +
+// x w' + y z' - z y', y = w y' - x z' + y w' + z x', z = w z' + x y' - y x' + z
+// w', w = w w' - x x' - y y' - z z'. The factors safe, or scaled by the
+// caller.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_hamilton(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _a,
+    const long double*               _b
+)
+{
+    const long double x_a[4] = { _a[3],  _a[0],  _a[1], -_a[2] };
+    const long double x_b[4] = { _b[0],  _b[3],  _b[2],  _b[1] };
+    const long double y_a[4] = { _a[3], -_a[0],  _a[1],  _a[2] };
+    const long double y_b[4] = { _b[1],  _b[2],  _b[3],  _b[0] };
+    const long double z_a[4] = { _a[3],  _a[0], -_a[1],  _a[2] };
+    const long double z_b[4] = { _b[2],  _b[1],  _b[0],  _b[3] };
+    const long double w_a[4] = { _a[3], -_a[0], -_a[1], -_a[2] };
+    const long double w_b[4] = { _b[3],  _b[0],  _b[1],  _b[2] };
+
+    _out[0] = d_internal_quat_ld_dot(x_a, x_b, 4u);
+    _out[1] = d_internal_quat_ld_dot(y_a, y_b, 4u);
+    _out[2] = d_internal_quat_ld_dot(z_a, z_b, 4u);
+    _out[3] = d_internal_quat_ld_dot(w_a, w_b, 4u);
+
+    return;
+}
+
+// d_internal_quat_ld_multiply
+//   _out = _a _b, both finite (d_internal_quat_ld_hamilton): where either
+// leaves the safe range, each scaled to a largest part in [1, 2) and the
+// parts scaled back, each rounded once more where it falls into the
+// subnormals.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_multiply(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _a,
+    const long double*               _b
+)
+{
+    // safe, or a zero operand: the parts as they are
+    if ( ( (d_internal_quat_ld_safe(_a, 4u)) &&
+           (d_internal_quat_ld_safe(_b, 4u)) ) ||
+         (d_internal_quat_ld_is_zero(_a, 4u)) ||
+         (d_internal_quat_ld_is_zero(_b, 4u)) )
+    {
+        d_internal_quat_ld_hamilton(_out, _a, _b);
+
+        return;
+    }
+
+    {
+        const int   ea   = d_internal_quat_ld_exponent(_a, 4u);
+        const int   eb   = d_internal_quat_ld_exponent(_b, 4u);
+        long double a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+        long double b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+        size_t      i    = 0u;
+
+        d_internal_quat_ld_scale_all(a, _a, 4u, -ea);
+        d_internal_quat_ld_scale_all(b, _b, 4u, -eb);
+        d_internal_quat_ld_hamilton(_out, a, b);
+
+        // each part back to its scale
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_quat_ld_scale_pair(_out[i], ea + eb);
+        }
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_inverse
+//   _out = 1 / _q = q* / |q|^2, q finite and not 0: q scaled to a largest
+// part in [1, 2), so that |q|^2, the sum of its exact squares as a pair, lies
+// in [1, 16); each part of q* over it (d_internal_quat_ld_over), and scaled
+// back.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_inverse(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q
+)
+{
+    const int   e    = d_internal_quat_ld_exponent(_q, 4u);
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    d_internal_quat_ld_scale_all(q, _q, 4u, -e);
+
+    {
+        const struct dj_internal_math_ld_pair n =
+            d_internal_quat_ld_dot(q, q, 4u);
+
+        // each part of the conjugate over the squared norm
+        for (i = 0u; i < 4u; ++i)
+        {
+            const long double part = (i < 3u) ? -q[i] : q[i];
+
+            _out[i] = d_internal_quat_ld_scale_pair(
+                d_internal_quat_ld_over(
+                    d_internal_math_ld_pair_of(part, 0.0L), n),
+                -e);
+        }
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_divide
+//   _out = _p / _q = p q* / |q|^2 where _right, the quotient on the right, and
+// q^-1 p = q* p / |q|^2 otherwise, both finite and q not 0: each operand
+// scaled to a largest part in [1, 2), p left as it is where it is 0; the
+// numerator's parts as pairs (d_internal_quat_ld_hamilton), each over |q|^2's
+// pair (d_internal_quat_ld_over), scaled back by p's exponent less q's.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_divide(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _p,
+    const long double*               _q,
+    bool                             _right
+)
+{
+    const int   eq   = d_internal_quat_ld_exponent(_q, 4u);
+    const int   ep   = (d_internal_quat_ld_is_zero(_p, 4u)) ?
+                           0 : d_internal_quat_ld_exponent(_p, 4u);
+    long double p[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double c[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    d_internal_quat_ld_scale_all(p, _p, 4u, -ep);
+    d_internal_quat_ld_scale_all(q, _q, 4u, -eq);
+    c[0] = -q[0];
+    c[1] = -q[1];
+    c[2] = -q[2];
+    c[3] = q[3];
+
+    {
+        const struct dj_internal_math_ld_pair n =
+            d_internal_quat_ld_dot(q, q, 4u);
+        struct dj_internal_math_ld_pair num[4] = { { 0.0L, 0.0L },
+                                                   { 0.0L, 0.0L },
+                                                   { 0.0L, 0.0L },
+                                                   { 0.0L, 0.0L } };
+
+        // the numerator in its order
+        if (_right)
+        {
+            d_internal_quat_ld_hamilton(num, p, c);
+        }
+        else
+        {
+            d_internal_quat_ld_hamilton(num, c, p);
+        }
+
+        // each part over the squared norm, back to its scale
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_quat_ld_scale_pair(
+                d_internal_quat_ld_over(num[i], n), ep - eq);
+        }
+    }
+
+    return;
+}
+
+
+// 1.3    The algebra in double
+//------------------------------------------------------------------------------
+// The product, the inverse and the quotients again, in double's pairs, for
+// float's and double's where double is evaluated in its own type, as SSE
+// evaluates it, and long double is not: a float's products exact in double,
+// a double's by Dekker's (cplx.h's), each sum Dot2's -- as accurate as
+// twice double's precision, some ten times faster than the x87's long
+// double. Where double is evaluated wider, as on a 32-bit x87, the families
+// take section 1.2's kernels.
+#if !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_quat_d2_is_zero
+//   whether each of _v's _n parts is 0, of either sign.
+D_MATH_FN_KERNEL bool
+d_internal_quat_d2_is_zero(
+    const double* _v,
+    size_t        _n
+)
+{
+    size_t i = 0u;
+
+    // a part that is not 0
+    for (i = 0u; i < _n; ++i)
+    {
+        if (_v[i] != 0.0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// d_internal_quat_d2_safe
+//   whether each of _v's _n parts is 0 or lies from 2^(EMIN/2 + P) to 2^(EMAX/2
+// - P) in double's terms, where Dekker's products neither overflow nor lose
+// their low parts (cplx.h's d_internal_cplx_d_safe).
+D_MATH_FN_KERNEL bool
+d_internal_quat_d2_safe(
+    const double* _v,
+    size_t        _n
+)
+{
+    const double low  = d_internal_math_d_pow2((DBL_MIN_EXP / 2) +
+                                               DBL_MANT_DIG);
+    const double high = d_internal_math_d_pow2((DBL_MAX_EXP / 2) -
+                                               DBL_MANT_DIG);
+    size_t       i    = 0u;
+
+    // a part outside the range
+    for (i = 0u; i < _n; ++i)
+    {
+        const double a = d_internal_cplx_d_abs(_v[i]);
+
+        if ( (a != 0.0) &&
+             ( (a < low) ||
+               (a > high) ) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// d_internal_quat_d2_scaled
+//   _out = _v's _n parts times 2^-e, e the binade of the largest, which is
+// then in [1, 2); e itself returned. _v finite and not 0.
+D_MATH_FN_KERNEL int
+d_internal_quat_d2_scaled(
+    double*       _out,
+    const double* _v,
+    size_t        _n
+)
+{
+    double largest = 0.0;
+    int    e       = 0;
+    size_t i       = 0u;
+
+    // the largest magnitude
+    for (i = 0u; i < _n; ++i)
+    {
+        const double a = d_internal_cplx_d_abs(_v[i]);
+
+        if (a > largest)
+        {
+            largest = a;
+        }
+    }
+
+    e = d_internal_cplx_d_exponent(largest);
+
+    // each part by the power
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = d_internal_cplx_d_scale(_v[i], -e);
+    }
+
+    return e;
+}
+
+// d_internal_quat_d2_scale_pair
+//   _p 2^_k, each part scaled.
+D_MATH_FN_KERNEL struct dj_internal_math_d_pair
+d_internal_quat_d2_scale_pair(
+    struct dj_internal_math_d_pair _p,
+    int                            _k
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+
+    result.high = d_internal_cplx_d_scale(_p.high, _k);
+    result.low  = d_internal_cplx_d_scale(_p.low, _k);
+
+    return result;
+}
+
+// d_internal_quat_d2_dot
+//   d_internal_quat_ld_dot in double: the sum of the _n products as a pair,
+// each exact by Dekker's (cplx.h's d_internal_cplx_d_product), Dot2's sum;
+// an exact zero +0, or the zero products' own sum.
+D_MATH_FN_KERNEL struct dj_internal_math_d_pair
+d_internal_quat_d2_dot(
+    const double* _a,
+    const double* _b,
+    size_t        _n
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+    double                         high   = 0.0;
+    double                         rest   = 0.0;
+    double                         zeros  = 0.0;
+    bool                           zero   = true;
+    size_t                         i      = 0u;
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const struct dj_internal_math_d_pair p =
+            d_internal_cplx_d_product(_a[i], _b[i]);
+        const struct dj_internal_math_d_pair s =
+            d_internal_cplx_d_two_sum(high, p.high);
+        const double term = _a[i] * _b[i];
+
+        high  = s.high;
+        rest  = rest + (s.low + p.low);
+        zero  = ( (zero) &&
+                  (term == 0.0) );
+        zeros = (i == 0u) ? term : (zeros + term);
+    }
+
+    result = d_internal_cplx_d_two_sum(high, rest);
+
+    // an exact zero: +0, or the zero products' own sum
+    if (result.high == 0.0)
+    {
+        result.high = zero ? zeros : 0.0;
+        result.low  = 0.0;
+    }
+
+    return result;
+}
+
+// d_internal_quat_d2_hamilton
+//   d_internal_quat_ld_hamilton in double.
+D_MATH_FN_KERNEL void
+d_internal_quat_d2_hamilton(
+    struct dj_internal_math_d_pair* _out,
+    const double*                   _a,
+    const double*                   _b
+)
+{
+    const double x_a[4] = { _a[3],  _a[0],  _a[1], -_a[2] };
+    const double x_b[4] = { _b[0],  _b[3],  _b[2],  _b[1] };
+    const double y_a[4] = { _a[3], -_a[0],  _a[1],  _a[2] };
+    const double y_b[4] = { _b[1],  _b[2],  _b[3],  _b[0] };
+    const double z_a[4] = { _a[3],  _a[0], -_a[1],  _a[2] };
+    const double z_b[4] = { _b[2],  _b[1],  _b[0],  _b[3] };
+    const double w_a[4] = { _a[3], -_a[0], -_a[1], -_a[2] };
+    const double w_b[4] = { _b[3],  _b[0],  _b[1],  _b[2] };
+
+    _out[0] = d_internal_quat_d2_dot(x_a, x_b, 4u);
+    _out[1] = d_internal_quat_d2_dot(y_a, y_b, 4u);
+    _out[2] = d_internal_quat_d2_dot(z_a, z_b, 4u);
+    _out[3] = d_internal_quat_d2_dot(w_a, w_b, 4u);
+
+    return;
+}
+
+// d_internal_quat_d2_multiply
+//   _out = _a _b, both finite (d_internal_quat_d2_hamilton), each scaled to
+// a largest part in [1, 2) where either leaves the safe range, the parts
+// scaled back.
+D_MATH_FN_KERNEL void
+d_internal_quat_d2_multiply(
+    struct dj_internal_math_d_pair* _out,
+    const double*                   _a,
+    const double*                   _b
+)
+{
+    // safe, or a zero operand: the parts as they are
+    if ( ( (d_internal_quat_d2_safe(_a, 4u)) &&
+           (d_internal_quat_d2_safe(_b, 4u)) ) ||
+         (d_internal_quat_d2_is_zero(_a, 4u)) ||
+         (d_internal_quat_d2_is_zero(_b, 4u)) )
+    {
+        d_internal_quat_d2_hamilton(_out, _a, _b);
+
+        return;
+    }
+
+    {
+        double    a[4] = { 0.0, 0.0, 0.0, 0.0 };
+        double    b[4] = { 0.0, 0.0, 0.0, 0.0 };
+        const int ea   = d_internal_quat_d2_scaled(a, _a, 4u);
+        const int eb   = d_internal_quat_d2_scaled(b, _b, 4u);
+        size_t    i    = 0u;
+
+        d_internal_quat_d2_hamilton(_out, a, b);
+
+        // each part back to its scale
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_quat_d2_scale_pair(_out[i], ea + eb);
+        }
+    }
+
+    return;
+}
+
+// d_internal_quat_d2_over
+//   d_internal_quat_ld_over in double: (_u.high + _u.low) / (_n.high +
+// _n.low) as a pair, _n.high in [1, 32).
+D_MATH_FN_KERNEL struct dj_internal_math_d_pair
+d_internal_quat_d2_over(
+    struct dj_internal_math_d_pair _u,
+    struct dj_internal_math_d_pair _n
+)
+{
+    const double                   q0     = _u.high / _n.high;
+    const double                   least  =
+        DBL_MIN * d_internal_math_d_pow2(DBL_MANT_DIG + 4);
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+
+    result.high = q0;
+
+    // a zero: itself, its sign kept
+    if (q0 == 0.0)
+    {
+        return result;
+    }
+
+    // too near the subnormals for Dekker's product
+    if (d_internal_cplx_d_abs(q0) < least)
+    {
+        result.high = q0 - (q0 * (_n.low / _n.high));
+
+        return result;
+    }
+
+    {
+        const struct dj_internal_math_d_pair t =
+            d_internal_cplx_d_product(q0, _n.high);
+        // u - q n: u's high part less t's is exact, the two within an ulp
+        const double head = (_u.high - t.high) - t.low;
+        const double r    = (head + _u.low) - (q0 * _n.low);
+
+        result = d_internal_cplx_d_two_sum(q0, r / _n.high);
+    }
+
+    return result;
+}
+
+// d_internal_quat_d2_divide
+//   d_internal_quat_ld_divide in double, _q's inverse where _p is NULL: _p
+// / _q where _right, q^-1 p otherwise, both finite and q not 0, each scaled
+// to a largest part in [1, 2), the parts over |q|^2's pair, scaled back.
+D_MATH_FN_KERNEL void
+d_internal_quat_d2_divide(
+    struct dj_internal_math_d_pair* _out,
+    const double*                   _p,
+    const double*                   _q,
+    bool                            _right
+)
+{
+    const double one[4] = { 0.0, 0.0, 0.0, 1.0 };
+    double       p[4]   = { 0.0, 0.0, 0.0, 0.0 };
+    double       q[4]   = { 0.0, 0.0, 0.0, 0.0 };
+    double       c[4]   = { 0.0, 0.0, 0.0, 0.0 };
+    const double* num_p = (_p == NULL) ? one : _p;
+    const int    eq     = d_internal_quat_d2_scaled(q, _q, 4u);
+    const int    ep     = (d_internal_quat_d2_is_zero(num_p, 4u)) ?
+                              0 : d_internal_quat_d2_scaled(p, num_p, 4u);
+    size_t       i      = 0u;
+
+    c[0] = -q[0];
+    c[1] = -q[1];
+    c[2] = -q[2];
+    c[3] = q[3];
+
+    {
+        const struct dj_internal_math_d_pair n =
+            d_internal_quat_d2_dot(q, q, 4u);
+        struct dj_internal_math_d_pair num[4] = { { 0.0, 0.0 },
+                                                  { 0.0, 0.0 },
+                                                  { 0.0, 0.0 },
+                                                  { 0.0, 0.0 } };
+
+        // the numerator in its order: the inverse's is q* itself
+        if (_p == NULL)
+        {
+            for (i = 0u; i < 4u; ++i)
+            {
+                num[i].high = c[i];
+            }
+        }
+        else if (_right)
+        {
+            d_internal_quat_d2_hamilton(num, p, c);
+        }
+        else
+        {
+            d_internal_quat_d2_hamilton(num, c, p);
+        }
+
+        // each part over the squared norm, back to its scale
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_quat_d2_scale_pair(
+                d_internal_quat_d2_over(num[i], n), ep - eq);
+        }
+    }
+
+    return;
+}
+
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+
+// 1.4    Rotation
+//------------------------------------------------------------------------------
+// q v q^-1 and its matrix, for any q not 0: q's norm cancels, so a q a few
+// steps from unit length names the rotation of q / |q|, as glTF's, Eigen's
+// and GLM's unit quaternions name theirs.
+
+// d_internal_quat_ld_rotate
+//   _out = q v q^-1, the rotation _q names applied to the 3-vector _v, both
+// finite and not 0: ((w^2 - |u|^2) v + 2 (u . v) u + 2 w (u x v)) / |q|^2, q
+// = (u, w). q and v are scaled to largest parts in [1, 2); the squares and
+// products exact and their sums pairs, each part's three terms a pair, over
+// |q|^2's pair (d_internal_quat_ld_over), v's scale restored.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_rotate(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q,
+    const long double*               _v
+)
+{
+    const int   eq   = d_internal_quat_ld_exponent(_q, 4u);
+    const int   ev   = d_internal_quat_ld_exponent(_v, 3u);
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double v[3] = { 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    d_internal_quat_ld_scale_all(q, _q, 4u, -eq);
+    d_internal_quat_ld_scale_all(v, _v, 3u, -ev);
+
+    {
+        // w^2 - |u|^2, |q|^2 and u . v
+        const long double sq_a[4] = { q[3], -q[0], -q[1], -q[2] };
+        const long double sq_b[4] = { q[3],  q[0],  q[1],  q[2] };
+        const long double c0_a[2] = { q[1], -q[2] };
+        const long double c0_b[2] = { v[2],  v[1] };
+        const long double c1_a[2] = { q[2], -q[0] };
+        const long double c1_b[2] = { v[0],  v[2] };
+        const long double c2_a[2] = { q[0], -q[1] };
+        const long double c2_b[2] = { v[1],   v[0] };
+        const long double q_v[3]  = { q[0],   q[1],  q[2] };
+        const struct dj_internal_math_ld_pair a =
+            d_internal_quat_ld_dot(sq_a, sq_b, 4u);
+        const struct dj_internal_math_ld_pair n =
+            d_internal_quat_ld_dot(q, q, 4u);
+        const struct dj_internal_math_ld_pair b =
+            d_internal_quat_ld_dot(q_v, v, 3u);
+        // u x v
+        const struct dj_internal_math_ld_pair c[3] = {
+            d_internal_quat_ld_dot(c0_a, c0_b, 2u),
+            d_internal_quat_ld_dot(c1_a, c1_b, 2u),
+            d_internal_quat_ld_dot(c2_a, c2_b, 2u) };
+
+        // each part's three terms, over |q|^2
+        for (i = 0u; i < 3u; ++i)
+        {
+            const struct dj_internal_math_ld_pair t1 =
+                d_internal_math_ld_pair_product(
+                    a, d_internal_math_ld_pair_of(v[i], 0.0L));
+            const struct dj_internal_math_ld_pair t2 =
+                d_internal_math_ld_pair_product(
+                    b, d_internal_math_ld_pair_of(2.0L * q[i], 0.0L));
+            const struct dj_internal_math_ld_pair t3 =
+                d_internal_math_ld_pair_product(
+                    c[i], d_internal_math_ld_pair_of(2.0L * q[3], 0.0L));
+            const struct dj_internal_math_ld_pair s =
+                d_internal_math_ld_pair_sum(
+                    d_internal_math_ld_pair_sum(t1, t2), t3);
+
+            _out[i] = d_internal_quat_ld_scale_pair(
+                d_internal_quat_ld_over(s, n), ev);
+        }
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_to_matrix3
+//   _out (3 x 3, by rows) = the rotation matrix of _q, finite and not 0: [w^2 +
+// x^2 - y^2 - z^2, 2 (x y - w z), 2 (x z + w y); 2 (x y + w z), w^2 - x^2 +
+// y^2 - z^2, 2 (y z - w x); 2 (x z - w y), 2 (y z + w x), w^2 - x^2 - y^2 +
+// z^2] / |q|^2, each numerator a pair of exact products, over |q|^2's pair.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_to_matrix3(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q
+)
+{
+    const int   e    = d_internal_quat_ld_exponent(_q, 4u);
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    d_internal_quat_ld_scale_all(q, _q, 4u, -e);
+
+    {
+        const long double x  = q[0];
+        const long double y  = q[1];
+        const long double z  = q[2];
+        const long double w  = q[3];
+        const long double d0[4]   = { w,  x, -y, -z };
+        const long double d1[4]   = { w, -x,  y, -z };
+        const long double d2[4]   = { w, -x, -y,  z };
+        const long double wxyz[4] = { w,  x,  y,  z };
+        const long double xw_a[2] = { 2.0L * x, -2.0L * w };
+        const long double xw_p[2] = { 2.0L * x,  2.0L * w };
+        const long double yw_a[2] = { 2.0L * y, -2.0L * w };
+        const long double yw_p[2] = { 2.0L * y,  2.0L * w };
+        const long double yz[2]   = { y, z };
+        const long double zy[2]   = { z, y };
+        const long double zx[2]   = { z, x };
+        const struct dj_internal_math_ld_pair n =
+            d_internal_quat_ld_dot(q, q, 4u);
+        const struct dj_internal_math_ld_pair num[9] = {
+            d_internal_quat_ld_dot(d0, wxyz, 4u),
+            d_internal_quat_ld_dot(xw_a, yz, 2u),
+            d_internal_quat_ld_dot(xw_p, zy, 2u),
+            d_internal_quat_ld_dot(xw_p, yz, 2u),
+            d_internal_quat_ld_dot(d1, wxyz, 4u),
+            d_internal_quat_ld_dot(yw_a, zx, 2u),
+            d_internal_quat_ld_dot(xw_a, zy, 2u),
+            d_internal_quat_ld_dot(yw_p, zx, 2u),
+            d_internal_quat_ld_dot(d2, wxyz, 4u) };
+
+        // each entry over |q|^2
+        for (i = 0u; i < 9u; ++i)
+        {
+            _out[i] = d_internal_quat_ld_over(num[i], n);
+        }
+    }
+
+    return;
+}
+"""
+
+
+# the kernels that take a square root and nothing else: once with the core's
+# _c root, a constant expression, once with the C library's; a correctly
+# rounded root either way, so the two give the same bits.
+QUAT_KERNELS_ROOT = r"""
+
+// 1.@SUB@    @TITLE@
+//------------------------------------------------------------------------------
+// @PROSE@
+
+// d_internal_quat_ld_root@KS@
+//   the square root of the pair _s, _s.high normal and positive, as a pair:
+// the root r of the high part, rounded once, and (s - r^2) / 2r, r^2 exact.
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_quat_ld_root@KS@(
+    struct dj_internal_math_ld_pair _s
+)
+{
+    const long double                     r   = @SQRT@(_s.high);
+    const struct dj_internal_math_ld_pair t   =
+        d_internal_math_ld_product_exact(r, r);
+    // s - r^2: s's high part less t's is exact, the two within an ulp
+    const long double                    rest =
+        ((_s.high - t.high) - t.low) + _s.low;
+
+    return d_internal_math_ld_two_sum(r, rest / (2.0L * r));
+}
+
+// d_internal_quat_ld_norm@KS@
+//   |_v|, _n parts, at most 4, as a pair: +inf where a part is infinite, a
+// NaN part a NaN, +0 for 0; otherwise v scaled to a largest part in [1, 2),
+// the sum of its exact squares as a pair (d_internal_quat_ld_dot), its root
+// as a pair, scaled back -- the norm to some 2^-2P of it, rounded once more
+// where it falls into the subnormals.
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_quat_ld_norm@KS@(
+    const long double* _v,
+    size_t             _n
+)
+{
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+    // an infinite part: an infinite norm, a NaN beside it or not
+    if (d_internal_quat_ld_has_inf(_v, _n))
+    {
+        result.high = d_internal_math_ld_infinity();
+
+        return result;
+    }
+
+    // a NaN part
+    if (d_internal_quat_ld_has_nan(_v, _n))
+    {
+        result.high = d_internal_math_ld_nan();
+
+        return result;
+    }
+
+    // a zero vector: +0
+    if (d_internal_quat_ld_is_zero(_v, _n))
+    {
+        return result;
+    }
+
+    {
+        const int   e    = d_internal_quat_ld_exponent(_v, _n);
+        long double v[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+
+        d_internal_quat_ld_scale_all(v, _v, _n, -e);
+        result = d_internal_quat_ld_scale_pair(
+            d_internal_quat_ld_root@KS@(d_internal_quat_ld_dot(v, v, _n)), e);
+    }
+
+    return result;
+}
+
+// d_internal_quat_ld_normalize@KS@
+//   _out = _q / |q|, each part a pair: q scaled to a largest part in [1, 2),
+// |q| the root of its exact squares' sum as a pair, each part over it
+// (d_internal_quat_ld_over). A zero q is left as it is; a NaN part makes
+// each a NaN; an infinite part, none a NaN, the direction of the infinities
+// (d_internal_quat_ld_direction), the limit of q / |q|.
+@KQ@ void
+d_internal_quat_ld_normalize@KS@(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q
+)
+{
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    // a NaN part: no direction
+    if (d_internal_quat_ld_has_nan(_q, 4u))
+    {
+        d_internal_quat_ld_fill_nan(_out, 4u);
+
+        return;
+    }
+
+    // an infinite part: the direction of the infinities
+    if (d_internal_quat_ld_has_inf(_q, 4u))
+    {
+        d_internal_quat_ld_direction(q, _q, 4u);
+
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_math_ld_pair_of(q[i], 0.0L);
+        }
+
+        return;
+    }
+
+    // zero: left as it is, signs of zero included
+    if (d_internal_quat_ld_is_zero(_q, 4u))
+    {
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_math_ld_pair_of(_q[i], 0.0L);
+        }
+
+        return;
+    }
+
+    d_internal_quat_ld_scale_all(q, _q, 4u,
+                                 -d_internal_quat_ld_exponent(_q, 4u));
+
+    {
+        const struct dj_internal_math_ld_pair n =
+            d_internal_quat_ld_root@KS@(d_internal_quat_ld_dot(q, q, 4u));
+
+        // each part over the norm
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = d_internal_quat_ld_over(
+                d_internal_math_ld_pair_of(q[i], 0.0L), n);
+        }
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_from_matrix3@KS@
+//   _out = the unit quaternion of the rotation matrix _m (3 x 3, by rows), w
+// >= 0, by Shepperd's method: of 4w^2 = 1 + m00 + m11 + m22, 4x^2 = 1 + m00 -
+// m11 - m22, 4y^2 = 1 - m00 + m11 - m22 and 4z^2 = 1 - m00 - m11 + m22, each
+// summed as a pair, the largest (w first among equals, then x, y and z) --
+// at least 1, as the four sum to 4 -- gives its part, its root over 2, and
+// the others are the off-diagonal sums and differences over 4 times it; then
+// all four negated where w is negative, so that q is the one of q and -q with
+// w >= 0. A matrix a few steps from orthogonal gives a quaternion as many
+// from unit length. A NaN or infinite entry: a NaN in each part.
+@KQ@ void
+d_internal_quat_ld_from_matrix3@KS@(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _m
+)
+{
+    const long double one[4] = { 1.0L, 1.0L, 1.0L, 1.0L };
+    const long double cx[4]  = { 1.0L,  _m[0], -_m[4], -_m[8] };
+    const long double cy[4]  = { 1.0L, -_m[0],  _m[4], -_m[8] };
+    const long double cz[4]  = { 1.0L, -_m[0], -_m[4],  _m[8] };
+    const long double cw[4]  = { 1.0L,  _m[0],  _m[4],  _m[8] };
+    size_t            k      = 3u;
+    size_t            i      = 0u;
+
+    // a NaN or an infinity: no rotation
+    if (!d_internal_quat_ld_finite(_m, 9u))
+    {
+        d_internal_quat_ld_fill_nan(_out, 4u);
+
+        return;
+    }
+
+    {
+        const struct dj_internal_math_ld_pair c[4] = {
+            d_internal_quat_ld_dot(cx, one, 4u),
+            d_internal_quat_ld_dot(cy, one, 4u),
+            d_internal_quat_ld_dot(cz, one, 4u),
+            d_internal_quat_ld_dot(cw, one, 4u) };
+
+        // the largest candidate, w first among equals, then x, y, z
+        for (i = 0u; i < 3u; ++i)
+        {
+            if (c[i].high > c[k].high)
+            {
+                k = i;
+            }
+        }
+
+        {
+            const struct dj_internal_math_ld_pair s =
+                d_internal_quat_ld_root@KS@(c[k]);
+            // 4 times the part: twice the root
+            const struct dj_internal_math_ld_pair den =
+                d_internal_math_ld_pair_of(2.0L * s.high, 2.0L * s.low);
+            // the other three parts' numerators, in x, y, z, w order
+            const long double m01 = _m[1];
+            const long double m02 = _m[2];
+            const long double m10 = _m[3];
+            const long double m12 = _m[5];
+            const long double m20 = _m[6];
+            const long double m21 = _m[7];
+            struct dj_internal_math_ld_pair num[4] = { { 0.0L, 0.0L },
+                                                       { 0.0L, 0.0L },
+                                                       { 0.0L, 0.0L },
+                                                       { 0.0L, 0.0L } };
+
+            // the off-diagonal sums and differences k's part divides
+            if (k == 0u)
+            {
+                num[1] = d_internal_math_ld_two_sum(m01, m10);
+                num[2] = d_internal_math_ld_two_sum(m02, m20);
+                num[3] = d_internal_math_ld_two_sum(m21, -m12);
+            }
+            else if (k == 1u)
+            {
+                num[0] = d_internal_math_ld_two_sum(m01, m10);
+                num[2] = d_internal_math_ld_two_sum(m12, m21);
+                num[3] = d_internal_math_ld_two_sum(m02, -m20);
+            }
+            else if (k == 2u)
+            {
+                num[0] = d_internal_math_ld_two_sum(m02, m20);
+                num[1] = d_internal_math_ld_two_sum(m12, m21);
+                num[3] = d_internal_math_ld_two_sum(m10, -m01);
+            }
+            else
+            {
+                num[0] = d_internal_math_ld_two_sum(m21, -m12);
+                num[1] = d_internal_math_ld_two_sum(m02, -m20);
+                num[2] = d_internal_math_ld_two_sum(m10, -m01);
+            }
+
+            // k's part the root over 2, the others over 4 times it
+            for (i = 0u; i < 4u; ++i)
+            {
+                _out[i] = (i == k) ?
+                    d_internal_math_ld_pair_of(s.high / 2.0L, s.low / 2.0L) :
+                    d_internal_quat_ld_over(num[i], den);
+            }
+        }
+    }
+
+    // q or -q: the one with w >= 0
+    if (_out[3].high < 0.0L)
+    {
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i].high = -_out[i].high;
+            _out[i].low  = -_out[i].low;
+        }
+    }
+
+    return;
+}
+
+// d_internal_quat_ld_from_two_vectors@KS@
+//   _out = the unit quaternion of the shortest rotation turning the direction
+// of _a into _b's, both 3-vectors: (a x b, |a| |b| + a . b) normalized, the
+// sum's cancellation, where a . b < 0, avoided as |a x b|^2 / (|a| |b| - a .
+// b), each term a pair of a and b scaled to largest parts in [1, 2). Where
+// the two are exactly opposed, the half turn about the axis a x e_k, e_k the
+// unit vector of a's smallest part (the first among equals). A zero vector:
+// no rotation, the identity; a NaN or an infinite part: a NaN in each part.
+@KQ@ void
+d_internal_quat_ld_from_two_vectors@KS@(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _a,
+    const long double*               _b
+)
+{
+    long double a[3] = { 0.0L, 0.0L, 0.0L };
+    long double b[3] = { 0.0L, 0.0L, 0.0L };
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+
+    // a NaN or an infinity: no rotation
+    if ( (!d_internal_quat_ld_finite(_a, 3u)) ||
+         (!d_internal_quat_ld_finite(_b, 3u)) )
+    {
+        d_internal_quat_ld_fill_nan(_out, 4u);
+
+        return;
+    }
+
+    // a zero vector names no direction: the identity
+    if ( (d_internal_quat_ld_is_zero(_a, 3u)) ||
+         (d_internal_quat_ld_is_zero(_b, 3u)) )
+    {
+        _out[0] = d_internal_math_ld_pair_of(0.0L, 0.0L);
+        _out[1] = d_internal_math_ld_pair_of(0.0L, 0.0L);
+        _out[2] = d_internal_math_ld_pair_of(0.0L, 0.0L);
+        _out[3] = d_internal_math_ld_pair_of(1.0L, 0.0L);
+
+        return;
+    }
+
+    d_internal_quat_ld_scale_all(a, _a, 3u,
+                                 -d_internal_quat_ld_exponent(_a, 3u));
+    d_internal_quat_ld_scale_all(b, _b, 3u,
+                                 -d_internal_quat_ld_exponent(_b, 3u));
+
+    {
+        const long double c0_a[2] = { a[1], -a[2] };
+        const long double c0_b[2] = { b[2],  b[1] };
+        const long double c1_a[2] = { a[2], -a[0] };
+        const long double c1_b[2] = { b[0],  b[2] };
+        const long double c2_a[2] = { a[0], -a[1] };
+        const long double c2_b[2] = { b[1],   b[0] };
+        const struct dj_internal_math_ld_pair c[3] = {
+            d_internal_quat_ld_dot(c0_a, c0_b, 2u),
+            d_internal_quat_ld_dot(c1_a, c1_b, 2u),
+            d_internal_quat_ld_dot(c2_a, c2_b, 2u) };
+        const struct dj_internal_math_ld_pair d =
+            d_internal_quat_ld_dot(a, b, 3u);
+        // |a| |b|, the root of the product of the squared norms
+        const struct dj_internal_math_ld_pair m =
+            d_internal_quat_ld_root@KS@(d_internal_math_ld_pair_product(
+                d_internal_quat_ld_dot(a, a, 3u),
+                d_internal_quat_ld_dot(b, b, 3u)));
+        struct dj_internal_math_ld_pair w = { 0.0L, 0.0L };
+
+        // |a| |b| + a . b, as a sum where the two agree in sign
+        if (d.high >= 0.0L)
+        {
+            w = d_internal_math_ld_pair_sum(m, d);
+        }
+        else
+        {
+            const struct dj_internal_math_ld_pair cc =
+                d_internal_math_ld_pair_sum(
+                    d_internal_math_ld_pair_sum(
+                        d_internal_math_ld_pair_product(c[0], c[0]),
+                        d_internal_math_ld_pair_product(c[1], c[1])),
+                    d_internal_math_ld_pair_product(c[2], c[2]));
+            const struct dj_internal_math_ld_pair den =
+                d_internal_math_ld_pair_sum(
+                    m, d_internal_math_ld_pair_of(-d.high, -d.low));
+
+            // exactly opposed: |a x b| is 0
+            if (cc.high != 0.0L)
+            {
+                w = d_internal_quat_ld_over(cc, den);
+            }
+        }
+
+        q[0] = c[0].high;
+        q[1] = c[1].high;
+        q[2] = c[2].high;
+        q[3] = w.high;
+    }
+
+    // exactly opposed: a half turn about an axis perpendicular to a
+    if (d_internal_quat_ld_is_zero(q, 4u))
+    {
+        const long double x = d_internal_cplx_ld_abs(a[0]);
+        const long double y = d_internal_cplx_ld_abs(a[1]);
+        const long double z = d_internal_cplx_ld_abs(a[2]);
+
+        // a x e_k, e_k along a's smallest part
+        if ( (x <= y) &&
+             (x <= z) )
+        {
+            q[1] = a[2];
+            q[2] = -a[1];
+        }
+        else if (y <= z)
+        {
+            q[0] = -a[2];
+            q[2] = a[0];
+        }
+        else
+        {
+            q[0] = a[1];
+            q[1] = -a[0];
+        }
+    }
+
+    d_internal_quat_ld_normalize@KS@(_out, q);
+
+    return;
+}
+
+// d_internal_quat_ld_nlerp@KS@
+//   _out = the normalized linear interpolation from _a (t = 0) to _b (t = 1),
+// along the shorter arc -- b negated where a . b < 0, as q and -q are one
+// rotation: ((1 - t) a + t b) / |...|, the sum's parts as pairs of a and b
+// scaled alike to a largest part in [1, 2) (d_internal_quat_ld_lerp), then
+// normalized. A NaN or an infinite part, of t too: a NaN in each part.
+@KQ@ void
+d_internal_quat_ld_nlerp@KS@(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _a,
+    const long double*               _b,
+    long double                      _t
+)
+{
+    long double a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double l[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    // a NaN or an infinity: nothing to interpolate
+    if ( (!d_internal_quat_ld_finite(_a, 4u)) ||
+         (!d_internal_quat_ld_finite(_b, 4u)) ||
+         (!d_internal_quat_ld_finite(&_t, 1u)) )
+    {
+        d_internal_quat_ld_fill_nan(_out, 4u);
+
+        return;
+    }
+
+    {
+        const long double flip = (d_internal_quat_ld_dot_sign(_a, _b, 4u) <
+                                  0.0L) ? -1.0L : 1.0L;
+        const long double both[8] = { _a[0], _a[1], _a[2], _a[3],
+                                      _b[0], _b[1], _b[2], _b[3] };
+        const int         e       =
+            (d_internal_quat_ld_is_zero(both, 8u)) ?
+                0 : d_internal_quat_ld_exponent(both, 8u);
+
+        d_internal_quat_ld_scale_all(a, _a, 4u, -e);
+        d_internal_quat_ld_scale_all(b, _b, 4u, -e);
+
+        // each part of the line, the shorter arc's end
+        for (i = 0u; i < 4u; ++i)
+        {
+            l[i] = d_internal_quat_ld_lerp(a[i], flip * b[i], _t).high;
+        }
+    }
+
+    d_internal_quat_ld_normalize@KS@(_out, l);
+
+    return;
+}
+"""
+
+
+QUAT_KERNELS_FUNCTIONS = r"""
+
+// 1.7    The _c forms' functions
+//------------------------------------------------------------------------------
+// The exponential, logarithm, square root and real powers of a quaternion
+// are the complex ones in its plane (S275): q = w + v, r = |v|, u = v / r,
+// f(q) = Re f(w + r i) + u Im f(w + r i) -- for a vector part along im alone
+// the complex function itself (each family's section 6). r is carried as a
+// pair, and f corrected to first order for its low part, as the plane's
+// point is w + (r_hi + r_lo) i; the logarithm and the root take q scaled by
+// a power of 2 where it leaves the safe range, so that nothing overflows or
+// falls into the subnormals. Each is cplx.h's kernel, a constant expression
+// from C++14.
+
+// dj_internal_quat_ld_plane
+//   a quaternion's plane: the point w + r i, r = |v| as a pair, v's direction
+// u, and the power, 2^-scale, that w and r were taken at.
+struct dj_internal_quat_ld_plane
+{
+    long double                     w;
+    struct dj_internal_math_ld_pair r;
+    long double                     u[3];
+    int                             scale;
+};
+
+// d_internal_quat_ld_plane_c
+//   _q's plane, its vector part not 0 and no part a NaN: where _scale is 1
+// and q leaves the safe range (d_internal_quat_ld_safe), w and r taken at
+// 2^-k, k the binade of q's largest part, and where it is 2 at the even one
+// of k and k + 1; otherwise at 1. u is v over |v|, both as pairs of v
+// scaled to a largest part in [1, 2), each part rounded once. A part of v
+// infinite: r +inf and u the direction of v's infinities
+// (d_internal_quat_ld_direction), q taken at 1.
+D_MATH_FN_KERNEL struct dj_internal_quat_ld_plane
+d_internal_quat_ld_plane_c(
+    const long double* _q,
+    int                _scale
+)
+{
+    struct dj_internal_quat_ld_plane result = { 0.0L,
+                                                { 0.0L, 0.0L },
+                                                { 0.0L, 0.0L, 0.0L },
+                                                0 };
+    long double                      v[3]   = { _q[0], _q[1], _q[2] };
+    size_t                           i      = 0u;
+
+    result.w = _q[3];
+
+    // an infinite part of v: an infinite r along v's infinities
+    if (d_internal_quat_ld_has_inf(v, 3u))
+    {
+        result.r.high = d_internal_math_ld_infinity();
+        d_internal_quat_ld_direction(result.u, v, 3u);
+
+        return result;
+    }
+
+    // past the safe range: q's largest part into [1, 2), or [1/2, 2) at an
+    // even power -- only there, as log |q| near 0 would cancel against the
+    // scale's k ln 2
+    if ( (_scale > 0) &&
+         (d_internal_quat_ld_finite(_q, 4u)) &&
+         (!d_internal_quat_ld_safe(_q, 4u)) )
+    {
+        result.scale = d_internal_quat_ld_exponent(_q, 4u);
+
+        if ( (_scale == 2) &&
+             ((result.scale % 2) != 0) )
+        {
+            result.scale = result.scale + 1;
+        }
+
+        result.w = d_internal_cplx_ld_scale(_q[3], -result.scale);
+    }
+
+    {
+        const int   e    = d_internal_quat_ld_exponent(v, 3u);
+        long double s[3] = { 0.0L, 0.0L, 0.0L };
+
+        d_internal_quat_ld_scale_all(s, v, 3u, -e);
+
+        {
+            const struct dj_internal_math_ld_pair root =
+                d_internal_quat_ld_root_c(d_internal_quat_ld_dot(s, s, 3u));
+
+            // u = v / |v|
+            for (i = 0u; i < 3u; ++i)
+            {
+                result.u[i] = d_internal_quat_ld_over(
+                    d_internal_math_ld_pair_of(s[i], 0.0L), root).high;
+            }
+
+            result.r = d_internal_quat_ld_scale_pair(root, e - result.scale);
+        }
+    }
+
+    return result;
+}
+
+// d_internal_quat_ld_relative
+//   (r_lo i) / z, z = _w + _r.high i: the plane point's low part relative to
+// it, the first-order correction's factor, from w and r scaled alike to a
+// larger one in [1, 2); 0 where r's low part is 0 or z is not finite.
+D_MATH_FN_KERNEL struct dj_cplx_ld
+d_internal_quat_ld_relative(
+    long double                     _w,
+    struct dj_internal_math_ld_pair _r
+)
+{
+    // nothing to correct
+    if ( (_r.low == 0.0L) ||
+         (_w != _w) ||
+         (d_internal_cplx_ld_is_inf(_w)) ||
+         (d_internal_cplx_ld_is_inf(_r.high)) )
+    {
+        return d_internal_cplx_ld_make(0.0L, 0.0L);
+    }
+
+    {
+        const long double big   = (d_internal_cplx_ld_abs(_w) > _r.high) ?
+                                      d_internal_cplx_ld_abs(_w) : _r.high;
+        const int         k     = d_internal_cplx_ld_exponent(big);
+        const long double a     = d_internal_cplx_ld_scale(_r.high, -k);
+        const long double b     = d_internal_cplx_ld_scale(_w, -k);
+        const long double m     = (a * a) + (b * b);
+        const long double ratio = _r.low / _r.high;
+        // i ratio a / (b + a i) = ratio a (a + b i) / m
+        const long double f     = (ratio * a) / m;
+
+        return d_internal_cplx_ld_make(f * a, f * b);
+    }
+}
+
+// d_internal_quat_ld_corrected
+//   _f + _g _rho, a complex value plus its first-order correction: _f
+// itself where either is not finite or _rho is 0.
+D_MATH_FN_KERNEL struct dj_cplx_ld
+d_internal_quat_ld_corrected(
+    struct dj_cplx_ld _f,
+    struct dj_cplx_ld _g,
+    struct dj_cplx_ld _rho
+)
+{
+    // nothing to add
+    if ( ( (_rho.part[0] == 0.0L) &&
+           (_rho.part[1] == 0.0L) ) ||
+         (!d_internal_cplx_ld_finite(_f)) ||
+         (!d_internal_cplx_ld_finite(_g)) )
+    {
+        return _f;
+    }
+
+    {
+        const long double re = (_g.part[0] * _rho.part[0]) -
+                               (_g.part[1] * _rho.part[1]);
+        const long double im = (_g.part[0] * _rho.part[1]) +
+                               (_g.part[1] * _rho.part[0]);
+
+        return d_internal_cplx_ld_make(_f.part[0] + re, _f.part[1] + im);
+    }
+}
+
+// d_internal_quat_ld_exp_c
+//   _out = e^q = e^w (cos r + u sin r), _q's vector part not along im alone
+// and no part a NaN: cplx.h's exponential at w + r_hi i, plus e^z r_lo i, its
+// imaginary part along u (d_internal_quat_ld_along).
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_exp_c(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q
+)
+{
+    const struct dj_internal_quat_ld_plane p =
+        d_internal_quat_ld_plane_c(_q, 0);
+    const struct dj_cplx_ld f = d_internal_cplx_ld_exp_c(
+        d_internal_cplx_ld_make(p.w, p.r.high));
+    // d e^z = e^z dz, dz = r_lo i
+    const struct dj_cplx_ld c = d_internal_quat_ld_corrected(
+        f, f, d_internal_cplx_ld_make(0.0L, p.r.low));
+    size_t                  i = 0u;
+
+    // the imaginary part along u
+    for (i = 0u; i < 3u; ++i)
+    {
+        _out[i] = d_internal_math_ld_pair_of(
+            d_internal_quat_ld_along(p.u[i], c.part[1]), 0.0L);
+    }
+
+    _out[3] = d_internal_math_ld_pair_of(c.part[0], 0.0L);
+
+    return;
+}
+
+// d_internal_quat_ld_log_c
+//   _out = log q = log|q| + u atan2(r, w), _q's vector part not along im alone
+// and no part a NaN: cplx.h's logarithm at q's plane taken at 2^-k, plus
+// r_lo i / z, and k ln 2 added to the real part as a pair (power.h's
+// logarithm of 2^k). Where w > 0 and r < w 2^-(P/2 + 2), atan2(r, w) / r is
+// 1 / w to the last place, and each part of v over w is the vector part.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_log_c(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q
+)
+{
+    const struct dj_internal_quat_ld_plane p =
+        d_internal_quat_ld_plane_c(_q, 1);
+    const struct dj_cplx_ld f = d_internal_cplx_ld_log_c(
+        d_internal_cplx_ld_make(p.w, p.r.high));
+    // d log z = dz / z
+    const struct dj_cplx_ld c = d_internal_quat_ld_corrected(
+        f, d_internal_cplx_ld_make(1.0L, 0.0L),
+        d_internal_quat_ld_relative(p.w, p.r));
+    const struct dj_internal_math_ld_pair k_ln2 = (p.scale == 0) ?
+        d_internal_math_ld_pair_of(0.0L, 0.0L) :
+        d_internal_math_ld_log_accurate_of(p.scale, 1.0L);
+    const long double tiny =
+        d_internal_math_ld_pow2(-((LDBL_MANT_DIG / 2) + 2));
+    size_t            i    = 0u;
+
+    // r far below w > 0: v / w
+    if ( (p.w > 0.0L) &&
+         (!d_internal_cplx_ld_is_inf(p.w)) &&
+         (p.r.high < (p.w * tiny)) )
+    {
+        for (i = 0u; i < 3u; ++i)
+        {
+            _out[i] = d_internal_math_ld_pair_of(_q[i] / _q[3], 0.0L);
+        }
+    }
+    else
+    {
+        for (i = 0u; i < 3u; ++i)
+        {
+            _out[i] = d_internal_math_ld_pair_of(
+                d_internal_quat_ld_along(p.u[i], c.part[1]), 0.0L);
+        }
+    }
+
+    // k ln 2 added where q was scaled, and so finite
+    _out[3] = (p.scale == 0) ?
+        d_internal_math_ld_pair_of(c.part[0], 0.0L) :
+        d_internal_math_ld_pair_sum(
+            d_internal_math_ld_pair_of(c.part[0], 0.0L), k_ln2);
+
+    return;
+}
+
+// d_internal_quat_ld_sqrt_c
+//   _out = sqrt q, the principal root, its real part >= 0: cplx.h's root at
+// q's plane taken at 2^-2j, plus sqrt(z) (r_lo i / z) / 2, scaled back by
+// 2^j; the vector part, where the real part is the larger, v / (2 Re), as
+// 2 Re Im = r exactly, and otherwise Im along u. _q's vector part not along
+// im alone and no part a NaN.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_sqrt_c(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q
+)
+{
+    const struct dj_internal_quat_ld_plane p =
+        d_internal_quat_ld_plane_c(_q, 2);
+    const struct dj_cplx_ld f = d_internal_cplx_ld_sqrt_c(
+        d_internal_cplx_ld_make(p.w, p.r.high));
+    const struct dj_cplx_ld rho = d_internal_quat_ld_relative(p.w, p.r);
+    // d sqrt(z) = sqrt(z) (dz / z) / 2
+    const struct dj_cplx_ld c = d_internal_quat_ld_corrected(
+        f, d_internal_cplx_ld_make(f.part[0] / 2.0L, f.part[1] / 2.0L), rho);
+    const int         half  = p.scale / 2;
+    const long double re    = d_internal_cplx_ld_scale(c.part[0], half);
+    const long double im    = d_internal_cplx_ld_scale(c.part[1], half);
+    size_t            i     = 0u;
+
+    // the real part the larger, in a finite q: v / (2 Re)
+    if ( (d_internal_quat_ld_finite(_q, 4u)) &&
+         (c.part[0] >= c.part[1]) &&
+         (re > 0.0L) )
+    {
+        for (i = 0u; i < 3u; ++i)
+        {
+            _out[i] = d_internal_math_ld_pair_of(_q[i] / (2.0L * re), 0.0L);
+        }
+    }
+    else
+    {
+        for (i = 0u; i < 3u; ++i)
+        {
+            _out[i] = d_internal_math_ld_pair_of(
+                d_internal_quat_ld_along(p.u[i], im), 0.0L);
+        }
+    }
+
+    _out[3] = d_internal_math_ld_pair_of(re, 0.0L);
+
+    return;
+}
+
+// d_internal_quat_ld_pow_c
+//   _out = q^_p = exp(p log q), p real: cplx.h's power of q's plane point by
+// p + 0i, plus p z^p (r_lo i / z), its imaginary part along u. _q's vector
+// part not along im alone and no part a NaN; past |v| = LDBL_MAX, r is
+// infinite and the value an infinite r's.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_pow_c(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _q,
+    long double                      _p
+)
+{
+    const struct dj_internal_quat_ld_plane p =
+        d_internal_quat_ld_plane_c(_q, 0);
+    const struct dj_cplx_ld f = d_internal_cplx_ld_pow_c(
+        d_internal_cplx_ld_make(p.w, p.r.high),
+        d_internal_cplx_ld_make(_p, 0.0L));
+    // d z^p = p z^p dz / z
+    const struct dj_cplx_ld c = d_internal_quat_ld_corrected(
+        f, d_internal_cplx_ld_make(_p * f.part[0], _p * f.part[1]),
+        d_internal_quat_ld_relative(p.w, p.r));
+    size_t                  i = 0u;
+
+    // the imaginary part along u
+    for (i = 0u; i < 3u; ++i)
+    {
+        _out[i] = d_internal_math_ld_pair_of(
+            d_internal_quat_ld_along(p.u[i], c.part[1]), 0.0L);
+    }
+
+    _out[3] = d_internal_math_ld_pair_of(c.part[0], 0.0L);
+
+    return;
+}
+
+// d_internal_quat_ld_slerp_c
+//   _out = the spherical linear interpolation from _a (t = 0) to _b (t = 1),
+// both unit quaternions, along the shorter arc -- b negated where a . b < 0:
+// sin((1 - t) theta) / sin theta a + sin(t theta) / sin theta b, theta = 2
+// atan2(|a - b|, |a + b|), the angle between them accurate near 0 as acos(a
+// . b) is not; at theta = 0, (1 - t) a + t b (d_internal_quat_ld_lerp). Each
+// part a pair of the two products. a at t = 0 and b at t = 1 exactly. A NaN
+// or an infinite part, of t too: a NaN in each part.
+D_MATH_FN_KERNEL void
+d_internal_quat_ld_slerp_c(
+    struct dj_internal_math_ld_pair* _out,
+    const long double*               _a,
+    const long double*               _b,
+    long double                      _t
+)
+{
+    long double b[4]    = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double diff[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double sum[4]  = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i       = 0u;
+
+    // a NaN or an infinity: nothing to interpolate
+    if ( (!d_internal_quat_ld_finite(_a, 4u)) ||
+         (!d_internal_quat_ld_finite(_b, 4u)) ||
+         (!d_internal_quat_ld_finite(&_t, 1u)) )
+    {
+        d_internal_quat_ld_fill_nan(_out, 4u);
+
+        return;
+    }
+
+    {
+        const long double flip = (d_internal_quat_ld_dot_sign(_a, _b, 4u) <
+                                  0.0L) ? -1.0L : 1.0L;
+
+        // the shorter arc's end, and the chords to it and through it
+        for (i = 0u; i < 4u; ++i)
+        {
+            b[i]    = flip * _b[i];
+            diff[i] = _a[i] - b[i];
+            sum[i]  = _a[i] + b[i];
+        }
+    }
+
+    {
+        const long double theta = 2.0L * d_math_ld_atan2_c(
+            d_internal_quat_ld_norm_c(diff, 4u).high,
+            d_internal_quat_ld_norm_c(sum, 4u).high);
+
+        // no angle: the line
+        if (theta == 0.0L)
+        {
+            for (i = 0u; i < 4u; ++i)
+            {
+                _out[i] = d_internal_quat_ld_lerp(_a[i], b[i], _t);
+            }
+
+            return;
+        }
+
+        {
+            const long double s    = d_math_ld_sin_c(theta);
+            const long double rest = 1.0L - _t;
+            const long double s_a  = d_math_ld_sin_c(rest * theta) / s;
+            const long double s_b  = d_math_ld_sin_c(_t * theta) / s;
+            const long double f[2] = { s_a, s_b };
+
+            // each part of the arc
+            for (i = 0u; i < 4u; ++i)
+            {
+                const long double ends[2] = { _a[i], b[i] };
+
+                _out[i] = d_internal_quat_ld_dot(f, ends, 2u);
+            }
+        }
+    }
+
+    return;
+}
+"""
+
+
+QUAT_FAMILY = r"""
+
 //==============================================================================
 // @SECTION@.  THE @UPPER@ FAMILY (_@S@)
 //==============================================================================
-// A quaternion is a caller's array [x, y, z, w]: x i + y j + z k + w. The
-// formulas are the quaternion headers' former ones, in their order, one
-// operation per statement. _out may be an input except where a kernel says.
+// A quaternion is a caller's array [x, y, z, w]: x i + y j + z k + w. Each
+// accurate function widens its operands to long double, exactly, takes
+// section 1's kernel and rounds each part once; the _fast forms are the
+// former formulas in the family's own type, for a renderer's inner loops; the
+// plain forms of what takes a sine or a cosine are the same algorithms in the
+// family's type on the C library's, and of what takes a square root alone
+// the kernel on the library's root, which gives the same bits. _out may be
+// an operand everywhere.
 
 
-// @SECTION@.1    Algebra
+// @SECTION@.1    Helpers
 //------------------------------------------------------------------------------
 
-// d_quat_@S@_multiply
-//   _out = _a _b, the Hamilton product: the rotation _b, then _a. _out may
-// be _a or _b.
+// d_internal_quat_@S@_widen
+//   _out = _v's _n parts as long doubles, exactly.
 D_MATH_FN void
-d_quat_@S@_multiply(
+d_internal_quat_@S@_widen(
+    long double* _out,
+    const @T@*   _v,
+    size_t       _n
+)
+{
+    size_t i = 0u;
+
+    // each part, exactly
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = (long double)_v[i];
+    }
+
+    return;
+}
+
+// d_internal_quat_@S@_narrow
+//   _out = each of _p's _n pairs rounded once to the family
+// (d_internal_math_@S@_round_pair).
+D_MATH_FN void
+d_internal_quat_@S@_narrow(
+    @T@*                                   _out,
+    const struct dj_internal_math_ld_pair* _p,
+    size_t                                 _n
+)
+{
+    size_t i = 0u;
+
+    // each pair, rounded once
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = d_internal_math_@S@_round_pair(_p[i].high, _p[i].low);
+    }
+
+    return;
+}
+
+// d_internal_quat_@S@_all_finite
+//   whether each of _v's _n parts is finite.
+D_MATH_FN bool
+d_internal_quat_@S@_all_finite(
+    const @T@* _v,
+    size_t     _n
+)
+{
+    size_t i = 0u;
+
+    // a NaN or an infinity among the parts
+    for (i = 0u; i < _n; ++i)
+    {
+        if ( (_v[i] != _v[i]) ||
+             (d_internal_cplx_@S@_is_inf(_v[i])) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// d_internal_quat_@S@_all_zero
+//   whether each of _v's _n parts is 0, of either sign.
+D_MATH_FN bool
+d_internal_quat_@S@_all_zero(
+    const @T@* _v,
+    size_t     _n
+)
+{
+    size_t i = 0u;
+
+    // a part that is not 0
+    for (i = 0u; i < _n; ++i)
+    {
+        if (_v[i] != (@T@)0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+#if @D2@
+// d_internal_quat_@S@_widen_d2
+//   _out = _v's _n parts as doubles, exactly.
+D_MATH_FN void
+d_internal_quat_@S@_widen_d2(
+    double*    _out,
+    const @T@* _v,
+    size_t     _n
+)
+{
+    size_t i = 0u;
+
+    // each part, exactly
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = (double)_v[i];
+    }
+
+    return;
+}
+
+@NARROW_D2@
+#endif  // @D2@
+
+// d_internal_quat_@S@_nans
+//   _out = _n NaNs.
+D_MATH_FN void
+d_internal_quat_@S@_nans(
+    @T@*   _out,
+    size_t _n
+)
+{
+    size_t i = 0u;
+
+    // every part a NaN
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = d_internal_math_@S@_nan();
+    }
+
+    return;
+}
+
+// d_internal_quat_@S@_any_nan
+//   whether any of _v's _n parts is a NaN.
+D_MATH_FN bool
+d_internal_quat_@S@_any_nan(
+    const @T@* _v,
+    size_t     _n
+)
+{
+    size_t i = 0u;
+
+    // a NaN among the parts
+    for (i = 0u; i < _n; ++i)
+    {
+        if (_v[i] != _v[i])
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// d_internal_quat_@S@_part_along
+//   _u _s, a zero where _u is 0, its sign _u's times _s's
+// (d_internal_quat_ld_along).
+D_MATH_FN @T@
+d_internal_quat_@S@_part_along(
+    @T@ _u,
+    @T@ _s
+)
+{
+    const @T@ zero = (@T@)0;
+    const @T@ one  = (@T@)1;
+
+    // a zero part: a zero, of the product's sign
+    if (_u == zero)
+    {
+        const @T@ signed_zero = d_internal_cplx_@S@_copysign(zero, _s);
+
+        return (d_internal_cplx_@S@_copysign(one, _u) < zero) ?
+                   -signed_zero : signed_zero;
+    }
+
+    return _u * _s;
+}
+
+// dj_internal_quat_@S@_plain_plane
+//   a quaternion's plane in the family (section 1.7), for the plain forms.
+struct dj_internal_quat_@S@_plain_plane
+{
+    @T@ w;
+    @T@ r;
+    @T@ u[3];
+};
+
+// d_internal_quat_@S@_plain_plane_of
+//   _q's plane, its vector part not 0 and no part a NaN: r = |v| by vec.h's
+// scaled norm, u = v / r; a part of v infinite, r +inf and u the direction of
+// v's infinities (d_internal_quat_ld_direction).
+D_MATH_FN_RT struct dj_internal_quat_@S@_plain_plane
+d_internal_quat_@S@_plain_plane_of(
+    const @T@* _q
+)
+{
+    struct dj_internal_quat_@S@_plain_plane result = {
+        (@T@)0, (@T@)0,
+        { (@T@)0, (@T@)0, (@T@)0 } };
+    long double v[3] = { 0.0L, 0.0L, 0.0L };
+    long double u[3] = { 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    d_internal_quat_@S@_widen(v, _q, 3u);
+    result.w = _q[3];
+
+    // an infinite part of v: an infinite r along v's infinities
+    if (d_internal_quat_ld_has_inf(v, 3u))
+    {
+        d_internal_quat_ld_direction(u, v, 3u);
+        result.r = d_internal_math_@S@_infinity();
+
+        for (i = 0u; i < 3u; ++i)
+        {
+            result.u[i] = (@T@)u[i];
+        }
+
+        return result;
+    }
+
+    result.r = d_vec_@S@_norm(_q, 3u);
+
+    // u = v / |v|
+    for (i = 0u; i < 3u; ++i)
+    {
+        result.u[i] = _q[i] / result.r;
+    }
+
+    return result;
+}
+
+
+// @SECTION@.2    Algebra
+//------------------------------------------------------------------------------
+// Each part of the product, the inverse and the quotients is a pair's sum
+// rounded once, as accurate as twice the pairs' precision: double's pairs
+// where double is evaluated in its own type (section 1.3), a float's
+// products exact in them; long double's for long double, and for float and
+// double where double is evaluated wider, as on a 32-bit x87 (section 1.2).
+
+// d_quat_@S@_multiply_fast
+//   _out = _a _b by the formula, x = w x' + x w' + y z' - z y' and so on, 16
+// products and 12 sums in the family's type, in order: for a renderer's inner
+// loops, each part's error unbounded where its products cancel.
+D_MATH_FN void
+d_quat_@S@_multiply_fast(
     @T@*       _out,
     const @T@* _a,
     const @T@* _b
@@ -10417,6 +12625,59 @@ d_quat_@S@_multiply(
     return;
 }
 
+// d_quat_@S@_multiply
+//   _out = _a _b, Hamilton's product: the rotation _b, then _a. Each part
+// the sum of its four products as Dot2 sums them, rounded once: in double's
+// pairs where double is evaluated in its own type (section 1.3), long
+// double's otherwise (section 1.2); where an operand has an infinite or NaN
+// part, the formula as written (d_quat_@S@_multiply_fast).
+D_MATH_FN void
+d_quat_@S@_multiply(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b
+)
+{
+    // an infinity or a NaN: the formula as written
+    if ( (!d_internal_quat_@S@_all_finite(_a, 4u)) ||
+         (!d_internal_quat_@S@_all_finite(_b, 4u)) )
+    {
+        d_quat_@S@_multiply_fast(_out, _a, _b);
+
+        return;
+    }
+
+#if @D2@
+    {
+        double                         a[4] = { 0.0, 0.0, 0.0, 0.0 };
+        double                         b[4] = { 0.0, 0.0, 0.0, 0.0 };
+        struct dj_internal_math_d_pair r[4] = { { 0.0, 0.0 }, { 0.0, 0.0 },
+                                                { 0.0, 0.0 }, { 0.0, 0.0 } };
+
+        d_internal_quat_@S@_widen_d2(a, _a, 4u);
+        d_internal_quat_@S@_widen_d2(b, _b, 4u);
+        d_internal_quat_d2_multiply(r, a, b);
+        d_internal_quat_@S@_narrow_d2(_out, r, 4u);
+    }
+#else  // @D2@
+    {
+        long double                     a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+        long double                     b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L },
+                                                 { 0.0L, 0.0L },
+                                                 { 0.0L, 0.0L },
+                                                 { 0.0L, 0.0L } };
+
+        d_internal_quat_@S@_widen(a, _a, 4u);
+        d_internal_quat_@S@_widen(b, _b, 4u);
+        d_internal_quat_ld_multiply(r, a, b);
+        d_internal_quat_@S@_narrow(_out, r, 4u);
+    }
+#endif  // @D2@
+
+    return;
+}
+
 // d_quat_@S@_conjugate
 //   _out = (-x, -y, -z, w): the inverse of a unit quaternion.
 D_MATH_FN void
@@ -10433,35 +12694,311 @@ d_quat_@S@_conjugate(
     return;
 }
 
-// d_quat_@S@_normalize
-//   _out = _q over its norm, the root _norm the caller computed as its
-// level allows (the two roots are the same); a zero quaternion is left as it
-// is, signs of zero included.
+// d_internal_quat_@S@_quotient
+//   _out = _p / _q where _right, q^-1 p otherwise, and q's inverse where _p
+// is NULL, both finite and q not 0: each part the kernel's pair rounded
+// once, in double's pairs or long double's as d_quat_@S@_multiply takes
+// them.
 D_MATH_FN void
-d_quat_@S@_normalize(
+d_internal_quat_@S@_quotient(
     @T@*       _out,
+    const @T@* _p,
     const @T@* _q,
-    @T@        _norm
+    bool       _right
 )
 {
-    size_t i = 0u;
+#if @D2@
+    double                         p[4] = { 0.0, 0.0, 0.0, 0.0 };
+    double                         q[4] = { 0.0, 0.0, 0.0, 0.0 };
+    struct dj_internal_math_d_pair r[4] = { { 0.0, 0.0 }, { 0.0, 0.0 },
+                                            { 0.0, 0.0 }, { 0.0, 0.0 } };
 
-    for (i = 0u; i < 4u; ++i)
+    d_internal_quat_@S@_widen_d2(q, _q, 4u);
+
+    // the inverse: no numerator
+    if (_p == NULL)
     {
-        _out[i] = (_norm == (@T@)0) ? _q[i] : (_q[i] / _norm);
+        d_internal_quat_d2_divide(r, NULL, q, true);
+    }
+    else
+    {
+        d_internal_quat_@S@_widen_d2(p, _p, 4u);
+        d_internal_quat_d2_divide(r, p, q, _right);
+    }
+
+    d_internal_quat_@S@_narrow_d2(_out, r, 4u);
+#else  // @D2@
+    long double                     p[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double                     q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+
+    // the inverse: no numerator
+    if (_p == NULL)
+    {
+        d_internal_quat_ld_inverse(r, q);
+    }
+    else
+    {
+        d_internal_quat_@S@_widen(p, _p, 4u);
+        d_internal_quat_ld_divide(r, p, q, _right);
+    }
+
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+#endif  // @D2@
+
+    return;
+}
+
+// d_quat_@S@_inverse
+//   _out = 1 / _q = q* / |q|^2, each part the kernel's pair rounded once
+// (d_internal_quat_@S@_quotient). q = 0: a NaN in each part, the formula's 0
+// / 0; a NaN part: NaNs; an infinite part, none a NaN: the zeros of q*'s
+// parts' signs, as 1 / inf is 0.
+D_MATH_FN void
+d_quat_@S@_inverse(
+    @T@*       _out,
+    const @T@* _q
+)
+{
+    long double q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    size_t      i    = 0u;
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+
+    // a NaN, or 0: no inverse
+    if ( (d_internal_quat_ld_has_nan(q, 4u)) ||
+         (d_internal_quat_ld_is_zero(q, 4u)) )
+    {
+        d_internal_quat_@S@_nans(_out, 4u);
+
+        return;
+    }
+
+    // an infinity: the conjugate's zeros
+    if (d_internal_quat_ld_has_inf(q, 4u))
+    {
+        for (i = 0u; i < 4u; ++i)
+        {
+            const long double part = (i < 3u) ? -q[i] : q[i];
+
+            _out[i] = (@T@)d_internal_cplx_ld_copysign(0.0L, part);
+        }
+
+        return;
+    }
+
+    d_internal_quat_@S@_quotient(_out, NULL, _q, true);
+
+    return;
+}
+
+// d_quat_@S@_divide
+//   _out = _a / _b = a b^-1, the quotient on the right (S277): a b* / |b|^2,
+// the numerator's parts as pairs over |b|^2's, each rounded once
+// (d_internal_quat_@S@_quotient). Where an operand has an infinite or NaN
+// part, or b is 0, a times b's inverse (d_quat_@S@_inverse), the product as
+// written.
+D_MATH_FN void
+d_quat_@S@_divide(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b
+)
+{
+    // finite, b not 0: the kernel
+    if ( (d_internal_quat_@S@_all_finite(_a, 4u)) &&
+         (d_internal_quat_@S@_all_finite(_b, 4u)) &&
+         (!d_internal_quat_@S@_all_zero(_b, 4u)) )
+    {
+        d_internal_quat_@S@_quotient(_out, _a, _b, true);
+
+        return;
+    }
+
+    {
+        const @T@ left[4]  = { _a[0], _a[1], _a[2], _a[3] };
+        @T@       right[4] = { (@T@)0, (@T@)0,
+                               (@T@)0, (@T@)0 };
+
+        d_quat_@S@_inverse(right, _b);
+        d_quat_@S@_multiply_fast(_out, left, right);
     }
 
     return;
 }
 
-// @SECTION@.2    Rotation
+// d_quat_@S@_left_divide
+//   _out = _a \ _b = a^-1 b, the quotient on the left: a* b / |a|^2, as
+// d_quat_@S@_divide computes its own; where an operand has an infinite or
+// NaN part, or a is 0, a's inverse times b, the product as written.
+D_MATH_FN void
+d_quat_@S@_left_divide(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b
+)
+{
+    // finite, a not 0: the kernel
+    if ( (d_internal_quat_@S@_all_finite(_a, 4u)) &&
+         (d_internal_quat_@S@_all_finite(_b, 4u)) &&
+         (!d_internal_quat_@S@_all_zero(_a, 4u)) )
+    {
+        d_internal_quat_@S@_quotient(_out, _b, _a, false);
+
+        return;
+    }
+
+    {
+        const @T@ right[4] = { _b[0], _b[1], _b[2], _b[3] };
+        @T@       left[4]  = { (@T@)0, (@T@)0,
+                               (@T@)0, (@T@)0 };
+
+        d_quat_@S@_inverse(left, _a);
+        d_quat_@S@_multiply_fast(_out, left, right);
+    }
+
+    return;
+}
+
+
+// @SECTION@.3    Norms
 //------------------------------------------------------------------------------
 
-// d_quat_@S@_rotate
-//   _out = _v rotated by the unit quaternion _q, v + w t + u x t with u the
-// vector part and t = 2 (u x v), without building a matrix. _out may be _v.
+// d_quat_@S@_norm_c, d_quat_@S@_norm
+//   function: |q|, the kernel's pair rounded once (d_internal_quat_ld_norm_c):
+// scaled, so that it overflows only where |q| does; +inf where a part is
+// infinite, NaN where one is a NaN. The _c form a constant expression from
+// C++14, the plain one on the C library's square root, the same value.
+D_MATH_FN @T@
+d_quat_@S@_norm_c(
+    const @T@* _q
+)
+{
+    long double                          q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair      n    = { 0.0L, 0.0L };
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+    n = d_internal_quat_ld_norm_c(q, 4u);
+
+    return d_internal_math_@S@_round_pair(n.high, n.low);
+}
+
+D_MATH_FN_RT @T@
+d_quat_@S@_norm(
+    const @T@* _q
+)
+{
+    long double                          q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair      n    = { 0.0L, 0.0L };
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+    n = d_internal_quat_ld_norm(q, 4u);
+
+    return d_internal_math_@S@_round_pair(n.high, n.low);
+}
+
+// d_quat_@S@_normalize_c, d_quat_@S@_normalize
+//   _out = _q / |q|, each part the kernel's pair rounded once
+// (d_internal_quat_ld_normalize_c), q scaled so that nothing overflows. A
+// zero q is left as it is, signs of zero included; a NaN part gives NaNs, an
+// infinite one the direction of q's infinities. The _c form a constant
+// expression from C++14, the plain one on the C library's square root, the
+// same value.
 D_MATH_FN void
-d_quat_@S@_rotate(
+d_quat_@S@_normalize_c(
+    @T@*       _out,
+    const @T@* _q
+)
+{
+    long double                     q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+    d_internal_quat_ld_normalize_c(r, q);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+D_MATH_FN_RT void
+d_quat_@S@_normalize(
+    @T@*       _out,
+    const @T@* _q
+)
+{
+    long double                     q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+    d_internal_quat_ld_normalize(r, q);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+// d_quat_@S@_normalize_fast
+//   _out = _q times 1 / sqrt(x^2 + y^2 + z^2 + w^2), the reciprocal square
+// root a renderer's normalization takes, in the family's type and unscaled:
+// for |q|^2 within the type's range. A zero q is left as it is.
+D_MATH_FN_RT void
+d_quat_@S@_normalize_fast(
+    @T@*       _out,
+    const @T@* _q
+)
+{
+    const @T@ xx  = _q[0] * _q[0];
+    const @T@ yy  = _q[1] * _q[1];
+    const @T@ zz  = _q[2] * _q[2];
+    const @T@ ww  = _q[3] * _q[3];
+    const @T@ xy  = xx + yy;
+    const @T@ xyz = xy + zz;
+    const @T@ sum = xyz + ww;
+    size_t    i   = 0u;
+
+    // a zero quaternion: left as it is
+    if (sum == (@T@)0)
+    {
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = _q[i];
+        }
+
+        return;
+    }
+
+    {
+        const @T@ s = (@T@)1 / d_math_@S@_sqrt(sum);
+
+        // each part by the reciprocal root
+        for (i = 0u; i < 4u; ++i)
+        {
+            _out[i] = _q[i] * s;
+        }
+    }
+
+    return;
+}
+
+
+// @SECTION@.4    Rotation
+//------------------------------------------------------------------------------
+// A rotation is q v q^-1, active and right-handed, as glTF's, Eigen's and
+// GLM's (S276): for a unit q, q v q*. The accurate forms take any q not 0,
+// as its norm cancels; the _fast forms assume a unit q, as before.
+
+// d_quat_@S@_rotate_fast
+//   _out = _v rotated by the unit quaternion _q, v + w t + u x t with u the
+// vector part and t = 2 (u x v), in the family's type, without building a
+// matrix.
+D_MATH_FN void
+d_quat_@S@_rotate_fast(
     @T@*       _out,
     const @T@* _q,
     const @T@* _v
@@ -10481,10 +13018,59 @@ d_quat_@S@_rotate(
     return;
 }
 
-// d_quat_@S@_to_matrix3
-//   _out (3 x 3) = the rotation matrix of the unit quaternion _q.
+// d_quat_@S@_rotate
+//   _out = q v q^-1, the 3-vector _v turned by the rotation _q names, for any
+// q not 0: each part the kernel's pair rounded once
+// (d_internal_quat_ld_rotate). v = 0 is left as it is; q = 0, or a NaN or
+// infinite part, gives a NaN in each part.
 D_MATH_FN void
-d_quat_@S@_to_matrix3(
+d_quat_@S@_rotate(
+    @T@*       _out,
+    const @T@* _q,
+    const @T@* _v
+)
+{
+    long double                     q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double                     v[3] = { 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[3] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L } };
+    size_t                          i    = 0u;
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+    d_internal_quat_@S@_widen(v, _v, 3u);
+
+    // no rotation: a zero q, a NaN or an infinity
+    if ( (!d_internal_quat_ld_finite(q, 4u)) ||
+         (!d_internal_quat_ld_finite(v, 3u)) ||
+         (d_internal_quat_ld_is_zero(q, 4u)) )
+    {
+        d_internal_quat_@S@_nans(_out, 3u);
+
+        return;
+    }
+
+    // the zero vector: as it is
+    if (d_internal_quat_ld_is_zero(v, 3u))
+    {
+        for (i = 0u; i < 3u; ++i)
+        {
+            _out[i] = _v[i];
+        }
+
+        return;
+    }
+
+    d_internal_quat_ld_rotate(r, q, v);
+    d_internal_quat_@S@_narrow(_out, r, 3u);
+
+    return;
+}
+
+// d_quat_@S@_to_matrix3_fast
+//   _out (3 x 3, by rows) = the rotation matrix of the unit quaternion _q, 1
+// - 2 (y^2 + z^2) and so on, in the family's type.
+D_MATH_FN void
+d_quat_@S@_to_matrix3_fast(
     @T@*       _out,
     const @T@* _q
 )
@@ -10529,21 +13115,59 @@ d_quat_@S@_to_matrix3(
     return;
 }
 
-// d_quat_@S@_to_matrix4
-//   _out (4 x 4) = the homogeneous rotation matrix of the unit quaternion.
+// d_quat_@S@_to_matrix3
+//   _out (3 x 3, by rows) = the rotation matrix of _q, any q not 0, each
+// entry the kernel's pair rounded once (d_internal_quat_ld_to_matrix3). q =
+// 0, or a NaN or infinite part, gives NaN entries.
 D_MATH_FN void
-d_quat_@S@_to_matrix4(
+d_quat_@S@_to_matrix3(
     @T@*       _out,
     const @T@* _q
 )
 {
-    @T@    r[9] = { (@T@)0, (@T@)0, (@T@)0, (@T@)0, (@T@)0,
-                    (@T@)0, (@T@)0, (@T@)0, (@T@)0 };
+    long double                     q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[9] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+
+    // no rotation: a zero q, a NaN or an infinity
+    if ( (!d_internal_quat_ld_finite(q, 4u)) ||
+         (d_internal_quat_ld_is_zero(q, 4u)) )
+    {
+        d_internal_quat_@S@_nans(_out, 9u);
+
+        return;
+    }
+
+    d_internal_quat_ld_to_matrix3(r, q);
+    d_internal_quat_@S@_narrow(_out, r, 9u);
+
+    return;
+}
+
+// d_quat_@S@_to_matrix4_fast, d_quat_@S@_to_matrix4
+//   _out (4 x 4, by rows) = the homogeneous rotation matrix: the 3 x 3 of
+// d_quat_@S@_to_matrix3_fast or d_quat_@S@_to_matrix3 in its upper left, the
+// identity's last row and column.
+D_MATH_FN void
+d_quat_@S@_to_matrix4_fast(
+    @T@*       _out,
+    const @T@* _q
+)
+{
+    @T@    r[9] = { (@T@)0, (@T@)0, (@T@)0,
+                    (@T@)0, (@T@)0, (@T@)0,
+                    (@T@)0, (@T@)0, (@T@)0 };
     size_t i    = 0u;
 
-    d_quat_@S@_to_matrix3(r, _q);
+    d_quat_@S@_to_matrix3_fast(r, _q);
     d_mat_@S@_identity(_out, 4u);
 
+    // the 3 x 3 into the upper left
     for (i = 0u; i < 3u; ++i)
     {
         size_t j = 0u;
@@ -10557,14 +13181,311 @@ d_quat_@S@_to_matrix4(
     return;
 }
 
-// @SECTION@.3    Construction and interpolation
-//------------------------------------------------------------------------------
-// Each needs a sine or a cosine, and so comes twice, as the elementary
-// functions do: the _c form a constant expression from C++14, the plain
-// one on the C library's.
-@TRIG_FORMS@"""
+D_MATH_FN void
+d_quat_@S@_to_matrix4(
+    @T@*       _out,
+    const @T@* _q
+)
+{
+    @T@    r[9] = { (@T@)0, (@T@)0, (@T@)0,
+                    (@T@)0, (@T@)0, (@T@)0,
+                    (@T@)0, (@T@)0, (@T@)0 };
+    size_t i    = 0u;
 
-QUAT_TRIG_TEMPLATE = r"""
+    d_quat_@S@_to_matrix3(r, _q);
+    d_mat_@S@_identity(_out, 4u);
+
+    // the 3 x 3 into the upper left
+    for (i = 0u; i < 3u; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < 3u; ++j)
+        {
+            _out[(i * 4u) + j] = r[(i * 3u) + j];
+        }
+    }
+
+    return;
+}
+
+// d_quat_@S@_from_matrix3_c, d_quat_@S@_from_matrix3
+//   _out = the unit quaternion, w >= 0, of the rotation matrix _m (3 x 3, by
+// rows), by Shepperd's method (d_internal_quat_ld_from_matrix3_c), each part
+// rounded once: to_matrix3's inverse, q or -q. A NaN or infinite entry gives
+// NaNs. The _c form a constant expression from C++14, the plain one on the C
+// library's square root, the same value.
+D_MATH_FN void
+d_quat_@S@_from_matrix3_c(
+    @T@*       _out,
+    const @T@* _m
+)
+{
+    long double                     m[9] = { 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
+                                             0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(m, _m, 9u);
+    d_internal_quat_ld_from_matrix3_c(r, m);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+D_MATH_FN_RT void
+d_quat_@S@_from_matrix3(
+    @T@*       _out,
+    const @T@* _m
+)
+{
+    long double                     m[9] = { 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
+                                             0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(m, _m, 9u);
+    d_internal_quat_ld_from_matrix3(r, m);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+// d_quat_@S@_from_matrix4_c, d_quat_@S@_from_matrix4
+//   _out = the unit quaternion of the 4 x 4 matrix _m's upper-left 3 x 3
+// (d_quat_@S@_from_matrix3_c).
+D_MATH_FN void
+d_quat_@S@_from_matrix4_c(
+    @T@*       _out,
+    const @T@* _m
+)
+{
+    const @T@ m[9] = { _m[0], _m[1], _m[2],
+                       _m[4], _m[5], _m[6],
+                       _m[8], _m[9], _m[10] };
+
+    d_quat_@S@_from_matrix3_c(_out, m);
+
+    return;
+}
+
+D_MATH_FN_RT void
+d_quat_@S@_from_matrix4(
+    @T@*       _out,
+    const @T@* _m
+)
+{
+    const @T@ m[9] = { _m[0], _m[1], _m[2],
+                       _m[4], _m[5], _m[6],
+                       _m[8], _m[9], _m[10] };
+
+    d_quat_@S@_from_matrix3(_out, m);
+
+    return;
+}
+
+// d_quat_@S@_from_two_vectors_c, d_quat_@S@_from_two_vectors
+//   _out = the unit quaternion of the shortest rotation turning the direction
+// of the 3-vector _a into _b's (d_internal_quat_ld_from_two_vectors_c), each
+// part rounded once: exactly opposed, a half turn about an axis
+// perpendicular to a; a zero vector, the identity; a NaN or infinite part,
+// NaNs. The _c form a constant expression from C++14, the plain one on the C
+// library's square root, the same value.
+D_MATH_FN void
+d_quat_@S@_from_two_vectors_c(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b
+)
+{
+    long double                     a[3] = { 0.0L, 0.0L, 0.0L };
+    long double                     b[3] = { 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(a, _a, 3u);
+    d_internal_quat_@S@_widen(b, _b, 3u);
+    d_internal_quat_ld_from_two_vectors_c(r, a, b);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+D_MATH_FN_RT void
+d_quat_@S@_from_two_vectors(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b
+)
+{
+    long double                     a[3] = { 0.0L, 0.0L, 0.0L };
+    long double                     b[3] = { 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(a, _a, 3u);
+    d_internal_quat_@S@_widen(b, _b, 3u);
+    d_internal_quat_ld_from_two_vectors(r, a, b);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+
+// @SECTION@.5    Construction and interpolation
+//------------------------------------------------------------------------------
+// What needs a sine or a cosine comes twice, as the elementary functions do:
+// the _c form a constant expression from C++14, the plain one on the C
+// library's.
+@TRIG_FORMS@
+// d_quat_@S@_nlerp_c, d_quat_@S@_nlerp
+//   _out = the normalized linear interpolation from _a (t = 0) to _b (t = 1),
+// along the shorter arc (d_internal_quat_ld_nlerp_c), each part rounded once:
+// the cheap curve between two rotations, whose speed varies along it. A NaN
+// or infinite part, of t too, gives NaNs. The _c form a constant expression
+// from C++14, the plain one on the C library's square root, the same value.
+D_MATH_FN void
+d_quat_@S@_nlerp_c(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b,
+    @T@        _t
+)
+{
+    long double                     a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double                     b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(a, _a, 4u);
+    d_internal_quat_@S@_widen(b, _b, 4u);
+    d_internal_quat_ld_nlerp_c(r, a, b, (long double)_t);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+D_MATH_FN_RT void
+d_quat_@S@_nlerp(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b,
+    @T@        _t
+)
+{
+    long double                     a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double                     b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(a, _a, 4u);
+    d_internal_quat_@S@_widen(b, _b, 4u);
+    d_internal_quat_ld_nlerp(r, a, b, (long double)_t);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+// d_quat_@S@_slerp_c
+//   _out = the spherical linear interpolation from _a (t = 0) to _b (t = 1),
+// both unit quaternions, along the shorter arc at a constant speed
+// (d_internal_quat_ld_slerp_c), each part rounded once: the angle from
+// atan2 of the chords, accurate near 0, and a at t = 0, b or -b at t = 1,
+// exactly. A NaN or infinite part, of t too, gives NaNs.
+D_MATH_FN void
+d_quat_@S@_slerp_c(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b,
+    @T@        _t
+)
+{
+    long double                     a[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    long double                     b[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    d_internal_quat_@S@_widen(a, _a, 4u);
+    d_internal_quat_@S@_widen(b, _b, 4u);
+    d_internal_quat_ld_slerp_c(r, a, b, (long double)_t);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+// d_quat_@S@_slerp
+//   the same algorithm in the family's type on the C library's: theta = 2
+// atan2(|a - b|, |a + b|) by vec.h's scaled norms, the sines the library's,
+// each part the sum of the two products; NaNs where the arithmetic gives
+// them.
+D_MATH_FN_RT void
+d_quat_@S@_slerp(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b,
+    @T@        _t
+)
+{
+    const @T@ zero    = (@T@)0;
+    const @T@ one     = (@T@)1;
+    @T@       b[4]    = { zero, zero, zero, zero };
+    @T@       diff[4] = { zero, zero, zero, zero };
+    @T@       sum[4]  = { zero, zero, zero, zero };
+    const @T@ d       = d_vec_@S@_dot(_a, _b, 4u);
+    const @T@ flip    = (d < zero) ? -one : one;
+    size_t    i       = 0u;
+
+    // the shorter arc's end, and the chords to it and through it
+    for (i = 0u; i < 4u; ++i)
+    {
+        b[i]    = flip * _b[i];
+        diff[i] = _a[i] - b[i];
+        sum[i]  = _a[i] + b[i];
+    }
+
+    {
+        const @T@ chord = d_vec_@S@_norm(diff, 4u);
+        const @T@ other = d_vec_@S@_norm(sum, 4u);
+        const @T@ theta = (one + one) * d_math_@S@_atan2(chord, other);
+        @T@       s_a   = one - _t;
+        @T@       s_b   = _t;
+
+        // an angle: the arc's sines
+        if (theta != zero)
+        {
+            const @T@ s    = d_math_@S@_sin(theta);
+            const @T@ rest = one - _t;
+
+            s_a = d_math_@S@_sin(rest * theta) / s;
+            s_b = d_math_@S@_sin(_t * theta) / s;
+        }
+
+        // each part of the arc
+        for (i = 0u; i < 4u; ++i)
+        {
+            const @T@ from = s_a * _a[i];
+            const @T@ to   = s_b * b[i];
+
+            _out[i] = from + to;
+        }
+    }
+
+    return;
+}
+
+
+// @SECTION@.6    Exponential, logarithm and powers
+//------------------------------------------------------------------------------
+// The complex functions in q's plane (section 1.7), principal values (S275):
+// for a vector part along im alone -- y and z 0 -- the complex function of w
+// + x i, cplx.h's in the same form, y and z as they are, so that a complex
+// number's is its own bit for bit; otherwise the _c form the kernel rounded
+// once, the plain one the same in the family's type on cplx.h's plain
+// functions. A NaN part, there, gives NaNs.
+@EXP_FORMS@"""
+
+
+QUAT_TRIG = r"""
 // d_quat_@S@_from_axis_angle@F@
 //   _out = the rotation of _angle radians about _axis, which need not be a
 // unit vector: (axis sin(a/2) / |axis|, cos(a/2)). A zero axis names no
@@ -10621,87 +13542,218 @@ d_quat_@S@_from_unit_axis_angle@F@(
 
     return;
 }
+"""
 
-// d_quat_@S@_slerp@F@
-//   _out = the spherical linear interpolation from _a (t = 0) to _b (t =
-// 1), both unit quaternions, along the shorter arc; where the two are
-// nearly parallel (dot above 0.9995), the arc is a line, renormalized.
-D_MATH_FN@RT@ void
-d_quat_@S@_slerp@F@(
+
+# one of the four functions of section @SECTION@.6, in both forms: @FN@ the
+# name, @DOC@ its line, @ARGS@ and @PARAMS@ its extra argument, @KARGS@ the
+# kernel's, @CPLX_EXTRA@ the complex function's.
+QUAT_EXP = r"""
+// d_quat_@S@_@FN@_c, d_quat_@S@_@FN@
+//   _out = @DOC@
+D_MATH_FN void
+d_quat_@S@_@FN@_c(
     @T@*       _out,
-    const @T@* _a,
-    const @T@* _b,
-    @T@        _t
+    const @T@* _q@PARAMS@
 )
 {
-    @T@    b[4] = { _b[0], _b[1], _b[2], _b[3] };
-    @T@    d    = d_vec_@S@_dot(_a, _b, 4u);
+    long double                     q[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair r[4] = { { 0.0L, 0.0L }, { 0.0L, 0.0L },
+                                             { 0.0L, 0.0L }, { 0.0L, 0.0L } };
+
+    // along im alone: the complex function
+    if ( (_q[1] == (@T@)0) &&
+         (_q[2] == (@T@)0) )
+    {
+        const struct dj_cplx_@S@ c = d_cplx_@S@_@FN@_c(
+            d_cplx_@S@_make(_q[3], _q[0])@CPLX_EXTRA@);
+
+        _out[0] = c.part[1];
+        _out[1] = _q[1];
+        _out[2] = _q[2];
+        _out[3] = c.part[0];
+
+        return;
+    }
+
+    d_internal_quat_@S@_widen(q, _q, 4u);
+
+    // a NaN: NaNs
+    if ( (d_internal_quat_ld_has_nan(q, 4u))@NAN_EXTRA@ )
+    {
+        d_internal_quat_@S@_nans(_out, 4u);
+
+        return;
+    }
+
+    d_internal_quat_ld_@FN@_c(r, q@KARGS@);
+    d_internal_quat_@S@_narrow(_out, r, 4u);
+
+    return;
+}
+
+D_MATH_FN_RT void
+d_quat_@S@_@FN@(
+    @T@*       _out,
+    const @T@* _q@PARAMS@
+)
+{
+    @T@    r[4] = { (@T@)0, (@T@)0,
+                    (@T@)0, (@T@)0 };
     size_t i    = 0u;
 
-    // q and -q are the same rotation: take the one on the shorter arc
-    if (d < (@T@)0)
+    // along im alone: the complex function
+    if ( (_q[1] == (@T@)0) &&
+         (_q[2] == (@T@)0) )
     {
-        d_vec_@S@_negate(b, b, 4u);
-        d = -d;
+        const struct dj_cplx_@S@ c = d_cplx_@S@_@FN@(
+            d_cplx_@S@_make(_q[3], _q[0])@CPLX_EXTRA@);
+
+        _out[0] = c.part[1];
+        _out[1] = _q[1];
+        _out[2] = _q[2];
+        _out[3] = c.part[0];
+
+        return;
     }
 
-    // nearly parallel: the arc is a line, and sin(theta) would vanish
-    if (d > (@T@)0.9995)
+    // a NaN: NaNs
+    if ( (d_internal_quat_@S@_any_nan(_q, 4u))@NAN_EXTRA@ )
     {
-        @T@ l[4] = { (@T@)0, (@T@)0, (@T@)0, (@T@)0 };
+        d_internal_quat_@S@_nans(_out, 4u);
 
-        for (i = 0u; i < 4u; ++i)
-        {
-            const @T@ diff = b[i] - _a[i];
-            const @T@ step = _t * diff;
-
-            l[i] = _a[i] + step;
-        }
-
-        d_quat_@S@_normalize(_out, l, d_vec_@S@_norm_c(l, 4u));
+        return;
     }
-    else
+
     {
-        const @T@ theta_0 = d_math_@S@_acos@F@(d);
-        const @T@ theta   = theta_0 * _t;
-        const @T@ sin_0   = d_math_@S@_sin@F@(theta_0);
-        const @T@ rest    = theta_0 - theta;
-        const @T@ s_a     = d_math_@S@_sin@F@(rest) / sin_0;
-        const @T@ s_b     = d_math_@S@_sin@F@(theta) / sin_0;
+        const struct dj_internal_quat_@S@_plain_plane p =
+            d_internal_quat_@S@_plain_plane_of(_q);
+        const struct dj_cplx_@S@ c = d_cplx_@S@_@FN@(
+            d_cplx_@S@_make(p.w, p.r)@CPLX_EXTRA@);
+@PLAIN_BODY@
+        r[3] = c.part[0];
+    }
 
-        for (i = 0u; i < 4u; ++i)
-        {
-            const @T@ from = s_a * _a[i];
-            const @T@ to   = s_b * b[i];
-
-            _out[i] = from + to;
-        }
+    // the parts, after every read of _q
+    for (i = 0u; i < 4u; ++i)
+    {
+        _out[i] = r[i];
     }
 
     return;
 }
 """
 
+QUAT_EXP_ALONG = r"""
+        // the imaginary part along u
+        for (i = 0u; i < 3u; ++i)
+        {
+            r[i] = d_internal_quat_@S@_part_along(p.u[i], c.part[1]);
+        }
+"""
+
+QUAT_LOG_PLAIN = r"""
+        const @T@ tiny =
+            d_internal_math_@S@_pow2(-((@P@ / 2) + 2));
+
+        // r far below w > 0: v / w, atan2(r, w) / r being 1 / w
+        if ( (p.w > (@T@)0) &&
+             (!d_internal_cplx_@S@_is_inf(p.w)) &&
+             (p.r < (p.w * tiny)) )
+        {
+            for (i = 0u; i < 3u; ++i)
+            {
+                r[i] = _q[i] / _q[3];
+            }
+        }
+        else
+        {
+            for (i = 0u; i < 3u; ++i)
+            {
+                r[i] = d_internal_quat_@S@_part_along(p.u[i], c.part[1]);
+            }
+        }
+"""
+
+QUAT_SQRT_PLAIN = r"""
+        // the real part the larger, q finite: v / (2 Re), as 2 Re Im = r
+        if ( (!d_internal_cplx_@S@_is_inf(p.r)) &&
+             (!d_internal_cplx_@S@_is_inf(p.w)) &&
+             (c.part[0] >= c.part[1]) &&
+             (c.part[0] > (@T@)0) )
+        {
+            const @T@ twice = (@T@)2 * c.part[0];
+
+            for (i = 0u; i < 3u; ++i)
+            {
+                r[i] = _q[i] / twice;
+            }
+        }
+        else
+        {
+            for (i = 0u; i < 3u; ++i)
+            {
+                r[i] = d_internal_quat_@S@_part_along(p.u[i], c.part[1]);
+            }
+        }
+"""
+
+QUAT_EXP_SPECS = [
+    # name, doc, params, kernel args, complex extra, nan extra, plain body
+    ("exp", "e^q = e^w (cos |v| + u sin |v|), u = v / |v|.",
+     "", "", "", "", QUAT_EXP_ALONG),
+    ("log", "log q = log |q| + u atan2(|v|, w), the principal logarithm,\n"
+            "// u = im where v is 0, so that log(-1) is pi im (S275).",
+     "", "", "", "", QUAT_LOG_PLAIN),
+    ("sqrt", "sqrt q, the principal square root, its real part >= 0: the\n"
+             "// complex root of w + |v| i, its imaginary part along u.",
+     "", "", "", "", QUAT_SQRT_PLAIN),
+    ("pow", "q^_p = exp(p log q) for a real p, the principal power: the\n"
+            "// complex one of w + |v| i, its imaginary part along u.",
+     ",\n    @T@        _p", ", (long double)_p",
+     ",\n            d_cplx_@S@_make(_p, (@T@)0)", " ||\n         (_p != _p)",
+     QUAT_EXP_ALONG),
+]
+
+
 QUAT_HEAD = r"""
 /*
 TABLE OF CONTENTS
 =================
-1.  THE FLOAT FAMILY (_f)
+1.  THE KERNELS
+    -----------
+    1.  Pairs and scaling
+    2.  The algebra
+    3.  The algebra in double
+    4.  Rotation
+    5.  Roots: the _c forms'
+    6.  Roots: the plain forms'
+    7.  The _c forms' functions
+2.  THE FLOAT FAMILY (_f)
     ---------------------
-    1.  Algebra
-    2.  Rotation
-    3.  Construction and interpolation
-2.  THE DOUBLE FAMILY (_d)
+    1.  Helpers
+    2.  Algebra
+    3.  Norms
+    4.  Rotation
+    5.  Construction and interpolation
+    6.  Exponential, logarithm and powers
+3.  THE DOUBLE FAMILY (_d)
     ----------------------
-    1.  Algebra
-    2.  Rotation
-    3.  Construction and interpolation
-3.  THE LONG DOUBLE FAMILY (_ld)
+    1.  Helpers
+    2.  Algebra
+    3.  Norms
+    4.  Rotation
+    5.  Construction and interpolation
+    6.  Exponential, logarithm and powers
+4.  THE LONG DOUBLE FAMILY (_ld)
     ----------------------------
-    1.  Algebra
-    2.  Rotation
-    3.  Construction and interpolation
-4.  ONE NAME FOR EVERY FAMILY (C++)
+    1.  Helpers
+    2.  Algebra
+    3.  Norms
+    4.  Rotation
+    5.  Construction and interpolation
+    6.  Exponential, logarithm and powers
+5.  ONE NAME FOR EVERY FAMILY (C++)
     -------------------------------
 */
 
@@ -10709,12 +13761,18 @@ TABLE OF CONTENTS
 #define DJINTERP_C_MATH_QUAT_H 1
 
 // std
+#include <float.h>           // LDBL_MANT_DIG, LDBL_MIN, LDBL_MIN_EXP, ...
 #include <stddef.h>          // size_t
 // djinterp
-#include "./elementary.h"    // d_math_*_sin, _cos, _acos and their _c forms
+#include "./cplx.h"          // d_cplx_*_exp, _log, _sqrt, _pow, their kernels
+#include "./elementary.h"    // d_math_*_sin, _cos, _sqrt, pairs, round_pair
+#include "./exponential.h"   // d_internal_math_*_infinity
+#include "./float_order.h"   // d_internal_math_*_pow2
 #include "./mat.h"           // d_mat_*_identity
-#include "./math_common.h"   // D_MATH_FN
-#include "./vec.h"           // d_vec_*_cross, _dot, _norm_c, _scale, _add
+#include "./math_common.h"   // D_MATH_FN, D_MATH_FN_KERNEL, D_MATH_FN_RT
+#include "./power.h"         // d_internal_math_ld_pair_sum, _pair_product
+#include "./tangent.h"       // d_math_*_atan2 and its _c form
+#include "./vec.h"           // d_vec_*_cross, _dot, _norm, _scale, _add
 """
 
 QUAT_TAIL = r"""
@@ -10722,49 +13780,336 @@ QUAT_TAIL = r"""
 #endif  // DJINTERP_C_MATH_QUAT_H
 """
 
+QUAT_ROOT_FORMS = (
+    (5, "_c", "D_MATH_FN_KERNEL", "d_math_ld_sqrt_c", "Roots: the _c forms'",
+     "What takes a square root and no other real function, on the core's\n"
+     "// _c root: a constant expression from C++14."),
+    (6, "", "D_MATH_FN_RT", "d_math_ld_sqrt", "Roots: the plain forms'",
+     "The same, on the C library's square root, correctly rounded as the\n"
+     "// _c root is: the same bits, faster."),
+)
+
 _QO = ("@T@*", "_out")
 _QQ = ("const @T@*", "_q")
+_QA = ("const @T@*", "_a")
+_QB = ("const @T@*", "_b")
+_QV = ("const @T@*", "_v")
+_QM = ("const @T@*", "_m")
 QUAT_OVERLOADS = [
-    ("D_MATH_FN", "void", "d_quat_multiply", [_QO, ("const @T@*", "_a"), ("const @T@*", "_b")]),
+    ("D_MATH_FN", "void", "d_quat_multiply_fast", [_QO, _QA, _QB]),
+    ("D_MATH_FN", "void", "d_quat_multiply", [_QO, _QA, _QB]),
     ("D_MATH_FN", "void", "d_quat_conjugate", [_QO, _QQ]),
-    ("D_MATH_FN", "void", "d_quat_normalize", [_QO, _QQ, ("@T@", "_norm")]),
-    ("D_MATH_FN", "void", "d_quat_rotate", [_QO, _QQ, ("const @T@*", "_v")]),
+    ("D_MATH_FN", "void", "d_quat_inverse", [_QO, _QQ]),
+    ("D_MATH_FN", "void", "d_quat_divide", [_QO, _QA, _QB]),
+    ("D_MATH_FN", "void", "d_quat_left_divide", [_QO, _QA, _QB]),
+    ("D_MATH_FN", "@T@", "d_quat_norm_c", [_QQ]),
+    ("D_MATH_FN_RT", "@T@", "d_quat_norm", [_QQ]),
+    ("D_MATH_FN", "void", "d_quat_normalize_c", [_QO, _QQ]),
+    ("D_MATH_FN_RT", "void", "d_quat_normalize", [_QO, _QQ]),
+    ("D_MATH_FN_RT", "void", "d_quat_normalize_fast", [_QO, _QQ]),
+    ("D_MATH_FN", "void", "d_quat_rotate_fast", [_QO, _QQ, _QV]),
+    ("D_MATH_FN", "void", "d_quat_rotate", [_QO, _QQ, _QV]),
+    ("D_MATH_FN", "void", "d_quat_to_matrix3_fast", [_QO, _QQ]),
     ("D_MATH_FN", "void", "d_quat_to_matrix3", [_QO, _QQ]),
+    ("D_MATH_FN", "void", "d_quat_to_matrix4_fast", [_QO, _QQ]),
     ("D_MATH_FN", "void", "d_quat_to_matrix4", [_QO, _QQ]),
 ]
 for _f, _m in (("_c", "D_MATH_FN"), ("", "D_MATH_FN_RT")):
     QUAT_OVERLOADS += [
+        (_m, "void", "d_quat_from_matrix3" + _f, [_QO, _QM]),
+        (_m, "void", "d_quat_from_matrix4" + _f, [_QO, _QM]),
+        (_m, "void", "d_quat_from_two_vectors" + _f, [_QO, _QA, _QB]),
         (_m, "void", "d_quat_from_axis_angle" + _f, [_QO, ("const @T@*", "_axis"), ("@T@", "_angle")]),
         (_m, "void", "d_quat_from_unit_axis_angle" + _f, [_QO, ("const @T@*", "_axis"), ("@T@", "_angle")]),
-        (_m, "void", "d_quat_slerp" + _f, [_QO, ("const @T@*", "_a"), ("const @T@*", "_b"), ("@T@", "_t")]),
+        (_m, "void", "d_quat_nlerp" + _f, [_QO, _QA, _QB, ("@T@", "_t")]),
+        (_m, "void", "d_quat_slerp" + _f, [_QO, _QA, _QB, ("@T@", "_t")]),
+        (_m, "void", "d_quat_exp" + _f, [_QO, _QQ]),
+        (_m, "void", "d_quat_log" + _f, [_QO, _QQ]),
+        (_m, "void", "d_quat_sqrt" + _f, [_QO, _QQ]),
+        (_m, "void", "d_quat_pow" + _f, [_QO, _QQ, ("@T@", "_p")]),
     ]
 
 
 def quat():
-    lines = [
-        "Quaternions: the C core of math/quaternion.hpp and",
-        "math/linear_algebra/quaternion.hpp, for float, double and long double.",
-        "  GENERATED by scripts/gen_c_math_float.py from one text for the three",
-        "families: edit the generator, not this file.",
-        "",
-        "  A quaternion here is a caller's array [x, y, z, w]; the faces copy",
-        "their four members in and out, which inlining removes. What needs a sine",
-        "or a cosine comes twice, as the elementary functions do: the _c form a",
-        "constant expression from C++14, the plain one on the C library's.",
+    # (a blank line before it, its text): each wrapped to 72 columns
+    paragraphs = [
+        (False,
+         'Quaternions: the C core of math/quaternion.hpp and '
+         "math/linear_algebra/quaternion.hpp, and of the language's "
+         'quaternions, for float, double and long double.'),
+        (False,
+         'GENERATED by scripts/gen_c_math_float.py from one text for the '
+         'three families: edit the generator, not this file.'),
+        (True,
+         "A quaternion here is a caller's array [x, y, z, w], x i + y j + "
+         'z k + w, the order of glTF, Eigen and GLM, so that a renderer '
+         "takes one as it is (S275); the product is Hamilton's, "
+         "right-handed, and a rotation active, v' = q v q^-1, q v q* for a "
+         'unit q (S276).'),
+        (True,
+         'Accurate by default (S276): the product, the inverse and the two '
+         'quotients, the rotation and its matrix, the norm and '
+         "normalization, the quaternion of a rotation matrix (Shepperd's "
+         'method) and of two vectors, and nlerp are each one long double '
+         'kernel, its parts carried as pairs where they cancel -- every '
+         "product of two parts exact by Dekker's, every sum of products "
+         "Ogita, Rump and Oishi's Dot2 -- and each family's part the "
+         "kernel's rounded once, the operands scaled by powers of 2 where "
+         "Dekker's products could overflow or lose their low parts; "
+         "float's and double's product, inverse and quotients the same in "
+         "double's pairs where double is evaluated in its own type, as SSE "
+         "evaluates it, some ten times faster than the x87's long double. "
+         "The product's parts are as accurate as their sums computed in "
+         "twice the pairs' precision and rounded once. The rotation and "
+         'its matrix take any q not 0, its norm cancelling, so that a q a '
+         'few steps from unit length names the rotation of q / |q|. What '
+         'takes a root and no other real function comes twice, the _c form '
+         'a constant expression from C++14 and the plain one on the C '
+         "library's root, the two giving the same bits."),
+        (True,
+         'slerp, exp, log, sqrt and real powers come twice, as the '
+         'elementary functions do: the _c form one long double kernel on '
+         "the core's _c functions; the plain form the same algorithm in "
+         "the family's type on the C library's. slerp along the shorter "
+         'arc, its angle 2 atan2(|a - b|, |a + b|), accurate near 0 where '
+         'acos(a . b) is not, a at t = 0 and b at t = 1 exactly. exp, log, '
+         "sqrt and pow are the complex functions in q's plane, principal "
+         'values (S275): f(q) = Re f(w + r i) + u Im f(w + r i), r = |v|, '
+         "u = v / r; for v along im alone, cplx.h's function itself, bit "
+         'for bit, y and z as they are; log(-1) is pi im. In the _c '
+         'kernels r is a pair and f corrected to first order for its low '
+         'part, and log and sqrt take q scaled by a power of 2 where it '
+         "leaves the range Dekker's products need."),
+        (True,
+         "The former formulas stay, in the family's type, as the _fast "
+         'forms of the product, the rotation, its matrices and '
+         "normalization (by a reciprocal square root), for a renderer's "
+         "inner loops: their bits are the earlier header's, each part's "
+         'error unbounded where products cancel. from_axis_angle and '
+         'from_unit_axis_angle are as before.'),
+        (True,
+         'Where a part is infinite or a NaN: the product as written (the '
+         "_fast formula); the quotients a times b's inverse, which is the "
+         "conjugate's zeros for an infinite q and NaNs for a zero or NaN "
+         "one; NaNs from the rotation, its matrix, Shepperd's method, two "
+         'vectors, nlerp and slerp; the direction of the infinities from '
+         "normalization, +inf from the norm; and in q's plane, an infinite "
+         "r along v's infinities, a NaN part giving NaNs, a part of v that "
+         'is 0 staying 0.'),
+        (True,
+         'The bounds, in steps (float_order.h) of each part from the part '
+         'correctly rounded, as tests/djinterp/c/modules/math/t_quat.c checks them '
+         'at the points of math_tests_quat_refs.h, computed by mpmath: '
+         'points exact in float, which every family takes, at the ends of '
+         "each family's range, and at double's and long double's full "
+         'width. The product within 1 but where its sum cancels, by u^2 '
+         "times its terms' magnitudes (measured 0, but 8 for double where "
+         'a sum cancels to 2^-50 of its terms); the inverse, the two '
+         'quotients, the rotation and its matrix, the norm, normalization '
+         "and Shepperd's method within 1 (measured 0, but 1 for long "
+         "double's rotation); two vectors' quaternion and nlerp within 1 "
+         'for float and double and 2 for long double (measured 0, 0 and '
+         '1); slerp_c within 1 step of its largest part, as its parts are '
+         'sums that may cancel, and 2 for long double (measured 0, 0 and '
+         '2); exp_c, log_c, sqrt_c and pow_c within 1 for float and double '
+         'and 4 for long double (measured 0, and 2 each), a whole power in '
+         "q's plane being cplx.h's, carried in pairs (S370). The plain "
+         'slerp within 4 steps of its largest part (measured 2); the plain '
+         "exp, log, sqrt and pow, which take |v| rounded once in the "
+         "family's type, within 12, 4, 4 and 12 steps of the largest part "
+         'where |v| is below 16 and |p| below 8 (measured 8, 3, 2 and 5): '
+         "exp's and pow's grow with |v| and p, as the cosine of a rounded "
+         '|v| does.'),
     ]
-    text = banner("quat.h", "/inc/djinterp/c/modules/math/quat.h", lines)
+    lines = []
+    for n, (blank, paragraph) in enumerate(paragraphs):
+        # each paragraph wrapped, the first flush, the rest indented two
+        # spaces as the banners' paragraphs are
+        lead = "" if n == 0 else "  "
+        lines += ([""] if blank else []) + textwrap.wrap(
+            lead + paragraph, 72, break_long_words=False,
+            break_on_hyphens=False)
+    text = banner("quat.h", lines, "2026.10.04", "2026.11.07")
     text += "\n" + QUAT_HEAD
+    text += QUAT_KERNELS_PURE
+    for sub, ks, kq, root, title, prose in QUAT_ROOT_FORMS:
+        text += (QUAT_KERNELS_ROOT.replace("@SUB@", str(sub))
+                 .replace("@TITLE@", title).replace("@PROSE@", prose)
+                 .replace("@KS@", ks).replace("@KQ@", kq)
+                 .replace("@SQRT@", root))
+    text += QUAT_KERNELS_FUNCTIONS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
         forms = ""
         for f, rt in (("_c", ""), ("", "_RT")):
-            forms += QUAT_TRIG_TEMPLATE.replace("@F@", f).replace("@RT@", rt)
-        body = QUAT_TEMPLATE.replace("@TRIG_FORMS@", forms)
-        body = body.replace("@SECTION@", str(i + 1)).replace("@UPPER@", upper)
-        text += instantiate(body, suffix, ctype, prefix, prose)
-    text += overload_section("4.  ONE NAME FOR EVERY FAMILY (C++)", QUAT_OVERLOADS)
+            forms += QUAT_TRIG.replace("@F@", f).replace("@RT@", rt)
+        exps = ""
+        for fn, doc, params, kargs, cextra, nextra, plain in QUAT_EXP_SPECS:
+            exps += (QUAT_EXP.replace("@PLAIN_BODY@", plain.rstrip("\n"))
+                     .replace("@FN@", fn).replace("@DOC@", doc)
+                     .replace("@PARAMS@", params).replace("@KARGS@", kargs)
+                     .replace("@CPLX_EXTRA@", cextra)
+                     .replace("@NAN_EXTRA@", nextra))
+        body = QUAT_FAMILY.replace("@TRIG_FORMS@", forms)
+        body = body.replace("@EXP_FORMS@", exps)
+        body = body.replace("@NARROW_D2@",
+                            QUAT_NARROW_D2.get(suffix, "").rstrip("\n"))
+        body = body.replace("@SECTION@", str(i + 2)).replace("@UPPER@", upper)
+        family = quat_d2(instantiate(body, suffix, ctype, prefix, prose),
+                         suffix)
+        # long double's algebra takes long double's pairs alone: its prose
+        # says so where float's and double's names both pairs
+        if suffix == "ld":
+            for old, new in QUAT_LD_PROSE:
+                assert family.count(old) == 1, old
+                family = family.replace(old, new)
+        text += family
+    text += overload_section("5.  ONE NAME FOR EVERY FAMILY (C++)",
+                             QUAT_OVERLOADS)
     text += QUAT_TAIL
     return text
+
+
+QUAT_NARROW_D2 = {"f": r"""// d_internal_quat_f_narrow_d2
+//   _out = each of _p's _n double pairs rounded once to float, as
+// d_internal_math_f_round_pair rounds a long double one: the conversion,
+// and where it lands on a midpoint between two floats the low part's sign;
+// a finite sum past float's range an infinity, but for the midpoint above
+// the largest finite float with the sum below it.
+D_MATH_FN void
+d_internal_quat_f_narrow_d2(
+    float*                                _out,
+    const struct dj_internal_math_d_pair* _p,
+    size_t                                _n
+)
+{
+    size_t i = 0u;
+
+    // each pair, rounded once
+    for (i = 0u; i < _n; ++i)
+    {
+        const double hi    = _p[i].high;
+        const double lo    = _p[i].low;
+        const float  near  = (float)hi;
+        const double rest  = hi - (double)near;
+        float        value = near;
+
+        // a finite sum the conversion took past the largest finite float
+        if ( ( (near > FLT_MAX) ||
+               (near < -FLT_MAX) ) &&
+             (hi <= DBL_MAX) &&
+             (hi >= -DBL_MAX) )
+        {
+            const double gap = (double)FLT_MAX -
+                               (double)d_math_f_next_down(FLT_MAX);
+            const double mid = (near > 0.0f) ?
+                                   ((double)FLT_MAX + (gap / 2.0)) :
+                                   (-(double)FLT_MAX - (gap / 2.0));
+
+            // the midpoint above it, the sum below: the largest float
+            if ( (hi == mid) &&
+                 ( (near > 0.0f) ? (lo < 0.0) : (lo > 0.0) ) )
+            {
+                value = (near > 0.0f) ? FLT_MAX : -FLT_MAX;
+            }
+        }
+        // hi rounded down to near, from the midpoint, the sum above it
+        else if ( (rest > 0.0) &&
+                  (lo > 0.0) )
+        {
+            const float up = d_math_f_next_up(near);
+
+            if ((rest + rest) == ((double)up - (double)near))
+            {
+                value = up;
+            }
+        }
+        // hi rounded up to near, from the midpoint, the sum below it
+        else if ( (rest < 0.0) &&
+                  (lo < 0.0) )
+        {
+            const float down = d_math_f_next_down(near);
+
+            if ((rest + rest) == ((double)down - (double)near))
+            {
+                value = down;
+            }
+        }
+
+        _out[i] = value;
+    }
+
+    return;
+}
+""", "d": r"""// d_internal_quat_d_narrow_d2
+//   _out = each of _p's _n pairs' high part, the sum rounded once.
+D_MATH_FN void
+d_internal_quat_d_narrow_d2(
+    double*                               _out,
+    const struct dj_internal_math_d_pair* _p,
+    size_t                                _n
+)
+{
+    size_t i = 0u;
+
+    // each pair's high part
+    for (i = 0u; i < _n; ++i)
+    {
+        _out[i] = _p[i].high;
+    }
+
+    return;
+}
+"""}
+
+
+QUAT_LD_PROSE = (
+    ("// the sum of its four products as Dot2 sums them, rounded once: in "
+     "double's\n// pairs where double is evaluated in its own type (section "
+     "1.3), long\n// double's otherwise (section 1.2); where an operand has "
+     "an infinite or NaN\n// part, the formula as written "
+     "(d_quat_ld_multiply_fast).",
+     "// the sum of its four products as Dot2 sums them in long double's "
+     "pairs\n// (section 1.2), rounded once; where an operand has an "
+     "infinite or NaN\n// part, the formula as written "
+     "(d_quat_ld_multiply_fast)."),
+    ("// once, in double's pairs or long double's as d_quat_ld_multiply "
+     "takes\n// them.",
+     "// once, in long double's pairs as d_quat_ld_multiply takes them."),
+)
+
+
+def quat_d2(text, suffix):
+    """text with each block "#if @D2@ ... #else  // @D2@ ... #endif  // @D2@"
+    made the test of double's evaluation for float and double, whose
+    algebra takes double's pairs where double is evaluated in its own type;
+    for long double its #else part alone (cplx_wide's way)."""
+    keep = suffix in ("f", "d")
+    out = []
+    state = None
+    for line in text.split("\n"):
+        if line == "#if @D2@":
+            state = "d2"
+            if keep:
+                out.append("#if !D_MATH_DBL_EVAL_WIDE")
+            continue
+        if line == "#else  // @D2@":
+            state = "else"
+            if keep:
+                out.append("#else  // !D_MATH_DBL_EVAL_WIDE")
+            continue
+        if line == "#endif  // @D2@":
+            state = None
+            if keep:
+                out.append("#endif  // !D_MATH_DBL_EVAL_WIDE")
+            continue
+        if (state == "d2") and (not keep):
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
+
 
 
 
@@ -11400,7 +14745,7 @@ def coord():
         "constant expression from C++14, the plain one on the C library's. The",
         "angles' canonical forms are exact, so one form serves.",
     ]
-    text = banner("coord.h", "/inc/djinterp/c/modules/math/coord.h", lines)
+    text = banner("coord.h", lines, DATE, "2026.11.07")
     text += "\n" + COORD_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -11644,7 +14989,7 @@ def isect():
         "  Points and directions are a caller's 3-arrays, the faces' vectors'",
         "storage. Each test is a constant expression from C++14.",
     ]
-    text = banner("isect.h", "/inc/djinterp/c/modules/math/isect.h", lines)
+    text = banner("isect.h", lines, DATE, "2026.11.07")
     text += "\n" + ISECT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -11879,7 +15224,7 @@ def plane():
         "interleaved, the faces' vectors' storage converted to Cartesian. Each",
         "kernel is a constant expression from C++14.",
     ]
-    text = banner("plane.h", "/inc/djinterp/c/modules/math/plane.h", lines)
+    text = banner("plane.h", lines, DATE, "2026.11.07")
     text += "\n" + PLANE_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -12272,21 +15617,21 @@ d_decomp_@S@_qt_mul(
     #pragma GCC diagnostic ignored "-Warray-bounds"
 #endif
 
-// d_internal_decomp_@S@_rotation
+// dj_internal_decomp_@S@_rotation
 //   struct: a plane rotation and the length it leaves: c x + s y = r and
 // c y - s x = 0, for the pair (x, y) it was made from.
-struct d_internal_decomp_@S@_rotation
+struct dj_internal_decomp_@S@_rotation
 {
     @T@ c;  // the cosine
     @T@ s;  // the sine
     @T@ r;  // the pair's length, sqrt(x^2 + y^2) >= 0
 };
 
-// d_internal_decomp_@S@_scaling
+// dj_internal_decomp_@S@_scaling
 //   struct: how a matrix is brought to a largest magnitude in [1, 2): times
 // pre, then divided by power, both powers of two, so both steps are exact
 // (but for an entry that underflows, which is below the largest's rounding).
-struct d_internal_decomp_@S@_scaling
+struct dj_internal_decomp_@S@_scaling
 {
     @T@  pre;     // 2^P for a subnormal largest magnitude, else 1
     @T@  power;   // the largest magnitude's binade, 2^E, times pre
@@ -12299,13 +15644,13 @@ struct d_internal_decomp_@S@_scaling
 // binade, found exactly (float_order.h), after a lift by 2^P where that
 // magnitude is subnormal. Not finite, or zero, when an entry is NaN or
 // infinite, or every entry is zero; pre and power are then 1.
-D_MATH_FN struct d_internal_decomp_@S@_scaling
+D_MATH_FN struct dj_internal_decomp_@S@_scaling
 d_internal_decomp_@S@_scaling_of(
     const @T@* _a,
     size_t     _count
 )
 {
-    struct d_internal_decomp_@S@_scaling result =
+    struct dj_internal_decomp_@S@_scaling result =
         { (@T@)1, (@T@)1, true, false };
     @T@    largest = (@T@)0;
     size_t i       = 0u;
@@ -12345,7 +15690,7 @@ d_internal_decomp_@S@_scaling_of(
     }
 
     {
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(largest);
 
         result.power = b.power;
@@ -12581,7 +15926,7 @@ d_internal_decomp_@S@_small_solve(
         {
             const @T@ sr = *_scale * _br[0];
             const @T@ si = *_scale * _bi[0];
-            const struct d_cplx_@S@ q =
+            const struct dj_cplx_@S@ q =
                 d_cplx_@S@_div(d_cplx_@S@_make(sr, si),
                                d_cplx_@S@_make(csr, csi));
             const @T@ x1 = d_internal_math_@S@_abs(q.part[0]);
@@ -12904,7 +16249,7 @@ d_internal_decomp_@S@_small_solve(
             }
 
             {
-                const struct d_cplx_@S@ q =
+                const struct dj_cplx_@S@ q =
                     d_cplx_@S@_div(d_cplx_@S@_make(br2, bi2),
                                    d_cplx_@S@_make(ur22, ui22));
 
@@ -12980,12 +16325,12 @@ d_internal_decomp_@S@_small_solve(
 // and *_complex set where _im is not zero, unless _complex is NULL.
 D_MATH_FN void
 d_internal_decomp_@S@_put(
-    struct d_cplx_@S@* _values,
-    @T@*               _real,
-    bool*              _complex,
-    size_t             _j,
-    @T@                _re,
-    @T@                _im
+    struct dj_cplx_@S@* _values,
+    @T@*                _real,
+    bool*               _complex,
+    size_t              _j,
+    @T@                 _re,
+    @T@                 _im
 )
 {
     if (_values != NULL)
@@ -13649,13 +16994,13 @@ DECOMP_EIGEN_FORMS = r"""
 // s = _y / r, formed on the pair divided by its larger magnitude, so that
 // the sum of squares neither overflows nor underflows. (1, 0, 0) for
 // (0, 0).
-D_MATH_FN@RT@ struct d_internal_decomp_@S@_rotation
+D_MATH_FN@RT@ struct dj_internal_decomp_@S@_rotation
 d_internal_decomp_@S@_rotation_of@F@(
     @T@ _x,
     @T@ _y
 )
 {
-    struct d_internal_decomp_@S@_rotation g =
+    struct dj_internal_decomp_@S@_rotation g =
         { (@T@)1, (@T@)0, (@T@)0 };
     const @T@ ax = d_internal_math_@S@_abs(_x);
     const @T@ ay = d_internal_math_@S@_abs(_y);
@@ -13714,7 +17059,7 @@ d_decomp_@S@_hessenberg@F@(
 
             {
                 const @T@ above = _h[((i - 1u) * _n) + j];
-                const struct d_internal_decomp_@S@_rotation g =
+                const struct dj_internal_decomp_@S@_rotation g =
                     d_internal_decomp_@S@_rotation_of@F@(above, below);
                 size_t k = 0u;
 
@@ -13867,7 +17212,7 @@ d_internal_decomp_@S@_norm@F@(
         }
 
         {
-            const struct d_internal_math_@S@_binade b =
+            const struct dj_internal_math_@S@_binade b =
                 d_internal_math_@S@_binade_of(largest);
 
             power = b.power;
@@ -13895,17 +17240,17 @@ d_internal_decomp_@S@_norm@F@(
 
 // d_decomp_@S@_balance@F@
 //   balances the n-by-n _a in place, as LAPACK's dgebal does with job 'B':
-// first the rows and columns that isolate an eigenvalue are permuted to the
-// ends -- each row zero off the diagonal, within the columns not yet
-// isolated, to the bottom, then each such column to the top -- so that the
-// eigenvalues outside rows *_ilo to *_ihi stand on the diagonal; then each
-// row and column inside, by turns, is scaled by a power of two, its row
-// divided and its column multiplied, wherever that brings the sum of the two
-// norms below 0.95 of what it was, until none does -- a diagonal
-// similarity, exact, so the eigenvalues stay and the matrix's norm, before
-// a QR iteration, falls. _scale (n entries) receives each scaling factor, 1
-// outside *_ilo..*_ihi; _perm (n entries), unless NULL, the index each row
-// outside was swapped with, its own inside. Indices count from 0.
+// the rows and columns that isolate an eigenvalue permuted to the ends --
+// each row zero off the diagonal, within the columns not yet isolated, to
+// the bottom, then each such column to the top -- so that the eigenvalues
+// outside rows *_ilo to *_ihi stand on the diagonal; then each row and
+// column inside, by turns, scaled by a power of two, its row divided and its
+// column multiplied, wherever that brings the sum of the two norms below
+// 0.95 of what it was, until none does: a diagonal similarity, exact unless
+// an entry passes below the least normal on the way, as dgebal lets it
+// (S311). The eigenvalues stay; the norm, before a QR iteration, falls.
+// _scale (n entries) receives each factor, 1 outside *_ilo..*_ihi; _perm
+// (n entries), unless NULL, each outside row's swap. Indices count from 0.
 D_MATH_FN_KERNEL@RT@ void
 d_decomp_@S@_balance@F@(
     @T@*    _a,
@@ -14434,7 +17779,7 @@ d_internal_decomp_@S@_standard_pair@F@(
     @T@*                _b,
     @T@*                _c,
     @T@*                _d,
-    struct d_cplx_@S@*  _values,
+    struct dj_cplx_@S@* _values,
     @T@*                _cs,
     @T@*                _sn
 )
@@ -14711,16 +18056,16 @@ d_internal_decomp_@S@_standard_pair@F@(
 // not real.
 D_MATH_FN_KERNEL@RT@ bool
 d_internal_decomp_@S@_schur@F@(
-    @T@*               _h,
-    size_t             _n,
-    size_t             _ilo,
-    size_t             _ihi,
-    @T@*               _z,
-    struct d_cplx_@S@* _values,
-    @T@*               _real,
-    bool*              _complex,
-    size_t             _max_iter,
-    @T@                _tol
+    @T@*                _h,
+    size_t              _n,
+    size_t              _ilo,
+    size_t              _ihi,
+    @T@*                _z,
+    struct dj_cplx_@S@* _values,
+    @T@*                _real,
+    bool*               _complex,
+    size_t              _max_iter,
+    @T@                 _tol
 )
 {
     const @T@    dat1   = (@T@)0.75;
@@ -15222,10 +18567,12 @@ d_internal_decomp_@S@_schur@F@(
         // a pair, the block brought to standard form
         else
         {
-            struct d_cplx_@S@ pair[2] = { { { (@T@)0, (@T@)0 } },
-                                          { { (@T@)0, (@T@)0 } } };
-            @T@               cs = (@T@)1;
-            @T@               sn = (@T@)0;
+            struct dj_cplx_@S@ pair[2] = {
+                { { (@T@)0, (@T@)0 } },
+                { { (@T@)0, (@T@)0 } }
+            };
+            @T@                cs = (@T@)1;
+            @T@                sn = (@T@)0;
 
             d_internal_decomp_@S@_standard_pair@F@(
                 &_h[((i - 1u) * _n) + (i - 1u)],
@@ -15293,14 +18640,14 @@ d_internal_decomp_@S@_schur@F@(
 // reached take their diagonal entries.
 D_MATH_FN@RT@ bool
 d_decomp_@S@_schur@F@(
-    @T@*               _h,
-    size_t             _n,
-    size_t             _ilo,
-    size_t             _ihi,
-    @T@*               _z,
-    struct d_cplx_@S@* _values,
-    size_t             _max_iter,
-    @T@                _tol
+    @T@*                _h,
+    size_t              _n,
+    size_t              _ilo,
+    size_t              _ihi,
+    @T@*                _z,
+    struct dj_cplx_@S@* _values,
+    size_t              _max_iter,
+    @T@                 _tol
 )
 {
     return d_internal_decomp_@S@_schur@F@(_h, _n, _ilo, _ihi, _z, _values,
@@ -15854,9 +19201,9 @@ d_decomp_@S@_schur_vectors@F@(
 // it (S256).
 D_MATH_FN@RT@ @T@
 d_internal_decomp_@S@_cnorm@F@(
-    const struct d_cplx_@S@* _x,
-    size_t                   _count,
-    size_t                   _stride
+    const struct dj_cplx_@S@* _x,
+    size_t                    _count,
+    size_t                    _stride
 )
 {
     const @T@ small   = d_math_@S@_sqrt@F@(@MIN@ / @EPS@);
@@ -15923,7 +19270,7 @@ d_internal_decomp_@S@_cnorm@F@(
         }
 
         {
-            const struct d_internal_math_@S@_binade b =
+            const struct dj_internal_math_@S@_binade b =
                 d_internal_math_@S@_binade_of(largest);
 
             power = b.power;
@@ -15961,10 +19308,10 @@ d_internal_decomp_@S@_cnorm@F@(
 // the second of a pair the first's conjugate.
 D_MATH_FN_KERNEL@RT@ void
 d_internal_decomp_@S@_unit_vectors@F@(
-    const @T@*         _t,
-    const @T@*         _vr,
-    size_t             _n,
-    struct d_cplx_@S@* _vectors
+    const @T@*          _t,
+    const @T@*          _vr,
+    size_t              _n,
+    struct dj_cplx_@S@* _vectors
 )
 {
     size_t j = 0u;
@@ -16036,9 +19383,9 @@ d_internal_decomp_@S@_unit_vectors@F@(
 
             // turned so that the largest entry is real and positive
             {
-                const @T@               ur = re / modulus;
-                const @T@               ui = im / modulus;
-                const struct d_cplx_@S@ u  = d_cplx_@S@_make(ur, -ui);
+                const @T@                ur = re / modulus;
+                const @T@                ui = im / modulus;
+                const struct dj_cplx_@S@ u  = d_cplx_@S@_make(ur, -ui);
 
                 for (r = 0u; r < _n; ++r)
                 {
@@ -16106,17 +19453,17 @@ d_internal_decomp_@S@_unit_vectors@F@(
 // eigenvalues and the identity's columns.
 D_MATH_FN_KERNEL@RT@ bool
 d_decomp_@S@_eigen@F@(
-    @T@*               _a,
-    size_t             _n,
-    struct d_cplx_@S@* _values,
-    struct d_cplx_@S@* _vectors,
-    @T@*               _work,
-    size_t*            _perm,
-    size_t             _max_iter,
-    @T@                _tol
+    @T@*                _a,
+    size_t              _n,
+    struct dj_cplx_@S@* _values,
+    struct dj_cplx_@S@* _vectors,
+    @T@*                _work,
+    size_t*             _perm,
+    size_t              _max_iter,
+    @T@                 _tol
 )
 {
-    const struct d_internal_decomp_@S@_scaling sc =
+    const struct dj_internal_decomp_@S@_scaling sc =
         d_internal_decomp_@S@_scaling_of(_a, _n * _n);
     @T@*   scale     = _work;
     @T@*   z         = NULL;
@@ -16258,7 +19605,7 @@ d_decomp_@S@_eigen@F@(
 
         if (sel != i)
         {
-            const struct d_cplx_@S@ tmp = _values[i];
+            const struct dj_cplx_@S@ tmp = _values[i];
 
             _values[i]   = _values[sel];
             _values[sel] = tmp;
@@ -16267,7 +19614,7 @@ d_decomp_@S@_eigen@F@(
             {
                 for (k = 0u; k < _n; ++k)
                 {
-                    const struct d_cplx_@S@ t = _vectors[(k * _n) + i];
+                    const struct dj_cplx_@S@ t = _vectors[(k * _n) + i];
 
                     _vectors[(k * _n) + i]   = _vectors[(k * _n) + sel];
                     _vectors[(k * _n) + sel] = t;
@@ -16299,7 +19646,7 @@ d_decomp_@S@_eigenvalues@F@(
     @T@    _tol
 )
 {
-    const struct d_internal_decomp_@S@_scaling sc =
+    const struct dj_internal_decomp_@S@_scaling sc =
         d_internal_decomp_@S@_scaling_of(_h, _n * _n);
     size_t ilo       = 0u;
     size_t ihi       = 0u;
@@ -16407,7 +19754,7 @@ d_decomp_@S@_eigenvector@F@(
     @T@*       _y
 )
 {
-    const struct d_internal_decomp_@S@_scaling sc =
+    const struct dj_internal_decomp_@S@_scaling sc =
         d_internal_decomp_@S@_scaling_of(_a, _n * _n);
     const @T@ four_eps = (@T@)4 * @EPS@;
     @T@       sign     = (@T@)1;
@@ -16596,7 +19943,7 @@ TABLE OF CONTENTS
                              // limits
 #include <stddef.h>          // size_t
 // djinterp
-#include "./cplx.h"          // struct d_cplx_*, d_cplx_*_make, _mul and
+#include "./cplx.h"          // struct dj_cplx_*, d_cplx_*_make, _mul and
                              // _div: the eigenvalues and eigenvectors
 #include "./elementary.h"    // d_math_*_sqrt and its _c form,
                              // d_internal_math_*_abs, d_internal_math_*_nan
@@ -16632,9 +19979,9 @@ for _f, _m in (("_c", "D_MATH_FN"), ("", "D_MATH_FN_RT")):
         (_m, "bool", "d_decomp_eigenvector" + _f, [("const @T@*", "_a"), ("size_t", "_n"), ("@T@", "_lambda"), ("@T@*", "_lu"), ("size_t*", "_perm"), ("@T@*", "_x"), ("@T@*", "_y")]),
         (_m, "void", "d_decomp_balance" + _f, [("@T@*", "_a"), ("size_t", "_n"), ("size_t*", "_perm"), ("@T@*", "_scale"), ("size_t*", "_ilo"), ("size_t*", "_ihi")]),
         (_m, "void", "d_decomp_hessenberg_q" + _f, [("@T@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("@T@*", "_q")]),
-        (_m, "bool", "d_decomp_schur" + _f, [("@T@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("@T@*", "_z"), ("struct d_cplx_@S@*", "_values"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
+        (_m, "bool", "d_decomp_schur" + _f, [("@T@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("@T@*", "_z"), ("struct dj_cplx_@S@*", "_values"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
         (_m, "void", "d_decomp_schur_vectors" + _f, [("const @T@*", "_t"), ("size_t", "_n"), ("@T@*", "_vr"), ("@T@*", "_work")]),
-        (_m, "bool", "d_decomp_eigen" + _f, [("@T@*", "_a"), ("size_t", "_n"), ("struct d_cplx_@S@*", "_values"), ("struct d_cplx_@S@*", "_vectors"), ("@T@*", "_work"), ("size_t*", "_perm"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
+        (_m, "bool", "d_decomp_eigen" + _f, [("@T@*", "_a"), ("size_t", "_n"), ("struct dj_cplx_@S@*", "_values"), ("struct dj_cplx_@S@*", "_vectors"), ("@T@*", "_work"), ("size_t*", "_perm"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
     ]
 
 
@@ -16658,8 +20005,7 @@ def decomp():
         "as the elementary functions do: the _c form a constant expression from",
         "C++14, the plain one on the C library's root.",
     ]
-    text = banner("decomp.h", "/inc/djinterp/c/modules/math/decomp.h", lines,
-                  DATE, "2026.10.30")
+    text = banner("decomp.h", lines, DATE, "2026.11.07")
     text += "\n" + DECOMP_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -16701,7 +20047,7 @@ CPLX_TYPES = r"""
 // _Complex T (6.2.5) and C++'s std::complex<T> ([complex.numbers]) both
 // promise. A value of either converts to one of these by a copy of its bytes.
 // No typedef hides the struct (the C guide's rule): it is spelled struct
-// d_cplx_d.
+// dj_cplx_d.
 
 
 // 1.1    The complex types
@@ -16710,16 +20056,16 @@ CPLX_TYPES = r"""
 """
 
 CPLX_STRUCT = r"""// 1.1.@N@
-// d_cplx_@S@
+// dj_cplx_@S@
 //   struct: a complex number of @NAME@ parts: part[0] the real part,
 // part[1] the imaginary.
-struct d_cplx_@S@
+struct dj_cplx_@S@
 {
     @T@ part[2];
 };
 
-D_STATIC_ASSERT( (sizeof(struct d_cplx_@S@) == (2 * sizeof(@T@))),
-                 "struct d_cplx_@S@ has the layout of @T@[2]" );
+D_STATIC_ASSERT( (sizeof(struct dj_cplx_@S@) == (2 * sizeof(@T@))),
+                 "struct dj_cplx_@S@ has the layout of @T@[2]" );
 """
 
 # the arithmetic and its helpers, once per family: pure, so one form
@@ -16734,19 +20080,20 @@ CPLX_ARITH = r"""
 // squared modulus, each sum so formed, the denominator's low part kept. The
 // operands are first scaled by powers of 2 so that no square or product
 // overflows or loses its low part to underflow, and the result scaled back
-// once. A zero part takes the sign the textbook formula gives it, and an
-// infinity C99's Annex G's recovery (G.5.1, its examples), so that an
-// infinite operand gives an infinity where the formula's terms are NaN.
+// once. A zero part takes the sign the textbook formula gives it, a
+// quotient's as a product's (S382), and an infinity C99's Annex G's
+// recovery (G.5.1, its examples), so that an infinite operand gives an
+// infinity where the formula's terms are NaN.
 
 // d_internal_cplx_@S@_make
 //   the complex number _x + _y i.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_make(
     @T@ _x,
     @T@ _y
 )
 {
-    struct d_cplx_@S@ result = { { (@T@)0, (@T@)0 } };
+    struct dj_cplx_@S@ result = { { (@T@)0, (@T@)0 } };
 
     result.part[0] = _x;
     result.part[1] = _y;
@@ -16793,13 +20140,13 @@ d_internal_cplx_@S@_abs(
 
 // d_internal_cplx_@S@_two_sum
 //   _a + _b exactly, as high + low: Knuth's two-sum.
-D_MATH_FN struct d_internal_math_@S@_pair
+D_MATH_FN struct dj_internal_math_@S@_pair
 d_internal_cplx_@S@_two_sum(
     @T@ _a,
     @T@ _b
 )
 {
-    struct d_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
+    struct dj_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
     const @T@ high   = _a + _b;
     const @T@ a_part = high - _b;
     const @T@ b_part = high - a_part;
@@ -16816,13 +20163,13 @@ d_internal_cplx_@S@_two_sum(
 // in magnitude and their product, where it is not 0, at least 2^(EMIN + 2P),
 // as the scalings below keep them, so that nothing overflows and the low
 // part is exact.
-D_MATH_FN struct d_internal_math_@S@_pair
+D_MATH_FN struct dj_internal_math_@S@_pair
 d_internal_cplx_@S@_product(
     @T@ _a,
     @T@ _b
 )
 {
-    struct d_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
+    struct dj_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
     const @T@ split = d_internal_math_@S@_veltkamp();
     const @T@ ta    = split * _a;
     const @T@ a_hi  = ta - (ta - _a);
@@ -16849,7 +20196,7 @@ d_internal_cplx_@S@_product(
 // register's bits or lose them as the compiler spills it -- so the products
 // are taken exactly in long double, whose operations the target rounds in
 // their own type, and their sum as one more pair.
-D_MATH_FN struct d_internal_math_ld_pair
+D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_cplx_@S@_dot_wide(
     @T@ _a,
     @T@ _b,
@@ -16857,13 +20204,13 @@ d_internal_cplx_@S@_dot_wide(
     @T@ _d
 )
 {
-    const struct d_internal_math_ld_pair p =
+    const struct dj_internal_math_ld_pair p =
         d_internal_math_ld_product_exact((long double)_a, (long double)_b);
-    const struct d_internal_math_ld_pair q =
+    const struct dj_internal_math_ld_pair q =
         d_internal_math_ld_product_exact((long double)_c, (long double)_d);
-    const struct d_internal_math_ld_pair s =
+    const struct dj_internal_math_ld_pair s =
         d_internal_math_ld_two_sum(p.high, q.high);
-    struct d_internal_math_ld_pair t =
+    struct dj_internal_math_ld_pair t =
         d_internal_math_ld_two_sum(s.high, s.low + (p.low + q.low));
 
     // an exact zero: the formula's own, with its sign
@@ -16877,18 +20224,25 @@ d_internal_cplx_@S@_dot_wide(
 
 // d_internal_cplx_@S@_over_wide
 //   (_u.high + _u.low) / (_n.high + _n.low), _n.high in [1, 8), rounded once
-// to @T@, as d_internal_cplx_@S@_over takes it, in long double.
+// to @T@, as d_internal_cplx_@S@_over takes it, in long double: a zero q
+// itself, of its sign (S382).
 D_MATH_FN @T@
 d_internal_cplx_@S@_over_wide(
-    struct d_internal_math_ld_pair _u,
-    struct d_internal_math_ld_pair _n
+    struct dj_internal_math_ld_pair _u,
+    struct dj_internal_math_ld_pair _n
 )
 {
     const long double q0    = _u.high / _n.high;
     const long double least =
         LDBL_MIN * d_internal_math_ld_pow2(LDBL_MANT_DIG + 4);
 
-    // a zero, or far below what @T@ holds: the quotient as it is
+    // a zero: itself, its sign kept
+    if (q0 == 0.0L)
+    {
+        return (@T@)q0;
+    }
+
+    // far below what @T@ holds: the quotient as it is
     if ( (q0 < least) &&
          (q0 > -least) )
     {
@@ -16896,11 +20250,11 @@ d_internal_cplx_@S@_over_wide(
     }
 
     {
-        const struct d_internal_math_ld_pair t =
+        const struct dj_internal_math_ld_pair t =
             d_internal_math_ld_product_exact(q0, _n.high);
         const long double head = (_u.high - t.high) - t.low;
         const long double r    = (head + _u.low) - (q0 * _n.low);
-        const struct d_internal_math_ld_pair v =
+        const struct dj_internal_math_ld_pair v =
             d_internal_math_ld_two_sum(q0, r / _n.high);
 
         return d_internal_math_@S@_round_pair(v.high, v.low);
@@ -16913,7 +20267,7 @@ d_internal_cplx_@S@_over_wide(
 // terms: the two products exact, their high parts summed exactly, and the
 // rest below. Where the exact sum is 0 the textbook formula's zero is taken,
 // so that its sign is IEEE's.
-D_MATH_FN struct d_internal_math_@S@_pair
+D_MATH_FN struct dj_internal_math_@S@_pair
 d_internal_cplx_@S@_dot_pair(
     @T@ _a,
     @T@ _b,
@@ -16921,13 +20275,13 @@ d_internal_cplx_@S@_dot_pair(
     @T@ _d
 )
 {
-    const struct d_internal_math_@S@_pair p =
+    const struct dj_internal_math_@S@_pair p =
         d_internal_cplx_@S@_product(_a, _b);
-    const struct d_internal_math_@S@_pair q =
+    const struct dj_internal_math_@S@_pair q =
         d_internal_cplx_@S@_product(_c, _d);
-    const struct d_internal_math_@S@_pair s =
+    const struct dj_internal_math_@S@_pair s =
         d_internal_cplx_@S@_two_sum(p.high, q.high);
-    struct d_internal_math_@S@_pair t =
+    struct dj_internal_math_@S@_pair t =
         d_internal_cplx_@S@_two_sum(s.high, s.low + (p.low + q.low));
 
     // an exact zero: the formula's own, with its sign
@@ -16953,7 +20307,7 @@ d_internal_cplx_@S@_dot(
 )
 {
 #if @WIDE@
-    const struct d_internal_math_ld_pair t =
+    const struct dj_internal_math_ld_pair t =
         d_internal_cplx_@S@_dot_wide(_a, _b, _c, _d);
 
     return d_internal_math_@S@_round_pair(t.high, t.low);
@@ -16967,25 +20321,33 @@ d_internal_cplx_@S@_dot(
 // q of the high parts, then the residual u - q n formed exactly of Dekker's
 // product of q and n's high part, and q plus the residual over n, rounded
 // once, so that the quotient is within a step of the correctly rounded one.
-// A zero, or a quotient too near the subnormals for Dekker's product, is q
-// less q n_lo / n.
+// A zero is q itself, the numerator's formula's zero over n, of its sign
+// (S382); a quotient too near the subnormals for Dekker's product is q less
+// q n_lo / n.
 D_MATH_FN @T@
 d_internal_cplx_@S@_over(
-    struct d_internal_math_@S@_pair _u,
-    struct d_internal_math_@S@_pair _n
+    struct dj_internal_math_@S@_pair _u,
+    struct dj_internal_math_@S@_pair _n
 )
 {
     const @T@ q0    = _u.high / _n.high;
     const @T@ least =
         @MIN@ * d_internal_math_@S@_pow2(@P@ + 4);
 
+    // a zero: itself, its sign kept
+    if (q0 == (@T@)0)
+    {
+        return q0;
+    }
+
+    // too near the subnormals for Dekker's product
     if (d_internal_cplx_@S@_abs(q0) < least)
     {
         return q0 - (q0 * (_n.low / _n.high));
     }
 
     {
-        const struct d_internal_math_@S@_pair t =
+        const struct dj_internal_math_@S@_pair t =
             d_internal_cplx_@S@_product(q0, _n.high);
         // u - q n: u's high part less t's is exact, the two within an ulp
         const @T@ head = (_u.high - t.high) - t.low;
@@ -17044,7 +20406,7 @@ d_internal_cplx_@S@_scale(
 // one nonzero.
 D_MATH_FN int
 d_internal_cplx_@S@_magnitude_exponent(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ a = d_internal_cplx_@S@_abs(_z.part[0]);
@@ -17059,7 +20421,7 @@ d_internal_cplx_@S@_magnitude_exponent(
 // parts: from 2^(EMIN/2 + P) to 2^(EMAX/2 - P), or 0.
 D_MATH_FN bool
 d_internal_cplx_@S@_safe(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ low  = d_internal_math_@S@_pow2((@EMIN@ / 2) + @P@);
@@ -17079,7 +20441,7 @@ d_internal_cplx_@S@_safe(
 //   whether both parts of _z are finite.
 D_MATH_FN bool
 d_internal_cplx_@S@_finite(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return ( (_z.part[0] == _z.part[0]) &&
@@ -17090,10 +20452,10 @@ d_internal_cplx_@S@_finite(
 
 // d_internal_cplx_@S@_scaled_by
 //   both parts of _z times 2^_k, each rounded once.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_scaled_by(
-    struct d_cplx_@S@ _z,
-    int               _k
+    struct dj_cplx_@S@ _z,
+    int                _k
 )
 {
     return d_internal_cplx_@S@_make(
@@ -17105,10 +20467,10 @@ d_internal_cplx_@S@_scaled_by(
 //   _z _w, both finite: each operand scaled to a larger part in [1, 2) where
 // either leaves the safe range, the parts by d_internal_cplx_@S@_dot, the
 // result scaled back.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_mul_finite(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     // within the safe range, or a zero operand: the parts as they are
@@ -17131,9 +20493,9 @@ d_internal_cplx_@S@_mul_finite(
         // may underflow in the products, under 2^-2P of the result
         const int ez = d_internal_cplx_@S@_magnitude_exponent(_z);
         const int ew = d_internal_cplx_@S@_magnitude_exponent(_w);
-        const struct d_cplx_@S@ z = d_internal_cplx_@S@_scaled_by(_z, -ez);
-        const struct d_cplx_@S@ w = d_internal_cplx_@S@_scaled_by(_w, -ew);
-        const struct d_cplx_@S@ p = d_internal_cplx_@S@_make(
+        const struct dj_cplx_@S@ z = d_internal_cplx_@S@_scaled_by(_z, -ez);
+        const struct dj_cplx_@S@ w = d_internal_cplx_@S@_scaled_by(_w, -ew);
+        const struct dj_cplx_@S@ p = d_internal_cplx_@S@_make(
             d_internal_cplx_@S@_dot(z.part[0], w.part[0],
                                     -z.part[1], w.part[1]),
             d_internal_cplx_@S@_dot(z.part[0], w.part[1],
@@ -17170,7 +20532,7 @@ d_internal_cplx_@S@_zero_if_nan(
 //   function: _x + _y i, each part as given, a signed zero, an infinity or a
 // NaN among them -- what C11's CMPLX makes and the sum _x + _y i, for a NaN
 // or an infinite _y, cannot.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_make(
     @T@ _x,
     @T@ _y
@@ -17184,7 +20546,7 @@ d_cplx_@S@_make(
 //   function: the real and the imaginary part of _z (C99's creal, cimag).
 D_MATH_FN @T@
 d_cplx_@S@_real(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return _z.part[0];
@@ -17192,7 +20554,7 @@ d_cplx_@S@_real(
 
 D_MATH_FN @T@
 d_cplx_@S@_imag(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return _z.part[1];
@@ -17202,18 +20564,18 @@ d_cplx_@S@_imag(
 //   function: the conjugate, the imaginary part negated (C99's conj); the
 // projection onto the Riemann sphere, every infinity to +inf + i(+-0), the
 // zero's sign the imaginary part's (C99's cproj); and the negation.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_conj(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0],
                                     -_z.part[1]);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_proj(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     // an infinite part, the other perhaps a NaN: the one infinity
@@ -17228,9 +20590,9 @@ d_cplx_@S@_proj(
     return _z;
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_neg(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(-_z.part[0],
@@ -17239,20 +20601,20 @@ d_cplx_@S@_neg(
 
 // d_cplx_@S@_add, d_cplx_@S@_sub
 //   function: _z + _w and _z - _w, part by part.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_add(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0] + _w.part[0],
                                     _z.part[1] + _w.part[1]);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_sub(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0] - _w.part[0],
@@ -17263,10 +20625,10 @@ d_cplx_@S@_sub(
 //   function: _z _w, each part within 2 ulps where no part of the operands
 // is an infinity or a NaN; and where the formula's terms give NaN for both
 // parts while an operand is infinite, the infinity Annex G recovers (G.5.1).
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_mul(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     // finite operands: the exact products
@@ -17328,35 +20690,35 @@ d_cplx_@S@_mul(
 // exponents. Where a target evaluates float and double wider than their
 // types, n and the numerator are long double pairs, as in
 // d_internal_cplx_@S@_dot_wide, and each quotient the _over_wide one's.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_div_finite(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     const int ew = d_internal_cplx_@S@_magnitude_exponent(_w);
-    const struct d_cplx_@S@ w = d_internal_cplx_@S@_scaled_by(_w, -ew);
+    const struct dj_cplx_@S@ w = d_internal_cplx_@S@_scaled_by(_w, -ew);
     const bool zero = ( (_z.part[0] == (@T@)0) &&
                         (_z.part[1] == (@T@)0) );
     const int ez = zero ? 0 : d_internal_cplx_@S@_magnitude_exponent(_z);
-    const struct d_cplx_@S@ z = d_internal_cplx_@S@_scaled_by(_z, -ez);
+    const struct dj_cplx_@S@ z = d_internal_cplx_@S@_scaled_by(_z, -ez);
 #if @WIDE@
     // n = c^2 + d^2, exactly as a long double pair, then one pair again
-    const struct d_internal_math_ld_pair cc =
+    const struct dj_internal_math_ld_pair cc =
         d_internal_math_ld_product_exact((long double)w.part[0],
                                          (long double)w.part[0]);
-    const struct d_internal_math_ld_pair dd =
+    const struct dj_internal_math_ld_pair dd =
         d_internal_math_ld_product_exact((long double)w.part[1],
                                          (long double)w.part[1]);
-    const struct d_internal_math_ld_pair n0 =
+    const struct dj_internal_math_ld_pair n0 =
         d_internal_math_ld_two_sum(cc.high, dd.high);
-    const struct d_internal_math_ld_pair n =
+    const struct dj_internal_math_ld_pair n =
         d_internal_math_ld_two_sum(n0.high, n0.low + (cc.low + dd.low));
     // the numerator (a + bi)(c - di), each part a long double pair
-    const struct d_internal_math_ld_pair re =
+    const struct dj_internal_math_ld_pair re =
         d_internal_cplx_@S@_dot_wide(z.part[0], w.part[0],
                                      z.part[1], w.part[1]);
-    const struct d_internal_math_ld_pair im =
+    const struct dj_internal_math_ld_pair im =
         d_internal_cplx_@S@_dot_wide(z.part[1], w.part[0],
                                      -z.part[0], w.part[1]);
 
@@ -17366,19 +20728,19 @@ d_internal_cplx_@S@_div_finite(
         ez - ew);
 #else  // @WIDE@
     // n = c^2 + d^2, exactly as high + low, then one pair again
-    const struct d_internal_math_@S@_pair cc =
+    const struct dj_internal_math_@S@_pair cc =
         d_internal_cplx_@S@_product(w.part[0], w.part[0]);
-    const struct d_internal_math_@S@_pair dd =
+    const struct dj_internal_math_@S@_pair dd =
         d_internal_cplx_@S@_product(w.part[1], w.part[1]);
-    const struct d_internal_math_@S@_pair n0 =
+    const struct dj_internal_math_@S@_pair n0 =
         d_internal_cplx_@S@_two_sum(cc.high, dd.high);
-    const struct d_internal_math_@S@_pair n =
+    const struct dj_internal_math_@S@_pair n =
         d_internal_cplx_@S@_two_sum(n0.high, n0.low + (cc.low + dd.low));
     // the numerator (a + bi)(c - di), each part a pair
-    const struct d_internal_math_@S@_pair re =
+    const struct dj_internal_math_@S@_pair re =
         d_internal_cplx_@S@_dot_pair(z.part[0], w.part[0],
                                      z.part[1], w.part[1]);
-    const struct d_internal_math_@S@_pair im =
+    const struct dj_internal_math_@S@_pair im =
         d_internal_cplx_@S@_dot_pair(z.part[1], w.part[0],
                                      -z.part[0], w.part[1]);
 
@@ -17396,10 +20758,10 @@ d_internal_cplx_@S@_div_finite(
 // for both parts, the infinity or the zero Annex G recovers (G.5.1): an
 // infinity for a nonzero _z over 0, an infinity for an infinite _z over a
 // finite _w, a zero for a finite _z over an infinite _w.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_div(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     const bool w_zero = ( (_w.part[0] == (@T@)0) &&
@@ -17471,60 +20833,60 @@ d_cplx_@S@_div(
 // _z - _x and _x - _z keep _z's imaginary part, its zero's sign among it;
 // _z _x and _z / _x scale both parts, so that an infinite _z by a finite _x
 // is no NaN; _x / _z is _x over _z, as d_cplx_@S@_div gives it.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_add_real(
-    struct d_cplx_@S@ _z,
-    @T@               _x
+    struct dj_cplx_@S@ _z,
+    @T@                _x
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0] + _x,
                                     _z.part[1]);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_sub_real(
-    struct d_cplx_@S@ _z,
-    @T@               _x
+    struct dj_cplx_@S@ _z,
+    @T@                _x
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0] - _x,
                                     _z.part[1]);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_real_sub(
-    @T@               _x,
-    struct d_cplx_@S@ _z
+    @T@                _x,
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(_x - _z.part[0],
                                     -_z.part[1]);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_mul_real(
-    struct d_cplx_@S@ _z,
-    @T@               _x
+    struct dj_cplx_@S@ _z,
+    @T@                _x
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0] * _x,
                                     _z.part[1] * _x);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_div_real(
-    struct d_cplx_@S@ _z,
-    @T@               _x
+    struct dj_cplx_@S@ _z,
+    @T@                _x
 )
 {
     return d_internal_cplx_@S@_make(_z.part[0] / _x,
                                     _z.part[1] / _x);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_real_div(
-    @T@               _x,
-    struct d_cplx_@S@ _z
+    @T@                _x,
+    struct dj_cplx_@S@ _z
 )
 {
     return d_cplx_@S@_div(d_internal_cplx_@S@_make(_x, (@T@)0),
@@ -17536,8 +20898,8 @@ d_cplx_@S@_real_div(
 // NaN part equals nothing, and -0 equals +0.
 D_MATH_FN bool
 d_cplx_@S@_equal(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return ( (_z.part[0] == _w.part[0]) &&
@@ -17578,9 +20940,9 @@ d_internal_cplx_@S@_exp_times@KS@(
 // d_internal_cplx_@S@_exp@KS@
 //   e^_z: e^x (cos y + i sin y), and Annex G's values (G.6.3.1) where a part
 // is an infinity or a NaN: conj(exp z) = exp(conj z) throughout.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_exp@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x   = _z.part[0];
@@ -17656,10 +21018,10 @@ d_internal_cplx_@S@_log_modulus@KS@(
 #if @WIDE@
         // the squares and their sums as long double pairs, as the
         // arithmetic's are where @T@ is evaluated wider (section 2)
-        const struct d_internal_math_ld_pair bb =
+        const struct dj_internal_math_ld_pair bb =
             d_internal_math_ld_product_exact((long double)big,
                                              (long double)big);
-        const struct d_internal_math_ld_pair ss =
+        const struct dj_internal_math_ld_pair ss =
             d_internal_math_ld_product_exact((long double)small,
                                              (long double)small);
         const long double m2 = bb.high + (ss.high + ss.low);
@@ -17667,11 +21029,11 @@ d_internal_cplx_@S@_log_modulus@KS@(
         if ( (m2 >= 0.5L) &&
              (m2 <= 2.0L) )
         {
-            const struct d_internal_math_ld_pair t1 =
+            const struct dj_internal_math_ld_pair t1 =
                 d_internal_math_ld_two_sum(bb.high, -1.0L);
-            const struct d_internal_math_ld_pair head =
+            const struct dj_internal_math_ld_pair head =
                 d_internal_math_ld_two_sum(t1.high, ss.high);
-            const struct d_internal_math_ld_pair v =
+            const struct dj_internal_math_ld_pair v =
                 d_internal_math_ld_two_sum(
                     head.high,
                     ((head.low + t1.low) + bb.low) + ss.low);
@@ -17681,9 +21043,9 @@ d_internal_cplx_@S@_log_modulus@KS@(
                    (@T@)2;
         }
 #else  // @WIDE@
-        const struct d_internal_math_@S@_pair bb =
+        const struct dj_internal_math_@S@_pair bb =
             d_internal_cplx_@S@_product(big, big);
-        const struct d_internal_math_@S@_pair ss =
+        const struct dj_internal_math_@S@_pair ss =
             d_internal_cplx_@S@_product(small, small);
         const @T@ s2 = ss.high + ss.low;
         const @T@ m2 = bb.high + s2;
@@ -17694,9 +21056,9 @@ d_internal_cplx_@S@_log_modulus@KS@(
             // b^2 - 1 exactly as a pair: Sterbenz's lemma makes it one value
             // only where b^2 is 1/2 or more, and both parts near 1/sqrt(2)
             // put it below; then the small squares
-            const struct d_internal_math_@S@_pair t1 =
+            const struct dj_internal_math_@S@_pair t1 =
                 d_internal_cplx_@S@_two_sum(bb.high, -(@T@)1);
-            const struct d_internal_math_@S@_pair head =
+            const struct dj_internal_math_@S@_pair head =
                 d_internal_cplx_@S@_two_sum(t1.high, ss.high);
             const @T@ v = head.high +
                           (((head.low + t1.low) + bb.low) + ss.low);
@@ -17730,9 +21092,9 @@ d_internal_cplx_@S@_log_modulus@KS@(
 //   log _z: log |z| + i arg z, the angle atan2's, so that Annex G's values
 // (G.6.3.2) follow from hypot's and atan2's own -- log(+-0 + i0) is -inf + i0
 // or i pi, an infinite part gives +inf, a NaN with a finite part NaNs.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_log@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x = _z.part[0];
@@ -17760,9 +21122,9 @@ d_internal_cplx_@S@_log@KS@(
 // scaled by 4^k where |x| + |z| would overflow or underflow. Annex G's values
 // (G.6.4.2): an infinite y gives +inf + i y, a NaN with a finite part NaNs,
 // -inf gives +0 + i(+-inf) and +inf gives +inf + i(+-0).
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_sqrt@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x   = _z.part[0];
@@ -17856,7 +21218,7 @@ d_internal_cplx_@S@_sqrt@KS@(
 // from 0, 1/2 or 1, exact by Sterbenz's lemma, times pi, so that the angle
 // handed to sin and cos is small and accurate, and 0, 1/2 and 1 give their
 // exact values.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_cispi@KS@(
     @T@ _r
 )
@@ -17896,7 +21258,7 @@ d_internal_cplx_@S@_cispi@KS@(
 // d_internal_cplx_@S@_turn@KS@
 //   cos(pi _a) + i sin(pi _a) for any finite _a: _a less its nearest even
 // integer, exact, into [-1, 1], then cispi.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_turn@KS@(
     @T@ _a
 )
@@ -17908,83 +21270,17 @@ d_internal_cplx_@S@_turn@KS@(
     return d_internal_cplx_@S@_cispi@KS@(r);
 }
 
-// d_internal_cplx_@S@_pow_int@KS@
-//   _z^_n, _z finite and not 0, _n an int not 0, by repeated squaring from
-// the exponent's highest bit down, as the matrix power is (S262): the power
-// kept as m 2^e, m's larger part rescaled into [1, 2) after each product so
-// that no step overflows or underflows, e clamped where the result is
-// certainly an infinity or 0; for _n < 0, 1 / z^|n| at the end.
-@KQ@ struct d_cplx_@S@
-d_internal_cplx_@S@_pow_int@KS@(
-    struct d_cplx_@S@ _z,
-    int               _n
-)
-{
-    const unsigned          count  = (_n < 0) ? (0u - (unsigned)_n)
-                                              : (unsigned)_n;
-    const long              limit  = 4L * ((long)@EMAX@ + (long)@P@);
-    const int               e0     = d_internal_cplx_@S@_magnitude_exponent(_z);
-    const struct d_cplx_@S@ base   = d_internal_cplx_@S@_scaled_by(_z, -e0);
-    struct d_cplx_@S@       m      = base;
-    long                    e      = (long)e0;
-    unsigned                bit    = 1u;
-
-    // the highest bit
-    while ((bit <= (count / 2u)) && (bit < 0x40000000u))
-    {
-        bit = bit * 2u;
-    }
-
-    for (bit = bit / 2u; bit > 0u; bit = bit / 2u)
-    {
-        int ex = 0;
-
-        m  = d_cplx_@S@_mul(m, m);
-        e  = 2L * e;
-        ex = d_internal_cplx_@S@_magnitude_exponent(m);
-        m  = d_internal_cplx_@S@_scaled_by(m, -ex);
-        e  = e + (long)ex;
-
-        if ((count & bit) != 0u)
-        {
-            m  = d_cplx_@S@_mul(m, base);
-            e  = e + (long)e0;
-            ex = d_internal_cplx_@S@_magnitude_exponent(m);
-            m  = d_internal_cplx_@S@_scaled_by(m, -ex);
-            e  = e + (long)ex;
-        }
-
-        // far past either end: the clamp keeps e in a long
-        if (e > limit)
-        {
-            e = limit;
-        }
-        else if (e < -limit)
-        {
-            e = -limit;
-        }
-    }
-
-    if (_n < 0)
-    {
-        m = d_cplx_@S@_div(d_internal_cplx_@S@_make((@T@)1, (@T@)0), m);
-        e = -e;
-    }
-
-    return d_internal_cplx_@S@_scaled_by(m, (int)e);
-}
-
 @POW_GENERAL@
-// d_internal_cplx_@S@_pow@KS@
+@POW_INT@// d_internal_cplx_@S@_pow@KS@
 //   _z^_w, the principal value exp(w log z), with these exact: z^0 is 1 for
 // every z; a whole w, from -2^30 to 2^30, repeated squaring; a positive real
 // z to a real w the real pow, and a negative real or imaginary one |z|^w
 // times cos + i sin of w pi or w pi/2, by turns, so that (-4)^(1/2) is 2i;
 // 0^w is 0 for Re w > 0, +inf for a real w < 0, and NaNs otherwise.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_pow@KS@(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     const @T@ x   = _z.part[0];
@@ -18037,7 +21333,7 @@ d_internal_cplx_@S@_pow@KS@(
             if (x < (@T@)0)
             {
                 const @T@ r = d_math_@S@_pow@R@(-x, a);
-                const struct d_cplx_@S@ c = d_internal_cplx_@S@_turn@KS@(
+                const struct dj_cplx_@S@ c = d_internal_cplx_@S@_turn@KS@(
                     d_internal_math_@S@_negative(y) ? -a : a);
 
                 return d_cplx_@S@_mul_real(c, r);
@@ -18050,7 +21346,7 @@ d_internal_cplx_@S@_pow@KS@(
              (!d_internal_cplx_@S@_is_inf(y)) )
         {
             const @T@ r = d_math_@S@_pow@R@(d_internal_cplx_@S@_abs(y), a);
-            const struct d_cplx_@S@ c = d_internal_cplx_@S@_turn@KS@(
+            const struct dj_cplx_@S@ c = d_internal_cplx_@S@_turn@KS@(
                 (y < (@T@)0) ? (-a / (@T@)2) : (a / (@T@)2));
 
             return d_cplx_@S@_mul_real(c, r);
@@ -18083,7 +21379,7 @@ d_internal_cplx_@S@_pow@KS@(
 //   cosh(_x) _c and sinh(_x) _c at once, _x finite: past ln(MAX) both are
 // e^|x| / 2 times _c, by the exponential's scaled product, the sine's sign
 // x's.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_cosh_sinh_times@KS@(
     @T@ _x,
     @T@ _c,
@@ -18113,9 +21409,9 @@ d_internal_cplx_@S@_cosh_sinh_times@KS@(
 // d_internal_cplx_@S@_sinh@KS@
 //   sinh _z = sinh x cos y + i cosh x sin y, Annex G's values (G.6.2.5) at
 // the infinities and NaNs: it is odd and conj(sinh z) = sinh(conj z).
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_sinh@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x   = _z.part[0];
@@ -18132,7 +21428,7 @@ d_internal_cplx_@S@_sinh@KS@(
         }
 
         {
-            const struct d_cplx_@S@ ch =
+            const struct dj_cplx_@S@ ch =
                 d_internal_cplx_@S@_cosh_sinh_times@KS@(
                     x,
                     d_math_@S@_sin@R@(y),
@@ -18184,9 +21480,9 @@ d_internal_cplx_@S@_sinh@KS@(
 // d_internal_cplx_@S@_cosh@KS@
 //   cosh _z = cosh x cos y + i sinh x sin y, Annex G's values (G.6.2.4) at
 // the infinities and NaNs: it is even and conj(cosh z) = cosh(conj z).
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_cosh@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x   = _z.part[0];
@@ -18255,9 +21551,9 @@ d_internal_cplx_@S@_cosh@KS@(
 // values (G.6.2.6, as C17 has them, its DR 471): it is odd, conj(tanh z) =
 // tanh(conj z), +inf + iy gives 1 + i0 sin 2y, +-0 + i(inf or NaN) +-0 +
 // iNaN.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_tanh@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x   = _z.part[0];
@@ -18359,12 +21655,12 @@ d_internal_cplx_@S@_half_excess@KS@(
     return ((_a * _a) / (_h + _b)) / (@T@)2;
 }
 
-// d_internal_cplx_@S@_hard_work
-//   struct: what d_internal_cplx_@S@_hard_work@KS@ finds of z = x + iy, x
+// dj_internal_cplx_@S@_hard_work
+//   struct: what dj_internal_cplx_@S@_hard_work@KS@ finds of z = x + iy, x
 // and y nonnegative: the real part of asinh z (rx), and the imaginary
 // part's two ways, B = y / A where it is usable, else the arguments of an
 // atan2.
-struct d_internal_cplx_@S@_hard_work@KS@
+struct dj_internal_cplx_@S@_hard_work@KS@
 {
     @T@  rx;           // Re asinh(x + iy) = log(A + sqrt(A^2 - 1))
     bool b_is_usable;  // whether asin(B) gives the imaginary part
@@ -18380,7 +21676,7 @@ struct d_internal_cplx_@S@_hard_work@KS@
 // and A - y written to keep their accuracy where A is near 1 or y, as
 // FreeBSD's catrig.c writes them: A below 10 takes log1p of A - 1, B past
 // 0.6417 takes atan2 of y and sqrt(A^2 - y^2).
-@KQ@ struct d_internal_cplx_@S@_hard_work@KS@
+@KQ@ struct dj_internal_cplx_@S@_hard_work@KS@
 d_internal_cplx_@S@_hard_work_of@KS@(
     @T@ _x,
     @T@ _y
@@ -18393,7 +21689,7 @@ d_internal_cplx_@S@_hard_work_of@KS@(
     const @T@ a0           = (r + s) / (@T@)2;
     // A >= 1 in exact arithmetic; so it is made here
     const @T@ a            = (a0 < (@T@)1) ? (@T@)1 : a0;
-    struct d_internal_cplx_@S@_hard_work@KS@ result =
+    struct dj_internal_cplx_@S@_hard_work@KS@ result =
         { (@T@)0, false, (@T@)0, (@T@)0, (@T@)0 };
 
     // the real part
@@ -18488,9 +21784,9 @@ d_internal_cplx_@S@_hard_work_of@KS@(
 // d_internal_cplx_@S@_log_large@KS@
 //   log _z for |_z| past 1/EPSILON and finite, without hypot's overflow:
 // past half the range both parts halved and ln 2 added, as for log |z|.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_log_large@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(
@@ -18503,9 +21799,9 @@ d_internal_cplx_@S@_log_large@KS@(
 // has it, on |x| and |y|, the signs put back: past 1/EPSILON log(2z) by the
 // logarithm of large values; below sqrt(6 EPSILON) / 4 in both parts z
 // itself; and Annex G's values (G.6.2.2) at the infinities and NaNs.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_asinh@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x   = _z.part[0];
@@ -18543,7 +21839,7 @@ d_internal_cplx_@S@_asinh@KS@(
     if ( (ax > recip_eps) ||
          (ay > recip_eps) )
     {
-        const struct d_cplx_@S@ w = d_internal_cplx_@S@_log_large@KS@(
+        const struct dj_cplx_@S@ w = d_internal_cplx_@S@_log_large@KS@(
             d_internal_math_@S@_negative(x) ? d_cplx_@S@_neg(_z) : _z);
 
         return d_internal_cplx_@S@_make(
@@ -18563,7 +21859,7 @@ d_internal_cplx_@S@_asinh@KS@(
     }
 
     {
-        const struct d_internal_cplx_@S@_hard_work@KS@ h =
+        const struct dj_internal_cplx_@S@_hard_work@KS@ h =
             d_internal_cplx_@S@_hard_work_of@KS@(ax, ay);
         const @T@ ry = h.b_is_usable
                            ? d_math_@S@_asin@R@(h.b)
@@ -18578,9 +21874,9 @@ d_internal_cplx_@S@_asinh@KS@(
 //   acos _z: Hull, Fairgrieve and Tang's algorithm on |y| and |x|, as
 // FreeBSD's catrig.c has it: the real part from B or atan2, signed by x, the
 // imaginary part -sign(y) Re asinh; and Annex G's values (G.6.1.1).
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_acos@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x    = _z.part[0];
@@ -18623,7 +21919,7 @@ d_internal_cplx_@S@_acos@KS@(
     if ( (ax > recip_eps) ||
          (ay > recip_eps) )
     {
-        const struct d_cplx_@S@ w = d_internal_cplx_@S@_log_large@KS@(_z);
+        const struct dj_cplx_@S@ w = d_internal_cplx_@S@_log_large@KS@(_z);
         const @T@ rx = d_internal_cplx_@S@_abs(w.part[1]);
         const @T@ ry = w.part[0] +
                        (@T@)0.693147180559945309417232121458176568L;
@@ -18646,7 +21942,7 @@ d_internal_cplx_@S@_acos@KS@(
     }
 
     {
-        const struct d_internal_cplx_@S@_hard_work@KS@ h =
+        const struct dj_internal_cplx_@S@_hard_work@KS@ h =
             d_internal_cplx_@S@_hard_work_of@KS@(ay, ax);
         const @T@ rx = h.b_is_usable
                            ? d_math_@S@_acos@R@(sx ? -h.b : h.b)
@@ -18661,12 +21957,12 @@ d_internal_cplx_@S@_acos@KS@(
 //   acosh _z from acos _z, as FreeBSD's catrig.c takes it: i acos z or
 // -i acos z, whichever has a nonnegative real part, and Annex G's values
 // (G.6.2.1) where a part is a NaN.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_acosh@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
-    const struct d_cplx_@S@ w = d_internal_cplx_@S@_acos@KS@(_z);
+    const struct dj_cplx_@S@ w = d_internal_cplx_@S@_acos@KS@(_z);
     const @T@ rx = w.part[0];
     const @T@ ry = w.part[1];
 
@@ -18708,27 +22004,27 @@ d_internal_cplx_@S@_one_less_squares@KS@(
 #if @WIDE@
     // as long double pairs where @T@ is evaluated wider (section 2), the sum
     // rounded once
-    const struct d_internal_math_ld_pair aa =
+    const struct dj_internal_math_ld_pair aa =
         d_internal_math_ld_product_exact((long double)_a, (long double)_a);
-    const struct d_internal_math_ld_pair bb =
+    const struct dj_internal_math_ld_pair bb =
         d_internal_math_ld_product_exact((long double)_b, (long double)_b);
-    const struct d_internal_math_ld_pair t1 =
+    const struct dj_internal_math_ld_pair t1 =
         d_internal_math_ld_two_sum(1.0L, -aa.high);
-    const struct d_internal_math_ld_pair t2 =
+    const struct dj_internal_math_ld_pair t2 =
         d_internal_math_ld_two_sum(t1.high, -bb.high);
-    const struct d_internal_math_ld_pair v =
+    const struct dj_internal_math_ld_pair v =
         d_internal_math_ld_two_sum(t2.high,
                                    (t1.low + t2.low) - (aa.low + bb.low));
 
     return d_internal_math_@S@_round_pair(v.high, v.low);
 #else  // @WIDE@
-    const struct d_internal_math_@S@_pair aa =
+    const struct dj_internal_math_@S@_pair aa =
         d_internal_cplx_@S@_product(_a, _a);
-    const struct d_internal_math_@S@_pair bb =
+    const struct dj_internal_math_@S@_pair bb =
         d_internal_cplx_@S@_product(_b, _b);
-    const struct d_internal_math_@S@_pair t1 =
+    const struct dj_internal_math_@S@_pair t1 =
         d_internal_cplx_@S@_two_sum((@T@)1, -aa.high);
-    const struct d_internal_math_@S@_pair t2 =
+    const struct dj_internal_math_@S@_pair t2 =
         d_internal_cplx_@S@_two_sum(t1.high, -bb.high);
 
     return t2.high + ((t1.low + t2.low) - (aa.low + bb.low));
@@ -18741,9 +22037,9 @@ d_internal_cplx_@S@_one_less_squares@KS@(
 // -- the second's 1 - x^2 - y^2 here taken exactly; far from 0, Re (1/z) +
 // i(+-pi/2), by the quotient; near 0, z itself; and Annex G's values
 // (G.6.2.3) at the infinities and NaNs.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_atanh@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x    = _z.part[0];
@@ -18796,7 +22092,7 @@ d_internal_cplx_@S@_atanh@KS@(
     if ( (ax > recip_eps) ||
          (ay > recip_eps) )
     {
-        const struct d_cplx_@S@ q =
+        const struct dj_cplx_@S@ q =
             d_cplx_@S@_div(d_internal_cplx_@S@_make((@T@)1, (@T@)0), _z);
 
         return d_internal_cplx_@S@_make(
@@ -18858,26 +22154,26 @@ CPLX_COMPOSED = r"""
 //   sin z = -i sinh(iz), cos z = cosh(iz), tan z = -i tanh(iz): Annex G's
 // definitions (G.6, its first paragraph), so that their special values are
 // the hyperbolic functions' turned.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_sin@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_unturned(
         d_internal_cplx_@S@_sinh@KS@(d_internal_cplx_@S@_turned(_z)));
 }
 
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_cos@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_cosh@KS@(d_internal_cplx_@S@_turned(_z));
 }
 
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_tan@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_unturned(
@@ -18887,18 +22183,18 @@ d_internal_cplx_@S@_tan@KS@(
 // d_internal_cplx_@S@_asin@KS@, d_internal_cplx_@S@_atan@KS@
 //   asin z = -i asinh(iz) and atan z = -i atanh(iz), each the swapped
 // function of the swapped argument (Annex G, G.6).
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_asin@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_swapped(
         d_internal_cplx_@S@_asinh@KS@(d_internal_cplx_@S@_swapped(_z)));
 }
 
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_atan@KS@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_swapped(
@@ -18911,9 +22207,9 @@ CPLX_TURNS = r"""
 // d_internal_cplx_@S@_turned
 //   i _z's coordinates: (-y, x), so that sin z = -i sinh(iz), cos z =
 // cosh(iz) and tan z = -i tanh(iz) take the hyperbolic kernels.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_turned(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(-_z.part[1], _z.part[0]);
@@ -18921,9 +22217,9 @@ d_internal_cplx_@S@_turned(
 
 // d_internal_cplx_@S@_unturned
 //   -i _z's coordinates: (y, -x).
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_unturned(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(_z.part[1], -_z.part[0]);
@@ -18932,9 +22228,9 @@ d_internal_cplx_@S@_unturned(
 // d_internal_cplx_@S@_swapped
 //   (y, x): asin and atan by asinh and atanh, as Hull, Fairgrieve and Tang
 // and FreeBSD's catrig.c take them.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_swapped(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_make(_z.part[1], _z.part[0]);
@@ -18958,18 +22254,18 @@ CPLX_FUNCTIONS_HEAD = r"""
 // d_internal_cplx_@S@_widen, d_internal_cplx_@S@_narrow
 //   _z's parts as long doubles, exactly, and a long double result's parts
 // rounded once to the family.
-D_MATH_FN struct d_cplx_ld
+D_MATH_FN struct dj_cplx_ld
 d_internal_cplx_@S@_widen(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_ld_make((long double)_z.part[0],
                                    (long double)_z.part[1]);
 }
 
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_internal_cplx_@S@_narrow(
-    struct d_cplx_ld _z
+    struct dj_cplx_ld _z
 )
 {
     return d_internal_cplx_@S@_make((@T@)_z.part[0],
@@ -18983,7 +22279,7 @@ d_internal_cplx_@S@_narrow(
 // part, the other a NaN or not.
 D_MATH_FN @T@
 d_cplx_@S@_abs_c(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_math_@S@_hypot_c(_z.part[0],
@@ -18992,7 +22288,7 @@ d_cplx_@S@_abs_c(
 
 D_MATH_FN_RT @T@
 d_cplx_@S@_abs(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_math_@S@_hypot(_z.part[0],
@@ -19001,7 +22297,7 @@ d_cplx_@S@_abs(
 
 D_MATH_FN @T@
 d_cplx_@S@_arg_c(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_math_@S@_atan2_c(_z.part[1],
@@ -19010,7 +22306,7 @@ d_cplx_@S@_arg_c(
 
 D_MATH_FN_RT @T@
 d_cplx_@S@_arg(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_math_@S@_atan2(_z.part[1],
@@ -19039,18 +22335,18 @@ CPLX_UNARY_DOC = {
 CPLX_UNARY = r"""
 // d_cplx_@S@_@F@_c, d_cplx_@S@_@F@
 //   function: @DOC@.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_@F@_c(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_narrow(
         d_internal_cplx_ld_@F@_c(d_internal_cplx_@S@_widen(_z)));
 }
 
-D_MATH_FN_RT struct d_cplx_@S@
+D_MATH_FN_RT struct dj_cplx_@S@
 d_cplx_@S@_@F@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_cplx_@S@_@F@(_z);
@@ -19062,10 +22358,10 @@ CPLX_POW = r"""
 //   function: the principal power, exp(w log z) (C99's cpow), with z^0 = 1,
 // whole powers by repeated squaring, and the real and imaginary cases exact
 // where their value is (section 3's pow).
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cplx_@S@_pow_c(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return d_internal_cplx_@S@_narrow(
@@ -19073,10 +22369,10 @@ d_cplx_@S@_pow_c(
                                  d_internal_cplx_@S@_widen(_w)));
 }
 
-D_MATH_FN_RT struct d_cplx_@S@
+D_MATH_FN_RT struct dj_cplx_@S@
 d_cplx_@S@_pow(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return d_internal_cplx_@S@_pow(_z,
@@ -19088,14 +22384,14 @@ CPLX_COMPLEX = r"""
 // @SECTION@.@SUB@    The @NAME@ family (_@S@)
 //------------------------------------------------------------------------------
 // d_cplx_@S@_from_complex, d_cplx_@S@_to_complex
-//   function: a @T@ _Complex as a struct d_cplx_@S@ and back, by a copy of
+//   function: a @T@ _Complex as a struct dj_cplx_@S@ and back, by a copy of
 // its bytes: the two have one layout (C99 6.2.5).
-D_MATH_FN_RT struct d_cplx_@S@
+D_MATH_FN_RT struct dj_cplx_@S@
 d_cplx_@S@_from_complex(
     @T@ _Complex _z
 )
 {
-    struct d_cplx_@S@ result = { { (@T@)0, (@T@)0 } };
+    struct dj_cplx_@S@ result = { { (@T@)0, (@T@)0 } };
 
     memcpy(result.part,
            &_z,
@@ -19106,7 +22402,7 @@ d_cplx_@S@_from_complex(
 
 D_MATH_FN_RT @T@ _Complex
 d_cplx_@S@_to_complex(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     @T@ _Complex result = (@T@)0;
@@ -19119,6 +22415,81 @@ d_cplx_@S@_to_complex(
 }
 """
 
+# the five's docs, whole, and where on the real axis each is the real
+# function's: everywhere, x positive, or x past -1
+CPLX_FIVE_DOC = {
+    "exp2": ("2^z, 2^x (cos(y ln 2) + i sin(y ln 2)), y ln 2 reduced\n"
+             "// by pi/2 exactly for every y. On the real axis, the real "
+             "function's value\n"
+             "// and y's zero, the _c form's _c and the plain form's plain; "
+             "else, in both\n"
+             "// forms, the long double kernel (section 3.1) rounded once "
+             "to the family.", ""),
+    "log2": ("the principal base-2 logarithm, log z / ln 2. On the\n"
+             "// real axis, x positive, the real function's value and y's "
+             "zero, the _c\n"
+             "// form's _c and the plain form's plain; else, in both forms, "
+             "the long\n"
+             "// double kernel (section 3.1) rounded once to the family.",
+             "positive"),
+    "log10": ("the principal base-10 logarithm, log z / ln 10. On the\n"
+              "// real axis, x positive, the real function's value and y's "
+              "zero, the _c\n"
+              "// form's _c and the plain form's plain; else, in both "
+              "forms, the long\n"
+              "// double kernel (section 3.1) rounded once to the family.",
+              "positive"),
+    "log1p": ("the principal logarithm of 1 + z, 1 + z never rounded.\n"
+              "// On the real axis, x past -1, the real function's value "
+              "and y's zero, the\n"
+              "// _c form's _c and the plain form's plain; else, in both "
+              "forms, the long\n"
+              "// double kernel (section 3.1) rounded once to the family.",
+              "past -1"),
+    "expm1": ("e^z - 1, without the cancellation of e^z less 1. On\n"
+              "// the real axis, the real function's value and y's zero, "
+              "the _c form's _c\n"
+              "// and the plain form's plain; else, in both forms, the "
+              "long double kernel\n"
+              "// (section 3.1) rounded once to the family.", ""),
+}
+
+CPLX_FIVE = r"""
+// d_cplx_@S@_@F@_c, d_cplx_@S@_@F@
+//   function: @DOC@
+D_MATH_FN struct dj_cplx_@S@
+d_cplx_@S@_@F@_c(
+    struct dj_cplx_@S@ _z
+)
+{
+    // on the real axis@WHERE@: the real function's own value
+    if @AXIS@
+    {
+        return d_internal_cplx_@S@_make(d_math_@S@_@F@_c(_z.part[0]),
+                                        _z.part[1]);
+    }
+
+    return d_internal_cplx_@S@_narrow(
+        d_internal_cplx_ld_@F@_c(d_internal_cplx_@S@_widen(_z)));
+}
+
+D_MATH_FN_RT struct dj_cplx_@S@
+d_cplx_@S@_@F@(
+    struct dj_cplx_@S@ _z
+)
+{
+    // on the real axis@WHERE@: the real function's own value
+    if @AXIS@
+    {
+        return d_internal_cplx_@S@_make(d_math_@S@_@F@(_z.part[0]),
+                                        _z.part[1]);
+    }
+
+    return d_internal_cplx_@S@_narrow(
+        d_internal_cplx_ld_@F@_c(d_internal_cplx_@S@_widen(_z)));
+}
+"""
+
 CPLX_HEAD = r"""
 /*
 TABLE OF CONTENTS
@@ -19126,9 +22497,9 @@ TABLE OF CONTENTS
 1.  THE TYPES
     ---------
     1.  The complex types
-         1.  d_cplx_f
-         2.  d_cplx_d
-         3.  d_cplx_ld
+         1.  dj_cplx_f
+         2.  dj_cplx_d
+         3.  dj_cplx_ld
 2.  THE ARITHMETIC
     --------------
     1.  The float family (_f)
@@ -19179,27 +22550,30 @@ CPLX_TAIL = r"""
 CPLX_UNARIES = ["exp", "log", "sqrt", "sin", "cos", "tan", "asin", "acos",
                 "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"]
 
-_CZ = ("struct d_cplx_@S@", "_z")
-_CW = ("struct d_cplx_@S@", "_w")
+# the five C99 has only for real arguments, of a complex one
+CPLX_FIVE_UNARIES = ["exp2", "log2", "log10", "log1p", "expm1"]
+
+_CZ = ("struct dj_cplx_@S@", "_z")
+_CW = ("struct dj_cplx_@S@", "_w")
 _CX = ("@T@", "_x")
 _CY = ("@T@", "_y")
 CPLX_OVERLOADS = (
-    [("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_make", [_CX, _CY]),
+    [("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_make", [_CX, _CY]),
      ("D_MATH_FN", "@T@", "d_cplx_real", [_CZ]),
      ("D_MATH_FN", "@T@", "d_cplx_imag", [_CZ]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_conj", [_CZ]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_proj", [_CZ]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_neg", [_CZ]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_add", [_CZ, _CW]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_sub", [_CZ, _CW]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_mul", [_CZ, _CW]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_div", [_CZ, _CW]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_add_real", [_CZ, _CX]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_sub_real", [_CZ, _CX]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_real_sub", [_CX, _CZ]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_mul_real", [_CZ, _CX]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_div_real", [_CZ, _CX]),
-     ("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_real_div", [_CX, _CZ]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_conj", [_CZ]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_proj", [_CZ]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_neg", [_CZ]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_add", [_CZ, _CW]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_sub", [_CZ, _CW]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_mul", [_CZ, _CW]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_div", [_CZ, _CW]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_add_real", [_CZ, _CX]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_sub_real", [_CZ, _CX]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_real_sub", [_CX, _CZ]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_mul_real", [_CZ, _CX]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_div_real", [_CZ, _CX]),
+     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_real_div", [_CX, _CZ]),
      ("D_MATH_FN", "bool", "d_cplx_equal", [_CZ, _CW]),
      ("D_MATH_FN", "@T@", "d_cplx_abs_c", [_CZ]),
      ("D_MATH_FN_RT", "@T@", "d_cplx_abs", [_CZ]),
@@ -19207,10 +22581,14 @@ CPLX_OVERLOADS = (
      ("D_MATH_FN_RT", "@T@", "d_cplx_arg", [_CZ])]
     + [entry
        for f in CPLX_UNARIES
-       for entry in (("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_" + f + "_c", [_CZ]),
-                     ("D_MATH_FN_RT", "struct d_cplx_@S@", "d_cplx_" + f, [_CZ]))]
-    + [("D_MATH_FN", "struct d_cplx_@S@", "d_cplx_pow_c", [_CZ, _CW]),
-       ("D_MATH_FN_RT", "struct d_cplx_@S@", "d_cplx_pow", [_CZ, _CW])]
+       for entry in (("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_" + f + "_c", [_CZ]),
+                     ("D_MATH_FN_RT", "struct dj_cplx_@S@", "d_cplx_" + f, [_CZ]))]
+    + [("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_pow_c", [_CZ, _CW]),
+       ("D_MATH_FN_RT", "struct dj_cplx_@S@", "d_cplx_pow", [_CZ, _CW])]
+    + [entry
+       for f in CPLX_FIVE_UNARIES
+       for entry in (("D_MATH_FN", "struct dj_cplx_@S@", "d_cplx_" + f + "_c", [_CZ]),
+                     ("D_MATH_FN_RT", "struct dj_cplx_@S@", "d_cplx_" + f, [_CZ]))]
 )
 
 
@@ -19222,13 +22600,13 @@ CPLX_POW_GENERAL_PLAIN = r"""// d_internal_cplx_@S@_pow_general@KS@
 // closer; each operation is as accurate as the best algorithm for it
 // (S266), so the plain pow is fast only where section 3's pow takes a case
 // of its own first, on the family's real functions.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_pow_general@KS@(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
-    const struct d_cplx_ld r = d_internal_cplx_ld_pow_general_c(
+    const struct dj_cplx_ld r = d_internal_cplx_ld_pow_general_c(
         d_internal_cplx_ld_make((long double)_z.part[0],
                                 (long double)_z.part[1]),
         d_internal_cplx_ld_make((long double)_w.part[0],
@@ -19248,8 +22626,8 @@ CPLX_POW_GENERAL_PURE = r"""// d_internal_cplx_@S@_scale_pair@KS@
 // sign last. A zero pair is a zero of its high part's sign.
 @KQ@ @T@
 d_internal_cplx_@S@_scale_pair@KS@(
-    struct d_internal_math_ld_pair _p,
-    int                            _k
+    struct dj_internal_math_ld_pair _p,
+    int                             _k
 )
 {
     const bool        negative = (_p.high < (@T@)0);
@@ -19262,10 +22640,10 @@ d_internal_cplx_@S@_scale_pair@KS@(
     }
 
     {
-        const struct d_internal_math_ld_log_arg arg =
+        const struct dj_internal_math_ld_log_arg arg =
             d_internal_math_ld_log_arg_of(high);
-        struct d_internal_math_ld_exp_split split = { 1.0L, 0.0L, 0 };
-        long double                         value = 0.0L;
+        struct dj_internal_math_ld_exp_split split = { 1.0L, 0.0L, 0 };
+        long double                          value = 0.0L;
 
         split.y    = arg.m;
         split.y_lo = d_internal_cplx_@S@_scale(low, -arg.exponent);
@@ -19276,22 +22654,63 @@ d_internal_cplx_@S@_scale_pair@KS@(
     }
 }
 
+// d_internal_cplx_@S@_log_modulus_pair@KS@
+//   log |(_x + _x_lo) + i _y| as a pair, both parts finite and one nonzero,
+// _x_lo below _x's last place (0 but where x is itself a pair): half the
+// logarithm of |z|^2, the larger part scaled into [1, 2) by a power of 2 --
+// the squares exactly, their sum and 2 x x_lo as a pair to 2^-2P of it, a
+// smaller part that the scaling takes into the subnormals far below that --
+// by the logarithm past long double's precision (power.h's section 1.5), the
+// square in [1, 8): a normal value.
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_cplx_@S@_log_modulus_pair@KS@(
+    @T@ _x,
+    @T@ _x_lo,
+    @T@ _y
+)
+{
+    const int         e0 = d_internal_cplx_@S@_magnitude_exponent(
+                               d_internal_cplx_@S@_make(_x, _y));
+    const long double sx    = d_internal_cplx_@S@_scale(_x, -e0);
+    const long double sx_lo = d_internal_cplx_@S@_scale(_x_lo, -e0);
+    const long double sy    = d_internal_cplx_@S@_scale(_y, -e0);
+    const struct dj_internal_math_ld_pair xx =
+        d_internal_math_ld_product_exact(sx, sx);
+    const struct dj_internal_math_ld_pair yy =
+        d_internal_math_ld_product_exact(sy, sy);
+    const struct dj_internal_math_ld_pair head =
+        d_internal_math_ld_two_sum(xx.high, yy.high);
+    const struct dj_internal_math_ld_pair square =
+        d_internal_math_ld_two_sum(
+            head.high,
+            head.low + ((xx.low + yy.low) + ((2.0L * sx) * sx_lo)));
+    // log |z|^2 = log(square.high 2^(2 e0)) + square.low / square.high
+    const struct dj_internal_math_ld_log_arg sa =
+        d_internal_math_ld_log_arg_normal(square.high);
+    const struct dj_internal_math_ld_pair twice =
+        d_internal_math_ld_pair_sum(
+            d_internal_math_ld_log_accurate_of(sa.exponent + (2 * e0),
+                                               sa.m),
+            d_internal_math_ld_pair_of(square.low / square.high, 0.0L));
+
+    return d_internal_math_ld_pair_of(twice.high / 2.0L, twice.low / 2.0L);
+}
+
 // d_internal_cplx_@S@_pow_general@KS@
 //   _z^_w = exp(w log z), with w log z carried as pairs, so that the error
 // exp magnifies by |w log z| is the pairs' own, some 2^-(2P - 8) of it: log
-// |z| as half the logarithm of |z|^2, formed exactly of the parts scaled by
-// a power of 2, by the logarithm past long double's precision (power.h's
-// section 1.5); arg z as the arc-tangent's pair (tangent.h's section 1.3);
-// each product of w's parts by Dekker's. Then e^Re as a pair (power.h's
-// section 1.6), and the cosine and sine of Im, its high part reduced
-// exactly (elementary.h's section 1.4) and its low part taken by the
-// angle's sum; each part the product of the two, rounded once. For a part
+// |z| as log_modulus_pair's (above); arg z as the arc-tangent's pair
+// (tangent.h's section 1.3); each product of w's parts by Dekker's. Then
+// e^Re as a pair (power.h's section 1.6), and the cosine and sine of Im,
+// its high part reduced exactly (elementary.h's section 1.4) and its low
+// part taken by the angle's sum; each part the product of the two, rounded
+// once. For a part
 // of _z or _w infinite or NaN, for _z = 0 and past |w| = 2^(EMAX/2), where
 // Dekker's products could overflow, exp(w log z) itself, Annex G's values.
-@KQ@ struct d_cplx_@S@
+@KQ@ struct dj_cplx_@S@
 d_internal_cplx_@S@_pow_general@KS@(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     const @T@ x   = _z.part[0];
@@ -19313,34 +22732,10 @@ d_internal_cplx_@S@_pow_general@KS@(
     }
 
     {
-        // |z|^2 2^(-2 e0) = X^2 + Y^2, the larger part scaled into [1, 2):
-        // the squares exactly, their sum as a pair to 2^-2P of it -- a
-        // smaller part that the scaling takes into the subnormals lies far
-        // below that
-        const int         e0 = d_internal_cplx_@S@_magnitude_exponent(_z);
-        const long double sx = d_internal_cplx_@S@_scale(x, -e0);
-        const long double sy = d_internal_cplx_@S@_scale(y, -e0);
-        const struct d_internal_math_ld_pair xx =
-            d_internal_math_ld_product_exact(sx, sx);
-        const struct d_internal_math_ld_pair yy =
-            d_internal_math_ld_product_exact(sy, sy);
-        const struct d_internal_math_ld_pair head =
-            d_internal_math_ld_two_sum(xx.high, yy.high);
-        const struct d_internal_math_ld_pair square =
-            d_internal_math_ld_two_sum(head.high,
-                                       head.low + (xx.low + yy.low));
-        // log |z|^2 = log(square.high 2^(2 e0)) + square.low / square.high,
-        // the square in [1, 8): a normal value
-        const struct d_internal_math_ld_log_arg sa =
-            d_internal_math_ld_log_arg_normal(square.high);
-        const struct d_internal_math_ld_pair log2 =
-            d_internal_math_ld_pair_sum(
-                d_internal_math_ld_log_accurate_of(sa.exponent + (2 * e0),
-                                                   sa.m),
-                d_internal_math_ld_pair_of(square.low / square.high, 0.0L));
-        const struct d_internal_math_ld_pair lr =
-            d_internal_math_ld_pair_of(log2.high / 2.0L, log2.low / 2.0L);
-        struct d_internal_math_ld_pair li = { 0.0L, 0.0L };
+        // log |z|, as a pair
+        const struct dj_internal_math_ld_pair lr =
+            d_internal_cplx_@S@_log_modulus_pair@KS@(x, (@T@)0, y);
+        struct dj_internal_math_ld_pair li = { 0.0L, 0.0L };
 
         // arg z: on an axis a multiple of pi/2, else the arc-tangent's pair
         if (y == (@T@)0)
@@ -19366,26 +22761,26 @@ d_internal_cplx_@S@_pow_general@KS@(
 
         {
             // w log z = (a lr - b li) + i (a li + b lr), in pairs
-            const struct d_internal_math_ld_pair ap =
+            const struct dj_internal_math_ld_pair ap =
                 d_internal_math_ld_pair_of(a, 0.0L);
-            const struct d_internal_math_ld_pair bp =
+            const struct dj_internal_math_ld_pair bp =
                 d_internal_math_ld_pair_of(b, 0.0L);
-            const struct d_internal_math_ld_pair bli =
+            const struct dj_internal_math_ld_pair bli =
                 d_internal_math_ld_pair_product(bp, li);
-            const struct d_internal_math_ld_pair tr =
+            const struct dj_internal_math_ld_pair tr =
                 d_internal_math_ld_pair_sum(
                     d_internal_math_ld_pair_product(ap, lr),
                     d_internal_math_ld_pair_of(-bli.high, -bli.low));
-            const struct d_internal_math_ld_pair ti =
+            const struct dj_internal_math_ld_pair ti =
                 d_internal_math_ld_pair_sum(
                     d_internal_math_ld_pair_product(ap, li),
                     d_internal_math_ld_pair_product(bp, lr));
             // the cosine and sine of ti's high part, by its quadrant
-            const struct d_internal_math_ld_sin_cos sc =
+            const struct dj_internal_math_ld_sin_cos sc =
                 d_internal_math_ld_sin_cos_of(ti.high);
-            struct d_internal_math_ld_pair c =
+            struct dj_internal_math_ld_pair c =
                 ((sc.quadrant % 2) == 0) ? sc.cosine : sc.sine;
-            struct d_internal_math_ld_pair s =
+            struct dj_internal_math_ld_pair s =
                 ((sc.quadrant % 2) == 0) ? sc.sine : sc.cosine;
             const @T@ inf = d_internal_math_@S@_infinity();
 
@@ -19406,7 +22801,7 @@ d_internal_cplx_@S@_pow_general@KS@(
             // lies past the pairs' precision; else by the angle's sum
             if (d_internal_math_ld_abs(ti.low) < d_internal_math_ld_pow2(-40))
             {
-                const struct d_internal_math_ld_pair c0 = c;
+                const struct dj_internal_math_ld_pair c0 = c;
 
                 c = d_internal_math_ld_two_sum(c.high,
                                                c.low - (ti.low * s.high));
@@ -19415,26 +22810,26 @@ d_internal_cplx_@S@_pow_general@KS@(
             }
             else
             {
-                const struct d_internal_math_ld_sin_cos lo =
+                const struct dj_internal_math_ld_sin_cos lo =
                     d_internal_math_ld_sin_cos_of(ti.low);
-                const struct d_internal_math_ld_pair cl =
+                const struct dj_internal_math_ld_pair cl =
                     ((lo.quadrant % 2) == 0) ? lo.cosine : lo.sine;
-                const struct d_internal_math_ld_pair sl =
+                const struct dj_internal_math_ld_pair sl =
                     ((lo.quadrant % 2) == 0) ? lo.sine : lo.cosine;
                 const long double cs = ( (lo.quadrant == 1) ||
                                          (lo.quadrant == 2) ) ? -1.0L : 1.0L;
                 const long double ss = (lo.quadrant >= 2) ? -1.0L : 1.0L;
-                const struct d_internal_math_ld_pair cl2 =
+                const struct dj_internal_math_ld_pair cl2 =
                     d_internal_math_ld_pair_of(cs * cl.high, cs * cl.low);
-                const struct d_internal_math_ld_pair sl2 =
+                const struct dj_internal_math_ld_pair sl2 =
                     d_internal_math_ld_pair_of(ss * sl.high, ss * sl.low);
-                const struct d_internal_math_ld_pair cc =
+                const struct dj_internal_math_ld_pair cc =
                     d_internal_math_ld_pair_product(c, cl2);
-                const struct d_internal_math_ld_pair snl =
+                const struct dj_internal_math_ld_pair snl =
                     d_internal_math_ld_pair_product(s, sl2);
-                const struct d_internal_math_ld_pair scl =
+                const struct dj_internal_math_ld_pair scl =
                     d_internal_math_ld_pair_product(s, cl2);
-                const struct d_internal_math_ld_pair csl =
+                const struct dj_internal_math_ld_pair csl =
                     d_internal_math_ld_pair_product(c, sl2);
 
                 c = d_internal_math_ld_pair_sum(
@@ -19461,9 +22856,9 @@ d_internal_cplx_@S@_pow_general@KS@(
 
             {
                 // e^tr as (y + y_lo) 2^k, times each of the angle's pairs
-                const struct d_internal_math_ld_exp_split e =
+                const struct dj_internal_math_ld_exp_split e =
                     d_internal_math_ld_exp_pair_split_of(tr);
-                const struct d_internal_math_ld_pair m =
+                const struct dj_internal_math_ld_pair m =
                     d_internal_math_ld_pair_of(e.y, e.y_lo);
 
                 return d_internal_cplx_@S@_make(
@@ -19477,6 +22872,1375 @@ d_internal_cplx_@S@_pow_general@KS@(
 }
 
 """
+
+
+# the five functions C99 has only for real arguments, of a complex one: their
+# pure kernels, once, in long double (section 3.1), which both forms of every
+# family round
+CPLX_POW_INT_PURE = r"""// dj_internal_cplx_@S@_power@KS@
+//   struct: a whole power as it is formed, (re + i im) 2^e, each part a pair,
+// high + low, carried to some 2^-2P of the larger part (S370).
+struct dj_internal_cplx_@S@_power@KS@
+{
+    struct dj_internal_math_ld_pair re;
+    struct dj_internal_math_ld_pair im;
+    long                            e;
+};
+
+// d_internal_cplx_@S@_pair_dot@KS@
+//   _a _b + _c _d, each operand a pair, as a pair, by power.h's products and
+// sums of pairs: to some 2^-2P of the larger term. Where the sum is exactly
+// 0, the highs' own formula's zero, so that its sign is the one
+// d_cplx_@S@_mul's exact products give (section 2.3).
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_cplx_@S@_pair_dot@KS@(
+    struct dj_internal_math_ld_pair _a,
+    struct dj_internal_math_ld_pair _b,
+    struct dj_internal_math_ld_pair _c,
+    struct dj_internal_math_ld_pair _d
+)
+{
+    struct dj_internal_math_ld_pair s = d_internal_math_ld_pair_sum(
+        d_internal_math_ld_pair_product(_a, _b),
+        d_internal_math_ld_pair_product(_c, _d));
+
+    // exactly 0: the formula's zero, with its sign
+    if (s.high == (@T@)0)
+    {
+        const @T@ t = (_a.high * _b.high) + (_c.high * _d.high);
+
+        s.high = (t == (@T@)0) ? t : (@T@)0;
+        s.low  = (@T@)0;
+    }
+
+    return s;
+}
+
+// d_internal_cplx_@S@_pair_negated@KS@
+//   -_p, exactly.
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_cplx_@S@_pair_negated@KS@(
+    struct dj_internal_math_ld_pair _p
+)
+{
+    return d_internal_math_ld_pair_of(-_p.high, -_p.low);
+}
+
+// d_internal_cplx_@S@_pair_over@KS@
+//   _u / _n, both pairs, |_u| <= _n and _n in [1, 8), as a pair: the
+// magnitudes' quotient by elementary.h's ratio, renormalized, the sign
+// _u's. Where _u is exactly 0, _zero, the formula's zero, over _n, as
+// d_internal_cplx_@S@_over takes a zero, so that the sign is the division's,
+// the formula's (S382).
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_cplx_@S@_pair_over@KS@(
+    struct dj_internal_math_ld_pair _u,
+    @T@                             _zero,
+    struct dj_internal_math_ld_pair _n
+)
+{
+    // exactly 0: the division's zero, its sign kept
+    if (_u.high == (@T@)0)
+    {
+        const @T@ q = _zero / _n.high;
+
+        return d_internal_math_ld_pair_of(q, (@T@)0);
+    }
+
+    {
+        const bool negative = (_u.high < (@T@)0);
+        const struct dj_internal_math_ld_pair a =
+            negative ? d_internal_cplx_@S@_pair_negated@KS@(_u) : _u;
+        const struct dj_internal_math_ld_pair r =
+            d_internal_math_ld_ratio(a.high, a.low, _n.high, _n.low);
+        const struct dj_internal_math_ld_pair q =
+            d_internal_math_ld_two_sum(r.high, r.low);
+
+        return negative ? d_internal_cplx_@S@_pair_negated@KS@(q) : q;
+    }
+}
+
+// d_internal_cplx_@S@_power_times@KS@
+//   _m _w, as pairs: (a + bi)(c + di) = (ac - bd) + (ad + bc)i, each part by
+// d_internal_cplx_@S@_pair_dot@KS@, its terms in d_cplx_@S@_mul's order;
+// _m's exponent kept.
+@KQ@ struct dj_internal_cplx_@S@_power@KS@
+d_internal_cplx_@S@_power_times@KS@(
+    struct dj_internal_cplx_@S@_power@KS@ _m,
+    struct dj_internal_cplx_@S@_power@KS@ _w
+)
+{
+    struct dj_internal_cplx_@S@_power@KS@ result = _m;
+
+    result.re = d_internal_cplx_@S@_pair_dot@KS@(
+        _m.re, _w.re, d_internal_cplx_@S@_pair_negated@KS@(_m.im), _w.im);
+    result.im = d_internal_cplx_@S@_pair_dot@KS@(_m.re, _w.im, _m.im, _w.re);
+
+    return result;
+}
+
+// d_internal_cplx_@S@_power_inverse@KS@
+//   1 / _m, as pairs, as d_cplx_@S@_div takes 1 over _m: the conjugate over
+// the squared modulus n = re^2 + im^2, a pair in [1, 8) where _m's larger
+// part lies in [1, 2), so that neither part exceeds it; each part's quotient
+// by d_internal_cplx_@S@_pair_over@KS@, its zero the division's. _m's
+// exponent kept.
+@KQ@ struct dj_internal_cplx_@S@_power@KS@
+d_internal_cplx_@S@_power_inverse@KS@(
+    struct dj_internal_cplx_@S@_power@KS@ _m
+)
+{
+    const struct dj_internal_math_ld_pair n =
+        d_internal_cplx_@S@_pair_dot@KS@(_m.re, _m.re, _m.im, _m.im);
+    struct dj_internal_cplx_@S@_power@KS@ result = _m;
+
+    // the numerator (1 + 0i)(re - im i): 1 re + 0 im, and 0 re - 1 im
+    result.re = d_internal_cplx_@S@_pair_over@KS@(
+        _m.re,
+        ((@T@)1 * _m.re.high) + ((@T@)0 * _m.im.high),
+        n);
+    result.im = d_internal_cplx_@S@_pair_over@KS@(
+        d_internal_cplx_@S@_pair_negated@KS@(_m.im),
+        ((@T@)0 * _m.re.high) + ((@T@)-1 * _m.im.high),
+        n);
+
+    return result;
+}
+
+// d_internal_cplx_@S@_power_rescaled@KS@
+//   _m with the binade E of its larger part's high taken out of both parts,
+// high and low, exactly, and added to its exponent: that part into [1, 2),
+// so that the next product neither overflows nor underflows but far below
+// it. _m not 0.
+@KQ@ struct dj_internal_cplx_@S@_power@KS@
+d_internal_cplx_@S@_power_rescaled@KS@(
+    struct dj_internal_cplx_@S@_power@KS@ _m
+)
+{
+    const @T@ a = d_internal_cplx_@S@_abs(_m.re.high);
+    const @T@ b = d_internal_cplx_@S@_abs(_m.im.high);
+    const int k = d_internal_cplx_@S@_exponent((a > b) ? a : b);
+    struct dj_internal_cplx_@S@_power@KS@ result = _m;
+
+    result.re = d_internal_math_ld_pair_of(
+        d_internal_cplx_@S@_scale(_m.re.high, -k),
+        d_internal_cplx_@S@_scale(_m.re.low, -k));
+    result.im = d_internal_math_ld_pair_of(
+        d_internal_cplx_@S@_scale(_m.im.high, -k),
+        d_internal_cplx_@S@_scale(_m.im.low, -k));
+    result.e  = _m.e + (long)k;
+
+    return result;
+}
+
+// d_internal_cplx_@S@_pow_int_pairs@KS@
+//   _z^_n, _z finite and not 0, _n an int not 0, as pairs and a power of 2:
+// repeated squaring from the exponent's highest bit down, as the matrix
+// power is (S262), each product of pairs and rescaled after it so that no
+// step overflows or underflows, the exponent clamped where the result is
+// certainly an infinity or 0; for _n < 0, 1 / z^|n| at the end, as pairs.
+// Each product is within some 2^-2P of its larger part, so that a part that
+// cancels keeps its own precision to within that, and a power exact in twice
+// long double's precision comes exactly (S370).
+@KQ@ struct dj_internal_cplx_@S@_power@KS@
+d_internal_cplx_@S@_pow_int_pairs@KS@(
+    struct dj_cplx_@S@ _z,
+    int                _n
+)
+{
+    const unsigned           count = (_n < 0) ? (0u - (unsigned)_n)
+                                              : (unsigned)_n;
+    const long               limit =
+        4L * ((long)@EMAX@ + (long)@P@);
+    const int                e0    = d_internal_cplx_@S@_magnitude_exponent(_z);
+    const struct dj_cplx_@S@ z     = d_internal_cplx_@S@_scaled_by(_z, -e0);
+    struct dj_internal_cplx_@S@_power@KS@ base =
+        { { (@T@)0, (@T@)0 },
+          { (@T@)0, (@T@)0 },
+          0L };
+    struct dj_internal_cplx_@S@_power@KS@ m =
+        { { (@T@)0, (@T@)0 },
+          { (@T@)0, (@T@)0 },
+          0L };
+    unsigned bit = 1u;
+
+    base.re = d_internal_math_ld_pair_of(z.part[0], (@T@)0);
+    base.im = d_internal_math_ld_pair_of(z.part[1], (@T@)0);
+    base.e  = (long)e0;
+    m       = base;
+
+    // the highest bit
+    while ((bit <= (count / 2u)) && (bit < 0x40000000u))
+    {
+        bit = bit * 2u;
+    }
+
+    for (bit = bit / 2u; bit > 0u; bit = bit / 2u)
+    {
+        m   = d_internal_cplx_@S@_power_times@KS@(m, m);
+        m.e = 2L * m.e;
+        m   = d_internal_cplx_@S@_power_rescaled@KS@(m);
+
+        if ((count & bit) != 0u)
+        {
+            m   = d_internal_cplx_@S@_power_times@KS@(m, base);
+            m.e = m.e + (long)e0;
+            m   = d_internal_cplx_@S@_power_rescaled@KS@(m);
+        }
+
+        // far past either end: the clamp keeps e in a long
+        if (m.e > limit)
+        {
+            m.e = limit;
+        }
+        else if (m.e < -limit)
+        {
+            m.e = -limit;
+        }
+    }
+
+    if (_n < 0)
+    {
+        m   = d_internal_cplx_@S@_power_inverse@KS@(m);
+        m.e = -m.e;
+    }
+
+    return m;
+}
+
+// d_internal_cplx_@S@_pow_int@KS@
+//   _z^_n, _z finite and not 0, _n an int not 0: the pairs of
+// d_internal_cplx_@S@_pow_int_pairs@KS@, each part rounded once
+// (d_internal_cplx_@S@_scale_pair@KS@), into the subnormals and past the
+// largest finite value.
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_pow_int@KS@(
+    struct dj_cplx_@S@ _z,
+    int                _n
+)
+{
+    const struct dj_internal_cplx_@S@_power@KS@ m =
+        d_internal_cplx_@S@_pow_int_pairs@KS@(_z, _n);
+
+    return d_internal_cplx_@S@_make(
+        d_internal_cplx_@S@_scale_pair@KS@(m.re, (int)m.e),
+        d_internal_cplx_@S@_scale_pair@KS@(m.im, (int)m.e));
+}
+
+"""
+
+
+CPLX_POW_INT_PLAIN = r"""// d_internal_cplx_@S@_pow_int@KS@
+//   _z^_n, _z finite and not 0, _n an int not 0: the _c kernel's (section
+// 3.1), its repeated squaring carried in pairs, rounded to long double once
+// and then to the family, as the _c form's is (S370): no faster in the
+// family's own type to the same precision, so the plain form's whole power
+// is the _c form's, bit for bit.
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_pow_int@KS@(
+    struct dj_cplx_@S@ _z,
+    int                _n
+)
+{
+    const struct dj_cplx_ld r = d_internal_cplx_ld_pow_int_c(
+        d_internal_cplx_ld_make((long double)_z.part[0],
+                                (long double)_z.part[1]),
+        _n);
+
+    return d_internal_cplx_@S@_make((@T@)r.part[0],
+                                    (@T@)r.part[1]);
+}
+
+"""
+
+
+CPLX_FIVE_PURE = r"""
+// The five functions C99 has only for real arguments, of a complex one:
+// each in pure arithmetic, once, in long double, its parts carried as pairs
+// to past twice the value's precision and rounded once, so that the _c and
+// the plain forms alike are this kernel rounded to the family (section 4).
+// Where a part is infinite or NaN, the value of the function C99 has that
+// this one is a form of: clog's for log2, log10 and log1p, cexp's for exp2
+// and expm1 (G.6.3.1, G.6.3.2).
+
+// d_internal_cplx_@S@_times_pair@KS@
+//   _p _k rounded once, _p and _k pairs: a zero _p its own zero, of its sign.
+@KQ@ @T@
+d_internal_cplx_@S@_times_pair@KS@(
+    struct dj_internal_math_ld_pair _p,
+    struct dj_internal_math_ld_pair _k
+)
+{
+    // a zero: its sign kept, as the product's two-sum would not
+    if (_p.high == 0.0L)
+    {
+        return _p.high;
+    }
+
+    return d_internal_math_ld_pair_product(_p, _k).high;
+}
+
+// d_internal_cplx_@S@_arg_pair@KS@
+//   arg(_x + i _y) as a pair, neither part a NaN: an infinite part taken as
+// +-1 and a finite one beside it as a zero of its sign, so that the angle is
+// atan2's at the infinities (G.6.3.2); on the real axis 0 for a positive x
+// or +0 and pi for a negative one or -0, on the imaginary axis pi/2, each as
+// its pair holds it; else the arc-tangent's pair (tangent.h's section 1.3);
+// y's sign last, a zero's among them.
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_cplx_@S@_arg_pair@KS@(
+    @T@ _x,
+    @T@ _y
+)
+{
+    const bool        infinite = ( (d_internal_cplx_@S@_is_inf(_x)) ||
+                                   (d_internal_cplx_@S@_is_inf(_y)) );
+    const long double one_x    = d_internal_cplx_@S@_is_inf(_x) ? 1.0L
+                                                                : 0.0L;
+    const long double one_y    = d_internal_cplx_@S@_is_inf(_y) ? 1.0L
+                                                                : 0.0L;
+    const long double x = infinite
+                              ? d_internal_cplx_@S@_copysign(one_x, _x)
+                              : _x;
+    const long double y = infinite
+                              ? d_internal_cplx_@S@_copysign(one_y, _y)
+                              : _y;
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+    // the real axis: 0 or pi, by x's sign
+    if (y == (@T@)0)
+    {
+        result = d_internal_math_@S@_negative(x)
+                     ? d_internal_math_ld_atan_reduced(0.0L, 0.0L, 2, false)
+                     : d_internal_math_ld_pair_of(0.0L, 0.0L);
+    }
+    // the imaginary axis: pi/2
+    else if (x == (@T@)0)
+    {
+        result = d_internal_math_ld_atan_reduced(0.0L, 0.0L, 1, false);
+    }
+    else
+    {
+        result = d_internal_math_ld_atan2_of(d_internal_cplx_@S@_abs(y), x);
+    }
+
+    // y's sign, a zero's among them
+    if (d_internal_math_@S@_negative(y))
+    {
+        result.high = -result.high;
+        result.low  = -result.low;
+    }
+
+    return result;
+}
+
+// d_internal_cplx_@S@_log_in@KS@
+//   log _z / ln 2 for _ten false, log _z / ln 10 for _ten true: log |z| and
+// arg z as pairs, each times 1/ln b as a pair -- a head of 32 bits, exact as
+// written, and the rest, as exponential.h's section 1.4 holds them -- and
+// rounded once; on an axis, where |z| is |x| or |y|, the real part the real
+// function's, so that a power of b gives its exponent exactly. At 0 and an
+// infinite part, clog's real part, -inf or +inf, and atan2's angle over ln
+// b; at a NaN, clog's NaNs.
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_log_in@KS@(
+    struct dj_cplx_@S@ _z,
+    bool               _ten
+)
+{
+    const @T@ x = _z.part[0];
+    const @T@ y = _z.part[1];
+    // 1/ln b = k_hi + k_lo, k_hi cut to 32 bits: exact as written
+    const struct dj_internal_math_ld_pair k = _ten
+        ? d_internal_math_ld_pair_of(
+              0.434294481878168880939483642578125L,
+              2.508294671164527633848008229439700580367e-11L)
+        : d_internal_math_ld_pair_of(
+              1.4426950407214462757110595703125L,
+              1.67517131648865110689392137426645954153e-10L);
+
+    // a NaN part: clog's value, its imaginary part a NaN
+    if ( (x != x) ||
+         (y != y) )
+    {
+        return d_internal_cplx_@S@_log@KS@(_z);
+    }
+
+    // zero or an infinite part: log |z| is -inf or +inf
+    if ( ( (x == (@T@)0) &&
+           (y == (@T@)0) ) ||
+         (!d_internal_cplx_@S@_finite(_z)) )
+    {
+        const long double size = d_math_@S@_hypot@R@(x, y);
+
+        return d_internal_cplx_@S@_make(
+            d_math_@S@_log@R@(size),
+            d_internal_cplx_@S@_times_pair@KS@(
+                d_internal_cplx_@S@_arg_pair@KS@(x, y), k));
+    }
+
+    // an axis: |z| a part's magnitude, the real function's logarithm of it
+    if ( (x == (@T@)0) ||
+         (y == (@T@)0) )
+    {
+        const long double m = d_internal_cplx_@S@_abs((y == 0.0L) ? x
+                                                                  : y);
+
+        return d_internal_cplx_@S@_make(
+            _ten ? d_math_@S@_log10@R@(m)
+                 : d_math_@S@_log2@R@(m),
+            d_internal_cplx_@S@_times_pair@KS@(
+                d_internal_cplx_@S@_arg_pair@KS@(x, y), k));
+    }
+
+    return d_internal_cplx_@S@_make(
+        d_internal_cplx_@S@_times_pair@KS@(
+            d_internal_cplx_@S@_log_modulus_pair@KS@(x, (@T@)0, y), k),
+        d_internal_cplx_@S@_times_pair@KS@(
+            d_internal_cplx_@S@_arg_pair@KS@(x, y), k));
+}
+
+// d_internal_cplx_@S@_log2@KS@, d_internal_cplx_@S@_log10@KS@
+//   log2 _z and log10 _z (above).
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_log2@KS@(
+    struct dj_cplx_@S@ _z
+)
+{
+    return d_internal_cplx_@S@_log_in@KS@(_z, false);
+}
+
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_log10@KS@(
+    struct dj_cplx_@S@ _z
+)
+{
+    return d_internal_cplx_@S@_log_in@KS@(_z, true);
+}
+
+// d_internal_cplx_@S@_log1p@KS@
+//   log(1 + _z), 1 + z never rounded: 1 + x is the pair two-sum gives, and
+// its arc-tangent with y the pair's to first order in its low part. log |1 +
+// z| is half the logarithm of |1 + z|^2 = 1 + w, w = 2x + x^2 + y^2 summed
+// exactly as an expansion (power.h's section 1.1) and rounded to a pair,
+// where 1 + w lies in [1/2, 2] -- so that the logarithm of a value near 1
+// keeps w's own precision, however near w is to 0 -- and elsewhere of the
+// squares of 1 + x's pair and y, as clog's power takes |z|^2 (above); past
+// 2^30 in a part, of 1 + x rounded, which then moves log |1 + z|, past 20,
+// by under 2^-(P+1) of it. At an infinite or NaN part, clog's value at 1 +
+// z; at z = -1, -inf with y's zero.
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_log1p@KS@(
+    struct dj_cplx_@S@ _z
+)
+{
+    const @T@ x   = _z.part[0];
+    const @T@ y   = _z.part[1];
+    const @T@ big = (@T@)1073741824.0L;
+
+    // an infinite or NaN part: clog of 1 + z, which keeps it
+    if (!d_internal_cplx_@S@_finite(_z))
+    {
+        return d_internal_cplx_@S@_log@KS@(
+            d_internal_cplx_@S@_make(x + (@T@)1, y));
+    }
+
+    // -1: the logarithm of a zero
+    if ( (x == (@T@)-1) &&
+         (y == (@T@)0) )
+    {
+        return d_internal_cplx_@S@_make(-d_internal_math_@S@_infinity(), y);
+    }
+
+    {
+        // 1 + x exactly, as a pair
+        const struct dj_internal_math_ld_pair u =
+            d_internal_math_ld_two_sum(1.0L, x);
+        const @T@ ax = d_internal_cplx_@S@_abs(x);
+        const @T@ ay = d_internal_cplx_@S@_abs(y);
+        struct dj_internal_math_ld_pair half = { 0.0L, 0.0L };
+        struct dj_internal_math_ld_pair angle = { 0.0L, 0.0L };
+
+        // far out: log |1 + z| of 1 + x rounded
+        if ( (ax >= big) ||
+             (ay >= big) )
+        {
+            half = d_internal_cplx_@S@_log_modulus_pair@KS@(u.high, (@T@)0,
+                                                            y);
+        }
+        else
+        {
+            // |1 + z|^2 roughly, to choose the way
+            const long double rough = (u.high * u.high) + (y * y);
+
+            if ( (rough >= 0.5L) &&
+                 (rough <= 2.0L) )
+            {
+                // w = 2x + x^2 + y^2, every term exact, summed exactly
+                const struct dj_internal_math_ld_pair xx =
+                    d_internal_math_ld_product_exact(x, x);
+                const struct dj_internal_math_ld_pair yy =
+                    d_internal_math_ld_product_exact(y, y);
+                struct dj_internal_math_ld_expansion w = { { 0.0L }, 0 };
+                struct dj_internal_math_ld_pair      one_w = { 1.0L, 0.0L };
+                int                                  i     = 0;
+
+                w = d_internal_math_ld_expansion_grow(w, 2.0L * x);
+                w = d_internal_math_ld_expansion_grow(w, xx.high);
+                w = d_internal_math_ld_expansion_grow(w, xx.low);
+                w = d_internal_math_ld_expansion_grow(w, yy.high);
+                w = d_internal_math_ld_expansion_grow(w, yy.low);
+
+                // 1 + w, from the least part up: the parts do not overlap,
+                // so each pair sum loses only below 2^-2P of the whole
+                for (i = 0; i < w.count; ++i)
+                {
+                    one_w = d_internal_math_ld_pair_sum(
+                        one_w, d_internal_math_ld_pair_of(w.part[i], 0.0L));
+                }
+
+                {
+                    // log(1 + w) = log(high) + low / high, high in [1/2, 2]
+                    const struct dj_internal_math_ld_log_arg a =
+                        d_internal_math_ld_log_arg_normal(one_w.high);
+                    const struct dj_internal_math_ld_pair twice =
+                        d_internal_math_ld_pair_sum(
+                            d_internal_math_ld_log_accurate_of(a.exponent,
+                                                               a.m),
+                            d_internal_math_ld_pair_of(
+                                one_w.low / one_w.high, 0.0L));
+
+                    half = d_internal_math_ld_pair_of(twice.high / 2.0L,
+                                                      twice.low / 2.0L);
+                }
+            }
+            else
+            {
+                half = d_internal_cplx_@S@_log_modulus_pair@KS@(u.high,
+                                                                u.low, y);
+            }
+        }
+
+        // arg(1 + z): on the real axis pi, on the imaginary pi/2; else the
+        // arc-tangent of y over 1 + x's high part, less y u_lo / |1 + z|^2
+        if (y == (@T@)0)
+        {
+            angle = d_internal_math_ld_atan_reduced(0.0L, 0.0L, 2, false);
+        }
+        else if (u.high == 0.0L)
+        {
+            angle = d_internal_math_ld_atan_reduced(0.0L, 0.0L, 1, false);
+        }
+        else
+        {
+            const long double d = (u.high * u.high) + (ay * ay);
+
+            angle = d_internal_math_ld_atan2_of(ay, u.high);
+
+            // the low part's correction: below the angle's last place, its
+            // square below 2^-2P of it; d is finite while |z| < 2^30
+            if ( (u.low != 0.0L) &&
+                 (ax < big) &&
+                 (ay < big) )
+            {
+                angle = d_internal_math_ld_two_sum(
+                    angle.high, angle.low - ((ay * u.low) / d));
+            }
+        }
+
+        // y's sign, a zero's among them
+        if (d_internal_math_@S@_negative(y))
+        {
+            angle.high = -angle.high;
+            angle.low  = -angle.low;
+        }
+
+        return d_internal_cplx_@S@_make(half.high, angle.high);
+    }
+}
+
+// d_internal_cplx_@S@_sin_cos_series@KS@
+//   sin _r and cos _r as pairs, |_r| <= pi/4 (a last place past it does no
+// harm), in the struct's sine and cosine, its quadrant 0: their Taylor series
+// in pairs, z = r^2 -- sin r = r (1 + z (-1/6 + z (1/120 + ... + z (1/11! + z
+// q)))) and cos r = 1 + z (-1/2 + z (1/24 + ... + z (1/12! + z q'))), each
+// coefficient's head cut to 32 bits, exact as written, and the rest, q and q'
+// the series' remainders in long double -- so that each value is good to
+// some 2^-(P+28) of itself, past elementary.h's own, whose terms round in
+// long double: where two such values are subtracted, as e^z - 1 subtracts
+// them, the difference keeps that precision.
+@KQ@ struct dj_internal_math_ld_sin_cos
+d_internal_cplx_@S@_sin_cos_series@KS@(
+    long double _r
+)
+{
+    // 1/3!, 1/5!, 1/7!, 1/9!, 1/11!: heads of 32 bits, exact as written
+    const struct dj_internal_math_ld_pair s3 = d_internal_math_ld_pair_of(
+        0.166666666627861559391021728515625L,
+        3.880510727564493815104166666666666666667e-11L);
+    const struct dj_internal_math_ld_pair s5 = d_internal_math_ld_pair_of(
+        0.00833333333139307796955108642578125L,
+        1.940255363782246907552083333333333333333e-12L);
+    const struct dj_internal_math_ld_pair s7 = d_internal_math_ld_pair_of(
+        0.0001984126984098111279308795928955078125L,
+        2.887284767533105517190600198412698412698e-15L);
+    const struct dj_internal_math_ld_pair s9 = d_internal_math_ld_pair_of(
+        0.0000027557319217663689414621330797672271728515625L,
+        6.322201237935988426313618924041694223986e-16L);
+    const struct dj_internal_math_ld_pair s11 = d_internal_math_ld_pair_of(
+        0.000000025052108380829718470295119914226233959197998046875L,
+        4.612000304756988471215484815854110338567e-18L);
+    // 1/4!, 1/6!, 1/8!, 1/10!, 1/12!: heads of 32 bits, exact as written
+    const struct dj_internal_math_ld_pair c4 = d_internal_math_ld_pair_of(
+        0.04166666665696538984775543212890625L,
+        9.701276818911234537760416666666666666667e-12L);
+    const struct dj_internal_math_ld_pair c6 = d_internal_math_ld_pair_of(
+        0.0013888888888686778955161571502685546875L,
+        2.021099337273173862033420138888888888889e-14L);
+    const struct dj_internal_math_ld_pair c8 = d_internal_math_ld_pair_of(
+        0.0000248015873012263909913599491119384765625L,
+        3.609105959416381896488250248015873015873e-16L);
+    const struct dj_internal_math_ld_pair c10 = d_internal_math_ld_pair_of(
+        0.00000027557319215443243365371017716825008392333984375L,
+        8.542647287186301507160882260223334848986e-17L);
+    const struct dj_internal_math_ld_pair c12 = d_internal_math_ld_pair_of(
+        0.000000002087675698113355959861792143783532083034515380859375L,
+        6.734539380592168883366111482198269845941e-19L);
+    const struct dj_internal_math_ld_pair r = d_internal_math_ld_pair_of(_r,
+                                                                         0.0L);
+    // z = r^2, exactly
+    const struct dj_internal_math_ld_pair z =
+        d_internal_math_ld_product_exact(_r, _r);
+    struct dj_internal_math_ld_pair    sine   = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_pair    cosine = { 0.0L, 0.0L };
+    struct dj_internal_math_ld_sin_cos result =
+        { { 0.0L, 0.0L }, { 0.0L, 0.0L }, 0 };
+    long double                        q      = 0.0L;
+    long double                        qc     = 0.0L;
+    int                                k      = 0;
+
+    // the remainders: sin's from -1/13!, cos's from -1/14!, each by its
+    // terms' ratios, to their 22nd terms
+    for (k = 22; k >= 6; --k)
+    {
+        q = 1.0L - ((z.high * q) /
+                    (long double)(((2 * k) + 2) * ((2 * k) + 3)));
+    }
+
+    for (k = 22; k >= 7; --k)
+    {
+        qc = 1.0L - ((z.high * qc) /
+                     (long double)(((2 * k) + 1) * ((2 * k) + 2)));
+    }
+
+    q  = -q / 6227020800.0L;
+    qc = -qc / 87178291200.0L;
+
+    // sin r = r (1 - z (1/3! - z (1/5! - z (1/7! - z (1/9! - z (1/11! +
+    // z q)))))), in pairs
+    sine = d_internal_math_ld_pair_sum(
+        s11, d_internal_math_ld_pair_product(
+                 z, d_internal_math_ld_pair_of(q, 0.0L)));
+    sine = d_internal_math_ld_pair_sum(
+        s9, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-sine.high, -sine.low)));
+    sine = d_internal_math_ld_pair_sum(
+        s7, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-sine.high, -sine.low)));
+    sine = d_internal_math_ld_pair_sum(
+        s5, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-sine.high, -sine.low)));
+    sine = d_internal_math_ld_pair_sum(
+        s3, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-sine.high, -sine.low)));
+    sine = d_internal_math_ld_pair_product(
+        z, d_internal_math_ld_pair_of(-sine.high, -sine.low));
+    sine = d_internal_math_ld_pair_sum(
+        r, d_internal_math_ld_pair_product(r, sine));
+
+    // cos r = 1 - z (1/2 - z (1/4! - z (1/6! - z (1/8! - z (1/10! - z
+    // (1/12! + z q')))))), in pairs
+    cosine = d_internal_math_ld_pair_sum(
+        c12, d_internal_math_ld_pair_product(
+                 z, d_internal_math_ld_pair_of(qc, 0.0L)));
+    cosine = d_internal_math_ld_pair_sum(
+        c10, d_internal_math_ld_pair_product(
+                 z, d_internal_math_ld_pair_of(-cosine.high, -cosine.low)));
+    cosine = d_internal_math_ld_pair_sum(
+        c8, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-cosine.high, -cosine.low)));
+    cosine = d_internal_math_ld_pair_sum(
+        c6, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-cosine.high, -cosine.low)));
+    cosine = d_internal_math_ld_pair_sum(
+        c4, d_internal_math_ld_pair_product(
+                z, d_internal_math_ld_pair_of(-cosine.high, -cosine.low)));
+    cosine = d_internal_math_ld_pair_sum(
+        d_internal_math_ld_pair_of(0.5L, 0.0L),
+        d_internal_math_ld_pair_product(
+            z, d_internal_math_ld_pair_of(-cosine.high, -cosine.low)));
+    cosine = d_internal_math_ld_pair_sum(
+        d_internal_math_ld_pair_of(1.0L, 0.0L),
+        d_internal_math_ld_pair_product(
+            z, d_internal_math_ld_pair_of(-cosine.high, -cosine.low)));
+
+    result.sine   = sine;
+    result.cosine = cosine;
+
+    return result;
+}
+
+// d_internal_cplx_@S@_angle@KS@
+//   cos and sin of _q pi/2 + _r + _r_lo as pairs, in the struct's cosine and
+// sine, its quadrant 0: _r finite, reduced by pi/2 (elementary.h's section
+// 1.3) and the remainder's sine and cosine taken by the series above, _q
+// quarter turns added to its quadrant, and _r_lo, below 2^-60 of 1, and the
+// reduction's own low part, to first order, their squares past the pairs'
+// precision.
+@KQ@ struct dj_internal_math_ld_sin_cos
+d_internal_cplx_@S@_angle@KS@(
+    long double _r,
+    long double _r_lo,
+    int         _q
+)
+{
+    const struct dj_internal_math_ld_reduced reduced =
+        d_internal_math_ld_reduce(_r);
+    const struct dj_internal_math_ld_sin_cos sc =
+        d_internal_cplx_@S@_sin_cos_series@KS@(reduced.r);
+    const long double low = reduced.r_lo + _r_lo;
+    const int q = (reduced.quadrant + _q) % 4;
+    // cos: c, -s, -c, s; sin: s, c, -s, -c, by quadrant
+    struct dj_internal_math_ld_pair c = ((q % 2) == 0) ? sc.cosine : sc.sine;
+    struct dj_internal_math_ld_pair s = ((q % 2) == 0) ? sc.sine : sc.cosine;
+    struct dj_internal_math_ld_sin_cos result =
+        { { 0.0L, 0.0L }, { 0.0L, 0.0L }, 0 };
+
+    if ( (q == 1) ||
+         (q == 2) )
+    {
+        c.high = -c.high;
+        c.low  = -c.low;
+    }
+
+    if (q >= 2)
+    {
+        s.high = -s.high;
+        s.low  = -s.low;
+    }
+
+    result.cosine = d_internal_math_ld_two_sum(c.high,
+                                               c.low - (low * s.high));
+    result.sine   = d_internal_math_ld_two_sum(s.high,
+                                               s.low + (low * c.high));
+
+    return result;
+}
+
+// d_internal_cplx_@S@_ln2_turns_digit
+//   2 ln 2 / pi's digit _index, base 2^24, from the binary point, as
+// elementary.h's section 1.2 holds 2/pi's -- 704 digits, 16,896 bits, as a
+// string literal, three bytes a digit, computed by the generator -- so that y
+// ln 2 = (y 2 ln 2 / pi) pi/2 is reduced as elementary.h reduces x = (x 2 /
+// pi) pi/2. 0 for a negative _index, 2 ln 2 / pi having no integer part.
+@KQ@ long double
+d_internal_cplx_@S@_ln2_turns_digit(
+    int _index
+)
+{
+    // 2 ln 2 / pi's first 16,896 bits, three bytes a digit, highest first
+    const char* const bytes =
+@LN2_TURNS@;
+
+    if ( (_index < 0) ||
+         (_index >= 704) )
+    {
+        return 0.0L;
+    }
+
+    return ( ((long double)(unsigned char)bytes[3 * _index] * 65536.0L) +
+             ((long double)(unsigned char)bytes[(3 * _index) + 1] * 256.0L) ) +
+           (long double)(unsigned char)bytes[(3 * _index) + 2];
+}
+
+// d_internal_cplx_@S@_ln2_reduced@KS@
+//   _y ln 2 = n pi/2 + (r + r_lo), |r| <= pi/4, for |_y| >= 1 and finite:
+// elementary.h's reduction by Payne and Hanek's method (its section 1.3),
+// with 2 ln 2 / pi's digits in 2/pi's place -- y's digits, base 2^24, times
+// as many of them as y's exponent reaches, in exact columns of 48-bit
+// products; the integer part kept only mod 4, the fraction from its first
+// nonzero digit to past twice long double's precision, then times pi/2 --
+// so that y ln 2 is reduced exactly for every y, as no product y ln 2 in any
+// precision could be past 2^P.
+@KQ@ struct dj_internal_math_ld_reduced
+d_internal_cplx_@S@_ln2_reduced@KS@(
+    long double _y
+)
+{
+    const long double radix   = 16777216.0L;
+    const long double ay      = (_y < 0.0L) ? -_y : _y;
+    const struct dj_internal_math_ld_binade binade =
+        d_internal_math_ld_binade_of(ay);
+    // 2^(24 a) <= |y| < 2^(24 (a + 1))
+    const int         a       = binade.exponent / 24;
+    // pi/2 = pio2_hi + pio2_lo, pio2_hi of 31 bits: exact as written
+    const long double pio2_hi = 1.570796326734125614166259765625L;
+    const long double pio2_lo = 6.077100506506192601475144209858469968755e-11L;
+    long double       digits[6]   = { 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L };
+    long double       columns[21] = { 0.0L };
+    long double       v           = ay * d_internal_math_ld_pow2(-24 * a);
+    long double       quadrant    = 0.0L;
+    bool              negative    = false;
+    int               count       = 0;
+    int               first       = 1;
+    int               i           = 0;
+    int               c           = 0;
+    struct dj_internal_math_ld_reduced result = { 0.0L, 0.0L, 0 };
+
+    // y's digits, base 2^24, from 2^(24 a) down: six reach 120 bits
+    for (i = 0; ( (i < 6) && (v != 0.0L) ); ++i)
+    {
+        digits[i] = d_internal_math_ld_floor_small(v);
+        v         = (v - digits[i]) * radix;
+        count     = i + 1;
+    }
+
+    // y 2 ln 2 / pi in columns of weight 2^(-24 c): the columns of weight
+    // 2^24 and up, multiples of 4, left out; every sum exact
+    for (c = 0; c <= 20; ++c)
+    {
+        long double sum = 0.0L;
+
+        for (i = 0; i < count; ++i)
+        {
+            sum += digits[i] *
+                   d_internal_cplx_@S@_ln2_turns_digit(c + a - 1 - i);
+        }
+
+        columns[c] = sum;
+    }
+
+    // the carries, from the last column up
+    for (c = 20; c >= 1; --c)
+    {
+        const long double carry =
+            d_internal_math_ld_floor_small(columns[c] / radix);
+
+        columns[c]     -= carry * radix;
+        columns[c - 1] += carry;
+    }
+
+    // the integer part, mod 4
+    quadrant = columns[0] -
+               (4.0L * d_internal_math_ld_floor_small(columns[0] / 4.0L));
+
+    // to the nearest integer: a fraction of a half or more is one more turn
+    // and, below it, 1 - the fraction, its digits complemented
+    if (columns[1] >= (radix / 2.0L))
+    {
+        negative = true;
+        quadrant = (quadrant >= 3.0L) ? 0.0L
+                                      : (quadrant + 1.0L);
+
+        for (c = 1; c <= 20; ++c)
+        {
+            columns[c] = (radix - 1.0L) - columns[c];
+        }
+
+        columns[20] += 1.0L;
+
+        for (c = 20; ( (c >= 2) && (columns[c] >= radix) ); --c)
+        {
+            columns[c]     -= radix;
+            columns[c - 1] += 1.0L;
+        }
+    }
+
+    // the fraction's first nonzero digit
+    while ( (first < 20) &&
+            (columns[first] == 0.0L) )
+    {
+        ++first;
+    }
+
+    {
+        // the fraction as hi + lo, from that digit to past twice long
+        // double's precision (fast two-sums: each digit is below the sum)
+        const int   last  = ((first + ((2 * LDBL_MANT_DIG) / 24) + 2) < 20)
+                                ? (first + ((2 * LDBL_MANT_DIG) / 24) + 2)
+                                : 20;
+        long double scale = d_internal_math_ld_pow2(-24 * first);
+        long double hi    = 0.0L;
+        long double lo    = 0.0L;
+
+        for (c = first; c <= last; ++c)
+        {
+            const long double term = columns[c] * scale;
+            const long double sum  = hi + term;
+
+            lo    += term - (sum - hi);
+            hi     = sum;
+            scale /= radix;
+        }
+
+        {
+            // renormalized, then times pi/2: f_hi pio2_hi exactly, the rest
+            // rounded below it
+            const long double f_hi = hi + lo;
+            const long double f_lo = lo - (f_hi - hi);
+            const struct dj_internal_math_ld_pair head =
+                d_internal_math_ld_product_exact(f_hi, pio2_hi);
+            const long double rest = head.low +
+                                     ((f_hi * pio2_lo) + (f_lo * pio2_hi));
+
+            result.r    = head.high + rest;
+            result.r_lo = rest - (result.r - head.high);
+        }
+    }
+
+    // the signs: the fraction's, then y's, -y being (-n) pi/2 - r
+    if (negative != (_y < 0.0L))
+    {
+        result.r    = -result.r;
+        result.r_lo = -result.r_lo;
+    }
+
+    if ( (_y < 0.0L) &&
+         (quadrant != 0.0L) )
+    {
+        quadrant = 4.0L - quadrant;
+    }
+
+    result.quadrant = (int)quadrant;
+
+    return result;
+}
+
+// d_internal_cplx_@S@_cis_ln2@KS@
+//   cos(_y ln 2) and sin(_y ln 2) as pairs (angle's), _y finite: below 1 in
+// magnitude, y ln 2 itself as a pair, ln 2 held as the exponential holds it,
+// within pi/4; past it, reduced by pi/2 exactly (ln2_reduced).
+@KQ@ struct dj_internal_math_ld_sin_cos
+d_internal_cplx_@S@_cis_ln2@KS@(
+    long double _y
+)
+{
+    // ln 2 = ln2_hi + ln2_lo, ln2_hi cut to 32 bits: exact as written
+    const long double ln2_hi = 0.69314718036912381649017333984375L;
+    const long double ln2_lo = 1.908214929270587816144265680755001344e-10L;
+
+    if ( (_y < 1.0L) &&
+         (_y > -1.0L) )
+    {
+        const struct dj_internal_math_ld_pair p =
+            d_internal_math_ld_product_exact(_y, ln2_hi);
+        const struct dj_internal_math_ld_pair t =
+            d_internal_math_ld_two_sum(p.high, p.low + (_y * ln2_lo));
+
+        return d_internal_cplx_@S@_angle@KS@(t.high, t.low, 0);
+    }
+
+    {
+        const struct dj_internal_math_ld_reduced r =
+            d_internal_cplx_@S@_ln2_reduced@KS@(_y);
+
+        return d_internal_cplx_@S@_angle@KS@(r.r, r.r_lo, r.quadrant);
+    }
+}
+
+// d_internal_cplx_@S@_exp2@KS@
+//   2^_z = 2^x (cos(y ln 2) + i sin(y ln 2)): 2^x as (m + m_lo) 2^k, the
+// base-2 exponential's pair (power.h's section 1.6), times each of the
+// angle's pairs (cis_ln2), each part rounded once by its scaling (pow's
+// scale_pair), into the subnormals and past the largest finite value; a y
+// below 2^-100 raised by 2^200 first, sin(y ln 2) being y ln 2 there to
+// 2^-200 of it and no subnormal y ln 2 to lose its bits. Past 2^16600 and
+// below 2^-16600, infinities and zeros in the angle's directions; where a
+// part is infinite or NaN, cexp's values (G.6.3.1) with y ln 2 for y. y is
+// not 0: the real axis is each family's real function's (section 4).
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_exp2@KS@(
+    struct dj_cplx_@S@ _z
+)
+{
+    const @T@ x   = _z.part[0];
+    const @T@ y   = _z.part[1];
+    const @T@ nan = d_internal_math_@S@_nan();
+    const @T@ inf = d_internal_math_@S@_infinity();
+
+    // x a NaN, y not 0: NaNs
+    if (x != x)
+    {
+        return d_internal_cplx_@S@_make(x, x);
+    }
+
+    // y infinite or NaN: -inf gives +0 + i0, +inf +inf + iNaN, a finite x
+    // NaNs
+    if ( (y != y) ||
+         (d_internal_cplx_@S@_is_inf(y)) )
+    {
+        if (d_internal_cplx_@S@_is_inf(x))
+        {
+            if (x < (@T@)0)
+            {
+                return d_internal_cplx_@S@_make((@T@)0, (@T@)0);
+            }
+
+            return d_internal_cplx_@S@_make(x, nan);
+        }
+
+        return d_internal_cplx_@S@_make(nan, nan);
+    }
+
+    {
+        const struct dj_internal_math_ld_sin_cos a =
+            d_internal_cplx_@S@_cis_ln2@KS@(y);
+
+        // x infinite, y finite and not 0: +0 or +inf in the angle's
+        // directions; and past either end of every family's range
+        if ( (d_internal_cplx_@S@_is_inf(x)) ||
+             (x >= (@T@)16600) ||
+             (x <= (@T@)-16600) )
+        {
+            const bool up = (x > (@T@)0);
+
+            return d_internal_cplx_@S@_make(
+                (a.cosine.high < 0.0L) ? (up ? -inf : (@T@)-0.0L)
+                                       : (up ? inf : (@T@)0),
+                (a.sine.high < 0.0L) ? (up ? -inf : (@T@)-0.0L)
+                                     : (up ? inf : (@T@)0));
+        }
+
+        {
+            const struct dj_internal_math_ld_exp_split e =
+                d_internal_math_ld_exp2_pair_split_of(
+                    d_internal_math_ld_pair_of(x, 0.0L));
+            const struct dj_internal_math_ld_pair m =
+                d_internal_math_ld_pair_of(e.y, e.y_lo);
+            const @T@ tiny = d_internal_math_@S@_pow2(-100);
+
+            // a tiny y: sin(y ln 2) is y ln 2, cos 1, y raised by 2^200
+            if ( (y < tiny) &&
+                 (y > -tiny) )
+            {
+                // ln 2 = ln2_hi + ln2_lo, ln2_hi cut to 32 bits: exact
+                const long double ln2_hi = 0.69314718036912381649017333984375L;
+                const long double ln2_lo =
+                    1.908214929270587816144265680755001344e-10L;
+                const long double ys = y * d_internal_math_ld_pow2(200);
+                const struct dj_internal_math_ld_pair p =
+                    d_internal_math_ld_product_exact(ys, ln2_hi);
+                const struct dj_internal_math_ld_pair t =
+                    d_internal_math_ld_two_sum(p.high,
+                                               p.low + (ys * ln2_lo));
+
+                return d_internal_cplx_@S@_make(
+                    d_internal_cplx_@S@_scale_pair@KS@(m, e.k),
+                    d_internal_cplx_@S@_scale_pair@KS@(
+                        d_internal_math_ld_pair_product(m, t), e.k - 200));
+            }
+
+            return d_internal_cplx_@S@_make(
+                d_internal_cplx_@S@_scale_pair@KS@(
+                    d_internal_math_ld_pair_product(m, a.cosine), e.k),
+                d_internal_cplx_@S@_scale_pair@KS@(
+                    d_internal_math_ld_pair_product(m, a.sine), e.k));
+        }
+    }
+}
+
+// d_internal_cplx_@S@_expm1_pair@KS@
+//   e^_r - 1 as a pair, |_r| <= ln 2 / 2 (a last place past it does no
+// harm): the exponential's series in pairs, as power.h's section 1.6 has it
+// but to r^8 -- r + r^2 (1/2 + r (1/3! + r (1/4! + ... + r (1/8! + r g)))),
+// the coefficients' heads of 32 bits, exact as written, and g = (1/9!)(1 +
+// r/10 (1 + r/11 (...))) in long double -- without its leading 1, so that the
+// pair keeps its precision relative to e^r - 1 itself, some 2^-(P+28) of it.
+@KQ@ struct dj_internal_math_ld_pair
+d_internal_cplx_@S@_expm1_pair@KS@(
+    long double _r
+)
+{
+    // 1/3! ... 1/8!: heads of 32 bits, exact as written
+    const struct dj_internal_math_ld_pair c[6] = {
+        { 0.166666666627861559391021728515625L,
+          3.880510727564493815104166666666666666667e-11L },
+        { 0.04166666665696538984775543212890625L,
+          9.701276818911234537760416666666666666667e-12L },
+        { 0.00833333333139307796955108642578125L,
+          1.940255363782246907552083333333333333333e-12L },
+        { 0.0013888888888686778955161571502685546875L,
+          2.021099337273173862033420138888888888889e-14L },
+        { 0.0001984126984098111279308795928955078125L,
+          2.887284767533105517190600198412698412698e-15L },
+        { 0.0000248015873012263909913599491119384765625L,
+          3.609105959416381896488250248015873015873e-16L } };
+    const struct dj_internal_math_ld_pair r =
+        d_internal_math_ld_pair_of(_r, 0.0L);
+    // r^2 as a pair: r r exactly
+    const struct dj_internal_math_ld_pair r2 =
+        d_internal_math_ld_product_exact(_r, _r);
+    struct dj_internal_math_ld_pair series = { 0.0L, 0.0L };
+    long double                     g      = 1.0L;
+    int                             n      = 0;
+
+    // 9! g = 1 + r/10 (1 + r/11 (...)), from its 28th term in
+    for (n = 28; n >= 10; --n)
+    {
+        g = 1.0L + ((_r / (long double)n) * g);
+    }
+
+    // 1/8! + r g, then 1/7! + r (...) down to 1/3!, in pairs
+    series = d_internal_math_ld_pair_sum(
+        c[5], d_internal_math_ld_pair_product(
+                  r, d_internal_math_ld_pair_of(g / 362880.0L, 0.0L)));
+
+    for (n = 4; n >= 0; --n)
+    {
+        series = d_internal_math_ld_pair_sum(
+            c[n], d_internal_math_ld_pair_product(r, series));
+    }
+
+    // 1/2 + r (...), then r + r^2 (...)
+    series = d_internal_math_ld_pair_sum(
+        d_internal_math_ld_pair_of(0.5L, 0.0L),
+        d_internal_math_ld_pair_product(r, series));
+
+    return d_internal_math_ld_pair_sum(
+        r, d_internal_math_ld_pair_product(r2, series));
+}
+
+// d_internal_cplx_@S@_exp_split@KS@
+//   e^_x as (y + y_lo) 2^k, for |_x| below 2^14, to some 2^-(P+28) of it:
+// k the integer nearest x / ln 2, r = x - k ln 2 with ln 2 in three parts --
+// two heads of 32 bits and the rest, so that k times either head is exact
+// and r a pair to 2^-(2P - 15) of 1 -- and e^r = 1 + (e^r_hi - 1)(1 + r_lo) +
+// r_lo by the series above: power.h's exponential of a pair, whose ln 2 has
+// two parts and whose series rounds from r^6 on in long double, is good to
+// some 2^-(P+18), which a difference near e^x cos y = 1 would lose.
+@KQ@ struct dj_internal_math_ld_exp_split
+d_internal_cplx_@S@_exp_split@KS@(
+    long double _x
+)
+{
+    const long double log2e = 1.442695040888963407359924681001892137L;
+    // ln 2 = l1 + l2 + l3, l1 and l2 of 32 bits each: exact as written
+    const long double l1 = 0.69314718036912381649017333984375L;
+    const long double l2 =
+        0.0000000001908214928843070257169500791860627941787242889404296875L;
+    const long double l3 = 4.275175589747648888943734018153096518025e-20L;
+    const long double t  = _x * log2e;
+    const int         k  = (int)((t < 0.0L) ? (t - 0.5L) : (t + 0.5L));
+    const long double kk = (long double)k;
+    // x - k l1 exact (Sterbenz's lemma), k l2 exact, k l3 by Dekker's
+    // product, every error kept
+    const struct dj_internal_math_ld_pair a =
+        d_internal_math_ld_two_sum(_x - (kk * l1), -(kk * l2));
+    const struct dj_internal_math_ld_pair b =
+        d_internal_math_ld_product_exact(kk, l3);
+    const struct dj_internal_math_ld_pair r =
+        d_internal_math_ld_pair_sum(
+            a, d_internal_math_ld_pair_of(-b.high, -b.low));
+    const struct dj_internal_math_ld_pair e =
+        d_internal_cplx_@S@_expm1_pair@KS@(r.high);
+    // 1 + e (1 + r_lo) + r_lo: r_lo below 2^-60, its square past the pair
+    const struct dj_internal_math_ld_pair tail =
+        d_internal_math_ld_pair_sum(
+            e, d_internal_math_ld_pair_of(r.low * (1.0L + e.high), 0.0L));
+    const struct dj_internal_math_ld_pair one =
+        d_internal_math_ld_two_sum(1.0L, tail.high);
+    const struct dj_internal_math_ld_pair y =
+        d_internal_math_ld_two_sum(one.high, one.low + tail.low);
+    struct dj_internal_math_ld_exp_split result = { 1.0L, 0.0L, 0 };
+
+    result.y    = y.high;
+    result.y_lo = y.low;
+    result.k    = k;
+
+    return result;
+}
+
+// d_internal_cplx_@S@_expm1@KS@
+//   e^_z - 1, as pairs throughout and rounded once. Within ln 2 / 2 of the
+// imaginary axis, Re = (e^x - 1) - 2 e^x sin^2(y/2) and Im = 2 e^x sin(y/2)
+// cos(y/2), e^x - 1 by the series above and y/2's sine and cosine pairs, so
+// that neither term rounds before their difference, which loses to the
+// cancellation near the curve e^x cos y = 1 through 0 only the pairs' own
+// precision, some 2^-(P+28) of the terms; on the imaginary axis Re is -2
+// sin^2(y/2), its zero's sign kept where it underflows; a y below 2^-8300,
+// whose half a subnormal y would round, takes Im = e^x y and Re = e^x - 1,
+// the square past every value. Elsewhere Re = e^x cos y - 1 and Im = e^x
+// sin y, e^x as (m + m_lo) 2^k (exp_split) and the 1 subtracted as 2^-k
+// before the scaling, so that the difference is formed to the pairs'
+// precision too; past k = 16000, the 1 lies below every value, and below k
+// = -(2P + 8) the value below half of 1's last place; past e^16000 and
+// below e^-16000, infinities in the angle's directions and -1. Where a part
+// is infinite or NaN, cexp's value (G.6.3.1) less 1.
+@KQ@ struct dj_cplx_@S@
+d_internal_cplx_@S@_expm1@KS@(
+    struct dj_cplx_@S@ _z
+)
+{
+    const @T@ x   = _z.part[0];
+    const @T@ y   = _z.part[1];
+    const @T@ ax  = d_internal_cplx_@S@_abs(x);
+    const @T@ ay  = d_internal_cplx_@S@_abs(y);
+    const @T@ inf = d_internal_math_@S@_infinity();
+
+    // an infinite or NaN part: cexp's value, less 1
+    if (!d_internal_cplx_@S@_finite(_z))
+    {
+        const struct dj_cplx_@S@ e = d_internal_cplx_@S@_exp@KS@(_z);
+
+        return d_internal_cplx_@S@_make(e.part[0] - (@T@)1, e.part[1]);
+    }
+
+    // near the imaginary axis: the half angle's way
+    if (ax <= (@T@)0.346573590279972654708616060729088284L)
+    {
+        const struct dj_internal_math_ld_pair e1 =
+            d_internal_cplx_@S@_expm1_pair@KS@(x);
+        const struct dj_internal_math_ld_pair one =
+            d_internal_math_ld_two_sum(1.0L, e1.high);
+        const struct dj_internal_math_ld_pair ex =
+            d_internal_math_ld_two_sum(one.high, one.low + e1.low);
+
+        // a tiny y: e^x y, and e^x - 1 with y^2 past it
+        if (ay < d_internal_math_@S@_pow2(-8300))
+        {
+            return d_internal_cplx_@S@_make(
+                (x == (@T@)0) ? (@T@)-0.0L : e1.high,
+                d_internal_math_ld_pair_product(
+                    ex, d_internal_math_ld_pair_of(y, 0.0L)).high);
+        }
+
+        {
+            const struct dj_internal_math_ld_sin_cos h =
+                d_internal_cplx_@S@_angle@KS@(y / (@T@)2, 0.0L, 0);
+            const struct dj_internal_math_ld_pair es =
+                d_internal_math_ld_pair_product(ex, h.sine);
+            // 2 e^x sin^2(y/2) and 2 e^x sin(y/2) cos(y/2), doubled exactly
+            const struct dj_internal_math_ld_pair t =
+                d_internal_math_ld_pair_product(es, h.sine);
+            const struct dj_internal_math_ld_pair s =
+                d_internal_math_ld_pair_product(es, h.cosine);
+            const struct dj_internal_math_ld_pair re =
+                d_internal_math_ld_pair_sum(
+                    e1, d_internal_math_ld_pair_of(-2.0L * t.high,
+                                                   -2.0L * t.low));
+
+            // x = 0: e^iy - 1, its real part -2 sin^2(y/2), a zero's sign
+            // kept where it underflows
+            return d_internal_cplx_@S@_make(
+                (x == (@T@)0) ? (-2.0L * t.high) : re.high,
+                2.0L * s.high);
+        }
+    }
+
+    {
+        const struct dj_internal_math_ld_sin_cos a =
+            d_internal_cplx_@S@_angle@KS@(y, 0.0L, 0);
+
+        // far past the range: infinities in the angle's directions, or -1
+        if (x >= (@T@)16000)
+        {
+            return d_internal_cplx_@S@_make(
+                (a.cosine.high < 0.0L) ? -inf : inf,
+                (a.sine.high < 0.0L) ? -inf : inf);
+        }
+
+        if (x <= (@T@)-16000)
+        {
+            return d_internal_cplx_@S@_make(
+                -1.0L, (a.sine.high < 0.0L) ? -0.0L : 0.0L);
+        }
+
+        {
+            const struct dj_internal_math_ld_exp_split e =
+                d_internal_cplx_@S@_exp_split@KS@(x);
+            const struct dj_internal_math_ld_pair m =
+                d_internal_math_ld_pair_of(e.y, e.y_lo);
+            const struct dj_internal_math_ld_pair mc =
+                d_internal_math_ld_pair_product(m, a.cosine);
+            const @T@ im = d_internal_cplx_@S@_scale_pair@KS@(
+                d_internal_math_ld_pair_product(m, a.sine), e.k);
+
+            // e^x cos y below half of 1's last place
+            if (e.k < -((2 * LDBL_MANT_DIG) + 8))
+            {
+                return d_internal_cplx_@S@_make((@T@)-1, im);
+            }
+
+            // the 1 below every value
+            if (e.k > 16000)
+            {
+                return d_internal_cplx_@S@_make(
+                    d_internal_cplx_@S@_scale_pair@KS@(mc, e.k), im);
+            }
+
+            return d_internal_cplx_@S@_make(
+                d_internal_cplx_@S@_scale_pair@KS@(
+                    d_internal_math_ld_pair_sum(
+                        mc,
+                        d_internal_math_ld_pair_of(
+                            -d_internal_math_ld_pow2(-e.k), 0.0L)),
+                    e.k),
+                im);
+        }
+    }
+}
+"""
+
+
+# 2 ln 2 / pi to 704 digits of 24 bits, exp2's reduction's table: y ln 2 is
+# reduced by pi/2 as elementary.h reduces x, with 2 ln 2 / pi's digits in
+# 2/pi's place, computed here as 2/pi's are
+def ln2_turns_bits(count):
+    """floor(2 ln 2 / pi 2^count), from pi by Machin's formula and ln 2 =
+    2 atanh(1/3), each series summed in integers with 64 guard bits, to count
+    + 64 bits; the floor is taken at both ends of their errors, which must
+    agree."""
+    bits = count + 64
+    guard = 64
+    one = 1 << (bits + guard)
+
+    def atan_inv(n):
+        total = term = one // n
+        k, sign = 1, 1
+        while term:
+            term //= n * n
+            k += 2
+            sign = -sign
+            total += sign * (term // k)
+        return total
+
+    def atanh_inv(n):
+        total = term = one // n
+        k = 1
+        while term:
+            term //= n * n
+            k += 2
+            total += term // k
+        return total
+
+    pi = (16 * atan_inv(5) - 4 * atan_inv(239)) >> guard
+    ln2 = (2 * atanh_inv(3)) >> guard
+    low = (2 * (ln2 - 2) << count) // (pi + 2)
+    high = (2 * (ln2 + 2) << count) // (pi - 2)
+    assert low == high, "2 ln 2 / pi: a run of equal bits at the cut"
+    return low
+
+
+def ln2_turns_literal():
+    """the table as a C string literal, three bytes a digit, 16 bytes a
+    line, highest first."""
+    data = ln2_turns_bits(24 * TWO_OVER_PI_DIGITS).to_bytes(
+        3 * TWO_OVER_PI_DIGITS, "big")
+    rows = []
+    for i in range(0, len(data), 16):
+        rows.append('        "' +
+                    "".join("\\x%02X" % b for b in data[i:i + 16]) + '"')
+    return "\n".join(rows)
 
 
 # the real functions the pure kernels call, by their arity
@@ -19557,6 +24321,10 @@ def cplx_kernels(suffix, ctype, prefix, prose, section, sub, title, pure):
     body = CPLX_KERNELS + CPLX_INVERSE + CPLX_COMPOSED
     body = body.replace("@POW_GENERAL@", CPLX_POW_GENERAL_PURE if pure
                         else CPLX_POW_GENERAL_PLAIN)
+    body = body.replace("@POW_INT@", CPLX_POW_INT_PURE if pure
+                        else CPLX_POW_INT_PLAIN)
+    if pure:
+        body += CPLX_FIVE_PURE.replace("@LN2_TURNS@", ln2_turns_literal())
     body = body.replace("@TITLE@", title)
     body = body.replace("@SECTION@", str(section)).replace("@SUB@", str(sub))
     body = body.replace("@KS@", "_c" if pure else "")
@@ -19578,7 +24346,7 @@ def cplx():
         "  GENERATED by scripts/gen_c_math_float.py from one text for the three",
         "families: edit the generator, not this file.",
         "",
-        "  A complex number is struct d_cplx_f, _d or _ld, one member, part[2],",
+        "  A complex number is struct dj_cplx_f, _d or _ld, one member, part[2],",
         "the real part first: the layout of T[2], which C99's _Complex T and",
         "C++'s std::complex<T> share, so a value converts to either by a copy",
         "(S267). No _Complex is needed, as C11 makes it optional, MSVC has none",
@@ -19608,11 +24376,31 @@ def cplx():
         "floating-point exception is promised, as a constant expression cannot",
         "raise one.",
         "",
+        "  And the five C99 has only for real arguments, of a complex number:",
+        "exp2, log2, log10, log1p and expm1 (S342). Each is one long double",
+        "kernel of pure arithmetic, its parts carried as pairs to past twice the",
+        "value's precision and rounded once: log |z| and arg z as power.h's and",
+        "tangent.h's pairs, times 1/ln b as a pair; log |1 + z| of 1 + w, w = 2x",
+        "+ x^2 + y^2 summed exactly, and 1 + z's angle with 1 + x as a pair;",
+        "e^x - 1 and e^x by series in pairs, and sin and cos by their own, so",
+        "that expm1's real part, (e^x - 1) - 2 e^x sin^2(y/2), cancels near the",
+        "curve e^x cos y = 1 only to some 2^-(P+28) of its terms; and y ln 2",
+        "reduced by pi/2 exactly for every y, by 2 ln 2 / pi's digits as",
+        "elementary.h reduces x by 2/pi's (S344). Both forms are the kernel",
+        "rounded to the family, as standard C's library has none of them to be",
+        "faster with, C99 reserving their names and glibc and the UCRT giving",
+        "clog10 alone (S266); on the real axis, where the value is real, each",
+        "form is the family's real function in that form, and y's zero (S343).",
+        "Where a part is infinite or NaN, the value of the function each is a",
+        "form of: clog's for log2 and log10, the angle over ln b, and for log1p",
+        "at 1 + z; cexp's for exp2, y ln 2 for y, and for expm1, less 1.",
+        "",
         "  The bounds, in steps (float_order.h) of each part from the part",
         "correctly rounded, as tests/djinterp/c/modules/math/t_cplx.c checks them at",
-        "the points of math_tests_cplx_refs.h, computed by mpmath: points exact",
-        "in float, each family's at the ends of its range, and double's and",
-        "long double's at their full width. The product, the quotient, the",
+        "the points of math_tests_cplx_refs.h and, for the five,",
+        "math_tests_cplx_five_refs.h, computed by mpmath: points exact in",
+        "float, each family's at the ends of its range, and double's and long",
+        "double's at their full width. The product, the quotient, the",
         "modulus and the argument within 1, the product and the quotient",
         "measured 0; the _c forms within 1 for float and double, where long",
         "double carries 11 bits past double's, and for long double within 4 for",
@@ -19623,10 +24411,21 @@ def cplx():
         "long double's), the C library's own errors among them; the plain",
         "pow's as the _c form's, its general case being the _c kernel's",
         "(S266): C99's exp(w log z) in the family's type would carry |w log z|",
-        "times log's error.",
+        "times log's error. The five within 1 in both forms and every family,",
+        "measured 0: the kernel rounded to long double and then to the family,",
+        "a float or double part a step off where the long double one lies on",
+        "the family's midpoint. A whole power, z^n for n from -2^30 to 2^30, is",
+        "repeated squaring carried in long double's pairs, each part rounded",
+        "once, in both forms (S370): exact where the power is exact in twice",
+        "long double's precision; each part within a step of the part correctly",
+        "rounded where it is at least |n| 2^(4 - P) of the larger part, P long",
+        "double's precision, as t_cplx.c checks it at the points of",
+        "math_tests_cplx_pow_refs.h, where a part cancels (measured 0 in every",
+        "family); and a part below that, which may cancel past what the pairs",
+        "carry, within |n| 2^(3 - 2P) of the larger part (measured 0.031 of it).",
+        "The plain form's whole power is the _c form's, bit for bit.",
     ]
-    text = banner("cplx.h", "/inc/djinterp/c/modules/math/cplx.h", lines,
-                  "2026.10.27", "2026.10.29")
+    text = banner("cplx.h", lines, "2026.10.27", "2026.11.07")
     text += "\n" + CPLX_HEAD
     structs = []
     for n, (suffix, ctype, prefix, prose) in enumerate(FAMILIES, 1):
@@ -19657,6 +24456,23 @@ def cplx():
             doc = CPLX_UNARY_DOC[f][0]
             body += CPLX_UNARY.replace("@F@", f).replace("@DOC@", doc)
         body += CPLX_POW
+        body += ("\n// The five C99 has only for real arguments, of a complex "
+                 "one: exp2, log2,\n// log10, log1p and expm1.\n")
+        for f in CPLX_FIVE_UNARIES:
+            doc, where = CPLX_FIVE_DOC[f]
+            if where == "positive":
+                axis = ("( (_z.part[1] == (@T@)0) &&\n"
+                        "         (_z.part[0] > (@T@)0) )")
+                where_text = ", x positive"
+            elif where == "past -1":
+                axis = ("( (_z.part[1] == (@T@)0) &&\n"
+                        "         (_z.part[0] > (@T@)-1) )")
+                where_text = ", x past -1"
+            else:
+                axis = "(_z.part[1] == (@T@)0)"
+                where_text = ""
+            body += (CPLX_FIVE.replace("@F@", f).replace("@DOC@", doc)
+                     .replace("@AXIS@", axis).replace("@WHERE@", where_text))
         text += instantiate(body, suffix, ctype, prefix, prose)
     text += "\n\n//" + "=" * 78 + "\n// 5.  C99'S _Complex (C ONLY)\n//" + "=" * 78 + "\n"
     text += ("// Where the C compiler has C99's complex types -- C, from C99, but for\n"
@@ -19711,20 +24527,20 @@ CMAT_LU = r"""
 //   cplx.h's product and quotient, compiled once in a translation unit and
 // called, where the kernels below would otherwise each take a copy of them
 // at every call.
-D_MATH_FN_KERNEL struct d_cplx_@S@
+D_MATH_FN_KERNEL struct dj_cplx_@S@
 d_internal_cmat_@S@_mul(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return d_cplx_@S@_mul(_z,
                           _w);
 }
 
-D_MATH_FN_KERNEL struct d_cplx_@S@
+D_MATH_FN_KERNEL struct dj_cplx_@S@
 d_internal_cmat_@S@_div(
-    struct d_cplx_@S@ _z,
-    struct d_cplx_@S@ _w
+    struct dj_cplx_@S@ _z,
+    struct dj_cplx_@S@ _w
 )
 {
     return d_cplx_@S@_div(_z,
@@ -19735,7 +24551,7 @@ d_internal_cmat_@S@_div(
 //   |re| + |im| of _z: the magnitude LAPACK pivots by, needing no root.
 D_MATH_FN @T@
 d_internal_cmat_@S@_abs1(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ a = d_internal_math_@S@_abs(_z.part[0]);
@@ -19748,7 +24564,7 @@ d_internal_cmat_@S@_abs1(
 //   whether both parts of _z are zero.
 D_MATH_FN bool
 d_internal_cmat_@S@_is_zero(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return ( (_z.part[0] == (@T@)0) &&
@@ -19757,11 +24573,11 @@ d_internal_cmat_@S@_is_zero(
 
 // d_internal_cmat_@S@_less_product
 //   _a - _b _c, the product cplx.h's, then the difference part by part.
-D_MATH_FN_KERNEL struct d_cplx_@S@
+D_MATH_FN_KERNEL struct dj_cplx_@S@
 d_internal_cmat_@S@_less_product(
-    struct d_cplx_@S@ _a,
-    struct d_cplx_@S@ _b,
-    struct d_cplx_@S@ _c
+    struct dj_cplx_@S@ _a,
+    struct dj_cplx_@S@ _b,
+    struct dj_cplx_@S@ _c
 )
 {
     return d_cplx_@S@_sub(_a,
@@ -19778,10 +24594,10 @@ d_internal_cmat_@S@_less_product(
 // diagonal zero there.
 D_MATH_FN_KERNEL bool
 d_cmat_@S@_lu(
-    struct d_cplx_@S@* _lu,
-    size_t             _n,
-    size_t*            _perm,
-    @T@*               _sign
+    struct dj_cplx_@S@* _lu,
+    size_t              _n,
+    size_t*             _perm,
+    @T@*                _sign
 )
 {
     bool   singular = false;
@@ -19831,7 +24647,7 @@ d_cmat_@S@_lu(
 
             for (c = 0u; c < _n; ++c)
             {
-                const struct d_cplx_@S@ tmp = _lu[(col * _n) + c];
+                const struct dj_cplx_@S@ tmp = _lu[(col * _n) + c];
 
                 _lu[(col * _n) + c]   = _lu[(pivot * _n) + c];
                 _lu[(pivot * _n) + c] = tmp;
@@ -19849,11 +24665,11 @@ d_cmat_@S@_lu(
         }
 
         {
-            const struct d_cplx_@S@ pivot_value = _lu[(col * _n) + col];
+            const struct dj_cplx_@S@ pivot_value = _lu[(col * _n) + col];
 
             for (r = col + 1u; r < _n; ++r)
             {
-                const struct d_cplx_@S@ f =
+                const struct dj_cplx_@S@ f =
                     d_internal_cmat_@S@_div(_lu[(r * _n) + col], pivot_value);
                 size_t c = 0u;
 
@@ -19876,11 +24692,11 @@ d_cmat_@S@_lu(
 // through L (unit diagonal), back through U. _x and _b must not overlap.
 D_MATH_FN_KERNEL void
 d_cmat_@S@_lu_solve(
-    const struct d_cplx_@S@* _lu,
-    const size_t*            _perm,
-    size_t                   _n,
-    const struct d_cplx_@S@* _b,
-    struct d_cplx_@S@*       _x
+    const struct dj_cplx_@S@* _lu,
+    const size_t*             _perm,
+    size_t                    _n,
+    const struct dj_cplx_@S@* _b,
+    struct dj_cplx_@S@*       _x
 )
 {
     size_t i = 0u;
@@ -19888,8 +24704,8 @@ d_cmat_@S@_lu_solve(
     // forward: y into _x
     for (i = 0u; i < _n; ++i)
     {
-        struct d_cplx_@S@ s = _b[_perm[i]];
-        size_t            k = 0u;
+        struct dj_cplx_@S@ s = _b[_perm[i]];
+        size_t             k = 0u;
 
         for (k = 0u; k < i; ++k)
         {
@@ -19903,8 +24719,8 @@ d_cmat_@S@_lu_solve(
     // back: _x over y, last row first
     for (i = _n; i-- > 0u; )
     {
-        struct d_cplx_@S@ s = _x[i];
-        size_t            k = 0u;
+        struct dj_cplx_@S@ s = _x[i];
+        size_t             k = 0u;
 
         for (k = i + 1u; k < _n; ++k)
         {
@@ -19921,15 +24737,15 @@ d_cmat_@S@_lu_solve(
 // d_cmat_@S@_lu_det
 //   the determinant from the factors: the parity times U's diagonal, in
 // order.
-D_MATH_FN struct d_cplx_@S@
+D_MATH_FN struct dj_cplx_@S@
 d_cmat_@S@_lu_det(
-    const struct d_cplx_@S@* _lu,
-    size_t                   _n,
-    @T@                      _sign
+    const struct dj_cplx_@S@* _lu,
+    size_t                    _n,
+    @T@                       _sign
 )
 {
-    struct d_cplx_@S@ d = d_cplx_@S@_make(_sign, (@T@)0);
-    size_t            i = 0u;
+    struct dj_cplx_@S@ d = d_cplx_@S@_make(_sign, (@T@)0);
+    size_t             i = 0u;
 
     for (i = 0u; i < _n; ++i)
     {
@@ -19942,11 +24758,11 @@ d_cmat_@S@_lu_det(
 // d_cmat_@S@_determinant
 //   the determinant of the n-by-n _a, by its LU factors in _scratch (n by
 // n): the parity times U's diagonal; 0 for a singular one.
-D_MATH_FN_KERNEL struct d_cplx_@S@
+D_MATH_FN_KERNEL struct dj_cplx_@S@
 d_cmat_@S@_determinant(
-    const struct d_cplx_@S@* _a,
-    struct d_cplx_@S@*       _scratch,
-    size_t                   _n
+    const struct dj_cplx_@S@* _a,
+    struct dj_cplx_@S@*       _scratch,
+    size_t                    _n
 )
 {
     @T@    sign = (@T@)1;
@@ -19974,10 +24790,10 @@ d_cmat_@S@_determinant(
 // divided by it, the others' multiples of it subtracted.
 D_MATH_FN_KERNEL bool
 d_cmat_@S@_inverse(
-    struct d_cplx_@S@*       _out,
-    struct d_cplx_@S@*       _scratch,
-    const struct d_cplx_@S@* _a,
-    size_t                   _n
+    struct dj_cplx_@S@*       _out,
+    struct dj_cplx_@S@*       _scratch,
+    const struct dj_cplx_@S@* _a,
+    size_t                    _n
 )
 {
     size_t col = 0u;
@@ -20030,8 +24846,8 @@ d_cmat_@S@_inverse(
         {
             for (c = 0u; c < _n; ++c)
             {
-                const struct d_cplx_@S@ ta = _scratch[(col * _n) + c];
-                const struct d_cplx_@S@ ti = _out[(col * _n) + c];
+                const struct dj_cplx_@S@ ta = _scratch[(col * _n) + c];
+                const struct dj_cplx_@S@ ti = _out[(col * _n) + c];
 
                 _scratch[(col * _n) + c]   = _scratch[(pivot * _n) + c];
                 _scratch[(pivot * _n) + c] = ta;
@@ -20042,7 +24858,7 @@ d_cmat_@S@_inverse(
 
         // the pivot row over the pivot
         {
-            const struct d_cplx_@S@ d = _scratch[(col * _n) + col];
+            const struct dj_cplx_@S@ d = _scratch[(col * _n) + col];
 
             for (c = 0u; c < _n; ++c)
             {
@@ -20058,7 +24874,7 @@ d_cmat_@S@_inverse(
         {
             if (r != col)
             {
-                const struct d_cplx_@S@ f = _scratch[(r * _n) + col];
+                const struct dj_cplx_@S@ f = _scratch[(r * _n) + col];
 
                 for (c = 0u; c < _n; ++c)
                 {
@@ -20083,12 +24899,12 @@ d_cmat_@S@_inverse(
 // _scratch holds n * n entries; neither it nor _x may be _a or _b.
 D_MATH_FN_KERNEL bool
 d_cmat_@S@_solve(
-    struct d_cplx_@S@*       _x,
-    struct d_cplx_@S@*       _scratch,
-    const struct d_cplx_@S@* _a,
-    const struct d_cplx_@S@* _b,
-    size_t                   _n,
-    size_t                   _m
+    struct dj_cplx_@S@*       _x,
+    struct dj_cplx_@S@*       _scratch,
+    const struct dj_cplx_@S@* _a,
+    const struct dj_cplx_@S@* _b,
+    size_t                    _n,
+    size_t                    _m
 )
 {
     size_t col = 0u;
@@ -20139,7 +24955,7 @@ d_cmat_@S@_solve(
         {
             for (c = 0u; c < _n; ++c)
             {
-                const struct d_cplx_@S@ t = _scratch[(col * _n) + c];
+                const struct dj_cplx_@S@ t = _scratch[(col * _n) + c];
 
                 _scratch[(col * _n) + c]   = _scratch[(pivot * _n) + c];
                 _scratch[(pivot * _n) + c] = t;
@@ -20147,7 +24963,7 @@ d_cmat_@S@_solve(
 
             for (c = 0u; c < _m; ++c)
             {
-                const struct d_cplx_@S@ t = _x[(col * _m) + c];
+                const struct dj_cplx_@S@ t = _x[(col * _m) + c];
 
                 _x[(col * _m) + c]   = _x[(pivot * _m) + c];
                 _x[(pivot * _m) + c] = t;
@@ -20156,11 +24972,11 @@ d_cmat_@S@_solve(
 
         // the rows below less their multiples of it
         {
-            const struct d_cplx_@S@ pivot_value = _scratch[(col * _n) + col];
+            const struct dj_cplx_@S@ pivot_value = _scratch[(col * _n) + col];
 
             for (r = col + 1u; r < _n; ++r)
             {
-                const struct d_cplx_@S@ f =
+                const struct dj_cplx_@S@ f =
                     d_internal_cmat_@S@_div(_scratch[(r * _n) + col], pivot_value);
 
                 for (c = col + 1u; c < _n; ++c)
@@ -20185,8 +25001,8 @@ d_cmat_@S@_solve(
 
         for (i = _n; i-- > 0u; )
         {
-            struct d_cplx_@S@ s = _x[(i * _m) + k];
-            size_t            j = 0u;
+            struct dj_cplx_@S@ s = _x[(i * _m) + k];
+            size_t             j = 0u;
 
             for (j = i + 1u; j < _n; ++j)
             {
@@ -20238,11 +25054,11 @@ CMAT_HERMITIAN_FORMS = r"""
 // symmetric matrix gets d_decomp_@S@_sym_eigen@F@'s values bit for bit.
 D_MATH_FN_KERNEL@RT@ void
 d_cmat_@S@_hermitian_eigen@F@(
-    struct d_cplx_@S@* _work,
-    @T@*               _values,
-    struct d_cplx_@S@* _vectors,
-    size_t             _n,
-    @T@                _threshold
+    struct dj_cplx_@S@* _work,
+    @T@*                _values,
+    struct dj_cplx_@S@* _vectors,
+    size_t              _n,
+    @T@                 _threshold
 )
 {
     size_t sweep = 0u;
@@ -20278,7 +25094,7 @@ d_cmat_@S@_hermitian_eigen@F@(
         {
             for (q = p + 1u; q < _n; ++q)
             {
-                const struct d_cplx_@S@ apq = _work[(p * _n) + q];
+                const struct dj_cplx_@S@ apq = _work[(p * _n) + q];
 
                 // already zero: nothing to annihilate
                 if (d_internal_cmat_@S@_is_zero(apq))
@@ -20289,9 +25105,9 @@ d_cmat_@S@_hermitian_eigen@F@(
                 {
                     const @T@ r     = d_internal_decomp_@S@_hypot@F@(
                                           apq.part[0], apq.part[1]);
-                    const struct d_cplx_@S@ u =
+                    const struct dj_cplx_@S@ u =
                         d_cplx_@S@_make(apq.part[0] / r, apq.part[1] / r);
-                    const struct d_cplx_@S@ uc = d_cplx_@S@_conj(u);
+                    const struct dj_cplx_@S@ uc = d_cplx_@S@_conj(u);
                     const @T@ aqq   = _work[(q * _n) + q].part[0];
                     const @T@ app   = _work[(p * _n) + p].part[0];
                     const @T@ diff  = aqq - app;
@@ -20338,8 +25154,8 @@ d_cmat_@S@_hermitian_eigen@F@(
                     // the columns p and q, column q turned by conj(u) first
                     for (i = 0u; i < _n; ++i)
                     {
-                        const struct d_cplx_@S@ wip = _work[(i * _n) + p];
-                        const struct d_cplx_@S@ wiq =
+                        const struct dj_cplx_@S@ wip = _work[(i * _n) + p];
+                        const struct dj_cplx_@S@ wiq =
                             d_internal_cmat_@S@_mul(_work[(i * _n) + q], uc);
                         size_t k = 0u;
 
@@ -20358,8 +25174,8 @@ d_cmat_@S@_hermitian_eigen@F@(
                     // the rows p and q, row q turned by u first
                     for (i = 0u; i < _n; ++i)
                     {
-                        const struct d_cplx_@S@ wpj = _work[(p * _n) + i];
-                        const struct d_cplx_@S@ wqj =
+                        const struct dj_cplx_@S@ wpj = _work[(p * _n) + i];
+                        const struct dj_cplx_@S@ wqj =
                             d_internal_cmat_@S@_mul(u, _work[(q * _n) + i]);
                         size_t k = 0u;
 
@@ -20378,8 +25194,8 @@ d_cmat_@S@_hermitian_eigen@F@(
                     // V's columns, as A's
                     for (i = 0u; i < _n; ++i)
                     {
-                        const struct d_cplx_@S@ vip = _vectors[(i * _n) + p];
-                        const struct d_cplx_@S@ viq =
+                        const struct dj_cplx_@S@ vip = _vectors[(i * _n) + p];
+                        const struct dj_cplx_@S@ viq =
                             d_internal_cmat_@S@_mul(_vectors[(i * _n) + q], uc);
                         size_t k = 0u;
 
@@ -20427,7 +25243,7 @@ d_cmat_@S@_hermitian_eigen@F@(
 
             for (k = 0u; k < _n; ++k)
             {
-                const struct d_cplx_@S@ t = _vectors[(k * _n) + i];
+                const struct dj_cplx_@S@ t = _vectors[(k * _n) + i];
 
                 _vectors[(k * _n) + i]   = _vectors[(k * _n) + sel];
                 _vectors[(k * _n) + sel] = t;
@@ -20463,19 +25279,19 @@ CMAT_GENERAL_ONCE = r"""
 // by a permutation.
 D_MATH_FN void
 d_internal_cmat_@S@_swap_isolated(
-    struct d_cplx_@S@* _a,
-    size_t             _n,
-    size_t             _i,
-    size_t             _j,
-    size_t             _k,
-    size_t             _l
+    struct dj_cplx_@S@* _a,
+    size_t              _n,
+    size_t              _i,
+    size_t              _j,
+    size_t              _k,
+    size_t              _l
 )
 {
     size_t r = 0u;
 
     for (r = 0u; r <= _l; ++r)
     {
-        const struct d_cplx_@S@ tmp = _a[(r * _n) + _i];
+        const struct dj_cplx_@S@ tmp = _a[(r * _n) + _i];
 
         _a[(r * _n) + _i] = _a[(r * _n) + _j];
         _a[(r * _n) + _j] = tmp;
@@ -20483,7 +25299,7 @@ d_internal_cmat_@S@_swap_isolated(
 
     for (r = _k; r < _n; ++r)
     {
-        const struct d_cplx_@S@ tmp = _a[(_i * _n) + r];
+        const struct dj_cplx_@S@ tmp = _a[(_i * _n) + r];
 
         _a[(_i * _n) + r] = _a[(_j * _n) + r];
         _a[(_j * _n) + r] = tmp;
@@ -20499,13 +25315,13 @@ d_internal_cmat_@S@_swap_isolated(
 // the permutations undone, the last first.
 D_MATH_FN_KERNEL void
 d_cmat_@S@_balance_back(
-    struct d_cplx_@S@* _v,
-    size_t             _n,
-    size_t             _m,
-    const size_t*      _perm,
-    const @T@*         _scale,
-    size_t             _ilo,
-    size_t             _ihi
+    struct dj_cplx_@S@* _v,
+    size_t              _n,
+    size_t              _m,
+    const size_t*       _perm,
+    const @T@*          _scale,
+    size_t              _ilo,
+    size_t              _ihi
 )
 {
     size_t i  = 0u;
@@ -20557,7 +25373,7 @@ d_cmat_@S@_balance_back(
 
         for (c = 0u; c < _m; ++c)
         {
-            const struct d_cplx_@S@ tmp = _v[(row * _m) + c];
+            const struct dj_cplx_@S@ tmp = _v[(row * _m) + c];
 
             _v[(row * _m) + c]   = _v[(other * _m) + c];
             _v[(other * _m) + c] = tmp;
@@ -20572,13 +25388,13 @@ d_cmat_@S@_balance_back(
 // entries of _a: their parts' largest magnitude's binade, found exactly,
 // after a lift by 2^P where that magnitude is subnormal; not finite where a
 // part is NaN or infinite, zero where every part is zero.
-D_MATH_FN struct d_internal_decomp_@S@_scaling
+D_MATH_FN struct dj_internal_decomp_@S@_scaling
 d_internal_cmat_@S@_scaling_of(
-    const struct d_cplx_@S@* _a,
-    size_t                   _count
+    const struct dj_cplx_@S@* _a,
+    size_t                    _count
 )
 {
-    struct d_internal_decomp_@S@_scaling result =
+    struct dj_internal_decomp_@S@_scaling result =
         { (@T@)1, (@T@)1, true, false };
     @T@    largest = (@T@)0;
     size_t i       = 0u;
@@ -20622,7 +25438,7 @@ d_internal_cmat_@S@_scaling_of(
     }
 
     {
-        const struct d_internal_math_@S@_binade b =
+        const struct dj_internal_math_@S@_binade b =
             d_internal_math_@S@_binade_of(largest);
 
         result.power = b.power;
@@ -20637,10 +25453,10 @@ d_internal_cmat_@S@_scaling_of(
 // the subdiagonal real.
 D_MATH_FN void
 d_internal_cmat_@S@_turn(
-    struct d_cplx_@S@* _x,
-    size_t             _count,
-    size_t             _stride,
-    struct d_cplx_@S@  _s
+    struct dj_cplx_@S@* _x,
+    size_t              _count,
+    size_t              _stride,
+    struct dj_cplx_@S@  _s
 )
 {
     size_t i = 0u;
@@ -20660,7 +25476,7 @@ CMAT_GENERAL_FORMS = r"""
 // overflowing nor underflowing on the way, the same bits in both forms.
 D_MATH_FN@RT@ @T@
 d_internal_cmat_@S@_abs@F@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     return d_internal_decomp_@S@_hypot@F@(_z.part[0], _z.part[1]);
@@ -20671,9 +25487,9 @@ d_internal_cmat_@S@_abs@F@(
 // |x|) / 2), each half taken first, then (t, y / (2 t)) where x >= 0, else
 // (|y| / (2 t), +-t) with y's sign -- on the core's real roots, the same bits
 // in both forms; 0 for 0.
-D_MATH_FN@RT@ struct d_cplx_@S@
+D_MATH_FN@RT@ struct dj_cplx_@S@
 d_internal_cmat_@S@_sqrt@F@(
-    struct d_cplx_@S@ _z
+    struct dj_cplx_@S@ _z
 )
 {
     const @T@ x = _z.part[0];
@@ -20758,12 +25574,12 @@ d_internal_cmat_@S@_hypot3@F@(
 // Indices count from 0.
 D_MATH_FN_KERNEL@RT@ void
 d_cmat_@S@_balance@F@(
-    struct d_cplx_@S@* _a,
-    size_t             _n,
-    size_t*            _perm,
-    @T@*               _scale,
-    size_t*            _ilo,
-    size_t*            _ihi
+    struct dj_cplx_@S@* _a,
+    size_t              _n,
+    size_t*             _perm,
+    @T@*                _scale,
+    size_t*             _ilo,
+    size_t*             _ihi
 )
 {
     const @T@ sfmin1 = @MIN@ / @EPS@;
@@ -21063,12 +25879,12 @@ d_cmat_@S@_balance@F@(
 // family's least normal over its epsilon, and lowered after. *_alpha
 // becomes beta, _x v's tail, and tau is returned: 0, H = I, where x is zero
 // and alpha real.
-D_MATH_FN_KERNEL@RT@ struct d_cplx_@S@
+D_MATH_FN_KERNEL@RT@ struct dj_cplx_@S@
 d_internal_cmat_@S@_reflector@F@(
-    struct d_cplx_@S@* _alpha,
-    struct d_cplx_@S@* _x,
-    size_t             _count,
-    size_t             _stride
+    struct dj_cplx_@S@* _alpha,
+    struct dj_cplx_@S@* _x,
+    size_t              _count,
+    size_t              _stride
 )
 {
     const @T@ safmin = @MIN@ / (@EPS@ / (@T@)2);
@@ -21079,7 +25895,7 @@ d_internal_cmat_@S@_reflector@F@(
     @T@       beta   = (@T@)0;
     size_t    knt    = 0u;
     size_t    i      = 0u;
-    struct d_cplx_@S@ tau = d_cplx_@S@_make((@T@)0, (@T@)0);
+    struct dj_cplx_@S@ tau = d_cplx_@S@_make((@T@)0, (@T@)0);
 
     // x zero and alpha real: H = I
     if ( (xnorm == (@T@)0) &&
@@ -21126,7 +25942,7 @@ d_internal_cmat_@S@_reflector@F@(
     {
         const @T@ diff = beta - alphr;
         const @T@ mi   = -alphi;
-        const struct d_cplx_@S@ rec = d_internal_cmat_@S@_div(
+        const struct dj_cplx_@S@ rec = d_internal_cmat_@S@_div(
             d_cplx_@S@_make((@T@)1, (@T@)0),
             d_cplx_@S@_make(alphr - beta, alphi));
 
@@ -21160,11 +25976,11 @@ d_internal_cmat_@S@_reflector@F@(
 // entries below the subdiagonal end exactly zero.
 D_MATH_FN_KERNEL@RT@ void
 d_cmat_@S@_hessenberg_q@F@(
-    struct d_cplx_@S@* _h,
-    size_t             _n,
-    size_t             _ilo,
-    size_t             _ihi,
-    struct d_cplx_@S@* _q
+    struct dj_cplx_@S@* _h,
+    size_t              _n,
+    size_t              _ilo,
+    size_t              _ihi,
+    struct dj_cplx_@S@* _q
 )
 {
     size_t i = 0u;
@@ -21178,16 +25994,16 @@ d_cmat_@S@_hessenberg_q@F@(
 
     for (i = _ilo; i < _ihi; ++i)
     {
-        const size_t            below = _ihi - i - 1u;
-        struct d_cplx_@S@       alpha = _h[((i + 1u) * _n) + i];
-        const struct d_cplx_@S@ tau   = d_internal_cmat_@S@_reflector@F@(
+        const size_t             below = _ihi - i - 1u;
+        struct dj_cplx_@S@       alpha = _h[((i + 1u) * _n) + i];
+        const struct dj_cplx_@S@ tau   = d_internal_cmat_@S@_reflector@F@(
             &alpha,
             _h + (((((i + 2u) < _n) ? (i + 2u) : (_n - 1u)) * _n) + i),
             below,
             _n);
-        const struct d_cplx_@S@ ctau  = d_cplx_@S@_conj(tau);
-        size_t                  r     = 0u;
-        size_t                  c     = 0u;
+        const struct dj_cplx_@S@ ctau  = d_cplx_@S@_conj(tau);
+        size_t                   r     = 0u;
+        size_t                   c     = 0u;
 
         _h[((i + 1u) * _n) + i] = alpha;
 
@@ -21197,7 +26013,7 @@ d_cmat_@S@_hessenberg_q@F@(
             // from the right, H: rows 0 to ihi, columns i + 1 to ihi
             for (r = 0u; r <= _ihi; ++r)
             {
-                struct d_cplx_@S@ w = _h[(r * _n) + (i + 1u)];
+                struct dj_cplx_@S@ w = _h[(r * _n) + (i + 1u)];
 
                 for (c = i + 2u; c <= _ihi; ++c)
                 {
@@ -21206,7 +26022,8 @@ d_cmat_@S@_hessenberg_q@F@(
                 }
 
                 {
-                    const struct d_cplx_@S@ t = d_internal_cmat_@S@_mul(tau, w);
+                    const struct dj_cplx_@S@ t =
+                        d_internal_cmat_@S@_mul(tau, w);
 
                     _h[(r * _n) + (i + 1u)] =
                         d_cplx_@S@_sub(_h[(r * _n) + (i + 1u)], t);
@@ -21223,7 +26040,7 @@ d_cmat_@S@_hessenberg_q@F@(
             // from the left, H^H: rows i + 1 to ihi, columns i + 1 to the end
             for (c = i + 1u; c < _n; ++c)
             {
-                struct d_cplx_@S@ w = _h[((i + 1u) * _n) + c];
+                struct dj_cplx_@S@ w = _h[((i + 1u) * _n) + c];
 
                 for (r = i + 2u; r <= _ihi; ++r)
                 {
@@ -21234,7 +26051,7 @@ d_cmat_@S@_hessenberg_q@F@(
                 }
 
                 {
-                    const struct d_cplx_@S@ t = d_internal_cmat_@S@_mul(ctau, w);
+                    const struct dj_cplx_@S@ t = d_internal_cmat_@S@_mul(ctau, w);
 
                     _h[((i + 1u) * _n) + c] =
                         d_cplx_@S@_sub(_h[((i + 1u) * _n) + c], t);
@@ -21252,7 +26069,7 @@ d_cmat_@S@_hessenberg_q@F@(
             {
                 for (r = _ilo; r <= _ihi; ++r)
                 {
-                    struct d_cplx_@S@ w = _q[(r * _n) + (i + 1u)];
+                    struct dj_cplx_@S@ w = _q[(r * _n) + (i + 1u)];
 
                     for (c = i + 2u; c <= _ihi; ++c)
                     {
@@ -21262,7 +26079,8 @@ d_cmat_@S@_hessenberg_q@F@(
                     }
 
                     {
-                        const struct d_cplx_@S@ t = d_internal_cmat_@S@_mul(tau, w);
+                        const struct dj_cplx_@S@ t =
+                            d_internal_cmat_@S@_mul(tau, w);
 
                         _q[(r * _n) + (i + 1u)] =
                             d_cplx_@S@_sub(_q[(r * _n) + (i + 1u)], t);
@@ -21308,14 +26126,14 @@ d_cmat_@S@_hessenberg_q@F@(
 // not reached take their diagonal entries.
 D_MATH_FN_KERNEL@RT@ bool
 d_cmat_@S@_schur@F@(
-    struct d_cplx_@S@* _h,
-    size_t             _n,
-    size_t             _ilo,
-    size_t             _ihi,
-    struct d_cplx_@S@* _z,
-    struct d_cplx_@S@* _values,
-    size_t             _max_iter,
-    @T@                _tol
+    struct dj_cplx_@S@* _h,
+    size_t              _n,
+    size_t              _ilo,
+    size_t              _ihi,
+    struct dj_cplx_@S@* _z,
+    struct dj_cplx_@S@* _values,
+    size_t              _max_iter,
+    @T@                 _tol
 )
 {
     const @T@    dat1   = (@T@)0.75;
@@ -21323,7 +26141,7 @@ d_cmat_@S@_schur@F@(
     const @T@    ulp    = @EPS@;
     const @T@    tol    = (_tol > ulp) ? _tol : ulp;
     const bool   wantt  = (_z != NULL);
-    const struct d_cplx_@S@ zero = d_cplx_@S@_make((@T@)0, (@T@)0);
+    const struct dj_cplx_@S@ zero = d_cplx_@S@_make((@T@)0, (@T@)0);
     size_t       nh     = 0u;
     @T@          smlnum = (@T@)0;
     size_t       i1     = 0u;
@@ -21377,13 +26195,13 @@ d_cmat_@S@_schur@F@(
 
         for (i = _ilo + 1u; i <= _ihi; ++i)
         {
-            const struct d_cplx_@S@ h = _h[(i * _n) + (i - 1u)];
+            const struct dj_cplx_@S@ h = _h[(i * _n) + (i - 1u)];
 
             if (h.part[1] != (@T@)0)
             {
-                const struct d_cplx_@S@ s1 =
+                const struct dj_cplx_@S@ s1 =
                     d_cplx_@S@_div_real(h, d_internal_cmat_@S@_abs1(h));
-                const struct d_cplx_@S@ sc =
+                const struct dj_cplx_@S@ sc =
                     d_cplx_@S@_div_real(d_cplx_@S@_conj(s1),
                                         d_internal_cmat_@S@_abs@F@(s1));
                 const size_t last = (jhi < (i + 1u)) ? jhi : (i + 1u);
@@ -21425,16 +26243,16 @@ d_cmat_@S@_schur@F@(
 
         for (;;)
         {
-            size_t            m = 0u;
-            struct d_cplx_@S@ v[2] = { { { (@T@)0, (@T@)0 } },
-                                       { { (@T@)0, (@T@)0 } } };
-            struct d_cplx_@S@ t    = zero;
+            size_t             m = 0u;
+            struct dj_cplx_@S@ v[2] = { { { (@T@)0, (@T@)0 } },
+                                        { { (@T@)0, (@T@)0 } } };
+            struct dj_cplx_@S@ t    = zero;
 
             // the lowest negligible subdiagonal entry
             for (k = i; k > l; --k)
             {
-                const struct d_cplx_@S@ hk = _h[(k * _n) + (k - 1u)];
-                @T@                     tst = (@T@)0;
+                const struct dj_cplx_@S@ hk = _h[(k * _n) + (k - 1u)];
+                @T@                      tst = (@T@)0;
 
                 if (d_internal_cmat_@S@_abs1(hk) <= smlnum)
                 {
@@ -21556,7 +26374,7 @@ d_cmat_@S@_schur@F@(
             // Wilkinson's
             else
             {
-                const struct d_cplx_@S@ u = d_internal_cmat_@S@_mul(
+                const struct dj_cplx_@S@ u = d_internal_cmat_@S@_mul(
                     d_internal_cmat_@S@_sqrt@F@(_h[((i - 1u) * _n) + i]),
                     d_internal_cmat_@S@_sqrt@F@(_h[(i * _n) + (i - 1u)]));
                 @T@ s = d_internal_cmat_@S@_abs1(u);
@@ -21565,18 +26383,18 @@ d_cmat_@S@_schur@F@(
 
                 if (s != (@T@)0)
                 {
-                    const struct d_cplx_@S@ x = d_cplx_@S@_mul_real(
+                    const struct dj_cplx_@S@ x = d_cplx_@S@_mul_real(
                         d_cplx_@S@_sub(_h[((i - 1u) * _n) + (i - 1u)], t),
                         (@T@)0.5);
                     const @T@ sx = d_internal_cmat_@S@_abs1(x);
-                    struct d_cplx_@S@ y = zero;
+                    struct dj_cplx_@S@ y = zero;
 
                     s = (s > sx) ? s : sx;
 
                     {
-                        const struct d_cplx_@S@ xs = d_cplx_@S@_div_real(x, s);
-                        const struct d_cplx_@S@ us = d_cplx_@S@_div_real(u, s);
-                        const struct d_cplx_@S@ sq = d_cplx_@S@_add(
+                        const struct dj_cplx_@S@ xs = d_cplx_@S@_div_real(x, s);
+                        const struct dj_cplx_@S@ us = d_cplx_@S@_div_real(u, s);
+                        const struct dj_cplx_@S@ sq = d_cplx_@S@_add(
                             d_internal_cmat_@S@_mul(xs, xs), d_internal_cmat_@S@_mul(us, us));
 
                         y = d_cplx_@S@_mul_real(
@@ -21586,7 +26404,7 @@ d_cmat_@S@_schur@F@(
                     // y's sign: the root nearer x
                     if (sx > (@T@)0)
                     {
-                        const struct d_cplx_@S@ xn = d_cplx_@S@_div_real(x, sx);
+                        const struct dj_cplx_@S@ xn = d_cplx_@S@_div_real(x, sx);
                         const @T@ p1  = xn.part[0] * y.part[0];
                         const @T@ p2  = xn.part[1] * y.part[1];
                         const @T@ dot = p1 + p2;
@@ -21605,12 +26423,12 @@ d_cmat_@S@_schur@F@(
             // the row the step starts at: two small subdiagonal entries
             for (m = i - 1u; m > l; --m)
             {
-                const struct d_cplx_@S@ h11  = _h[(m * _n) + m];
-                const struct d_cplx_@S@ h22  = _h[((m + 1u) * _n) + (m + 1u)];
-                struct d_cplx_@S@       h11s = d_cplx_@S@_sub(h11, t);
-                @T@                     h21  = _h[((m + 1u) * _n) + m].part[0];
-                const @T@               h10  = _h[(m * _n) + (m - 1u)].part[0];
-                @T@                     s    = (@T@)0;
+                const struct dj_cplx_@S@ h11  = _h[(m * _n) + m];
+                const struct dj_cplx_@S@ h22  = _h[((m + 1u) * _n) + (m + 1u)];
+                struct dj_cplx_@S@       h11s = d_cplx_@S@_sub(h11, t);
+                @T@                      h21  = _h[((m + 1u) * _n) + m].part[0];
+                const @T@                h10  = _h[(m * _n) + (m - 1u)].part[0];
+                @T@                      s    = (@T@)0;
 
                 {
                     const @T@ a1 = d_internal_cmat_@S@_abs1(h11s);
@@ -21646,10 +26464,10 @@ d_cmat_@S@_schur@F@(
             // the top of the block
             if (m == l)
             {
-                const struct d_cplx_@S@ h11  = _h[(l * _n) + l];
-                struct d_cplx_@S@       h11s = d_cplx_@S@_sub(h11, t);
-                @T@                     h21  = _h[((l + 1u) * _n) + l].part[0];
-                @T@                     s    = (@T@)0;
+                const struct dj_cplx_@S@ h11  = _h[(l * _n) + l];
+                struct dj_cplx_@S@       h11s = d_cplx_@S@_sub(h11, t);
+                @T@                      h21  = _h[((l + 1u) * _n) + l].part[0];
+                @T@                      s    = (@T@)0;
 
                 {
                     const @T@ a1 = d_internal_cmat_@S@_abs1(h11s);
@@ -21667,11 +26485,11 @@ d_cmat_@S@_schur@F@(
             // the single-shift step: the bulge made, then chased out
             for (k = m; k < i; ++k)
             {
-                struct d_cplx_@S@ t1   = zero;
-                struct d_cplx_@S@ v2   = zero;
-                @T@               t2   = (@T@)0;
-                size_t            jj   = 0u;
-                size_t            last = ((k + 2u) < i) ? (k + 2u) : i;
+                struct dj_cplx_@S@ t1   = zero;
+                struct dj_cplx_@S@ v2   = zero;
+                @T@                t2   = (@T@)0;
+                size_t             jj   = 0u;
+                size_t             last = ((k + 2u) < i) ? (k + 2u) : i;
 
                 // past the first: the bulge's column, to be reflected
                 if (k > m)
@@ -21694,7 +26512,7 @@ d_cmat_@S@_schur@F@(
                 // from the left: rows k and k + 1, columns k to i2
                 for (jj = k; jj <= i2; ++jj)
                 {
-                    const struct d_cplx_@S@ sum = d_cplx_@S@_add(
+                    const struct dj_cplx_@S@ sum = d_cplx_@S@_add(
                         d_internal_cmat_@S@_mul(d_cplx_@S@_conj(t1),
                                        _h[(k * _n) + jj]),
                         d_cplx_@S@_mul_real(_h[((k + 1u) * _n) + jj], t2));
@@ -21707,7 +26525,7 @@ d_cmat_@S@_schur@F@(
                 // from the right: rows i1 to min(k + 2, i)
                 for (jj = i1; jj <= last; ++jj)
                 {
-                    const struct d_cplx_@S@ sum = d_cplx_@S@_add(
+                    const struct dj_cplx_@S@ sum = d_cplx_@S@_add(
                         d_internal_cmat_@S@_mul(t1, _h[(jj * _n) + k]),
                         d_cplx_@S@_mul_real(_h[(jj * _n) + (k + 1u)], t2));
 
@@ -21721,7 +26539,7 @@ d_cmat_@S@_schur@F@(
                 {
                     for (jj = 0u; jj < _n; ++jj)
                     {
-                        const struct d_cplx_@S@ sum = d_cplx_@S@_add(
+                        const struct dj_cplx_@S@ sum = d_cplx_@S@_add(
                             d_internal_cmat_@S@_mul(t1, _z[(jj * _n) + k]),
                             d_cplx_@S@_mul_real(_z[(jj * _n) + (k + 1u)], t2));
 
@@ -21738,11 +26556,11 @@ d_cmat_@S@_schur@F@(
                 if ( (k == m) &&
                      (m > l) )
                 {
-                    const struct d_cplx_@S@ one_less = d_cplx_@S@_sub(
+                    const struct dj_cplx_@S@ one_less = d_cplx_@S@_sub(
                         d_cplx_@S@_make((@T@)1, (@T@)0), t1);
-                    const struct d_cplx_@S@ temp = d_cplx_@S@_div_real(
+                    const struct dj_cplx_@S@ temp = d_cplx_@S@_div_real(
                         one_less, d_internal_cmat_@S@_abs@F@(one_less));
-                    const struct d_cplx_@S@ ctemp = d_cplx_@S@_conj(temp);
+                    const struct dj_cplx_@S@ ctemp = d_cplx_@S@_conj(temp);
 
                     _h[((m + 1u) * _n) + m] =
                         d_internal_cmat_@S@_mul(_h[((m + 1u) * _n) + m], ctemp);
@@ -21780,12 +26598,12 @@ d_cmat_@S@_schur@F@(
 
             // H(i, i - 1) kept real
             {
-                const struct d_cplx_@S@ temp0 = _h[(i * _n) + (i - 1u)];
+                const struct dj_cplx_@S@ temp0 = _h[(i * _n) + (i - 1u)];
 
                 if (temp0.part[1] != (@T@)0)
                 {
                     const @T@ rtemp = d_internal_cmat_@S@_abs@F@(temp0);
-                    const struct d_cplx_@S@ temp =
+                    const struct dj_cplx_@S@ temp =
                         d_cplx_@S@_div_real(temp0, rtemp);
 
                     _h[(i * _n) + (i - 1u)] = d_cplx_@S@_make(rtemp, (@T@)0);
@@ -21828,11 +26646,11 @@ d_cmat_@S@_schur@F@(
 // one; then Z x. _x (n entries) and _norms (n) are scratch.
 D_MATH_FN_KERNEL@RT@ void
 d_cmat_@S@_schur_vectors@F@(
-    const struct d_cplx_@S@* _t,
-    size_t                   _n,
-    struct d_cplx_@S@*       _vr,
-    struct d_cplx_@S@*       _x,
-    @T@*                     _norms
+    const struct dj_cplx_@S@* _t,
+    size_t                    _n,
+    struct dj_cplx_@S@*       _vr,
+    struct dj_cplx_@S@*       _x,
+    @T@*                      _norms
 )
 {
     const @T@ ulp    = @EPS@;
@@ -21865,10 +26683,10 @@ d_cmat_@S@_schur_vectors@F@(
 
     for (top = _n; top > 0u; --top)
     {
-        const size_t            ki   = top - 1u;
-        const struct d_cplx_@S@ w    = _t[(ki * _n) + ki];
-        @T@                     smin = (@T@)0;
-        size_t                  jj   = 0u;
+        const size_t             ki   = top - 1u;
+        const struct dj_cplx_@S@ w    = _t[(ki * _n) + ki];
+        @T@                      smin = (@T@)0;
+        size_t                   jj   = 0u;
 
         {
             const @T@ u = ulp * d_internal_cmat_@S@_abs1(w);
@@ -21886,13 +26704,13 @@ d_cmat_@S@_schur_vectors@F@(
         // (T(0..ki-1, 0..ki-1) - w) x = scale x, the last row first
         for (jj = ki; jj > 0u; --jj)
         {
-            const size_t      jr    = jj - 1u;
-            struct d_cplx_@S@ c     = d_cplx_@S@_sub(_t[(jr * _n) + jr], w);
-            struct d_cplx_@S@ xj    = _x[jr];
-            @T@               scale = (@T@)1;
-            @T@               cnorm = d_internal_cmat_@S@_abs1(c);
-            const @T@         bnorm = d_internal_cmat_@S@_abs1(xj);
-            @T@               xnorm = (@T@)0;
+            const size_t       jr    = jj - 1u;
+            struct dj_cplx_@S@ c     = d_cplx_@S@_sub(_t[(jr * _n) + jr], w);
+            struct dj_cplx_@S@ xj    = _x[jr];
+            @T@                scale = (@T@)1;
+            @T@                cnorm = d_internal_cmat_@S@_abs1(c);
+            const @T@          bnorm = d_internal_cmat_@S@_abs1(xj);
+            @T@                xnorm = (@T@)0;
 
             // a divisor below smin: smin
             if (cnorm < smin)
@@ -21948,7 +26766,7 @@ d_cmat_@S@_schur_vectors@F@(
         // Z x, into the column
         if (ki > 0u)
         {
-            const struct d_cplx_@S@ beta = _x[ki];
+            const struct dj_cplx_@S@ beta = _x[ki];
             const bool beta_zero = d_internal_cmat_@S@_is_zero(beta);
             const bool beta_one  = ( (beta.part[0] == (@T@)1) &&
                                      (beta.part[1] == (@T@)0) );
@@ -21968,7 +26786,7 @@ d_cmat_@S@_schur_vectors@F@(
 
             for (k = 0u; k < ki; ++k)
             {
-                const struct d_cplx_@S@ temp = _x[k];
+                const struct dj_cplx_@S@ temp = _x[k];
 
                 for (r = 0u; r < _n; ++r)
                 {
@@ -22012,8 +26830,8 @@ d_cmat_@S@_schur_vectors@F@(
 // among equals) is real and positive.
 D_MATH_FN_KERNEL@RT@ void
 d_internal_cmat_@S@_unit_vectors@F@(
-    struct d_cplx_@S@* _v,
-    size_t             _n
+    struct dj_cplx_@S@* _v,
+    size_t              _n
 )
 {
     size_t j = 0u;
@@ -22048,7 +26866,7 @@ d_internal_cmat_@S@_unit_vectors@F@(
         {
             const @T@ ur = _v[(best * _n) + j].part[0] / modulus;
             const @T@ ui = _v[(best * _n) + j].part[1] / modulus;
-            const struct d_cplx_@S@ u = d_cplx_@S@_make(ur, -ui);
+            const struct dj_cplx_@S@ u = d_cplx_@S@_make(ur, -ui);
 
             for (r = 0u; r < _n; ++r)
             {
@@ -22094,28 +26912,28 @@ d_internal_cmat_@S@_unit_vectors@F@(
 // identity's columns.
 D_MATH_FN_KERNEL@RT@ bool
 d_cmat_@S@_eigen@F@(
-    struct d_cplx_@S@* _a,
-    size_t             _n,
-    struct d_cplx_@S@* _values,
-    struct d_cplx_@S@* _vectors,
-    struct d_cplx_@S@* _work,
-    @T@*               _rwork,
-    size_t*            _perm,
-    size_t             _max_iter,
-    @T@                _tol
+    struct dj_cplx_@S@* _a,
+    size_t              _n,
+    struct dj_cplx_@S@* _values,
+    struct dj_cplx_@S@* _vectors,
+    struct dj_cplx_@S@* _work,
+    @T@*                _rwork,
+    size_t*             _perm,
+    size_t              _max_iter,
+    @T@                 _tol
 )
 {
-    const struct d_internal_decomp_@S@_scaling sc =
+    const struct dj_internal_decomp_@S@_scaling sc =
         d_internal_cmat_@S@_scaling_of(_a, _n * _n);
-    const struct d_cplx_@S@ not_a_number =
+    const struct dj_cplx_@S@ not_a_number =
         d_cplx_@S@_make(d_internal_math_@S@_nan(), d_internal_math_@S@_nan());
-    @T@*               scale     = _rwork;
-    struct d_cplx_@S@* z         = NULL;
-    size_t             ilo       = 0u;
-    size_t             ihi       = 0u;
-    size_t             i         = 0u;
-    size_t             k         = 0u;
-    bool               converged = true;
+    @T@*                scale     = _rwork;
+    struct dj_cplx_@S@* z         = NULL;
+    size_t              ilo       = 0u;
+    size_t              ihi       = 0u;
+    size_t              i         = 0u;
+    size_t              k         = 0u;
+    bool                converged = true;
 
     // nothing to find
     if (_n == 0u)
@@ -22256,7 +27074,7 @@ d_cmat_@S@_eigen@F@(
 
         if (sel != i)
         {
-            const struct d_cplx_@S@ tmp = _values[i];
+            const struct dj_cplx_@S@ tmp = _values[i];
 
             _values[i]   = _values[sel];
             _values[sel] = tmp;
@@ -22265,7 +27083,7 @@ d_cmat_@S@_eigen@F@(
             {
                 for (k = 0u; k < _n; ++k)
                 {
-                    const struct d_cplx_@S@ t = _vectors[(k * _n) + i];
+                    const struct dj_cplx_@S@ t = _vectors[(k * _n) + i];
 
                     _vectors[(k * _n) + i]   = _vectors[(k * _n) + sel];
                     _vectors[(k * _n) + sel] = t;
@@ -22309,7 +27127,7 @@ TABLE OF CONTENTS
                              // limits
 #include <stddef.h>          // size_t
 // djinterp
-#include "./cplx.h"          // struct d_cplx_*, its arithmetic
+#include "./cplx.h"          // struct dj_cplx_*, its arithmetic
 #include "./decomp.h"        // d_internal_decomp_*_hypot, _cnorm and
                              // _scaling: the real helpers
 #include "./elementary.h"    // d_math_*_sqrt and its _c form,
@@ -22325,22 +27143,22 @@ CMAT_TAIL = r"""
 """
 
 CMAT_OVERLOADS = [
-    ("D_MATH_FN_KERNEL", "bool", "d_cmat_lu", [("struct d_cplx_@S@*", "_lu"), ("size_t", "_n"), ("size_t*", "_perm"), ("@T@*", "_sign")]),
-    ("D_MATH_FN_KERNEL", "void", "d_cmat_lu_solve", [("const struct d_cplx_@S@*", "_lu"), ("const size_t*", "_perm"), ("size_t", "_n"), ("const struct d_cplx_@S@*", "_b"), ("struct d_cplx_@S@*", "_x")]),
-    ("D_MATH_FN", "struct d_cplx_@S@", "d_cmat_lu_det", [("const struct d_cplx_@S@*", "_lu"), ("size_t", "_n"), ("@T@", "_sign")]),
-    ("D_MATH_FN_KERNEL", "struct d_cplx_@S@", "d_cmat_determinant", [("const struct d_cplx_@S@*", "_a"), ("struct d_cplx_@S@*", "_scratch"), ("size_t", "_n")]),
-    ("D_MATH_FN_KERNEL", "bool", "d_cmat_inverse", [("struct d_cplx_@S@*", "_out"), ("struct d_cplx_@S@*", "_scratch"), ("const struct d_cplx_@S@*", "_a"), ("size_t", "_n")]),
-    ("D_MATH_FN_KERNEL", "bool", "d_cmat_solve", [("struct d_cplx_@S@*", "_x"), ("struct d_cplx_@S@*", "_scratch"), ("const struct d_cplx_@S@*", "_a"), ("const struct d_cplx_@S@*", "_b"), ("size_t", "_n"), ("size_t", "_m")]),
-    ("D_MATH_FN_KERNEL", "void", "d_cmat_balance_back", [("struct d_cplx_@S@*", "_v"), ("size_t", "_n"), ("size_t", "_m"), ("const size_t*", "_perm"), ("const @T@*", "_scale"), ("size_t", "_ilo"), ("size_t", "_ihi")]),
+    ("D_MATH_FN_KERNEL", "bool", "d_cmat_lu", [("struct dj_cplx_@S@*", "_lu"), ("size_t", "_n"), ("size_t*", "_perm"), ("@T@*", "_sign")]),
+    ("D_MATH_FN_KERNEL", "void", "d_cmat_lu_solve", [("const struct dj_cplx_@S@*", "_lu"), ("const size_t*", "_perm"), ("size_t", "_n"), ("const struct dj_cplx_@S@*", "_b"), ("struct dj_cplx_@S@*", "_x")]),
+    ("D_MATH_FN", "struct dj_cplx_@S@", "d_cmat_lu_det", [("const struct dj_cplx_@S@*", "_lu"), ("size_t", "_n"), ("@T@", "_sign")]),
+    ("D_MATH_FN_KERNEL", "struct dj_cplx_@S@", "d_cmat_determinant", [("const struct dj_cplx_@S@*", "_a"), ("struct dj_cplx_@S@*", "_scratch"), ("size_t", "_n")]),
+    ("D_MATH_FN_KERNEL", "bool", "d_cmat_inverse", [("struct dj_cplx_@S@*", "_out"), ("struct dj_cplx_@S@*", "_scratch"), ("const struct dj_cplx_@S@*", "_a"), ("size_t", "_n")]),
+    ("D_MATH_FN_KERNEL", "bool", "d_cmat_solve", [("struct dj_cplx_@S@*", "_x"), ("struct dj_cplx_@S@*", "_scratch"), ("const struct dj_cplx_@S@*", "_a"), ("const struct dj_cplx_@S@*", "_b"), ("size_t", "_n"), ("size_t", "_m")]),
+    ("D_MATH_FN_KERNEL", "void", "d_cmat_balance_back", [("struct dj_cplx_@S@*", "_v"), ("size_t", "_n"), ("size_t", "_m"), ("const size_t*", "_perm"), ("const @T@*", "_scale"), ("size_t", "_ilo"), ("size_t", "_ihi")]),
 ]
 for _f, _m in (("_c", "D_MATH_FN_KERNEL"), ("", "D_MATH_FN_KERNEL_RT")):
     CMAT_OVERLOADS += [
-        (_m, "void", "d_cmat_hermitian_eigen" + _f, [("struct d_cplx_@S@*", "_work"), ("@T@*", "_values"), ("struct d_cplx_@S@*", "_vectors"), ("size_t", "_n"), ("@T@", "_threshold")]),
-        (_m, "void", "d_cmat_balance" + _f, [("struct d_cplx_@S@*", "_a"), ("size_t", "_n"), ("size_t*", "_perm"), ("@T@*", "_scale"), ("size_t*", "_ilo"), ("size_t*", "_ihi")]),
-        (_m, "void", "d_cmat_hessenberg_q" + _f, [("struct d_cplx_@S@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("struct d_cplx_@S@*", "_q")]),
-        (_m, "bool", "d_cmat_schur" + _f, [("struct d_cplx_@S@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("struct d_cplx_@S@*", "_z"), ("struct d_cplx_@S@*", "_values"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
-        (_m, "void", "d_cmat_schur_vectors" + _f, [("const struct d_cplx_@S@*", "_t"), ("size_t", "_n"), ("struct d_cplx_@S@*", "_vr"), ("struct d_cplx_@S@*", "_x"), ("@T@*", "_norms")]),
-        (_m, "bool", "d_cmat_eigen" + _f, [("struct d_cplx_@S@*", "_a"), ("size_t", "_n"), ("struct d_cplx_@S@*", "_values"), ("struct d_cplx_@S@*", "_vectors"), ("struct d_cplx_@S@*", "_work"), ("@T@*", "_rwork"), ("size_t*", "_perm"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
+        (_m, "void", "d_cmat_hermitian_eigen" + _f, [("struct dj_cplx_@S@*", "_work"), ("@T@*", "_values"), ("struct dj_cplx_@S@*", "_vectors"), ("size_t", "_n"), ("@T@", "_threshold")]),
+        (_m, "void", "d_cmat_balance" + _f, [("struct dj_cplx_@S@*", "_a"), ("size_t", "_n"), ("size_t*", "_perm"), ("@T@*", "_scale"), ("size_t*", "_ilo"), ("size_t*", "_ihi")]),
+        (_m, "void", "d_cmat_hessenberg_q" + _f, [("struct dj_cplx_@S@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("struct dj_cplx_@S@*", "_q")]),
+        (_m, "bool", "d_cmat_schur" + _f, [("struct dj_cplx_@S@*", "_h"), ("size_t", "_n"), ("size_t", "_ilo"), ("size_t", "_ihi"), ("struct dj_cplx_@S@*", "_z"), ("struct dj_cplx_@S@*", "_values"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
+        (_m, "void", "d_cmat_schur_vectors" + _f, [("const struct dj_cplx_@S@*", "_t"), ("size_t", "_n"), ("struct dj_cplx_@S@*", "_vr"), ("struct dj_cplx_@S@*", "_x"), ("@T@*", "_norms")]),
+        (_m, "bool", "d_cmat_eigen" + _f, [("struct dj_cplx_@S@*", "_a"), ("size_t", "_n"), ("struct dj_cplx_@S@*", "_values"), ("struct dj_cplx_@S@*", "_vectors"), ("struct dj_cplx_@S@*", "_work"), ("@T@*", "_rwork"), ("size_t*", "_perm"), ("size_t", "_max_iter"), ("@T@", "_tol")]),
     ]
 
 
@@ -22357,14 +27175,13 @@ def cmat():
         "  GENERATED by scripts/gen_c_math_float.py from one text for the three",
         "families: edit the generator, not this file.",
         "",
-        "  Matrices are row-major arrays of struct d_cplx_f, _d or _ld. What",
+        "  Matrices are row-major arrays of struct dj_cplx_f, _d or _ld. What",
         "needs no root comes once, a constant expression from C++14; what",
         "takes a root comes twice, as decomp.h's kernels do, the _c form a",
         "constant expression from C++14 and the plain one on the C library's",
         "root, the same bit for bit, their roots correctly rounded both.",
     ]
-    text = banner("cmat.h", "/inc/djinterp/c/modules/math/cmat.h", lines,
-                  "2026.10.29", "2026.10.30")
+    text = banner("cmat.h", lines, "2026.10.29", "2026.11.07")
     text += "\n" + CMAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         body = CMAT_FAMILY_HEAD + CMAT_LU + CMAT_HERMITIAN_HEAD
@@ -22385,31 +27202,32 @@ def cmat():
 
 
 OUTPUTS = {
-    "inc/djinterp/c/modules/math/float_order.h": float_order,
-    "inc/djinterp/c/modules/math/interval_float.h": interval_float,
-    "inc/djinterp/c/modules/math/elementary.h": elementary,
-    "inc/djinterp/c/modules/math/exponential.h": exponential,
-    "inc/djinterp/c/modules/math/tangent.h": tangent,
-    "inc/djinterp/c/modules/math/hyperbolic.h": hyperbolic,
-    "inc/djinterp/c/modules/math/power.h": power,
-    "inc/djinterp/c/modules/math/remainder.h": remainder,
-    "inc/djinterp/c/modules/math/nearest_integer.h": nearest_integer,
-    "inc/djinterp/c/modules/math/vec.h": vec,
-    "inc/djinterp/c/modules/math/mat.h": mat,
-    "inc/djinterp/c/modules/math/quat.h": quat,
-    "inc/djinterp/c/modules/math/coord.h": coord,
-    "inc/djinterp/c/modules/math/isect.h": isect,
-    "inc/djinterp/c/modules/math/plane.h": plane,
-    "inc/djinterp/c/modules/math/decomp.h": decomp,
-    "inc/djinterp/c/modules/math/cplx.h": cplx,
-    "inc/djinterp/c/modules/math/cmat.h": cmat,
+    "float_order.h": float_order,
+    "interval_float.h": interval_float,
+    "elementary.h": elementary,
+    "exponential.h": exponential,
+    "tangent.h": tangent,
+    "hyperbolic.h": hyperbolic,
+    "power.h": power,
+    "remainder.h": remainder,
+    "nearest_integer.h": nearest_integer,
+    "vec.h": vec,
+    "mat.h": mat,
+    "quat.h": quat,
+    "coord.h": coord,
+    "isect.h": isect,
+    "plane.h": plane,
+    "decomp.h": decomp,
+    "cplx.h": cplx,
+    "cmat.h": cmat,
 }
 
 
 def main(argv):
     check = "--check" in argv
     status = 0
-    for rel, make in OUTPUTS.items():
+    for name, make in OUTPUTS.items():
+        rel = CORE + "/" + name
         path = os.path.join(ROOT, rel)
         text = make()
         if check:

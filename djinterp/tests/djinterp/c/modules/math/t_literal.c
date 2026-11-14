@@ -5,7 +5,7 @@
 * (c/math/literal.h), against the exact reference of math_tests_exact.h.
 *   The harness reads each literal itself, apart from literal.h, as a ratio
 * of integers of up to 256 bits, and asks of the value:
-*   - where the ratio, reduced, lies within d_math_imax: that it is exact,
+*   - where the ratio, reduced, lies within dj_math_imax: that it is exact,
 *     an integer where its denominator is 1 and a rational otherwise, in the
 *     one form, unflagged and equal to the ratio by cross products; and that
 *     converted to float, double and long double, it is what decimal.h reads
@@ -34,13 +34,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_literal.c -o t_literal -lm
+*        tests/djinterp/c/modules/math/t_literal.c -o t_literal -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_literal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // LDBL_MAX
@@ -115,31 +115,31 @@ d_tests_expect(
 // 10^-e; a fraction as its terms, less the zeros both end with; a mixed
 // number as w d + n over d. Only texts that are one literal are read.
 
-// d_tests_ref
+// dj_tests_ref
 //   struct: what a literal is: a ratio n / d, unreduced, with a sign; or an
 // error; or past the reference.
-struct d_tests_ref
+struct dj_tests_ref
 {
-    int                kind;      // D_TESTS_REF_*
-    bool               negative;  // a minus sign, and the value not 0
-    bool               decimal;   // a decimal number, not a fraction
-    struct d_tests_big n;         // the numerator's magnitude
-    struct d_tests_big d;         // the denominator, positive
+    int                 kind;      // D_TESTS_REF_*
+    bool                negative;  // a minus sign, and the value not 0
+    bool                decimal;   // a decimal number, not a fraction
+    struct dj_tests_big n;         // the numerator's magnitude
+    struct dj_tests_big d;         // the denominator, positive
 };
 
 // d_tests_big_div_small
 //   |_x| / _divisor, rounded down, _divisor from 1 to 2^16; the remainder
 // into *_rest.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_big_div_small(
-    struct d_tests_big _x,
-    unsigned long      _divisor,
-    unsigned long*     _rest
+    struct dj_tests_big _x,
+    unsigned long       _divisor,
+    unsigned long*      _rest
 )
 {
-    struct d_tests_big result = { { 0UL }, 0 };
-    unsigned long      rest   = 0UL;
-    int                i      = 0;
+    struct dj_tests_big result = { { 0UL }, 0 };
+    unsigned long       rest   = 0UL;
+    int                 i      = 0;
 
     // long division, from the top limb
     for (i = D_TESTS_LIMBS - 1; i >= 0; --i)
@@ -160,8 +160,8 @@ d_tests_big_div_small(
 // NUL; returns how many.
 static int
 d_tests_digits_of(
-    struct d_tests_big _x,
-    char*              _text
+    struct dj_tests_big _x,
+    char*               _text
 )
 {
     char          reversed[D_TESTS_TEXT_SIZE];
@@ -189,23 +189,23 @@ d_tests_digits_of(
 // d_tests_big_of_text
 //   the digits _text[_start .. _end) as an integer; the caller keeps them
 // below 76.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_big_of_text(
     const char* _text,
     size_t      _start,
     size_t      _end
 )
 {
-    const struct d_tests_big ten    = d_tests_big_of_umax(10u, false);
-    struct d_tests_big       result = d_tests_big_of_umax(0u, false);
-    size_t                   i      = 0u;
+    const struct dj_tests_big ten    = d_tests_big_of_umax(10u, false);
+    struct dj_tests_big       result = d_tests_big_of_umax(0u, false);
+    size_t                    i      = 0u;
 
     // each digit: times 10, plus it
     for (i = _start; i < _end; ++i)
     {
         result = d_tests_big_add(
             d_tests_big_mul(result, ten),
-            d_tests_big_of_umax((d_math_umax)(_text[i] - '0'), false));
+            d_tests_big_of_umax((dj_math_umax)(_text[i] - '0'), false));
     }
 
     return result;
@@ -238,7 +238,7 @@ d_tests_significant(
 
 // d_tests_two_words
 //   2^(2w), the first number past two words.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_two_words(void)
 {
     return d_tests_big_shl(d_tests_big_of_umax(1u, false), 2 * D_TESTS_WORD);
@@ -248,7 +248,7 @@ d_tests_two_words(void)
 //   the decimal number _text, as its digits d and exponent e, then as a
 // reduced ratio; past the reference where d has more significant digits
 // than an exact decimal can, or e is past any exact decimal's.
-static struct d_tests_ref
+static struct dj_tests_ref
 d_tests_ref_decimal(
     const char* _text,
     size_t      _length,
@@ -257,20 +257,20 @@ d_tests_ref_decimal(
 {
     static char digits[D_TESTS_TEXT_SIZE];
 
-    struct d_tests_ref result   = { D_TESTS_REF_VALUE, false, true,
-                                    { { 0UL }, 0 }, { { 0UL }, 0 } };
-    size_t             i        = _start;
-    long               count    = 0;     // significant digits kept
-    long               fraction = 0;     // digits after the point
-    long               exponent = 0;
-    long               e        = 0;
-    long               twos     = 0;
-    long               fives    = 0;
-    long               k        = 0;
-    bool               after    = false;
-    bool               below    = false;
-    bool               many     = false;
-    unsigned long      rest     = 0UL;
+    struct dj_tests_ref result   = { D_TESTS_REF_VALUE, false, true,
+                                     { { 0UL }, 0 }, { { 0UL }, 0 } };
+    size_t              i        = _start;
+    long                count    = 0;    // significant digits kept
+    long                fraction = 0;    // digits after the point
+    long                exponent = 0;
+    long                e        = 0;
+    long                twos     = 0;
+    long                fives    = 0;
+    long                k        = 0;
+    bool                after    = false;
+    bool                below    = false;
+    bool                many     = false;
+    unsigned long       rest     = 0UL;
 
     // the digits and the point
     while ( (i < _length) &&
@@ -373,7 +373,7 @@ d_tests_ref_decimal(
 
     while (fives < k)
     {
-        const struct d_tests_big fifth =
+        const struct dj_tests_big fifth =
             d_tests_big_div_small(result.n, 5UL, &rest);
 
         // no more 5s
@@ -400,27 +400,27 @@ d_tests_ref_decimal(
 
 // d_tests_ref_of
 //   what _text, one literal, is.
-static struct d_tests_ref
+static struct dj_tests_ref
 d_tests_ref_of(
     const char* _text,
     size_t      _length
 )
 {
-    struct d_tests_ref result   = { D_TESTS_REF_VALUE, false, false,
-                                    { { 0UL }, 0 }, { { 0UL }, 0 } };
-    size_t             i        = 0u;
-    size_t             slash    = 0u;
-    size_t             space    = 0u;
-    size_t             w_start  = 0u;
-    size_t             w_end    = 0u;
-    size_t             n_start  = 0u;
-    size_t             d_start  = 0u;
-    size_t             n_zeros  = 0u;
-    size_t             d_zeros  = 0u;
-    size_t             common   = 0u;
-    size_t             first    = 0u;
-    bool               negative = false;
-    bool               mixed    = false;
+    struct dj_tests_ref result   = { D_TESTS_REF_VALUE, false, false,
+                                     { { 0UL }, 0 }, { { 0UL }, 0 } };
+    size_t              i        = 0u;
+    size_t              slash    = 0u;
+    size_t              space    = 0u;
+    size_t              w_start  = 0u;
+    size_t              w_end    = 0u;
+    size_t              n_start  = 0u;
+    size_t              d_start  = 0u;
+    size_t              n_zeros  = 0u;
+    size_t              d_zeros  = 0u;
+    size_t              common   = 0u;
+    size_t              first    = 0u;
+    bool                negative = false;
+    bool                mixed    = false;
 
     // the sign
     if ( (_text[0] == '+') ||
@@ -526,7 +526,7 @@ d_tests_ref_of(
     // a whole part: the numerator w d + n, past two words where it is
     if (mixed)
     {
-        struct d_tests_big w = d_tests_big_of_umax(0u, false);
+        struct dj_tests_big w = d_tests_big_of_umax(0u, false);
 
         (void)d_tests_significant(_text, w_start, w_end, &first);
         w        = d_tests_big_of_text(_text, first, w_end);
@@ -581,8 +581,8 @@ d_tests_same(
 //   whether _v is the error _code, unflagged.
 static bool
 d_tests_is_error(
-    struct d_math_value     _v,
-    enum d_math_value_error _code
+    struct dj_math_value     _v,
+    enum dj_math_value_error _code
 )
 {
     return ( (_v.kind == D_MATH_VALUE_ERROR) &&
@@ -596,12 +596,12 @@ d_tests_is_error(
 // 0, and equal to the ratio by cross products.
 static bool
 d_tests_exact_value(
-    struct d_math_value       _v,
-    const struct d_tests_ref* _ref
+    struct dj_math_value       _v,
+    const struct dj_tests_ref* _ref
 )
 {
-    struct d_tests_exact want = d_tests_exact_from(_ref->n, _ref->d);
-    struct d_tests_exact got  = d_tests_exact_of(0, 1);
+    struct dj_tests_exact want = d_tests_exact_from(_ref->n, _ref->d);
+    struct dj_tests_exact got  = d_tests_exact_of(0, 1);
 
     // the kind and the form
     if ( ( (_v.kind != D_MATH_VALUE_INTEGER) &&
@@ -621,13 +621,13 @@ d_tests_exact_value(
 }
 
 // d_tests_ref_fits
-//   whether _ref's ratio, reduced and signed, lies within d_math_imax.
+//   whether _ref's ratio, reduced and signed, lies within dj_math_imax.
 static bool
 d_tests_ref_fits(
-    const struct d_tests_ref* _ref
+    const struct dj_tests_ref* _ref
 )
 {
-    struct d_tests_exact x = d_tests_exact_from(_ref->n, _ref->d);
+    struct dj_tests_exact x = d_tests_exact_from(_ref->n, _ref->d);
 
     x.n.negative = (_ref->negative) ? 1 : 0;
 
@@ -639,9 +639,9 @@ d_tests_ref_fits(
 // each type is what decimal.h reads from the text, one rounding either way.
 static bool
 d_tests_check_decimal_types(
-    struct d_math_value _v,
-    const char*         _text,
-    size_t              _length
+    struct dj_math_value _v,
+    const char*          _text,
+    size_t               _length
 )
 {
     float       f_value  = 0.0f;
@@ -675,12 +675,12 @@ d_tests_check(
 )
 {
     static char        longer[D_TESTS_TEXT_SIZE + 1];
-    static struct d_tests_ref ref;
+    static struct dj_tests_ref ref;
 
-    struct d_math_value value    = d_math_value_from_bool(true);
-    long double         nearest  = 0.0L;
-    bool                read     = false;
-    bool                ok       = false;
+    struct dj_math_value value   = d_math_value_from_bool(true);
+    long double          nearest = 0.0L;
+    bool                 read    = false;
+    bool                 ok      = false;
 
     read = d_math_literal_to_value(&value, _text, _length);
     ref  = d_tests_ref_of(_text, _length);
@@ -771,15 +771,15 @@ d_tests_check(
 // 4.1    The syntax
 //------------------------------------------------------------------------------
 
-// d_tests_syntax_case
+// dj_tests_syntax_case
 //   struct: a text and the length of the literal it starts with.
-struct d_tests_syntax_case
+struct dj_tests_syntax_case
 {
     const char* text;
     size_t      length;
 };
 
-static const struct d_tests_syntax_case g_syntax[] =
+static const struct dj_tests_syntax_case g_syntax[] =
 {
     { "",            0u }, { "+",           0u }, { "-",           0u },
     { "/",           0u }, { "/2",          0u }, { "1/",          1u },
@@ -811,9 +811,9 @@ d_tests_syntax(void)
     // each case
     for (i = 0u; i < cases; ++i)
     {
-        const char*         text   = g_syntax[i].text;
-        const size_t        length = strlen(text);
-        struct d_math_value value  = d_math_value_from_bool(true);
+        const char*          text   = g_syntax[i].text;
+        const size_t         length = strlen(text);
+        struct dj_math_value value  = d_math_value_from_bool(true);
 
         D_TESTS_EXPECT( (d_math_literal_length(text, length) ==
                          g_syntax[i].length),
@@ -853,14 +853,14 @@ d_tests_syntax(void)
 //   _text must be exactly _num / _den.
 static void
 d_tests_known_exact(
-    const char* _text,
-    d_math_imax _num,
-    d_math_imax _den,
-    int         _line
+    const char*  _text,
+    dj_math_imax _num,
+    dj_math_imax _den,
+    int          _line
 )
 {
-    const size_t        length = strlen(_text);
-    struct d_math_value value  = d_math_value_none();
+    const size_t         length = strlen(_text);
+    struct dj_math_value value  = d_math_value_none();
 
     (void)d_math_literal_to_value(&value, _text, length);
     d_tests_expect( ( (value.kind == D_MATH_VALUE_INTEGER) ||
@@ -887,7 +887,7 @@ d_tests_known_other(
 {
     const size_t         length = strlen(_text);
     volatile long double real   = _real;
-    struct d_math_value  value  = d_math_value_none();
+    struct dj_math_value value  = d_math_value_none();
 
     (void)d_math_literal_to_value(&value, _text, length);
     d_tests_expect( (_code != 0)
@@ -990,13 +990,13 @@ d_tests_ends(void)
     static char text[D_TESTS_TEXT_SIZE];
     static char digits[64];
 
-    const d_math_umax most = (d_math_umax)D_MATH_IMAX_MAX;
+    const dj_math_umax most = (dj_math_umax)D_MATH_IMAX_MAX;
 
-    d_math_umax base   = 0u;
-    d_math_umax offset = 0u;
-    int         sign   = 0;
-    int         form   = 0;
-    int         power  = 0;
+    dj_math_umax base   = 0u;
+    dj_math_umax offset = 0u;
+    int          sign   = 0;
+    int          form   = 0;
+    int          power  = 0;
 
     // around each end, either sign
     for (sign = 0; sign < 2; ++sign)
@@ -1005,9 +1005,9 @@ d_tests_ends(void)
         {
             for (offset = 0u; offset < 7u; ++offset)
             {
-                const d_math_umax magnitude =
+                const dj_math_umax magnitude =
                     (base == 0u) ? offset : (most - 3u + offset);
-                size_t            count     = 0u;
+                size_t             count     = 0u;
 
                 (void)d_tests_text_umax(magnitude, digits);
                 count = strlen(digits);
@@ -1052,13 +1052,13 @@ d_tests_ends(void)
 
     for (power = 0; power < (D_TESTS_WORD + 2); ++power)
     {
-        const struct d_tests_big big =
+        const struct dj_tests_big big =
             d_tests_big_shl(d_tests_big_of_umax(1u, false), power);
-        unsigned long            rest = 0UL;
-        struct d_tests_big       x    = big;
-        int                      n    = 0;
-        int                      j    = 0;
-        char                     reversed[80];
+        unsigned long             rest = 0UL;
+        struct dj_tests_big       x    = big;
+        int                       n    = 0;
+        int                       j    = 0;
+        char                      reversed[80];
 
         // its digits
         do
@@ -1093,8 +1093,8 @@ d_tests_two_word_edges(void)
     static char less[128];
     static char past[128];
 
-    const struct d_tests_big one = d_tests_big_of_umax(1u, false);
-    const struct d_tests_big two = d_tests_big_of_umax(2u, false);
+    const struct dj_tests_big one = d_tests_big_of_umax(1u, false);
+    const struct dj_tests_big two = d_tests_big_of_umax(2u, false);
 
     (void)d_tests_digits_of(d_tests_big_add(d_tests_two_words(),
                                             d_tests_big_neg(one)), top);
@@ -1161,26 +1161,26 @@ d_tests_below(
 
 // d_tests_random_umax
 //   a random number of 0 to _bits bits, the length itself random.
-static d_math_umax
+static dj_math_umax
 d_tests_random_umax(
     int _bits
 )
 {
-    const int   length = (int)d_tests_below((long)_bits + 1L);
-    d_math_umax result = 0u;
-    int         i      = 0;
+    const int    length = (int)d_tests_below((long)_bits + 1L);
+    dj_math_umax result = 0u;
+    int          i      = 0;
 
     // sixteen bits at a time
     for (i = 0; i < length; i += 16)
     {
         result = (result << 8) << 8;
-        result = result | (d_math_umax)(d_tests_random32() & 0xFFFFUL);
+        result = result | (dj_math_umax)(d_tests_random32() & 0xFFFFUL);
     }
 
     // cut to the length
     if (length < D_TESTS_WORD)
     {
-        result = result & ((((d_math_umax)1) << length) - 1u);
+        result = result & ((((dj_math_umax)1) << length) - 1u);
     }
 
     return result;
@@ -1305,7 +1305,7 @@ d_tests_exact_decimals(
     static char text[D_TESTS_TEXT_SIZE];
     static char digits[128];
 
-    const d_math_umax most = (d_math_umax)D_MATH_IMAX_MAX;
+    const dj_math_umax most = (dj_math_umax)D_MATH_IMAX_MAX;
 
     long i    = 0;
     int  form = 0;
@@ -1313,15 +1313,15 @@ d_tests_exact_decimals(
     // each rational
     for (i = 0; i < (_count + 4L); ++i)
     {
-        d_math_umax        p     = d_tests_random_umax(D_TESTS_WORD - 1);
-        d_math_umax        q     = 1u;
-        int                x     = 0;
-        int                y     = 0;
-        int                k     = 0;
-        int                j     = 0;
-        bool               past  = (d_tests_below(6L) == 0);
-        char               sign  = '\0';
-        struct d_tests_big m     = d_tests_big_of_umax(0u, false);
+        dj_math_umax        p    = d_tests_random_umax(D_TESTS_WORD - 1);
+        dj_math_umax        q    = 1u;
+        int                 x    = 0;
+        int                 y    = 0;
+        int                 k    = 0;
+        int                 j    = 0;
+        bool                past = (d_tests_below(6L) == 0);
+        char                sign = '\0';
+        struct dj_tests_big m    = d_tests_big_of_umax(0u, false);
 
         // the longest: the most digits there are, and those at both ends
         if (i >= _count)
@@ -1352,7 +1352,7 @@ d_tests_exact_decimals(
         y = 0;
 
         // its powers of 2 and 5 again, as built
-        while ((q % ((d_math_umax)1 << (x + 1))) == 0u)
+        while ((q % ((dj_math_umax)1 << (x + 1))) == 0u)
         {
             ++x;
 
@@ -1364,7 +1364,7 @@ d_tests_exact_decimals(
         }
 
         {
-            d_math_umax rest = q >> x;
+            dj_math_umax rest = q >> x;
 
             while ( (rest % 5u) == 0u )
             {
@@ -1532,9 +1532,9 @@ d_tests_long_decimals(
 //   the integer _x's digits at _at, then _zeros zeros; returns the end.
 static char*
 d_tests_write_term(
-    char*              _at,
-    struct d_tests_big _x,
-    int                _zeros
+    char*               _at,
+    struct dj_tests_big _x,
+    int                 _zeros
 )
 {
     int i = 0;
@@ -1553,14 +1553,14 @@ d_tests_write_term(
 
 // d_tests_random_big
 //   a random integer of 0 to _bits bits, below 256.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_random_big(
     int _bits
 )
 {
-    const int          length = (int)d_tests_below((long)_bits + 1L);
-    struct d_tests_big result = { { 0UL }, 0 };
-    int                i      = 0;
+    const int           length = (int)d_tests_below((long)_bits + 1L);
+    struct dj_tests_big result = { { 0UL }, 0 };
+    int                 i      = 0;
 
     // sixteen bits at a time, the top cut to the length
     for (i = 0; (i * 16) < length; ++i)
@@ -1596,15 +1596,15 @@ d_tests_fractions(
     // each pair
     for (i = 0; i < (2L * _count); ++i)
     {
-        const bool         mixed  = (i >= _count);
-        struct d_tests_big n      = d_tests_random_big(top);
-        struct d_tests_big d      = d_tests_random_big(top);
-        struct d_tests_big w      = d_tests_random_big(
+        const bool          mixed = (i >= _count);
+        struct dj_tests_big n     = d_tests_random_big(top);
+        struct dj_tests_big d     = d_tests_random_big(top);
+        struct dj_tests_big w     = d_tests_random_big(
                                         (mixed) ? (D_TESTS_WORD + 4) : 0);
-        struct d_tests_big g      = d_tests_random_big(24);
-        const int          zeros  = (d_tests_below(5L) == 0)
+        struct dj_tests_big g     = d_tests_random_big(24);
+        const int           zeros = (d_tests_below(5L) == 0)
                                         ? (int)d_tests_below(45L) : 0;
-        char*              at     = text;
+        char*               at    = text;
 
         // a common factor, where the terms stay small enough; or, now and
         // then, one of two words, over small cofactors
@@ -1717,8 +1717,8 @@ d_tests_long_text(
 static void
 d_tests_long_texts(void)
 {
-    struct d_math_value value  = d_math_value_none();
-    size_t              length = 0u;
+    struct dj_math_value value  = d_math_value_none();
+    size_t               length = 0u;
 
     length = d_tests_long_text("0.", "1e1000006", false, "");
     (void)d_math_literal_to_value(&value, g_long, length);
@@ -1769,13 +1769,13 @@ d_tests_long_texts(void)
 #if ( defined(__cplusplus) &&                                                 \
       (__cplusplus >= 201402L) )
 
-static constexpr struct d_math_value
+static constexpr struct dj_math_value
 d_tests_constexpr_literal(
     const char* _text,
     size_t      _length
 )
 {
-    struct d_math_value result = d_math_value_none();
+    struct dj_math_value result = d_math_value_none();
 
     d_math_literal_to_value(&result, _text, _length);
 

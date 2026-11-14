@@ -163,8 +163,6 @@ inc/djinterp/cpp/meta/read_write.hpp	R	1
 inc/djinterp/cpp/meta/storage.hpp	R	1
 inc/djinterp/cpp/meta/trait_detect.hpp	R	1
 inc/djinterp/cpp/meta/write_only.hpp	R	1
-inc/djinterp/cpp/modules/math/expr/evaluate.hpp	B	1
-inc/djinterp/cpp/modules/math/expr/function.hpp	B	1
 inc/djinterp/cpp/modules/math/expression.hpp	B	1
 inc/djinterp/cpp/modules/math/numeric_compare.hpp	B	1
 inc/djinterp/cpp/modules/parsegen/vparse/session.hpp	B	1

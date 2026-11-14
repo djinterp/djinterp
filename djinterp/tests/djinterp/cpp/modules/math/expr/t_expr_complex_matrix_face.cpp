@@ -27,13 +27,14 @@
 *     operands.
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/expr/t_expr_complex_matrix_face.cpp -o t_cm
+*         tests/djinterp/cpp/modules/math/expr/t_expr_complex_matrix_face.cpp  \
+*         -o t_cm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -200,11 +201,11 @@ namespace
     //   whether a value is the error given.
     bool
     d_tests_is_error(
-        const m::value&    _x,
-        d_math_value_error _error
+        const m::value&     _x,
+        dj_math_value_error _error
     )
     {
-        d_math_value_error code = D_MATH_VALUE_ERROR_MEMORY;
+        dj_math_value_error code = D_MATH_VALUE_ERROR_MEMORY;
 
         return ( (_x.kind() == D_MATH_VALUE_ERROR) &&
                  (_x.to(code)) &&
@@ -1291,7 +1292,7 @@ namespace
 
         for (std::size_t k = 0; k < count; ++k)
         {
-            const d_tests_cmatrix_ref&  ref    = g_expr_cmatrix_refs[k];
+            const dj_tests_cmatrix_ref& ref    = g_expr_cmatrix_refs[k];
             const m::value              eig    = d_tests_value_of(
                 ("eig(" + std::string(ref.text) + ")").c_str());
             const std::vector<m::value> values = d_tests_elements(eig);

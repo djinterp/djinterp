@@ -19,17 +19,17 @@
 * path:      /tests/djinterp/c/modules/math/math_tests_cplx_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.27
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_MATH_MATH_TESTS_CPLX_REFS_H
 #define DJINTERP_TESTS_C_MATH_MATH_TESTS_CPLX_REFS_H 1
 
 
-// d_tests_cplx_ref
+// dj_tests_cplx_ref
 //   struct: a point x + iy, x = xm 2^xe and y = ym 2^ye, and the exact
 // value's two parts as text.
-struct d_tests_cplx_ref
+struct dj_tests_cplx_ref
 {
     long        xm;
     int         xe;
@@ -39,9 +39,9 @@ struct d_tests_cplx_ref
     const char* im;
 };
 
-// d_tests_cplx_ref2
+// dj_tests_cplx_ref2
 //   struct: two points, z and w, and the exact value's parts.
-struct d_tests_cplx_ref2
+struct dj_tests_cplx_ref2
 {
     long        xm;
     int         xe;
@@ -55,11 +55,11 @@ struct d_tests_cplx_ref2
     const char* im;
 };
 
-// d_tests_cplx_wide
+// dj_tests_cplx_wide
 //   struct: a point x + iy of one family's full precision, each part
 // (m[0] 2^48 + m[1] 2^24 + m[2]) 2^e, each m[k] of the part's sign and
 // below 2^24 in magnitude, and the exact value's two parts as text.
-struct d_tests_cplx_wide
+struct dj_tests_cplx_wide
 {
     long        xm[3];
     int         xe;
@@ -69,10 +69,10 @@ struct d_tests_cplx_wide
     const char* im;
 };
 
-// d_tests_cplx_wide2
+// dj_tests_cplx_wide2
 //   struct: two points of one family's full precision, z and w, and the
 // exact value's parts.
-struct d_tests_cplx_wide2
+struct dj_tests_cplx_wide2
 {
     long        xm[3];
     int         xe;
@@ -87,7 +87,7 @@ struct d_tests_cplx_wide2
 };
 
 // the points of exp
-static const struct d_tests_cplx_ref g_ref_exp[] =
+static const struct dj_tests_cplx_ref g_ref_exp[] =
 {
     { -11643225, -21, 161579, -15,
       "8.41468000528497451894675264504804962167422819e-4",
@@ -617,7 +617,7 @@ static const struct d_tests_cplx_ref g_ref_exp[] =
 };
 
 // the points of log
-static const struct d_tests_cplx_ref g_ref_log[] =
+static const struct dj_tests_cplx_ref g_ref_log[] =
 {
     { 6382421, -20, -2519781, -20,
       "1.87853987603561898812843427458390673247353770",
@@ -1210,7 +1210,7 @@ static const struct d_tests_cplx_ref g_ref_log[] =
 };
 
 // the points of sqrt
-static const struct d_tests_cplx_ref g_ref_sqrt[] =
+static const struct dj_tests_cplx_ref g_ref_sqrt[] =
 {
     { -1601857, -18, -13193117, -24,
       "1.58731126559212161089906671731144940880334744e-1",
@@ -1755,7 +1755,7 @@ static const struct d_tests_cplx_ref g_ref_sqrt[] =
 };
 
 // the points of sin
-static const struct d_tests_cplx_ref g_ref_sin[] =
+static const struct dj_tests_cplx_ref g_ref_sin[] =
 {
     { -9484015, -21, 13908145, -22,
       "1.35442065488689131123417285080492487186221018e+1",
@@ -2246,7 +2246,7 @@ static const struct d_tests_cplx_ref g_ref_sin[] =
 };
 
 // the points of cos
-static const struct d_tests_cplx_ref g_ref_cos[] =
+static const struct dj_tests_cplx_ref g_ref_cos[] =
 {
     { -15746983, -21, 12698025, -22,
       "3.50141630548255239483227644503286911934866695",
@@ -2737,7 +2737,7 @@ static const struct d_tests_cplx_ref g_ref_cos[] =
 };
 
 // the points of tan
-static const struct d_tests_cplx_ref g_ref_tan[] =
+static const struct dj_tests_cplx_ref g_ref_tan[] =
 {
     { 478087, -16, 4004717, -19,
       "4.17116257434330149254398310310348177578084448e-7",
@@ -3237,7 +3237,7 @@ static const struct d_tests_cplx_ref g_ref_tan[] =
 };
 
 // the points of asin
-static const struct d_tests_cplx_ref g_ref_asin[] =
+static const struct dj_tests_cplx_ref g_ref_asin[] =
 {
     { -11383737, -23, -3516395, -20,
       "-3.71768046253295935419454577447039564150096346e-1",
@@ -3752,7 +3752,7 @@ static const struct d_tests_cplx_ref g_ref_asin[] =
 };
 
 // the points of acos
-static const struct d_tests_cplx_ref g_ref_acos[] =
+static const struct dj_tests_cplx_ref g_ref_acos[] =
 {
     { -16436071, -22, 3302443, -20,
       "2.45487724795702015612633050676332099190281455",
@@ -4267,7 +4267,7 @@ static const struct d_tests_cplx_ref g_ref_acos[] =
 };
 
 // the points of atan
-static const struct d_tests_cplx_ref g_ref_atan[] =
+static const struct dj_tests_cplx_ref g_ref_atan[] =
 {
     { 14436607, -22, -12359099, -22,
       "1.40135352367144923119348320958414691420725686",
@@ -4794,7 +4794,7 @@ static const struct d_tests_cplx_ref g_ref_atan[] =
 };
 
 // the points of sinh
-static const struct d_tests_cplx_ref g_ref_sinh[] =
+static const struct dj_tests_cplx_ref g_ref_sinh[] =
 {
     { -10870139, -21, -15530289, -21,
       "-3.86535367720625097494591669352029513072386452e+1",
@@ -5324,7 +5324,7 @@ static const struct d_tests_cplx_ref g_ref_sinh[] =
 };
 
 // the points of cosh
-static const struct d_tests_cplx_ref g_ref_cosh[] =
+static const struct dj_tests_cplx_ref g_ref_cosh[] =
 {
     { 4461313, -22, -9129953, -21,
       "-5.69374730864033441803512884293558168828960217e-1",
@@ -5854,7 +5854,7 @@ static const struct d_tests_cplx_ref g_ref_cosh[] =
 };
 
 // the points of tanh
-static const struct d_tests_cplx_ref g_ref_tanh[] =
+static const struct dj_tests_cplx_ref g_ref_tanh[] =
 {
     { -14229521, -24, -8039105, -20,
       "-1.39584230409057165971203030132448647257517939",
@@ -6354,7 +6354,7 @@ static const struct d_tests_cplx_ref g_ref_tanh[] =
 };
 
 // the points of asinh
-static const struct d_tests_cplx_ref g_ref_asinh[] =
+static const struct dj_tests_cplx_ref g_ref_asinh[] =
 {
     { 2852735, -20, 16063963, -22,
       "2.23668296548912607060001041489046802694246819",
@@ -6869,7 +6869,7 @@ static const struct d_tests_cplx_ref g_ref_asinh[] =
 };
 
 // the points of acosh
-static const struct d_tests_cplx_ref g_ref_acosh[] =
+static const struct dj_tests_cplx_ref g_ref_acosh[] =
 {
     { -14646031, -23, 7832745, -21,
       "2.11917978240889168748903049783906441213280166",
@@ -7339,7 +7339,7 @@ static const struct d_tests_cplx_ref g_ref_acosh[] =
 };
 
 // the points of atanh
-static const struct d_tests_cplx_ref g_ref_atanh[] =
+static const struct dj_tests_cplx_ref g_ref_atanh[] =
 {
     { -14421165, -22, 5267485, -21,
       "-1.88129465915509829726325585068306856801341383e-1",
@@ -7866,7 +7866,7 @@ static const struct d_tests_cplx_ref g_ref_atanh[] =
 };
 
 // the points of abs_arg
-static const struct d_tests_cplx_ref g_ref_abs_arg[] =
+static const struct dj_tests_cplx_ref g_ref_abs_arg[] =
 {
     { 414751, -20, 10568649, -21,
       "5.05502300278244551969666525113160269063904431",
@@ -8351,7 +8351,7 @@ static const struct d_tests_cplx_ref g_ref_abs_arg[] =
 };
 
 // the points of pow on the axes
-static const struct d_tests_cplx_ref2 g_ref_pow_axes[] =
+static const struct dj_tests_cplx_ref2 g_ref_pow_axes[] =
 {
     { -1, 2, 0, 0, 7, -3, 0, 0,
       "-3.10754794806007461468831790612629389632916700",
@@ -8461,7 +8461,7 @@ static const struct d_tests_cplx_ref2 g_ref_pow_axes[] =
 };
 
 // the points of mul
-static const struct d_tests_cplx_ref2 g_ref_mul[] =
+static const struct dj_tests_cplx_ref2 g_ref_mul[] =
 {
     { 7244057, -21, 1589917, -22, -13775541, -21, -14321531, -25,
       "-22.52801102366573360313850571401417255401611328125",
@@ -9607,7 +9607,7 @@ static const struct d_tests_cplx_ref2 g_ref_mul[] =
 };
 
 // the points of div
-static const struct d_tests_cplx_ref2 g_ref_div[] =
+static const struct dj_tests_cplx_ref2 g_ref_div[] =
 {
     { 12464719, -24, -14828539, -21, -9934555, -21, -5279755, -25,
       "-1.07138471190887452237644928826265645092121476e-1",
@@ -10422,7 +10422,7 @@ static const struct d_tests_cplx_ref2 g_ref_div[] =
 };
 
 // the points of pow
-static const struct d_tests_cplx_ref2 g_ref_pow[] =
+static const struct dj_tests_cplx_ref2 g_ref_pow[] =
 {
     { 12133707, -24, -5682301, -22, -10986457, -24, 11587389, -22,
       "-4.72630625834897004955175095210450515341603331",
@@ -11021,7 +11021,7 @@ static const struct d_tests_cplx_ref2 g_ref_pow[] =
 };
 
 // the points of exp at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_exp[] =
+static const struct dj_tests_cplx_ref g_edge_f_exp[] =
 {
     { 1420867, -14, 13176795, -23,
       "-2.01300662471103799529722574008834326902679784e+30",
@@ -11059,7 +11059,7 @@ static const struct d_tests_cplx_ref g_edge_f_exp[] =
 };
 
 // the points of log at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_log[] =
+static const struct dj_tests_cplx_ref g_edge_f_log[] =
 {
     { 10872351, 101, 14309727, 101,
       "8.67121652722483826871743929992157270930659533e+1",
@@ -11094,7 +11094,7 @@ static const struct d_tests_cplx_ref g_edge_f_log[] =
 };
 
 // the points of sqrt at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_sqrt[] =
+static const struct dj_tests_cplx_ref g_edge_f_sqrt[] =
 {
     { 12774961, 103, 10832179, 104,
       "1.38673923027029179127385912591184301833789844e+19",
@@ -11129,7 +11129,7 @@ static const struct d_tests_cplx_ref g_edge_f_sqrt[] =
 };
 
 // the points of acos at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_acos[] =
+static const struct dj_tests_cplx_ref g_edge_f_acos[] =
 {
     { 15271739, 101, 16619301, 101,
       "8.27628232833608096672421479190702415269626792e-1",
@@ -11164,7 +11164,7 @@ static const struct d_tests_cplx_ref g_edge_f_acos[] =
 };
 
 // the points of sinh at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_sinh[] =
+static const struct dj_tests_cplx_ref g_edge_f_sinh[] =
 {
     { 1420867, -14, 13176795, -23,
       "-1.00650331235551899764861287004417163451339892e+30",
@@ -11208,7 +11208,7 @@ static const struct d_tests_cplx_ref g_edge_f_sinh[] =
 };
 
 // the points of cosh at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_cosh[] =
+static const struct dj_tests_cplx_ref g_edge_f_cosh[] =
 {
     { 1420867, -14, 13176795, -23,
       "-1.00650331235551899764861287004417163451339892e+30",
@@ -11252,7 +11252,7 @@ static const struct d_tests_cplx_ref g_edge_f_cosh[] =
 };
 
 // the points of tanh at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_tanh[] =
+static const struct dj_tests_cplx_ref g_edge_f_tanh[] =
 {
     { 9126869, -20, 3, -2,
       "9.99999996105720662416925538326861741318570415e-1",
@@ -11287,7 +11287,7 @@ static const struct d_tests_cplx_ref g_edge_f_tanh[] =
 };
 
 // the points of asinh at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_asinh[] =
+static const struct dj_tests_cplx_ref g_edge_f_asinh[] =
 {
     { 9716245, 104, 11453795, 104,
       "8.93053348331816654524191335768782592591016589e+1",
@@ -11322,7 +11322,7 @@ static const struct d_tests_cplx_ref g_edge_f_asinh[] =
 };
 
 // the points of atanh at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_atanh[] =
+static const struct dj_tests_cplx_ref g_edge_f_atanh[] =
 {
     { -11153853, 102, 15302415, 101,
       "-1.20235949821147270628536893586088480210570393e-38",
@@ -11357,7 +11357,7 @@ static const struct d_tests_cplx_ref g_edge_f_atanh[] =
 };
 
 // the points of abs_arg at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_abs_arg[] =
+static const struct dj_tests_cplx_ref g_edge_f_abs_arg[] =
 {
     { -15607513, 101, -10815567, 100,
       "4.18776647514728550287785550722675557629657817e+37",
@@ -11392,7 +11392,7 @@ static const struct d_tests_cplx_ref g_edge_f_abs_arg[] =
 };
 
 // the points of exp at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_exp[] =
+static const struct dj_tests_cplx_ref g_edge_d_exp[] =
 {
     { 1449539, -11, 13176795, -23,
       "-1.06346220584612269849416275891555954006921253e+300",
@@ -11430,7 +11430,7 @@ static const struct d_tests_cplx_ref g_edge_d_exp[] =
 };
 
 // the points of log at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_log[] =
+static const struct dj_tests_cplx_ref g_edge_d_log[] =
 {
     { 8454329, 999, -11698447, 998,
       "7.08599794793582252061332196060226110696672665e+2",
@@ -11465,7 +11465,7 @@ static const struct d_tests_cplx_ref g_edge_d_log[] =
 };
 
 // the points of sqrt at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_sqrt[] =
+static const struct dj_tests_cplx_ref g_edge_d_sqrt[] =
 {
     { 10564447, 999, -16559681, 1000,
       "1.10192179909770876185430966798250385992979403e+154",
@@ -11500,7 +11500,7 @@ static const struct d_tests_cplx_ref g_edge_d_sqrt[] =
 };
 
 // the points of acos at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_acos[] =
+static const struct dj_tests_cplx_ref g_edge_d_acos[] =
 {
     { -9864933, 997, -9096907, 1000,
       "1.70552850440934381188119017701792382952458699",
@@ -11535,7 +11535,7 @@ static const struct d_tests_cplx_ref g_edge_d_acos[] =
 };
 
 // the points of sinh at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_sinh[] =
+static const struct dj_tests_cplx_ref g_edge_d_sinh[] =
 {
     { 1449539, -11, 13176795, -23,
       "-5.31731102923061349247081379457779770034606263e+299",
@@ -11579,7 +11579,7 @@ static const struct d_tests_cplx_ref g_edge_d_sinh[] =
 };
 
 // the points of cosh at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_cosh[] =
+static const struct dj_tests_cplx_ref g_edge_d_cosh[] =
 {
     { 1449539, -11, 13176795, -23,
       "-5.31731102923061349247081379457779770034606263e+299",
@@ -11623,7 +11623,7 @@ static const struct d_tests_cplx_ref g_edge_d_cosh[] =
 };
 
 // the points of tanh at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_tanh[] =
+static const struct dj_tests_cplx_ref g_edge_d_tanh[] =
 {
     { 9832861, -19, 3, -2,
       "9.99999999999999992746332300718794660682106362e-1",
@@ -11658,7 +11658,7 @@ static const struct d_tests_cplx_ref g_edge_d_tanh[] =
 };
 
 // the points of asinh at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_asinh[] =
+static const struct dj_tests_cplx_ref g_edge_d_asinh[] =
 {
     { 16645063, 997, -15888537, 999,
       "7.09761460681585746630671356962991373586488841e+2",
@@ -11693,7 +11693,7 @@ static const struct d_tests_cplx_ref g_edge_d_asinh[] =
 };
 
 // the points of atanh at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_atanh[] =
+static const struct dj_tests_cplx_ref g_edge_d_atanh[] =
 {
     { 11854239, 1000, 15001797, 995,
       "7.86053212776781354650022213416638364762761578e-309",
@@ -11728,7 +11728,7 @@ static const struct d_tests_cplx_ref g_edge_d_atanh[] =
 };
 
 // the points of abs_arg at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_abs_arg[] =
+static const struct dj_tests_cplx_ref g_edge_d_abs_arg[] =
 {
     { 10701547, 999, 16131947, 997,
       "6.12702662535860312899138202144987826210275741e+307",
@@ -11763,7 +11763,7 @@ static const struct d_tests_cplx_ref g_edge_d_abs_arg[] =
 };
 
 // the points of exp at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_exp[] =
+static const struct dj_tests_cplx_ref g_edge_ld_exp[] =
 {
     { 1453379, -7, 13176795, -23,
       "-7.03830632423433899939862975745685724737102845e+4923",
@@ -11801,7 +11801,7 @@ static const struct d_tests_cplx_ref g_edge_ld_exp[] =
 };
 
 // the points of log at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_log[] =
+static const struct dj_tests_cplx_ref g_edge_ld_log[] =
 {
     { 9891259, 16357, 8700573, 16356,
       "1.13540040118026551546033071466264278077858307e+4",
@@ -11836,7 +11836,7 @@ static const struct d_tests_cplx_ref g_edge_ld_log[] =
 };
 
 // the points of sqrt at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_sqrt[] =
+static const struct dj_tests_cplx_ref g_edge_ld_sqrt[] =
 {
     { -13330549, 16360, 11830425, 16360,
       "3.99112653939889717836310862037071328264454563e+2465",
@@ -11871,7 +11871,7 @@ static const struct d_tests_cplx_ref g_edge_ld_sqrt[] =
 };
 
 // the points of acos at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_acos[] =
+static const struct dj_tests_cplx_ref g_edge_ld_acos[] =
 {
     { 10223905, 16359, -14044871, 16360,
       "1.22172811796886874026842654326280329886971651",
@@ -11906,7 +11906,7 @@ static const struct d_tests_cplx_ref g_edge_ld_acos[] =
 };
 
 // the points of sinh at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_sinh[] =
+static const struct dj_tests_cplx_ref g_edge_ld_sinh[] =
 {
     { 1453379, -7, 13176795, -23,
       "-3.51915316211716949969931487872842862368551423e+4923",
@@ -11950,7 +11950,7 @@ static const struct d_tests_cplx_ref g_edge_ld_sinh[] =
 };
 
 // the points of cosh at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_cosh[] =
+static const struct dj_tests_cplx_ref g_edge_ld_cosh[] =
 {
     { 1453379, -7, 13176795, -23,
       "-3.51915316211716949969931487872842862368551423e+4923",
@@ -11994,7 +11994,7 @@ static const struct d_tests_cplx_ref g_edge_ld_cosh[] =
 };
 
 // the points of tanh at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_tanh[] =
+static const struct dj_tests_cplx_ref g_edge_ld_tanh[] =
 {
     { 11831609, -19, 3, -2,
       "9.99999999999999999996458168454039441859730822e-1",
@@ -12029,7 +12029,7 @@ static const struct d_tests_cplx_ref g_edge_ld_tanh[] =
 };
 
 // the points of asinh at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_asinh[] =
+static const struct dj_tests_cplx_ref g_edge_ld_asinh[] =
 {
     { -11772507, 16357, 12671529, 16355,
       "-1.13548178114056877595337590347028961580734786e+4",
@@ -12064,7 +12064,7 @@ static const struct d_tests_cplx_ref g_edge_ld_asinh[] =
 };
 
 // the points of atanh at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_atanh[] =
+static const struct dj_tests_cplx_ref g_edge_ld_atanh[] =
 {
     { -10687483, 16359, -15548221, 16358,
       "-1.72577901735371423570031880483294940425705112e-4932",
@@ -12099,7 +12099,7 @@ static const struct d_tests_cplx_ref g_edge_ld_atanh[] =
 };
 
 // the points of abs_arg at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_abs_arg[] =
+static const struct dj_tests_cplx_ref g_edge_ld_abs_arg[] =
 {
     { 15779553, 16359, 14497435, 16359,
       "7.59776364879900015279920607932109240483823747e+4931",
@@ -12134,7 +12134,7 @@ static const struct d_tests_cplx_ref g_edge_ld_abs_arg[] =
 };
 
 // the points of exp, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_exp[] =
+static const struct dj_tests_cplx_wide g_wide_d_exp[] =
 {
     { { -22, -3484476, -5708941 }, -50,
       { 19, 12146702, 7342178 }, -50,
@@ -12491,7 +12491,7 @@ static const struct d_tests_cplx_wide g_wide_d_exp[] =
 };
 
 // the points of log, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_log[] =
+static const struct dj_tests_cplx_wide g_wide_d_log[] =
 {
     { { 24, 5821766, 5191485 }, -50,
       { -19, -3764880, -813447 }, -51,
@@ -12920,7 +12920,7 @@ static const struct d_tests_cplx_wide g_wide_d_log[] =
 };
 
 // the points of sqrt, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_sqrt[] =
+static const struct dj_tests_cplx_wide g_wide_d_sqrt[] =
 {
     { { -24, -7422237, -10867069 }, -50,
       { -25, -2749364, -15672631 }, -53,
@@ -13285,7 +13285,7 @@ static const struct d_tests_cplx_wide g_wide_d_sqrt[] =
 };
 
 // the points of sin, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_sin[] =
+static const struct dj_tests_cplx_wide g_wide_d_sin[] =
 {
     { { -18, -1498622, -12010313 }, -50,
       { 26, 8853043, 12170156 }, -51,
@@ -13614,7 +13614,7 @@ static const struct d_tests_cplx_wide g_wide_d_sin[] =
 };
 
 // the points of cos, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_cos[] =
+static const struct dj_tests_cplx_wide g_wide_d_cos[] =
 {
     { { -30, -587006, -3625993 }, -50,
       { 24, 3683631, 15467390 }, -51,
@@ -13943,7 +13943,7 @@ static const struct d_tests_cplx_wide g_wide_d_cos[] =
 };
 
 // the points of tan, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_tan[] =
+static const struct dj_tests_cplx_wide g_wide_d_tan[] =
 {
     { { 29, 3021825, 6656709 }, -50,
       { 30, 9287314, 3273162 }, -50,
@@ -14280,7 +14280,7 @@ static const struct d_tests_cplx_wide g_wide_d_tan[] =
 };
 
 // the points of asin, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_asin[] =
+static const struct dj_tests_cplx_wide g_wide_d_asin[] =
 {
     { { -21, -11958061, -156548 }, -52,
       { -26, -13890952, -15447225 }, -51,
@@ -14625,7 +14625,7 @@ static const struct d_tests_cplx_wide g_wide_d_asin[] =
 };
 
 // the points of acos, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_acos[] =
+static const struct dj_tests_cplx_wide g_wide_d_acos[] =
 {
     { { -31, -5860591, -12546404 }, -51,
       { 25, 3282328, 10955078 }, -51,
@@ -14970,7 +14970,7 @@ static const struct d_tests_cplx_wide g_wide_d_acos[] =
 };
 
 // the points of atan, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_atan[] =
+static const struct dj_tests_cplx_wide g_wide_d_atan[] =
 {
     { { 27, 8986615, 5006684 }, -51,
       { -23, -9615201, -2576699 }, -51,
@@ -15323,7 +15323,7 @@ static const struct d_tests_cplx_wide g_wide_d_atan[] =
 };
 
 // the points of sinh, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_sinh[] =
+static const struct dj_tests_cplx_wide g_wide_d_sinh[] =
 {
     { { -20, -12300137, -7731615 }, -50,
       { -29, -10430010, -7878245 }, -50,
@@ -15680,7 +15680,7 @@ static const struct d_tests_cplx_wide g_wide_d_sinh[] =
 };
 
 // the points of cosh, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_cosh[] =
+static const struct dj_tests_cplx_wide g_wide_d_cosh[] =
 {
     { { 17, 311364, 15443086 }, -52,
       { -17, -6945838, -7402779 }, -50,
@@ -16037,7 +16037,7 @@ static const struct d_tests_cplx_wide g_wide_d_cosh[] =
 };
 
 // the points of tanh, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_tanh[] =
+static const struct dj_tests_cplx_wide g_wide_d_tanh[] =
 {
     { { -27, -2359860, -8080651 }, -53,
       { -30, -11186254, -4167103 }, -50,
@@ -16374,7 +16374,7 @@ static const struct d_tests_cplx_wide g_wide_d_tanh[] =
 };
 
 // the points of asinh, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_asinh[] =
+static const struct dj_tests_cplx_wide g_wide_d_asinh[] =
 {
     { { 21, 12828563, 12828622 }, -51,
       { 30, 10730367, 6529805 }, -51,
@@ -16719,7 +16719,7 @@ static const struct d_tests_cplx_wide g_wide_d_asinh[] =
 };
 
 // the points of acosh, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_acosh[] =
+static const struct dj_tests_cplx_wide g_wide_d_acosh[] =
 {
     { { -27, -15688179, -2315134 }, -52,
       { 29, 14756417, 11663043 }, -51,
@@ -17036,7 +17036,7 @@ static const struct d_tests_cplx_wide g_wide_d_acosh[] =
 };
 
 // the points of atanh, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_atanh[] =
+static const struct dj_tests_cplx_wide g_wide_d_atanh[] =
 {
     { { -27, -8492459, -10918840 }, -51,
       { 20, 1574745, 9647721 }, -51,
@@ -17389,7 +17389,7 @@ static const struct d_tests_cplx_wide g_wide_d_atanh[] =
 };
 
 // the points of abs_arg, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_abs_arg[] =
+static const struct dj_tests_cplx_wide g_wide_d_abs_arg[] =
 {
     { { 25, 5274654, 13357989 }, -54,
       { 20, 2652463, 3386796 }, -50,
@@ -17714,7 +17714,7 @@ static const struct d_tests_cplx_wide g_wide_d_abs_arg[] =
 };
 
 // the points of mul, at double's full width
-static const struct d_tests_cplx_wide2 g_wide_d_mul[] =
+static const struct dj_tests_cplx_wide2 g_wide_d_mul[] =
 {
     { { 27, 10634817, 6661338 }, -51,
       { 24, 4365581, 15678118 }, -54,
@@ -18935,7 +18935,7 @@ static const struct d_tests_cplx_wide2 g_wide_d_mul[] =
 };
 
 // the points of div, at double's full width
-static const struct d_tests_cplx_wide2 g_wide_d_div[] =
+static const struct dj_tests_cplx_wide2 g_wide_d_div[] =
 {
     { { 23, 12995045, 5459156 }, -53,
       { -28, -4751207, -8627981 }, -50,
@@ -19750,7 +19750,7 @@ static const struct d_tests_cplx_wide2 g_wide_d_div[] =
 };
 
 // the points of pow, at double's full width
-static const struct d_tests_cplx_wide2 g_wide_d_pow[] =
+static const struct dj_tests_cplx_wide2 g_wide_d_pow[] =
 {
     { { 23, 2402673, 2481039 }, -53,
       { -21, -11345755, -2571721 }, -52,
@@ -20349,7 +20349,7 @@ static const struct d_tests_cplx_wide2 g_wide_d_pow[] =
 };
 
 // the points of exp, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_exp[] =
+static const struct dj_tests_cplx_wide g_wide_ld_exp[] =
 {
     { { -45481, -5885219, -14549052 }, -61,
       { 40394, 12629298, 16534002 }, -61,
@@ -20706,7 +20706,7 @@ static const struct d_tests_cplx_wide g_wide_ld_exp[] =
 };
 
 // the points of log, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_log[] =
+static const struct dj_tests_cplx_wide g_wide_ld_log[] =
 {
     { { 49862, 11141969, 3956760 }, -61,
       { -39371, -9712231, -16344737 }, -62,
@@ -21135,7 +21135,7 @@ static const struct d_tests_cplx_wide g_wide_ld_log[] =
 };
 
 // the points of sqrt, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_sqrt[] =
+static const struct dj_tests_cplx_wide g_wide_ld_sqrt[] =
 {
     { { -50058, -549457, -1146242 }, -61,
       { -51535, -10334850, -13849823 }, -64,
@@ -21500,7 +21500,7 @@ static const struct d_tests_cplx_wide g_wide_ld_sqrt[] =
 };
 
 // the points of sin, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_sin[] =
+static const struct dj_tests_cplx_wide g_wide_ld_sin[] =
 {
     { { -37046, -15664427, -14529289 }, -61,
       { 54328, 11663554, 993572 }, -62,
@@ -21829,7 +21829,7 @@ static const struct d_tests_cplx_wide g_wide_ld_sin[] =
 };
 
 // the points of cos, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_cos[] =
+static const struct dj_tests_cplx_wide g_wide_ld_cos[] =
 {
     { { -61511, -10984951, -7301878 }, -61,
       { 49601, 11105659, 9124604 }, -62,
@@ -22158,7 +22158,7 @@ static const struct d_tests_cplx_wide g_wide_ld_cos[] =
 };
 
 // the points of tan, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_tan[] =
+static const struct dj_tests_cplx_wide g_wide_ld_tan[] =
 {
     { { 59760, 14713483, 3390266 }, -61,
       { 62573, 11822585, 15887227 }, -61,
@@ -22495,7 +22495,7 @@ static const struct d_tests_cplx_wide g_wide_ld_tan[] =
 };
 
 // the points of asin, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_asin[] =
+static const struct dj_tests_cplx_wide g_wide_ld_asin[] =
 {
     { { -44467, -12169816, -15956864 }, -63,
       { -54943, -11307984, -13402791 }, -62,
@@ -22840,7 +22840,7 @@ static const struct d_tests_cplx_wide g_wide_ld_asin[] =
 };
 
 // the points of acos, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_acos[] =
+static const struct dj_tests_cplx_wide g_wide_ld_acos[] =
 {
     { { -64203, -6773391, -3014884 }, -62,
       { 51600, 11301197, 9409480 }, -62,
@@ -23185,7 +23185,7 @@ static const struct d_tests_cplx_wide g_wide_ld_acos[] =
 };
 
 // the points of atan, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_atan[] =
+static const struct dj_tests_cplx_wide g_wide_ld_atan[] =
 {
     { { 56392, 16719313, 5023399 }, -62,
       { -48277, -12290751, -5061866 }, -62,
@@ -23538,7 +23538,7 @@ static const struct d_tests_cplx_wide g_wide_ld_atan[] =
 };
 
 // the points of sinh, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_sinh[] =
+static const struct dj_tests_cplx_wide g_wide_ld_sinh[] =
 {
     { { -42461, -8107759, -10875184 }, -61,
       { -60665, -3242683, -2909252 }, -61,
@@ -23895,7 +23895,7 @@ static const struct d_tests_cplx_wide g_wide_ld_sinh[] =
 };
 
 // the points of cosh, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_cosh[] =
+static const struct dj_tests_cplx_wide g_wide_ld_cosh[] =
 {
     { { 34854, 155274, 15903844 }, -63,
       { -35663, -14757673, -12188757 }, -61,
@@ -24252,7 +24252,7 @@ static const struct d_tests_cplx_wide g_wide_ld_cosh[] =
 };
 
 // the points of tanh, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_tanh[] =
+static const struct dj_tests_cplx_wide g_wide_ld_tanh[] =
 {
     { { -55584, -1158219, -9448056 }, -64,
       { -62805, -8562343, -8506469 }, -61,
@@ -24589,7 +24589,7 @@ static const struct d_tests_cplx_wide g_wide_ld_tanh[] =
 };
 
 // the points of asinh, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_asinh[] =
+static const struct dj_tests_cplx_wide g_wide_ld_asinh[] =
 {
     { { 44573, 16537289, 2685951 }, -62,
       { 62749, 14364943, 2406972 }, -62,
@@ -24934,7 +24934,7 @@ static const struct d_tests_cplx_wide g_wide_ld_asinh[] =
 };
 
 // the points of acosh, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_acosh[] =
+static const struct dj_tests_cplx_wide g_wide_ld_acosh[] =
 {
     { { -57211, -1021570, -8858008 }, -63,
       { 61193, 5430605, 3474116 }, -62,
@@ -25251,7 +25251,7 @@ static const struct d_tests_cplx_wide g_wide_ld_acosh[] =
 };
 
 // the points of atanh, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_atanh[] =
+static const struct dj_tests_cplx_wide g_wide_ld_atanh[] =
 {
     { { -56332, -11392441, -5587501 }, -62,
       { 41152, 3841703, 9157465 }, -62,
@@ -25604,7 +25604,7 @@ static const struct d_tests_cplx_wide g_wide_ld_atanh[] =
 };
 
 // the points of abs_arg, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_abs_arg[] =
+static const struct dj_tests_cplx_wide g_wide_ld_abs_arg[] =
 {
     { { 51843, 14706883, 13248012 }, -65,
       { 41283, 13197499, 5728465 }, -61,
@@ -25929,7 +25929,7 @@ static const struct d_tests_cplx_wide g_wide_ld_abs_arg[] =
 };
 
 // the points of mul, at long double's full width
-static const struct d_tests_cplx_wide2 g_wide_ld_mul[] =
+static const struct dj_tests_cplx_wide2 g_wide_ld_mul[] =
 {
     { { 56594, 3305336, 3425148 }, -62,
       { 49684, 15268545, 5792659 }, -65,
@@ -27222,7 +27222,7 @@ static const struct d_tests_cplx_wide2 g_wide_ld_mul[] =
 };
 
 // the points of div, at long double's full width
-static const struct d_tests_cplx_wide2 g_wide_ld_div[] =
+static const struct dj_tests_cplx_wide2 g_wide_ld_div[] =
 {
     { { 48690, 5231470, 1973812 }, -64,
       { -57923, -16508974, -10916009 }, -61,
@@ -28037,7 +28037,7 @@ static const struct d_tests_cplx_wide2 g_wide_ld_div[] =
 };
 
 // the points of pow, at long double's full width
-static const struct d_tests_cplx_wide2 g_wide_ld_pow[] =
+static const struct dj_tests_cplx_wide2 g_wide_ld_pow[] =
 {
     { { 47397, 4949106, 15947852 }, -64,
       { -44392, -16392276, -9096124 }, -63,

@@ -12,13 +12,14 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -pedantic-errors -Iinc              \
-*         tests/djinterp/math/linear_algebra/t_square_face.cpp -o t_square -lm
+*         tests/djinterp/cpp/modules/math/linear_algebra/t_square_face.cpp     \
+*         -o t_square -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_square_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/square.hpp"  // tested
 // std

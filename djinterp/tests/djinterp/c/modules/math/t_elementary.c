@@ -28,7 +28,7 @@
 * arguments whose long double result lands on a double's rounding midpoint.
 *
 *   sqrt_settle_digits, the root's last bit settled in digits of 16 bits --
-* sqrt_c's for a double where d_math_umax has 32 bits -- is called directly,
+* sqrt_c's for a double where dj_math_umax has 32 bits -- is called directly,
 * so that every build checks it: the library's root from Newton's root and
 * from a place and two either side, at every sixteenth float in [1, 4), and
 * at 250,000 random doubles there and 50,000 squares and their neighbours;
@@ -48,17 +48,17 @@
 * constant expressions, at huge arguments too, with the bits they have at
 * run time. It needs no 64-bit integer -- its random numbers come from
 * math_tests_random.h, the same in every build -- so that ISO-strict C++98
-* on a 32-bit target, where d_math_umax has 32 bits, builds it too.
+* on a 32-bit target, where dj_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_elementary.c -o t_elementary -lm
+*        tests/djinterp/c/modules/math/t_elementary.c -o t_elementary -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_elementary.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_EPSILON, LDBL_MANT_DIG
@@ -889,8 +889,8 @@ d_tests_newton_d(double _m)
 
 // d_tests_sqrt_digits
 //   sqrt_settle_digits -- the last bit settled in digits of 16 bits, which
-// sqrt_unit takes where two d_math_umax limbs do not hold (2^(P+1))^2: a
-// double where d_math_umax has 32 bits -- called directly, so that every
+// sqrt_unit takes where two dj_math_umax limbs do not hold (2^(P+1))^2: a
+// double where dj_math_umax has 32 bits -- called directly, so that every
 // build checks it: the library's root, bit for bit, settled from Newton's
 // root and from it a place and two either side. For float, every sixteenth
 // float in [1, 4), and every sixty-fourth from the places either side; for
@@ -1291,7 +1291,7 @@ static_assert(d_math_asin_c(0.5f) > (float)0.5235f,
               "the C++ overloads of asin, float");
 
 // and the last bit of a root settled in digits of 16 bits, which a double
-// takes where d_math_umax has 32 bits: from a place either side
+// takes where dj_math_umax has 32 bits: from a place either side
 static constexpr double      g_csettle_d  =
     d_internal_math_d_sqrt_settle_digits(2.0, 1.414213562373095);
 static constexpr float       g_csettle_f  =

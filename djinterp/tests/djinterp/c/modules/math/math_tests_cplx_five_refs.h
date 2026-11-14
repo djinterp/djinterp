@@ -20,17 +20,17 @@
 * path:      /tests/djinterp/c/modules/math/math_tests_cplx_five_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_MATH_MATH_TESTS_CPLX_FIVE_REFS_H
 #define DJINTERP_TESTS_C_MATH_MATH_TESTS_CPLX_FIVE_REFS_H 1
 
 // tests
-#include "./math_tests_cplx_refs.h"  // struct d_tests_cplx_ref, _wide
+#include "./math_tests_cplx_refs.h"  // struct dj_tests_cplx_ref, _wide
 
 // the points of exp2
-static const struct d_tests_cplx_ref g_ref_exp2[] =
+static const struct dj_tests_cplx_ref g_ref_exp2[] =
 {
     { 8928011, -23, 16272395, -21,
       "1.29190741354980199495733500257745972952289908",
@@ -686,7 +686,7 @@ static const struct d_tests_cplx_ref g_ref_exp2[] =
 };
 
 // the points of log2
-static const struct d_tests_cplx_ref g_ref_log2[] =
+static const struct dj_tests_cplx_ref g_ref_log2[] =
 {
     { -10394485, -25, 9595685, -21,
       "2.19725323746369108633830069956445066849852039",
@@ -1279,7 +1279,7 @@ static const struct d_tests_cplx_ref g_ref_log2[] =
 };
 
 // the points of log10
-static const struct d_tests_cplx_ref g_ref_log10[] =
+static const struct dj_tests_cplx_ref g_ref_log10[] =
 {
     { 8733339, -21, -4900199, -21,
       "6.78984096996309011288712050964337883010290757e-1",
@@ -1872,7 +1872,7 @@ static const struct d_tests_cplx_ref g_ref_log10[] =
 };
 
 // the points of log1p
-static const struct d_tests_cplx_ref g_ref_log1p[] =
+static const struct dj_tests_cplx_ref g_ref_log1p[] =
 {
     { 10751457, -24, -453425, -17,
       "1.34254445112149242211058003575359984935777124",
@@ -2549,7 +2549,7 @@ static const struct d_tests_cplx_ref g_ref_log1p[] =
 };
 
 // the points of expm1
-static const struct d_tests_cplx_ref g_ref_expm1[] =
+static const struct dj_tests_cplx_ref g_ref_expm1[] =
 {
     { -13330663, -21, 13910439, -22,
       "-1.00170885514067561274765040193133904419668314",
@@ -3304,7 +3304,7 @@ static const struct d_tests_cplx_ref g_ref_expm1[] =
 };
 
 // the points of exp2 at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_exp2[] =
+static const struct dj_tests_cplx_ref g_edge_f_exp2[] =
 {
     { 63, 1, 1188131, -19,
       "1.91413607953716182743916679205408681230055298e+30",
@@ -3387,7 +3387,7 @@ static const struct d_tests_cplx_ref g_edge_f_exp2[] =
 };
 
 // the points of log2 at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_log2[] =
+static const struct dj_tests_cplx_ref g_edge_f_log2[] =
 {
     { 16461895, 102, -10033757, 102,
       "1.26200508303103972535080988089837660423499193e+2",
@@ -3422,7 +3422,7 @@ static const struct d_tests_cplx_ref g_edge_f_log2[] =
 };
 
 // the points of log10 at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_log10[] =
+static const struct dj_tests_cplx_ref g_edge_f_log10[] =
 {
     { -12647981, 101, -8425083, 99,
       "3.75119907708261630445807478560413691325985100e+1",
@@ -3457,7 +3457,7 @@ static const struct d_tests_cplx_ref g_edge_f_log10[] =
 };
 
 // the points of log1p at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_log1p[] =
+static const struct dj_tests_cplx_ref g_edge_f_log1p[] =
 {
     { 9042741, 103, -11336751, 99,
       "8.74146928856185752088754830711805143269932183e+1",
@@ -3492,7 +3492,7 @@ static const struct d_tests_cplx_ref g_edge_f_log1p[] =
 };
 
 // the points of expm1 at the ends of float's range
-static const struct d_tests_cplx_ref g_edge_f_expm1[] =
+static const struct dj_tests_cplx_ref g_edge_f_expm1[] =
 {
     { 1420867, -14, 13176795, -23,
       "-2.01300662471103799529722574008934326902679784e+30",
@@ -3554,7 +3554,7 @@ static const struct d_tests_cplx_ref g_edge_f_expm1[] =
 };
 
 // the points of exp2 at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_exp2[] =
+static const struct dj_tests_cplx_ref g_edge_d_exp2[] =
 {
     { 511, 1, 1188131, -19,
       "1.01122762266894534748038847146540035430230550e+300",
@@ -3637,7 +3637,7 @@ static const struct d_tests_cplx_ref g_edge_d_exp2[] =
 };
 
 // the points of log2 at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_log2[] =
+static const struct dj_tests_cplx_ref g_edge_d_log2[] =
 {
     { 16185071, 997, -10288141, 999,
       "1.02239822580822314627537152927821519983894128e+3",
@@ -3672,7 +3672,7 @@ static const struct d_tests_cplx_ref g_edge_d_log2[] =
 };
 
 // the points of log10 at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_log10[] =
+static const struct dj_tests_cplx_ref g_edge_d_log10[] =
 {
     { -9323371, 999, 14952077, 995,
       "3.07700709330322312771413268259838441891662841e+2",
@@ -3707,7 +3707,7 @@ static const struct d_tests_cplx_ref g_edge_d_log10[] =
 };
 
 // the points of log1p at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_log1p[] =
+static const struct dj_tests_cplx_ref g_edge_d_log1p[] =
 {
     { 12667477, 1000, 11383373, 999,
       "7.09593674083224590455964266216157613543766753e+2",
@@ -3742,7 +3742,7 @@ static const struct d_tests_cplx_ref g_edge_d_log1p[] =
 };
 
 // the points of expm1 at the ends of double's range
-static const struct d_tests_cplx_ref g_edge_d_expm1[] =
+static const struct dj_tests_cplx_ref g_edge_d_expm1[] =
 {
     { 1449539, -11, 13176795, -23,
       "-1.06346220584612269849416275891555954006921253e+300",
@@ -3804,7 +3804,7 @@ static const struct d_tests_cplx_ref g_edge_d_expm1[] =
 };
 
 // the points of exp2 at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_exp2[] =
+static const struct dj_tests_cplx_ref g_edge_ld_exp2[] =
 {
     { 8191, 1, 1188131, -19,
       "6.69240666459243423963298595370533555538835742e+4923",
@@ -3887,7 +3887,7 @@ static const struct d_tests_cplx_ref g_edge_ld_exp2[] =
 };
 
 // the points of log2 at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_log2[] =
+static const struct dj_tests_cplx_ref g_edge_ld_log2[] =
 {
     { -12279825, 16357, -12950985, 16355,
       "1.63805982674779800247971455898148105345872298e+4",
@@ -3922,7 +3922,7 @@ static const struct d_tests_cplx_ref g_edge_ld_log2[] =
 };
 
 // the points of log10 at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_log10[] =
+static const struct dj_tests_cplx_ref g_edge_ld_log10[] =
 {
     { 11622639, 16360, -12768817, 16355,
       "4.93191628960553644530046981775819078955501839e+3",
@@ -3957,7 +3957,7 @@ static const struct d_tests_cplx_ref g_edge_ld_log10[] =
 };
 
 // the points of log1p at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_log1p[] =
+static const struct dj_tests_cplx_ref g_edge_ld_log1p[] =
 {
     { -9165111, 16357, -10873263, 16355,
       "1.13538815028028472694220860851034921010338183e+4",
@@ -3992,7 +3992,7 @@ static const struct d_tests_cplx_ref g_edge_ld_log1p[] =
 };
 
 // the points of expm1 at the ends of long double's range
-static const struct d_tests_cplx_ref g_edge_ld_expm1[] =
+static const struct dj_tests_cplx_ref g_edge_ld_expm1[] =
 {
     { 1453379, -7, 13176795, -23,
       "-7.03830632423433899939862975745685724737102845e+4923",
@@ -4054,7 +4054,7 @@ static const struct d_tests_cplx_ref g_edge_ld_expm1[] =
 };
 
 // the points of exp2, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_exp2[] =
+static const struct dj_tests_cplx_wide g_wide_d_exp2[] =
 {
     { { 17, 483693, 6357930 }, -52,
       { 31, 622964, 11243457 }, -50,
@@ -4495,7 +4495,7 @@ static const struct d_tests_cplx_wide g_wide_d_exp2[] =
 };
 
 // the points of log2, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_log2[] =
+static const struct dj_tests_cplx_wide g_wide_d_log2[] =
 {
     { { -19, -13856433, -1706607 }, -54,
       { 18, 5072038, 1522143 }, -50,
@@ -4892,7 +4892,7 @@ static const struct d_tests_cplx_wide g_wide_d_log2[] =
 };
 
 // the points of log10, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_log10[] =
+static const struct dj_tests_cplx_wide g_wide_d_log10[] =
 {
     { { 16, 11031420, 13021484 }, -50,
       { -18, -11622871, -612828 }, -51,
@@ -5289,7 +5289,7 @@ static const struct d_tests_cplx_wide g_wide_d_log10[] =
 };
 
 // the points of log1p, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_log1p[] =
+static const struct dj_tests_cplx_wide g_wide_d_log1p[] =
 {
     { { 20, 8502316, 8789262 }, -53,
       { -27, -11322398, -3980662 }, -51,
@@ -5806,7 +5806,7 @@ static const struct d_tests_cplx_wide g_wide_d_log1p[] =
 };
 
 // the points of expm1, at double's full width
-static const struct d_tests_cplx_wide g_wide_d_expm1[] =
+static const struct dj_tests_cplx_wide g_wide_d_expm1[] =
 {
     { { -25, -7150821, -13672672 }, -50,
       { 26, 8926439, 5515041 }, -51,
@@ -6359,7 +6359,7 @@ static const struct d_tests_cplx_wide g_wide_d_expm1[] =
 };
 
 // the points of exp2, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_exp2[] =
+static const struct dj_tests_cplx_wide g_wide_ld_exp2[] =
 {
     { { 34875, 734327, 12730288 }, -63,
       { 63564, 746741, 2335221 }, -61,
@@ -6800,7 +6800,7 @@ static const struct d_tests_cplx_wide g_wide_ld_exp2[] =
 };
 
 // the points of log2, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_log2[] =
+static const struct dj_tests_cplx_wide g_wide_ld_log2[] =
 {
     { { -40603, -7683781, -8774177 }, -65,
       { 37483, 2428331, 11508578 }, -61,
@@ -7197,7 +7197,7 @@ static const struct d_tests_cplx_wide g_wide_ld_log2[] =
 };
 
 // the points of log10, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_log10[] =
+static const struct dj_tests_cplx_wide g_wide_ld_log10[] =
 {
     { { 34114, 10166434, 14501649 }, -61,
       { -38282, -13510954, -12570956 }, -62,
@@ -7594,7 +7594,7 @@ static const struct d_tests_cplx_wide g_wide_ld_log10[] =
 };
 
 // the points of log1p, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_log1p[] =
+static const struct dj_tests_cplx_wide g_wide_ld_log1p[] =
 {
     { { 41997, 14758791, 13123185 }, -64,
       { -56678, -2103979, -10418477 }, -62,
@@ -8111,7 +8111,7 @@ static const struct d_tests_cplx_wide g_wide_ld_log1p[] =
 };
 
 // the points of expm1, at long double's full width
-static const struct d_tests_cplx_wide g_wide_ld_expm1[] =
+static const struct dj_tests_cplx_wide g_wide_ld_expm1[] =
 {
     { { -52072, -15191994, -11605007 }, -61,
       { 54337, 11000194, 4112004 }, -62,

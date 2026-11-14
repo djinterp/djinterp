@@ -286,7 +286,7 @@ d_tests_counter_event_fan
 bool
 d_tests_counter_event_fan(void)
 {
-    const struct d_interval_imax ceiling    = d_tests_counter_range(0,
+    const struct dj_interval_imax ceiling   = d_tests_counter_range(0,
                                                                     1);
     struct dj_event_dispatcher   dispatcher = { 0 };
     struct dj_counter            capped     = D_COUNTER_INIT;

@@ -19,13 +19,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_vec.c -o t_vec -lm
+*        tests/djinterp/c/modules/math/t_vec.c -o t_vec -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_vec.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ...

@@ -46,7 +46,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/decomposition.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -74,7 +74,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.hpp"                  // framework root
 #include "../../../../c/modules/math/decomp.h"    // the C core: d_decomp_*,
-                                                  // struct d_cplx_* through
+                                                  // struct dj_cplx_* through
                                                   // cplx.h
 #include "./linalg_common.hpp"                    // linalg_family_of
 #include "./matrix.hpp"                           // matrix
@@ -96,26 +96,26 @@ NS_INTERNAL
     // decomp_complex
     //   trait: the C core's complex number of a floating-point type, the
     // general eigensolver's eigenvalues and eigenvectors: cplx.h's struct
-    // d_cplx_f, d_cplx_d or d_cplx_ld.
+    // dj_cplx_f, dj_cplx_d or dj_cplx_ld.
     template<typename T>
     struct decomp_complex;
 
     template<>
     struct decomp_complex<float>
     {
-        typedef d_cplx_f type;
+        typedef dj_cplx_f type;
     };
 
     template<>
     struct decomp_complex<double>
     {
-        typedef d_cplx_d type;
+        typedef dj_cplx_d type;
     };
 
     template<>
     struct decomp_complex<long double>
     {
-        typedef d_cplx_ld type;
+        typedef dj_cplx_ld type;
     };
 
     // decomp_roots

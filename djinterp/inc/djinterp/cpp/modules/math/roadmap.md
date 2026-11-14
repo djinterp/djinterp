@@ -112,14 +112,14 @@ every step from 22 on moved three further, 4a from step 22 to step 25.
 | 0: Ground truth (M0, chunk 12, M1 + M2, C4a, C2) | 1 to 5 | 5 of 5 |
 | 1: The generic value (1a to 1f) | 6 to 11 | 6 of 6 |
 | 2: The expression bones (P0, then 2a to 2f) | 12 to 18 | 7 of 7 |
-| 3: Linear algebra, complex numbers and quaternions in expressions (3a to 3f) | 19 to 24 | 5 of 6 |
+| 3: Linear algebra, complex numbers and quaternions in expressions (3a to 3f) | 19 to 24 | 6 of 6 |
 | 4: Calculus in expressions (4a to 4d) | 25 to 28 | 0 of 4 |
 | 5: The compile-time face and the remaining ports (5a to 5g) | 29 to 35 | 0 of 7 |
 | 6: Precision (6a to 6e) | 36 to 40 | 0 of 5 |
 | 7: Comparison with other libraries (7a, 7b) | 41 and 42 | 0 of 2 |
 | 8: Bignum (P1 to P7) | 43 to 49 | 1 of 7 |
 | When ready: C6 (the 09.29 lane) and C4b (a CI workflow) | 50 and 51 | 0 of 2 |
-| **All** | **1 to 51** | **24 of 51** |
+| **All** | **1 to 51** | **25 of 51** |
 
 "Later, not yet decided" is not counted.
 
@@ -191,11 +191,12 @@ The lane takes each recommendation unless the owner says otherwise.
   in closed form. `general_eigen`: inverse iteration shifted in the element
   type's precision, on the matrix scaled by a power of two, U x = e first.
   Both in `decomp.h` (generated, `_c` and plain), `eigen.hpp` calling them.
-- [x] **C4a** (step 4) (chunk 14) `ci/check_math_tests.sh` runs every harness
-  and face test, found afresh on each run (then 17 and 26), JOBS at a time,
-  in two tiers. The smoke tier uses gcc and g++ only: 95 builds, 8 minutes on
-  one core here and 4 on two. The full tier is the matrix: 1,896 builds, 71
-  minutes on two cores. The README's section 5 says how, WSL 2 included.
+- [x] **C4a** (step 4) (chunk 14) `ci/check_math_tests.sh`, now
+  `scripts/ci/check_math_tests.sh`, runs every harness and face test, found
+  afresh on each run (then 17 and 26), JOBS at a time, in two tiers. The
+  smoke tier uses gcc and g++ only: 95 builds, 8 minutes on one core here
+  and 4 on two. The full tier is the matrix: 1,896 builds, 71 minutes on two
+  cores. The README's section 5 says how, WSL 2 included.
 - [x] **C2** (step 5) (chunk 15) `D_MAYBE_UNUSED` on the root's two
   `D_STATIC_ASSERT` fallback typedefs, so the assertion serves inside
   functions at C99 and C++98 under `-Wall`. `linalg_requires` retired: its 31
@@ -229,7 +230,7 @@ The lane takes each recommendation unless the owner says otherwise.
 
 - *Dynamic.* One run-time type that can hold any number. A new hand-written
   C header, `c/math/value.h` (C99, and C++98 when compiled as C++), defines
-  `struct d_math_value`. A C++ class, `math::value` in `math/value.hpp`
+  `struct dj_math_value`. A C++ class, `math::value` in `math/value.hpp`
   (C++98), wraps it. The expression evaluator, the parser's literals and the
   interpreter all use it.
 - *Static.* Templates over a number type, as linear algebra and interval
@@ -242,8 +243,8 @@ The lane takes each recommendation unless the owner says otherwise.
   - none;
   - error: domain, pole, range or invalid;
   - boolean;
-  - integer: exact, `d_math_imax`;
-  - rational: exact, reduced, a pair of `d_math_imax`;
+  - integer: exact, `dj_math_imax`;
+  - rational: exact, reduced, a pair of `dj_math_imax`;
   - `float`, `double`, `long double`.
 - *Boxed kinds* come from a registry. Each registered kind supplies a table of
   operations: its name, its place in the tower, retain and release,
@@ -275,7 +276,7 @@ state.
 
 - `42` is an integer;
 - `0.1`, `1e-3` and `2/3` are rationals;
-- a literal too long for two `d_math_imax` becomes the nearest `long double`,
+- a literal too long for two `dj_math_imax` becomes the nearest `long double`,
   until bignum exists.
 
 Converting a rational to `float`, `double` or `long double` is correctly
@@ -290,7 +291,7 @@ instead.
 ### Items
 
 - [x] **1a** (step 6) (chunk 16) `c/math/rational.h`, written here, as the
-  zip had not arrived: rationals over `d_math_imax` in one reduced form, with
+  zip had not arrived: rationals over `dj_math_imax` in one reduced form, with
   make, neg, abs, inv, add, sub, mul, div, sign, eq and cmp. Each kernel
   stores the exact result or returns why it cannot (overflow, pole, invalid),
   and reports overflow only when the reduced result does not fit: Knuth's
@@ -307,10 +308,10 @@ instead.
     rounding is done once, in integers, and the result built exactly.
     `t_rational.c` checks each result against its neighbours, exactly, and
     catches each of 14 more planted faults.
-  - [x] (chunk 18) `c/math/value.h`, `struct d_math_value` with the inline
+  - [x] (chunk 18) `c/math/value.h`, `struct dj_math_value` with the inline
     kinds, as designed above. Exact operations stay exact, an integer
     where the denominator comes to 1; an exact result too wide for
-    `d_math_imax` is the nearest `long double`, flagged inexact (G2); exact
+    `dj_math_imax` is the nearest `long double`, flagged inexact (G2); exact
     with inexact converts to the inexact type, two inexact kinds meet in
     the wider. Errors are values; a boolean or none in arithmetic is a
     domain error. Comparison is exact across kinds. No union, so every
@@ -332,7 +333,7 @@ instead.
     catches each of 34 planted faults.
   - [x] (chunk 20) `c/math/literal.h`: text to value. Integers, decimals,
     scientific notation, fractions (`2/3`) and mixed numbers (`1 1/2`). A
-    literal is exact wherever its value is a rational over `d_math_imax`,
+    literal is exact wherever its value is a rational over `dj_math_imax`,
     so `0.1` is the rational 1/10, however many digits it is written with;
     otherwise it is the nearest `long double`, flagged inexact (G2). A
     fraction over 0 is a pole, or invalid for 0/0; a literal past every
@@ -358,7 +359,7 @@ instead.
   which is also bignum's first step (P1). In three chunks, since the
   integer's arithmetic is a header of its own:
   - [x] (chunk 22) The registry, in `value.h`. A kind that is not inline
-    fills in a table, `struct d_math_boxed_kind`: its name; its rank, its
+    fills in a table, `struct dj_math_boxed_kind`: its name; its rank, its
     place in the tower on one scale with the inline numbers', and its own;
     whether it is a number, and exact; retain and release, arithmetic,
     comparison, conversion and text. A boxed value points to its kind's
@@ -382,7 +383,7 @@ instead.
     integer exists) and a sign. Exact or nothing, as `rational.h`: add,
     subtract, multiply, divide with remainder (Knuth's algorithm D,
     truncated as C's), gcd, comparison; conversions to and from
-    `d_math_imax`, `d_math_umax` and rationals, and text both ways; the
+    `dj_math_imax`, `dj_math_umax` and rationals, and text both ways; the
     nearest `float`, `double` and `long double`, ties to even, with the
     rounding's direction, a float past the largest an infinity. No
     allocation; constant expressions from C++14, the text writer apart.
@@ -399,12 +400,12 @@ instead.
     rational its arithmetic is exact: an integer stays a wide integer,
     however small; a result that is no integer is an inline rational where
     it fits the family; and past both, an integer of more than 256 bits or a
-    ratio past `d_math_imax`, the nearest `long double`, flagged inexact
+    ratio past `dj_math_imax`, the nearest `long double`, flagged inexact
     (G2), rounded once from the exact ratio of terms up to 512 bits by
     `wide.h`'s division. Comparison is exact, and a float kind meets it as
     any boxed kind, converted to the nearest value of its type. Each value a
     box of its own, through two allocation knobs
-    (`config/c/math/cfg_value_wide.h`); no storage, a memory error.
+    (`config/c/modules/math/cfg_value_wide.h`); no storage, a memory error.
     `t_value_wide.c` checks it against `math_tests_exact.h` at 768 bits, in
     16 builds, counting every box and refusing some, with kinds of its own
     below the wide integer's rank; every line of the header runs under it,
@@ -419,7 +420,7 @@ instead.
   `math::value`'s are from C++20, for the inline kinds, where a destructor
   may be constexpr. Both are made implicitly from the arithmetic types, a
   `bool` and an error code, and refuse a pointer; an unsigned integer past
-  `d_math_imax` is G2's long double, through `value.h`'s new
+  `dj_math_imax` is G2's long double, through `value.h`'s new
   `d_math_value_from_uint`. Operators, `abs` and the six comparisons are
   hidden friends, found by argument-dependent lookup only, and each makes
   its result in place from `value.h`'s, so it costs what `value.h`'s call
@@ -742,7 +743,7 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
 - [x] **3d** (step 22) The C core's complex numbers, and the linear algebra
   they complete (S265 to S270), in three chunks (S279). **Part 1 of 3
   (chunk 37), done:** `c/math/cplx.h`, a struct per floating-point type,
-  `struct d_cplx_d` and its kin, of the layout of `T[2]`, never `_Complex`
+  `struct dj_cplx_d` and its kin, of the layout of `T[2]`, never `_Complex`
   (S267, S280); C99's 22 complex functions, the four exact ones once and
   each other in a `_c` form, one long double kernel for the three families
   (`D_MATH_FN_KERNEL`), and a plain form on the C library's real functions
@@ -857,13 +858,33 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   norms of the moduli, so a `vector<value>`'s of complex numbers the
   language's (S355). `t_expr_complex_matrix_face.cpp` checks them, the
   eigenvalues against mpmath.
-- [ ] **3f** (step 24) Quaternions (S275 to S277): `quat.h` grown, accurate
+- [x] **3f** (step 24) Quaternions (S275 to S277): `quat.h` grown, accurate
   by default, with `_fast` forms for rendering, the inverse, quotients,
   exp, log, powers, Shepperd's method and a shorter-arc slerp (S276); the
   kind, of rank 950, `jm`, `km`, `quat(w, x, y, z)` and its functions,
   rotations among them (S275); their factors kept in order by
   simplification, p / q the quotient p inv(q), and matrices of
-  quaternions, Zhang's standard eigenvalues by complex QR (S277).
+  quaternions, Zhang's standard eigenvalues by complex QR (S277). In three
+  chunks (S357): chunk 44 the first, `quat.h` grown and accurate -- the
+  product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1
+  of any q not 0, Shepperd's method, two vectors' quaternion, nlerp, slerp
+  by the chords' angle, and exp, log, sqrt and powers in q's plane, the
+  former formulas the `_fast` forms -- and both C++ faces taking each
+  (S358 to S367), and found `cplx.h`'s whole powers off where a part
+  cancels (S368); chunk 45 the second, those powers in pairs (S370), then
+  the kind in the language, of rank 950, `jm`, `km`, `quat`, `parts`,
+  `rotate` and every function S275 names, products in their order, p / q
+  = p inv(q), and simplification keeping a quaternion's factors in order
+  (S369, S371 to S377), and a quotient's zero of the formula's sign
+  (S382); chunk 46 the third, the owner's rulings S336 and S340 (S379,
+  S384, S385), then matrices of quaternions, dense or exact, their
+  arithmetic the kind's own in each product's order (S386, S387), linear
+  algebra's functions of them and of a quaternion, `det` a domain error
+  (S388, S390), Zhang's standard eigenvalues, one of each conjugate pair of
+  the complex adjoint's (S389), `rotmat`, `rotquat` and `slerp` in a new
+  `expr/rotation.hpp` (S391), and `dynamic_matrix` of every element type
+  the fixed-size matrix takes (S354, S392). `t_expr_quaternion_matrix_face.cpp`
+  checks them, the eigenvalues against mpmath.
 
 ## Phase 4 — Calculus in expressions
 
@@ -989,10 +1010,29 @@ folds in `math::complex<T>` (chunk 41); and the C core's complex `exp2`,
 face's, and their values in the language (chunk 42); and chunk 43 its
 third, matrices of complex numbers, every eigenvalue, the C++ face's
 `vdot`, complex norms and `is_unitary`, and the generic norms of moduli
-(S348 to S356). Step 24, 3f, quaternions, is next (S275 to S277): `quat.h`
-grown, accurate by default with `_fast` forms, the kind of rank 950, `jm`,
-`km` and `quat(w, x, y, z)`, and matrices of quaternions, in chunks the
-step's first will set out, as S324 set out step 23's.
+(S348 to S356). Step 24, 3f, quaternions (S275 to S277), is under way in
+three chunks (S357): chunk 44 its first, `quat.h` grown and accurate by
+default with `_fast` forms, and both C++ faces taking each (S358 to S367);
+chunk 45 its second: `cplx.h`'s whole powers carried in pairs (S370), then
+the kind of rank 950, `jm`, `km`, `quat(w, x, y, z)` and its functions, the
+order of its factors, and `not_yet` for its third part (S369 to S381),
+and a quotient's zero of the formula's sign, which its fault trial found
+(S382). Chunk 45b laid chunks 44 and 45 into the owner's restructured tree
+of 2026.11.07, each file at its restructured path, and renamed the lane's C
+types `dj_`, the restructure's prefix, their functions keeping `d_` (S383).
+Chunk 46, in that tree, made its third part: the owner's rulings S336 and
+S340, the plain forms in a complex type and the context each evaluator
+takes (S384, S385), then matrices of quaternions, linear algebra's
+functions of them, their standard eigenvalues, `rotmat`, `rotquat` and
+`slerp`, and `dynamic_matrix` of every element type (S386 to S392), which
+close step 24 and Phase 3. On 2026.11.12 the owner chose, before the
+itinerary goes on, the four groups of fixes the lane's evaluation of that
+day named: a term compiled once and a fast path in `math::value`; one
+header for each concept, `math.hpp` complete, entry points and a quick
+start; `math::expr::` in place of the `expr_` prefix; and correctly
+rounded `_c` forms (step 36 brought forward), compensated sums and
+refinement in `solve`. Step 29, 5a, follows them, as lane A asks, before
+0.8 on 2026.11.30.
 The outstanding decisions of `decisions.md`, its section 1, by group and
-urgency, and the suggestions of `comparison.md`'s section 9 are the
-owner's to take or leave before then.
+urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
+to take or leave before then.

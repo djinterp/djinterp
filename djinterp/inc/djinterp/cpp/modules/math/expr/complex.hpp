@@ -64,7 +64,10 @@
 * a math::complex<T>, and expr_complex_to gives a number's nearest one; and
 * expr_complex_apply computes an operation of numbers, real or complex, in
 * the widest floating-point type of theirs, as the language's functions of
-* a complex number take their principal values there (function.hpp).
+* a complex number take their principal values there (function.hpp). A
+* number past the complex ones, a quaternion (quaternion.hpp, S275), is none
+* of theirs: each refuses it, a domain error, and expr_complex_to gives no
+* nearest complex number of it.
 *   STEPS. Step 23 (3e) comes in parts (S324, S335): this header is its
 * first's, with the language's im, complex, real, imag, conj, arg, the
 * modulus, the relations and the exact powers to a whole exponent
@@ -80,7 +83,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/complex.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 /*
@@ -140,8 +143,8 @@ TABLE OF CONTENTS
 #include <sstream>    // std::ostringstream
 #include <string>     // std::string
 // djinterp
-#include "../../../../c/modules/math/cplx.h"   // struct d_cplx_*, abs_c and arg_c
-#include "../../../../c/modules/math/value.h"  // d_math_boxed_kind, the holders
+#include "../../../../c/modules/math/cplx.h"   // struct dj_cplx_*, abs_c and arg_c
+#include "../../../../c/modules/math/value.h"  // dj_math_boxed_kind, holders
 #include "../complex.hpp"                      // math::complex<T>, cplx.h's face
 #include "../math_common.hpp"                  // NS_MATH
 #include "../value.hpp"                        // value, value_root_of
@@ -219,7 +222,7 @@ NS_INTERNAL
 
     inline bool
     expr_complex_held(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         return ( (_x.kind == D_MATH_VALUE_BOXED) &&
@@ -229,7 +232,7 @@ NS_INTERNAL
 
     inline const expr_complex_box&
     expr_complex_box_of(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         return *static_cast<const expr_complex_box*>(_x.box);
@@ -246,7 +249,7 @@ NS_INTERNAL
 
     inline expr_complex_parts
     expr_complex_parts_of(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         expr_complex_parts parts = { value(_x), value(0), false };
@@ -296,9 +299,9 @@ NS_INTERNAL
     // boxed kind's for any other inexact number, which computes on its
     // parts as values. The widest asked of the operands is the operation's,
     // by these kinds' order.
-    inline d_math_value_kind
+    inline dj_math_value_kind
     expr_complex_type_of(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         // a complex number: its storage's type
@@ -334,10 +337,10 @@ NS_INTERNAL
     // expr_complex_widest
     //   function: the wider of two kinds expr_complex_type_of gives, in the
     // order none, float, double, long double, boxed.
-    inline d_math_value_kind
+    inline dj_math_value_kind
     expr_complex_widest(
-        d_math_value_kind _a,
-        d_math_value_kind _b
+        dj_math_value_kind _a,
+        dj_math_value_kind _b
     )
     {
         // a boxed kind is past every inline one
@@ -358,7 +361,7 @@ NS_INTERNAL
         unsigned     _flags
     )
     {
-        d_math_value held = value(_x).detach();
+        dj_math_value held = value(_x).detach();
 
         held.flags |= _flags;
 
@@ -375,7 +378,7 @@ NS_INTERNAL
     // expr_complex_kind
     //   function: the kind's table, section 1.4's; declared here, for the
     // values made before it.
-    inline const d_math_boxed_kind*
+    inline const dj_math_boxed_kind*
     expr_complex_kind();
 
     // 1.2.2
@@ -390,8 +393,8 @@ NS_INTERNAL
         unsigned          _flags
     )
     {
-        d_math_value held = d_internal_math_value_blank(D_MATH_VALUE_BOXED,
-                                                        _flags);
+        dj_math_value held = d_internal_math_value_blank(D_MATH_VALUE_BOXED,
+                                                         _flags);
 
         held.type = expr_complex_kind();
         held.box  = _box;
@@ -529,7 +532,7 @@ NS_INTERNAL
             return expr_complex_flagged(_im, flags);
         }
 
-        const d_math_value_kind type =
+        const dj_math_value_kind type =
             expr_complex_widest(expr_complex_type_of(_re.c_value()),
                                 expr_complex_type_of(_im.c_value()));
 
@@ -577,7 +580,7 @@ NS_END  // internal
 
 // 1.3    Its entries
 //------------------------------------------------------------------------------
-// value.h's d_math_boxed_kind entries, each given values as that header says:
+// value.h's dj_math_boxed_kind entries, each given values as that header says:
 // one operand a complex number, the other a number of a rank no higher,
 // neither an error, a boolean or none.
 NS_INTERNAL
@@ -619,15 +622,15 @@ NS_INTERNAL
     template<typename Type>
     value
     expr_complex_dense_unary(
-        d_math_value_op            _op,
+        dj_math_value_op           _op,
         const math::complex<Type>& _z,
         unsigned                   _flags
     )
     {
-        // the modulus: cplx.h's abs_c, in Type
+        // the modulus: cplx.h's abs_c, in Type (S336)
         if (_op == D_MATH_VALUE_OP_ABS)
         {
-            return expr_complex_flagged(value(abs(_z)), _flags);
+            return expr_complex_flagged(value(abs_c(_z)), _flags);
         }
 
         return expr_complex_dense(-_z, _flags);
@@ -646,10 +649,10 @@ NS_INTERNAL
         return expr_complex_flagged(root, sum.flags());
     }
 
-    inline d_math_value
+    inline dj_math_value
     expr_complex_unary(
-        d_math_value_op _op,
-        d_math_value    _x
+        dj_math_value_op _op,
+        dj_math_value    _x
     )
     {
         const expr_complex_box& box   = expr_complex_box_of(_x);
@@ -699,7 +702,7 @@ NS_INTERNAL
     template<typename Type>
     value
     expr_complex_dense_binary(
-        d_math_value_op           _op,
+        dj_math_value_op          _op,
         const expr_complex_parts& _a,
         const expr_complex_parts& _b,
         unsigned                  _flags
@@ -774,7 +777,7 @@ NS_INTERNAL
 
     inline value
     expr_complex_value_binary(
-        d_math_value_op           _op,
+        dj_math_value_op          _op,
         const expr_complex_parts& _a,
         const expr_complex_parts& _b,
         unsigned                  _flags
@@ -847,11 +850,11 @@ NS_INTERNAL
                                   _flags);
     }
 
-    inline d_math_value
+    inline dj_math_value
     expr_complex_binary(
-        d_math_value_op _op,
-        d_math_value    _a,
-        d_math_value    _b
+        dj_math_value_op _op,
+        dj_math_value    _a,
+        dj_math_value    _b
     )
     {
         const unsigned flags = (_a.flags | _b.flags);
@@ -865,7 +868,7 @@ NS_INTERNAL
 
         const expr_complex_parts a = expr_complex_parts_of(_a);
         const expr_complex_parts b = expr_complex_parts_of(_b);
-        const d_math_value_kind  type =
+        const dj_math_value_kind type =
             expr_complex_widest(expr_complex_type_of(_a),
                                 expr_complex_type_of(_b));
 
@@ -904,10 +907,10 @@ NS_INTERNAL
     // where each part of one is equal to the other's, a real number's
     // imaginary part being 0, by value.h's exact order; unordered otherwise
     // (S329).
-    inline d_math_value_order
+    inline dj_math_value_order
     expr_complex_cmp(
-        d_math_value _a,
-        d_math_value _b
+        dj_math_value _a,
+        dj_math_value _b
     )
     {
         // an operand that is no number: no order
@@ -941,10 +944,10 @@ NS_INTERNAL
     // number is real; *_out as it was where false.
     inline bool
     expr_complex_convert(
-        d_math_value*     _out,
-        int*              _direction,
-        d_math_value      _x,
-        d_math_value_kind _to
+        dj_math_value*     _out,
+        int*               _direction,
+        dj_math_value      _x,
+        dj_math_value_kind _to
     )
     {
         const expr_complex_parts parts = expr_complex_parts_of(_x);
@@ -994,7 +997,7 @@ NS_INTERNAL
         }
 
         // the direction, by the exact order; 0 for a NaN
-        const d_math_value_order order =
+        const dj_math_value_order order =
             d_math_value_cmp(nearest.c_value(), parts.re.c_value());
 
         *_direction = ( (order == D_MATH_VALUE_LESS)    ? -1
@@ -1050,7 +1053,7 @@ NS_INTERNAL
     )
     {
         std::ostringstream out;
-        d_rational         exact = { 0, 1 };
+        dj_rational        exact = { 0, 1 };
         float              f     = 0.0f;
         double             d     = 0.0;
         long double        ld    = 0.0L;
@@ -1073,11 +1076,11 @@ NS_INTERNAL
         // a boxed number: its kind's text
         if (_x.kind() == D_MATH_VALUE_BOXED)
         {
-            const d_math_value& held   = _x.c_value();
-            const std::size_t   length = held.type->text(D_NULLPTR,
-                                                         0,
-                                                         held);
-            std::string         text(length + 1, '\0');
+            const dj_math_value& held   = _x.c_value();
+            const std::size_t    length = held.type->text(D_NULLPTR,
+                                                          0,
+                                                          held);
+            std::string          text(length + 1, '\0');
 
             static_cast<void>(held.type->text(&text[0],
                                               length + 1,
@@ -1109,7 +1112,7 @@ NS_INTERNAL
 
     inline std::string
     expr_complex_string(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         const expr_complex_parts parts = expr_complex_parts_of(_x);
@@ -1132,9 +1135,9 @@ NS_INTERNAL
 
     inline std::size_t
     expr_complex_text(
-        char*        _buffer,
-        std::size_t  _size,
-        d_math_value _x
+        char*         _buffer,
+        std::size_t   _size,
+        dj_math_value _x
     )
     {
         const std::string text = expr_complex_string(_x);
@@ -1159,7 +1162,7 @@ NS_INTERNAL
     // parts as values, each exact (S325).
     inline bool
     expr_complex_exact(
-        d_math_value _x
+        dj_math_value _x
     )
     {
         const expr_complex_box& box = expr_complex_box_of(_x);
@@ -1181,10 +1184,10 @@ NS_INTERNAL
     // but not exact in every value, and its entries, its exact entry
     // telling which values are; one for the program, as an inline
     // function's static is.
-    inline const d_math_boxed_kind*
+    inline const dj_math_boxed_kind*
     expr_complex_kind()
     {
-        static const d_math_boxed_kind table = {
+        static const dj_math_boxed_kind table = {
             "complex",
             expr_complex_rank,
             D_MATH_BOXED_NUMBER,
@@ -1225,16 +1228,30 @@ expr_is_complex(
 
 NS_INTERNAL
 
+    // expr_complex_beyond
+    //   function: whether _x is a number of a kind past the complex numbers,
+    // of a rank above theirs: a quaternion (S275, quaternion.hpp), which
+    // this header's functions do not take.
+    inline bool
+    expr_complex_beyond(
+        const value& _x
+    )
+    {
+        return ( (_x.is_number()) &&
+                 (d_math_value_rank(_x.c_value()) > expr_complex_rank) );
+    }
+
     // expr_complex_real_number
     //   function: whether _x is a real number: a number of no complex kind,
-    // which also no matrix is, being no number.
+    // nor of any past it, which also no matrix is, being no number.
     inline bool
     expr_complex_real_number(
         const value& _x
     )
     {
         return ( (_x.is_number()) &&
-                 (!expr_is_complex(_x)) );
+                 (!expr_is_complex(_x)) &&
+                 (!expr_complex_beyond(_x)) );
     }
 
     // expr_complex_failed
@@ -1334,8 +1351,8 @@ expr_complex_of(
  * @param[out] _out    the nearest complex number of T's parts: a complex
  *                     number's parts each its nearest T, and a real number
  *                     with an imaginary part of +0; as it was where the
- *                     value is no number.
- * @return whether the value is a number.
+ *                     value is no number, or a quaternion.
+ * @return whether the value is a real or complex number.
  */
 template<typename Type>
 bool
@@ -1344,8 +1361,9 @@ expr_complex_to(
     math::complex<Type>& _out
 )
 {
-    // no number
-    if (!_value.is_number())
+    // no number, or one past the complex numbers, a quaternion
+    if ( (!_value.is_number()) ||
+         (internal::expr_complex_beyond(_value)) )
     {
         return false;
     }
@@ -1371,8 +1389,9 @@ expr_complex_to(
 NS_INTERNAL
 
     // expr_complex_number_failed
-    //   function: whether _x is an error, which passes, or no number, a
-    // domain error; and if so that, in _out.
+    //   function: whether _x is an error, which passes, or no number, or a
+    // number past the complex ones, a quaternion, a domain error; and if so
+    // that, in _out.
     inline bool
     expr_complex_number_failed(
         const value& _x,
@@ -1387,8 +1406,9 @@ NS_INTERNAL
             return true;
         }
 
-        // no number
-        if (!_x.is_number())
+        // no number, or one past the complex numbers
+        if ( (!_x.is_number()) ||
+             (expr_complex_beyond(_x)) )
         {
             _out = value(D_MATH_VALUE_ERROR_DOMAIN);
 
@@ -1594,7 +1614,7 @@ expr_arg(
 
             static_cast<void>(expr_complex_to(_value, in_float));
 
-            return internal::expr_complex_flagged(value(arg(in_float)),
+            return internal::expr_complex_flagged(value(arg_c(in_float)),
                                                   _value.flags());
         }
 
@@ -1604,7 +1624,7 @@ expr_arg(
 
             static_cast<void>(expr_complex_to(_value, in_double));
 
-            return internal::expr_complex_flagged(value(arg(in_double)),
+            return internal::expr_complex_flagged(value(arg_c(in_double)),
                                                   _value.flags());
         }
 
@@ -1615,15 +1635,16 @@ expr_arg(
     // a long double's, of exact parts or a boxed kind's
     static_cast<void>(expr_complex_to(_value, z));
 
-    return internal::expr_complex_flagged(value(arg(z)), _value.flags());
+    return internal::expr_complex_flagged(value(arg_c(z)), _value.flags());
 }
 
 // 2.3    Functions
 //------------------------------------------------------------------------------
 // A function's principal complex value in the parts' floating-point type, as
 // the language's functions of a complex number take it (function.hpp, S271,
-// S336): the operation is math::complex<T>'s, so cplx.h's _c form, which a
-// value and the face then give with the same bits (S313).
+// S336): the operation is math::complex<T>'s _c form, F_c, so cplx.h's _c
+// form, one answer at every level, where the face's own name and the fold in
+// a complex type give the plain form at run time (S336).
 NS_INTERNAL
 
     // 2.3.1
@@ -1680,8 +1701,8 @@ expr_complex_apply(
     const Op&    _op
 )
 {
-    d_math_value_kind widest = D_MATH_VALUE_NONE;
-    unsigned          flags  = 0u;
+    dj_math_value_kind widest = D_MATH_VALUE_NONE;
+    unsigned           flags  = 0u;
 
     // the widest type the operands ask, and their flags
     for (std::size_t i = 0; i < _count; ++i)

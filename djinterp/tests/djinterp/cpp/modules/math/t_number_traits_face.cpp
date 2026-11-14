@@ -25,7 +25,7 @@
 *     inverse the identity, and its solution by elimination exactly the
 *     inverse's times B (S257); inexact values solved and inverted with
 *     each pivot the entry of largest magnitude; wide integers past
-*     d_math_imax, every box given back;
+*     dj_math_imax, every box given back;
 *   - the same over t_ratio, an exact rational type of the test's own,
 *     which joins by specializing number_traits, as a bignum would, a
 *     comparison given no tolerance taking its author's;
@@ -37,13 +37,14 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/t_number_traits_face.cpp -o t_number_traits -lm
+*         tests/djinterp/cpp/modules/math/t_number_traits_face.cpp             \
+*         -o t_number_traits -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_number_traits_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/number_traits.hpp"  // tested
 #include "../../../../../inc/djinterp/cpp/modules/math/value.hpp"  // its value classes
@@ -183,7 +184,7 @@ namespace
     bool
     d_tests_is(
         const Value&     _x,
-        d_math_value_kind _kind,
+        dj_math_value_kind _kind,
         const Value&     _want
     )
     {
@@ -1058,7 +1059,7 @@ namespace
     void
     d_tests_wide_root()
     {
-        d_math_wide w = d_math_wide_from_imax(1);
+        dj_math_wide w = d_math_wide_from_imax(1);
 
         // 2^200
         for (int i = 0; i < 200; ++i)
@@ -1479,7 +1480,7 @@ namespace
                         "a matrix of values: exact");
 
         d_tests_hilbert_exact<dm::value>(d_tests_value_ratio,
-                                         (sizeof(d_math_imax) >= 8u),
+                                         (sizeof(dj_math_imax) >= 8u),
                                          "the Hilbert matrix of values");
 
         // inexact values on the generic path: each pivot the entry of
@@ -1520,7 +1521,7 @@ namespace
     }
 
     // d_tests_wide_vectors
-    //   wide integers in a vector: the dot product past d_math_imax, exact,
+    //   wide integers in a vector: the dot product past dj_math_imax, exact,
     // and every box given back once the vectors are.
     void
     d_tests_wide_vectors()
@@ -1528,7 +1529,7 @@ namespace
         const long live = g_live;
 
         {
-            d_math_wide w = d_math_wide_from_imax(1);
+            dj_math_wide w = d_math_wide_from_imax(1);
 
             // 2^100
             for (int i = 0; i < 100; ++i)
@@ -1549,7 +1550,7 @@ namespace
                             (a.cross(b).x() == 4 - 6) &&
                             (a.cross(b).y() == (2 * big) - (4 * big)),
                             "wide integers in a vector: exact past "
-                            "d_math_imax");
+                            "dj_math_imax");
         }
 
         D_TESTS_EXPECT( (g_live == live),

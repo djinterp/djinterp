@@ -2,7 +2,8 @@
 * djinterp [cpp/math]                                            expr_common.hpp
 *
 * The common part of math/expr/, the run-time expression language: the error
-* every fallible step reports, and the switches of the syntax.
+* every fallible step reports, the switches of the syntax, and the context a
+* fold computes under.
 *   THE LANGUAGE stands on parse/expression/, the framework's shared
 * expression core (roadmap gate G4), in six layers:
 *     1. tokens         token.hpp
@@ -28,6 +29,10 @@
 * gives the placeholder its contract names.
 *   SYNTAX. Gate G5's two options, implied multiplication (2x) and bars for
 * the absolute value (|x|), are off unless an expr_syntax turns them on.
+*   THE CONTEXT, expr_context, is what a fold computes under, and what it
+* gives each function's evaluator with the arguments (S340): whether the
+* results stay real (S272), the one option until Phase 8's kinds bring
+* theirs.
 *   LEVELS. C++11 and up, by the owner's ruling N1: below C++11 every header
 * of math/expr/ is empty.
 *
@@ -35,7 +40,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/expr_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 /*
@@ -54,7 +59,11 @@ TABLE OF CONTENTS
     ------
     1.  The switches
          1.  expr_syntax
-3.  TYPES
+3.  THE CONTEXT
+    -----------
+    1.  What a fold computes under
+         1.  expr_context
+4.  TYPES
     -----
     1.  The floating-point types
          1.  expr_floating
@@ -247,13 +256,54 @@ struct expr_syntax
 
 
 //==============================================================================
-// 3.  TYPES
+// 3.  THE CONTEXT
 //==============================================================================
 
 
-// 3.1    The floating-point types
+// 3.1    What a fold computes under
 //------------------------------------------------------------------------------
 // 3.1.1
+// expr_context
+//   struct: what a fold computes under, which it gives each function's
+// evaluator with the arguments (S340): whether the results stay real (S272).
+// Where real_results is false, as by default, a function of a real argument
+// outside its real domain gives its principal complex value, sqrt(-4) being
+// 2im, log(-1) pi im and (-8) ^ (1/3) 1 + 1.732...im, as MATLAB, Mathematica
+// and Python's ** give them. Where it is true, each standard function's
+// evaluator gives instead, where its real arguments' value is complex alone
+// or a quaternion, complex(x, y) and quat(w, x, y, z) apart, a domain error
+// as a value, as Julia's and C's are, for a computation meant to stay real;
+// the folds hold ^ to the same, and in a complex type keep a real argument's
+// NaN where its value has no real part to give, a NaN being a domain error
+// there. A caller's evaluator reads the option as its function needs. A big
+// float's precision, the rounding mode and the error policy come with the
+// first kind that reads them.
+struct expr_context
+{
+    bool real_results;
+
+    // complex results where no real one is.
+    expr_context() D_NOEXCEPT
+        : real_results(false)
+    {}
+
+    // real results only where _real_results is true.
+    explicit expr_context(
+        bool _real_results
+    ) D_NOEXCEPT
+        : real_results(_real_results)
+    {}
+};
+
+
+//==============================================================================
+// 4.  TYPES
+//==============================================================================
+
+
+// 4.1    The floating-point types
+//------------------------------------------------------------------------------
+// 4.1.1
 // expr_floating
 //   trait: whether Type is one a typed fold computes in: float, double or
 // long double, the C core's three. Each typed entry asserts it.

@@ -34,17 +34,17 @@
 * expressions, for every family, with the bits they have at run time. It
 * needs no 64-bit integer -- its random numbers come from
 * math_tests_random.h, the same in every build -- so that ISO-strict C++98
-* on a 32-bit target, where d_math_umax has 32 bits, builds it too.
+* on a 32-bit target, where dj_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_tangent.c -o t_tangent -lm
+*        tests/djinterp/c/modules/math/t_tangent.c -o t_tangent -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_tangent.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.09
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MAX, LDBL_MANT_DIG

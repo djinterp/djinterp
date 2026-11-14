@@ -2,17 +2,24 @@
 * djinterp [cpp/math]                                                complex.hpp
 *
 * Complex numbers in C++: math::complex<T>, of float, double and long double,
-* the face of the C core's struct d_cplx_f, _d and _ld (c/math/cplx.h), as
+* the face of the C core's struct dj_cplx_f, _d and _ld (c/math/cplx.h), as
 * math::value is the value's (S270).
-*   ONE ANSWER. Every operation is cplx.h's: its arithmetic, pure, each
-* part correctly rounded or within a step of it; and C99's functions, each
-* in its _c form, one long double kernel rounded once to the type, at every
-* level and on every compiler, so that a result has the same bits wherever
-* it is computed, in a constant expression or not (G6). The plain forms,
-* faster on the C library's real functions, are not taken: their bits are
-* each library's. An operation with a real operand takes it as itself, not
-* as x + 0i (C99's G.5), so that a zero's sign survives and no infinity
-* meets a zero.
+*   THE FORMS. Every operation is cplx.h's. Its arithmetic is pure and
+* comes once, each part correctly rounded or within a step of it, a
+* constant expression from C++14. C99's functions come in cplx.h's two
+* forms, as the owner ruled (S336): by their own names, abs, exp, sin and
+* the rest, the plain form at run time, the same algorithm on the C
+* library's real functions, fast, its bits the library's, within the bounds
+* cplx.h's banner states, and in a constant expression, from C++20, the _c
+* form, as an angle of linalg's is; and by the name with _c, exp_c, sin_c
+* and the rest, the _c form always, one long double kernel rounded once to
+* the type, the same bits at every level and on every compiler (G6), a
+* constant expression from C++14. So exp(z) at run time and exp_c(z) may
+* differ in their last bits, each within its bound; the language's values
+* take the _c forms, and its fold in a complex type the plain ones, as its
+* folds in a real type take the C library's (expr/function.hpp). An
+* operation with a real operand takes it as itself, not as x + 0i (C99's
+* G.5), so that a zero's sign survives and no infinity meets a zero.
 *   CONSTRUCTION is from two parts, the imaginary +0 when it is left out;
 * implicitly from a real number, and from a std::complex<T>, so that a
 * standard value meeting this one becomes this one; and explicitly from the
@@ -28,23 +35,26 @@
 * Annex G's branch cuts and special values and the bounds cplx.h states;
 * and exp2, log2, log10, log1p and expm1, cplx.h's of a complex number, with
 * the values at the special parts of the functions each is a form of, and
-* on the real axis, where the value is real, the real function's.
-* pow with a real operand is pow of it plus 0i, as C's <tgmath.h> takes it.
-* There is no order, and no < to ask one of.
+* on the real axis, where the value is real, the real function's; and
+* abs_c through expm1_c, the _c forms. pow with a real operand is pow of it
+* plus 0i, as C's <tgmath.h> takes it. There is no order, and no < to ask
+* one of.
 *   NUMBERS. number_traits<complex<T> > is a commutative field, inexact and
 * unordered; its magnitude, a T, is |re| + |im|, which LAPACK pivots by, and
 * its tolerance four of T's epsilons, so that linear_algebra's vectors and
 * matrices of it compute: their sums and products, determinant, inverse and
 * solution the bits of cmat.h's. common_number of a complex number and its
 * real type, or of two, is the complex type, at every level.
-*   LEVELS. Everything from C++98; a literal type whose operations are
-* constant expressions from C++14, as cplx.h's _c forms are.
+*   LEVELS. Everything from C++98; a literal type whose arithmetic, parts
+* and _c forms are constant expressions from C++14, as cplx.h's _c forms
+* are, and C99's functions by their own names from C++20, where
+* std::is_constant_evaluated tells a constant expression from a run.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/complex.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 /*
@@ -52,7 +62,7 @@ TABLE OF CONTENTS
 =================
 1.  THE COMPLEX NUMBER
     ------------------
-    1.  The C core's struct, by type
+    1.  The C core's struct, by type, and the form a call takes
     2.  complex
 2.  NUMBERS
     -------
@@ -63,11 +73,16 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_MATH_COMPLEX_HPP
 #define DJINTERP_MATH_COMPLEX_HPP 1
 
-// std
-#include <complex>                    // std::complex
 // djinterp
 #include "../../djinterp.hpp"              // framework root
-#include "../../../c/modules/math/cplx.h"  // struct d_cplx_*, d_cplx_make and
+// std
+#include <complex>                         // std::complex
+// std, from C++20 (the level is known only once the root is in)
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #include <type_traits>                 // std::is_constant_evaluated
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+// djinterp
+#include "../../../c/modules/math/cplx.h"  // struct dj_cplx_*, d_cplx_make and
                                            // the one name of every function
 #include "./math_common.hpp"               // NS_MATH
 #include "./number_traits.hpp"             // number_traits, common_number
@@ -82,12 +97,12 @@ NS_MATH
 //==============================================================================
 
 
-// 1.1    The C core's struct, by type
+// 1.1    The C core's struct, by type, and the form a call takes
 //------------------------------------------------------------------------------
 NS_INTERNAL
 
     // complex_core
-    //   trait: the C core's complex struct of Type's parts, struct d_cplx_f,
+    //   trait: the C core's complex struct of Type's parts, struct dj_cplx_f,
     // _d or _ld, and whether Type has one: float, double and long double.
     template<typename Type>
     struct complex_core
@@ -101,7 +116,7 @@ NS_INTERNAL
     template<>
     struct complex_core<float>
     {
-        typedef struct d_cplx_f type;
+        typedef struct dj_cplx_f type;
 
         enum
         {
@@ -112,7 +127,7 @@ NS_INTERNAL
     template<>
     struct complex_core<double>
     {
-        typedef struct d_cplx_d type;
+        typedef struct dj_cplx_d type;
 
         enum
         {
@@ -123,13 +138,31 @@ NS_INTERNAL
     template<>
     struct complex_core<long double>
     {
-        typedef struct d_cplx_ld type;
+        typedef struct dj_cplx_ld type;
 
         enum
         {
             supported = 1
         };
     };
+
+    // complex_at_compile_time
+    //   function: whether the call is evaluated as a constant expression:
+    // std::is_constant_evaluated() from C++20, and below it false, so that
+    // a function that asks takes the plain form (S336).
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    constexpr bool
+    complex_at_compile_time() noexcept
+    {
+        return std::is_constant_evaluated();
+    }
+#else
+    inline bool
+    complex_at_compile_time() D_NOEXCEPT
+    {
+        return false;
+    }
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 NS_END  // internal
 
@@ -567,11 +600,275 @@ public:
         return complex(d_cplx_proj(_z.m_core));
     }
 
-    // ---- C99's functions, the _c forms -----------------------------------
+    // ---- C99's functions: the plain forms at run time ----------------
+
+    // each cplx.h's plain form at run time, on the C library's real
+    // functions, and its _c form in a constant expression, from C++20
+    // (S336).
 
     // the modulus, as cabs, and the argument, in [-pi, pi], as carg.
-    friend D_CONSTEXPR_CPP14 Type
+    friend D_CONSTEXPR_CPP20 Type
     abs(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? d_cplx_abs_c(_z.m_core)
+                     : d_cplx_abs(_z.m_core) );
+    }
+
+    friend D_CONSTEXPR_CPP20 Type
+    arg(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? d_cplx_arg_c(_z.m_core)
+                     : d_cplx_arg(_z.m_core) );
+    }
+
+    // e^_z, the principal logarithm, the principal square root.
+    friend D_CONSTEXPR_CPP20 complex
+    exp(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_exp_c(_z.m_core))
+                     : complex(d_cplx_exp(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    log(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_log_c(_z.m_core))
+                     : complex(d_cplx_log(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    sqrt(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_sqrt_c(_z.m_core))
+                     : complex(d_cplx_sqrt(_z.m_core)) );
+    }
+
+    // _z ^ _w, the principal value, as cpow: exp(_w log _z); a real operand
+    // that number plus 0i.
+    friend D_CONSTEXPR_CPP20 complex
+    pow(
+        const complex& _z,
+        const complex& _w
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_pow_c(_z.m_core, _w.m_core))
+                     : complex(d_cplx_pow(_z.m_core, _w.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    pow(
+        const complex& _z,
+        Type           _x
+    ) D_NOEXCEPT
+    {
+        return pow(_z, complex(_x));
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    pow(
+        Type           _x,
+        const complex& _w
+    ) D_NOEXCEPT
+    {
+        return pow(complex(_x), _w);
+    }
+
+    // the trigonometric functions and their principal inverses.
+    friend D_CONSTEXPR_CPP20 complex
+    sin(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_sin_c(_z.m_core))
+                     : complex(d_cplx_sin(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    cos(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_cos_c(_z.m_core))
+                     : complex(d_cplx_cos(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    tan(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_tan_c(_z.m_core))
+                     : complex(d_cplx_tan(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    asin(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_asin_c(_z.m_core))
+                     : complex(d_cplx_asin(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    acos(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_acos_c(_z.m_core))
+                     : complex(d_cplx_acos(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    atan(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_atan_c(_z.m_core))
+                     : complex(d_cplx_atan(_z.m_core)) );
+    }
+
+    // the hyperbolic functions and their principal inverses.
+    friend D_CONSTEXPR_CPP20 complex
+    sinh(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_sinh_c(_z.m_core))
+                     : complex(d_cplx_sinh(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    cosh(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_cosh_c(_z.m_core))
+                     : complex(d_cplx_cosh(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    tanh(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_tanh_c(_z.m_core))
+                     : complex(d_cplx_tanh(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    asinh(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_asinh_c(_z.m_core))
+                     : complex(d_cplx_asinh(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    acosh(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_acosh_c(_z.m_core))
+                     : complex(d_cplx_acosh(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    atanh(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_atanh_c(_z.m_core))
+                     : complex(d_cplx_atanh(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    exp2(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_exp2_c(_z.m_core))
+                     : complex(d_cplx_exp2(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    log2(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_log2_c(_z.m_core))
+                     : complex(d_cplx_log2(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    log10(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_log10_c(_z.m_core))
+                     : complex(d_cplx_log10(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    log1p(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_log1p_c(_z.m_core))
+                     : complex(d_cplx_log1p(_z.m_core)) );
+    }
+
+    friend D_CONSTEXPR_CPP20 complex
+    expm1(
+        const complex& _z
+    ) D_NOEXCEPT
+    {
+        return ( internal::complex_at_compile_time()
+                     ? complex(d_cplx_expm1_c(_z.m_core))
+                     : complex(d_cplx_expm1(_z.m_core)) );
+    }
+
+    // ---- C99's functions: the _c forms -------------------------------
+
+    // each cplx.h's _c form, one long double kernel rounded once to Type,
+    // the same bits at every level, a constant expression from C++14: the
+    // language's values take these (S336).
+
+    friend D_CONSTEXPR_CPP14 Type
+    abs_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -579,16 +876,15 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 Type
-    arg(
+    arg_c(
         const complex& _z
     ) D_NOEXCEPT
     {
         return d_cplx_arg_c(_z.m_core);
     }
 
-    // e^_z, the principal logarithm, the principal square root.
     friend D_CONSTEXPR_CPP14 complex
-    exp(
+    exp_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -596,7 +892,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    log(
+    log_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -604,17 +900,15 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    sqrt(
+    sqrt_c(
         const complex& _z
     ) D_NOEXCEPT
     {
         return complex(d_cplx_sqrt_c(_z.m_core));
     }
 
-    // _z ^ _w, the principal value, as cpow: exp(_w log _z); a real operand
-    // that number plus 0i.
     friend D_CONSTEXPR_CPP14 complex
-    pow(
+    pow_c(
         const complex& _z,
         const complex& _w
     ) D_NOEXCEPT
@@ -623,28 +917,25 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    pow(
+    pow_c(
         const complex& _z,
         Type           _x
     ) D_NOEXCEPT
     {
-        return complex(d_cplx_pow_c(_z.m_core,
-                                    d_cplx_make(_x, static_cast<Type>(0))));
+        return pow_c(_z, complex(_x));
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    pow(
+    pow_c(
         Type           _x,
         const complex& _w
     ) D_NOEXCEPT
     {
-        return complex(d_cplx_pow_c(d_cplx_make(_x, static_cast<Type>(0)),
-                                    _w.m_core));
+        return pow_c(complex(_x), _w);
     }
 
-    // the trigonometric functions and their principal inverses.
     friend D_CONSTEXPR_CPP14 complex
-    sin(
+    sin_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -652,7 +943,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    cos(
+    cos_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -660,7 +951,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    tan(
+    tan_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -668,7 +959,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    asin(
+    asin_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -676,7 +967,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    acos(
+    acos_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -684,16 +975,15 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    atan(
+    atan_c(
         const complex& _z
     ) D_NOEXCEPT
     {
         return complex(d_cplx_atan_c(_z.m_core));
     }
 
-    // the hyperbolic functions and their principal inverses.
     friend D_CONSTEXPR_CPP14 complex
-    sinh(
+    sinh_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -701,7 +991,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    cosh(
+    cosh_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -709,7 +999,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    tanh(
+    tanh_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -717,7 +1007,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    asinh(
+    asinh_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -725,7 +1015,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    acosh(
+    acosh_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -733,17 +1023,15 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    atanh(
+    atanh_c(
         const complex& _z
     ) D_NOEXCEPT
     {
         return complex(d_cplx_atanh_c(_z.m_core));
     }
 
-    // the five C99 has only for real arguments, of a complex one
-
     friend D_CONSTEXPR_CPP14 complex
-    exp2(
+    exp2_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -751,7 +1039,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    log2(
+    log2_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -759,7 +1047,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    log10(
+    log10_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -767,7 +1055,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    log1p(
+    log1p_c(
         const complex& _z
     ) D_NOEXCEPT
     {
@@ -775,7 +1063,7 @@ public:
     }
 
     friend D_CONSTEXPR_CPP14 complex
-    expm1(
+    expm1_c(
         const complex& _z
     ) D_NOEXCEPT
     {

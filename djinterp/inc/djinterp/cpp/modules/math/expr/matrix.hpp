@@ -2,8 +2,8 @@
 * djinterp [cpp/math]                                                 matrix.hpp
 *
 * Vectors and matrices as values of the run-time expression language;
-* roadmap Phase 3, 3a to 3c, and matrices of complex numbers, 3e's third
-* part.
+* roadmap Phase 3, 3a to 3c, matrices of complex numbers, 3e's third part,
+* and matrices of quaternions, 3f's third part.
 *   THE KIND (3a) is a boxed kind of the value layer, as the wide integer is
 * (c/math/value_wide.h), so that value.h meets it without change: its table is
 * written here, in C++, from C++11, as the language that makes matrices is
@@ -13,9 +13,12 @@
 * dense array of float, double or long double where every element is one of
 * those, in the widest one's type, to which each widens exactly, or of
 * math::complex of the widest type where any element is a complex number of
-* such parts, a real element x then x + 0i (S348); and as math::values, each
-* of its own kind, where any element is exact or boxed, an exact complex
-* number among them. So no element is rounded by being put in a matrix, and a
+* such parts, a real element x then x + 0i (S348), or of math::quaternion of
+* the widest type where any is a quaternion of such parts, a real element x
+* then x + 0im + 0jm + 0km and a complex one x + yi x + yim + 0jm + 0km
+* (S386); and as math::values, each of its own kind, where any element is
+* exact or boxed, an exact complex number or quaternion among them. So no
+* element is rounded by being put in a matrix, and a
 * matrix of exact numbers is exact (S239). A vector is a matrix of one row or
 * one column: expr_vector's, a vector literal's, is one row (S240). An element
 * is a number: an element's error passes, the first, and an element that is no
@@ -37,12 +40,16 @@
 * the wider type, complex where either operand is, element by element by
 * math::complex's operators, a real operand's element or a real scalar taken
 * as itself (C99's G.5), a product's each element summed from 0 in order, as
-* the face's kernels sum it (S349). Beside them, the conjugate transpose A'
+* the face's kernels sum it (S349); and a dense one of quaternions' in the
+* wider type, by the generic kernels on the quaternion kind's operands, each
+* element as the kind computes its two, a real or complex operand taken as
+* itself, each product in its order, a number's product with a matrix too,
+* A / q being A inv(q) (S277, S387). Beside them, the conjugate transpose A'
 * (S273); A ^ n of a square matrix and a whole n, by repeated squaring as the
-* C core's d_mat_power squares (S248, S262), A ^ 0 the identity and A ^ (-n)
-* the inverse's power (S259); and indexing, from 1: A[i, j] an element, v[i] a
-* vector's, A[i] another matrix's row i, an index any whole number, exact or
-* not (S249).
+* C core's d_mat_power squares (S248, S262), A ^ 0 the identity of A's
+* storage and A ^ (-n) the inverse's power (S259); and indexing, from 1:
+* A[i, j] an element, v[i] a vector's, A[i] another matrix's row i, an index
+* any whole number, exact or not (S249).
 *   BLOCKS. A literal's elements are blocks (S261): a row's numbers and
 * matrices stand beside one another, each of the first's rows, and a
 * matrix's rows one above another, each of the first's columns, so that
@@ -56,8 +63,13 @@
 * eigenvalues' Jacobi and Francis's double-shift QR (S257, S258, S269), the
 * norm scaled where its squares would leave the range (S256); a matrix of
 * complex numbers' in the widest of its elements' types, by cmat.h's LU,
-* Gauss-Jordan and elimination of [A | B] where dense (S351). norm is of the
-* moduli, and dot(a, b) sums conj(a_i) b_i (S273, S351).
+* Gauss-Jordan and elimination of [A | B] where dense (S351); and one of
+* quaternions' by the generic kernels' Gauss-Jordan and elimination, each
+* product in its order and each row divided on the left, as A X = B asks, on
+* the kind's operands or on values whose traits say they do not commute,
+* det a domain error (S277, S388). norm is of the moduli, and dot(a, b) sums
+* conj(a_i) b_i (S273, S351); a quaternion is a scalar too, solve(q, B)
+* q^-1 B on the left and eig(q) its standard eigenvalue (S390).
 *   EIGENVALUES are every one a matrix has, complex where it is (S352): a real
 * matrix's as before, by Jacobi where it is symmetric and otherwise by
 * Francis's double-shift QR, and where that finds a complex pair, all of them
@@ -69,12 +81,21 @@
 * real part, then by imaginary part; one of a real matrix that is complex is a
 * domain error under expr_context's real_results (S340). Each solver is given
 * 30 QR steps a row, and at least 1000, the budget every matrix had before,
-* under which one of 700 rows ran out.
+* under which one of 700 rows ran out. A matrix of quaternions has Zhang's
+* standard right eigenvalues, n complex ones of imaginary part 0 or more:
+* one of each conjugate pair of its complex adjoint's, 2n by 2n, found as a
+* complex matrix's are, a triangular one's its diagonal's (S389).
 *   COMPLEX NUMBERS (complex.hpp) are matrices' elements from step 23's
 * third part (S273, S348). A' conjugates each, as a complex number's z' is
 * its conjugate (S333), and transpose(A) does not; real, imag, conj and arg
 * of a matrix are its elements', and complex(A, B) of two matrices of one
 * shape the matrix of complex(a_ij, b_ij) (S350).
+*   QUATERNIONS (quaternion.hpp, S275) are matrices' elements from step 24's
+* third part, chunk 46 (S386 to S390), whose expr_status::not_yet (S369) is
+* gone: A' conjugates each, transpose(A) does not, real and conj of a matrix
+* are its elements', and imag, arg and complex of one a domain error; a sum
+* of a matrix and a quaternion stays a domain error, as a matrix plus a
+* number is (S246). Their rotations' matrices are rotation.hpp's (S391).
 *   STEPS. Step 19 (3a) filled the kind, expr_matrix, expr_vector,
 * expr_is_matrix, expr_shape_of and expr_element; step 20 (3b) filled
 * expr_transpose and the kind's arithmetic, powers and indexing; step 21
@@ -82,13 +103,16 @@
 * step 23 (3e) a complex number's transpose, and in its third part, chunk
 * 43, matrices of complex numbers: their storage, arithmetic and
 * transposes, the parts of a matrix, complex(A, B), linear algebra's
-* functions of them, and complex eigenvalues.
+* functions of them, and complex eigenvalues; step 24 (3f), its second part,
+* in chunk 45, the refusals of quaternions (S369), and its third, chunk 46,
+* matrices of them: their storage, arithmetic, transposes, linear algebra
+* and standard eigenvalues (S386 to S390).
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -158,7 +182,7 @@ TABLE OF CONTENTS
 
 // std
 #include <algorithm>  // std::stable_sort
-#include <cmath>      // std::floor, std::frexp, std::ldexp, std::sqrt
+#include <cmath>      // std::fabs, std::floor, std::frexp, std::ldexp, ...
 #include <cstddef>    // std::size_t
 #include <iomanip>    // std::setprecision
 #include <limits>     // std::numeric_limits
@@ -176,7 +200,7 @@ TABLE OF CONTENTS
                                                     // _lu_solve, _eigenvalues,
                                                     // _sym_eigen
 #include "../../../../c/modules/math/elementary.h"  // d_math_sqrt
-#include "../../../../c/modules/math/value.h"       // d_math_boxed_kind,
+#include "../../../../c/modules/math/value.h"       // dj_math_boxed_kind,
                                                     // d_math_value_cmp
 #include "../linear_algebra/linalg_common.hpp"      // linalg_kernel
 #include "../math_common.hpp"                       // NS_MATH
@@ -184,6 +208,8 @@ TABLE OF CONTENTS
 #include "./complex.hpp"                            // expr_is_complex,
                                                     // expr_conj
 #include "./expr_common.hpp"                        // expr_result
+#include "./quaternion.hpp"                         // the quaternion kind,
+                                                    // its operands
 
 
 NS_DJINTERP
@@ -264,33 +290,53 @@ NS_INTERNAL
     // 2.1.2
     // expr_matrix_storage
     //   enum: how a matrix holds its elements: as values, each of its own
-    // kind; or dense, as floats, doubles or long doubles (S239), or as
-    // complex numbers of them, math::complex<T>, the C core's struct, row by
-    // row as LAPACK lays a complex matrix out but by rows (S273, S348).
-    // Each complex storage lies 3 past its parts' real one.
+    // kind; or dense, as floats, doubles or long doubles (S239), as complex
+    // numbers of them, math::complex<T>, the C core's struct, row by row as
+    // LAPACK lays a complex matrix out but by rows (S273, S348), or as
+    // quaternions of them, math::quaternion<T>, quat.h's array [x, y, z, w]
+    // (S386). Each complex storage lies 3 past its parts' real one, and each
+    // quaternion storage 6.
     enum class expr_matrix_storage
     {
-        values               = 1,   // math::values, each a number of its own
-                                    // kind
-        floats               = 2,   // a dense array of float
-        doubles              = 3,   // of double
-        long_doubles         = 4,   // of long double
-        complex_floats       = 5,   // of math::complex<float>
-        complex_doubles      = 6,   // of math::complex<double>
-        complex_long_doubles = 7    // of math::complex<long double>
+        values                  = 1,    // math::values, each a number of its
+                                        // own kind
+        floats                  = 2,    // a dense array of float
+        doubles                 = 3,    // of double
+        long_doubles            = 4,    // of long double
+        complex_floats          = 5,    // of math::complex<float>
+        complex_doubles         = 6,    // of math::complex<double>
+        complex_long_doubles    = 7,    // of math::complex<long double>
+        quaternion_floats       = 8,    // of math::quaternion<float>
+        quaternion_doubles      = 9,    // of math::quaternion<double>
+        quaternion_long_doubles = 10    // of math::quaternion<long double>
     };
 
-    // expr_storage_is_complex, expr_storage_real_of, expr_storage_complex_of
-    //   functions: whether a storage holds complex numbers; a dense
-    // storage's real type, a complex one's parts' and a real one's own; and
-    // the complex storage of a dense one's type. Values are values in each.
+    // expr_storage_is_complex, expr_storage_is_quaternion,
+    // expr_storage_real_of, expr_storage_complex_of,
+    // expr_storage_quaternion_of
+    //   functions: whether a storage holds complex numbers, and whether
+    // quaternions; a dense storage's real type, a complex or quaternion
+    // one's parts' and a real one's own; the complex storage of a real one's
+    // type, a complex or quaternion one itself; and the quaternion storage
+    // of a dense one's type. Values are values in each.
     D_CONSTEXPR inline bool
     expr_storage_is_complex(
         expr_matrix_storage _storage
     ) D_NOEXCEPT
     {
+        return ( (static_cast<int>(_storage) >
+                  static_cast<int>(expr_matrix_storage::long_doubles)) &&
+                 (static_cast<int>(_storage) <
+                  static_cast<int>(expr_matrix_storage::quaternion_floats)) );
+    }
+
+    D_CONSTEXPR inline bool
+    expr_storage_is_quaternion(
+        expr_matrix_storage _storage
+    ) D_NOEXCEPT
+    {
         return (static_cast<int>(_storage) >
-                static_cast<int>(expr_matrix_storage::long_doubles));
+                static_cast<int>(expr_matrix_storage::complex_long_doubles));
     }
 
     D_CONSTEXPR inline expr_matrix_storage
@@ -298,7 +344,10 @@ NS_INTERNAL
         expr_matrix_storage _storage
     ) D_NOEXCEPT
     {
-        return ( expr_storage_is_complex(_storage)
+        return ( expr_storage_is_quaternion(_storage)
+                     ? static_cast<expr_matrix_storage>(
+                           static_cast<int>(_storage) - 6)
+                 : expr_storage_is_complex(_storage)
                      ? static_cast<expr_matrix_storage>(
                            static_cast<int>(_storage) - 3)
                      : _storage );
@@ -310,10 +359,23 @@ NS_INTERNAL
     ) D_NOEXCEPT
     {
         return ( ( (_storage == expr_matrix_storage::values) ||
-                   (expr_storage_is_complex(_storage)) )
+                   (expr_storage_is_complex(_storage)) ||
+                   (expr_storage_is_quaternion(_storage)) )
                      ? _storage
                      : static_cast<expr_matrix_storage>(
                            static_cast<int>(_storage) + 3) );
+    }
+
+    D_CONSTEXPR inline expr_matrix_storage
+    expr_storage_quaternion_of(
+        expr_matrix_storage _storage
+    ) D_NOEXCEPT
+    {
+        return ( (_storage == expr_matrix_storage::values)
+                     ? _storage
+                     : static_cast<expr_matrix_storage>(
+                           static_cast<int>(expr_storage_real_of(_storage)) +
+                           6) );
     }
 
     // 2.1.3
@@ -323,16 +385,19 @@ NS_INTERNAL
     // names, the others empty. A box is made with one holder.
     struct expr_matrix_box
     {
-        std::size_t                              holders;
-        expr_shape                               shape;
-        expr_matrix_storage                      storage;
-        std::vector<value>                       values;
-        std::vector<float>                       floats;
-        std::vector<double>                      doubles;
-        std::vector<long double>                 long_doubles;
-        std::vector<math::complex<float> >       complex_floats;
-        std::vector<math::complex<double> >      complex_doubles;
-        std::vector<math::complex<long double> > complex_long_doubles;
+        std::size_t                                 holders;
+        expr_shape                                  shape;
+        expr_matrix_storage                         storage;
+        std::vector<value>                          values;
+        std::vector<float>                          floats;
+        std::vector<double>                         doubles;
+        std::vector<long double>                    long_doubles;
+        std::vector<math::complex<float> >          complex_floats;
+        std::vector<math::complex<double> >         complex_doubles;
+        std::vector<math::complex<long double> >    complex_long_doubles;
+        std::vector<math::quaternion<float> >       quaternion_floats;
+        std::vector<math::quaternion<double> >      quaternion_doubles;
+        std::vector<math::quaternion<long double> > quaternion_long_doubles;
 
         expr_matrix_box(
             const expr_shape&   _shape,
@@ -347,7 +412,10 @@ NS_INTERNAL
               long_doubles(),
               complex_floats(),
               complex_doubles(),
-              complex_long_doubles()
+              complex_long_doubles(),
+              quaternion_floats(),
+              quaternion_doubles(),
+              quaternion_long_doubles()
         {}
     };
 
@@ -360,7 +428,7 @@ NS_INTERNAL
     // its own; and every element, row by row.
     inline bool
     expr_matrix_held(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         return ( (_x.kind == D_MATH_VALUE_BOXED) &&
@@ -370,7 +438,7 @@ NS_INTERNAL
 
     inline const expr_matrix_box&
     expr_matrix_box_of(
-        const d_math_value& _x
+        const dj_math_value& _x
     )
     {
         return *static_cast<const expr_matrix_box*>(_x.box);
@@ -403,6 +471,16 @@ NS_INTERNAL
             case expr_matrix_storage::complex_long_doubles:
                 return expr_complex_of(_box.complex_long_doubles[_index]);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_quaternion_of(_box.quaternion_floats[_index]);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_quaternion_of(_box.quaternion_doubles[_index]);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_quaternion_of(
+                    _box.quaternion_long_doubles[_index]);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -425,7 +503,7 @@ NS_INTERNAL
         if ( (a.storage != expr_matrix_storage::values) &&
              (_a.flags() != 0u) )
         {
-            d_math_value held = element.detach();
+            dj_math_value held = element.detach();
 
             held.flags |= _a.flags();
             element     = value::adopt(held);
@@ -456,7 +534,7 @@ NS_END  // internal
 
 // 2.2    Its entries
 //------------------------------------------------------------------------------
-// value.h's d_math_boxed_kind entries, each given values of the kind as that
+// value.h's dj_math_boxed_kind entries, each given values of the kind as that
 // header says: one operand a matrix, neither an error, a boolean or none.
 NS_INTERNAL
 
@@ -511,15 +589,15 @@ NS_INTERNAL
 
     inline value
     expr_matrix_operation(
-        d_math_value_op _op,
-        const value&    _a,
-        const value&    _b
+        dj_math_value_op _op,
+        const value&     _a,
+        const value&     _b
     );
 
-    inline d_math_value
+    inline dj_math_value
     expr_matrix_unary(
-        d_math_value_op _op,
-        d_math_value    _x
+        dj_math_value_op _op,
+        dj_math_value    _x
     )
     {
         // |A|: no operation of a matrix's
@@ -539,11 +617,11 @@ NS_INTERNAL
         }
     }
 
-    inline d_math_value
+    inline dj_math_value
     expr_matrix_binary(
-        d_math_value_op _op,
-        d_math_value    _a,
-        d_math_value    _b
+        dj_math_value_op _op,
+        dj_math_value    _a,
+        dj_math_value    _b
     )
     {
         // the operation, or no storage for it
@@ -565,10 +643,10 @@ NS_INTERNAL
     // are matrices of one shape whose elements are equal, place by place, by
     // value.h's exact order, whatever their storage; unordered otherwise, as
     // a matrix has no order, and stands in none with a number (S242).
-    inline d_math_value_order
+    inline dj_math_value_order
     expr_matrix_cmp(
-        d_math_value _a,
-        d_math_value _b
+        dj_math_value _a,
+        dj_math_value _b
     )
     {
         // not two matrices, or two of two shapes
@@ -604,10 +682,10 @@ NS_INTERNAL
     // number to convert; the entry must be set all the same.)
     inline bool
     expr_matrix_convert(
-        d_math_value*     _out,
-        int*              _direction,
-        d_math_value      _x,
-        d_math_value_kind _to
+        dj_math_value*     _out,
+        int*               _direction,
+        dj_math_value      _x,
+        dj_math_value_kind _to
     )
     {
         static_cast<void>(_out);
@@ -635,7 +713,7 @@ NS_INTERNAL
     )
     {
         std::ostringstream out;
-        d_rational         exact = { 0, 1 };
+        dj_rational        exact = { 0, 1 };
         float              f     = 0.0f;
         double             d     = 0.0;
         long double        ld    = 0.0L;
@@ -658,11 +736,11 @@ NS_INTERNAL
         // a boxed number: its kind's text
         if (_x.kind() == D_MATH_VALUE_BOXED)
         {
-            const d_math_value& held   = _x.c_value();
-            const std::size_t   length = held.type->text(D_NULLPTR,
-                                                         0,
-                                                         held);
-            std::string         text(length + 1, '\0');
+            const dj_math_value& held   = _x.c_value();
+            const std::size_t    length = held.type->text(D_NULLPTR,
+                                                          0,
+                                                          held);
+            std::string          text(length + 1, '\0');
 
             static_cast<void>(held.type->text(&text[0],
                                               length + 1,
@@ -699,9 +777,9 @@ NS_INTERNAL
 
     inline std::size_t
     expr_matrix_text(
-        char*        _buffer,
-        std::size_t  _size,
-        d_math_value _x
+        char*         _buffer,
+        std::size_t   _size,
+        dj_math_value _x
     )
     {
         const expr_matrix_box& box  = expr_matrix_box_of(_x);
@@ -749,10 +827,10 @@ NS_INTERNAL
     // as a matrix is no number, and its entries, with no exact entry, as no
     // matrix is a number; one for the program, as an inline function's
     // static is.
-    inline const d_math_boxed_kind*
+    inline const dj_math_boxed_kind*
     expr_matrix_kind()
     {
-        static const d_math_boxed_kind table = {
+        static const dj_math_boxed_kind table = {
             "matrix",
             expr_matrix_rank,
             0u,
@@ -779,8 +857,8 @@ NS_INTERNAL
         unsigned         _flags
     )
     {
-        d_math_value held = d_internal_math_value_blank(D_MATH_VALUE_BOXED,
-                                                        _flags);
+        dj_math_value held = d_internal_math_value_blank(D_MATH_VALUE_BOXED,
+                                                         _flags);
 
         held.type = expr_matrix_kind();
         held.box  = _box;
@@ -839,13 +917,107 @@ NS_INTERNAL
         return;
     }
 
+    // expr_matrix_fill_quaternion
+    //   function: _elements, each a number whose parts are floats, doubles
+    // or long doubles no wider than Type, a real one x as x + 0im + 0jm +
+    // 0km and a complex one x + yi as x + yim + 0jm + 0km, each widened
+    // exactly to math::quaternion<Type>, into _dense (S386).
+    template<typename Type>
+    void
+    expr_matrix_fill_quaternion(
+        std::vector<math::quaternion<Type> >& _dense,
+        const std::vector<value>&             _elements
+    )
+    {
+        _dense.reserve(_elements.size());
+
+        // in order
+        for (std::size_t i = 0; i < _elements.size(); ++i)
+        {
+            math::quaternion<Type> q(Type(0), Type(0), Type(0), Type(0));
+
+            static_cast<void>(expr_quaternion_to(_elements[i],
+                                                 q));
+            _dense.push_back(q);
+        }
+
+        return;
+    }
+
+    // expr_matrix_fill_box
+    //   function: _elements into _box, as its storage holds them: densely,
+    // each widened exactly, or as values, each kept as it is (S239, S348,
+    // S386).
+    inline void
+    expr_matrix_fill_box(
+        expr_matrix_box&          _box,
+        const std::vector<value>& _elements
+    )
+    {
+        // by storage
+        switch (_box.storage)
+        {
+            case expr_matrix_storage::floats:
+                expr_matrix_fill(_box.floats,
+                                 _elements);
+                break;
+
+            case expr_matrix_storage::doubles:
+                expr_matrix_fill(_box.doubles,
+                                 _elements);
+                break;
+
+            case expr_matrix_storage::long_doubles:
+                expr_matrix_fill(_box.long_doubles,
+                                 _elements);
+                break;
+
+            case expr_matrix_storage::complex_floats:
+                expr_matrix_fill_complex(_box.complex_floats,
+                                         _elements);
+                break;
+
+            case expr_matrix_storage::complex_doubles:
+                expr_matrix_fill_complex(_box.complex_doubles,
+                                         _elements);
+                break;
+
+            case expr_matrix_storage::complex_long_doubles:
+                expr_matrix_fill_complex(_box.complex_long_doubles,
+                                         _elements);
+                break;
+
+            case expr_matrix_storage::quaternion_floats:
+                expr_matrix_fill_quaternion(_box.quaternion_floats,
+                                            _elements);
+                break;
+
+            case expr_matrix_storage::quaternion_doubles:
+                expr_matrix_fill_quaternion(_box.quaternion_doubles,
+                                            _elements);
+                break;
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                expr_matrix_fill_quaternion(_box.quaternion_long_doubles,
+                                            _elements);
+                break;
+
+            case expr_matrix_storage::values:
+            default:
+                _box.values = _elements;
+                break;
+        }
+
+        return;
+    }
+
     // expr_matrix_kind_storage
     //   function: the dense storage of an element of the kind _kind: an
     // inline float's, double's or long double's own type; values for any
     // other kind, exact or boxed.
     inline expr_matrix_storage
     expr_matrix_kind_storage(
-        d_math_value_kind _kind
+        dj_math_value_kind _kind
     ) D_NOEXCEPT
     {
         return ( (_kind == D_MATH_VALUE_FLOAT)
@@ -860,8 +1032,9 @@ NS_INTERNAL
     // expr_matrix_element_storage
     //   function: the dense storage of an element: an inline float's,
     // double's or long double's own type; a complex number of such parts,
-    // their complex storage (S348); values for any other number, exact or
-    // boxed, an exact complex number among them.
+    // their complex storage (S348), and a quaternion of them, their
+    // quaternion storage (S386); values for any other number, exact or
+    // boxed, an exact complex number or quaternion among them.
     inline expr_matrix_storage
     expr_matrix_element_storage(
         const value& _x
@@ -876,13 +1049,23 @@ NS_INTERNAL
             return expr_storage_complex_of(parts);
         }
 
+        // a quaternion: its parts' type, quaternion, where they are dense
+        if (expr_is_quaternion(_x))
+        {
+            const expr_matrix_storage parts = expr_matrix_kind_storage(
+                expr_quaternion_type_of(_x.c_value()));
+
+            return expr_storage_quaternion_of(parts);
+        }
+
         return expr_matrix_kind_storage(_x.kind());
     }
 
     // expr_matrix_wider
     //   function: the storage two dense storages' elements are kept in
     // together: values where either is; the wider of their types, of
-    // complex numbers where either is (S348).
+    // quaternions where either is (S386), and otherwise of complex numbers
+    // where either is (S348).
     inline expr_matrix_storage
     expr_matrix_wider(
         expr_matrix_storage _a,
@@ -900,6 +1083,13 @@ NS_INTERNAL
         const expr_matrix_storage b     = expr_storage_real_of(_b);
         const expr_matrix_storage wider = ( (a > b) ? a : b );
 
+        // quaternions, complex numbers, or real ones
+        if ( (expr_storage_is_quaternion(_a)) ||
+             (expr_storage_is_quaternion(_b)) )
+        {
+            return expr_storage_quaternion_of(wider);
+        }
+
         return ( ( (expr_storage_is_complex(_a)) ||
                    (expr_storage_is_complex(_b)) )
                      ? expr_storage_complex_of(wider)
@@ -909,10 +1099,12 @@ NS_INTERNAL
     // expr_matrix_storage_of
     //   function: the storage that keeps each of _elements, numbers, one at
     // least, as it is: the widest one's type where each is a float, a double
-    // or a long double, to which each widens exactly, or a complex number of
-    // such parts, the widest type's complex numbers where any is, a real
-    // element x then x + 0i (S348); values where any is exact or boxed
-    // (S239).
+    // or a long double, to which each widens exactly, or a complex number or
+    // a quaternion of such parts, the widest type's quaternions where any is
+    // one, a real element x then x + 0im + 0jm + 0km and a complex one x + yi
+    // x + yim + 0jm + 0km (S386), and otherwise its complex numbers where any
+    // is one, a real element x then x + 0i (S348); values where any is exact
+    // or boxed (S239).
     inline expr_matrix_storage
     expr_matrix_storage_of(
         const std::vector<value>& _elements
@@ -960,13 +1152,13 @@ NS_END  // internal
  *                       rows.
  * @param[in] _elements  its elements, row by row, each a number.
  * @return the matrix, a value of its own, each element kept as it is given
- *         (S239), dense, real or complex, where every element is a float, a
- *         double, a long double or a complex number of such parts (S348),
- *         carrying every flag they do, of values where it has none; the
- *         first element that is an error, where one is; a domain error,
- *         where an element is no number (S241); or bad_shape, where the
- *         shape has no row or no column but not neither, or _elements holds
- *         other than _rows * _columns.
+ *         (S239), dense, real, complex or of quaternions, where every element
+ *         is a float, a double, a long double or a complex number or a
+ *         quaternion of such parts (S348, S386), carrying every flag they
+ *         do, of values where it has none; the first element that is an
+ *         error, where one is; a domain error, where an element is no number
+ *         (S241); or bad_shape, where the shape has no row or no column but
+ *         not neither, or _elements holds other than _rows * _columns.
  */
 D_NODISCARD inline expr_result<value>
 expr_matrix(
@@ -1035,43 +1227,8 @@ expr_matrix(
                                       storage));
 
     // the elements, as the storage holds them
-    switch (storage)
-    {
-        case internal::expr_matrix_storage::floats:
-            internal::expr_matrix_fill(box->floats,
-                                       _elements);
-            break;
-
-        case internal::expr_matrix_storage::doubles:
-            internal::expr_matrix_fill(box->doubles,
-                                       _elements);
-            break;
-
-        case internal::expr_matrix_storage::long_doubles:
-            internal::expr_matrix_fill(box->long_doubles,
-                                       _elements);
-            break;
-
-        case internal::expr_matrix_storage::complex_floats:
-            internal::expr_matrix_fill_complex(box->complex_floats,
-                                               _elements);
-            break;
-
-        case internal::expr_matrix_storage::complex_doubles:
-            internal::expr_matrix_fill_complex(box->complex_doubles,
-                                               _elements);
-            break;
-
-        case internal::expr_matrix_storage::complex_long_doubles:
-            internal::expr_matrix_fill_complex(box->complex_long_doubles,
-                                               _elements);
-            break;
-
-        case internal::expr_matrix_storage::values:
-        default:
-            box->values = _elements;
-            break;
-    }
+    internal::expr_matrix_fill_box(*box,
+                                   _elements);
 
     return ok<value, expr_error>(internal::expr_matrix_adopt(box.release(),
                                                              flags));
@@ -1252,6 +1409,27 @@ NS_INTERNAL
         return expr_matrix_storage::complex_long_doubles;
     }
 
+    template<>
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for<math::quaternion<float> >()
+    {
+        return expr_matrix_storage::quaternion_floats;
+    }
+
+    template<>
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for<math::quaternion<double> >()
+    {
+        return expr_matrix_storage::quaternion_doubles;
+    }
+
+    template<>
+    D_CONSTEXPR expr_matrix_storage
+    expr_matrix_storage_for<math::quaternion<long double> >()
+    {
+        return expr_matrix_storage::quaternion_long_doubles;
+    }
+
     // expr_matrix_array
     //   function: a box's dense array of Type.
     template<typename Type>
@@ -1312,6 +1490,33 @@ NS_INTERNAL
     )
     {
         return _box.complex_long_doubles;
+    }
+
+    template<>
+    inline std::vector<math::quaternion<float> >&
+    expr_matrix_array<math::quaternion<float> >(
+        expr_matrix_box& _box
+    )
+    {
+        return _box.quaternion_floats;
+    }
+
+    template<>
+    inline std::vector<math::quaternion<double> >&
+    expr_matrix_array<math::quaternion<double> >(
+        expr_matrix_box& _box
+    )
+    {
+        return _box.quaternion_doubles;
+    }
+
+    template<>
+    inline std::vector<math::quaternion<long double> >&
+    expr_matrix_array<math::quaternion<long double> >(
+        expr_matrix_box& _box
+    )
+    {
+        return _box.quaternion_long_doubles;
     }
 
     // expr_matrix_widened
@@ -1498,6 +1703,200 @@ NS_INTERNAL
         return expr_matrix_complex_as<long double>(_box);
     }
 
+    // expr_matrix_quaternion_as
+    //   function: a dense box's elements as math::quaternion<Type>, Type no
+    // narrower than its parts' type: a quaternion box's each part widened
+    // exactly, a complex box's x + yi as x + yim + 0jm + 0km, and a real
+    // box's x as x + 0im + 0jm + 0km (S386).
+    template<typename Type,
+             typename From>
+    void
+    expr_matrix_quaternion_from(
+        std::vector<math::quaternion<Type> >&       _out,
+        const std::vector<math::quaternion<From> >& _from
+    )
+    {
+        _out.reserve(_from.size());
+
+        // each part widened
+        for (std::size_t i = 0; i < _from.size(); ++i)
+        {
+            _out.push_back(math::quaternion<Type>(
+                static_cast<Type>(_from[i].x),
+                static_cast<Type>(_from[i].y),
+                static_cast<Type>(_from[i].z),
+                static_cast<Type>(_from[i].w)));
+        }
+
+        return;
+    }
+
+    template<typename Type,
+             typename From>
+    void
+    expr_matrix_quaternion_from(
+        std::vector<math::quaternion<Type> >&    _out,
+        const std::vector<math::complex<From> >& _from
+    )
+    {
+        _out.reserve(_from.size());
+
+        // x + yim + 0jm + 0km
+        for (std::size_t i = 0; i < _from.size(); ++i)
+        {
+            _out.push_back(math::quaternion<Type>(
+                static_cast<Type>(_from[i].imag()),
+                Type(0),
+                Type(0),
+                static_cast<Type>(_from[i].real())));
+        }
+
+        return;
+    }
+
+    template<typename Type,
+             typename From>
+    void
+    expr_matrix_quaternion_from(
+        std::vector<math::quaternion<Type> >& _out,
+        const std::vector<From>&              _from
+    )
+    {
+        _out.reserve(_from.size());
+
+        // x + 0im + 0jm + 0km
+        for (std::size_t i = 0; i < _from.size(); ++i)
+        {
+            _out.push_back(math::quaternion<Type>(Type(0),
+                                                  Type(0),
+                                                  Type(0),
+                                                  static_cast<Type>(
+                                                      _from[i])));
+        }
+
+        return;
+    }
+
+    template<typename Type>
+    std::vector<math::quaternion<Type> >
+    expr_matrix_quaternion_as(
+        const expr_matrix_box& _box
+    )
+    {
+        std::vector<math::quaternion<Type> > out;
+
+        // by storage, each no wider than Type
+        switch (_box.storage)
+        {
+            case expr_matrix_storage::floats:
+                expr_matrix_quaternion_from(out, _box.floats);
+                break;
+
+            case expr_matrix_storage::doubles:
+                expr_matrix_quaternion_from(out, _box.doubles);
+                break;
+
+            case expr_matrix_storage::long_doubles:
+                expr_matrix_quaternion_from(out, _box.long_doubles);
+                break;
+
+            case expr_matrix_storage::complex_floats:
+                expr_matrix_quaternion_from(out, _box.complex_floats);
+                break;
+
+            case expr_matrix_storage::complex_doubles:
+                expr_matrix_quaternion_from(out, _box.complex_doubles);
+                break;
+
+            case expr_matrix_storage::complex_long_doubles:
+                expr_matrix_quaternion_from(out, _box.complex_long_doubles);
+                break;
+
+            case expr_matrix_storage::quaternion_floats:
+                expr_matrix_quaternion_from(out, _box.quaternion_floats);
+                break;
+
+            case expr_matrix_storage::quaternion_doubles:
+                expr_matrix_quaternion_from(out, _box.quaternion_doubles);
+                break;
+
+            // quaternions of long doubles; a box of values, which no caller
+            // passes, none, its quaternions of long doubles being none
+            case expr_matrix_storage::quaternion_long_doubles:
+            default:
+                expr_matrix_quaternion_from(out,
+                                            _box.quaternion_long_doubles);
+                break;
+        }
+
+        return out;
+    }
+
+    template<>
+    inline std::vector<math::quaternion<float> >
+    expr_matrix_dense_as<math::quaternion<float> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_quaternion_as<float>(_box);
+    }
+
+    template<>
+    inline std::vector<math::quaternion<double> >
+    expr_matrix_dense_as<math::quaternion<double> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_quaternion_as<double>(_box);
+    }
+
+    template<>
+    inline std::vector<math::quaternion<long double> >
+    expr_matrix_dense_as<math::quaternion<long double> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_quaternion_as<long double>(_box);
+    }
+
+    // expr_matrix_held_of, expr_matrix_operands_as
+    //   functions: how many parts each element of a dense storage holds, 1
+    // for a real one, 2 for a complex one and 4 for a quaternion one; and a
+    // dense box's elements as the quaternion kind's operands in Type, each
+    // holding its storage's parts, so that a real or complex element is
+    // taken as itself (quaternion.hpp, S387).
+    inline std::size_t
+    expr_matrix_held_of(
+        expr_matrix_storage _storage
+    )
+    {
+        return ( expr_storage_is_quaternion(_storage) ? 4
+               : expr_storage_is_complex(_storage)    ? 2
+                                                      : 1 );
+    }
+
+    template<typename Type>
+    std::vector<expr_quaternion_operand<Type> >
+    expr_matrix_operands_as(
+        const expr_matrix_box& _box
+    )
+    {
+        const std::vector<math::quaternion<Type> > q =
+            expr_matrix_quaternion_as<Type>(_box);
+        const std::size_t held = expr_matrix_held_of(_box.storage);
+        std::vector<expr_quaternion_operand<Type> > operands;
+
+        operands.reserve(q.size());
+
+        // each holding its storage's parts
+        for (std::size_t i = 0; i < q.size(); ++i)
+        {
+            operands.push_back(expr_quaternion_operand_made(q[i], held));
+        }
+
+        return operands;
+    }
+
     // expr_matrix_values_of
     //   function: a matrix's elements, row by row, as values, a dense
     // one's each with the matrix's flags, so that none is lost (G2).
@@ -1541,6 +1940,32 @@ NS_INTERNAL
 
         return expr_matrix_adopt(box.release(),
                                  _flags);
+    }
+
+    // expr_matrix_of_operands
+    //   function: a matrix of _shape of the quaternions of Type the operands
+    // _operands hold, with _flags (S386).
+    template<typename Type>
+    value
+    expr_matrix_of_operands(
+        const expr_shape&                                  _shape,
+        const std::vector<expr_quaternion_operand<Type> >& _operands,
+        unsigned                                           _flags
+    )
+    {
+        std::vector<math::quaternion<Type> > dense;
+
+        dense.reserve(_operands.size());
+
+        // each operand's parts
+        for (std::size_t i = 0; i < _operands.size(); ++i)
+        {
+            dense.push_back(_operands[i].q);
+        }
+
+        return expr_matrix_of_dense<math::quaternion<Type> >(_shape,
+                                                             dense,
+                                                             _flags);
     }
 
     // expr_matrix_of_values
@@ -1850,16 +2275,181 @@ NS_INTERNAL
             _flags);
     }
 
+    // expr_matrix_sum_quaternion
+    //   function: A + B, or A - B where _minus, of one shape, dense, one of
+    // them of quaternions at least, in Type: the kernels' sum of the
+    // quaternion kind's operands, each element as the kind adds its two, a
+    // real or complex one taken as itself (S387).
+    template<typename Type>
+    value
+    expr_matrix_sum_quaternion(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        bool                   _minus,
+        unsigned               _flags
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        const std::vector<operand> a = expr_matrix_operands_as<Type>(_a);
+        const std::vector<operand> b = expr_matrix_operands_as<Type>(_b);
+        std::vector<operand>       out(a.size());
+
+        // the kernel of the sum, or of the difference
+        if (_minus)
+        {
+            kernel::sub(out.data(),
+                        a.data(),
+                        b.data(),
+                        a.size());
+        }
+        else
+        {
+            kernel::add(out.data(),
+                        a.data(),
+                        b.data(),
+                        a.size());
+        }
+
+        return expr_matrix_of_operands<Type>(_a.shape,
+                                             out,
+                                             _flags);
+    }
+
+    // expr_matrix_scaled_quaternion
+    //   function: each element of a dense A times _number, on its right, or
+    // on its left where _left, or divided by it, on the right, where
+    // _divide, A or the number holding quaternions, in Type: the number its
+    // nearest operand there, each element as the kind multiplies or divides
+    // its two, in their order (S277, S387).
+    template<typename Type>
+    value
+    expr_matrix_scaled_quaternion(
+        const expr_matrix_box& _a,
+        const value&           _number,
+        bool                   _divide,
+        bool                   _left,
+        unsigned               _flags
+    )
+    {
+        typedef expr_quaternion_operand<Type> operand;
+
+        const std::vector<operand> a      = expr_matrix_operands_as<Type>(_a);
+        const operand              number = expr_quaternion_operand_of<Type>(
+            expr_quaternion_parts_of(_number.c_value()));
+        std::vector<operand>       out(a.size());
+
+        // each element, the number on its side
+        for (std::size_t i = 0; i < a.size(); ++i)
+        {
+            out[i] = ( (_divide) ? (a[i] / number)
+                     : (_left)   ? (number * a[i])
+                                 : (a[i] * number) );
+        }
+
+        return expr_matrix_of_operands<Type>(_a.shape,
+                                             out,
+                                             _flags);
+    }
+
+    // expr_matrix_product_quaternion
+    //   function: A * B, dense, one of them of quaternions at least, in
+    // Type: the kernels' product of the quaternion kind's operands, each
+    // element a row's products with a column's, a_ik b_kj in that order,
+    // summed from 0 in order (S277, S387).
+    template<typename Type>
+    value
+    expr_matrix_product_quaternion(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        unsigned               _flags
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        const std::vector<operand> a = expr_matrix_operands_as<Type>(_a);
+        const std::vector<operand> b = expr_matrix_operands_as<Type>(_b);
+        const std::size_t          rows    = _a.shape.rows;
+        const std::size_t          inner   = _a.shape.columns;
+        const std::size_t          columns = _b.shape.columns;
+        std::vector<operand>       out(rows * columns);
+
+        kernel::multiply(out.data(),
+                         a.data(),
+                         b.data(),
+                         rows,
+                         inner,
+                         columns);
+
+        return expr_matrix_of_operands<Type>(expr_shape(rows,
+                                                        columns),
+                                             out,
+                                             _flags);
+    }
+
+    // expr_matrix_reordered_quaternion
+    //   function: -A, or A's transpose, conjugated where _conjugate, or
+    // neither, of a dense A of quaternions in Type: each element negated,
+    // each part's sign flipped, as the kind negates one, or moved and
+    // conjugated by quat.h's conjugate.
+    template<typename Type>
+    value
+    expr_matrix_reordered_quaternion(
+        const expr_matrix_box& _a,
+        bool                   _negate,
+        bool                   _transpose,
+        bool                   _conjugate,
+        unsigned               _flags
+    )
+    {
+        typedef math::quaternion<Type> quaternion_type;
+
+        const std::vector<quaternion_type> a       =
+            expr_matrix_quaternion_as<Type>(_a);
+        const std::size_t                  rows    = _a.shape.rows;
+        const std::size_t                  columns = _a.shape.columns;
+        std::vector<quaternion_type>       out(a.size());
+
+        // each element to its place
+        for (std::size_t i = 0; i < rows; ++i)
+        {
+            for (std::size_t j = 0; j < columns; ++j)
+            {
+                const quaternion_type& x     = a[(i * columns) + j];
+                const std::size_t      place = ( _transpose
+                                                     ? ((j * rows) + i)
+                                                     : ((i * columns) + j) );
+
+                out[place] = ( _negate ? quaternion_type(-x.x,
+                                                         -x.y,
+                                                         -x.z,
+                                                         -x.w)
+                             : _conjugate ? conjugate(x)
+                                          : x );
+            }
+        }
+
+        return expr_matrix_of_dense<quaternion_type>(
+            ( _transpose ? expr_shape(columns,
+                                      rows)
+                         : _a.shape ),
+            out,
+            _flags);
+    }
+
     // 3.2.2
     // The dense type
     //   functions: the storage two matrices' arithmetic is computed in, and
-    // a matrix's and a number's: the wider of two dense types, complex where
-    // either is (expr_matrix_wider, 2.1.4); a number's own, a float's, a
-    // double's or a long double's, or a complex number's of such parts; or
-    // an exact number's, which takes the matrix's, as the tower converts an
-    // exact number to the inexact one's type, complex where it is; and
-    // values, where either holds values or the number is a boxed inexact
-    // one, which handles each element itself.
+    // a matrix's and a number's: the wider of two dense types, of
+    // quaternions where either is, else complex where either is
+    // (expr_matrix_wider, 2.1.4); a number's own, a float's, a double's or a
+    // long double's, or a complex number's or a quaternion's of such parts;
+    // or an exact number's, which takes the matrix's, as the tower converts
+    // an exact number to the inexact one's type, complex or of quaternions
+    // where it is; and values, where either holds values or the number is a
+    // boxed inexact one, which handles each element itself.
     inline expr_matrix_storage
     expr_matrix_number_storage(
         const value& _number
@@ -1887,6 +2477,15 @@ NS_INTERNAL
         {
             return ( _number.is_exact()
                          ? expr_matrix_storage::complex_floats
+                         : expr_matrix_element_storage(_number) );
+        }
+
+        // a quaternion: of its parts' type, of quaternions; an exact one the
+        // matrix's type, of quaternions
+        if (expr_is_quaternion(_number))
+        {
+            return ( _number.is_exact()
+                         ? expr_matrix_storage::quaternion_floats
                          : expr_matrix_element_storage(_number) );
         }
 
@@ -2004,6 +2603,24 @@ NS_INTERNAL
                                                             _minus,
                                                             flags);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_sum_quaternion<float>(a,
+                                                         b,
+                                                         _minus,
+                                                         flags);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_sum_quaternion<double>(a,
+                                                          b,
+                                                          _minus,
+                                                          flags);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_sum_quaternion<long double>(a,
+                                                               b,
+                                                               _minus,
+                                                               flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -2077,15 +2694,74 @@ NS_INTERNAL
                                           _flags);
     }
 
+    // expr_matrix_noncommuting
+    //   function: whether a matrix's product with a number hangs on their
+    // order: where the number is a quaternion or the matrix holds one.
+    inline bool
+    expr_matrix_noncommuting(
+        const value& _a,
+        const value& _number
+    );
+
+    // expr_matrix_scaled_values
+    //   function: expr_matrix_scaled on values, each element the value's
+    // own product or quotient: the number on the left where _left and the
+    // order counts, a quaternion among the two (S387).
+    inline value
+    expr_matrix_scaled_values(
+        const value& _a,
+        const value& _number,
+        bool         _divide,
+        bool         _left
+    )
+    {
+        typedef linalg::internal::linalg_kernel<value> kernel;
+
+        const expr_matrix_box&   a = expr_matrix_box_of(_a.c_value());
+        const std::vector<value> x = expr_matrix_values_of(_a);
+        std::vector<value>       out(x.size());
+
+        // the number on the left, where the order counts
+        if ( (_left) &&
+             (!_divide) &&
+             (expr_matrix_noncommuting(_a, _number)) )
+        {
+            for (std::size_t i = 0; i < x.size(); ++i)
+            {
+                out[i] = (_number * x[i]);
+            }
+        }
+        else if (_divide)
+        {
+            kernel::divide(out.data(),
+                           x.data(),
+                           _number,
+                           x.size());
+        }
+        else
+        {
+            kernel::scale(out.data(),
+                          x.data(),
+                          _number,
+                          x.size());
+        }
+
+        return expr_matrix_of_values(a.shape,
+                                     out);
+    }
+
     // expr_matrix_scaled
-    //   function: each element of A times _number, or divided by it where
-    // _divide; a number's product with A is A's with it, as the product of
-    // two numbers does not hang on their order.
+    //   function: each element of A times _number, on its right, or on its
+    // left where _left, or divided by it, on the right, where _divide, each
+    // product in its order (S277): a real or complex number's product with
+    // A is A's with it, as the product of two such numbers does not hang on
+    // their order.
     inline value
     expr_matrix_scaled(
         const value& _a,
         const value& _number,
-        bool         _divide
+        bool         _divide,
+        bool         _left = false
     )
     {
         const expr_matrix_box& a     = expr_matrix_box_of(_a.c_value());
@@ -2131,34 +2807,36 @@ NS_INTERNAL
                                                                _divide,
                                                                flags);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_scaled_quaternion<float>(a,
+                                                            _number,
+                                                            _divide,
+                                                            _left,
+                                                            flags);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_scaled_quaternion<double>(a,
+                                                             _number,
+                                                             _divide,
+                                                             _left,
+                                                             flags);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_scaled_quaternion<long double>(a,
+                                                                  _number,
+                                                                  _divide,
+                                                                  _left,
+                                                                  flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
         }
 
-        typedef linalg::internal::linalg_kernel<value> kernel;
-
-        const std::vector<value> x = expr_matrix_values_of(_a);
-        std::vector<value>       out(x.size());
-
-        // on values
-        if (_divide)
-        {
-            kernel::divide(out.data(),
-                           x.data(),
-                           _number,
-                           x.size());
-        }
-        else
-        {
-            kernel::scale(out.data(),
-                          x.data(),
-                          _number,
-                          x.size());
-        }
-
-        return expr_matrix_of_values(a.shape,
-                                     out);
+        return expr_matrix_scaled_values(_a,
+                                         _number,
+                                         _divide,
+                                         _left);
     }
 
     // expr_matrix_negated_in
@@ -2218,6 +2896,18 @@ NS_INTERNAL
 
             case expr_matrix_storage::complex_long_doubles:
                 return expr_matrix_reordered_complex<long double>(
+                    a, true, false, false, _a.flags());
+
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_reordered_quaternion<float>(
+                    a, true, false, false, _a.flags());
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_reordered_quaternion<double>(
+                    a, true, false, false, _a.flags());
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_reordered_quaternion<long double>(
                     a, true, false, false, _a.flags());
 
             case expr_matrix_storage::values:
@@ -2322,6 +3012,21 @@ NS_INTERNAL
                                                                 b,
                                                                 flags);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_product_quaternion<float>(a,
+                                                             b,
+                                                             flags);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_product_quaternion<double>(a,
+                                                              b,
+                                                              flags);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_product_quaternion<long double>(a,
+                                                                   b,
+                                                                   flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -2348,13 +3053,14 @@ NS_INTERNAL
     // 3.2.5
     // expr_matrix_operation
     //   function: _a _op _b, one of them a matrix, as the kind's binary entry
-    // computes it (2.2.2), a complex number among the numbers it takes
-    // (S349).
+    // computes it (2.2.2), a complex number and a quaternion among the
+    // numbers it takes, a product of a number and a matrix in its order
+    // (S349, S387).
     inline value
     expr_matrix_operation(
-        d_math_value_op _op,
-        const value&    _a,
-        const value&    _b
+        dj_math_value_op _op,
+        const value&     _a,
+        const value&     _b
     )
     {
         const bool a = expr_matrix_held(_a.c_value());
@@ -2385,7 +3091,8 @@ NS_INTERNAL
         {
             return expr_matrix_scaled( (a ? _a : _b),
                                        (a ? _b : _a),
-                                       (_op == D_MATH_VALUE_OP_DIV) );
+                                       (_op == D_MATH_VALUE_OP_DIV),
+                                       (!a) );
         }
 
         return value(D_MATH_VALUE_ERROR_DOMAIN);
@@ -2395,8 +3102,8 @@ NS_INTERNAL
     // The transpose
     //   function: A's transpose, the matrix of A's columns as its rows, by
     // the kernels' transpose, each element as it is; or, where _conjugate,
-    // the conjugate transpose, A', each complex element conjugated and each
-    // real one as it is (S273, S350).
+    // the conjugate transpose, A', each complex element and quaternion
+    // conjugated and each real one as it is (S273, S277, S350).
     template<typename Type>
     value
     expr_matrix_transposed_in(
@@ -2459,6 +3166,18 @@ NS_INTERNAL
                 return expr_matrix_reordered_complex<long double>(
                     a, false, true, _conjugate, _a.flags());
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_reordered_quaternion<float>(
+                    a, false, true, _conjugate, _a.flags());
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_reordered_quaternion<double>(
+                    a, false, true, _conjugate, _a.flags());
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_reordered_quaternion<long double>(
+                    a, false, true, _conjugate, _a.flags());
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -2469,11 +3188,12 @@ NS_INTERNAL
         std::vector<value> x = expr_matrix_values_of(_a);
         std::vector<value> out(x.size());
 
-        // each complex element conjugated, where asked
+        // each complex element and quaternion conjugated, where asked
         for (std::size_t i = 0; ( (_conjugate) && (i < x.size()) ); ++i)
         {
-            x[i] = ( expr_is_complex(x[i]) ? expr_conj(x[i])
-                                           : x[i] );
+            x[i] = ( expr_is_complex(x[i])    ? expr_conj(x[i])
+                   : expr_is_quaternion(x[i]) ? expr_quaternion_conj(x[i])
+                                              : x[i] );
         }
 
         kernel::transpose(out.data(),
@@ -2499,7 +3219,11 @@ NS_INTERNAL
     // with partial pivoting, the C core's in a floating-point type and the
     // generic one's on values, exact for an exact A; a pole for a singular
     // A, as an exact number over 0 is (S259); and a domain error for any
-    // other A. The inverse of the empty matrix is itself.
+    // other A. The inverse of the empty matrix is itself. Where A holds a
+    // quaternion, each product keeps its order and each row is divided on
+    // the left, as A X = B asks: the generic kernels' on the quaternion
+    // kind's operands, or on values whose traits say they do not commute
+    // (S269, S277, S388).
 
     // expr_flagged
     //   function: _x with _flags as well as its own.
@@ -2509,7 +3233,7 @@ NS_INTERNAL
         unsigned     _flags
     )
     {
-        d_math_value held = value(_x).detach();
+        dj_math_value held = value(_x).detach();
 
         held.flags |= _flags;
 
@@ -2590,11 +3314,50 @@ NS_INTERNAL
         return false;
     }
 
+    // expr_matrix_has_quaternion
+    //   function: whether a matrix holds a quaternion: a dense one of
+    // quaternions, or one of values of which one is.
+    inline bool
+    expr_matrix_has_quaternion(
+        const value& _a
+    )
+    {
+        const expr_matrix_box& a = expr_matrix_box_of(_a.c_value());
+
+        // a dense one, by its storage
+        if (a.storage != expr_matrix_storage::values)
+        {
+            return expr_storage_is_quaternion(a.storage);
+        }
+
+        // values: whether any is a quaternion
+        for (std::size_t i = 0; i < a.values.size(); ++i)
+        {
+            if (expr_is_quaternion(a.values[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    inline bool
+    expr_matrix_noncommuting(
+        const value& _a,
+        const value& _number
+    )
+    {
+        return ( (expr_is_quaternion(_number)) ||
+                 (expr_matrix_has_quaternion(_a)) );
+    }
+
     // expr_matrix_algebra_storage
     //   function: the storage a matrix's square algebra is computed in: a
     // dense matrix's own; values for one of exact values, or of a boxed
-    // inexact one; otherwise the widest inexact element's type, of complex
-    // numbers where any element, exact or not, is one (S351).
+    // inexact one; otherwise the widest inexact element's type, of
+    // quaternions where any element, exact or not, is one (S388), and
+    // otherwise of complex numbers where any is one (S351).
     inline expr_matrix_storage
     expr_matrix_algebra_storage(
         const value& _a
@@ -2609,16 +3372,20 @@ NS_INTERNAL
             return a.storage;
         }
 
-        // the widest inline inexact element's, complex where an element is,
-        // each exact one taken to it; a boxed inexact one: values
-        bool complex = false;
+        // the widest inline inexact element's, of quaternions or complex
+        // where an element is, each exact one taken to it; a boxed inexact
+        // one: values
+        bool complex    = false;
+        bool quaternion = false;
 
         for (std::size_t i = 0; i < a.values.size(); ++i)
         {
             const expr_matrix_storage storage =
                 expr_matrix_element_storage(a.values[i]);
 
-            complex = ( (complex) || (expr_is_complex(a.values[i])) );
+            complex    = ( (complex) || (expr_is_complex(a.values[i])) );
+            quaternion = ( (quaternion) ||
+                           (expr_is_quaternion(a.values[i])) );
 
             if (a.values[i].is_exact())
             {
@@ -2636,13 +3403,16 @@ NS_INTERNAL
                                                storage) );
         }
 
-        return ( (complex) ? expr_storage_complex_of(widest)
-                           : widest );
+        return ( (quaternion) ? expr_storage_quaternion_of(widest)
+               : (complex)    ? expr_storage_complex_of(widest)
+                              : widest );
     }
 
     // expr_matrix_nearest
-    //   functions: a number's nearest float, double or long double, and its
-    // nearest math::complex<T>, a real one's x + 0i.
+    //   functions: a number's nearest float, double or long double; its
+    // nearest math::complex<T>, a real one's x + 0i; its nearest
+    // math::quaternion<T>; and its nearest operand of the quaternion kind in
+    // T, holding the parts its kind holds (S387).
     template<typename Type>
     bool
     expr_matrix_nearest(
@@ -2662,6 +3432,60 @@ NS_INTERNAL
     {
         return expr_complex_to(_x,
                                _out);
+    }
+
+    template<typename Type>
+    bool
+    expr_matrix_nearest(
+        const value&            _x,
+        math::quaternion<Type>& _out
+    )
+    {
+        return expr_quaternion_to(_x,
+                                  _out);
+    }
+
+    template<typename Type>
+    bool
+    expr_matrix_nearest(
+        const value&                   _x,
+        expr_quaternion_operand<Type>& _out
+    )
+    {
+        _out = expr_quaternion_operand_of<Type>(
+            expr_quaternion_parts_of(_x.c_value()));
+
+        return true;
+    }
+
+    // expr_matrix_dense_as (operands)
+    //   functions: a dense box's elements as the quaternion kind's operands
+    // in Type (expr_matrix_operands_as).
+    template<>
+    inline std::vector<expr_quaternion_operand<float> >
+    expr_matrix_dense_as<expr_quaternion_operand<float> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_operands_as<float>(_box);
+    }
+
+    template<>
+    inline std::vector<expr_quaternion_operand<double> >
+    expr_matrix_dense_as<expr_quaternion_operand<double> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_operands_as<double>(_box);
+    }
+
+    template<>
+    inline std::vector<expr_quaternion_operand<long double> >
+    expr_matrix_dense_as<expr_quaternion_operand<long double> >(
+        const expr_matrix_box& _box
+    )
+    {
+        return expr_matrix_operands_as<long double>(_box);
     }
 
     // expr_matrix_dense_of
@@ -2871,6 +3695,291 @@ NS_INTERNAL
               expr_matrix_flags_of(_b) ));
     }
 
+    // expr_matrix_inverse_quaternion, expr_matrix_trace_quaternion,
+    // expr_matrix_solve_quaternion
+    //   functions: inv(A), trace(A) and solve(A, B) of A, B or both holding
+    // quaternions, in Type: the generic kernels' Gauss-Jordan inverse and
+    // their elimination of [A | B], with partial pivoting by |w| + |x| + |y|
+    // + |z|, on the quaternion kind's operands, each product in its order
+    // and each row divided on the left (S269, S277, S388); a pole for a
+    // singular A, whose pivot comes to 0; the trace the kernels', from 0.
+    template<typename Type>
+    value
+    expr_matrix_inverse_quaternion(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        const std::vector<operand> a = expr_matrix_dense_of<operand>(_a);
+        std::vector<operand>       out(_n * _n);
+        std::vector<operand>       scratch(_n * _n);
+
+        // singular: a pole
+        if (!kernel::inverse(out.data(),
+                             scratch.data(),
+                             a.data(),
+                             _n))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        return expr_matrix_of_operands<Type>(expr_shape(_n,
+                                                        _n),
+                                             out,
+                                             expr_matrix_flags_of(_a));
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_trace_quaternion(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        const std::vector<operand> a = expr_matrix_dense_of<operand>(_a);
+
+        return expr_quaternion_dense(kernel::trace(a.data(),
+                                                   _n).q,
+                                     expr_matrix_flags_of(_a));
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_solve_quaternion(
+        const value&      _a,
+        const value&      _b,
+        std::size_t       _n,
+        std::size_t       _columns,
+        const expr_shape& _shape
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        const std::vector<operand> a = expr_matrix_dense_of<operand>(_a);
+        const std::vector<operand> b = expr_matrix_dense_of<operand>(_b);
+        std::vector<operand>       x(_n * _columns);
+        std::vector<operand>       scratch(_n * _n);
+
+        // singular: a pole
+        if (!kernel::solve(x.data(),
+                           scratch.data(),
+                           a.data(),
+                           b.data(),
+                           _n,
+                           _columns))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        return expr_matrix_of_operands<Type>(_shape,
+                                             x,
+                                             ( expr_matrix_flags_of(_a) |
+                                               expr_matrix_flags_of(_b) ));
+    }
+
+    // expr_matrix_skew
+    //   struct: an element of a matrix of values that holds a quaternion, as
+    // the generic kernels compute with it: the value's own arithmetic, each
+    // operation the kind's own, with traits saying products do not commute,
+    // so that each row is divided on the left, as A X = B asks; exact for
+    // exact elements (S269, S277, S388).
+    struct expr_matrix_skew
+    {
+        value x;
+    };
+
+    // expr_matrix_skewed, expr_matrix_unskewed
+    //   functions: values as skew elements, and back.
+    inline std::vector<expr_matrix_skew>
+    expr_matrix_skewed(
+        const std::vector<value>& _x
+    )
+    {
+        std::vector<expr_matrix_skew> out;
+
+        out.reserve(_x.size());
+
+        // in order
+        for (std::size_t i = 0; i < _x.size(); ++i)
+        {
+            const expr_matrix_skew element = { _x[i] };
+
+            out.push_back(element);
+        }
+
+        return out;
+    }
+
+    inline std::vector<value>
+    expr_matrix_unskewed(
+        const std::vector<expr_matrix_skew>& _x
+    )
+    {
+        std::vector<value> out;
+
+        out.reserve(_x.size());
+
+        // in order
+        for (std::size_t i = 0; i < _x.size(); ++i)
+        {
+            out.push_back(_x[i].x);
+        }
+
+        return out;
+    }
+
+    // operator+, operator-, operator*, operator/ (expr_matrix_skew)
+    //   functions: the values' own, each in its order; -a, += and -=; a == b
+    // where the values compare equal.
+    inline expr_matrix_skew
+    operator+(
+        const expr_matrix_skew& _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        const expr_matrix_skew out = { (_a.x + _b.x) };
+
+        return out;
+    }
+
+    inline expr_matrix_skew
+    operator-(
+        const expr_matrix_skew& _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        const expr_matrix_skew out = { (_a.x - _b.x) };
+
+        return out;
+    }
+
+    inline expr_matrix_skew
+    operator-(
+        const expr_matrix_skew& _a
+    )
+    {
+        const expr_matrix_skew out = { -_a.x };
+
+        return out;
+    }
+
+    inline expr_matrix_skew
+    operator*(
+        const expr_matrix_skew& _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        const expr_matrix_skew out = { (_a.x * _b.x) };
+
+        return out;
+    }
+
+    inline expr_matrix_skew
+    operator/(
+        const expr_matrix_skew& _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        const expr_matrix_skew out = { (_a.x / _b.x) };
+
+        return out;
+    }
+
+    inline expr_matrix_skew&
+    operator+=(
+        expr_matrix_skew&       _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        _a.x = (_a.x + _b.x);
+
+        return _a;
+    }
+
+    inline expr_matrix_skew&
+    operator-=(
+        expr_matrix_skew&       _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        _a.x = (_a.x - _b.x);
+
+        return _a;
+    }
+
+    inline bool
+    operator==(
+        const expr_matrix_skew& _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        return (_a.x == _b.x);
+    }
+
+    inline bool
+    operator!=(
+        const expr_matrix_skew& _a,
+        const expr_matrix_skew& _b
+    )
+    {
+        return !(_a == _b);
+    }
+
+NS_END  // internal
+
+// number_traits<internal::expr_matrix_skew>
+//   trait: a value of a matrix that holds a quaternion, as the generic
+// kernels take it: value's own traits, but for products, which do not
+// commute (S388).
+template<>
+struct number_traits<internal::expr_matrix_skew>
+{
+    typedef number_traits<value>::magnitude_type magnitude_type;
+
+    static const bool is_specialized = true;
+    static const bool is_exact       = false;
+    static const bool is_integer     = false;
+    static const bool is_field       = true;
+    static const bool is_commutative = false;
+    static const bool is_ordered     = false;
+
+    // the additive and multiplicative identities, exact.
+    static internal::expr_matrix_skew
+    zero()
+    {
+        const internal::expr_matrix_skew out = { value(0) };
+
+        return out;
+    }
+
+    static internal::expr_matrix_skew
+    one()
+    {
+        const internal::expr_matrix_skew out = { value(1) };
+
+        return out;
+    }
+
+    // what a pivot is chosen by: the value's magnitude, a quaternion's
+    // norm.
+    static magnitude_type
+    magnitude(
+        const internal::expr_matrix_skew& _a
+    )
+    {
+        return number_traits<value>::magnitude(_a.x);
+    }
+};
+
+NS_INTERNAL
+
     // expr_matrix_inverse_in
     //   function: A's inverse, of _n rows, in Type, or a pole.
     template<typename Type>
@@ -2899,6 +4008,36 @@ NS_INTERNAL
                                                      _n),
                                           out,
                                           expr_matrix_flags_of(_a));
+    }
+
+    // expr_matrix_inverse_skew
+    //   function: the inverse of A, of values holding a quaternion, as skew
+    // elements, exact for an exact A, or a pole.
+    inline value
+    expr_matrix_inverse_skew(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        typedef linalg::internal::linalg_kernel<expr_matrix_skew> kernel;
+
+        const std::vector<expr_matrix_skew> x =
+            expr_matrix_skewed(expr_matrix_values_of(_a));
+        std::vector<expr_matrix_skew>       out(_n * _n);
+        std::vector<expr_matrix_skew>       scratch(_n * _n);
+
+        // singular: a pole
+        if (!kernel::inverse(out.data(),
+                             scratch.data(),
+                             x.data(),
+                             _n))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        return expr_matrix_of_values(expr_shape(_n,
+                                                _n),
+                                     expr_matrix_unskewed(out));
     }
 
     inline value
@@ -2942,9 +4081,28 @@ NS_INTERNAL
                 return expr_matrix_inverse_complex<long double>(_a,
                                                                 n);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_inverse_quaternion<float>(_a,
+                                                             n);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_inverse_quaternion<double>(_a,
+                                                              n);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_inverse_quaternion<long double>(_a,
+                                                                   n);
+
             case expr_matrix_storage::values:
             default:
                 break;
+        }
+
+        // values holding a quaternion: as skew elements
+        if (expr_matrix_has_quaternion(_a))
+        {
+            return expr_matrix_inverse_skew(_a,
+                                            n);
         }
 
         typedef linalg::internal::linalg_kernel<value> kernel;
@@ -2998,6 +4156,27 @@ NS_INTERNAL
                                           _flags);
     }
 
+    template<typename Type>
+    value
+    expr_matrix_identity_quaternion(
+        std::size_t _size,
+        unsigned    _flags
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        std::vector<operand> out(_size * _size);
+
+        kernel::identity(out.data(),
+                         _size);
+
+        return expr_matrix_of_operands<Type>(expr_shape(_size,
+                                                        _size),
+                                             out,
+                                             _flags);
+    }
+
     inline value
     expr_matrix_identity(
         const value& _a
@@ -3020,6 +4199,30 @@ NS_INTERNAL
             case expr_matrix_storage::long_doubles:
                 return expr_matrix_identity_in<long double>(n,
                                                             _a.flags());
+
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_identity_in<math::complex<float> >(
+                    n, _a.flags());
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_identity_in<math::complex<double> >(
+                    n, _a.flags());
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_identity_in<math::complex<long double> >(
+                    n, _a.flags());
+
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_identity_quaternion<float>(n,
+                                                              _a.flags());
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_identity_quaternion<double>(n,
+                                                               _a.flags());
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_identity_quaternion<long double>(
+                    n, _a.flags());
 
             case expr_matrix_storage::values:
             default:
@@ -3044,10 +4247,10 @@ NS_INTERNAL
         const value& _exponent
     )
     {
-        const d_math_imax most     = std::numeric_limits<d_math_imax>::max();
-        d_math_imax       exponent = 0;
-        long double       real     = 0.0L;
-        value             base     = _a;
+        const dj_math_imax most     = std::numeric_limits<dj_math_imax>::max();
+        dj_math_imax       exponent = 0;
+        long double        real     = 0.0L;
+        value              base     = _a;
 
         // a matrix
         if (!expr_matrix_held(_a.c_value()))
@@ -3077,12 +4280,12 @@ NS_INTERNAL
                  (!(real > -9.0e18L)) ||
                  (!(real < 9.0e18L)) ||
                  (real != static_cast<long double>(
-                              static_cast<d_math_imax>(real))) )
+                              static_cast<dj_math_imax>(real))) )
             {
                 return value(D_MATH_VALUE_ERROR_DOMAIN);
             }
 
-            exponent = static_cast<d_math_imax>(real);
+            exponent = static_cast<dj_math_imax>(real);
             base     = expr_matrix_scaled(_a,
                                           ( (_exponent - _exponent) +
                                             value(1) ),
@@ -3112,8 +4315,8 @@ NS_INTERNAL
             return expr_matrix_identity(base);
         }
 
-        d_math_imax top   = 1;
-        value       power = base;
+        dj_math_imax top   = 1;
+        value        power = base;
 
         // the exponent's highest bit
         while (top <= (exponent / 2))
@@ -3123,7 +4326,7 @@ NS_INTERNAL
 
         // each bit below it: the power squared, then times A on the left
         // where the bit is 1; an error, where one is made
-        for (d_math_imax bit = (top / 2); bit > 0; bit /= 2)
+        for (dj_math_imax bit = (top / 2); bit > 0; bit /= 2)
         {
             power = expr_matrix_product(power,
                                         power);
@@ -3166,8 +4369,8 @@ NS_INTERNAL
         std::size_t& _place
     )
     {
-        d_math_imax whole = 0;
-        long double real  = 0.0L;
+        dj_math_imax whole = 0;
+        long double real   = 0.0L;
 
         // an exact whole number
         if (_index.is_exact())
@@ -3300,11 +4503,11 @@ NS_END  // internal
  * @param[in] _value      the matrix.
  * @param[in] _conjugate  true, the default, for A', the conjugate
  *                        transpose (S273); false for transpose(A).
- * @return the matrix of its columns as its rows, each complex element
- *         conjugated where _conjugate and every other as it is, a value of
- *         its own; or bad_shape, where the value is no matrix. (The
+ * @return the matrix of its columns as its rows, each complex element and
+ *         quaternion conjugated where _conjugate and every other as it is, a
+ *         value of its own; or bad_shape, where the value is no matrix. (The
  *         language's A' of a real number is the number itself, of a complex
- *         number its conjugate, and of an error the error:
+ *         number or a quaternion its conjugate, and of an error the error:
  *         expr_transpose_value.)
  */
 D_NODISCARD inline expr_result<value>
@@ -3332,10 +4535,10 @@ NS_INTERNAL
     // expr_transpose_value
     //   function: the language's A' as a value, or, where _conjugate is
     // false, its transpose(A): a matrix's conjugate transpose, or its
-    // transpose; a complex number's conjugate, as A' is the conjugate
-    // transpose (S273), or itself; a real number itself, as a number is its
-    // own transpose, and an error itself; a domain error for a boolean or
-    // none.
+    // transpose; a complex number's or a quaternion's conjugate, as A' is
+    // the conjugate transpose (S273, S277), or itself; a real number itself,
+    // as a number is its own transpose, and an error itself; a domain error
+    // for a boolean or none.
     inline value
     expr_transpose_value(
         const value& _value,
@@ -3356,6 +4559,13 @@ NS_INTERNAL
                                 : _value );
         }
 
+        // a quaternion: its conjugate, or itself
+        if (expr_is_quaternion(_value))
+        {
+            return ( _conjugate ? expr_quaternion_conj(_value)
+                                : _value );
+        }
+
         // a number, or an error: itself
         if ( (_value.is_number()) ||
              (_value.kind() == D_MATH_VALUE_ERROR) )
@@ -3371,12 +4581,14 @@ NS_END  // internal
 // 3.3.3
 // expr_matrix_each, expr_matrix_complex_of
 //   functions: the language's real, imag, conj and arg of a matrix, each
-// element's by complex.hpp's function _f, and complex(A, B) of two matrices
-// of one shape, each pair's, as MATLAB's, NumPy's and Julia's are element
-// by element (S350): the matrix of the results, as expr_matrix keeps them,
-// dense where each is; an element's error passes, the first. complex(A, B)
-// of a matrix and a number, or of two shapes, is a domain error, as A + b
-// is (S246).
+// element's by the function _f, complex.hpp's or, for real and conj,
+// quaternion.hpp's, which takes every number, and complex(A, B) of two
+// matrices of one shape, each pair's, as MATLAB's, NumPy's and Julia's are
+// element by element (S350): the matrix of the results, as expr_matrix
+// keeps them, dense where each is; an element's error passes, the first,
+// imag and arg of a quaternion element and complex of one a domain error
+// (S275). complex(A, B) of a matrix and a number, or of two shapes, is a
+// domain error, as A + b is (S246).
 NS_INTERNAL
 
     inline value
@@ -3477,7 +4689,8 @@ NS_INTERNAL
     //   function: whether _blocks hold an error, and if so the first, in
     // _out, which passes before any shape is asked of them. What is no
     // number and no matrix, a boolean or none, is a block of 1 by 1 whose
-    // element expr_matrix refuses, a domain error, as it refuses any.
+    // element expr_matrix refuses, a domain error, as it refuses any; a
+    // quaternion is a number, a block of 1 by 1 (S386).
     inline bool
     expr_blocks_fail(
         const std::vector<value>& _blocks,
@@ -3638,6 +4851,10 @@ NS_END  // internal
 // solve(A, B), the X for which A X = B. A number is a scalar, as in Julia:
 // det, trace and eig of it are itself, inv its reciprocal, norm its
 // magnitude, dot of two its product, solve(a, B) B / a; cross takes none.
+// A quaternion is one too (S390): det of it is a domain error, as of a
+// matrix of quaternions (S277); eig of it its standard eigenvalue, w +
+// |v|i; dot(p, q) is conj(p) q; and solve(a, B), where a is no real number
+// and a or B holds a quaternion, a^-1 B, on the left, as A X = B asks.
 // The square algebra is computed in the type S257 gives: exactly, by the
 // generic kernels, for exact elements; by the C core's, in a dense type:
 // LU with partial pivoting for det and solve, Gauss-Jordan for inv (3.2.7),
@@ -3652,8 +4869,7 @@ NS_INTERNAL
     // 3.5.1
     // Operands
     //   functions: whether an operand passes as it is: an error, the first,
-    // or what is no number and no matrix, or a complex number until step
-    // 23's third part (S331), a domain error, into _out; a
+    // or what is no number and no matrix, a domain error, into _out; a
     // shape in words; a vector's number of elements, of a matrix of one row
     // or one column, or the empty matrix, and npos for any other shape; and
     // a scalar computed in Type, stored so that the x87 rounds it to Type,
@@ -3775,7 +4991,8 @@ NS_INTERNAL
                                         : expr_shape() );
         const std::size_t n     = shape.rows;
 
-        // an error, or no operand; a number, its own
+        // an error, or no operand; a quaternion, or a matrix holding one,
+        // none (S277); a number, its own
         if (expr_matrix_passes(&_a,
                                1,
                                out))
@@ -3783,13 +5000,19 @@ NS_INTERNAL
             return out;
         }
 
+        if (expr_is_quaternion(_a))
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
         if (!expr_matrix_held(_a.c_value()))
         {
             return _a;
         }
 
-        // square
-        if (shape.rows != shape.columns)
+        // square, of no quaternion
+        if ( (shape.rows != shape.columns) ||
+             (expr_matrix_has_quaternion(_a)) )
         {
             return value(D_MATH_VALUE_ERROR_DOMAIN);
         }
@@ -3937,6 +5160,18 @@ NS_INTERNAL
                 return expr_matrix_trace_complex<long double>(_a,
                                                               n);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_trace_quaternion<float>(_a,
+                                                           n);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_trace_quaternion<double>(_a,
+                                                            n);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_trace_quaternion<long double>(_a,
+                                                                 n);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -4008,8 +5243,327 @@ NS_INTERNAL
                                             expr_matrix_flags_of(_b) ));
     }
 
+    // expr_matrix_left_quotient
+    //   function: a^-1 b of two numbers, on the left (S390): exactly where
+    // both are exact, a's inverse times b; otherwise in the wider of their
+    // floating-point types, each its nearest operand there, by the
+    // quaternion kind's operands' left quotient; with both flags.
+    template<typename Type>
+    value
+    expr_matrix_left_quotient_in(
+        const value& _a,
+        const value& _b,
+        unsigned     _flags
+    )
+    {
+        const expr_quaternion_operand<Type> a =
+            expr_quaternion_operand_of<Type>(
+                expr_quaternion_parts_of(_a.c_value()));
+        const expr_quaternion_operand<Type> b =
+            expr_quaternion_operand_of<Type>(
+                expr_quaternion_parts_of(_b.c_value()));
+
+        return expr_quaternion_operand_value(
+            expr_quaternion_left_quotient(a, b),
+            _flags);
+    }
+
+    inline value
+    expr_matrix_left_quotient(
+        const value& _a,
+        const value& _b
+    )
+    {
+        const value    operands[2] = { _a, _b };
+        const unsigned flags       = (_a.flags() | _b.flags());
+
+        // exactly
+        if ( (_a.is_exact()) &&
+             (_b.is_exact()) )
+        {
+            return ( (value(1) / _a) * _b );
+        }
+
+        // in the wider type
+        switch (expr_quaternion_widest(operands, 2))
+        {
+            case D_MATH_VALUE_FLOAT:
+                return expr_matrix_left_quotient_in<float>(_a, _b, flags);
+
+            case D_MATH_VALUE_DOUBLE:
+                return expr_matrix_left_quotient_in<double>(_a, _b, flags);
+
+            default:
+                break;
+        }
+
+        return expr_matrix_left_quotient_in<long double>(_a, _b, flags);
+    }
+
+    // expr_matrix_over_number
+    //   function: solve(a, B) of a number a: B / a; or, where a is no real
+    // number and a or B holds a quaternion, a^-1 B, on the left, as a X = B
+    // asks, each element of a matrix B so (S390).
+    inline value
+    expr_matrix_over_number(
+        const value& _a,
+        const value& _b
+    )
+    {
+        const bool b_matrix = expr_matrix_held(_b.c_value());
+        const bool skew     = ( (!expr_complex_real_number(_a)) &&
+                                ( (expr_is_quaternion(_a)) ||
+                                  (expr_is_quaternion(_b)) ||
+                                  ( (b_matrix) &&
+                                    (expr_matrix_has_quaternion(_b)) ) ) );
+
+        // B / a, where the order does not count
+        if (!skew)
+        {
+            return (_b / _a);
+        }
+
+        // a^-1 b, or each element of B so
+        if (!b_matrix)
+        {
+            return expr_matrix_left_quotient(_a,
+                                             _b);
+        }
+
+        const std::vector<value> elements = expr_matrix_values_of(_b);
+        std::vector<value>       out;
+
+        out.reserve(elements.size());
+
+        for (std::size_t i = 0; i < elements.size(); ++i)
+        {
+            out.push_back(expr_matrix_left_quotient(_a,
+                                                    elements[i]));
+        }
+
+        return expr_matrix_of_values(expr_matrix_box_of(_b.c_value()).shape,
+                                     out);
+    }
+
+    // expr_matrix_solve_skew
+    //   function: X for A X = B, of values one of which holds a quaternion,
+    // as skew elements: the elimination of [A | B], each product in its
+    // order and each row divided on the left, exact for exact elements; a
+    // pole for a singular A (S388).
+    inline value
+    expr_matrix_solve_skew(
+        const value&      _a,
+        const value&      _b,
+        std::size_t       _n,
+        std::size_t       _columns,
+        const expr_shape& _shape
+    )
+    {
+        typedef linalg::internal::linalg_kernel<expr_matrix_skew> kernel;
+
+        const std::vector<expr_matrix_skew> a =
+            expr_matrix_skewed(expr_matrix_values_of(_a));
+        const std::vector<expr_matrix_skew> b =
+            expr_matrix_skewed(expr_matrix_values_of(_b));
+        std::vector<expr_matrix_skew>       scratch(_n * _n);
+        std::vector<expr_matrix_skew>       solution(_n * _columns);
+
+        // singular: a pole
+        if (!kernel::solve(solution.data(),
+                           scratch.data(),
+                           a.data(),
+                           b.data(),
+                           _n,
+                           _columns))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        return expr_matrix_of_values(_shape,
+                                     expr_matrix_unskewed(solution));
+    }
+
+    // expr_matrix_solve_storage
+    //   function: the storage solve(A, B) is computed in: the wider of A's
+    // and B's, an exact one taking the other's; values where either is of
+    // values and not exact; of quaternions where either holds one (S388),
+    // else of complex numbers where either holds one (S351).
+    inline expr_matrix_storage
+    expr_matrix_solve_storage(
+        const value& _a,
+        const value& _b
+    )
+    {
+        const expr_matrix_storage storage =
+            expr_matrix_wider(expr_matrix_algebra_storage(_a),
+                              expr_matrix_algebra_storage(_b));
+        const bool                generic =
+            ( ( (expr_matrix_algebra_storage(_a) ==
+                     expr_matrix_storage::values) &&
+                (!expr_matrix_all_exact(_a)) ) ||
+              ( (expr_matrix_algebra_storage(_b) ==
+                     expr_matrix_storage::values) &&
+                (!expr_matrix_all_exact(_b)) ) );
+
+        // an exact matrix takes the other's storage
+        const expr_matrix_storage chosen =
+            ( generic ? expr_matrix_storage::values
+                      : ( (expr_matrix_all_exact(_a))
+                              ? expr_matrix_algebra_storage(_b)
+                              : ( (expr_matrix_all_exact(_b))
+                                      ? expr_matrix_algebra_storage(_a)
+                                      : storage ) ) );
+        const bool                quaternion =
+            ( (expr_matrix_has_quaternion(_a)) ||
+              (expr_matrix_has_quaternion(_b)) );
+
+        return ( (quaternion) ? expr_storage_quaternion_of(chosen)
+               : ( (expr_matrix_has_complex(_a)) ||
+                   (expr_matrix_has_complex(_b)) )
+                     ? expr_storage_complex_of(chosen)
+                     : chosen );
+    }
+
+    // expr_matrix_solve_values
+    //   function: solve(A, B) on values, n by n and n by _columns: as skew
+    // elements where either holds a quaternion (S388), else the generic
+    // kernels' elimination of [A | B], exact for exact elements (S257); a
+    // pole for a singular A.
+    inline value
+    expr_matrix_solve_values(
+        const value&      _a,
+        const value&      _b,
+        std::size_t       _n,
+        std::size_t       _columns,
+        const expr_shape& _shape
+    )
+    {
+        // values holding a quaternion: as skew elements
+        if ( (expr_matrix_has_quaternion(_a)) ||
+             (expr_matrix_has_quaternion(_b)) )
+        {
+            return expr_matrix_solve_skew(_a,
+                                          _b,
+                                          _n,
+                                          _columns,
+                                          _shape);
+        }
+
+        typedef linalg::internal::linalg_kernel<value> kernel;
+
+        const std::vector<value> y = expr_matrix_values_of(_a);
+        const std::vector<value> z = expr_matrix_values_of(_b);
+        std::vector<value>       scratch(_n * _n);
+        std::vector<value>       solution(_n * _columns);
+
+        // a pole for a singular A
+        if (!kernel::solve(solution.data(),
+                           scratch.data(),
+                           y.data(),
+                           z.data(),
+                           _n,
+                           _columns))
+        {
+            return value(D_MATH_VALUE_ERROR_POLE);
+        }
+
+        return expr_matrix_of_values(_shape,
+                                     solution);
+    }
+
+    // expr_matrix_solve_as
+    //   function: solve(A, B), n by n and n by _columns, computed in
+    // _storage.
+    inline value
+    expr_matrix_solve_as(
+        const value&        _a,
+        const value&        _b,
+        std::size_t         _n,
+        std::size_t         _columns,
+        const expr_shape&   _shape,
+        expr_matrix_storage _storage
+    )
+    {
+        switch (_storage)
+        {
+            case expr_matrix_storage::floats:
+                return expr_matrix_solve_in<float>(_a,
+                                                   _b,
+                                                   _n,
+                                                   _columns,
+                                                   _shape);
+
+            case expr_matrix_storage::doubles:
+                return expr_matrix_solve_in<double>(_a,
+                                                    _b,
+                                                    _n,
+                                                    _columns,
+                                                    _shape);
+
+            case expr_matrix_storage::long_doubles:
+                return expr_matrix_solve_in<long double>(_a,
+                                                         _b,
+                                                         _n,
+                                                         _columns,
+                                                         _shape);
+
+            case expr_matrix_storage::complex_floats:
+                return expr_matrix_solve_complex<float>(_a,
+                                                        _b,
+                                                        _n,
+                                                        _columns,
+                                                        _shape);
+
+            case expr_matrix_storage::complex_doubles:
+                return expr_matrix_solve_complex<double>(_a,
+                                                         _b,
+                                                         _n,
+                                                         _columns,
+                                                         _shape);
+
+            case expr_matrix_storage::complex_long_doubles:
+                return expr_matrix_solve_complex<long double>(_a,
+                                                              _b,
+                                                              _n,
+                                                              _columns,
+                                                              _shape);
+
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_solve_quaternion<float>(_a,
+                                                           _b,
+                                                           _n,
+                                                           _columns,
+                                                           _shape);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_solve_quaternion<double>(_a,
+                                                            _b,
+                                                            _n,
+                                                            _columns,
+                                                            _shape);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_solve_quaternion<long double>(_a,
+                                                                 _b,
+                                                                 _n,
+                                                                 _columns,
+                                                                 _shape);
+
+            case expr_matrix_storage::values:
+            default:
+                break;
+        }
+
+        return expr_matrix_solve_values(_a,
+                                        _b,
+                                        _n,
+                                        _columns,
+                                        _shape);
+    }
+
     // expr_matrix_solve
-    //   function: solve(A, B): X for A X = B; of a number a, B / a.
+    //   function: solve(A, B): X for A X = B; of a number a, B / a, or a^-1
+    // B where the order counts (expr_matrix_over_number).
     inline value
     expr_matrix_solve(
         const value& _a,
@@ -4019,7 +5573,7 @@ NS_INTERNAL
         const value x[2] = { _a, _b };
         value       out;
 
-        // an error, or no operand; a number a, B / a
+        // an error, or no operand; a number a
         if (expr_matrix_passes(x,
                                2,
                                out))
@@ -4029,7 +5583,8 @@ NS_INTERNAL
 
         if (!expr_matrix_held(_a.c_value()))
         {
-            return (_b / _a);
+            return expr_matrix_over_number(_a,
+                                           _b);
         }
 
         // A square, B a matrix of its rows, or a vector of as many elements
@@ -4054,101 +5609,13 @@ NS_INTERNAL
         const expr_shape  shape   = ( (b.rows == n) ? expr_shape(n,
                                                                  columns)
                                                     : b );
-        const expr_matrix_storage storage =
-            expr_matrix_wider(expr_matrix_algebra_storage(_a),
-                              expr_matrix_algebra_storage(_b));
-        const bool                generic =
-            ( ( (expr_matrix_algebra_storage(_a) ==
-                     expr_matrix_storage::values) &&
-                (!expr_matrix_all_exact(_a)) ) ||
-              ( (expr_matrix_algebra_storage(_b) ==
-                     expr_matrix_storage::values) &&
-                (!expr_matrix_all_exact(_b)) ) );
-
-        // by the type it is computed in: the wider of A's and B's, an
-        // exact one taking the other's, of complex numbers where either
-        // holds one (S351)
-        const expr_matrix_storage chosen =
-            ( generic ? expr_matrix_storage::values
-                      : ( (expr_matrix_all_exact(_a))
-                              ? expr_matrix_algebra_storage(_b)
-                              : ( (expr_matrix_all_exact(_b))
-                                      ? expr_matrix_algebra_storage(_a)
-                                      : storage ) ) );
-
-        switch ( ( (expr_matrix_has_complex(_a)) ||
-                   (expr_matrix_has_complex(_b)) )
-                     ? expr_storage_complex_of(chosen)
-                     : chosen )
-        {
-            case expr_matrix_storage::floats:
-                return expr_matrix_solve_in<float>(_a,
-                                                   _b,
-                                                   n,
-                                                   columns,
-                                                   shape);
-
-            case expr_matrix_storage::doubles:
-                return expr_matrix_solve_in<double>(_a,
-                                                    _b,
-                                                    n,
-                                                    columns,
-                                                    shape);
-
-            case expr_matrix_storage::long_doubles:
-                return expr_matrix_solve_in<long double>(_a,
-                                                         _b,
-                                                         n,
-                                                         columns,
-                                                         shape);
-
-            case expr_matrix_storage::complex_floats:
-                return expr_matrix_solve_complex<float>(_a,
-                                                        _b,
-                                                        n,
-                                                        columns,
-                                                        shape);
-
-            case expr_matrix_storage::complex_doubles:
-                return expr_matrix_solve_complex<double>(_a,
-                                                         _b,
-                                                         n,
-                                                         columns,
-                                                         shape);
-
-            case expr_matrix_storage::complex_long_doubles:
-                return expr_matrix_solve_complex<long double>(_a,
-                                                              _b,
-                                                              n,
-                                                              columns,
-                                                              shape);
-
-            case expr_matrix_storage::values:
-            default:
-                break;
-        }
-
-        typedef linalg::internal::linalg_kernel<value> kernel;
-
-        const std::vector<value> y = expr_matrix_values_of(_a);
-        const std::vector<value> z = expr_matrix_values_of(_b);
-        std::vector<value>       scratch(n * n);
-        std::vector<value>       solution(n * columns);
-
-        // the elimination of [A | B], exact for exact elements (S257); a
-        // pole for a singular A
-        if (!kernel::solve(solution.data(),
-                           scratch.data(),
-                           y.data(),
-                           z.data(),
-                           n,
-                           columns))
-        {
-            return value(D_MATH_VALUE_ERROR_POLE);
-        }
-
-        return expr_matrix_of_values(shape,
-                                     solution);
+        return expr_matrix_solve_as(_a,
+                                    _b,
+                                    n,
+                                    columns,
+                                    shape,
+                                    expr_matrix_solve_storage(_a,
+                                                              _b));
     }
 
     // 3.5.3
@@ -4288,10 +5755,51 @@ NS_INTERNAL
             _a.flags());
     }
 
+    // expr_matrix_quaternion_parts_of
+    //   function: a matrix's elements' parts, in Type, each element's w, x,
+    // y and z, a real or complex one's missing ones 0: so that the norm of a
+    // matrix of quaternions, the root of the sum of their norms' squares,
+    // is the scaled norm of its parts (S388).
+    template<typename Type>
+    std::vector<Type>
+    expr_matrix_quaternion_parts_of(
+        const value& _a
+    )
+    {
+        const std::vector<math::quaternion<Type> > q =
+            expr_matrix_dense_of<math::quaternion<Type> >(_a);
+        std::vector<Type>                          parts;
+
+        parts.reserve(4 * q.size());
+
+        // each element's four parts
+        for (std::size_t i = 0; i < q.size(); ++i)
+        {
+            parts.push_back(q[i].w);
+            parts.push_back(q[i].x);
+            parts.push_back(q[i].y);
+            parts.push_back(q[i].z);
+        }
+
+        return parts;
+    }
+
+    template<typename Type>
+    value
+    expr_matrix_norm_quaternion(
+        const value& _a
+    )
+    {
+        return expr_rounded<Type>(
+            expr_norm_scaled<Type>(expr_matrix_quaternion_parts_of<Type>(_a)),
+            _a.flags());
+    }
+
     // expr_matrix_moduli_squared
     //   function: the sum, on values, of a matrix's elements' squared moduli,
-    // re^2 + im^2 of a complex one and x^2 of a real one, from 0 in order:
-    // exact for exact elements (S351).
+    // w^2 + x^2 + y^2 + z^2 of a quaternion, re^2 + im^2 of a complex one
+    // and x^2 of a real one, from 0 in order: exact for exact elements
+    // (S351, S388).
     inline value
     expr_matrix_moduli_squared(
         const std::vector<value>& _x
@@ -4302,7 +5810,15 @@ NS_INTERNAL
         // element by element
         for (std::size_t i = 0; i < _x.size(); ++i)
         {
-            if (expr_is_complex(_x[i]))
+            if (expr_is_quaternion(_x[i]))
+            {
+                const expr_quaternion_parts_held q =
+                    expr_quaternion_parts_of(_x[i].c_value());
+
+                sum = (sum + ( ( (q.w * q.w) + (q.x * q.x) ) +
+                               ( (q.y * q.y) + (q.z * q.z) ) ));
+            }
+            else if (expr_is_complex(_x[i]))
             {
                 const value re = expr_real(_x[i]);
                 const value im = expr_imag(_x[i]);
@@ -4337,7 +5853,10 @@ NS_INTERNAL
                      ? _norm
                      : expr_rounded<Type>(
                            expr_norm_scaled<Type>(
-                               ( expr_matrix_has_complex(_a)
+                               ( expr_matrix_has_quaternion(_a)
+                                     ? expr_matrix_quaternion_parts_of<Type>(
+                                           _a)
+                               : expr_matrix_has_complex(_a)
                                      ? expr_matrix_parts_of<Type>(_a)
                                      : expr_matrix_dense_of<Type>(_a) )),
                            _norm.flags()) );
@@ -4384,6 +5903,15 @@ NS_INTERNAL
             case expr_matrix_storage::complex_long_doubles:
                 return expr_matrix_norm_complex<long double>(_a);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_norm_quaternion<float>(_a);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_norm_quaternion<double>(_a);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_norm_quaternion<long double>(_a);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -4393,7 +5921,8 @@ NS_INTERNAL
 
         const std::vector<value> x    = expr_matrix_values_of(_a);
         const value              norm = expr_matrix_root(
-            expr_matrix_has_complex(_a)
+            ( (expr_matrix_has_complex(_a)) ||
+              (expr_matrix_has_quaternion(_a)) )
                 ? expr_matrix_moduli_squared(x)
                 : kernel::norm_squared(x.data(),
                                        x.size()));
@@ -4503,6 +6032,47 @@ NS_INTERNAL
             _flags);
     }
 
+    // expr_matrix_dot_quaternion
+    //   function: dot(a, b) of dense vectors, one of quaternions at least,
+    // in Type: the sum from 0, in order, of conj(a_i) b_i, on the quaternion
+    // kind's operands, each product in that order (S388).
+    template<typename Type>
+    value
+    expr_matrix_dot_quaternion(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        unsigned               _flags
+    )
+    {
+        typedef expr_quaternion_operand<Type> operand;
+
+        const std::vector<operand> a   = expr_matrix_operands_as<Type>(_a);
+        const std::vector<operand> b   = expr_matrix_operands_as<Type>(_b);
+        operand                    sum = number_traits<operand>::zero();
+
+        // in order
+        for (std::size_t i = 0; i < a.size(); ++i)
+        {
+            sum += (expr_quaternion_operand_conj(a[i]) * b[i]);
+        }
+
+        return expr_quaternion_dense(sum.q,
+                                     _flags);
+    }
+
+    // expr_matrix_conjugate_value
+    //   function: a number's conjugate as dot takes it: a complex number's
+    // or a quaternion's, and a real one itself.
+    inline value
+    expr_matrix_conjugate_value(
+        const value& _x
+    )
+    {
+        return ( expr_is_complex(_x)    ? expr_conj(_x)
+               : expr_is_quaternion(_x) ? expr_quaternion_conj(_x)
+                                        : _x );
+    }
+
     // expr_matrix_dot_values
     //   function: dot(a, b) on values: the sum from 0, in order, of
     // conj(a_i) b_i, exact for exact elements.
@@ -4517,57 +6087,26 @@ NS_INTERNAL
         // in order
         for (std::size_t i = 0; i < _a.size(); ++i)
         {
-            sum = (sum + (( expr_is_complex(_a[i]) ? expr_conj(_a[i])
-                                                   : _a[i] ) * _b[i]));
+            sum = (sum + (expr_matrix_conjugate_value(_a[i]) * _b[i]));
         }
 
         return sum;
     }
 
+    // expr_matrix_dot_as
+    //   function: dot(a, b) of two vectors of _length elements, by the type
+    // it is computed in, the wider of the two's storages; on values, conj(a_i)
+    // b_i where either holds a complex number or a quaternion, else the
+    // kernels'.
     inline value
-    expr_matrix_dot(
+    expr_matrix_dot_as(
         const value& _a,
-        const value& _b
+        const value& _b,
+        std::size_t  _length
     )
     {
-        const value x[2] = { _a, _b };
-        value       out;
-
-        // an error, or no operand; two numbers, their product
-        if (expr_matrix_passes(x,
-                               2,
-                               out))
-        {
-            return out;
-        }
-
-        const bool a_matrix = expr_matrix_held(_a.c_value());
-        const bool b_matrix = expr_matrix_held(_b.c_value());
-
-        if ( (!a_matrix) &&
-             (!b_matrix) )
-        {
-            return ( ( expr_is_complex(_a) ? expr_conj(_a)
-                                           : _a ) * _b );
-        }
-
-        // two vectors of one length
-        if ( (!a_matrix) ||
-             (!b_matrix) )
-        {
-            return value(D_MATH_VALUE_ERROR_DOMAIN);
-        }
-
-        const expr_matrix_box& a      = expr_matrix_box_of(_a.c_value());
-        const expr_matrix_box& b      = expr_matrix_box_of(_b.c_value());
-        const std::size_t      length = expr_vector_length(a.shape);
-
-        if ( (length == expr_no_vector) ||
-             (expr_vector_length(b.shape) != length) )
-        {
-            return value(D_MATH_VALUE_ERROR_DOMAIN);
-        }
-
+        const expr_matrix_box& a = expr_matrix_box_of(_a.c_value());
+        const expr_matrix_box& b = expr_matrix_box_of(_b.c_value());
         const unsigned flags = (_a.flags() | _b.flags());
 
         // by the type it is computed in
@@ -4604,6 +6143,21 @@ NS_INTERNAL
                                                             b,
                                                             flags);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_dot_quaternion<float>(a,
+                                                         b,
+                                                         flags);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_dot_quaternion<double>(a,
+                                                          b,
+                                                          flags);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_dot_quaternion<long double>(a,
+                                                               b,
+                                                               flags);
+
             case expr_matrix_storage::values:
             default:
                 break;
@@ -4614,9 +6168,12 @@ NS_INTERNAL
         const std::vector<value> y = expr_matrix_values_of(_a);
         const std::vector<value> z = expr_matrix_values_of(_b);
 
-        // of complex numbers: conj(a_i) b_i; of real ones, the kernels'
+        // of complex numbers or quaternions: conj(a_i) b_i; of real ones,
+        // the kernels'
         if ( (expr_matrix_has_complex(_a)) ||
-             (expr_matrix_has_complex(_b)) )
+             (expr_matrix_has_complex(_b)) ||
+             (expr_matrix_has_quaternion(_a)) ||
+             (expr_matrix_has_quaternion(_b)) )
         {
             return expr_matrix_dot_values(y,
                                           z);
@@ -4624,7 +6181,55 @@ NS_INTERNAL
 
         return kernel::dot(y.data(),
                            z.data(),
-                           length);
+                           _length);
+    }
+
+    inline value
+    expr_matrix_dot(
+        const value& _a,
+        const value& _b
+    )
+    {
+        const value x[2] = { _a, _b };
+        value       out;
+
+        // an error, or no operand; two numbers, their product
+        if (expr_matrix_passes(x,
+                               2,
+                               out))
+        {
+            return out;
+        }
+
+        const bool a_matrix = expr_matrix_held(_a.c_value());
+        const bool b_matrix = expr_matrix_held(_b.c_value());
+
+        if ( (!a_matrix) &&
+             (!b_matrix) )
+        {
+            return (expr_matrix_conjugate_value(_a) * _b);
+        }
+
+        // two vectors of one length
+        if ( (!a_matrix) ||
+             (!b_matrix) )
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        const expr_matrix_box& a      = expr_matrix_box_of(_a.c_value());
+        const expr_matrix_box& b      = expr_matrix_box_of(_b.c_value());
+        const std::size_t      length = expr_vector_length(a.shape);
+
+        if ( (length == expr_no_vector) ||
+             (expr_vector_length(b.shape) != length) )
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        return expr_matrix_dot_as(_a,
+                                  _b,
+                                  length);
     }
 
     template<typename Type>
@@ -4703,6 +6308,35 @@ NS_INTERNAL
                                                           _flags);
     }
 
+    // expr_matrix_cross_quaternion
+    //   function: cross(a, b) of dense 3-vectors, one of quaternions at
+    // least, in Type, nothing conjugated: the kernels' a_2 b_3 - a_3 b_2,
+    // a_3 b_1 - a_1 b_3, a_1 b_2 - a_2 b_1 on the quaternion kind's operands,
+    // each product in that order, a's element on the left (S388).
+    template<typename Type>
+    value
+    expr_matrix_cross_quaternion(
+        const expr_matrix_box& _a,
+        const expr_matrix_box& _b,
+        unsigned               _flags
+    )
+    {
+        typedef expr_quaternion_operand<Type>            operand;
+        typedef linalg::internal::linalg_kernel<operand> kernel;
+
+        const std::vector<operand> a = expr_matrix_operands_as<Type>(_a);
+        const std::vector<operand> b = expr_matrix_operands_as<Type>(_b);
+        std::vector<operand>       out(3);
+
+        kernel::cross(out.data(),
+                      a.data(),
+                      b.data());
+
+        return expr_matrix_of_operands<Type>(_a.shape,
+                                             out,
+                                             _flags);
+    }
+
     inline value
     expr_matrix_cross(
         const value& _a,
@@ -4768,6 +6402,21 @@ NS_INTERNAL
                 return expr_matrix_cross_complex<long double>(a,
                                                               b,
                                                               flags);
+
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_cross_quaternion<float>(a,
+                                                           b,
+                                                           flags);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_cross_quaternion<double>(a,
+                                                            b,
+                                                            flags);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_cross_quaternion<long double>(a,
+                                                                 b,
+                                                                 flags);
 
             case expr_matrix_storage::values:
             default:
@@ -5215,7 +6864,7 @@ NS_INTERNAL
 
             _c[_n - k] = ( value(0) -
                            ( trace /
-                             value(static_cast<d_math_imax>(k)) ) );
+                             value(static_cast<dj_math_imax>(k)) ) );
 
             // an inexact coefficient, the exact arithmetic past its range
             if (!_c[_n - k].is_exact())
@@ -5281,16 +6930,16 @@ NS_INTERNAL
     inline bool
     expr_denominators_lcm(
         const std::vector<value>& _a,
-        d_math_imax&              _lcm
+        dj_math_imax&             _lcm
     )
     {
         _lcm = 1;
 
         for (std::size_t i = 0; i < _a.size(); ++i)
         {
-            d_rational  q      = { 0, 1 };
-            d_math_imax common = _lcm;
-            d_math_imax other  = 0;
+            dj_rational  q      = { 0, 1 };
+            dj_math_imax common = _lcm;
+            dj_math_imax other  = 0;
 
             if (!_a[i].to(q))
             {
@@ -5302,14 +6951,14 @@ NS_INTERNAL
             // the greatest common divisor, by Euclid's algorithm
             while (other != 0)
             {
-                const d_math_imax rest = (common % other);
+                const dj_math_imax rest = (common % other);
 
                 common = other;
                 other  = rest;
             }
 
             if ( (_lcm / common) >
-                 (std::numeric_limits<d_math_imax>::max() / q.den) )
+                 (std::numeric_limits<dj_math_imax>::max() / q.den) )
             {
                 return false;
             }
@@ -5327,7 +6976,7 @@ NS_INTERNAL
     inline bool
     expr_parts_denominators_lcm(
         const std::vector<value>& _a,
-        d_math_imax&              _lcm
+        dj_math_imax&             _lcm
     )
     {
         std::vector<value> parts;
@@ -5358,7 +7007,7 @@ NS_INTERNAL
     inline bool
     expr_gaussian_candidate(
         const math::complex<long double>& _z,
-        d_math_imax                       _lcm,
+        dj_math_imax                      _lcm,
         value&                            _out
     )
     {
@@ -5378,9 +7027,9 @@ NS_INTERNAL
             return false;
         }
 
-        const value real_part = ( value(static_cast<d_math_imax>(re)) /
+        const value real_part = ( value(static_cast<dj_math_imax>(re)) /
                                   value(_lcm) );
-        const value imag_part = ( value(static_cast<d_math_imax>(im)) /
+        const value imag_part = ( value(static_cast<dj_math_imax>(im)) /
                                   value(_lcm) );
 
         _out = ( (im == 0.0L) ? real_part
@@ -5444,7 +7093,7 @@ NS_INTERNAL
         std::vector<value>       eigenvalues(_n);
         std::vector<bool>        made(_n,
                                       false);
-        d_math_imax              lcm       = 1;
+        dj_math_imax             lcm       = 1;
         std::size_t              exact     = 0;
         bool                     real      = false;
         bool                     all       = true;
@@ -5593,6 +7242,389 @@ NS_INTERNAL
                                      eigenvalues);
     }
 
+    // expr_quaternion_standard
+    //   function: a number's standard eigenvalue, as eig of a number gives
+    // it (S390): a quaternion's w + |v|i, |v| the norm of its im, jm and km
+    // parts, the complex number of imaginary part 0 or more similar to it,
+    // u q u^-1, which a 1 by 1 matrix of it has (S389): exact where q is
+    // and |v| rational, otherwise in q's floating-point type, |v| quat.h's
+    // scaled norm, a long double for an exact q of an irrational |v|; with
+    // q's flags. Any other number is its own.
+    template<typename Type>
+    value
+    expr_quaternion_standard_in(
+        const value& _q
+    )
+    {
+        math::quaternion<Type> q(Type(0), Type(0), Type(0), Type(0));
+
+        static_cast<void>(expr_quaternion_to(_q, q));
+
+        const Type v = norm(math::quaternion<Type>(q.x, q.y, q.z, Type(0)));
+
+        return expr_flagged(expr_complex_of(math::complex<Type>(q.w, v)),
+                            _q.flags());
+    }
+
+    inline value
+    expr_quaternion_standard(
+        const value& _q
+    )
+    {
+        // no quaternion: its own
+        if (!expr_is_quaternion(_q))
+        {
+            return _q;
+        }
+
+        // exactly, where |v| is rational
+        if (_q.is_exact())
+        {
+            const expr_quaternion_parts_held q =
+                expr_quaternion_parts_of(_q.c_value());
+
+            return expr_flagged(
+                expr_complex(q.w,
+                             value_root_of( ( (q.x * q.x) + (q.y * q.y) ) +
+                                            (q.z * q.z) )),
+                _q.flags());
+        }
+
+        switch (expr_quaternion_widest(&_q, 1))
+        {
+            case D_MATH_VALUE_FLOAT:
+                return expr_quaternion_standard_in<float>(_q);
+
+            case D_MATH_VALUE_DOUBLE:
+                return expr_quaternion_standard_in<double>(_q);
+
+            default:
+                break;
+        }
+
+        return expr_quaternion_standard_in<long double>(_q);
+    }
+
+    // expr_matrix_adjoint
+    //   functions: the complex adjoint of an n by n A of quaternions, 2n by
+    // 2n, chi(A) = [A1, A2; -conj(A2), conj(A1)], A = A1 + A2 jm, each
+    // element w + x im + y jm + z km being (w + x im) + (y + z im) jm, so
+    // that chi(A B) = chi(A) chi(B) (S389): in Type, dense, each part as it
+    // is; or exactly, of exact complex numbers.
+    template<typename Type>
+    value
+    expr_matrix_adjoint_in(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        const std::vector<math::quaternion<Type> > q =
+            expr_matrix_dense_of<math::quaternion<Type> >(_a);
+        const std::size_t                          m = (2 * _n);
+        std::vector<math::complex<Type> >          z(m * m);
+
+        // each element's four places
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            for (std::size_t j = 0; j < _n; ++j)
+            {
+                const math::quaternion<Type>& e = q[(i * _n) + j];
+
+                z[(i * m) + j]               = math::complex<Type>(e.w, e.x);
+                z[(i * m) + _n + j]          = math::complex<Type>(e.y, e.z);
+                z[((_n + i) * m) + j]        = math::complex<Type>(-e.y,
+                                                                   e.z);
+                z[((_n + i) * m) + _n + j]   = math::complex<Type>(e.w,
+                                                                   -e.x);
+            }
+        }
+
+        return expr_matrix_of_dense<math::complex<Type> >(
+            expr_shape(m,
+                       m),
+            z,
+            expr_matrix_flags_of(_a));
+    }
+
+    inline value
+    expr_matrix_adjoint_exact(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        const std::vector<value> x = expr_matrix_values_of(_a);
+        const std::size_t        m = (2 * _n);
+        std::vector<value>       z(m * m);
+
+        // each element's four places
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            for (std::size_t j = 0; j < _n; ++j)
+            {
+                const expr_quaternion_parts_held e =
+                    expr_quaternion_parts_of(x[(i * _n) + j].c_value());
+
+                z[(i * m) + j]             = expr_complex(e.w, e.x);
+                z[(i * m) + _n + j]        = expr_complex(e.y, e.z);
+                z[((_n + i) * m) + j]      = expr_complex(-e.y, e.z);
+                z[((_n + i) * m) + _n + j] = expr_complex(e.w, -e.x);
+            }
+        }
+
+        const expr_result<value> made = expr_matrix(m,
+                                                    m,
+                                                    z);
+
+        return ( (made.is_ok()) ? made.value()
+                                : value(D_MATH_VALUE_ERROR_DOMAIN) );
+    }
+
+    // expr_eigen_standard
+    //   function: of chi(A)'s 2n eigenvalues _all, which come in conjugate
+    // pairs, A's n standard ones, one of each pair, of imaginary part 0 or
+    // more (S389): the pairs found greedily, each eigenvalue in turn with
+    // the nearest one still unpaired once each is folded into the upper half
+    // plane, (re, |im|), by |re - re'| + ||im| - |im'||, so that a pair that
+    // rounding leaves a few steps from conjugate, and a real eigenvalue,
+    // found twice, pair as they should, and a pair mistaken for another lies
+    // within those steps of it; of each pair, the one of the larger
+    // imaginary part, conjugated where that is below 0.
+    inline std::vector<value>
+    expr_eigen_standard(
+        const std::vector<value>& _all
+    )
+    {
+        const std::size_t        count = _all.size();
+        std::vector<long double> re(count, 0.0L);
+        std::vector<long double> im(count, 0.0L);
+        std::vector<bool>        paired(count, false);
+        std::vector<value>       out;
+
+        // each one's parts, in long double, a real one's im 0
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            static_cast<void>(expr_real(_all[i]).to(re[i]));
+            static_cast<void>(expr_imag(_all[i]).to(im[i]));
+        }
+
+        // each unpaired one with its nearest unpaired one
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            std::size_t best     = count;
+            long double distance = 0.0L;
+
+            if (paired[i])
+            {
+                continue;
+            }
+
+            for (std::size_t j = (i + 1); j < count; ++j)
+            {
+                const long double d =
+                    ( std::fabs(re[i] - re[j]) +
+                      std::fabs(std::fabs(im[i]) - std::fabs(im[j])) );
+
+                if ( (!paired[j]) &&
+                     ( (best == count) ||
+                       (d < distance) ) )
+                {
+                    best     = j;
+                    distance = d;
+                }
+            }
+
+            std::size_t chosen = i;
+
+            paired[i] = true;
+
+            if (best != count)
+            {
+                paired[best] = true;
+                chosen       = ( (im[best] > im[i]) ? best : i );
+            }
+
+            out.push_back( (im[chosen] < 0.0L) ? expr_conj(_all[chosen])
+                                               : _all[chosen] );
+        }
+
+        return out;
+    }
+
+    // expr_matrix_spectrum_row
+    //   function: eigenvalues as eig gives them, a row, real ascending where
+    // each is real and otherwise in the order of expr_eigenvalue_before.
+    inline value
+    expr_matrix_spectrum_row(
+        std::vector<value> _spectrum
+    )
+    {
+        std::vector<value>& standard = _spectrum;
+        bool                real     = true;
+
+        for (std::size_t i = 0; ( (real) && (i < standard.size()) ); ++i)
+        {
+            real = (!expr_is_complex(standard[i]));
+        }
+
+        // a real spectrum ascending, any other by real part, then imaginary
+        if (real)
+        {
+            std::stable_sort(standard.begin(),
+                             standard.end(),
+                             [](const value& _x,
+                                const value& _y) -> bool
+                             {
+                                 return (_x < _y);
+                             });
+        }
+        else
+        {
+            std::stable_sort(standard.begin(),
+                             standard.end(),
+                             &expr_eigenvalue_before);
+        }
+
+        return expr_matrix_of_values(expr_shape(1,
+                                                standard.size()),
+                                     standard);
+    }
+
+    // expr_matrix_eig_standard
+    //   function: of chi(A)'s spectrum _all, a row of 2n, A's n standard
+    // eigenvalues (expr_eigen_standard), as eig gives them
+    // (expr_matrix_spectrum_row); an error passes.
+    inline value
+    expr_matrix_eig_standard(
+        const value& _all
+    )
+    {
+        // an error passes
+        if (_all.kind() == D_MATH_VALUE_ERROR)
+        {
+            return _all;
+        }
+
+        return expr_matrix_spectrum_row(
+            expr_eigen_standard(expr_matrix_values_of(_all)));
+    }
+
+    // expr_matrix_triangular, expr_matrix_eig_diagonal
+    //   functions: whether the n by n A is triangular, each element below
+    // its diagonal, or each above it, 0, each part of a quaternion; and the
+    // standard eigenvalues of its diagonal's elements, which a triangular
+    // quaternion matrix's are, its complex adjoint, rows and columns
+    // interleaved, being block triangular, each diagonal element's own 2 by
+    // 2 adjoint a block; as eig gives them, each found by itself (S389).
+    inline bool
+    expr_matrix_triangular(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        bool upper = true;
+        bool lower = true;
+
+        // every element off the diagonal, by its side
+        for (std::size_t i = 0; ( ( (upper) || (lower) ) && (i < _n) ); ++i)
+        {
+            for (std::size_t j = 0; j < _n; ++j)
+            {
+                const bool zero = ( (i == j) ||
+                                    (expr_matrix_element_of(
+                                         _a,
+                                         (i * _n) + j) == value(0)) );
+
+                upper = ( (upper) && ( (i <= j) || (zero) ) );
+                lower = ( (lower) && ( (i >= j) || (zero) ) );
+            }
+        }
+
+        return ( (upper) ||
+                 (lower) );
+    }
+
+    inline value
+    expr_matrix_eig_diagonal(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        std::vector<value> spectrum;
+
+        spectrum.reserve(_n);
+
+        // each diagonal element's
+        for (std::size_t i = 0; i < _n; ++i)
+        {
+            spectrum.push_back(expr_quaternion_standard(
+                expr_matrix_element_of(_a,
+                                       (i * _n) + i)));
+        }
+
+        return expr_matrix_spectrum_row(spectrum);
+    }
+
+    // expr_matrix_eig_quaternion, expr_matrix_eig_quaternion_exact
+    //   functions: eig(A) of an n by n A holding quaternions (S277, S389):
+    // Zhang's standard right eigenvalues, the n complex numbers of
+    // imaginary part 0 or more to one of which each right eigenvalue,
+    // A v = v lambda, is similar, u lambda u^-1: those of the complex
+    // adjoint chi(A), 2n by 2n, whose eigenvalues come in conjugate pairs,
+    // found as a complex matrix's are (S352), by cmat.h's Jacobi method
+    // where A, and so chi(A), is Hermitian, by its complex QR otherwise, in
+    // Type, or exactly where A is and each is a Gaussian rational
+    // (expr_matrix_eig_exact); one of each pair (expr_eigen_standard). Of a
+    // triangular A, a 1 by 1 among them, its diagonal's standard
+    // eigenvalues, w + |v|i each (expr_matrix_eig_diagonal).
+    template<typename Type>
+    value
+    expr_matrix_eig_quaternion(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        // triangular: its diagonal's
+        if (expr_matrix_triangular(_a,
+                                   _n))
+        {
+            return expr_matrix_eig_diagonal(_a,
+                                            _n);
+        }
+
+        const value adjoint = expr_matrix_adjoint_in<Type>(_a,
+                                                           _n);
+
+        return expr_matrix_eig_standard(
+            (adjoint.kind() == D_MATH_VALUE_ERROR)
+                ? adjoint
+                : expr_matrix_eig_complex<Type>(adjoint,
+                                                (2 * _n)));
+    }
+
+    inline value
+    expr_matrix_eig_quaternion_exact(
+        const value& _a,
+        std::size_t  _n
+    )
+    {
+        // triangular: its diagonal's
+        if (expr_matrix_triangular(_a,
+                                   _n))
+        {
+            return expr_matrix_eig_diagonal(_a,
+                                            _n);
+        }
+
+        const value adjoint = expr_matrix_adjoint_exact(_a,
+                                                        _n);
+
+        return expr_matrix_eig_standard(
+            (adjoint.kind() == D_MATH_VALUE_ERROR)
+                ? adjoint
+                : expr_matrix_eig_exact(adjoint,
+                                        (2 * _n)));
+    }
+
     inline value
     expr_matrix_eig(
         const value& _a
@@ -5605,7 +7637,8 @@ NS_INTERNAL
                                         : expr_shape() );
         const std::size_t n     = shape.rows;
 
-        // an error, or no operand; a number, its own
+        // an error, or no operand; a number, its own, a quaternion's its
+        // standard eigenvalue (S390)
         if (expr_matrix_passes(&_a,
                                1,
                                out))
@@ -5615,7 +7648,7 @@ NS_INTERNAL
 
         if (!expr_matrix_held(_a.c_value()))
         {
-            return _a;
+            return expr_quaternion_standard(_a);
         }
 
         // square
@@ -5651,12 +7684,32 @@ NS_INTERNAL
                 return expr_matrix_eig_complex<long double>(_a,
                                                             n);
 
+            case expr_matrix_storage::quaternion_floats:
+                return expr_matrix_eig_quaternion<float>(_a,
+                                                         n);
+
+            case expr_matrix_storage::quaternion_doubles:
+                return expr_matrix_eig_quaternion<double>(_a,
+                                                          n);
+
+            case expr_matrix_storage::quaternion_long_doubles:
+                return expr_matrix_eig_quaternion<long double>(_a,
+                                                               n);
+
             case expr_matrix_storage::values:
             default:
                 break;
         }
 
-        // exact; or of a boxed inexact element, in long double
+        // exact, of quaternions or not; or of a boxed inexact element, in
+        // long double
+        if ( (expr_matrix_all_exact(_a)) &&
+             (expr_matrix_has_quaternion(_a)) )
+        {
+            return expr_matrix_eig_quaternion_exact(_a,
+                                                    n);
+        }
+
         return ( expr_matrix_all_exact(_a)
                      ? expr_matrix_eig_exact(_a,
                                              n)
@@ -5783,13 +7836,16 @@ NS_END  // internal
  *         of one row, ascending by real part, then by imaginary part,
  *         complex where any is, a Hermitian matrix's real, a domain error
  *         where they are not each found, or are complex for a real matrix
- *         under real_results (S352). Exact for an exact matrix, each
+ *         under real_results (S352), a matrix of quaternions' Zhang's
+ *         standard ones (S389). Exact for an exact matrix, each
  *         eigenvalue where it is a Gaussian rational; in a dense one's
  *         type otherwise, complex where any element is (S257, S258,
  *         S351). Of a number: itself, its reciprocal, itself, its
- *         magnitude, itself. An error passes; a boolean or none is a
- *         domain error. bad_shape, where the matrix is not square, for
- *         each but expr_norm.
+ *         magnitude, itself; of a quaternion, or a matrix holding one,
+ *         det a domain error (S277), and of a quaternion eig its standard
+ *         eigenvalue, w + |v|i (S390). An error passes; a boolean or none
+ *         is a domain error. bad_shape, where the matrix is not square,
+ *         for each but expr_norm.
  */
 D_NODISCARD inline expr_result<value>
 expr_det(
@@ -5857,12 +7913,15 @@ expr_eig(
  * @return expr_dot: the sum of conj(a_i) b_i over two vectors of one
  *         length, each a row or a column, a real a_i itself (S273, S351),
  *         or conj(a) b of two numbers; expr_cross: two vectors of 3
- *         elements' vector product, of _a's shape, conjugating nothing;
- *         expr_solve: the X for which _a X = _b, _a square and _b of its
- *         rows, or a vector of as many elements, X then of _b's shape, a
- *         pole where _a is singular; of a number _a, _b / _a. Exact for
- *         exact operands, otherwise in their wider dense type, complex
- *         where either holds a complex number (S257, S351). An error
+ *         elements' vector product, of _a's shape, conjugating nothing,
+ *         each product in its order; expr_solve: the X for which _a X =
+ *         _b, _a square and _b of its rows, or a vector of as many
+ *         elements, X then of _b's shape, a pole where _a is singular; of a
+ *         number _a, _b / _a, or _a^-1 _b on the left where _a is no real
+ *         number and either holds a quaternion (S390). Exact for exact
+ *         operands, otherwise in their wider dense type, of quaternions
+ *         where either holds one, else complex where either holds a
+ *         complex number (S257, S351, S388). An error
  *         passes, the first; a boolean or none is a domain error; bad_shape
  *         for shapes the function does not take, a vector and a number
  *         among them.

@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/term.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -137,8 +137,8 @@ NS_INTERNAL
         // two errors, by their codes
         if (_a.kind() == D_MATH_VALUE_ERROR)
         {
-            d_math_value_error code_a = D_MATH_VALUE_ERROR_DOMAIN;
-            d_math_value_error code_b = D_MATH_VALUE_ERROR_DOMAIN;
+            dj_math_value_error code_a = D_MATH_VALUE_ERROR_DOMAIN;
+            dj_math_value_error code_b = D_MATH_VALUE_ERROR_DOMAIN;
 
             static_cast<void>(_a.to(code_a));
             static_cast<void>(_b.to(code_b));

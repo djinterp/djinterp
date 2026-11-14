@@ -11,13 +11,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -Wall -Wextra -Werror -pedantic-errors -Iinc                 \
-*        tests/djinterp/c/math/t_float_order.c -o t_float_order -lm
+*        tests/djinterp/c/modules/math/t_float_order.c -o t_float_order -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_float_order.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MIN ... LDBL_MAX
@@ -147,10 +147,10 @@ d_tests_window_f(float _start, long _count)
         if ( ((i % 97) == 0) &&
              (x <= FLT_MAX) )
         {
-            D_TESTS_EXPECT(d_math_f_steps(_start, x) == (d_math_umax)i,
+            D_TESTS_EXPECT(d_math_f_steps(_start, x) == (dj_math_umax)i,
                            "f steps over a window", x);
             D_TESTS_EXPECT(d_tests_same_f(d_math_f_advance(_start,
-                                                           (d_math_umax)i),
+                                                           (dj_math_umax)i),
                                           x),
                            "f advance over a window", x);
         }
@@ -171,15 +171,15 @@ d_tests_window_d(double _start, long _count)
     {
         d_tests_one_d(x);
 
-        // (a 32-bit d_math_umax cannot count across a double binade)
+        // (a 32-bit dj_math_umax cannot count across a double binade)
         if ( ((i % 97) == 0) &&
              (x <= DBL_MAX) &&
-             (sizeof(d_math_umax) >= 8u) )
+             (sizeof(dj_math_umax) >= 8u) )
         {
-            D_TESTS_EXPECT(d_math_d_steps(_start, x) == (d_math_umax)i,
+            D_TESTS_EXPECT(d_math_d_steps(_start, x) == (dj_math_umax)i,
                            "d steps over a window", x);
             D_TESTS_EXPECT(d_tests_same_d(d_math_d_advance(_start,
-                                                           (d_math_umax)i),
+                                                           (dj_math_umax)i),
                                           x),
                            "d advance over a window", x);
         }
@@ -202,12 +202,12 @@ d_tests_window_ld(long double _start, long _count)
 
         if ( ((i % 97) == 0) &&
              (x <= LDBL_MAX) &&
-             (sizeof(d_math_umax) >= 8u) )
+             (sizeof(dj_math_umax) >= 8u) )
         {
-            D_TESTS_EXPECT(d_math_ld_steps(_start, x) == (d_math_umax)i,
+            D_TESTS_EXPECT(d_math_ld_steps(_start, x) == (dj_math_umax)i,
                            "ld steps over a window", x);
             D_TESTS_EXPECT(d_tests_same_ld(d_math_ld_advance(_start,
-                                                             (d_math_umax)i),
+                                                             (dj_math_umax)i),
                                            x),
                            "ld advance over a window", x);
         }
@@ -245,8 +245,8 @@ d_tests_random_values(void)
              (d < DBL_MAX) &&
              (d > -DBL_MAX) )
         {
-            const d_math_umax n = d_tests_random() >> 20;
-            const double      e = d_math_d_advance(d, n);
+            const dj_math_umax n = d_tests_random() >> 20;
+            const double       e = d_math_d_advance(d, n);
 
             // the value n steps on, unless that passed the largest finite one
             if (e <= DBL_MAX)
@@ -265,8 +265,8 @@ d_tests_random_values(void)
              (f < FLT_MAX) &&
              (f > -FLT_MAX) )
         {
-            const d_math_umax n = d_tests_random() >> 34;
-            const float       e = d_math_f_advance(f, n);
+            const dj_math_umax n = d_tests_random() >> 34;
+            const float        e = d_math_f_advance(f, n);
 
             if (e <= FLT_MAX)
             {
@@ -287,9 +287,9 @@ d_tests_random_values(void)
 
         d_tests_one_ld(x);
 
-        // a distance that stays within d_math_umax
+        // a distance that stays within dj_math_umax
         {
-            const d_math_umax n = d_tests_random() >> 4;
+            const dj_math_umax n = d_tests_random() >> 4;
             const long double y = d_math_ld_advance(x, n);
 
             if (y <= LDBL_MAX)
@@ -339,13 +339,13 @@ d_tests_specials(void)
     // NaN is its own neighbour
     D_TESTS_EXPECT(isnan(d_math_d_next_up(nan(""))), "d NaN next_up", 0);
 
-    // a d_math_umax of 32 bits (ISO strict C++98 on a 32-bit target) holds
+    // a dj_math_umax of 32 bits (ISO strict C++98 on a 32-bit target) holds
     // no double binade's count: within one the count is exact, across one
     // it saturates
-    if (sizeof(d_math_umax) < 8u)
+    if (sizeof(dj_math_umax) < 8u)
     {
         D_TESTS_EXPECT(d_math_d_steps(1.0, 1.0 + (1000.0 * DBL_EPSILON)) ==
-                       (d_math_umax)1000u,
+                       (dj_math_umax)1000u,
                        "narrow d steps within a binade", 0);
         D_TESTS_EXPECT(d_math_d_steps(1.0, 2.0) == D_MATH_UMAX_MAX,
                        "narrow d steps across a binade saturate", 0);
@@ -355,7 +355,7 @@ d_tests_specials(void)
         D_TESTS_EXPECT(d_math_d_advance(-1.0, 5u) ==
                        -1.0 + (5.0 * DBL_EPSILON / 2.0),
                        "narrow d advance below zero", 0);
-        D_TESTS_EXPECT(d_math_f_steps(1.0f, 2.0f) == ((d_math_umax)1 << 23),
+        D_TESTS_EXPECT(d_math_f_steps(1.0f, 2.0f) == ((dj_math_umax)1 << 23),
                        "narrow f steps over a binade", 0);
 
         return;
@@ -364,19 +364,19 @@ d_tests_specials(void)
     // whole ranges, counted: every finite float from -FLT_MAX to FLT_MAX is
     // 2 * (2^31 - 2^23) - 1 values, so 2^32 - 2^24 - 2 steps
     D_TESTS_EXPECT(d_math_f_steps(-FLT_MAX, FLT_MAX) ==
-                   (d_math_umax)4278190078u,
+                   (dj_math_umax)4278190078u,
                    "f steps over every finite float", 0);
-    D_TESTS_EXPECT(d_math_f_advance(-FLT_MAX, (d_math_umax)4278190078u) ==
+    D_TESTS_EXPECT(d_math_f_advance(-FLT_MAX, (dj_math_umax)4278190078u) ==
                    FLT_MAX,
                    "f advance over every finite float", 0);
-    // (the shifts are reduced so a narrow d_math_umax still compiles them)
+    // (the shifts are reduced so a narrow dj_math_umax still compiles them)
     D_TESTS_EXPECT(d_math_d_steps(1.0, 2.0) ==
-                   ((d_math_umax)1 << (52 % (sizeof(d_math_umax) * 8u))),
+                   ((dj_math_umax)1 << (52 % (sizeof(dj_math_umax) * 8u))),
                    "d steps over a binade", 0);
     D_TESTS_EXPECT( (LDBL_MANT_DIG != 64) ||
                     (d_math_ld_steps(1.0L, 2.0L) ==
-                     ((d_math_umax)1 << ((LDBL_MANT_DIG - 1) %
-                                         (sizeof(d_math_umax) * 8u)))),
+                     ((dj_math_umax)1 << ((LDBL_MANT_DIG - 1) %
+                                          (sizeof(dj_math_umax) * 8u)))),
                     "ld steps over a binade", 0);
     D_TESTS_EXPECT(d_math_ld_steps(1.0L, 4.0L) == D_MATH_UMAX_MAX,
                    "ld steps over two binades saturate", 0);
@@ -392,7 +392,7 @@ d_tests_specials(void)
                    d_math_d_next_up(-DBL_MAX),
                    "d two steps up from -inf", 0);
     D_TESTS_EXPECT(d_math_f_steps(-(float)HUGE_VAL, (float)HUGE_VAL) ==
-                   (d_math_umax)4278190078u + 2u,
+                   (dj_math_umax)4278190078u + 2u,
                    "f every float and both infinities", 0);
 
     return;
@@ -403,7 +403,7 @@ d_tests_specials(void)
 // no steps leave a value where it is, -inf too; a NaN stays NaN, and a
 // count with one saturates, there being none to give; and neighbours across
 // an edge count as neighbours, as they must where a binade holds more than
-// d_math_umax counts (a quad's long double). T the family's type, S its
+// dj_math_umax counts (a quad's long double). T the family's type, S its
 // letters, TOP its largest finite value, LEAST its least normal one and EPS
 // its epsilon.
 #define D_TESTS_ENDS(T, S, TOP, LEAST, EPS)                                   \

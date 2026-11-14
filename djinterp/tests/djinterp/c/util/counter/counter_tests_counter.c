@@ -61,16 +61,16 @@ d_tests_counter_init
 bool
 d_tests_counter_init(void)
 {
-    const struct d_interval_imax range  = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                 10);
-    const struct d_interval_imax upside = d_tests_counter_range(5,
+    const struct dj_interval_imax upside = d_tests_counter_range(5,
                                                                 1);
-    const struct d_interval_imax empty    =
+    const struct dj_interval_imax empty   =
         d_interval_imax_make(2,
                              3,
                              D_INTERVAL_OPEN,
                              0);
-    const struct d_interval_imax discrete =
+    const struct dj_interval_imax discrete =
         d_interval_imax_make(0,
                              10,
                              D_INTERVAL_CLOSED,
@@ -137,7 +137,7 @@ d_tests_counter_step
 bool
 d_tests_counter_step(void)
 {
-    const struct d_interval_imax range   = d_tests_counter_range(0,
+    const struct dj_interval_imax range  = d_tests_counter_range(0,
                                                                  10);
     struct dj_counter            counter = D_COUNTER_INIT;
 
@@ -248,7 +248,7 @@ d_tests_counter_merge
 bool
 d_tests_counter_merge(void)
 {
-    const struct d_interval_imax range = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                20);
     struct dj_counter            dest  = D_COUNTER_INIT;
     struct dj_counter            src   = D_COUNTER_INIT;
@@ -312,7 +312,7 @@ d_tests_counter_reset
 bool
 d_tests_counter_reset(void)
 {
-    const struct d_interval_imax range   = d_tests_counter_range(-5,
+    const struct dj_interval_imax range  = d_tests_counter_range(-5,
                                                                  5);
     struct dj_counter            counter = D_COUNTER_INIT;
 

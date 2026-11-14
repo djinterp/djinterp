@@ -46,13 +46,13 @@
 *     never asks them.
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/expr/t_expr_complex_face.cpp -o t_cplx
+*         tests/djinterp/cpp/modules/math/expr/t_expr_complex_face.cpp -o t_cplx
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex.hpp"
 // std
@@ -245,7 +245,7 @@ namespace
         const m::value& _x
     )
     {
-        const d_math_value& held = _x.c_value();
+        const dj_math_value& held = _x.c_value();
 
         // inline: none of this test's
         if (held.kind != D_MATH_VALUE_BOXED)
@@ -266,11 +266,11 @@ namespace
     //   whether a value is the error of the code given.
     bool
     d_tests_is_error(
-        const m::value&    _x,
-        d_math_value_error _code
+        const m::value&     _x,
+        dj_math_value_error _code
     )
     {
-        d_math_value_error code = D_MATH_VALUE_ERROR_MEMORY;
+        dj_math_value_error code = D_MATH_VALUE_ERROR_MEMORY;
 
         return ( (_x.kind() == D_MATH_VALUE_ERROR) &&
                  (_x.to(code)) &&
@@ -281,10 +281,10 @@ namespace
     //   the exact complex number _a/_b + _c/_d im.
     m::value
     d_tests_complex(
-        d_math_imax _a,
-        d_math_imax _b,
-        d_math_imax _c,
-        d_math_imax _d
+        dj_math_imax _a,
+        dj_math_imax _b,
+        dj_math_imax _c,
+        dj_math_imax _d
     )
     {
         return m::expr_complex(m::value::ratio(_a, _b),
@@ -510,10 +510,10 @@ namespace
     )
     {
         return m::expr_complex(
-            m::value::ratio(static_cast<d_math_imax>(_z.re.n),
-                            static_cast<d_math_imax>(_z.re.d)),
-            m::value::ratio(static_cast<d_math_imax>(_z.im.n),
-                            static_cast<d_math_imax>(_z.im.d)));
+            m::value::ratio(static_cast<dj_math_imax>(_z.re.n),
+                            static_cast<dj_math_imax>(_z.re.d)),
+            m::value::ratio(static_cast<dj_math_imax>(_z.im.n),
+                            static_cast<dj_math_imax>(_z.im.d)));
     }
 
     // d_tests_gauss_op
@@ -521,7 +521,7 @@ namespace
     // for a quotient.
     bool
     d_tests_gauss_op(
-        d_math_value_op      _op,
+        dj_math_value_op     _op,
         const d_tests_gauss& _a,
         const d_tests_gauss& _b,
         d_tests_gauss&       _out
@@ -610,7 +610,7 @@ namespace
     //   _a _op _b, as values.
     m::value
     d_tests_apply(
-        d_math_value_op _op,
+        dj_math_value_op _op,
         const m::value& _a,
         const m::value& _b
     )
@@ -635,7 +635,7 @@ namespace
     template<typename Type>
     m::complex<Type>
     d_tests_dense_apply(
-        d_math_value_op         _op,
+        dj_math_value_op        _op,
         const m::complex<Type>& _a,
         bool                    _real_a,
         const m::complex<Type>& _b,
@@ -675,7 +675,7 @@ namespace
 
     long double
     d_tests_lifted_in(
-        d_math_value _x
+        dj_math_value _x
     )
     {
         long double x = 0.0L;
@@ -702,10 +702,10 @@ namespace
         return;
     }
 
-    d_math_value
+    dj_math_value
     d_tests_lifted_unary(
-        d_math_value_op _op,
-        d_math_value    _x
+        dj_math_value_op _op,
+        dj_math_value    _x
     )
     {
         const long double x = d_tests_lifted_in(_x);
@@ -715,11 +715,11 @@ namespace
                                          : ( (x < 0.0L) ? -x : x ) );
     }
 
-    d_math_value
+    dj_math_value
     d_tests_lifted_binary(
-        d_math_value_op _op,
-        d_math_value    _a,
-        d_math_value    _b
+        dj_math_value_op _op,
+        dj_math_value    _a,
+        dj_math_value    _b
     )
     {
         const long double a = d_tests_lifted_in(_a);
@@ -738,10 +738,10 @@ namespace
                                                                   : (a / b) );
     }
 
-    d_math_value_order
+    dj_math_value_order
     d_tests_lifted_cmp(
-        d_math_value _a,
-        d_math_value _b
+        dj_math_value _a,
+        dj_math_value _b
     )
     {
         const long double a = d_tests_lifted_in(_a);
@@ -755,10 +755,10 @@ namespace
 
     bool
     d_tests_lifted_convert(
-        d_math_value*     _out,
-        int*              _direction,
-        d_math_value      _x,
-        d_math_value_kind _to
+        dj_math_value*     _out,
+        int*               _direction,
+        dj_math_value      _x,
+        dj_math_value_kind _to
     )
     {
         const long double x = d_tests_lifted_in(_x);
@@ -784,9 +784,9 @@ namespace
 
     std::size_t
     d_tests_lifted_text(
-        char*        _buffer,
-        std::size_t  _size,
-        d_math_value _x
+        char*         _buffer,
+        std::size_t   _size,
+        dj_math_value _x
     )
     {
         return static_cast<std::size_t>(
@@ -796,17 +796,17 @@ namespace
                           d_tests_lifted_in(_x)));
     }
 
-    const d_math_boxed_kind g_lifted_kind = { "lifted",
-                                              600,
-                                              D_MATH_BOXED_NUMBER,
-                                              &d_tests_lifted_hold,
-                                              &d_tests_lifted_hold,
-                                              &d_tests_lifted_unary,
-                                              &d_tests_lifted_binary,
-                                              &d_tests_lifted_cmp,
-                                              &d_tests_lifted_convert,
-                                              &d_tests_lifted_text,
-                                              D_NULLPTR };
+    const dj_math_boxed_kind g_lifted_kind = { "lifted",
+                                               600,
+                                               D_MATH_BOXED_NUMBER,
+                                               &d_tests_lifted_hold,
+                                               &d_tests_lifted_hold,
+                                               &d_tests_lifted_unary,
+                                               &d_tests_lifted_binary,
+                                               &d_tests_lifted_cmp,
+                                               &d_tests_lifted_convert,
+                                               &d_tests_lifted_text,
+                                               D_NULLPTR };
 
     // d_tests_lifted
     //   a value of the kind, standing for *_x.
@@ -815,7 +815,7 @@ namespace
         const long double* _x
     )
     {
-        d_math_value boxed = d_math_value_none();
+        dj_math_value boxed = d_math_value_none();
 
         boxed.kind = D_MATH_VALUE_BOXED;
         boxed.type = &g_lifted_kind;
@@ -834,10 +834,10 @@ namespace
     void
     d_tests_kind()
     {
-        const d_math_boxed_kind* kind = m::internal::expr_complex_kind();
-        const m::value           z    = d_tests_complex(1, 2, -3, 4);
-        const m::value           w    = m::expr_complex(m::value(0.5),
-                                                        m::value(-0.25));
+        const dj_math_boxed_kind* kind = m::internal::expr_complex_kind();
+        const m::value            z    = d_tests_complex(1, 2, -3, 4);
+        const m::value            w    = m::expr_complex(m::value(0.5),
+                                                         m::value(-0.25));
 
         D_TESTS_EXPECT( (kind != D_NULLPTR) &&
                         (std::string(kind->name) == "complex") &&
@@ -972,7 +972,7 @@ namespace
 
         // a wide integer's part: exact, as values
         const char     digits[] = "1208925819614629174706176";
-        d_math_wide    two_80   = d_math_wide_from_imax(0);
+        dj_math_wide   two_80   = d_math_wide_from_imax(0);
 
         static_cast<void>(d_math_wide_from_text(&two_80,
                                                 digits,
@@ -1017,7 +1017,7 @@ namespace
                         "matrix or a complex part: a domain error");
 
         // flags: a part's, carried
-        d_math_value flagged = d_math_value_from_int(3);
+        dj_math_value flagged = d_math_value_from_int(3);
 
         flagged.flags = D_MATH_VALUE_FLAG_INEXACT;
 
@@ -1071,13 +1071,13 @@ namespace
     void
     d_tests_exact_arithmetic()
     {
-        const d_math_value_op ops[4] = { D_MATH_VALUE_OP_ADD,
-                                         D_MATH_VALUE_OP_SUB,
-                                         D_MATH_VALUE_OP_MUL,
-                                         D_MATH_VALUE_OP_DIV };
-        long                  agreed = 0;
-        long                  tried  = 0;
-        long                  real   = 0;
+        const dj_math_value_op ops[4] = { D_MATH_VALUE_OP_ADD,
+                                          D_MATH_VALUE_OP_SUB,
+                                          D_MATH_VALUE_OP_MUL,
+                                          D_MATH_VALUE_OP_DIV };
+        long                   agreed = 0;
+        long                   tried  = 0;
+        long                   real   = 0;
 
         // pairs of random operands, each operation
         for (int trial = 0; trial < 3000; ++trial)
@@ -1157,10 +1157,10 @@ namespace
 
         // past the family: G2's long double, flagged, the number of long
         // double parts
-        const d_math_imax big   = std::numeric_limits<d_math_imax>::max();
-        const m::value    wide  = m::expr_complex(m::value(big),
+        const dj_math_imax big  = std::numeric_limits<dj_math_imax>::max();
+        const m::value     wide = m::expr_complex(m::value(big),
                                                   m::value(1));
-        const m::value    prod  = wide * wide;
+        const m::value     prod = wide * wide;
 
         D_TESTS_EXPECT( (m::expr_is_complex(prod)) &&
                         (!prod.is_exact()) &&
@@ -1181,11 +1181,11 @@ namespace
     bool
     d_tests_dense_arithmetic_in()
     {
-        const d_math_value_op ops[4] = { D_MATH_VALUE_OP_ADD,
-                                         D_MATH_VALUE_OP_SUB,
-                                         D_MATH_VALUE_OP_MUL,
-                                         D_MATH_VALUE_OP_DIV };
-        bool                  all    = true;
+        const dj_math_value_op ops[4] = { D_MATH_VALUE_OP_ADD,
+                                          D_MATH_VALUE_OP_SUB,
+                                          D_MATH_VALUE_OP_MUL,
+                                          D_MATH_VALUE_OP_DIV };
+        bool                   all    = true;
 
         // pairs of random operands, a real one now and then
         for (int trial = 0; trial < 1500; ++trial)
@@ -1316,16 +1316,16 @@ namespace
                     (abs(m::expr_complex_of(w)).kind() ==
                          D_MATH_VALUE_DOUBLE) &&
                     (abs(m::expr_complex_of(w)).to(got)) &&
-                    (d_tests_same_bits(got, abs(w))) );
+                    (d_tests_same_bits(got, abs_c(w))) );
         }
 
         D_TESTS_EXPECT( all,
                         "|z| of dense parts: cplx.h's abs_c, bit for bit");
 
         // the sum of the squares past the family: G2's, flagged
-        const d_math_imax most = std::numeric_limits<d_math_imax>::max();
-        const m::value    far  = abs(m::expr_complex(m::value(most),
-                                                     m::value(1)));
+        const dj_math_imax most = std::numeric_limits<dj_math_imax>::max();
+        const m::value     far  = abs(m::expr_complex(m::value(most),
+                                                      m::value(1)));
 
         D_TESTS_EXPECT( (far.kind() == D_MATH_VALUE_LONG_DOUBLE) &&
                         ((far.flags() & D_MATH_VALUE_FLAG_INEXACT) != 0u) &&
@@ -1391,9 +1391,9 @@ namespace
         float           f = 7.0f;
         double          d = 7.0;
         long double     l = 7.0L;
-        d_rational      q = { 7, 1 };
+        dj_rational     q = { 7, 1 };
         int             direction = 9;
-        d_math_value    out = d_math_value_none();
+        dj_math_value   out = d_math_value_none();
 
         D_TESTS_EXPECT( (r.to(d)) &&
                         (d == tenth) &&
@@ -1405,9 +1405,9 @@ namespace
                         (q.num == 7),
                         "an imaginary part of 0: the real part's nearest; "
                         "no rational");
-        const d_math_boxed_kind* kind = m::internal::expr_complex_kind();
-        const m::value           down = m::expr_complex(m::value(0.7),
-                                                        m::value(0.0));
+        const dj_math_boxed_kind* kind = m::internal::expr_complex_kind();
+        const m::value            down = m::expr_complex(m::value(0.7),
+                                                         m::value(0.0));
 
         D_TESTS_EXPECT( (m::expr_is_complex(r)) &&
                         (kind->convert(&out,
@@ -1485,8 +1485,8 @@ namespace
         room[0] = 'x';
         room[6] = 'y';
 
-        const d_math_boxed_kind* kind   = m::internal::expr_complex_kind();
-        const std::size_t        length = kind->text(room, 6u, z.c_value());
+        const dj_math_boxed_kind* kind   = m::internal::expr_complex_kind();
+        const std::size_t         length = kind->text(room, 6u, z.c_value());
 
         D_TESTS_EXPECT( (length == 11u) &&
                         (std::string(room) == "1/2 -") &&
@@ -1633,14 +1633,15 @@ namespace
                         "a matrix of complex numbers made: expr_matrix's, "
                         "the kind's arithmetic and a block's (S348, S349)");
 
-        const m::value args[2] = { z, m::value(2) };
+        const m::value        args[2] = { z, m::value(2) };
+        const m::expr_context plain;
 
-        D_TESTS_EXPECT( (m::internal::expr_det_value(args, 1) == z) &&
-                        (m::internal::expr_dot_value(args, 2) ==
+        D_TESTS_EXPECT( (m::internal::expr_det_value(args, 1, plain) == z) &&
+                        (m::internal::expr_dot_value(args, 2, plain) ==
                              (m::expr_conj(z) * m::value(2))) &&
-                        (m::internal::expr_inv_value(args, 1) ==
+                        (m::internal::expr_inv_value(args, 1, plain) ==
                              (m::value(1) / z)) &&
-                        (m::internal::expr_norm_value(args, 1) ==
+                        (m::internal::expr_norm_value(args, 1, plain) ==
                              abs(z)) &&
                         (m::internal::expr_transpose_value(z) ==
                              m::expr_conj(z)) &&
@@ -1973,10 +1974,10 @@ namespace
     void
     d_tests_rendering()
     {
-        const d_math_imax least = std::numeric_limits<d_math_imax>::min();
-        const double      nan   = std::numeric_limits<double>::quiet_NaN();
-        const double      inf   = std::numeric_limits<double>::infinity();
-        const std::string min_text =
+        const dj_math_imax least = std::numeric_limits<dj_math_imax>::min();
+        const double       nan   = std::numeric_limits<double>::quiet_NaN();
+        const double       inf   = std::numeric_limits<double>::infinity();
+        const std::string  min_text =
             m::internal::expr_signed_text(least);
 
         D_TESTS_EXPECT( (d_tests_rendered(d_tests_complex(3, 1, 4, 1)) ==
@@ -2184,15 +2185,15 @@ namespace
                         "storage refused: a memory error, exact or dense");
 
         // the entries asked what the protocol never asks
-        const d_math_boxed_kind* kind = m::internal::expr_complex_kind();
-        const m::value           i    = d_tests_complex(0, 1, 1, 1);
-        const m::value           r    = m::expr_complex(m::value(2.0),
-                                                        m::value(0.0));
-        d_math_value             out  = d_math_value_none();
-        int                      dir  = 9;
-        d_math_value             no   = kind->binary(D_MATH_VALUE_OP_ADD,
-                                                     i.c_value(),
-                                                     m::value(true)
+        const dj_math_boxed_kind* kind = m::internal::expr_complex_kind();
+        const m::value            i    = d_tests_complex(0, 1, 1, 1);
+        const m::value            r    = m::expr_complex(m::value(2.0),
+                                                         m::value(0.0));
+        dj_math_value             out  = d_math_value_none();
+        int                       dir  = 9;
+        dj_math_value             no   = kind->binary(D_MATH_VALUE_OP_ADD,
+                                                      i.c_value(),
+                                                      m::value(true)
                                                          .c_value());
 
         D_TESTS_EXPECT( (no.kind == D_MATH_VALUE_ERROR) &&

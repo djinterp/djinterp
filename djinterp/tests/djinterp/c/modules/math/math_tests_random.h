@@ -4,7 +4,7 @@
 * The math harnesses' random numbers.
 *   Marsaglia's xorshift on 64 bits -- shifts of 13, 7 and 17 -- kept as two
 * 32-bit halves, which every target has. ISO-strict C++98 on a 32-bit target
-* has no 64-bit integer at all (dstdint.h declares none, and d_math_umax has
+* has no 64-bit integer at all (dstdint.h declares none, and dj_math_umax has
 * 32 bits there), and the generator still draws the very numbers a 64-bit
 * build draws: each harness tests the same arguments in every build.
 *   Each draw steps the generator once and reads the new 64-bit word w, as the
@@ -16,7 +16,7 @@
 * path:      /tests/djinterp/c/modules/math/math_tests_random.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_MATH_MATH_TESTS_RANDOM_H
@@ -28,16 +28,16 @@
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 
 
-// d_tests_random_word
+// dj_tests_random_word
 //   struct: a 64-bit word as two 32-bit halves, high 2^32 + low.
-struct d_tests_random_word
+struct dj_tests_random_word
 {
     uint32_t high;  // the first 32 bits
     uint32_t low;   // the last 32 bits
 };
 
 // the generator's word: never 0 once seeded
-static struct d_tests_random_word g_d_tests_random = { 0u, 1u };
+static struct dj_tests_random_word g_d_tests_random = { 0u, 1u };
 
 // d_tests_seed
 //   starts the generator at the word _high 2^32 + _low, which must not be 0.
@@ -56,7 +56,7 @@ d_tests_seed(
 // d_tests_step
 //   one step -- w ^= w << 13, w ^= w >> 7, w ^= w << 17 -- each shift
 // carrying bits from one half to the other; returns the new word.
-static inline struct d_tests_random_word
+static inline struct dj_tests_random_word
 d_tests_step(void)
 {
     uint32_t high = g_d_tests_random.high;
@@ -88,9 +88,9 @@ d_tests_below(
     unsigned long _n
 )
 {
-    const struct d_tests_random_word w = d_tests_step();
-    unsigned long                    r = 0u;
-    int                              k = 0;
+    const struct dj_tests_random_word w = d_tests_step();
+    unsigned long                     r = 0u;
+    int                               k = 0;
 
     for (k = 24; k >= 0; k -= 8)
     {
@@ -130,8 +130,8 @@ d_tests_top(
     int _bits
 )
 {
-    const struct d_tests_random_word w     = d_tests_step();
-    const int                        shift = 64 - _bits;
+    const struct dj_tests_random_word w     = d_tests_step();
+    const int                         shift = 64 - _bits;
 
     // within the first half: its first _bits bits
     if (shift >= 32)
@@ -161,12 +161,12 @@ d_tests_pattern_d(
     int     _shift
 )
 {
-    const struct d_tests_random_word w        = d_tests_step();
-    const uint32_t                   one      = 1u;
-    unsigned char                    first    = 0u;
-    unsigned char                    bytes[8] = { 0u };
-    uint32_t                         high     = w.high;
-    uint32_t                         low      = w.low;
+    const struct dj_tests_random_word w        = d_tests_step();
+    const uint32_t                    one      = 1u;
+    unsigned char                     first    = 0u;
+    unsigned char                     bytes[8] = { 0u };
+    uint32_t                          high     = w.high;
+    uint32_t                          low      = w.low;
 
     // the word shifted, the high half's last bits carried down
     if (_shift > 0)

@@ -10,25 +10,26 @@
 * the largest finite, the infinities and a NaN -- and on random points, a
 * real operand taken as itself (a zero's sign kept); == and != part by
 * part; real, imag, conj and proj; abs, arg and the 21 functions, exp2, log2,
-* log10, log1p and expm1 among them, each cplx.h's _c form bit for bit, never
-* its plain form, and at known points their exact values; number_traits, a field
+* log10, log1p and expm1 among them, each by its name cplx.h's plain form at
+* run time and by its _c name the _c form, bit for bit (S336), the two apart
+* at some points, and at known points their exact values; number_traits, a field
 * with no order, its magnitude |re| + |im|, and common_number; and linear
 * algebra of it: sums and products, the bilinear dot and the conjugating vdot,
 * the norms of the moduli and is_unitary (S354), tolerances of the real type,
 * and the determinant, inverse and solution of random matrices of 1 to 5 rows,
-* cmat.h's bit for bit. From C++14, every function as a constant
-* expression, equal to the run time's bit for bit, and a determinant as
-* one.
+* cmat.h's bit for bit. From C++14, every _c form as a constant
+* expression, equal to the run time's bit for bit, and a determinant as one;
+* from C++20, every function by its name too, as its _c form there.
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/t_complex_face.cpp -o t_complex -lm
+*         tests/djinterp/cpp/modules/math/t_complex_face.cpp -o t_complex -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_complex_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/complex.hpp"  // tested
 // djinterp
@@ -128,6 +129,26 @@ namespace
 
         return ( (x == y) &&
                  (d_tests_negative(x) == d_tests_negative(y)) );
+    }
+
+    // d_tests_plain_holds
+    //   whether a plain form's bits in T can be held to: not in float or
+    // double with clang on the x87, where a value keeps the x87's 64 bits
+    // through assignments, casts and arguments, so that one function gives
+    // one argument other bits from one call's place to another's (S37); in
+    // long double, the x87's own type, they can, there too.
+    template<typename T>
+    bool
+    d_tests_plain_holds()
+    {
+#if ( defined(__clang__) &&                                                   \
+      defined(__FLT_EVAL_METHOD__) &&                                         \
+      (__FLT_EVAL_METHOD__ == 2) )
+        return (std::numeric_limits<T>::digits ==
+                std::numeric_limits<long double>::digits);
+#else
+        return true;
+#endif
     }
 
     // d_tests_same
@@ -406,8 +427,8 @@ namespace
 
     // d_tests_function
     //   whether _face, a function of the face, gives at each of _n points
-    // what _core, cplx.h's _c form, does, bit for bit; and how many points
-    // the plain form _plain gives other bits at, in *_apart.
+    // what _core, a form of cplx.h's, does, bit for bit; and how many points
+    // the other form _other gives other bits at, in *_apart.
     template<typename T,
              typename Face,
              typename Core>
@@ -417,7 +438,7 @@ namespace
         std::size_t          _n,
         Face                 _face,
         Core                 _core,
-        Core                 _plain,
+        Core                 _other,
         long*                _apart
     )
     {
@@ -431,7 +452,7 @@ namespace
             ok = ( (ok) &&
                    (d_tests_same(_face(_p[i]), want)) );
 
-            if (!d_tests_same(m::complex<T>(_plain(_p[i].c_value())), want))
+            if (!d_tests_same(m::complex<T>(_other(_p[i].c_value())), want))
             {
                 ++(*_apart);
             }
@@ -473,6 +494,29 @@ namespace
         static C f_proj(C _z)  { return proj(_z); }
         static C f_abs(C _z)   { return C(abs(_z), T(0)); }
         static C f_arg(C _z)   { return C(arg(_z), T(0)); }
+
+        static C f_exp_c(C _z)   { return exp_c(_z); }
+        static C f_log_c(C _z)   { return log_c(_z); }
+        static C f_sqrt_c(C _z)  { return sqrt_c(_z); }
+        static C f_sin_c(C _z)   { return sin_c(_z); }
+        static C f_cos_c(C _z)   { return cos_c(_z); }
+        static C f_tan_c(C _z)   { return tan_c(_z); }
+        static C f_asin_c(C _z)  { return asin_c(_z); }
+        static C f_acos_c(C _z)  { return acos_c(_z); }
+        static C f_atan_c(C _z)  { return atan_c(_z); }
+        static C f_sinh_c(C _z)  { return sinh_c(_z); }
+        static C f_cosh_c(C _z)  { return cosh_c(_z); }
+        static C f_tanh_c(C _z)  { return tanh_c(_z); }
+        static C f_asinh_c(C _z) { return asinh_c(_z); }
+        static C f_acosh_c(C _z) { return acosh_c(_z); }
+        static C f_atanh_c(C _z) { return atanh_c(_z); }
+        static C f_exp2_c(C _z)  { return exp2_c(_z); }
+        static C f_log2_c(C _z)  { return log2_c(_z); }
+        static C f_log10_c(C _z) { return log10_c(_z); }
+        static C f_log1p_c(C _z) { return log1p_c(_z); }
+        static C f_expm1_c(C _z) { return expm1_c(_z); }
+        static C f_abs_c(C _z)   { return C(abs_c(_z), T(0)); }
+        static C f_arg_c(C _z)   { return C(arg_c(_z), T(0)); }
 
         static K c_exp(K _z)   { return d_cplx_exp_c(_z); }
         static K c_log(K _z)   { return d_cplx_log_c(_z); }
@@ -523,83 +567,121 @@ namespace
         static K p_arg(K _z)   { return d_cplx_make(d_cplx_arg(_z), T(0)); }
     };
 
-    // d_tests_functions
-    //   every function against cplx.h's _c form, bit for bit, at _n points;
-    // pow of two complex numbers, and of a real operand as it plus 0i, at
-    // the first 40 by the first 40; and how many points each plain form
-    // gives other bits at, which the face's must not be.
+    // d_tests_two_forms
+    //   one function's two names at _n points: _face held to the plain form
+    // _plain, into _ok, and _face_c to the _c form _c, into _c_ok, each bit
+    // for bit; the points the two forms differ at counted in *_apart.
+    template<typename T, typename Face, typename Core>
+    void
+    d_tests_two_forms(
+        const m::complex<T>* _p,
+        std::size_t          _n,
+        Face                 _face,
+        Face                 _face_c,
+        Core                 _plain,
+        Core                 _c,
+        long*                _apart,
+        bool&                _ok,
+        bool&                _c_ok
+    )
+    {
+        _ok   = d_tests_function<T>(_p, _n, _face, _plain, _c, _apart) && _ok;
+        _c_ok = d_tests_function<T>(_p, _n, _face_c, _c, _plain, _apart) &&
+                _c_ok;
+
+        return;
+    }
+
+    // d_tests_named_functions
+    //   abs, arg and the 20 functions of one argument at _n points: each by
+    // its name cplx.h's plain form at run time and by its _c name the _c
+    // form, bit for bit (S336); and how many points the two forms give
+    // other bits at.
     template<typename T>
     void
-    d_tests_functions(
+    d_tests_named_functions(
         const m::complex<T>* _p,
         std::size_t          _n
     )
     {
         typedef d_tests_calls<T> F;
-        typedef m::complex<T>    C;
 
         long apart = 0;
-        bool exact = true;
-
-        exact = d_tests_function<T>(_p, _n, &F::f_conj, &F::c_conj,
-                                    &F::c_conj, &apart) && exact;
-        exact = d_tests_function<T>(_p, _n, &F::f_proj, &F::c_proj,
-                                    &F::c_proj, &apart) && exact;
-
-        D_TESTS_EXPECT(exact, "conj and proj: cplx.h's");
-
         bool ok = true;
+        bool c  = true;
 
-        apart = 0;
-        ok = d_tests_function<T>(_p, _n, &F::f_abs, &F::c_abs, &F::p_abs,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_arg, &F::c_arg, &F::p_arg,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_exp, &F::c_exp, &F::p_exp,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_log, &F::c_log, &F::p_log,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_sqrt, &F::c_sqrt, &F::p_sqrt,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_sin, &F::c_sin, &F::p_sin,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_cos, &F::c_cos, &F::p_cos,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_tan, &F::c_tan, &F::p_tan,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_asin, &F::c_asin, &F::p_asin,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_acos, &F::c_acos, &F::p_acos,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_atan, &F::c_atan, &F::p_atan,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_sinh, &F::c_sinh, &F::p_sinh,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_cosh, &F::c_cosh, &F::p_cosh,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_tanh, &F::c_tanh, &F::p_tanh,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_asinh, &F::c_asinh,
-                                 &F::p_asinh, &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_acosh, &F::c_acosh,
-                                 &F::p_acosh, &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_atanh, &F::c_atanh,
-                                 &F::p_atanh, &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_exp2, &F::c_exp2, &F::p_exp2,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_log2, &F::c_log2, &F::p_log2,
-                                 &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_log10, &F::c_log10,
-                                 &F::p_log10, &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_log1p, &F::c_log1p,
-                                 &F::p_log1p, &apart) && ok;
-        ok = d_tests_function<T>(_p, _n, &F::f_expm1, &F::c_expm1,
-                                 &F::p_expm1, &apart) && ok;
+        // each by its name the plain form, by its _c name the _c form
+        d_tests_two_forms<T>(_p, _n, &F::f_abs, &F::f_abs_c, &F::p_abs,
+                             &F::c_abs, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_arg, &F::f_arg_c, &F::p_arg,
+                             &F::c_arg, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_exp, &F::f_exp_c, &F::p_exp,
+                             &F::c_exp, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_log, &F::f_log_c, &F::p_log,
+                             &F::c_log, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_sqrt, &F::f_sqrt_c, &F::p_sqrt,
+                             &F::c_sqrt, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_sin, &F::f_sin_c, &F::p_sin,
+                             &F::c_sin, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_cos, &F::f_cos_c, &F::p_cos,
+                             &F::c_cos, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_tan, &F::f_tan_c, &F::p_tan,
+                             &F::c_tan, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_asin, &F::f_asin_c, &F::p_asin,
+                             &F::c_asin, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_acos, &F::f_acos_c, &F::p_acos,
+                             &F::c_acos, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_atan, &F::f_atan_c, &F::p_atan,
+                             &F::c_atan, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_sinh, &F::f_sinh_c, &F::p_sinh,
+                             &F::c_sinh, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_cosh, &F::f_cosh_c, &F::p_cosh,
+                             &F::c_cosh, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_tanh, &F::f_tanh_c, &F::p_tanh,
+                             &F::c_tanh, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_asinh, &F::f_asinh_c, &F::p_asinh,
+                             &F::c_asinh, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_acosh, &F::f_acosh_c, &F::p_acosh,
+                             &F::c_acosh, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_atanh, &F::f_atanh_c, &F::p_atanh,
+                             &F::c_atanh, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_exp2, &F::f_exp2_c, &F::p_exp2,
+                             &F::c_exp2, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_log2, &F::f_log2_c, &F::p_log2,
+                             &F::c_log2, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_log10, &F::f_log10_c, &F::p_log10,
+                             &F::c_log10, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_log1p, &F::f_log1p_c, &F::p_log1p,
+                             &F::c_log1p, &apart, ok, c);
+        d_tests_two_forms<T>(_p, _n, &F::f_expm1, &F::f_expm1_c, &F::p_expm1,
+                             &F::c_expm1, &apart, ok, c);
 
-        D_TESTS_EXPECT(ok, "abs, arg and the 21 functions: cplx.h's _c "
-                           "forms, bit for bit");
-        D_TESTS_EXPECT(apart > 0, "the plain forms give other bits at some "
-                                  "points, which the face's never do");
+        D_TESTS_EXPECT( (ok) ||
+                        (!d_tests_plain_holds<T>()),
+                        "abs, arg and the 21 functions by their names: "
+                        "cplx.h's plain forms at run time, bit for bit "
+                        "(S336); not held to in float or double with clang "
+                        "on the x87 (S37)");
+        D_TESTS_EXPECT(c, "abs_c, arg_c and the 21 functions' _c names: "
+                          "cplx.h's _c forms, bit for bit");
+        D_TESTS_EXPECT(apart > 0, "the two forms give other bits at some "
+                                  "points: two answers, each within its "
+                                  "bound");
+
+        return;
+    }
+
+    // d_tests_powers
+    //   pow of two complex numbers, and of a real operand as it plus 0i, by
+    // its name the plain form and by pow_c the _c form, at 80 of the points
+    // by 80.
+    template<typename T>
+    void
+    d_tests_powers(
+        const m::complex<T>* _p
+    )
+    {
+        typedef m::complex<T> C;
 
         // pow at 80 points by 80: every fifth of the grid's, and 40 random
         // ones; each by a complex exponent, by a real one, and a real base,
@@ -624,25 +706,48 @@ namespace
 
                 pows = ( (pows) &&
                          (d_tests_same(pow(z, w),
+                                       d_cplx_pow(z.c_value(),
+                                                  w.c_value()))) &&
+                         (d_tests_same(pow(z, x),
+                                       d_cplx_pow(z.c_value(),
+                                                  d_cplx_make(x, T(0))))) &&
+                         (d_tests_same(pow(zr, x),
+                                       d_cplx_pow(zr.c_value(),
+                                                  d_cplx_make(x, T(0))))) &&
+                         (d_tests_same(pow(x, z),
+                                       d_cplx_pow(d_cplx_make(x, T(0)),
+                                                  z.c_value()))) &&
+                         (d_tests_same(pow_c(z, w),
                                        d_cplx_pow_c(z.c_value(),
                                                     w.c_value()))) &&
-                         (d_tests_same(pow(z, x),
+                         (d_tests_same(pow_c(z, x),
                                        d_cplx_pow_c(z.c_value(),
                                                     d_cplx_make(x, T(0))))) &&
-                         (d_tests_same(pow(zr, x),
-                                       d_cplx_pow_c(zr.c_value(),
-                                                    d_cplx_make(x, T(0))))) &&
-                         (d_tests_same(pow(x, z),
+                         (d_tests_same(pow_c(x, z),
                                        d_cplx_pow_c(d_cplx_make(x, T(0)),
                                                     z.c_value()))) );
             }
         }
 
-        D_TESTS_EXPECT(pows, "pow: cplx.h's _c form, never its plain one; a "
-                             "real operand as it plus 0i");
+        D_TESTS_EXPECT(pows, "pow: cplx.h's plain form, pow_c its _c form; "
+                             "a real operand as it plus 0i");
+
+        return;
+    }
+
+    // d_tests_exact_values
+    //   the functions' exact values at known points, the cuts' signs among
+    // them, by each name and by each _c name.
+    template<typename T>
+    void
+    d_tests_exact_values()
+    {
+        typedef m::complex<T> C;
 
         // exact values: |3 + 4i| 5, sqrt(2i) 1 + i, sqrt(-4) 2i, exp(0) 1,
-        // log(1) 0, arg(-1 + 0i) and arg(-1 - 0i) pi and -pi, (2i)^2 -4
+        // log(1) 0, arg(-1 + 0i) and arg(-1 - 0i) pi and -pi, (2i)^2 -4;
+        // arg's as stored in T, the plain form's value on the x87 being
+        // wider until it is (S336)
         const T pi = T(3.14159265358979323846264338327950288L);
 
         D_TESTS_EXPECT( (abs(C(T(3), T(4))) == T(5)) &&
@@ -655,8 +760,8 @@ namespace
                         (d_tests_same(exp(C()), d_cplx_make(T(1), T(0)))) &&
                         (d_tests_same(log(C(T(1))),
                                       d_cplx_make(T(0), T(0)))) &&
-                        (arg(C(T(-1), T(0))) == pi) &&
-                        (arg(C(T(-1), -T(0))) == -pi) &&
+                        (d_tests_same_real(arg(C(T(-1), T(0))), pi)) &&
+                        (d_tests_same_real(arg(C(T(-1), -T(0))), -pi)) &&
                         (C(T(0), T(2)) * C(T(0), T(2)) == T(-4)),
                         "exact values, the cuts' signs among them");
 
@@ -676,6 +781,69 @@ namespace
                         (log1p(C(T(-2))).imag() == pi) &&
                         (d_tests_same(expm1(C()), d_cplx_make(T(0), T(0)))),
                         "the five's exact values");
+
+        // and the _c forms': |3 + 4i| 5, sqrt(2i) 1 + i, sqrt(-4) 2i, exp(0) 1,
+        // log(1) 0, arg(-1 + 0i) and arg(-1 - 0i) pi and -pi, (2i)^2 -4
+        D_TESTS_EXPECT( (abs_c(C(T(3), T(4))) == T(5)) &&
+                        (d_tests_same(sqrt_c(C(T(0), T(2))),
+                                      d_cplx_make(T(1), T(1)))) &&
+                        (d_tests_same(sqrt_c(C(T(-4), T(0))),
+                                      d_cplx_make(T(0), T(2)))) &&
+                        (d_tests_same(sqrt_c(C(T(-4), -T(0))),
+                                      d_cplx_make(T(0), T(-2)))) &&
+                        (d_tests_same(exp_c(C()), d_cplx_make(T(1), T(0)))) &&
+                        (d_tests_same(log_c(C(T(1))),
+                                      d_cplx_make(T(0), T(0)))) &&
+                        (arg_c(C(T(-1), T(0))) == pi) &&
+                        (arg_c(C(T(-1), -T(0))) == -pi) &&
+                        (C(T(0), T(2)) * C(T(0), T(2)) == T(-4)),
+                        "the _c forms' exact values, the cuts' signs among "
+                        "them");
+
+        // the five's, by the _c forms
+        D_TESTS_EXPECT( (log2_c(C(T(-8))).real() == T(3)) &&
+                        (log2_c(C(T(-8))).imag() > T(4.53)) &&
+                        (log2_c(C(T(-8))).imag() < T(4.54)) &&
+                        (d_tests_same(log2_c(C(T(8))),
+                                      d_cplx_make(T(3), T(0)))) &&
+                        (d_tests_same(log10_c(C(T(100), -T(0))),
+                                      d_cplx_make(T(2), -T(0)))) &&
+                        (d_tests_same(exp2_c(C(T(3))),
+                                      d_cplx_make(T(8), T(0)))) &&
+                        (log1p_c(C(T(-2))).real() == T(0)) &&
+                        (log1p_c(C(T(-2))).imag() == pi) &&
+                        (d_tests_same(expm1_c(C()), d_cplx_make(T(0), T(0)))),
+                        "the five's _c forms' exact values");
+
+        return;
+    }
+
+    // d_tests_functions
+    //   every function at _n points: conj and proj cplx.h's; each other by
+    // its two names (d_tests_named_functions); pow (d_tests_powers); and the
+    // exact values (d_tests_exact_values).
+    template<typename T>
+    void
+    d_tests_functions(
+        const m::complex<T>* _p,
+        std::size_t          _n
+    )
+    {
+        typedef d_tests_calls<T> F;
+
+        long apart = 0;
+        bool exact = true;
+
+        exact = d_tests_function<T>(_p, _n, &F::f_conj, &F::c_conj,
+                                    &F::c_conj, &apart) && exact;
+        exact = d_tests_function<T>(_p, _n, &F::f_proj, &F::c_proj,
+                                    &F::c_proj, &apart) && exact;
+
+        D_TESTS_EXPECT(exact, "conj and proj: cplx.h's");
+
+        d_tests_named_functions<T>(_p, _n);
+        d_tests_powers<T>(_p);
+        d_tests_exact_values<T>();
 
         return;
     }
@@ -978,12 +1146,61 @@ namespace
 
     // d_tests_table
     //   every function at two points, computed as a constant expression and
-    // at run time: the same bits.
+    // at run time: the same bits, the _c forms from C++14 (S336).
     struct d_tests_table
     {
         cd f[2][27];
     };
 
+    constexpr d_tests_table
+    d_tests_functions_c_at(
+        const cd& _a,
+        const cd& _b
+    )
+    {
+        d_tests_table t{};
+        const cd      at[2] = { _a, _b };
+
+        for (int p = 0; p < 2; ++p)
+        {
+            const cd z = at[p];
+
+            t.f[p][0]  = exp_c(z);
+            t.f[p][1]  = log_c(z);
+            t.f[p][2]  = sqrt_c(z);
+            t.f[p][3]  = sin_c(z);
+            t.f[p][4]  = cos_c(z);
+            t.f[p][5]  = tan_c(z);
+            t.f[p][6]  = asin_c(z);
+            t.f[p][7]  = acos_c(z);
+            t.f[p][8]  = atan_c(z);
+            t.f[p][9]  = sinh_c(z);
+            t.f[p][10] = cosh_c(z);
+            t.f[p][11] = tanh_c(z);
+            t.f[p][12] = asinh_c(z);
+            t.f[p][13] = acosh_c(z);
+            t.f[p][14] = atanh_c(z);
+            t.f[p][15] = pow_c(z, at[1 - p]);
+            t.f[p][16] = cd(abs_c(z), arg_c(z));
+            t.f[p][17] = conj(z) * z / at[1 - p];
+            t.f[p][18] = proj(z) - 2.0;
+            t.f[p][19] = pow_c(z, 2.5);
+            t.f[p][20] = pow_c(0.5, z);
+            t.f[p][21] = -z + at[1 - p];
+            t.f[p][22] = exp2_c(z);
+            t.f[p][23] = log2_c(z);
+            t.f[p][24] = log10_c(z);
+            t.f[p][25] = log1p_c(z);
+            t.f[p][26] = expm1_c(z);
+        }
+
+        return t;
+    }
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    // d_tests_functions_at
+    //   the same by the functions' own names, which in a constant expression
+    // are the _c forms, from C++20 (S336).
     constexpr d_tests_table
     d_tests_functions_at(
         const cd& _a,
@@ -1029,18 +1246,31 @@ namespace
         return t;
     }
 
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+
     constexpr d_tests_table g_constant =
-        d_tests_functions_at(cd(0.75, -2.5), cd(-3.0, 0.125));
+        d_tests_functions_c_at(cd(0.75, -2.5), cd(-3.0, 0.125));
 
     static_assert( (cd(1, 2) * cd(3, 4) == cd(-5, 10)) &&
-                   (abs(cd(3, 4)) == 5.0) &&
-                   (sqrt(cd(0, 2)) == cd(1, 1)),
-                   "the arithmetic and the functions as constant "
+                   (abs_c(cd(3, 4)) == 5.0) &&
+                   (sqrt_c(cd(0, 2)) == cd(1, 1)),
+                   "the arithmetic and the _c forms as constant "
                    "expressions, from C++14");
 
-    static_assert( (exp(m::complex<float>()) == 1.0f) &&
-                   (exp(m::complex<long double>()) == 1.0L),
+    static_assert( (exp_c(m::complex<float>()) == 1.0f) &&
+                   (exp_c(m::complex<long double>()) == 1.0L),
                    "float's and long double's as constant expressions");
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    constexpr d_tests_table g_constant_named =
+        d_tests_functions_at(cd(0.75, -2.5), cd(-3.0, 0.125));
+
+    static_assert( (abs(cd(3, 4)) == 5.0) &&
+                   (sqrt(cd(0, 2)) == cd(1, 1)) &&
+                   (exp(m::complex<float>()) == 1.0f),
+                   "the functions by their names as constant expressions, "
+                   "from C++20");
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
     // a determinant as a constant expression: [[1, i], [-i, 2]], 1
     constexpr cd
@@ -1059,8 +1289,8 @@ namespace
     {
         volatile double     a_re = 0.75;
         volatile double     b_re = -3.0;
-        const d_tests_table run  = d_tests_functions_at(cd(a_re, -2.5),
-                                                        cd(b_re, 0.125));
+        const d_tests_table run  = d_tests_functions_c_at(cd(a_re, -2.5),
+                                                          cd(b_re, 0.125));
         bool                same = true;
 
         for (int p = 0; p < 2; ++p)
@@ -1072,8 +1302,26 @@ namespace
             }
         }
 
-        D_TESTS_EXPECT(same, "every function as a constant expression: the "
+        D_TESTS_EXPECT(same, "every _c form as a constant expression: the "
                              "run time's bits");
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+        bool named = true;
+
+        // by their names in a constant expression: the _c forms' bits
+        for (int p = 0; p < 2; ++p)
+        {
+            for (int k = 0; k < 27; ++k)
+            {
+                named = ( (named) &&
+                          (d_tests_same(g_constant_named.f[p][k],
+                                        g_constant.f[p][k])) );
+            }
+        }
+
+        D_TESTS_EXPECT(named, "every function by its name as a constant "
+                              "expression: its _c form's bits (S336)");
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
         return;
     }

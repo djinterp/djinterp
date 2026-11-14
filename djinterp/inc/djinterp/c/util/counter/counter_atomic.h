@@ -95,10 +95,10 @@ D_EXTERN_C_BEGIN
 // the value changes, and only through the functions below.
 struct dj_counter_atomic
 {
-    int64_t                initial;     // the start, for reset and merge
-    dj_atomic_llong        value;       // the count now
-    struct d_interval_imax bounds;      // the range, when has_bounds
-    bool                   has_bounds;  // whether bounds applies
+    int64_t                 initial;    // the start, for reset and merge
+    dj_atomic_llong         value;      // the count now
+    struct dj_interval_imax bounds;     // the range, when has_bounds
+    bool                    has_bounds; // whether bounds applies
 };
 
 
@@ -138,7 +138,7 @@ bool
 d_counter_atomic_init_bounded(
     struct dj_counter_atomic*     _counter,
     int64_t                       _initial,
-    const struct d_interval_imax* _bounds
+    const struct dj_interval_imax* _bounds
 );
 
 // 2.2    The five operations

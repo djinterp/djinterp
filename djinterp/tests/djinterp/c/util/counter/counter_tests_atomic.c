@@ -101,7 +101,7 @@ d_tests_counter_atomic_init
 bool
 d_tests_counter_atomic_init(void)
 {
-    const struct d_interval_imax range    = d_tests_counter_range(0,
+    const struct dj_interval_imax range   = d_tests_counter_range(0,
                                                                   10);
     struct dj_counter_atomic     counter  = { 0 };
     struct dj_counter            snapshot = D_COUNTER_INIT;
@@ -142,7 +142,7 @@ d_tests_counter_atomic_step
 bool
 d_tests_counter_atomic_step(void)
 {
-    const struct d_interval_imax range = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                10);
     struct dj_counter_atomic     a     = { 0 };
     struct dj_counter_atomic     b     = { 0 };
@@ -195,7 +195,7 @@ d_tests_counter_atomic_merge
 bool
 d_tests_counter_atomic_merge(void)
 {
-    const struct d_interval_imax range = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                25);
     struct dj_counter_atomic     dest  = { 0 };
     struct dj_counter_atomic     src   = { 0 };
@@ -241,7 +241,7 @@ d_tests_counter_atomic_threads(void)
 {
     const int64_t                total   = (int64_t)D_TESTS_COUNTER_THREADS *
                                            D_TESTS_COUNTER_STEPS;
-    const struct d_interval_imax range   = d_tests_counter_range(0,
+    const struct dj_interval_imax range  = d_tests_counter_range(0,
                                                                  1000);
     struct dj_counter_atomic     counter = { 0 };
 

@@ -33,7 +33,7 @@
 * decimal number, and in brackets where its literal is anything else. One a
 * fold made, with no literal, is written exactly where it is exact: an
 * integer, 42, or a fraction, (1/3), in brackets where negative, (-5); the
-* least d_math_imax, whose magnitude no literal of the family has, as
+* least dj_math_imax, whose magnitude no literal of the family has, as
 * (-9223372036854775807 - 1) with 64-bit words. A float, double or long double
 * is written as the shortest decimal that reads back to it in its type, 0.1,
 * (-2.5), 1e+30. What has no literal of the language is written by a name: inf
@@ -45,7 +45,8 @@
 * then its imaginary part's magnitude times im, (3 + 4 * im), (1/2 - 3/4 *
 * im), (1.5 - 0 * im), each part as above but bare, so that it reads back
 * with implied multiplication off, as it is by default (S196), or on
-* (S330).
+* (S330); and a quaternion so, each part past w times its unit, (1 + 2 * im
+* - 3 * jm + 4 * km) (S275).
 *   THE ROUND TRIP. expr_parse reads the text of any term it made back as
 * that term, every literal kept: roadmap Phase 2's round trip. A number a
 * fold made reads back as the same number, a term of its value: exactly,
@@ -56,19 +57,22 @@
 * numbers in their type otherwise; and a complex number as a sum, whose
 * value is the number where its parts are exact, and in its type
 * otherwise, its signed zeros among them, as a fold in math::complex<T>
-* computes it (step 23's second part).
+* computes it (step 23's second part); and a quaternion as a sum, whose
+* value is the quaternion where its parts are exact, and otherwise one of
+* the same parts in their type, but for a zero part's sign, which a sum
+* gives as its own.
 *   STEPS. Step 14 (2b) filled expr_render for numbers, names and the
 * arithmetic, step 15 (2c) for calls and the factorial, step 16 (2d) for
 * relations, logic and piecewise, step 19 (3a) for the literals and matrix
-* values, step 20 (3b) for indexing and the transpose, and step 23 (3e)
-* for complex numbers.
+* values, step 20 (3b) for indexing and the transpose, step 23 (3e) for
+* complex numbers, and step 24 (3f) for quaternions.
 * A term made by default, which is no term, is written as the empty string.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/render.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -113,6 +117,7 @@ TABLE OF CONTENTS
 #include "../math_common.hpp"                             // NS_MATH
 #include "../value.hpp"                                   // value
 #include "./complex.hpp"                                  // expr_is_complex
+#include "./quaternion.hpp"                               // the quaternions
 #include "./matrix.hpp"                                   // expr_is_matrix
 #include "./operator.hpp"                                 // expr_signature
 #include "./term.hpp"                                     // expr_term
@@ -138,12 +143,12 @@ NS_INTERNAL
     // one's, by the ASCII digits, so that no locale changes them.
     inline std::string
     expr_digits(
-        d_math_imax _n
+        dj_math_imax _n
     )
     {
-        d_math_umax left   = ( (_n < 0)
-                                   ? (d_math_umax(0) - d_math_umax(_n))
-                                   : d_math_umax(_n) );
+        dj_math_umax left   = ( (_n < 0)
+                                    ? (dj_math_umax(0) - dj_math_umax(_n))
+                                    : dj_math_umax(_n) );
         std::string digits;
 
         // the digits, the last first
@@ -160,15 +165,15 @@ NS_INTERNAL
 
     // expr_signed_text
     //   function: a whole number's text that reads back as it: its digits,
-    // a - before a negative one's; for the least d_math_imax, whose
+    // a - before a negative one's; for the least dj_math_imax, whose
     // magnitude is past the family, the next one less 1.
     inline std::string
     expr_signed_text(
-        d_math_imax _n
+        dj_math_imax _n
     )
     {
         // the least: its magnitude no literal of the family
-        if (_n == std::numeric_limits<d_math_imax>::min())
+        if (_n == std::numeric_limits<dj_math_imax>::min())
         {
             return expr_digits(_n + 1) + " - 1";
         }
@@ -253,7 +258,7 @@ NS_INTERNAL
         const value& _x
     )
     {
-        d_math_value_error code = D_MATH_VALUE_ERROR_DOMAIN;
+        dj_math_value_error code = D_MATH_VALUE_ERROR_DOMAIN;
 
         static_cast<void>(_x.to(code));
 
@@ -280,9 +285,9 @@ NS_INTERNAL
         const value& _x
     )
     {
-        const d_math_value& held   = _x.c_value();
-        const std::size_t   length = held.type->text(D_NULLPTR, 0, held);
-        std::string         text(length + 1, '\0');
+        const dj_math_value& held   = _x.c_value();
+        const std::size_t    length = held.type->text(D_NULLPTR, 0, held);
+        std::string          text(length + 1, '\0');
 
         static_cast<void>(held.type->text(&text[0], length + 1, held));
         text.resize(length);
@@ -300,7 +305,7 @@ NS_INTERNAL
     // expr_complex_render
     //   function: a complex number as a sum, in brackets, (3 + 4 * im), as
     // the banner says: its real part, then + or -, then its imaginary part's
-    // magnitude times im; a part that is the least d_math_imax, or a
+    // magnitude times im; a part that is the least dj_math_imax, or a
     // fraction of it, whose magnitude no literal of the family has, is
     // added as it is, in brackets, + ((-9223372036854775807 - 1)/3) * im.
 
@@ -339,7 +344,7 @@ NS_INTERNAL
         const value& _x
     )
     {
-        d_rational  exact = { 0, 1 };
+        dj_rational exact = { 0, 1 };
         float       f     = 0.0f;
         double      d     = 0.0;
         long double ld    = 0.0L;
@@ -352,7 +357,7 @@ NS_INTERNAL
                 return expr_signed_text(exact.num);
             }
 
-            return ( (exact.num == std::numeric_limits<d_math_imax>::min())
+            return ( (exact.num == std::numeric_limits<dj_math_imax>::min())
                          ? ("(" + expr_signed_text(exact.num) + ")/" +
                             expr_digits(exact.den))
                          : (expr_digits(exact.num) + "/" +
@@ -381,9 +386,9 @@ NS_INTERNAL
                 break;
         }
 
-        const d_math_value& held   = _x.c_value();
-        const std::size_t   length = held.type->text(D_NULLPTR, 0, held);
-        std::string         text(length + 1, '\0');
+        const dj_math_value& held   = _x.c_value();
+        const std::size_t    length = held.type->text(D_NULLPTR, 0, held);
+        std::string          text(length + 1, '\0');
 
         static_cast<void>(held.type->text(&text[0], length + 1, held));
         text.resize(length);
@@ -419,6 +424,59 @@ NS_INTERNAL
         return "(" + re + " + " + im + " * im)";
     }
 
+    // expr_quaternion_render
+    //   function: a quaternion as a sum, in brackets, (1 + 2 * im - 3 * jm +
+    // 4 * km), as a complex number is (expr_complex_render): its w part, then
+    // each other part's sign and magnitude times its unit, a part of no
+    // literal's magnitude added as it is, in brackets.
+
+    // expr_unit_term_render
+    //   function: one part past w, written by expr_complex_part_render, as a
+    // term of the sum: - its magnitude, + itself in brackets, or + itself,
+    // times its unit.
+    inline std::string
+    expr_unit_term_render(
+        const std::string& _part,
+        const char*        _unit
+    )
+    {
+        // a negative part of a literal: its magnitude subtracted
+        if ( (!_part.empty()) &&
+             (_part[0] == '-') &&
+             (_part.find(' ') == std::string::npos) &&
+             (_part.find('(') == std::string::npos) )
+        {
+            return " - " + _part.substr(1) + " * " + _unit;
+        }
+
+        // a part of no literal's magnitude, added as it is
+        if ( (!_part.empty()) &&
+             (_part[0] == '-') )
+        {
+            return " + (" + _part + ") * " + _unit;
+        }
+
+        return " + " + _part + " * " + _unit;
+    }
+
+    inline std::string
+    expr_quaternion_render(
+        const value& _x
+    )
+    {
+        const expr_quaternion_parts_held parts =
+            expr_quaternion_parts_of(_x.c_value());
+
+        return ( "(" + expr_complex_part_render(parts.w) +
+                 expr_unit_term_render(expr_complex_part_render(parts.x),
+                                       "im") +
+                 expr_unit_term_render(expr_complex_part_render(parts.y),
+                                       "jm") +
+                 expr_unit_term_render(expr_complex_part_render(parts.z),
+                                       "km") +
+                 ")" );
+    }
+
     // expr_number_text
     //   function: a number with no literal, by kind; a matrix as a literal
     // of its elements, each by kind; a complex number as a sum.
@@ -427,7 +485,7 @@ NS_INTERNAL
         const value& _x
     )
     {
-        d_rational  exact = { 0, 1 };
+        dj_rational exact = { 0, 1 };
         bool        truth = false;
         float       f     = 0.0f;
         double      d     = 0.0;
@@ -487,10 +545,15 @@ NS_INTERNAL
                 break;
         }
 
-        // a complex number: a sum, in brackets
+        // a complex number or a quaternion: a sum, in brackets
         if (expr_is_complex(_x))
         {
             return expr_complex_render(_x);
+        }
+
+        if (expr_is_quaternion(_x))
+        {
+            return expr_quaternion_render(_x);
         }
 
         // a boxed number: its kind's text
@@ -508,7 +571,7 @@ NS_INTERNAL
         }
 
         // a fraction, in brackets; the least numerator in its own
-        if (exact.num == std::numeric_limits<d_math_imax>::min())
+        if (exact.num == std::numeric_limits<dj_math_imax>::min())
         {
             return "((" + expr_signed_text(exact.num) + ")/" +
                    expr_digits(exact.den) + ")";

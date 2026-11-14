@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/series.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
 // std
 #include <string>  // std::string
 // djinterp
-#include "../../../../c/modules/math/math_common.h"  // d_math_imax
+#include "../../../../c/modules/math/math_common.h"  // dj_math_imax
 #include "../math_common.hpp"           // NS_MATH
 #include "./evaluate.hpp"               // expr_bindings
 #include "./expr_common.hpp"            // expr_result, expr_floating
@@ -86,8 +86,8 @@ D_NODISCARD expr_result<Type>
 expr_sum(
     const expr_term&     _term,
     const std::string&   _index,
-    d_math_imax          _from,
-    d_math_imax          _to,
+    dj_math_imax         _from,
+    dj_math_imax         _to,
     const expr_bindings& _bindings = expr_bindings()
 )
 {
@@ -125,8 +125,8 @@ D_NODISCARD expr_result<Type>
 expr_product(
     const expr_term&     _term,
     const std::string&   _index,
-    d_math_imax          _from,
-    d_math_imax          _to,
+    dj_math_imax         _from,
+    dj_math_imax         _to,
     const expr_bindings& _bindings = expr_bindings()
 )
 {

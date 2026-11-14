@@ -23,7 +23,7 @@
  */
 static bool
 d_internal_counter_bounds_usable(
-    const struct d_interval_imax* _bounds
+    const struct dj_interval_imax* _bounds
 )
 {
     return ( (d_interval_imax_is_valid(*_bounds))     &&
@@ -37,7 +37,7 @@ d_internal_counter_bounds_usable(
  * @param[in] _counter  the counter; not `NULL`.
  * @return its bounds, or `NULL` when it has none.
  */
-static const struct d_interval_imax*
+static const struct dj_interval_imax*
 d_internal_counter_bounds(
     const struct dj_counter* _counter
 )
@@ -53,7 +53,7 @@ is never reached by the first test's result, so the cast back is exact.
 */
 int64_t
 d_counter_bounds_add(
-    const struct d_interval_imax* _bounds,
+    const struct dj_interval_imax* _bounds,
     int64_t                       _value,
     int64_t                       _amount,
     bool*                         _is_exact
@@ -83,8 +83,8 @@ d_counter_bounds_add(
     // then inside the bounds
     if (_bounds)
     {
-        const d_math_imax upper = d_interval_imax_inclusive_upper(*_bounds);
-        const d_math_imax lower = d_interval_imax_inclusive_lower(*_bounds);
+        const dj_math_imax upper = d_interval_imax_inclusive_upper(*_bounds);
+        const dj_math_imax lower = d_interval_imax_inclusive_lower(*_bounds);
 
         // above the top
         if (sum > upper)
@@ -118,7 +118,7 @@ each step, and either step's cut makes the whole move inexact.
 */
 int64_t
 d_counter_bounds_sub(
-    const struct d_interval_imax* _bounds,
+    const struct dj_interval_imax* _bounds,
     int64_t                       _value,
     int64_t                       _amount,
     bool*                         _is_exact
@@ -188,7 +188,7 @@ bool
 d_counter_init_bounded(
     struct dj_counter*            _counter,
     int64_t                       _initial,
-    const struct d_interval_imax* _bounds
+    const struct dj_interval_imax* _bounds
 )
 {
     // parameter validation
@@ -209,7 +209,7 @@ d_counter_init_bounded(
     // the bounds must be usable, and the start must lie within them
     if ( (!d_internal_counter_bounds_usable(_bounds)) ||
          (!d_interval_imax_contains_in_range(*_bounds,
-                                             (d_math_imax)_initial)) )
+                                             (dj_math_imax)_initial)) )
     {
         return false;
     }
@@ -396,7 +396,7 @@ d_counter_delta(
 /*
 d_counter_at_min
   Only a bounded counter has a bottom to reach; an unlimited lower side is
-d_math_imax's minimum, which a counter reaches only if int64_t does.
+dj_math_imax's minimum, which a counter reaches only if int64_t does.
 */
 bool
 d_counter_at_min(

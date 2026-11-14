@@ -37,13 +37,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_cmat.c -o t_cmat -lm
+*        tests/djinterp/c/modules/math/t_cmat.c -o t_cmat -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_cmat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ... LDBL_MIN, the families' limits
@@ -164,24 +164,24 @@ d_tests_same_##S(T _x, T _y)                                                   \
 }                                                                              \
                                                                                \
 static bool                                                                    \
-d_tests_csame_##S(struct d_cplx_##S _x, struct d_cplx_##S _y)                  \
+d_tests_csame_##S(struct dj_cplx_##S _x, struct dj_cplx_##S _y)                \
 {                                                                              \
     return d_tests_same_##S(_x.part[0], _y.part[0]) &&                         \
            d_tests_same_##S(_x.part[1], _y.part[1]);                           \
 }                                                                              \
                                                                                \
 /* the entry of the references at _k, in the family, exactly */                \
-static struct d_cplx_##S                                                       \
+static struct dj_cplx_##S                                                      \
 d_tests_entry_##S(int _k)                                                      \
 {                                                                              \
-    const struct d_tests_cmat_entry* e = &g_cmat_entries[_k];                  \
+    const struct dj_tests_cmat_entry* e = &g_cmat_entries[_k];                 \
     return d_cplx_##S##_make((T)d_tests_point(e->rm, e->re),                   \
                              (T)d_tests_point(e->im, e->ie));                  \
 }                                                                              \
                                                                                \
 /* |_z - _w|, _w the reference at _k, in long double */                        \
 static long double                                                             \
-d_tests_distance_##S(struct d_cplx_##S _z, int _k)                             \
+d_tests_distance_##S(struct dj_cplx_##S _z, int _k)                            \
 {                                                                              \
     const long double dr = (long double)_z.part[0] -                           \
                            d_tests_text(g_cmat_texts[_k].re);                  \
@@ -192,7 +192,7 @@ d_tests_distance_##S(struct d_cplx_##S _z, int _k)                             \
                                                                                \
 /* the Frobenius norm of the _n complex entries of _a, in long double */       \
 static long double                                                             \
-d_tests_cfro_##S(const struct d_cplx_##S* _a, size_t _n)                       \
+d_tests_cfro_##S(const struct dj_cplx_##S* _a, size_t _n)                      \
 {                                                                              \
     long double s = 0.0L;                                                      \
     size_t i;                                                                  \
@@ -204,7 +204,7 @@ d_tests_cfro_##S(const struct d_cplx_##S* _a, size_t _n)                       \
                                                                                \
 /* the largest modulus of X^H X - I's entries, in long double */               \
 static long double                                                             \
-d_tests_unitarity_##S(const struct d_cplx_##S* _x, size_t _n)                  \
+d_tests_unitarity_##S(const struct dj_cplx_##S* _x, size_t _n)                 \
 {                                                                              \
     long double worst = 0.0L;                                                  \
     size_t i, j, k;                                                            \
@@ -229,9 +229,9 @@ d_tests_unitarity_##S(const struct d_cplx_##S* _x, size_t _n)                  \
                                                                                \
 /* |X M X^H - B|_F, in long double */                                          \
 static long double                                                             \
-d_tests_similar_##S(const struct d_cplx_##S* _x,                               \
-                    const struct d_cplx_##S* _m,                               \
-                    const struct d_cplx_##S* _b, size_t _n)                    \
+d_tests_similar_##S(const struct dj_cplx_##S* _x,                              \
+                    const struct dj_cplx_##S* _m,                              \
+                    const struct dj_cplx_##S* _b, size_t _n)                   \
 {                                                                              \
     long double xr[144], xi[144], s2 = 0.0L;                                   \
     size_t i, j, k;                                                            \
@@ -271,9 +271,9 @@ d_tests_similar_##S(const struct d_cplx_##S* _x,                               \
 /* |A v - l v| / (eps |B|_F |v|), v column _col of the n-by-n _v, each */      \
 /* row q divided by _s[q]: the balanced matrix B's residual            */      \
 static long double                                                             \
-d_tests_residual_##S(const struct d_cplx_##S* _a, size_t _n,                   \
-                     const struct d_cplx_##S* _v, size_t _col,                 \
-                     struct d_cplx_##S _l, const T* _s, long double _norm_b)   \
+d_tests_residual_##S(const struct dj_cplx_##S* _a, size_t _n,                  \
+                     const struct dj_cplx_##S* _v, size_t _col,                \
+                     struct dj_cplx_##S _l, const T* _s, long double _norm_b)  \
 {                                                                              \
     long double r2 = 0.0L, v2 = 0.0L;                                          \
     const long double lr = (long double)_l.part[0];                            \
@@ -314,11 +314,11 @@ d_tests_systems_##S(void)                                                      \
                                                                                \
     for (c = 0; c < D_TESTS_COUNT(g_cmat_systems); ++c)                        \
     {                                                                          \
-        const struct d_tests_cmat_system* sy = &g_cmat_systems[c];             \
+        const struct dj_tests_cmat_system* sy = &g_cmat_systems[c];            \
         const size_t n = (size_t)sy->n;                                        \
         const long double cond = d_tests_text(sy->cond);                       \
-        struct d_cplx_##S a[144], b[24], x[24], lu[144], scratch[144];         \
-        struct d_cplx_##S inv[144], col[12], xc[12], det, det2;                \
+        struct dj_cplx_##S a[144], b[24], x[24], lu[144], scratch[144];        \
+        struct dj_cplx_##S inv[144], col[12], xc[12], det, det2;               \
         T sign = (T)0;                                                         \
         size_t perm[12];                                                       \
         long double e2 = 0.0L, r2 = 0.0L, worst = 0.0L, d;                     \
@@ -398,7 +398,7 @@ d_tests_systems_##S(void)                                                      \
         const double ent[9][2] = { { 4, 0 }, { 0, 2 }, { 8, 0 },               \
                                    { 2, 0 }, { 1, 1 }, { 2, 0 },               \
                                    { 2, 0 }, { 0.5, 1 }, { 3, 0 } };           \
-        struct d_cplx_##S a[9], b[6], x[6], inv[9], scratch[9], det;           \
+        struct dj_cplx_##S a[9], b[6], x[6], inv[9], scratch[9], det;          \
         T sign = (T)0;                                                         \
         size_t perm[3];                                                        \
         bool ok;                                                               \
@@ -434,9 +434,9 @@ d_tests_hermitian_##S(void)                                                    \
                                                                                \
     for (c = 0; c < D_TESTS_COUNT(g_cmat_cases); ++c)                          \
     {                                                                          \
-        const struct d_tests_cmat_case* cs = &g_cmat_cases[c];                 \
+        const struct dj_tests_cmat_case* cs = &g_cmat_cases[c];                \
         const size_t n = (size_t)cs->n;                                        \
-        struct d_cplx_##S a[144], w[144], wc[144], vec[144], vecc[144];        \
+        struct dj_cplx_##S a[144], w[144], wc[144], vec[144], vecc[144];       \
         T val[12], valc[12], ones[12];                                         \
         long double norm, worst = 0.0L, u;                                     \
         bool ok = true;                                                        \
@@ -490,7 +490,7 @@ d_tests_hermitian_##S(void)                                                    \
     /* at a threshold of 0: |a_pq| / diff, the rotation made         */        \
     {                                                                          \
         const T e = d_internal_math_##S##_pow2(-(EMAX / 2) - 8);               \
-        struct d_cplx_##S w[4], vec[4];                                        \
+        struct dj_cplx_##S w[4], vec[4];                                       \
         T val[2];                                                              \
         w[0] = d_cplx_##S##_make((T)1, (T)0);                                  \
         w[1] = d_cplx_##S##_make((T)0, e);                                     \
@@ -513,7 +513,7 @@ d_tests_hermitian_##S(void)                                                    \
     {                                                                          \
         const size_t n = 1 + (c % 8);                                          \
         T s[64], sw[64], sv[64], sval[8], val[8], valc[8], fro = (T)0;         \
-        struct d_cplx_##S w[64], wc[64], vec[64], vecc[64];                    \
+        struct dj_cplx_##S w[64], wc[64], vec[64], vecc[64];                   \
         bool ok = true;                                                        \
         for (i = 0; i < n; ++i)                                                \
             for (j = 0; j <= i; ++j)                                           \
@@ -542,11 +542,11 @@ d_tests_hermitian_##S(void)                                                    \
                                                                                \
 /* the general path, both forms, on a copy of _a; whether they agree */        \
 static bool                                                                    \
-d_tests_eigen_both_##S(const struct d_cplx_##S* _a, size_t _n,                 \
-                       struct d_cplx_##S* _v, struct d_cplx_##S* _x,           \
+d_tests_eigen_both_##S(const struct dj_cplx_##S* _a, size_t _n,                \
+                       struct dj_cplx_##S* _v, struct dj_cplx_##S* _x,         \
                        bool* _ok, size_t _max_iter)                            \
 {                                                                              \
-    struct d_cplx_##S w1[144], w2[144], k1[156], k2[156], v2[12], x2[144];     \
+    struct dj_cplx_##S w1[144], w2[144], k1[156], k2[156], v2[12], x2[144];    \
     T r1[24], r2[24];                                                          \
     size_t p1[12], p2[12], i;                                                  \
     bool ok2, same;                                                            \
@@ -562,14 +562,14 @@ d_tests_eigen_both_##S(const struct d_cplx_##S* _a, size_t _n,                 \
 }                                                                              \
                                                                                \
 static void                                                                    \
-d_tests_general_case_##S(const struct d_tests_cmat_case* _c)                   \
+d_tests_general_case_##S(const struct dj_tests_cmat_case* _c)                  \
 {                                                                              \
     const size_t n = (size_t)_c->n;                                            \
     const long double eps = (long double)EPS;                                  \
-    struct d_cplx_##S a[144], b[144], bc[144], xb[144], h[144], hc[144];       \
-    struct d_cplx_##S q[144], qc[144], t[144], tc[144], z[144], zc[144];       \
-    struct d_cplx_##S vr[144], vrc[144], sa[144], v[12], x[144], v3[12];       \
-    struct d_cplx_##S x3[144], sval[12], svalc[12], xs[12], xsc[12];           \
+    struct dj_cplx_##S a[144], b[144], bc[144], xb[144], h[144], hc[144];      \
+    struct dj_cplx_##S q[144], qc[144], t[144], tc[144], z[144], zc[144];      \
+    struct dj_cplx_##S vr[144], vrc[144], sa[144], v[12], x[144], v3[12];      \
+    struct dj_cplx_##S x3[144], sval[12], svalc[12], xs[12], xsc[12];          \
     T sv[12], dcol[12], scale[12], scalec[12], ones[12], nm[12], nmc[12];      \
     size_t perm[12], permc[12], rowof[12], ilo = 0, ihi = 0, iloc, ihic;       \
     long double norm, norm_b, worst = 0.0L;                                    \
@@ -654,7 +654,7 @@ d_tests_general_case_##S(const struct d_tests_cmat_case* _c)                   \
     for (i = 0; ok && (i < n); ++i)                                            \
         for (j = 0; j < n; ++j)                                                \
         {                                                                      \
-            const struct d_cplx_##S e = a[rowof[i] * n + rowof[j]];            \
+            const struct dj_cplx_##S e = a[rowof[i] * n + rowof[j]];           \
             ok = ok && (b[i * n + j].part[0] ==                                \
                         (e.part[0] * dcol[j]) / dcol[i]) &&                    \
                  (b[i * n + j].part[1] == (e.part[1] * dcol[j]) / dcol[i]);    \
@@ -807,8 +807,8 @@ d_tests_general_##S(void)                                                      \
                                                                                \
     /* matrices with known answers */                                          \
     {                                                                          \
-        struct d_cplx_##S zero3[9], id3[9], cyc3[9], big2[4], tiny2[4];        \
-        struct d_cplx_##S bad[9], v[12], x[144];                               \
+        struct dj_cplx_##S zero3[9], id3[9], cyc3[9], big2[4], tiny2[4];       \
+        struct dj_cplx_##S bad[9], v[12], x[144];                              \
         bool conv = false, ok, nan = true;                                     \
         for (i = 0; i < 9; ++i)                                                \
         {                                                                      \
@@ -894,7 +894,7 @@ D_TESTS_CMAT_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MAX_EXP, 3000,
 // normal number, EMAX its largest exponent and VALUE_BOUND
 // D_TESTS_CMAT_FAMILY's.
 #define D_TESTS_CMAT_GUARD_FAMILY(T, S, EPS, TMIN, EMAX, VALUE_BOUND)          \
-static struct d_cplx_##S                                                       \
+static struct dj_cplx_##S                                                      \
 d_tests_c_##S(T _r, T _i)                                                      \
 {                                                                              \
     return d_cplx_##S##_make(_r, _i);                                          \
@@ -904,9 +904,9 @@ d_tests_c_##S(T _r, T _i)                                                      \
 /* from the identity: alike, converged, upper triangular, its values  */       \
 /* its diagonal, Z unitary and Z T Z^H _h to 8 n epsilons             */       \
 static bool                                                                    \
-d_tests_cguard_schur_##S(const struct d_cplx_##S* _h, size_t _n)               \
+d_tests_cguard_schur_##S(const struct dj_cplx_##S* _h, size_t _n)              \
 {                                                                              \
-    struct d_cplx_##S t[144], tc[144], z[144], zc[144], v[12], vc[12];         \
+    struct dj_cplx_##S t[144], tc[144], z[144], zc[144], v[12], vc[12];        \
     long double norm = d_tests_cfro_##S(_h, _n * _n), worst;                   \
     bool ok, okc, form;                                                        \
     size_t i, j;                                                               \
@@ -942,9 +942,9 @@ d_tests_cguard_schur_##S(const struct d_cplx_##S* _h, size_t _n)               \
 /* identity: alike, and each one's residual within 32 epsilons of   */         \
 /* |T|_F                                                            */         \
 static bool                                                                    \
-d_tests_cguard_vectors_##S(const struct d_cplx_##S* _t, size_t _n)             \
+d_tests_cguard_vectors_##S(const struct dj_cplx_##S* _t, size_t _n)            \
 {                                                                              \
-    struct d_cplx_##S vr[144], vrc[144], x[12], xc[12];                        \
+    struct dj_cplx_##S vr[144], vrc[144], x[12], xc[12];                       \
     T nm[12], nmc[12], ones[12];                                               \
     long double norm = d_tests_cfro_##S(_t, _n * _n), worst = 0.0L;            \
     bool ok = true;                                                            \
@@ -970,10 +970,10 @@ d_tests_cguard_vectors_##S(const struct d_cplx_##S* _t, size_t _n)             \
 /* and H^H (alpha, x) beta e1 to 4 epsilons of |(alpha, x)|, in units */       \
 /* of TMIN                                                            */       \
 static bool                                                                    \
-d_tests_cguard_reflector_##S(struct d_cplx_##S _alpha,                         \
-                             const struct d_cplx_##S* _x, size_t _count)       \
+d_tests_cguard_reflector_##S(struct dj_cplx_##S _alpha,                        \
+                             const struct dj_cplx_##S* _x, size_t _count)      \
 {                                                                              \
-    struct d_cplx_##S al = _alpha, al2 = _alpha, x[4], x2[4], tau, tau2;       \
+    struct dj_cplx_##S al = _alpha, al2 = _alpha, x[4], x2[4], tau, tau2;      \
     long double vr[5], vi[5], wr[5], wi[5], dr = 0.0L, di = 0.0L;              \
     long double norm = 0.0L, err = 0.0L, tr, ti;                               \
     const long double unit = 1.0L / (long double)TMIN;                         \
@@ -1038,10 +1038,10 @@ d_tests_crescale_##S(long double _x, long double _up, long double _down)       \
 /* lets an entry that passes below the least normal on the way lose  */        \
 /* bits, to within its own magnitude and the subnormals' spacing     */        \
 static bool                                                                    \
-d_tests_cguard_balance_##S(const struct d_cplx_##S* _a, size_t _n,             \
+d_tests_cguard_balance_##S(const struct dj_cplx_##S* _a, size_t _n,            \
                            bool _exact)                                        \
 {                                                                              \
-    struct d_cplx_##S b[144], bc[144], xb[144];                                \
+    struct dj_cplx_##S b[144], bc[144], xb[144];                               \
     T scale[12], scalec[12], dcol[12];                                         \
     size_t perm[12], permc[12], rowof[12], ilo, ihi, iloc, ihic, i, j, p;      \
     bool ok;                                                                   \
@@ -1102,7 +1102,7 @@ d_tests_cguard_##S(void)                                                       \
                                                                                \
     /* the parts of order 0; hypot3 of zeros and of an infinity */             \
     {                                                                          \
-        struct d_cplx_##S a[1], x[1], v[1];                                    \
+        struct dj_cplx_##S a[1], x[1], v[1];                                   \
         T scale[1], nm[1];                                                     \
         size_t perm[1], ilo = 7, ihi = 7, iloc = 7, ihic = 7;                  \
         a[0] = d_tests_c_##S((T)0, (T)0);                                      \
@@ -1130,7 +1130,7 @@ d_tests_cguard_##S(void)                                                       \
     /* a subnormal matrix: lifted before its scaling; its values */            \
     /* TMIN / 8 times the unscaled one's, its vectors the same   */            \
     {                                                                          \
-        struct d_cplx_##S m[4], a[4], v[2], x[4], v1[2], x1[4];                \
+        struct dj_cplx_##S m[4], a[4], v[2], x[4], v1[2], x1[4];               \
         bool conv = false, conv1 = false;                                      \
         m[0] = d_tests_c_##S((T)2, (T)0);                                      \
         m[1] = d_tests_c_##S((T)0, (T)1);                                      \
@@ -1160,7 +1160,7 @@ d_tests_cguard_##S(void)                                                       \
     /* a Hermitian matrix with an entry already zero, both forms; the */       \
     /* tangent past 2^(EMAX/2), the _c form at run time               */       \
     {                                                                          \
-        struct d_cplx_##S w[9], w2[9], vec[9], vec2[9];                        \
+        struct dj_cplx_##S w[9], w2[9], vec[9], vec2[9];                       \
         T val[3], val2[3];                                                     \
         const long double s3 = d_math_ld_sqrt(3.0L);                           \
         const T e = d_internal_math_##S##_pow2(-((EMAX) / 2) - 8);             \
@@ -1206,7 +1206,7 @@ d_tests_cguard_##S(void)                                                       \
                                                                                \
     /* the reflector of entries below the safe minimum */                      \
     {                                                                          \
-        struct d_cplx_##S x1[3], x2[3];                                        \
+        struct dj_cplx_##S x1[3], x2[3];                                       \
         x1[0] = d_tests_c_##S(TMIN, TMIN);                                     \
         x1[1] = d_tests_c_##S((T)0, TMIN);                                     \
         x1[2] = x1[1];                                                         \
@@ -1230,9 +1230,9 @@ d_tests_cguard_##S(void)                                                       \
     ok = true;                                                                 \
     for (c = 0; c < D_TESTS_COUNT(g_cmat_cases); ++c)                          \
     {                                                                          \
-        const struct d_tests_cmat_case* cs = &g_cmat_cases[c];                 \
+        const struct dj_tests_cmat_case* cs = &g_cmat_cases[c];                \
         const size_t n = (size_t)cs->n;                                        \
-        struct d_cplx_##S h[144], hd[144], h2[144], v[12], v2[12];             \
+        struct dj_cplx_##S h[144], hd[144], h2[144], v[12], v2[12];            \
         long double norm, worst = 0.0L;                                        \
         bool used[12], conv, conv2, same;                                      \
         size_t m;                                                              \
@@ -1246,7 +1246,7 @@ d_tests_cguard_##S(void)                                                       \
             for (j = 0; j < n; ++j)                                            \
             {                                                                  \
                 /* times i^(i - j): a quarter turn per step, exactly */        \
-                const struct d_cplx_##S x = h[i * n + j];                      \
+                const struct dj_cplx_##S x = h[i * n + j];                     \
                 const int turn = (int)(((i + 4 * n) - j) % 4);                 \
                 hd[i * n + j] = (turn == 0) ? x                                \
                     : (turn == 1) ? d_tests_c_##S(-x.part[1], x.part[0])       \
@@ -1304,7 +1304,7 @@ d_tests_cguard_##S(void)                                                       \
               1, 0, 0, 0, 0, 0 }                                               \
         };                                                                     \
         static const unsigned char order[] = { 9, 8, 5 };                      \
-        struct d_cplx_##S h[81];                                               \
+        struct dj_cplx_##S h[81];                                              \
         ok = true;                                                             \
         for (k = 0; k < sizeof(order); ++k)                                    \
         {                                                                      \
@@ -1321,7 +1321,7 @@ d_tests_cguard_##S(void)                                                       \
     /* entry underflows through the scalings; and random ones, G or 1  */      \
     /* above diagonals equal to rounding or apart                       */     \
     {                                                                          \
-        struct d_cplx_##S t[144];                                              \
+        struct dj_cplx_##S t[144];                                             \
         ok = true;                                                             \
         t[0] = t[1] = t[2] = t[3] = d_tests_c_##S((T)0, (T)0);                 \
         t[1] = d_tests_c_##S((T)2, (T)0);                                      \
@@ -1338,7 +1338,7 @@ d_tests_cguard_##S(void)                                                       \
                 for (j = 0; j < n; ++j)                                        \
                 {                                                              \
                     const T r = (T)d_tests_random(), q = (T)d_tests_random();  \
-                    struct d_cplx_##S x = d_tests_c_##S((T)0, (T)0);           \
+                    struct dj_cplx_##S x = d_tests_c_##S((T)0, (T)0);          \
                     if (j > i)                                                 \
                         x = (kind & 2) ? d_tests_c_##S(G * r, G * q)           \
                                        : d_tests_c_##S(r, q);                  \
@@ -1358,7 +1358,7 @@ d_tests_cguard_##S(void)                                                       \
     /* third of the entries zero: the guards; and of parts from        */      \
     /* 2^-(EMAX/8) to 2^(EMAX/8), exactly                              */      \
     {                                                                          \
-        struct d_cplx_##S a[36];                                               \
+        struct dj_cplx_##S a[36];                                              \
         int range;                                                             \
         for (range = 0; range < 2; ++range)                                    \
         {                                                                      \
@@ -1411,15 +1411,15 @@ D_TESTS_CMAT_GUARD_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MIN,
 // one call for each part, and d_tests_constant_<S>, which compares them with
 // the run time's, the matrices read through a volatile.
 #define D_TESTS_CMAT_CONSTANT(T, S)                                            \
-static constexpr struct d_cplx_##S                                             \
+static constexpr struct dj_cplx_##S                                            \
 d_tests_constant_eigen_##S(size_t _k)                                          \
 {                                                                              \
-    struct d_cplx_##S a[4] = {                                                 \
+    struct dj_cplx_##S a[4] = {                                                \
         d_cplx_##S##_make(1, 2), d_cplx_##S##_make(0, -1),                     \
         d_cplx_##S##_make(2, 0), d_cplx_##S##_make(1, 1) };                    \
-    struct d_cplx_##S v[2] = {};                                               \
-    struct d_cplx_##S x[4] = {};                                               \
-    struct d_cplx_##S work[6] = {};                                            \
+    struct dj_cplx_##S v[2] = {};                                              \
+    struct dj_cplx_##S x[4] = {};                                              \
+    struct dj_cplx_##S work[6] = {};                                           \
     T rwork[4] = {};                                                           \
     size_t perm[2] = { 0, 0 };                                                 \
     (void)d_cmat_##S##_eigen_c(a, 2, v, x, work, rwork, perm, 1000u, (T)0);    \
@@ -1429,10 +1429,10 @@ d_tests_constant_eigen_##S(size_t _k)                                          \
 static constexpr T                                                             \
 d_tests_constant_hermitian_##S(size_t _k)                                      \
 {                                                                              \
-    struct d_cplx_##S a[4] = {                                                 \
+    struct dj_cplx_##S a[4] = {                                                \
         d_cplx_##S##_make(2, 0), d_cplx_##S##_make(1, -1),                     \
         d_cplx_##S##_make(1, 1), d_cplx_##S##_make(-1, 0) };                   \
-    struct d_cplx_##S x[4] = {                                                 \
+    struct dj_cplx_##S x[4] = {                                                \
         d_cplx_##S##_make(1, 0), d_cplx_##S##_make(0, 0),                      \
         d_cplx_##S##_make(0, 0), d_cplx_##S##_make(1, 0) };                    \
     T v[2] = {};                                                               \
@@ -1440,17 +1440,17 @@ d_tests_constant_hermitian_##S(size_t _k)                                      \
     return v[_k];                                                              \
 }                                                                              \
                                                                                \
-static constexpr struct d_cplx_##S                                             \
+static constexpr struct dj_cplx_##S                                            \
 d_tests_constant_solve_##S(size_t _k)                                          \
 {                                                                              \
-    struct d_cplx_##S a[4] = {                                                 \
+    struct dj_cplx_##S a[4] = {                                                \
         d_cplx_##S##_make(1, 2), d_cplx_##S##_make(3, -1),                     \
         d_cplx_##S##_make(0, 1), d_cplx_##S##_make(2, 2) };                    \
-    struct d_cplx_##S b[2] = {                                                 \
+    struct dj_cplx_##S b[2] = {                                                \
         d_cplx_##S##_make(1, 0), d_cplx_##S##_make(0, 1) };                    \
-    struct d_cplx_##S x[2] = {};                                               \
-    struct d_cplx_##S inv[4] = {};                                             \
-    struct d_cplx_##S scratch[4] = {};                                         \
+    struct dj_cplx_##S x[2] = {};                                              \
+    struct dj_cplx_##S inv[4] = {};                                            \
+    struct dj_cplx_##S scratch[4] = {};                                        \
     (void)d_cmat_##S##_solve(x, scratch, a, b, 2, 1);                          \
     (void)d_cmat_##S##_inverse(inv, scratch, a, 2);                            \
     return (_k < 2) ? x[_k]                                                    \
@@ -1458,7 +1458,7 @@ d_tests_constant_solve_##S(size_t _k)                                          \
                                 : d_cmat_##S##_determinant(a, scratch, 2));    \
 }                                                                              \
                                                                                \
-static constexpr struct d_cplx_##S g_constant_eigen_##S[4] =                   \
+static constexpr struct dj_cplx_##S g_constant_eigen_##S[4] =                  \
 {                                                                              \
     d_tests_constant_eigen_##S(0), d_tests_constant_eigen_##S(1),              \
     d_tests_constant_eigen_##S(2), d_tests_constant_eigen_##S(3)               \
@@ -1469,7 +1469,7 @@ static constexpr T g_constant_hermitian_##S[2] =                               \
     d_tests_constant_hermitian_##S(0), d_tests_constant_hermitian_##S(1)       \
 };                                                                             \
                                                                                \
-static constexpr struct d_cplx_##S g_constant_solve_##S[7] =                   \
+static constexpr struct dj_cplx_##S g_constant_solve_##S[7] =                  \
 {                                                                              \
     d_tests_constant_solve_##S(0), d_tests_constant_solve_##S(1),              \
     d_tests_constant_solve_##S(2), d_tests_constant_solve_##S(3),              \
@@ -1481,8 +1481,8 @@ static void                                                                    \
 d_tests_constant_##S(void)                                                     \
 {                                                                              \
     volatile T one = (T)1;                                                     \
-    struct d_cplx_##S a[4], h[4], x2[4], s[4], b[2], xs[2], inv[4], sc[4];     \
-    struct d_cplx_##S v[2], x[4], work[6];                                     \
+    struct dj_cplx_##S a[4], h[4], x2[4], s[4], b[2], xs[2], inv[4], sc[4];    \
+    struct dj_cplx_##S v[2], x[4], work[6];                                    \
     T rwork[4], hv[2];                                                         \
     size_t perm[2], k;                                                         \
     bool ok = true;                                                            \

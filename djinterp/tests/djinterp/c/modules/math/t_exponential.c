@@ -44,18 +44,18 @@
 * that all seven functions are constant expressions, for every family, with
 * the bits they have at run time. It needs no 64-bit integer -- its random
 * numbers come from math_tests_random.h, the same in every build -- so that
-* ISO-strict C++98 on a 32-bit target, where d_math_umax has 32 bits, builds
+* ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32 bits, builds
 * it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_exponential.c -o t_exponential -lm
+*        tests/djinterp/c/modules/math/t_exponential.c -o t_exponential -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_exponential.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MANT_DIG
@@ -1053,8 +1053,8 @@ d_tests_ref_point(
 static void
 d_tests_log1p_expm1_refs(void)
 {
-    const struct d_tests_real_ref* const tables[2] = { g_ref_log1p,
-                                                       g_ref_expm1 };
+    const struct dj_tests_real_ref* const tables[2] = { g_ref_log1p,
+                                                        g_ref_expm1 };
     const size_t      counts[2] = { D_TESTS_COUNT(g_ref_log1p),
                                     D_TESTS_COUNT(g_ref_expm1) };
     const char* const names[2]  = { "log1p", "expm1" };
@@ -1067,7 +1067,7 @@ d_tests_log1p_expm1_refs(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct d_tests_real_ref* r = &tables[k][i];
+            const struct dj_tests_real_ref* r = &tables[k][i];
             const long double    x      = d_tests_ref_point(r->m, r->e);
             const size_t         length = strlen(r->value);
             const float          xf     = (float)x;
@@ -1173,9 +1173,9 @@ d_tests_wide_point(
 static void
 d_tests_kernels_wide(void)
 {
-    const struct d_tests_real_wide* const tables[3] = { g_wide_log1p,
-                                                        g_wide_expm1,
-                                                        g_wide_exp };
+    const struct dj_tests_real_wide* const tables[3] = { g_wide_log1p,
+                                                         g_wide_expm1,
+                                                         g_wide_exp };
     const size_t      counts[3] = { D_TESTS_COUNT(g_wide_log1p),
                                     D_TESTS_COUNT(g_wide_expm1),
                                     D_TESTS_COUNT(g_wide_exp) };
@@ -1195,7 +1195,7 @@ d_tests_kernels_wide(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct d_tests_real_wide* r = &tables[k][i];
+            const struct dj_tests_real_wide* r = &tables[k][i];
             const long double    x = d_tests_wide_point(r->m, r->e);
             long double          wl     = 0.0L;
             double               offset = 0.0;

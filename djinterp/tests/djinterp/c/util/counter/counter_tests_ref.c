@@ -111,7 +111,7 @@ d_tests_counter_ref_operations
 bool
 d_tests_counter_ref_operations(void)
 {
-    const struct d_interval_imax range   = d_tests_counter_range(0,
+    const struct dj_interval_imax range  = d_tests_counter_range(0,
                                                                  10);
     struct dj_counter            plain                           = D_COUNTER_INIT;
     struct dj_counter_atomic     shared                          = { 0 };
@@ -236,7 +236,7 @@ bool
 d_tests_counter_ref_merge(void)
 {
     const struct dj_counter_ref  none    = D_COUNTER_REF_NONE;
-    const struct d_interval_imax range   = d_tests_counter_range(0,
+    const struct dj_interval_imax range  = d_tests_counter_range(0,
                                                                  10);
     struct dj_counter            plain   = D_COUNTER_INIT;
     struct dj_counter            capped  = D_COUNTER_INIT;

@@ -35,13 +35,25 @@
 * x - x + [1, 2] is 0 + [1, 2]. A variable is taken to be a number here, as a
 * symbol is in SymPy until it is declared a matrix: bound to matrices,
 * x * y + y * x is 2 * x * y all the same, x ^ 0 is 1, and what is kept,
-* below, is kept for numbers. A sum or a product is collected once, at the
-* root of its chain, and in the first order of its terms and factors. Each
-* rule makes the term it rewrites smaller, or as small with fewer terms, as
-* x + x and 2 * x are; so a pass of the rules is made, and made again, until
-* one changes nothing, as parse/expression's rewrite_to_fixpoint makes its
-* passes; the result is no larger than the term; and a term with nothing to
-* simplify comes back as it was, x * 2 as x * 2.
+* below, is kept for numbers.
+*   QUATERNIONS do not commute either (S277): a factor that holds one, jm, km,
+* a call of quat or a quaternion a fold made, keeps its place among the others
+* that do, as a matrix does; and so, in a product that holds a quaternion,
+* does a factor that holds a complex number, im, a call of complex or a
+* complex number a fold made, as im jm is km and jm im -km. So jm * km +
+* km * jm and im * jm - jm * im stay as they are, and an exact quaternion,
+* or an exact complex number beside one, is a factor in its place, never
+* part of the coefficient. A real number commutes with every factor, and so
+* does a variable, taken for a real number here as above: 2 * jm * 3 is
+* 6 * jm, and x * jm + jm * x is 2 * x * jm, which bound to a number that
+* does not commute with jm, as im does not, is another value.
+*   A sum or a product is collected once, at the root of its chain, and in the
+* first order of its terms and factors. Each rule makes the term it rewrites
+* smaller, or as small with fewer terms, as x + x and 2 * x are; so a pass of
+* the rules is made, and made again, until one changes nothing, as
+* parse/expression's rewrite_to_fixpoint makes its passes; the result is no
+* larger than the term; and a term with nothing to simplify comes back as it
+* was, x * 2 as x * 2.
 *   THE VALUE KEPT. At every binding of its variables at which each part of
 * the term has a finite value, a number or a boolean, as in the real
 * numbers, the simplified term's value is the same: exactly, where the
@@ -62,13 +74,14 @@
 * term of matrices drops nothing, and keeps its value as a matrix.
 *   STEPS. Step 18 (2f) filled expr_simplify, step 20 (3b) kept the order
 * of its matrices, and step 21 (3c) took no literal of blocks for square;
-* step 25 (4a) adds what the derivative needs.
+* step 24 (3f) kept the order of its quaternions, and of complex numbers
+* beside them (S277); step 25 (4a) adds what the derivative needs.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/simplify.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -81,8 +94,9 @@ TABLE OF CONTENTS
          2.  expr_is_truth
     2.  Of a term
          1.  expr_holds_matrix
-         2.  expr_square_matrix
-         3.  expr_well_formed
+         2.  expr_holds_quaternion, expr_holds_complex_number
+         3.  expr_square_matrix
+         4.  expr_well_formed
 2.  THE RULES
     -------------
     1.  Constants
@@ -91,7 +105,7 @@ TABLE OF CONTENTS
          1.  expr_power_identities
     3.  Sums and products
          1.  expr_factor, expr_monomial
-         2.  expr_factors_of
+         2.  expr_commutes, expr_factors_of
          3.  expr_summands_of
          4.  expr_same_factors
          5.  expr_monomial_term
@@ -125,6 +139,7 @@ TABLE OF CONTENTS
 #include "./evaluate.hpp"                              // expr_evaluate
 #include "./expr_common.hpp"                           // expr_result
 #include "./matrix.hpp"                                // expr_is_matrix
+#include "./quaternion.hpp"                            // expr_is_quaternion
 #include "./operator.hpp"                              // expr_op_kind
 #include "./term.hpp"                                  // expr_term
 
@@ -168,10 +183,10 @@ NS_INTERNAL
     inline bool
     expr_is_exactly(
         const value& _value,
-        d_math_imax  _whole
+        dj_math_imax _whole
     )
     {
-        d_math_imax whole = 0;
+        dj_math_imax whole = 0;
 
         return ( (_value.is_exact()) &&
                  (_value.to(whole)) &&
@@ -231,6 +246,77 @@ NS_INTERNAL
     }
 
     // 1.2.2
+    // expr_holds_quaternion, expr_holds_complex_number
+    //   functions: whether _term holds a quaternion: jm or km, a call of
+    // quat, or a quaternion a fold made (S277); and whether it holds a
+    // complex number: im, a call of complex, or a complex number a fold
+    // made, which commutes with every number but a quaternion, im jm being
+    // km and jm im -km.
+    inline bool
+    expr_holds_quaternion(
+        const expr_term& _term
+    )
+    {
+        return ::djinterp::evaluate<bool, expr_op, expr_atom>(
+            _term,
+            // a leaf: jm, km, or a quaternion a fold made
+            [](const expr_atom& _atom) -> bool
+            {
+                return ( ( (_atom.kind == expr_atom_kind::constant) &&
+                           ( (_atom.text == "jm") ||
+                             (_atom.text == "km") ) ) ||
+                         ( (_atom.kind == expr_atom_kind::number) &&
+                           (expr_is_quaternion(_atom.number)) ) );
+            },
+            // an application: a call of quat, or of an operand that holds one
+            [](const expr_op&           _op,
+               const std::vector<bool>& _operands) -> bool
+            {
+                bool holds = ( (_op.kind == expr_op_kind::call) &&
+                               (_op.function == "quat") );
+
+                for (std::size_t i = 0; i < _operands.size(); ++i)
+                {
+                    holds = ( (holds) || (_operands[i]) );
+                }
+
+                return holds;
+            });
+    }
+
+    inline bool
+    expr_holds_complex_number(
+        const expr_term& _term
+    )
+    {
+        return ::djinterp::evaluate<bool, expr_op, expr_atom>(
+            _term,
+            // a leaf: im, or a complex number a fold made
+            [](const expr_atom& _atom) -> bool
+            {
+                return ( ( (_atom.kind == expr_atom_kind::constant) &&
+                           (_atom.text == "im") ) ||
+                         ( (_atom.kind == expr_atom_kind::number) &&
+                           (expr_is_complex(_atom.number)) ) );
+            },
+            // an application: a call of complex, or of an operand that holds
+            // one
+            [](const expr_op&           _op,
+               const std::vector<bool>& _operands) -> bool
+            {
+                bool holds = ( (_op.kind == expr_op_kind::call) &&
+                               (_op.function == "complex") );
+
+                for (std::size_t i = 0; i < _operands.size(); ++i)
+                {
+                    holds = ( (holds) || (_operands[i]) );
+                }
+
+                return holds;
+            });
+    }
+
+    // 1.2.3
     // expr_square_matrix
     //   function: whether _term is a square matrix by its shape alone: a
     // literal of as many rows as each of its rows has elements, the vector
@@ -289,7 +375,7 @@ NS_INTERNAL
         return square;
     }
 
-    // 1.2.3
+    // 1.2.4
     // expr_well_formed
     //   function: whether _term's folds can fail only for want of a binding:
     // each call of a function the standard table has, with a number of
@@ -489,21 +575,44 @@ NS_INTERNAL
     // expr_factors_of
     //   function: the factors of _term, as a factor of a product, dividing
     // it where _divides, added to _monomial: through * and / and the unary -
-    // and +, each exact number multiplying the coefficient, or dividing it
-    // where it is not 0, each - negating it, and each other term a factor.
-    // False where the coefficient is no longer exact, as where it passes the
+    // and +, each exact number that commutes with the product's factors
+    // multiplying the coefficient, or dividing it where it is not 0, each -
+    // negating it, and each other term a factor. An exact quaternion never
+    // commutes, nor an exact complex number in a product that holds a
+    // quaternion, _quaternion (S277): each is a factor, in its place. False
+    // where the coefficient is no longer exact, as where it passes the
     // family's integers.
+
+    // expr_commutes
+    //   function: whether the exact number _number commutes with every
+    // factor of a product, which holds a quaternion where _quaternion: a
+    // real number always, a complex one where no quaternion stands beside
+    // it, a quaternion never.
+    inline bool
+    expr_commutes(
+        const value& _number,
+        bool         _quaternion
+    )
+    {
+        return ( (!expr_is_quaternion(_number)) &&
+                 ( (!_quaternion) ||
+                   (!expr_is_complex(_number)) ) );
+    }
+
     inline bool
     expr_factors_of(
         const expr_term& _term,
         bool             _divides,
+        bool             _quaternion,
         expr_monomial&   _monomial
     )
     {
         value number;
 
-        // an exact number: into the coefficient, but 0 dividing
-        if (expr_exact_number(_term, number))
+        // an exact number that commutes: into the coefficient, but 0
+        // dividing
+        if ( (expr_exact_number(_term, number)) &&
+             (expr_commutes(number, _quaternion)) )
         {
             if (!_divides)
             {
@@ -534,11 +643,13 @@ NS_INTERNAL
             {
                 return ( (expr_factors_of(operands[0],
                                           _divides,
+                                          _quaternion,
                                           _monomial)) &&
                          (expr_factors_of(operands[1],
                                           ( (kind == expr_op_kind::div)
                                                 ? !_divides
                                                 : _divides ),
+                                          _quaternion,
                                           _monomial)) );
             }
 
@@ -553,6 +664,7 @@ NS_INTERNAL
 
                 return expr_factors_of(operands[0],
                                        _divides,
+                                       _quaternion,
                                        _monomial);
             }
         }
@@ -613,6 +725,7 @@ NS_INTERNAL
         // a term: its coefficient and its factors
         if (!expr_factors_of(_term,
                              false,
+                             expr_holds_quaternion(_term),
                              summand))
         {
             return false;
@@ -627,8 +740,9 @@ NS_INTERNAL
     // expr_same_factors
     //   function: whether _a and _b are the same factors: as many, each the
     // same as one of the other's, by parse/expression's structural equality,
-    // and dividing as it does; those that hold a matrix in the same order,
-    // as matrices do not commute, and the others in any order (S251).
+    // and dividing as it does; those that keep their places
+    // (expr_keeps_places) in the same order, as matrices and quaternions do
+    // not commute, and the others in any order (S251, S277).
     inline bool
     expr_same_factor(
         const expr_factor& _a,
@@ -639,6 +753,43 @@ NS_INTERNAL
                  (::djinterp::structural_equal<expr_op, expr_atom>(
                       _a.term,
                       _b.term)) );
+    }
+
+    // expr_keeps_places
+    //   function: for each of _factors whether it keeps its place among
+    // them: one that holds a matrix (S251) or a quaternion, and, among
+    // factors one of which holds a quaternion, one that holds a complex
+    // number, as im jm is km and jm im -km (S277); the others commute with
+    // every factor, a variable among them, taken for a number until step 25
+    // (4a) declares its domain (S251, S274).
+    inline std::vector<bool>
+    expr_keeps_places(
+        const std::vector<expr_factor>& _factors
+    )
+    {
+        std::vector<bool> keeps(_factors.size(),
+                                false);
+        bool              quaternion = false;
+
+        // a matrix or a quaternion keeps its place
+        for (std::size_t i = 0; i < _factors.size(); ++i)
+        {
+            const bool held = expr_holds_quaternion(_factors[i].term);
+
+            quaternion = ( (quaternion) || (held) );
+            keeps[i]   = ( (held) ||
+                           (expr_holds_matrix(_factors[i].term)) );
+        }
+
+        // beside a quaternion, a complex number keeps its place too
+        for (std::size_t i = 0; ( (quaternion) && (i < _factors.size()) );
+             ++i)
+        {
+            keeps[i] = ( (keeps[i]) ||
+                         (expr_holds_complex_number(_factors[i].term)) );
+        }
+
+        return keeps;
     }
 
     inline bool
@@ -653,22 +804,13 @@ NS_INTERNAL
             return false;
         }
 
-        std::vector<bool> matrix_a(_a.size(),
-                                   false);
-        std::vector<bool> matrix_b(_b.size(),
-                                   false);
-        std::vector<bool> taken(_b.size(),
-                                false);
+        const std::vector<bool> matrix_a = expr_keeps_places(_a);
+        const std::vector<bool> matrix_b = expr_keeps_places(_b);
+        std::vector<bool>       taken(_b.size(),
+                                      false);
+        std::size_t             j = 0;
 
-        for (std::size_t i = 0; i < _a.size(); ++i)
-        {
-            matrix_a[i] = expr_holds_matrix(_a[i].term);
-            matrix_b[i] = expr_holds_matrix(_b[i].term);
-        }
-
-        std::size_t j = 0;
-
-        // the factors that hold a matrix: the same, in the same order
+        // the factors that keep their places: the same, in the same order
         for (std::size_t i = 0; i < _a.size(); ++i)
         {
             if (!matrix_a[i])
@@ -956,6 +1098,7 @@ NS_INTERNAL
         // the factors, the coefficient exact
         if (!expr_factors_of(_term,
                              false,
+                             expr_holds_quaternion(_term),
                              product))
         {
             return _term;

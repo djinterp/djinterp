@@ -11,13 +11,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_plane.c -o t_plane -lm
+*        tests/djinterp/c/modules/math/t_plane.c -o t_plane -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_plane.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf

@@ -14,19 +14,19 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/math_tests_expr_five_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_MATH_EXPR_MATH_TESTS_EXPR_FIVE_REFS_H
 #define DJINTERP_TESTS_MATH_EXPR_MATH_TESTS_EXPR_FIVE_REFS_H 1
 
 // tests
-#include "./math_tests_expr_complex_refs.h"  // d_tests_expr_complex_ref
+#include "./math_tests_expr_complex_refs.h"  // dj_tests_expr_complex_ref
 
 
 // g_expr_five_refs
 //   the references, 26 of them.
-static const struct d_tests_expr_complex_ref g_expr_five_refs[] =
+static const struct dj_tests_expr_complex_ref g_expr_five_refs[] =
 {
     { "exp2(1 + im)",
       "1.53847780272794425315665998732254140288179199",

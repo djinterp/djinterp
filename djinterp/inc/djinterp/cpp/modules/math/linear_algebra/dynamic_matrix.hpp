@@ -24,6 +24,19 @@
 * the type). Everything compiles from C++98; the scalar products select
 * arithmetic scalars by an enable_if on their return type.
 *
+* ELEMENT TYPES:
+*   dynamic_matrix takes every element type the fixed-size matrix takes,
+* each that number_traits specializes (S354, S392): float, double and long
+* double, on the C core's kernels; any other arithmetic type through
+* double; and math::complex<T>, math::value and math::inline_value on the
+* generic path, each zero, one and tolerance the traits', each product in
+* its order. The Frobenius norm of a matrix of math::complex<T> is a T, the
+* C core's scaled norm of the parts, as the fixed-size matrix's is; a
+* tolerance is of the traits' magnitude type, a complex one's real type.
+* Quaternions it takes no more than the fixed-size matrix does: neither
+* face's quaternion has sums or traits, and the language's matrices of them
+* compute with the quaternion kind's own operands (expr/quaternion.hpp).
+*
 * CONVENTIONS THAT DIFFER FROM THE FIXED-SIZE TYPE:
 *   - Where the fixed type enforces shapes with static_assert, dynamic_matrix
 *     checks them at run time with assert (its runtime analog). Operations have
@@ -37,7 +50,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/dynamic_matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.23
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 /*
@@ -60,6 +73,7 @@ TABLE OF CONTENTS
 #include <vector>                                 // std::vector
 // djinterp
 #include "../../../djinterp.hpp"                  // framework root
+#include "../number_traits.hpp"                   // number_traits
 #include "./linalg_common.hpp"                    // linalg_kernel,
                                                   // default_tolerance
 #include "./matrix.hpp"                           // matrix
@@ -80,12 +94,14 @@ namespace linalg
 //==============================================================================
 
 // dynamic_matrix
-//   class: a runtime-sized, row-major, heap-backed matrix.
+//   class: a runtime-sized, row-major, heap-backed matrix of any element type
+// the fixed-size matrix takes (S354).
 template<typename T>
 class dynamic_matrix
 {
-    D_STATIC_ASSERT((re_std::is_arithmetic<T>::value),
-                    "dynamic_matrix: element type must be arithmetic.");
+    D_STATIC_ASSERT((number_traits<T>::is_specialized),
+                    "dynamic_matrix: element type needs number_traits, as "
+                    "the fixed-size matrix's does.");
 
 public:
     typedef T value_type;
@@ -93,10 +109,15 @@ public:
     typedef std::vector<T> storage_type;
     typedef std::vector<T> vector_type;
 
+    // the type of a tolerance: number_traits' magnitude, T itself for a
+    // real number, its real type for a complex one
+    typedef typename number_traits<T>::magnitude_type magnitude_type;
+
 private:
-    // the C core's kernels for T (through double for a type no family
-    // holds)
+    // the C core's kernels for T (through double for an arithmetic type no
+    // family holds; the generic path for any other); and T's traits
     typedef internal::linalg_kernel<T> kernel;
+    typedef number_traits<T>           traits;
 
 public:
 
@@ -117,7 +138,7 @@ public:
     )
         : m_rows(_rows)
         , m_cols(_cols)
-        , m_data(_rows * _cols, static_cast<T>(0))
+        , m_data(_rows * _cols, traits::zero())
     {
     }
 
@@ -154,7 +175,7 @@ public:
         return dynamic_matrix(_rows, _cols, _value);
     }
 
-    // identity: the _n x _n identity matrix.
+    // identity: the _n x _n identity matrix, of the traits' zero and one.
     static dynamic_matrix
     identity(size_type _n)
     {
@@ -162,7 +183,7 @@ public:
 
         for (size_type i = 0; i < _n; ++i)
         {
-            m.m_data[i * _n + i] = static_cast<T>(1);
+            m.m_data[i * _n + i] = traits::one();
         }
 
         return m;
@@ -266,7 +287,7 @@ public:
     {
         assert((_i < m_rows) && "dynamic_matrix::row: index out of range.");
 
-        vector_type r(m_cols, static_cast<T>(0));
+        vector_type r(m_cols, traits::zero());
 
         for (size_type j = 0; j < m_cols; ++j)
         {
@@ -282,7 +303,7 @@ public:
     {
         assert((_j < m_cols) && "dynamic_matrix::col: index out of range.");
 
-        vector_type c(m_rows, static_cast<T>(0));
+        vector_type c(m_rows, traits::zero());
 
         for (size_type i = 0; i < m_rows; ++i)
         {
@@ -442,7 +463,7 @@ public:
                "dynamic_matrix::times: vector length must equal column "
                "count.");
 
-        vector_type out(m_rows, static_cast<T>(0));
+        vector_type out(m_rows, traits::zero());
 
         // the C core's product, row by row in order
         if ( (!out.empty()) &&
@@ -463,7 +484,7 @@ public:
         assert(is_square() && "dynamic_matrix::trace: matrix must be square.");
 
         // the C core's
-        return m_data.empty() ? static_cast<T>(0)
+        return m_data.empty() ? traits::zero()
                               : kernel::trace(&m_data[0], m_rows);
     }
 
@@ -481,7 +502,7 @@ public:
         // the C core's, where there is an entry
         if (!m_data.empty())
         {
-            storage_type scratch(m_data.size(), static_cast<T>(0));
+            storage_type scratch(m_data.size(), traits::zero());
 
             kernel::power(&result.m_data[0],
                           &scratch[0],
@@ -497,18 +518,19 @@ public:
     norm_squared() const
     {
         // the C core's
-        return m_data.empty() ? static_cast<T>(0)
+        return m_data.empty() ? traits::zero()
                               : kernel::norm_squared(&m_data[0],
                                                      m_data.size());
     }
 
-    // norm: the Frobenius norm.
+    // norm: the Frobenius norm, as T (frobenius_norm gives a complex
+    // matrix's as its real type).
     T
     norm() const
     {
         // the C core's: its root the element type's, correctly rounded (it
         // was a double's whatever the type)
-        return m_data.empty() ? static_cast<T>(0)
+        return m_data.empty() ? traits::zero()
                               : kernel::norm(&m_data[0], m_data.size());
     }
 
@@ -531,7 +553,9 @@ public:
 
     // equals: same shape and entries within _tol (different shape -> false);
     // given none, within four of the largest epsilon the entries carry times
-    // their largest magnitude, exactly where they are exact (S157, S158).
+    // their largest magnitude, exactly where they are exact (S157, S158). A
+    // tolerance is of the traits' magnitude type, each entry's distance the
+    // traits' magnitude, as the fixed-size matrix's kernels compare.
     bool
     equals(const dynamic_matrix& _o) const
     {
@@ -543,7 +567,7 @@ public:
 
         return equals(_o,
                       ( m_data.empty()
-                            ? number_traits<T>::zero()
+                            ? traits::magnitude(traits::zero())
                             : internal::linalg_tolerance(&m_data[0],
                                                          &_o.m_data[0],
                                                          m_data.size(),
@@ -553,7 +577,7 @@ public:
     bool
     equals(
         const dynamic_matrix& _o,
-        T                    _tol
+        magnitude_type        _tol
     ) const
     {
         if ((m_rows != _o.m_rows) || (m_cols != _o.m_cols))
@@ -563,7 +587,7 @@ public:
 
         for (size_type i = 0; i < m_data.size(); ++i)
         {
-            if (internal::abs_c(m_data[i] - _o.m_data[i]) > _tol)
+            if (traits::magnitude(m_data[i] - _o.m_data[i]) > _tol)
             {
                 return false;
             }
@@ -753,6 +777,27 @@ frobenius_norm(const dynamic_matrix<T>& _m)
     return _m.norm();
 }
 
+// frobenius_norm of a matrix of math::complex<T>: the root of the sum of its
+// entries' squared moduli, a T, the C core's scaled norm of its parts, re
+// and im in turn, as the fixed-size matrix's (S354).
+template<typename T>
+T
+frobenius_norm(const dynamic_matrix<complex<T> >& _m)
+{
+    std::vector<T> parts(2 * _m.data().size(), T(0));
+
+    // each entry's two parts, in turn
+    for (std::size_t i = 0; i < _m.data().size(); ++i)
+    {
+        parts[2 * i]       = _m.data()[i].real();
+        parts[(2 * i) + 1] = _m.data()[i].imag();
+    }
+
+    return ( parts.empty() ? T(0)
+                           : internal::linalg_kernel<T>::norm(&parts[0],
+                                                              parts.size()) );
+}
+
 template<typename T>
 bool
 approx_equal(
@@ -766,9 +811,9 @@ approx_equal(
 template<typename T>
 bool
 approx_equal(
-    const dynamic_matrix<T>& _a,
-    const dynamic_matrix<T>& _b,
-    T                        _tol
+    const dynamic_matrix<T>&                  _a,
+    const dynamic_matrix<T>&                  _b,
+    typename number_traits<T>::magnitude_type _tol
 )
 {
     return _a.equals(_b, _tol);

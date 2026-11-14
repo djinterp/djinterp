@@ -9,7 +9,10 @@ linear algebra they complete; chunk 39, its third, the C++ face of complex
 numbers; chunk 40, step 23's first part, complex numbers in the language;
 chunk 41, the first chunk of its second part, their functions; chunk 42,
 its second chunk, the five complex functions the C core lacked; chunk 43,
-its third part, matrices of complex numbers):
+its third part, matrices of complex numbers; chunk 44, step 24's first
+part, the C core's quaternions and their C++ faces; chunk 45, its second
+part, quaternions in the language; chunk 46, its third, matrices of them,
+their rotations and dynamic matrices of every element type):
 what djinterp's math
 framework does or is planned to do, by the roadmap's 51 steps (48 until
 chunk 36's rulings added 3d to 3f, every step from 22 on three further),
@@ -18,7 +21,7 @@ against. It compares features alone. How fast each is, and how accurate its
 functions are in ulps, are Phase 7's measurements (steps 41 and 42); nothing
 here is measured.
 
-In the djinterp column, "done" means in the tree as of chunk 43, with the
+In the djinterp column, "done" means in the tree as of chunk 46, with the
 step that did it; "step N" means the roadmap plans it at that step; "later"
 means the roadmap lists it under "Later, not yet decided"; "none" means no
 step plans it. In the other columns, "yes" is a documented feature, "part"
@@ -61,7 +64,7 @@ certain from the library's own documentation it says so.
 | Big floats, correctly rounded | step 47 (the MPFR model) | part (mpmath's precision; correct rounding not promised) | yes (MPFR, optional) | part (CLN's floats) | part (`bignumber`, decimal) | yes, MPFR as its type |
 | Ball arithmetic | step 48 | no (mpmath has intervals) | part (Arb, optional) | no | no | no |
 | Complex numbers | the C core's done (step 22, `cplx.h`, S280 to S288): float, double and long double, C99's 22 functions; their C++ face, `math::complex<T>`, from C++98, the C core's bits at every level (step 22, chunk 39, S313); a kind of the value, exact Gaussian rationals and each floating-point type, its arithmetic `cplx.h`'s or exact (step 23, chunk 40, S327, S328); each function's principal complex value, exact where it is a Gaussian rational (chunk 41, S336, S337), and `exp2`, `log2`, `log10`, `log1p` and `expm1`'s, in the C core, the face and the language (chunk 42, S342 to S347); matrices of them, dense or exact (chunk 43, S348) | yes | yes | yes | yes | no |
-| Quaternions | the C core's and the C++ faces done (`quat.h`, `quaternion.hpp`); a kind of the value at step 24 (S275 to S277) | yes (`Quaternion`) | no | part (Clifford algebras) | no | no |
+| Quaternions | the C core's and the C++ faces done (`quat.h`, `quaternion.hpp`), accurate by default (step 24, chunk 44, S358 to S365): the product, inverse and both quotients, the rotation and its matrix of any q not 0, Shepperd's method, two vectors' quaternion, nlerp and slerp, and exp, log, sqrt and real powers, the principal values, each part within a step or a few; the former formulas as `_fast` forms; a kind of the value, exact or dense, in the language (step 24, chunk 45, S369 to S377); matrices of them, their rotations' matrices and slerp in the language (chunk 46, S386 to S391) | yes (`Quaternion`) | no | part (Clifford algebras) | no | no |
 | Units of measure | none | yes (`sympy.physics.units`) | no | no | yes | no |
 | Errors as values that pass through, the first kept; Kleene's logic | done (steps 14 to 17) | no: exceptions, or unevaluated forms | no: exceptions | no: exceptions | no: exceptions | part: NaN |
 | A new number kind without changing the core (boxed kinds) | done (step 9) | yes (Python classes) | part (C++ subclasses) | part | yes (typed-function types) | yes (the numeric type is a template parameter) |
@@ -102,13 +105,15 @@ proven behaviour is the oracle of step 41.
 | Parse text to a term, render a term to text that reads back as itself | done (steps 13, 14) | yes | yes | yes | yes | parse only | parse only |
 | `+ - * / mod ^ !`, precedence, unary minus, `\|x\|` (an option) | done (step 14) | yes | yes | yes | yes | yes | yes |
 | Implied multiplication, `2x` | done, an option (G5) | an option (transformations) | unclear | unclear | yes, by default | yes | no |
-| Calls of the standard functions | done, 25 and `abs`, `factorial` (step 15), the complex numbers' five (chunk 40), `log1p`, `expm1`, `asinh`, `acosh`, `atanh`, `sign`, `min` and `max` (chunk 41, S338), `transpose` (chunk 43, S350): 52 with piecewise's three and linear algebra's nine | hundreds | many | many | hundreds | a few dozen | about 20 |
+| Calls of the standard functions | done, 25 and `abs`, `factorial` (step 15), the complex numbers' five (chunk 40), `log1p`, `expm1`, `asinh`, `acosh`, `atanh`, `sign`, `min` and `max` (chunk 41, S338), `transpose` (chunk 43, S350), the quaternions' `quat`, `parts` and `rotate` (chunk 45, S374, S375), and `rotmat`, `rotquat` and `slerp` (chunk 46, S391): 58 with piecewise's three and linear algebra's nine | hundreds | many | many | hundreds | a few dozen | about 20 |
 | User functions and constants in the language | none: the context is empty | yes | yes | yes | yes | yes | yes |
 | Relations, logic, piecewise | done (step 16) | yes | yes | part (relations) | yes | yes | part |
 | Complex numbers in the language, `3 + 4im` | done (step 23, chunks 40 to 43): `im`, `complex`, `real`, `imag`, `conj`, `arg`, the modulus, `z'`, `=` and `!=`, exact powers, exact Gaussian rationals or dense parts (S327 to S333); each function's principal value, exact roots and rational powers where Gaussian, a real function's complex value outside its domain unless the context asks real results, and folds in `math::complex<T>` (chunk 41, S336 to S341); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex value, the C core's (chunk 42, S347); matrices of them (chunk 43, S348 to S353) | yes, `I` | yes, `I` | yes, `I` | yes, `i` | unclear | no (muParserX has them) |
+| Quaternions in the language, `1 + 2jm - km` | done (step 24, chunk 45): `jm` and `km`, `quat(w, x, y, z)`, exact parts or dense ones, Hamilton's products in order, `p / q` = `p inv(q)` (S371, S372); the norm, `parts`, `real`, `conj`, `q'`, `inv`, `sign`, `exp`, `log`, `sqrt`, powers to a real exponent, exact roots and powers where rational (S373, S374); `rotate(q, v)` (S375); simplification keeping their factors in order (S376); matrices of them (chunk 46, below); `rotmat(q)`, the rotation's matrix, exact where q is, `rotquat(R)`, Shepperd's method exact where its root is rational, and `slerp(p, q, t)` (chunk 46, S391) | part: `Quaternion(a, b, c, d)`, symbolic, with `exp`, `log`, `pow` (whole powers; `pow_cos_sin` any) and rotations; no literal syntax documented | no | part (Clifford algebras) | no | no | no |
 | Vector and matrix literals, `[1, 2; 3, 4]` | done (step 19); blocks `[A, b; C, d]` and the empty `[]` (step 21) | no (constructors; `BlockMatrix`) | no | no (constructors) | yes, the same syntax, blocks by `concat` | no (vectors declared) | no (muParserX has them) |
 | Matrix arithmetic, transpose, indexing in the language | done (step 20): sums, scalar and matrix products, `A'`, `A ^ n`, `v[i]`, `A[i, j]`, from 1; `A ^ (-n)` (step 21); of complex matrices, `A'` the conjugate transpose and `transpose(A)` the transpose (step 23, chunk 43, S349, S350) | yes | yes | yes | yes | vectors only | no |
 | Matrices of complex numbers in the language, `[1, 2im; 3, 4]` | done (step 23, chunk 43): dense as `math::complex<T>` or exact, each element kept as given (S348); `real`, `imag`, `conj` and `arg` of a matrix element by element, `complex(A, B)` (S350) | yes | yes | yes | yes | no | no |
+| Matrices of quaternions in the language, `[1, jm; km, 2]` | done (step 24, chunk 46): dense as `math::quaternion<T>` or exact (S386); each element the quaternion kind's own arithmetic, each product in its order, `q * A` and `A * q` apart (S387); `A'` conjugating; `inv` and `solve` by Gauss-Jordan in each product's order, exact where exact, `det` a domain error (S388); Zhang's standard eigenvalues (S389) | unclear | no | unclear | no | no | no |
 | Element-wise operators and a scalar broadcast, `A .* B`, `A + 1` | none: `A + 1` is a domain error (S246) | part (`multiply_elementwise`) | unclear | unclear | yes, both | yes, on vectors | no |
 | Slices and an index from the end, `A[1:2, :]`, `end` | none | yes | unclear | part (`sub_matrix`) | yes | part (vector ranges) | no |
 | `det`, `inv`, `solve`, `trace`, `eig`, `dot`, `cross`, `norm` | done (step 21): exact for exact matrices, rational eigenvalues exact; of complex matrices, `dot` conjugating, `norm` of the moduli, and every eigenvalue, complex where it is, exact where it is a Gaussian rational (step 23, chunk 43, S351, S352) | yes | part (det, inv, LU) | part (det, inverse, linear solve) | yes, and `expm`, `sqrtm`, `pinv`, `schur` | dot only | no |
@@ -128,7 +133,7 @@ proven behaviour is the oracle of step 41.
 | Feature | djinterp | SymPy | SymEngine | GiNaC | math.js |
 |---|---|---|---|---|---|
 | Substitution | done (step 18) | yes | yes | yes | yes (`resolve`, scope) |
-| Simplification: constant folding, like terms, identities | done, the value kept wherever each part is finite (step 18, S228) | yes, many strategies | part | part (`normal`, `collect`) | yes, rule-based, with a context of assumptions such as commutativity |
+| Simplification: constant folding, like terms, identities | done, the value kept wherever each part is finite (step 18, S228); the order kept of factors that do not commute, matrices (S251) and quaternions, with complex numbers beside them (S376) | yes, many strategies | part | part (`normal`, `collect`) | yes, rule-based, with a context of assumptions such as commutativity |
 | Non-commutative factors kept in order | done for matrix literals and values (step 20, S251); a variable is taken for a number, no matrix variable declared | yes, with matrix symbols | unclear | yes | yes, by context |
 | Expand, factor, polynomial gcd, a canonical form | none | yes | part (expand) | yes | part (`rationalize`) |
 | The symbolic derivative, partial derivatives, gradient | step 25 | yes | yes | yes | yes (`derivative`) |
@@ -155,10 +160,10 @@ proven behaviour is the oracle of step 41.
 | Symmetric eigensolver; general eigenvalues | done; complex eigenvalues and eigenvectors by LAPACK's path, balancing, Francis's QR and the Schur vectors, in the C core (step 22, chunk 38, S292) and the C++ face, as `math::complex<T>` (chunk 39, S317); in the language every one, complex where it is, ordered by real part, then imaginary part (step 23, chunk 43, S352) | yes, complex eigenvalues too | yes | exact, with complex roots | exact charpoly, ball roots |
 | Complex matrices: LU, inverse, solution, Hermitian and general eigensolvers | done in the C core (step 22, chunk 38, S297 to S299); in the C++ face, vectors and matrices of `math::complex<T>`, their determinant, inverse and solution the C core's bits (chunk 39, S315); in the language, the C core's where dense and exact where exact, a Hermitian matrix's eigenvalues real (step 23, chunk 43, S351, S352) | yes | yes | yes | balls (`acb_mat`) |
 | The conjugating inner product, the adjoint, a unitary test | done: the language's `dot` and `A'` conjugate (chunk 43, S273, S351); the C++ face's `vdot`, complex norms and `is_unitary`, its `dot` bilinear (S322, S354) | yes: `dot` conjugates its first, `adjoint()`, `isUnitary()` | part: `ctranspose`; whether `dot` conjugates unclear | part: `H`, `dot` with `hermitian=True` | part: `acb_mat_conjugate_transpose` |
-| Runtime-sized complex matrices in C++ | none: `dynamic_matrix` holds arithmetic elements alone (S354, flagged) | yes, `MatrixXcd` | not C++ | not C++ | not C++ (`acb_mat`, in C) |
+| Runtime-sized complex matrices in C++ | done: `dynamic_matrix` of every element type the fixed-size matrix takes, `math::complex<T>`, `math::value` and `math::inline_value` among them (chunk 46, S354, S392) | yes, `MatrixXcd` | not C++ | not C++ | not C++ (`acb_mat`, in C) |
 | Norms that neither overflow nor underflow at the range's ends | done in the C core and every face, every bit in range kept (chunk 38, S301) | `stableNorm()` and `blueNorm()` beside the plain `norm()` | no | exact | balls |
 | A default tolerance relative to the operands' scale | done: four epsilons of the type, 0 for exact values (chunk 38, S303, S304) | yes, `isApprox`, `dummy_precision()` 1e-12 for double | an absolute and a relative epsilon, configured | exact comparison | balls |
-| Matrices over a type whose products do not commute (quaternions) | done: products kept in their order, `solve` and `inverse` exact over exact quaternions (chunk 38, S305) | no: a scalar must commute | no | part (noncommutative symbols) | no |
+| Matrices over a type whose products do not commute (quaternions) | done: products kept in their order, `solve` and `inverse` exact over exact quaternions (chunk 38, S305); in the language, dense or exact, each row divided on the left as A X = B asks, `det` a domain error, and Zhang's standard right eigenvalues, one of each conjugate pair of the complex adjoint's (chunk 46, S388, S389) | no: a scalar must commute | no | part (noncommutative symbols) | no |
 | Exact determinant and inverse of rational matrices | done (step 21): Bareiss's elimination and Gauss-Jordan on exact values | no (a custom scalar can) | with fractions | yes | yes, fast |
 | Exact rational eigenvalues of a rational matrix | done (step 21): found in long double, made exact as roots of the exact characteristic polynomial | no | no | yes, and algebraic ones | yes, exact charpoly and its roots |
 | Sparse matrices | none | yes | yes | yes | unclear |
@@ -262,7 +267,9 @@ a decision of his to take or leave:
    chunk 39 (S317), a complex number is a value of the language since
    chunk 40 (S327), with its functions since chunks 41 and 42 (S336,
    S347), and the language's `eig` gives every eigenvalue, of complex
-   matrices too, since step 23's third part, chunk 43 (S352): done.
+   matrices too, since step 23's third part, chunk 43 (S352), and of
+   matrices of quaternions their standard eigenvalues since step 24's
+   third part, chunk 46 (S389): done.
 5. **Polynomial algebra** (expand, factor, gcd, a canonical form) beside
    `simplify` (S231's review), before step 25's derivative needs a
    canonical form to simplify into.
@@ -294,5 +301,11 @@ Sources, as of 2026-10-25:
   https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/clog10-clog10f-clog10l
 - glibc taking `cosf` and `sincosf` from CORE-MATH (patches of 2026-03-25):
   https://patchwork.sourceware.org/project/glibc/patch/20260325192357.1284741-6-adhemerval.zanella@linaro.org/
+- MATLAB's `rotmat(quat, "point")`, the convention `rotmat` follows
+  (chunk 46, 2026-11-08):
+  https://www.mathworks.com/help/vision/ref/quaternion.rotmat.html
+- The standard eigenvalues and the complex adjoint, after Zhang (1997), as
+  restated in arXiv 2302.07638 (chunk 46, 2026-11-08):
+  https://arxiv.org/pdf/2302.07638
 - The rest from the libraries' documentation as of the lane's knowledge:
   SymPy, muParser, TinyExpr, Eigen, Boost.Math, GMP, MPFR, FLINT, gcem.

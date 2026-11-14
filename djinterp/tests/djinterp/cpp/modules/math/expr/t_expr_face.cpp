@@ -63,17 +63,21 @@
 *     eigenvalues exact where rational, repeated, beside irrational ones,
 *     a dense symmetric matrix's by Jacobi where QR would find a complex
 *     pair, a complex pair complex numbers, exact where they are Gaussian
-*     rationals (S352); transpose, of the table's 52; negative powers, and
+*     rationals (S352); transpose, in the table; negative powers, and
 *     every dense power the C core's; the empty matrix; literals of
 *     blocks, in the parser, the folds, the renderer and simplification;
 *     and 1,000 random exact matrices against the test's own cofactors and
 *     arithmetic;
-*   - 3d's: im, jm and km, constants of the table and never variables, jm
-*     and km answering not_yet until step 24 (3f), as values, in each type
-*     and through the handle;
+*   - 3d's: im, jm and km, constants of the table and never variables, as
+*     values, in each type and through the handle;
 *   - 3e's first part: im the exact imaginary unit as a value and a NaN in
 *     each type, complex, real, imag, conj and arg in the table with their
 *     four evaluators (t_expr_complex_face.cpp has the rest);
+*   - 3f's second part: jm and km the exact units of the quaternions as
+*     values, their product in order, and NaNs in each type; quat, parts and
+*     rotate in the table with their seven evaluators, and its third part's
+*     rotmat, rotquat and slerp, 58 functions (t_expr_quaternion_face.cpp
+*     and t_expr_quaternion_matrix_face.cpp have the rest);
 *   - every stub of a later step: the answer its contract names until its
 *     step, the error not_yet with its message;
 *   - each entry's type, by static assertion.
@@ -81,13 +85,13 @@
 * what it fills.
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/expr/t_expr_face.cpp -o t_expr_face
+*         tests/djinterp/cpp/modules/math/expr/t_expr_face.cpp -o t_expr_face
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/antiderivative.hpp"
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex.hpp"
@@ -100,6 +104,7 @@
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/numeric.hpp"
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/operator.hpp"
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/quaternion.hpp"
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/render.hpp"
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/series.hpp"
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/simplify.hpp"
@@ -111,7 +116,7 @@
 
 
 // D_TESTS_MODULE_READ
-//   1 where each of math/expr/'s seventeen headers was read: at every level,
+//   1 where each of math/expr/'s eighteen headers was read: at every level,
 // as each defines its guard before its floor.
 #if ( defined(DJINTERP_MATH_EXPR_ANTIDERIVATIVE_HPP) &&                       \
       defined(DJINTERP_MATH_EXPR_COMPLEX_HPP)        &&                       \
@@ -124,6 +129,7 @@
       defined(DJINTERP_MATH_EXPR_NUMERIC_HPP)        &&                       \
       defined(DJINTERP_MATH_EXPR_OPERATOR_HPP)       &&                       \
       defined(DJINTERP_MATH_EXPR_PARSE_HPP)          &&                       \
+      defined(DJINTERP_MATH_EXPR_QUATERNION_HPP)     &&                       \
       defined(DJINTERP_MATH_EXPR_RENDER_HPP)         &&                       \
       defined(DJINTERP_MATH_EXPR_SERIES_HPP)         &&                       \
       defined(DJINTERP_MATH_EXPR_SIMPLIFY_HPP)       &&                       \
@@ -319,7 +325,7 @@ namespace
         const char* _text
     )
     {
-        d_math_value exact = d_math_value_none();
+        dj_math_value exact = d_math_value_none();
 
         static_cast<void>(d_math_literal_to_value(&exact,
                                                   _text,
@@ -511,7 +517,7 @@ namespace
         const char* _digits
     )
     {
-        d_math_wide wide = d_math_wide_from_imax(0);
+        dj_math_wide wide = d_math_wide_from_imax(0);
 
         static_cast<void>(d_math_wide_from_text(&wide,
                                                 _digits,
@@ -536,10 +542,10 @@ namespace
         return;
     }
 
-    d_math_value
+    dj_math_value
     d_tests_real_unary(
-        d_math_value_op _op,
-        d_math_value    _x
+        dj_math_value_op _op,
+        dj_math_value    _x
     )
     {
         static_cast<void>(_op);
@@ -548,11 +554,11 @@ namespace
         return d_math_value_none();
     }
 
-    d_math_value
+    dj_math_value
     d_tests_real_binary(
-        d_math_value_op _op,
-        d_math_value    _a,
-        d_math_value    _b
+        dj_math_value_op _op,
+        dj_math_value    _a,
+        dj_math_value    _b
     )
     {
         static_cast<void>(_op);
@@ -562,10 +568,10 @@ namespace
         return d_math_value_none();
     }
 
-    d_math_value_order
+    dj_math_value_order
     d_tests_real_cmp(
-        d_math_value _a,
-        d_math_value _b
+        dj_math_value _a,
+        dj_math_value _b
     )
     {
         static_cast<void>(_a);
@@ -576,10 +582,10 @@ namespace
 
     bool
     d_tests_real_convert(
-        d_math_value*     _out,
-        int*              _direction,
-        d_math_value      _x,
-        d_math_value_kind _to
+        dj_math_value*     _out,
+        int*               _direction,
+        dj_math_value      _x,
+        dj_math_value_kind _to
     )
     {
         const long double real    = *static_cast<const long double*>(_x.box);
@@ -613,9 +619,9 @@ namespace
 
     std::size_t
     d_tests_real_text(
-        char*        _buffer,
-        std::size_t  _size,
-        d_math_value _x
+        char*         _buffer,
+        std::size_t   _size,
+        dj_math_value _x
     )
     {
         static_cast<void>(_x);
@@ -625,17 +631,17 @@ namespace
                                                       "real"));
     }
 
-    const d_math_boxed_kind g_real_kind = { "real",
-                                            600,
-                                            D_MATH_BOXED_NUMBER,
-                                            &d_tests_real_hold,
-                                            &d_tests_real_hold,
-                                            &d_tests_real_unary,
-                                            &d_tests_real_binary,
-                                            &d_tests_real_cmp,
-                                            &d_tests_real_convert,
-                                            &d_tests_real_text,
-                                            D_NULLPTR };
+    const dj_math_boxed_kind g_real_kind = { "real",
+                                             600,
+                                             D_MATH_BOXED_NUMBER,
+                                             &d_tests_real_hold,
+                                             &d_tests_real_hold,
+                                             &d_tests_real_unary,
+                                             &d_tests_real_binary,
+                                             &d_tests_real_cmp,
+                                             &d_tests_real_convert,
+                                             &d_tests_real_text,
+                                             D_NULLPTR };
 
     // d_tests_real_of
     //   a value of the test's boxed kind, standing for *_x.
@@ -644,7 +650,7 @@ namespace
         const long double* _x
     )
     {
-        d_math_value boxed = d_math_value_none();
+        dj_math_value boxed = d_math_value_none();
 
         boxed.kind = D_MATH_VALUE_BOXED;
         boxed.type = &g_real_kind;
@@ -1616,8 +1622,9 @@ namespace
     }
 
     // d_tests_tables
-    //   expr_function, expr_named_constant, expr_table, and the standard
-    // tables: the functions and the constants of steps 15 and 16.
+    //   expr_function, expr_named_constant and expr_table; the standard
+    // tables are d_tests_standard_functions' and
+    // d_tests_standard_constants'.
     void
     d_tests_tables()
     {
@@ -1717,6 +1724,15 @@ namespace
                              D_MATH_VALUE_DOUBLE),
                         "a constant put in place of its name's");
 
+        return;
+    }
+
+    // d_tests_standard_functions
+    //   the standard function table: the functions of steps 15 to 24, each
+    // with its evaluators, and no other.
+    void
+    d_tests_standard_functions()
+    {
         // the standard functions: the C core's 25, abs and factorial
         static const char* const ones[] = { "sqrt", "cbrt", "sin", "cos",
                                             "tan", "asin", "acos", "atan",
@@ -1774,12 +1790,22 @@ namespace
                         (d_tests_standard_function("sign", 1)) &&
                         (d_tests_standard_variadic("min", 1)) &&
                         (d_tests_standard_variadic("max", 1)) &&
-                        (d_tests_standard_function("transpose", 1)) &&
-                        (m::expr_standard_functions().size() == 52),
+                        (d_tests_standard_function("transpose", 1)),
                         "log1p, expm1, asinh, acosh, atanh and sign of one "
                         "argument, min and max of any number from 1, each "
                         "with its seven evaluators (S203, S338), and "
-                        "transpose (S350): 52 functions");
+                        "transpose (S350)");
+        D_TESTS_EXPECT( (d_tests_standard_function("quat", 4)) &&
+                        (d_tests_standard_function("parts", 1)) &&
+                        (d_tests_standard_function("rotate", 2)) &&
+                        (d_tests_standard_function("rotmat", 1)) &&
+                        (d_tests_standard_function("rotquat", 1)) &&
+                        (d_tests_standard_function("slerp", 3)) &&
+                        (m::expr_standard_functions().size() == 58),
+                        "the quaternions' quat of four arguments, parts of "
+                        "one and rotate of two (S275), rotmat and rotquat "
+                        "of one and slerp of three (S391), each with its "
+                        "seven evaluators: 58 functions");
         D_TESTS_EXPECT( (m::expr_standard_functions().find("ln") ==
                              D_NULLPTR) &&
                         (m::expr_standard_functions().find("gamma") ==
@@ -1788,6 +1814,15 @@ namespace
                              D_NULLPTR),
                         "and no other: no ln, no gamma, no erf");
 
+        return;
+    }
+
+    // d_tests_standard_constants
+    //   the standard constant table: pi, e, true and false, im, jm and km;
+    // and each standard table one, built once.
+    void
+    d_tests_standard_constants()
+    {
         // the standard constants: pi and e, as constants::of<T> has them,
         // and the booleans
         D_TESTS_EXPECT( (d_tests_standard_constant(
@@ -1808,8 +1843,8 @@ namespace
                         "booleans as values");
 
         // im, from step 23 (3e), the imaginary unit, a NaN in each type;
-        // jm and km, from step 22 (3d), entries whose step has not come,
-        // each with its not_yet message (d_tests_units)
+        // jm and km, from step 24 (3f), the quaternions' units, NaNs in
+        // each type (d_tests_units)
         const m::expr_named_constant* const units[3] = {
             m::expr_standard_constants().find("im"),
             m::expr_standard_constants().find("jm"),
@@ -1827,13 +1862,25 @@ namespace
                         (units[0]->as_double != units[0]->as_double) &&
                         (units[0]->as_long_double !=
                              units[0]->as_long_double) &&
-                        (units[1]->not_yet == "jm: not yet (step 24, 3f)") &&
-                        (units[2]->not_yet == "km: not yet (step 24, 3f)") &&
+                        (units[1]->not_yet.empty()) &&
+                        (units[2]->not_yet.empty()) &&
+                        (m::expr_is_quaternion(units[1]->as_value)) &&
+                        (units[1]->as_value.is_exact()) &&
+                        (units[1]->as_value ==
+                             m::expr_quaternion(m::value(0), m::value(0),
+                                                m::value(1), m::value(0))) &&
+                        (units[2]->as_value ==
+                             m::expr_quaternion(m::value(0), m::value(0),
+                                                m::value(0), m::value(1))) &&
+                        (units[1]->as_double != units[1]->as_double) &&
+                        (units[2]->as_long_double !=
+                             units[2]->as_long_double) &&
                         (m::expr_standard_constants().find("pi")->not_yet
                              .empty()) &&
                         (m::expr_standard_constants().size() == 7),
-                        "im the exact unit, a NaN in each type; jm and km, "
-                        "not yet; 7 constants");
+                        "im the exact unit, a NaN in each type; jm and km "
+                        "the exact units of the quaternions, NaNs in each "
+                        "type; 7 constants");
         D_TESTS_EXPECT( (&m::expr_standard_functions() ==
                              &m::expr_standard_functions()) &&
                         (&m::expr_standard_constants() ==
@@ -2456,7 +2503,7 @@ namespace
         D_TESTS_EXPECT( d_tests_valued("factorial(0)", one) &&
                         d_tests_valued("5!", m::value(120)) &&
                         d_tests_valued("20!",
-                                       m::value(static_cast<d_math_imax>(
+                                       m::value(static_cast<dj_math_imax>(
                                            2432902008176640000LL))),
                         "factorial: exact, of a whole number");
 
@@ -4455,7 +4502,7 @@ namespace
         D_TESTS_EXPECT( d_tests_renders_number(m::value(5), "5") &&
                         d_tests_renders_number(m::value(-5), "(-5)") &&
                         d_tests_renders_number(
-                            m::value(std::numeric_limits<d_math_imax>::min()),
+                            m::value(std::numeric_limits<dj_math_imax>::min()),
                             "(-9223372036854775807 - 1)") &&
                         d_tests_renders_number(m::value::ratio(1, 3),
                                                "(1/3)") &&
@@ -4463,7 +4510,7 @@ namespace
                                                "(-1/3)") &&
                         d_tests_renders_number(
                             m::value::ratio(
-                                std::numeric_limits<d_math_imax>::min(),
+                                std::numeric_limits<dj_math_imax>::min(),
                                 3),
                             "((-9223372036854775807 - 1)/3)"),
                         "exact: an integer, a fraction, in brackets where "
@@ -4540,10 +4587,10 @@ namespace
     // congruential one, so that every build draws the same terms.
     struct d_tests_rng
     {
-        d_math_umax m_state;
+        dj_math_umax m_state;
 
         explicit d_tests_rng(
-            d_math_umax _seed
+            dj_math_umax _seed
         )
             : m_state(_seed)
         {}
@@ -4555,7 +4602,7 @@ namespace
             unsigned _n
         )
         {
-            const d_math_umax word = 0xFFFFFFFFFFFFFFFFu;
+            const dj_math_umax word = 0xFFFFFFFFFFFFFFFFu;
 
             m_state = ( (m_state * 6364136223846793005u) +
                         1442695040888963407u ) & word;
@@ -4782,7 +4829,7 @@ namespace
                 m::expr_evaluate<double>(term, at);
             const m::expr_result<long double> in_long =
                 m::expr_evaluate<long double>(term, at);
-            d_math_imax whole = 0;
+            dj_math_imax whole = 0;
 
             agree += ( ( (exact.is_ok()) &&
                          (exact.value().to(whole)) &&
@@ -4811,9 +4858,9 @@ namespace
     {
         const m::value exact[] = {
             m::value(0), m::value(5), m::value(-5),
-            m::value(std::numeric_limits<d_math_imax>::min()),
+            m::value(std::numeric_limits<dj_math_imax>::min()),
             m::value::ratio(1, 3), m::value::ratio(-7, 2),
-            m::value::ratio(std::numeric_limits<d_math_imax>::min(), 3) };
+            m::value::ratio(std::numeric_limits<dj_math_imax>::min(), 3) };
         const double   doubles[] = { 0.1, -2.5, 1e30, 1e-310,
                                      std::numeric_limits<double>::max() };
         const float    floats[]  = { 0.1f, 3.4028235e38f, -1e-40f };
@@ -5012,10 +5059,10 @@ namespace
 
         for (std::size_t i = 0; i < 6; ++i)
         {
-            const d_math_imax numerator   =
-                static_cast<d_math_imax>(_rng.below(9)) - 4;
-            const d_math_imax denominator =
-                static_cast<d_math_imax>(_rng.below(3)) + 1;
+            const dj_math_imax numerator   =
+                static_cast<dj_math_imax>(_rng.below(9)) - 4;
+            const dj_math_imax denominator =
+                static_cast<dj_math_imax>(_rng.below(3)) + 1;
 
             bindings.at(names[i],
                         m::value::ratio(numerator, denominator));
@@ -5656,8 +5703,8 @@ namespace
         std::size_t     _size
     )
     {
-        const d_math_value& held = _x.c_value();
-        std::string         text(_size + 1, '#');
+        const dj_math_value& held = _x.c_value();
+        std::string          text(_size + 1, '#');
 
         // no matrix
         if (!m::expr_is_matrix(_x))
@@ -5705,14 +5752,14 @@ namespace
                         (!(two_by_three != m::expr_shape(2, 3))),
                         "shapes equal when both numbers are");
 
-        const m::value                 one(1);
-        const m::value                 a     = d_tests_two_by_two();
-        const d_math_boxed_kind* const kind  =
+        const m::value                  one(1);
+        const m::value                  a    = d_tests_two_by_two();
+        const dj_math_boxed_kind* const kind =
             m::internal::expr_matrix_kind();
-        const m::value                 row   = d_tests_made(
+        const m::value                  row  = d_tests_made(
                                                    m::expr_vector(
                                                        { 1, 2, 3 }));
-        const m::value                 col   = d_tests_made(
+        const m::value                  col  = d_tests_made(
                                                    m::expr_matrix(
                                                        3,
                                                        1,
@@ -5972,7 +6019,7 @@ namespace
                         "otherwise");
 
         double        number    = 7.0;
-        d_math_value  converted = d_math_value_none();
+        dj_math_value converted = d_math_value_none();
         int           direction = 5;
 
         D_TESTS_EXPECT( (d_tests_same_values(abs(a), domain)) &&
@@ -7449,11 +7496,11 @@ namespace
                         d_tests_all_exact(fib90) &&
                         d_tests_same_values(
                             d_tests_made(m::expr_element(fib90, 0, 1)),
-                            m::value(static_cast<d_math_imax>(
+                            m::value(static_cast<dj_math_imax>(
                                 2880067194370816120LL))) &&
                         d_tests_same_values(
                             d_tests_made(m::expr_element(fib90, 0, 0)),
-                            m::value(static_cast<d_math_imax>(
+                            m::value(static_cast<dj_math_imax>(
                                 4660046610375530309LL))),
                         "A ^ n by squaring: A ^ 0 the identity, A ^ 1 A, "
                         "A ^ 5 as A's products give it, exact: the 90th "
@@ -9553,7 +9600,7 @@ namespace
                         "inverse and the solution a domain error; beside a "
                         "double, on the generic path still, not in double");
 
-        d_math_value   held    = m::value(2.0L).detach();
+        dj_math_value   held    = m::value(2.0L).detach();
 
         held.flags |= D_MATH_VALUE_FLAG_INEXACT;
 
@@ -9568,8 +9615,8 @@ namespace
                                                              1,
                                                              { 1, 2 }));
         const unsigned inexact = D_MATH_VALUE_FLAG_INEXACT;
-        d_math_value   held_b  = m::value(2.0L).detach();
-        d_math_value   held_r  = d_tests_real_of(&two_real).detach();
+        dj_math_value  held_b  = m::value(2.0L).detach();
+        dj_math_value  held_r  = d_tests_real_of(&two_real).detach();
 
         held_b.flags |= D_MATH_VALUE_FLAG_INEXACT;
         held_r.flags |= D_MATH_VALUE_FLAG_INEXACT;
@@ -10797,15 +10844,22 @@ namespace
     //   im, jm and km (S271, S275): from step 22 (3d) names of the constant
     // table, each read as a constant and never a variable; im, from step 23
     // (3e), the exact imaginary unit as a value and a NaN in each type, so
-    // that 3 + 4im, by implied multiplication, is 3 + 4im; jm and km folding
-    // to not_yet until step 24 (3f), as a value and in each type; a binding
+    // that 3 + 4im, by implied multiplication, is 3 + 4im; jm and km, from
+    // step 24 (3f), the exact units of the quaternions as values, so that
+    // jm km is im and km jm is -im (S277), and NaNs in each type; a binding
     // of the name no variable's; and the handle's.
     void
     d_tests_units()
     {
         const m::value         i  = m::expr_complex(m::value(0), m::value(1));
-        const char* const      jm = "jm: not yet (step 24, 3f)";
-        const char* const      km = "km: not yet (step 24, 3f)";
+        const m::value         j  = m::expr_quaternion(m::value(0),
+                                                       m::value(0),
+                                                       m::value(1),
+                                                       m::value(0));
+        const m::value         k2 = m::expr_quaternion(m::value(0),
+                                                       m::value(0),
+                                                       m::value(0),
+                                                       m::value(2));
         const m::expr_bindings at = m::at("im", 2.0);
         m::expr_syntax         implied;
 
@@ -10829,6 +10883,25 @@ namespace
         const m::expr_result<double>   sum_double =
             m::expr_evaluate<double>(four_im, at);
 
+        const m::expr_result<m::value> as_jm =
+            m::expr_evaluate(d_tests_parsed("jm"),
+                             m::expr_bindings(),
+                             m::expr_context());
+        const m::expr_result<m::value> as_jk =
+            m::expr_evaluate(d_tests_parsed("jm * km"),
+                             m::expr_bindings(),
+                             m::expr_context());
+        const m::expr_result<m::value> as_kj =
+            m::expr_evaluate(d_tests_parsed("km * jm"),
+                             m::expr_bindings(),
+                             m::expr_context());
+        const m::expr_result<long double> jk_long =
+            m::expr_evaluate<long double>(d_tests_parsed("jm * km"));
+        const m::expr_result<double>      km_double =
+            m::expr_evaluate<double>(d_tests_parsed("km"));
+        const m::expr_result<double>      km_handle =
+            m::parse("2 * km").eval<double>();
+
         D_TESTS_EXPECT( (m::expr_parse("3 + 4im", implied).is_ok()) &&
                         (as_im.is_ok()) &&
                         (as_im.value() == i) &&
@@ -10836,35 +10909,36 @@ namespace
                         (as_sum.is_ok()) &&
                         (as_sum.value() ==
                              m::expr_complex(m::value(3), m::value(4))) &&
-                        (d_tests_not_yet(m::expr_evaluate(
-                                             d_tests_parsed("jm"),
-                                             m::expr_bindings(),
-                                             m::expr_context()),
-                                         jm)) &&
-                        (d_tests_not_yet(m::expr_evaluate(
-                                             d_tests_parsed("km"),
-                                             m::expr_bindings(),
-                                             m::expr_context()),
-                                         km)),
+                        (as_jm.is_ok()) &&
+                        (as_jm.value() == j) &&
+                        (as_jm.value().is_exact()) &&
+                        (as_jk.is_ok()) &&
+                        (m::expr_is_complex(as_jk.value())) &&
+                        (as_jk.value() == i) &&
+                        (as_kj.is_ok()) &&
+                        (as_kj.value() ==
+                             m::expr_complex(m::value(0), m::value(-1))),
                         "as a value: im the unit, bound or not, and 3 + 4im; "
-                        "jm and km not_yet");
+                        "jm the exact unit; jm km im, a complex number, and "
+                        "km jm -im");
         D_TESTS_EXPECT( (im_float.is_ok()) &&
                         (im_float.value() != im_float.value()) &&
                         (sum_double.is_ok()) &&
                         (sum_double.value() != sum_double.value()) &&
-                        (d_tests_not_yet(m::expr_evaluate<long double>(
-                                             d_tests_parsed("jm * km")),
-                                         jm)) &&
-                        (d_tests_not_yet(m::expr_evaluate<double>(
-                                             d_tests_parsed("km")),
-                                         km)),
-                        "in float, double and long double: im a NaN; jm "
-                        "and km not_yet");
+                        (jk_long.is_ok()) &&
+                        (jk_long.value() != jk_long.value()) &&
+                        (km_double.is_ok()) &&
+                        (km_double.value() != km_double.value()),
+                        "in float, double and long double: im, jm and km "
+                        "NaNs");
         D_TESTS_EXPECT( (m::parse("im").eval().is_ok()) &&
                         (m::parse("im").eval().value() == i) &&
-                        (d_tests_not_yet(m::parse("2 * km").eval<double>(),
-                                         km)),
-                        "the handle: im the unit, km not_yet");
+                        (m::parse("2 * km").eval().is_ok()) &&
+                        (m::parse("2 * km").eval().value() == k2) &&
+                        (km_handle.is_ok()) &&
+                        (km_handle.value() != km_handle.value()),
+                        "the handle: im the unit, 2 km the exact quaternion, "
+                        "a NaN in double");
 
         return;
     }
@@ -10980,6 +11054,32 @@ namespace
         return m::internal::expr_same_number(_a.value(), _b.value());
     }
 
+    // d_tests_handle_context
+    //   math::expr's eval<Type> under a context, which each evaluator takes
+    // (S340).
+    void
+    d_tests_handle_context()
+    {
+        typedef m::complex<double> cd;
+
+        const m::expr_context    real(true);
+        const m::expr_result<cd> strays =
+            m::parse("sqrt(-4)").eval<cd>(m::expr_bindings(), real);
+        const m::expr_result<cd> by_default =
+            m::parse("sqrt(-4)").eval<cd>();
+
+        D_TESTS_EXPECT( (strays.is_ok()) &&
+                        (strays.value().real() != strays.value().real()) &&
+                        (strays.value().imag() == 0.0) &&
+                        (by_default.is_ok()) &&
+                        (by_default.value() == cd(0.0, 2.0)),
+                        "eval<Type> under a context: sqrt(-4) a real NaN in "
+                        "math::complex<double> where real results are "
+                        "asked, 2i by default (S340)");
+
+        return;
+    }
+
     // d_tests_handle
     //   math::expr: what it holds; str(), and eval in each type and as a
     // value, each its entry's, and each passing on the error held.
@@ -11042,6 +11142,9 @@ namespace
                              m::expr_status::missing_operand),
                         "eval<Type>: a term made by default, the fold's "
                         "error");
+
+        // eval<Type> under a context (S340)
+        d_tests_handle_context();
 
         // eval as a value
         D_TESTS_EXPECT( d_tests_is_value(held.eval(third),
@@ -11473,6 +11576,8 @@ namespace
         d_tests_atoms();
         d_tests_terms();
         d_tests_tables();
+        d_tests_standard_functions();
+        d_tests_standard_constants();
         d_tests_bindings();
         d_tests_fold_typed();
         d_tests_fold_value();

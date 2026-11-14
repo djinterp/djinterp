@@ -20,13 +20,14 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc   \
-*         tests/djinterp/math/t_numeric_compare_face.cpp -o t_compare -lm
+*         tests/djinterp/cpp/modules/math/t_numeric_compare_face.cpp           \
+*         -o t_compare -lm
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_numeric_compare_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/numeric_compare.hpp"  // tested
 // djinterp
@@ -105,12 +106,12 @@ namespace
     }
 
     // d_tests_umax_bits
-    //   how many bits d_math_umax has.
+    //   how many bits dj_math_umax has.
     int
     d_tests_umax_bits()
     {
-        d_math_umax all   = static_cast<d_math_umax>(0u) - 1u;
-        int         count = 0;
+        dj_math_umax all   = static_cast<dj_math_umax>(0u) - 1u;
+        int          count = 0;
 
         // one bit at a time
         while (all != 0u)
@@ -124,28 +125,28 @@ namespace
 
     // d_tests_random_umax
     //   a random number of up to _bits bits, the length itself random.
-    d_math_umax
+    dj_math_umax
     d_tests_random_umax(
         int _bits
     )
     {
-        const int   length = static_cast<int>(d_tests_below(
+        const int    length = static_cast<int>(d_tests_below(
                                  static_cast<unsigned long>(_bits) + 1UL));
-        d_math_umax result = 0u;
-        int         i      = 0;
+        dj_math_umax result = 0u;
+        int          i      = 0;
 
         // sixteen bits at a time
         for (i = 0; i < length; i += 16)
         {
             result = (result << 8) << 8;
-            result = result | static_cast<d_math_umax>(d_tests_random32() &
-                                                       0xFFFFUL);
+            result = result | static_cast<dj_math_umax>(d_tests_random32() &
+                                                        0xFFFFUL);
         }
 
         // cut to the length
         if (length < d_tests_umax_bits())
         {
-            result = result & ((static_cast<d_math_umax>(1u) << length) - 1u);
+            result = result & ((static_cast<dj_math_umax>(1u) << length) - 1u);
         }
 
         return result;
@@ -155,11 +156,11 @@ namespace
     //   _x's decimal digits.
     std::string
     d_tests_text_of(
-        d_math_umax _x
+        dj_math_umax _x
     )
     {
         std::string result;
-        d_math_umax rest = _x;
+        dj_math_umax rest = _x;
 
         // each digit, the least significant first
         do
@@ -243,11 +244,11 @@ namespace
     //==========================================================================
 
     // d_tests_integer_texts
-    //   integer_value from text and from d_math_umax, and its queries.
+    //   integer_value from text and from dj_math_umax, and its queries.
     void
     d_tests_integer_texts()
     {
-        const d_math_umax most = static_cast<d_math_umax>(0u) - 1u;
+        const dj_math_umax most = static_cast<dj_math_umax>(0u) - 1u;
 
         struct row
         {
@@ -292,7 +293,7 @@ namespace
     }
 
     // d_tests_integer_native
-    //   every operation on random numbers whose results fit d_math_umax,
+    //   every operation on random numbers whose results fit dj_math_umax,
     // against the platform's arithmetic.
     void
     d_tests_integer_native(
@@ -305,8 +306,8 @@ namespace
         // each pair
         for (i = 0; i < _count; ++i)
         {
-            const d_math_umax a = d_tests_random_umax(bits / 2);
-            const d_math_umax b = d_tests_random_umax(
+            const dj_math_umax a = d_tests_random_umax(bits / 2);
+            const dj_math_umax b = d_tests_random_umax(
                                       (d_tests_below(4UL) == 0UL) ? bits / 2
                                                                   : 8);
             const dm::integer_value x(a);
@@ -320,7 +321,7 @@ namespace
 
             D_TESTS_EXPECT( (x.to_string() == ta) &&
                             (x.digits() == ta.size()),
-                            "integer_value(d_math_umax)", ta.c_str(), "" );
+                            "integer_value(dj_math_umax)", ta.c_str(), "" );
             D_TESTS_EXPECT( ((x + y).to_string() == d_tests_text_of(a + b)) &&
                             (z == (x + y)),
                             "a sum", ta.c_str(), tb.c_str() );
@@ -352,9 +353,9 @@ namespace
         long _count
     )
     {
-        const dm::integer_value one(static_cast<d_math_umax>(1u));
-        const dm::integer_value two(static_cast<d_math_umax>(2u));
-        const dm::integer_value three(static_cast<d_math_umax>(3u));
+        const dm::integer_value one(static_cast<dj_math_umax>(1u));
+        const dm::integer_value two(static_cast<dj_math_umax>(2u));
+        const dm::integer_value three(static_cast<dj_math_umax>(3u));
         dm::integer_value       power2(one);
         dm::integer_value       power3(one);
         long                    i = 0;
@@ -446,7 +447,7 @@ namespace
     //==========================================================================
 
     // d_tests_rationals
-    //   rational_value from its parts against cross products in d_math_umax,
+    //   rational_value from its parts against cross products in dj_math_umax,
     // and its queries; over 0, not a number.
     void
     d_tests_rationals(
@@ -455,12 +456,12 @@ namespace
     {
         const int                bits = d_tests_umax_bits();
         const dm::rational_value nan(dm::integer_value(
-                                         static_cast<d_math_umax>(1u)),
+                                         static_cast<dj_math_umax>(1u)),
                                      dm::integer_value(),
                                      false);
         const dm::rational_value zero(dm::integer_value(),
                                       dm::integer_value(
-                                          static_cast<d_math_umax>(5u)),
+                                          static_cast<dj_math_umax>(5u)),
                                       true);
         long                     i = 0;
 
@@ -479,23 +480,23 @@ namespace
         // each pair, cross products within the widest unsigned integer
         for (i = 0; i < _count; ++i)
         {
-            const d_math_umax n1 = d_tests_random_umax(bits / 2 - 1);
-            const d_math_umax d1 = d_tests_random_umax(bits / 2 - 1) + 1u;
-            const d_math_umax n2 = d_tests_random_umax(bits / 2 - 1);
-            const d_math_umax d2 = d_tests_random_umax(bits / 2 - 1) + 1u;
-            const bool        s1 = (d_tests_below(2UL) == 0UL);
-            const bool        s2 = (d_tests_below(2UL) == 0UL);
+            const dj_math_umax n1 = d_tests_random_umax(bits / 2 - 1);
+            const dj_math_umax d1 = d_tests_random_umax(bits / 2 - 1) + 1u;
+            const dj_math_umax n2 = d_tests_random_umax(bits / 2 - 1);
+            const dj_math_umax d2 = d_tests_random_umax(bits / 2 - 1) + 1u;
+            const bool         s1 = (d_tests_below(2UL) == 0UL);
+            const bool         s2 = (d_tests_below(2UL) == 0UL);
             const dm::rational_value r1((dm::integer_value(n1)),
                                         dm::integer_value(d1), s1);
             const dm::rational_value r2((dm::integer_value(n2)),
                                         dm::integer_value(d2), s2);
-            const d_math_umax left   = n1 * d2;
-            const d_math_umax right  = n2 * d1;
-            const int         sign1  = (n1 == 0u) ? 0 : ((s1) ? -1 : 1);
-            const int         sign2  = (n2 == 0u) ? 0 : ((s2) ? -1 : 1);
-            const int         m      = (left < right) ? -1
+            const dj_math_umax left  = n1 * d2;
+            const dj_math_umax right = n2 * d1;
+            const int          sign1 = (n1 == 0u) ? 0 : ((s1) ? -1 : 1);
+            const int          sign2 = (n2 == 0u) ? 0 : ((s2) ? -1 : 1);
+            const int          m     = (left < right) ? -1
                                      : ((left > right) ? 1 : 0);
-            const int         want   = (sign1 != sign2)
+            const int          want  = (sign1 != sign2)
                                            ? ((sign1 < sign2) ? -1 : 1)
                                            : ((sign1 < 0) ? -m
                                               : ((sign1 == 0) ? 0 : m));
@@ -750,8 +751,8 @@ namespace
     //   whether literal.h reads _text as an exact number, into *_out.
     bool
     d_tests_exact_of(
-        const std::string&   _text,
-        struct d_math_value* _out
+        const std::string&    _text,
+        struct dj_math_value* _out
     )
     {
         return ( (d_math_literal_to_value(_out, _text.data(), _text.size())) &&
@@ -775,12 +776,12 @@ namespace
         // each pair
         for (i = 0; i < _count; ++i)
         {
-            const std::string   a  = d_tests_literal_text(digits);
-            const std::string   b  = (d_tests_below(8UL) == 0UL)
+            const std::string    a  = d_tests_literal_text(digits);
+            const std::string    b  = (d_tests_below(8UL) == 0UL)
                                          ? a
                                          : d_tests_literal_text(digits);
-            struct d_math_value va = d_math_value_none();
-            struct d_math_value vb = d_math_value_none();
+            struct dj_math_value va = d_math_value_none();
+            struct dj_math_value vb = d_math_value_none();
 
             // both exact in the family
             if ( (d_tests_exact_of(a, &va)) &&
@@ -836,10 +837,10 @@ namespace
             const std::string factored = sign + (p * g).to_string() + "/" +
                                          (q * g).to_string();
             const std::string above    = sign + (p + dm::integer_value(
-                                         static_cast<d_math_umax>(1u)))
+                                         static_cast<dj_math_umax>(1u)))
                                          .to_string() + "/" + tq;
             const std::string below    = sign + (p - dm::integer_value(
-                                         static_cast<d_math_umax>(1u)))
+                                         static_cast<dj_math_umax>(1u)))
                                          .to_string() + "/" + tq;
             const int         up       = (sign == "-") ? -1 : 1;
 
@@ -865,7 +866,7 @@ namespace
                                           std::string(30u, '0');
                 const std::string sci   = sign + p.to_string() + zeros +
                                           "e-" + d_tests_text_of(
-                                              static_cast<d_math_umax>(
+                                              static_cast<dj_math_umax>(
                                                   30u + zeros.size()));
 
                 d_tests_check_pair(plain.c_str(), over.c_str(), 0, __LINE__);

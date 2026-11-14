@@ -23,11 +23,11 @@
  *
  * @return the bounds.
  */
-static struct d_interval_imax
+static struct dj_interval_imax
 d_internal_timer_bounds(void)
 {
     return d_interval_imax_make(0,
-                                (d_math_imax)INT64_MAX,
+                                (dj_math_imax)INT64_MAX,
                                 D_INTERVAL_CLOSED,
                                 0);
 }
@@ -62,7 +62,7 @@ d_internal_timer_open(
     const struct dj_timer* _timer
 )
 {
-    const struct d_interval_imax bounds = d_internal_timer_bounds();
+    const struct dj_interval_imax bounds = d_internal_timer_bounds();
 
     return d_counter_bounds_sub(&bounds,
                                 d_internal_timer_now(_timer),
@@ -194,7 +194,7 @@ d_timer_stop(
         return false;
     }
 
-    const struct d_interval_imax bounds = d_internal_timer_bounds();
+    const struct dj_interval_imax bounds = d_internal_timer_bounds();
 
     _timer->elapsed = d_counter_bounds_add(&bounds,
                                            _timer->elapsed,
@@ -223,7 +223,7 @@ d_timer_increment(
     }
 
     bool                         is_exact = true;
-    const struct d_interval_imax bounds   = d_internal_timer_bounds();
+    const struct dj_interval_imax bounds  = d_internal_timer_bounds();
 
     _timer->elapsed = d_counter_bounds_add(&bounds,
                                            _timer->elapsed,
@@ -252,7 +252,7 @@ d_timer_decrement(
     }
 
     bool                         is_exact = true;
-    const struct d_interval_imax bounds   = d_internal_timer_bounds();
+    const struct dj_interval_imax bounds  = d_internal_timer_bounds();
 
     _timer->elapsed = d_counter_bounds_sub(&bounds,
                                            _timer->elapsed,
@@ -357,7 +357,7 @@ d_timer_elapsed(
         return _timer->elapsed;
     }
 
-    const struct d_interval_imax bounds = d_internal_timer_bounds();
+    const struct dj_interval_imax bounds = d_internal_timer_bounds();
 
     return d_counter_bounds_add(&bounds,
                                 _timer->elapsed,

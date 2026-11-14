@@ -14,10 +14,10 @@
 * d_math_literal_length measures the literal at the start of a longer text,
 * the longest there, for a tokenizer.
 *   THE VALUE is exact wherever the literal's value is a rational over
-* d_math_imax: 42 is the integer 42, 0.1 the rational 1/10, 6/4 and 1 1/2
+* dj_math_imax: 42 is the integer 42, 0.1 the rational 1/10, 6/4 and 1 1/2
 * the rational 3/2, and 1500e-2 the integer 15. Otherwise it is the long
 * double nearest the literal, ties to even, flagged inexact, as an exact
-* result too wide for d_math_imax is (roadmap gate G2). A decimal literal is
+* result too wide for dj_math_imax is (roadmap gate G2). A decimal literal is
 * read straight into a float, double or long double, rounded once, by
 * decimal.h (G3).
 *   A fraction over 0 is a pole, or invalid for 0/0, as an exact division
@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/c/modules/math/literal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -48,8 +48,8 @@ TABLE OF CONTENTS
 1.  LAYOUT
     ------
     1.  Forms
-         1.  d_internal_math_literal_form
-         2.  d_internal_math_literal_parts
+         1.  dj_internal_math_literal_form
+         2.  dj_internal_math_literal_parts
     2.  Exact decimals
          1.  D_INTERNAL_MATH_LITERAL_DIGITS
 2.  TWO WORDS
@@ -72,9 +72,9 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>          // size_t
 // djinterp
-#include "./math_common.h"   // D_MATH_FN, d_math_imax, d_math_umax
+#include "./math_common.h"   // D_MATH_FN, dj_math_imax, dj_math_umax
 #include "./rational.h"      // two-word arithmetic, ratios
-#include "./value.h"         // d_math_value
+#include "./value.h"         // dj_math_value
 #include "./decimal.h"       // decimal numbers: syntax, digits, rounding
 
 
@@ -86,9 +86,9 @@ TABLE OF CONTENTS
 // 1.1    Forms
 //------------------------------------------------------------------------------
 // 1.1.1
-// d_internal_math_literal_form
+// dj_internal_math_literal_form
 //   enum: what a literal is.
-enum d_internal_math_literal_form
+enum dj_internal_math_literal_form
 {
     D_INTERNAL_MATH_LITERAL_NONE     = 0,  // no literal
     D_INTERNAL_MATH_LITERAL_DECIMAL  = 1,  // an integer, a decimal, or
@@ -98,21 +98,21 @@ enum d_internal_math_literal_form
 };
 
 // 1.1.2
-// d_internal_math_literal_parts
+// dj_internal_math_literal_parts
 //   struct: the literal at the start of a text: its form, its length and
 // sign, and where a fraction's or mixed number's terms lie, each from its
 // first digit to just past its last.
-struct d_internal_math_literal_parts
+struct dj_internal_math_literal_parts
 {
-    enum d_internal_math_literal_form form;       // what it is
-    size_t                            length;     // its length; 0 for none
-    bool                              negative;   // a minus sign
-    size_t                            whole;      // a mixed number's whole
-    size_t                            whole_end;  // part
-    size_t                            num;        // the numerator
-    size_t                            num_end;
-    size_t                            den;        // the denominator
-    size_t                            den_end;
+    enum dj_internal_math_literal_form form;       // what it is
+    size_t                             length;     // its length; 0 for none
+    bool                               negative;   // a minus sign
+    size_t                             whole;      // a mixed number's whole
+    size_t                             whole_end;  // part
+    size_t                             num;        // the numerator
+    size_t                             num_end;
+    size_t                             den;        // the denominator
+    size_t                             den_end;
 };
 
 // 1.2    Exact decimals
@@ -141,7 +141,7 @@ struct d_internal_math_literal_parts
 // d_internal_math_literal_of_digits
 //   _text[_start .. _end), digits, as a number of two words; *_overflow set,
 // and the reading stopped, where it does not fit.
-D_MATH_FN struct d_internal_rational_wide
+D_MATH_FN struct dj_internal_rational_wide
 d_internal_math_literal_of_digits(
     const char* _text,
     size_t      _start,
@@ -149,19 +149,19 @@ d_internal_math_literal_of_digits(
     bool*       _overflow
 )
 {
-    struct d_internal_rational_wide result = { 0u, 0u };
-    size_t                          i      = 0u;
+    struct dj_internal_rational_wide result = { 0u, 0u };
+    size_t                           i      = 0u;
 
     // each digit: times 10, plus it
     for (i = _start; i < _end; ++i)
     {
-        const d_math_umax                     digit =
-            (d_math_umax)(_text[i] - '0');
-        const struct d_internal_rational_wide low   =
+        const dj_math_umax                     digit =
+            (dj_math_umax)(_text[i] - '0');
+        const struct dj_internal_rational_wide low   =
             d_internal_rational_mul_wide(result.lo, 10u);
-        const d_math_umax                     sum   = low.lo + digit;
-        const d_math_umax                     carry = (sum < low.lo) ? 1u
-                                                                     : 0u;
+        const dj_math_umax                     sum   = low.lo + digit;
+        const dj_math_umax                     carry = (sum < low.lo) ? 1u
+                                                                      : 0u;
 
         // the high word times 10, with the carries, past a word
         if ( (result.hi > ((D_MATH_UMAX_MAX - low.hi) / 10u)) ||
@@ -181,15 +181,15 @@ d_internal_math_literal_of_digits(
 
 // d_internal_math_literal_shift_down
 //   _x / 2^_k, rounded down, for _k below 2w.
-D_MATH_FN struct d_internal_rational_wide
+D_MATH_FN struct dj_internal_rational_wide
 d_internal_math_literal_shift_down(
-    struct d_internal_rational_wide _x,
-    unsigned                        _k
+    struct dj_internal_rational_wide _x,
+    unsigned                         _k
 )
 {
     const unsigned width = D_INTERNAL_RATIONAL_WORD_BITS;
 
-    struct d_internal_rational_wide result = { 0u, 0u };
+    struct dj_internal_rational_wide result = { 0u, 0u };
 
     // a word or more: the high word moves down
     if (_k >= width)
@@ -215,11 +215,11 @@ d_internal_math_literal_shift_down(
 //   the zero bits below _x's lowest 1, _x not 0.
 D_MATH_FN unsigned
 d_internal_math_literal_low_zeros(
-    struct d_internal_rational_wide _x
+    struct dj_internal_rational_wide _x
 )
 {
-    d_math_umax word  = (_x.lo != 0u) ? _x.lo : _x.hi;
-    unsigned    count = (_x.lo != 0u) ? 0u : D_INTERNAL_RATIONAL_WORD_BITS;
+    dj_math_umax word  = (_x.lo != 0u) ? _x.lo : _x.hi;
+    unsigned     count = (_x.lo != 0u) ? 0u : D_INTERNAL_RATIONAL_WORD_BITS;
 
     // one bit at a time
     while ((word & 1u) == 0u)
@@ -235,18 +235,18 @@ d_internal_math_literal_low_zeros(
 //   the greatest common divisor of _a and _b, by Stein's binary algorithm:
 // the powers of two they share set aside, then the larger, made odd, less
 // the smaller, until they meet. gcd(0, _b) is _b.
-D_MATH_FN struct d_internal_rational_wide
+D_MATH_FN struct dj_internal_rational_wide
 d_internal_math_literal_gcd(
-    struct d_internal_rational_wide _a,
-    struct d_internal_rational_wide _b
+    struct dj_internal_rational_wide _a,
+    struct dj_internal_rational_wide _b
 )
 {
-    const struct d_internal_rational_wide zero = { 0u, 0u };
+    const struct dj_internal_rational_wide zero = { 0u, 0u };
 
-    struct d_internal_rational_wide a      = _a;
-    struct d_internal_rational_wide b      = _b;
-    struct d_internal_rational_wide either = { 0u, 0u };
-    unsigned                        shared = 0u;
+    struct dj_internal_rational_wide a      = _a;
+    struct dj_internal_rational_wide b      = _b;
+    struct dj_internal_rational_wide either = { 0u, 0u };
+    unsigned                         shared = 0u;
 
     // a 0 on either side
     if (d_internal_rational_cmp_wide(a, zero) == 0)
@@ -274,7 +274,7 @@ d_internal_math_literal_gcd(
         // the smaller in a
         if (d_internal_rational_cmp_wide(a, b) > 0)
         {
-            const struct d_internal_rational_wide swap = a;
+            const struct dj_internal_rational_wide swap = a;
 
             a = b;
             b = swap;
@@ -290,18 +290,18 @@ d_internal_math_literal_gcd(
 //   _n / _d, which divides exactly, _d not 0. A divisor of one word divides
 // natively; a larger one leaves a quotient of one word, found a bit at a
 // time, the highest first.
-D_MATH_FN struct d_internal_rational_wide
+D_MATH_FN struct dj_internal_rational_wide
 d_internal_math_literal_divide(
-    struct d_internal_rational_wide _n,
-    struct d_internal_rational_wide _d
+    struct dj_internal_rational_wide _n,
+    struct dj_internal_rational_wide _d
 )
 {
     const unsigned width  = D_INTERNAL_RATIONAL_WORD_BITS;
     const unsigned d_bits = d_internal_rational_bits(_d);
 
-    struct d_internal_rational_wide result = { 0u, 0u };
-    struct d_internal_rational_wide rest   = _n;
-    unsigned                        bit    = 0u;
+    struct dj_internal_rational_wide result = { 0u, 0u };
+    struct dj_internal_rational_wide rest   = _n;
+    unsigned                         bit    = 0u;
 
     // one word
     if (_d.hi == 0u)
@@ -322,7 +322,7 @@ d_internal_math_literal_divide(
         {
             rest      = d_internal_rational_sub_wide(
                             rest, d_internal_rational_shift_wide(_d, place));
-            result.lo = result.lo | ((d_math_umax)1 << place);
+            result.lo = result.lo | ((dj_math_umax)1 << place);
         }
     }
 
@@ -331,20 +331,20 @@ d_internal_math_literal_divide(
 
 // d_internal_math_literal_mul
 //   _a * _b, with *_overflow set where it does not fit two words.
-D_MATH_FN struct d_internal_rational_wide
+D_MATH_FN struct dj_internal_rational_wide
 d_internal_math_literal_mul(
-    struct d_internal_rational_wide _a,
-    struct d_internal_rational_wide _b,
-    bool*                           _overflow
+    struct dj_internal_rational_wide _a,
+    struct dj_internal_rational_wide _b,
+    bool*                            _overflow
 )
 {
-    const struct d_internal_rational_wide low =
+    const struct dj_internal_rational_wide low =
         d_internal_rational_mul_wide(_a.lo, _b.lo);
-    const struct d_internal_rational_wide cross =
+    const struct dj_internal_rational_wide cross =
         (_a.hi != 0u) ? d_internal_rational_mul_wide(_a.hi, _b.lo)
                       : d_internal_rational_mul_wide(_a.lo, _b.hi);
 
-    struct d_internal_rational_wide result = { 0u, 0u };
+    struct dj_internal_rational_wide result = { 0u, 0u };
 
     // two high words, or a cross product past one word: past two words
     if ( ( (_a.hi != 0u) &&
@@ -395,13 +395,13 @@ d_internal_math_literal_run(
 // followed by a slash and digits are a fraction; digits followed by spaces,
 // digits, a slash and digits, a mixed number; anything else is decimal.h's
 // to read. No decimal number is longer than either where one matches.
-D_MATH_FN struct d_internal_math_literal_parts
+D_MATH_FN struct dj_internal_math_literal_parts
 d_internal_math_literal_scan(
     const char* _text,
     size_t      _length
 )
 {
-    struct d_internal_math_literal_parts result =
+    struct dj_internal_math_literal_parts result =
         { D_INTERNAL_MATH_LITERAL_NONE, 0u, false, 0u, 0u, 0u, 0u, 0u, 0u };
 
     size_t i     = 0u;
@@ -545,8 +545,8 @@ d_internal_math_literal_times_drop(
 //   *_x * 10 + _digit, false where it does not fit a word.
 D_MATH_FN bool
 d_internal_math_literal_word(
-    d_math_umax* _x,
-    d_math_umax  _digit
+    dj_math_umax* _x,
+    dj_math_umax  _digit
 )
 {
     // past a word
@@ -563,28 +563,28 @@ d_internal_math_literal_word(
 // d_internal_math_literal_exact
 //   the decimal number _text as an exact value, *_exact set, where it is a
 // rational in the family; *_exact false, and none, otherwise.
-D_MATH_FN struct d_math_value
+D_MATH_FN struct dj_math_value
 d_internal_math_literal_exact(
     const char* _text,
     size_t      _length,
     bool*       _exact
 )
 {
-    const d_math_umax most = (d_math_umax)D_MATH_IMAX_MAX;
+    const dj_math_umax most = (dj_math_umax)D_MATH_IMAX_MAX;
 
-    struct d_internal_math_decimal decimal = { { 0u }, 0, 0, false };
-    unsigned char                  digit[D_INTERNAL_MATH_LITERAL_DIGITS] =
+    struct dj_internal_math_decimal decimal = { { 0u }, 0, 0, false };
+    unsigned char                   digit[D_INTERNAL_MATH_LITERAL_DIGITS] =
         { 0u };
-    bool                           negative = false;
-    bool                           fits     = true;
-    long                           count    = 0;
-    long                           e        = 0;
-    long                           k        = 0;
-    long                           twos     = 0;
-    long                           fives    = 0;
-    long                           i        = 0;
-    d_math_umax                    p        = 0u;
-    d_math_umax                    q        = 1u;
+    bool                            negative = false;
+    bool                            fits     = true;
+    long                            count    = 0;
+    long                            e        = 0;
+    long                            k        = 0;
+    long                            twos     = 0;
+    long                            fives    = 0;
+    long                            i        = 0;
+    dj_math_umax                    p        = 0u;
+    dj_math_umax                    q        = 1u;
 
     *_exact = false;
     (void)d_internal_math_decimal_read(&decimal, &negative, _text, _length);
@@ -637,7 +637,7 @@ d_internal_math_literal_exact(
     // the numerator: its digits, then any zeros
     for (i = 0; (fits) && (i < count); ++i)
     {
-        fits = d_internal_math_literal_word(&p, (d_math_umax)digit[i]);
+        fits = d_internal_math_literal_word(&p, (dj_math_umax)digit[i]);
     }
 
     for (i = 0; (fits) && (i < e); ++i)
@@ -675,15 +675,15 @@ d_internal_math_literal_exact(
 //   the decimal number _text as a value: exact where it can be; otherwise
 // the long double nearest it, flagged inexact, or past every long double, a
 // range error.
-D_MATH_FN struct d_math_value
+D_MATH_FN struct dj_math_value
 d_internal_math_literal_decimal(
     const char* _text,
     size_t      _length
 )
 {
-    struct d_math_value result  = d_math_value_none();
-    long double         nearest = 0.0L;
-    bool                exact   = false;
+    struct dj_math_value result  = d_math_value_none();
+    long double          nearest = 0.0L;
+    bool                 exact   = false;
 
     result = d_internal_math_literal_exact(_text, _length, &exact);
 
@@ -738,28 +738,28 @@ d_internal_math_literal_zeros(
 
 // d_internal_math_literal_fraction
 //   the fraction or mixed number that _scan found in _text, as a value.
-D_MATH_FN struct d_math_value
+D_MATH_FN struct dj_math_value
 d_internal_math_literal_fraction(
-    const char*                          _text,
-    struct d_internal_math_literal_parts _scan
+    const char*                           _text,
+    struct dj_internal_math_literal_parts _scan
 )
 {
-    const struct d_internal_rational_wide zero = { 0u, 0u };
+    const struct dj_internal_rational_wide zero = { 0u, 0u };
     const size_t num_zeros =
         d_internal_math_literal_zeros(_text, _scan.num, _scan.num_end);
     const size_t den_zeros =
         d_internal_math_literal_zeros(_text, _scan.den, _scan.den_end);
     const size_t common = (num_zeros < den_zeros) ? num_zeros : den_zeros;
 
-    struct d_internal_rational_ratio ratio  = { false, { 0u, 0u },
-                                                { 0u, 1u } };
-    struct d_internal_rational_wide  n      = { 0u, 0u };
-    struct d_internal_rational_wide  d      = { 0u, 0u };
-    struct d_internal_rational_wide  w      = { 0u, 0u };
-    struct d_internal_rational_wide  g      = { 0u, 0u };
-    bool                             n_past = false;
-    bool                             d_past = false;
-    bool                             w_past = false;
+    struct dj_internal_rational_ratio ratio  = { false, { 0u, 0u },
+                                                 { 0u, 1u } };
+    struct dj_internal_rational_wide  n      = { 0u, 0u };
+    struct dj_internal_rational_wide  d      = { 0u, 0u };
+    struct dj_internal_rational_wide  w      = { 0u, 0u };
+    struct dj_internal_rational_wide  g      = { 0u, 0u };
+    bool                              n_past = false;
+    bool                              d_past = false;
+    bool                              w_past = false;
 
     n = d_internal_math_literal_of_digits(_text, _scan.num,
                                           _scan.num_end - common, &n_past);
@@ -842,12 +842,12 @@ d_math_literal_length(
 
 D_MATH_FN bool
 d_math_literal_to_value(
-    struct d_math_value* _out,
-    const char*          _text,
-    size_t               _length
+    struct dj_math_value* _out,
+    const char*           _text,
+    size_t                _length
 )
 {
-    const struct d_internal_math_literal_parts scan =
+    const struct dj_internal_math_literal_parts scan =
         d_internal_math_literal_scan(_text, _length);
 
     // one literal, and nothing else

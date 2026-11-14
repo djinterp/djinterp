@@ -24,7 +24,7 @@
  *
  * @return [0, D_MATH_IMAX_MAX], closed and continuous.
  */
-static struct d_interval_imax
+static struct dj_interval_imax
 d_internal_test_counter_floor(void)
 {
     return d_interval_imax_make(0,
@@ -96,7 +96,7 @@ d_test_counter_init_with(
         return false;
     }
 
-    const struct d_interval_imax floor = d_internal_test_counter_floor();
+    const struct dj_interval_imax floor = d_internal_test_counter_floor();
 
     (void)d_counter_init_bounded(&_counter->counter,
                                  0,

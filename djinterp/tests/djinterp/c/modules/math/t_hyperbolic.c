@@ -38,18 +38,18 @@
 * from C++14, that all six functions are constant expressions, for every
 * family, with the bits they have at run time. It needs no 64-bit integer --
 * its random numbers come from math_tests_random.h, the same in every build
-* -- so that ISO-strict C++98 on a 32-bit target, where d_math_umax has 32
+* -- so that ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32
 * bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_hyperbolic.c -o t_hyperbolic -lm
+*        tests/djinterp/c/modules/math/t_hyperbolic.c -o t_hyperbolic -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_hyperbolic.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.09
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MAX, LDBL_MANT_DIG
@@ -665,9 +665,9 @@ d_tests_inverse_one(
 static void
 d_tests_inverse_refs(void)
 {
-    const struct d_tests_real_ref* const tables[3] = { g_ref_asinh,
-                                                       g_ref_acosh,
-                                                       g_ref_atanh };
+    const struct dj_tests_real_ref* const tables[3] = { g_ref_asinh,
+                                                        g_ref_acosh,
+                                                        g_ref_atanh };
     const size_t      counts[3] = { D_TESTS_COUNT(g_ref_asinh),
                                     D_TESTS_COUNT(g_ref_acosh),
                                     D_TESTS_COUNT(g_ref_atanh) };
@@ -681,7 +681,7 @@ d_tests_inverse_refs(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct d_tests_real_ref* r = &tables[k][i];
+            const struct dj_tests_real_ref* r = &tables[k][i];
             const long double x      = d_tests_ref_point(r->m, r->e);
             const size_t      length = strlen(r->value);
             float             wf     = 0.0f;
@@ -759,9 +759,9 @@ d_tests_wide_point(
 static void
 d_tests_inverse_wide(void)
 {
-    const struct d_tests_real_wide* const tables[3] = { g_wide_asinh,
-                                                        g_wide_acosh,
-                                                        g_wide_atanh };
+    const struct dj_tests_real_wide* const tables[3] = { g_wide_asinh,
+                                                         g_wide_acosh,
+                                                         g_wide_atanh };
     const size_t      counts[3] = { D_TESTS_COUNT(g_wide_asinh),
                                     D_TESTS_COUNT(g_wide_acosh),
                                     D_TESTS_COUNT(g_wide_atanh) };
@@ -781,7 +781,7 @@ d_tests_inverse_wide(void)
 
         for (i = 0u; i < counts[k]; ++i)
         {
-            const struct d_tests_real_wide* r = &tables[k][i];
+            const struct dj_tests_real_wide* r = &tables[k][i];
             const long double x = d_tests_wide_point(r->m, r->e);
             long double       wl     = 0.0L;
             double            offset = 0.0;

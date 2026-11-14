@@ -29,13 +29,14 @@
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/t_parse_expression_face.cpp -o t_parse_expression
+*         tests/djinterp/cpp/modules/math/t_parse_expression_face.cpp          \
+*         -o t_parse_expression
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/t_parse_expression_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/parse/expression/expression.hpp"
 #include "../../../../../inc/djinterp/cpp/modules/parse/expression/expression_ops.hpp"

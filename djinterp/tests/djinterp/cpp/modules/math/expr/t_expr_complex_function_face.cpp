@@ -20,24 +20,29 @@
 *     complex value at x + 0i, exact where it is a Gaussian rational; the
 *     domain's edges, NaNs and infinities real; Annex G's values;
 *   - the context's real_results (S340): a domain error for each, exact or
-*     not, and nothing else changed;
+*     not, and nothing else changed; each standard evaluator given the
+*     context with its arguments, sqrt's a domain error and complex's its
+*     complex number under it; the typed folds given it, the complex type's
+*     real NaN kept where a value would stray;
 *   - the eight new functions in each real type and as values: the C core's
 *     plain forms, their exact points and poles; sign, min and max (S338);
 *   - the fold in math::complex<T> (S339): a real term's bits those in T,
 *     complex values the face's, the constants, the relations, the logic,
 *     the transpose, the real line's functions, a bound value, a function of
 *     no complex evaluator; exp2, log2, log10, log1p and expm1 where their
-*     value is complex the face's from chunk 42 (S342), and not_yet for
-*     linear algebra of a number not real.
+*     value is complex the face's from chunk 42 (S342), not_yet for
+*     linear algebra of a number not real, and jm and km NaNs in both parts
+*     (S275).
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/expr/t_expr_complex_function_face.cpp -o t_cf
+*         tests/djinterp/cpp/modules/math/expr/t_expr_complex_function_face.cpp\
+*         -o t_cf
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_function_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.01
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -170,7 +175,7 @@ namespace
     // d_tests_kind_of
     //   the value kind of a type: float, double or long double.
     template<typename Type>
-    d_math_value_kind
+    dj_math_value_kind
     d_tests_kind_of()
     {
         return ( (sizeof(Type) == sizeof(float))
@@ -238,8 +243,8 @@ namespace
     //   whether a value is the error given.
     bool
     d_tests_is_error(
-        const m::value&    _value,
-        d_math_value_error _error
+        const m::value&     _value,
+        dj_math_value_error _error
     )
     {
         return ( (_value.kind() == D_MATH_VALUE_ERROR) &&
@@ -250,10 +255,10 @@ namespace
     //   the exact complex number _a/_b + _c/_d im.
     m::value
     d_tests_complex(
-        d_math_imax _a,
-        d_math_imax _b,
-        d_math_imax _c,
-        d_math_imax _d
+        dj_math_imax _a,
+        dj_math_imax _b,
+        dj_math_imax _c,
+        dj_math_imax _d
     )
     {
         return m::expr_complex(m::value::ratio(_a, _b),
@@ -355,7 +360,7 @@ namespace
         }
     };
 
-    // d_tests_names, d_tests_face
+    // d_tests_names, d_tests_face, d_tests_face_c
     //   the fifteen functions with a principal complex value whose complex
     // form cplx.h has, by name; and one of them, by its index, of the
     // face's.
@@ -393,9 +398,39 @@ namespace
         return atanh(_z);
     }
 
+    template<typename Type>
+    m::complex<Type>
+    d_tests_face_c(
+        std::size_t             _k,
+        const m::complex<Type>& _z
+    )
+    {
+        // by index
+        switch (_k)
+        {
+            case 0:  return sqrt_c(_z);
+            case 1:  return exp_c(_z);
+            case 2:  return log_c(_z);
+            case 3:  return sin_c(_z);
+            case 4:  return cos_c(_z);
+            case 5:  return tan_c(_z);
+            case 6:  return asin_c(_z);
+            case 7:  return acos_c(_z);
+            case 8:  return atan_c(_z);
+            case 9:  return sinh_c(_z);
+            case 10: return cosh_c(_z);
+            case 11: return tanh_c(_z);
+            case 12: return asinh_c(_z);
+            case 13: return acosh_c(_z);
+            default: break;
+        }
+
+        return atanh_c(_z);
+    }
+
     // d_tests_steps
     //   the steps between two long doubles, either above the other.
-    d_math_umax
+    dj_math_umax
     d_tests_steps(
         long double _a,
         long double _b
@@ -452,10 +487,12 @@ namespace
                         (table.find("min")->max_arity == m::expr_variadic) &&
                         (table.find("max") != D_NULLPTR) &&
                         (table.find("max")->max_arity == m::expr_variadic) &&
-                        (table.size() == 52),
+                        (table.size() == 58),
                         "log1p, expm1, asinh, acosh, atanh and sign of one "
                         "argument, min and max of any number from 1 (S203, "
-                        "S338), and transpose (S350): 52 functions");
+                        "S338), transpose (S350), the quaternions' quat, "
+                        "parts and rotate (S275), and rotmat, rotquat and "
+                        "slerp (S391): 58 functions");
 
         const char* const names[] = {
             "sqrt", "cbrt", "sin", "cos", "tan", "asin", "acos", "atan",
@@ -519,7 +556,7 @@ namespace
     bool
     d_tests_principal(
         const m::value& _r,
-        d_math_imax     _q
+        dj_math_imax    _q
     )
     {
         long double re    = 0.0L;
@@ -612,21 +649,21 @@ namespace
 
         for (long n = 0; n < count; ++n)
         {
-            const d_math_imax q   = 2 + rng.below(4);
-            const m::value    w   = d_tests_complex(rng.below(21) - 10,
-                                                    1 + rng.below(6),
-                                                    rng.below(21) - 10,
-                                                    1 + rng.below(6));
-            const m::value    z   = m::internal::expr_whole_power(w, q);
-            const m::value    got = d_tests_value_of(
+            const dj_math_imax q   = 2 + rng.below(4);
+            const m::value     w   = d_tests_complex(rng.below(21) - 10,
+                                                     1 + rng.below(6),
+                                                     rng.below(21) - 10,
+                                                     1 + rng.below(6));
+            const m::value     z   = m::internal::expr_whole_power(w, q);
+            const m::value     got = d_tests_value_of(
                                         "x ^ (1 / q)",
                                         m::at("x", z).at("q", q));
-            const m::value    off = d_tests_value_of(
+            const m::value     off = d_tests_value_of(
                                         "x ^ (1 / q)",
                                         m::at("x", z + m::value(1))
                                             .at("q", q));
-            bool              has  = false;
-            m::value          want;
+            bool               has  = false;
+            m::value           want;
 
             // the unit that makes w principal, where one does
             for (std::size_t k = 0; k < 4; ++k)
@@ -691,7 +728,9 @@ namespace
 
     // d_tests_dense_in
     //   each of the fifteen functions and pow, of random complex arguments
-    // of Type parts, as a value and in math::complex<Type>: the face's bits.
+    // of Type parts, as a value and in math::complex<Type>: the face's bits,
+    // the _c form's as a value and the plain form's in the complex type
+    // (S336).
     template<typename Type>
     void
     d_tests_dense_in(
@@ -712,13 +751,14 @@ namespace
             {
                 const m::complex<Type> z(_rng.template part<Type>(),
                                          _rng.template part<Type>());
-                const m::complex<Type> want = d_tests_face(k, z);
-                const m::expr_bindings x    = m::at("x",
-                                                    m::expr_complex_of(z));
+                const m::complex<Type> want   = d_tests_face(k, z);
+                const m::complex<Type> want_c = d_tests_face_c(k, z);
+                const m::expr_bindings x      = m::at("x",
+                                                      m::expr_complex_of(z));
 
                 valued += ( d_tests_dense_is(d_tests_value_of(text.c_str(),
                                                               x),
-                                             want) ? 1 : 0 );
+                                             want_c) ? 1 : 0 );
                 typed  += ( d_tests_in_is(text.c_str(), want, x) ? 1 : 0 );
             }
         }
@@ -731,21 +771,23 @@ namespace
                                          static_cast<Type>(4096),
                                      _rng.template part<Type>() /
                                          static_cast<Type>(4096));
-            const m::complex<Type> want = pow(z, w);
-            const m::expr_bindings xy   = m::at("x", m::expr_complex_of(z))
-                                              .at("y", m::expr_complex_of(w));
+            const m::complex<Type> want   = pow(z, w);
+            const m::complex<Type> want_c = pow_c(z, w);
+            const m::expr_bindings xy     = m::at("x", m::expr_complex_of(z))
+                                                .at("y", m::expr_complex_of(w));
 
             powers += ( ( (d_tests_dense_is(d_tests_value_of("x ^ y", xy),
-                                            want)) &&
+                                            want_c)) &&
                           (d_tests_dense_is(d_tests_value_of("pow(x, y)", xy),
-                                            want)) &&
+                                            want_c)) &&
                           (d_tests_in_is("x ^ y", want, xy)) ) ? 1 : 0 );
         }
 
         const std::string what = std::string("in ") + _type +
                                  ": the fifteen functions and pow of random "
-                                 "complex arguments, the face's bits, as a "
-                                 "value and in the complex type (S336)";
+                                 "complex arguments, the face's bits, its _c "
+                                 "forms' as a value and its plain forms' in "
+                                 "the complex type (S336)";
 
         D_TESTS_EXPECT( (valued == 15 * count) &&
                         (typed == 15 * count) &&
@@ -816,12 +858,12 @@ namespace
 
         for (std::size_t k = 0; k < count; ++k)
         {
-            const d_tests_expr_complex_ref& ref = g_expr_complex_refs[k];
-            const m::value                  got = d_tests_value_of(ref.text);
-            m::complex<long double>         z;
-            const d_math_umax               bound =
-                static_cast<d_math_umax>(ref.bound);
-            const bool                      ok =
+            const dj_tests_expr_complex_ref& ref = g_expr_complex_refs[k];
+            const m::value                   got = d_tests_value_of(ref.text);
+            m::complex<long double>          z;
+            const dj_math_umax               bound =
+                static_cast<dj_math_umax>(ref.bound);
+            const bool                       ok =
                 ( (m::expr_is_complex(got)) &&
                   (m::internal::expr_complex_type_of(got.c_value()) ==
                        D_MATH_VALUE_LONG_DOUBLE) &&
@@ -858,19 +900,21 @@ namespace
 
     // d_tests_beyond_in
     //   a function of a real argument beyond its real domain, of Type: the
-    // face's at x + 0i, as a value and in the complex type; a NaN in Type.
+    // face's at x + 0i, its _c form's as a value, _want_c, and its plain
+    // form's in the complex type, _want (S336); a NaN in Type.
     template<typename Type>
     bool
     d_tests_beyond_in(
         const char*             _text,
         Type                    _x,
+        const m::complex<Type>& _want_c,
         const m::complex<Type>& _want
     )
     {
         const m::expr_bindings  x    = m::at("x", m::value(_x));
         const m::expr_result<Type> real = d_tests_in<Type>(_text, x);
 
-        return ( (d_tests_dense_is(d_tests_value_of(_text, x), _want)) &&
+        return ( (d_tests_dense_is(d_tests_value_of(_text, x), _want_c)) &&
                  (d_tests_in_is(_text, _want, x)) &&
                  (real.is_ok()) &&
                  (real.value() != real.value()) );
@@ -892,13 +936,20 @@ namespace
             const double y  = std::fabs(rng.part<double>()) + 1.25;
             const double u  = 0.75 - std::fabs(rng.part<double>());
 
-            good += ( ( (d_tests_beyond_in("sqrt(x)", x, sqrt(cd(x)))) &&
-                        (d_tests_beyond_in("log(x)", x, log(cd(x)))) &&
-                        (d_tests_beyond_in("asin(x)", y, asin(cd(y)))) &&
-                        (d_tests_beyond_in("acos(x)", -y, acos(cd(-y)))) &&
-                        (d_tests_beyond_in("atanh(x)", y, atanh(cd(y)))) &&
-                        (d_tests_beyond_in("acosh(x)", u, acosh(cd(u)))) &&
+            good += ( ( (d_tests_beyond_in("sqrt(x)", x, sqrt_c(cd(x)),
+                                           sqrt(cd(x)))) &&
+                        (d_tests_beyond_in("log(x)", x, log_c(cd(x)),
+                                           log(cd(x)))) &&
+                        (d_tests_beyond_in("asin(x)", y, asin_c(cd(y)),
+                                           asin(cd(y)))) &&
+                        (d_tests_beyond_in("acos(x)", -y, acos_c(cd(-y)),
+                                           acos(cd(-y)))) &&
+                        (d_tests_beyond_in("atanh(x)", y, atanh_c(cd(y)),
+                                           atanh(cd(y)))) &&
+                        (d_tests_beyond_in("acosh(x)", u, acosh_c(cd(u)),
+                                           acosh(cd(u)))) &&
                         (d_tests_beyond_in("x ^ 0.25", x,
+                                           pow_c(cd(x), cd(0.25)),
                                            pow(cd(x), cd(0.25)))) )
                           ? 1 : 0 );
         }
@@ -906,8 +957,9 @@ namespace
         D_TESTS_EXPECT( (good == 200),
                         "of 200 random doubles beyond the real domain, sqrt, "
                         "log, asin, acos, atanh, acosh and a power not "
-                        "whole: the face's at x + 0i, as a value and in "
-                        "math::complex<double>; a NaN in double (S272)");
+                        "whole: the face's at x + 0i, its _c form as a value "
+                        "and its plain form in math::complex<double>; a NaN "
+                        "in double (S272, S336)");
         D_TESTS_EXPECT( (d_tests_valued("sqrt(-9/4)",
                                         d_tests_complex(0, 1, 3, 2))) &&
                         (d_tests_dense_is(d_tests_value_of("sqrt(-2)"),
@@ -926,6 +978,15 @@ namespace
                         "Gaussian rational, otherwise long double's; cbrt(-8) "
                         "-2, the real root, and (-8) ^ 2 real");
 
+        return;
+    }
+
+    // d_tests_beyond_real_edges
+    //   the domain's edges: a signed zero, an infinity and a NaN beyond the
+    // real domain, S341's side of the cut, and the inverse sines past 1.
+    void
+    d_tests_beyond_real_edges()
+    {
         const double   inf  = std::numeric_limits<double>::infinity();
         const double   nan  = std::numeric_limits<double>::quiet_NaN();
         const m::value root = d_tests_value_of("sqrt(x)", m::at("x", -0.0));
@@ -1003,7 +1064,8 @@ namespace
     //==========================================================================
 
     // d_tests_real_results
-    //   the context's option (S340).
+    //   the context's option, which each evaluator takes with its arguments
+    // (S340).
     void
     d_tests_real_results()
     {
@@ -1054,8 +1116,78 @@ namespace
                         (in_double.value() != in_double.value()) &&
                         (d_tests_in_is("sqrt(-4)",
                                        m::complex<double>(0.0, 2.0))),
-                        "the typed folds, which have no context: a NaN in "
-                        "double, 2i in math::complex<double>");
+                        "the typed folds by default: a NaN in double, 2i in "
+                        "math::complex<double>");
+
+        return;
+    }
+
+    // d_tests_real_results_typed
+    //   the option in the typed folds, and on an evaluator called by hand
+    // (S340, S385).
+    void
+    d_tests_real_results_typed()
+    {
+        const m::expr_context real(true);
+
+        typedef m::complex<double> cd;
+
+        const double nan = std::numeric_limits<double>::quiet_NaN();
+        const m::expr_result<cd> root =
+            m::expr_evaluate<cd>(d_tests_parsed("sqrt(-4)"),
+                                 m::expr_bindings(),
+                                 real);
+        const m::expr_result<cd> power =
+            m::expr_evaluate<cd>(d_tests_parsed("(-8) ^ (1/3)"),
+                                 m::expr_bindings(),
+                                 real);
+        const m::expr_result<cd> complex_root =
+            m::expr_evaluate<cd>(d_tests_parsed("sqrt(-4 + 0im)"),
+                                 m::expr_bindings(),
+                                 real);
+        const m::expr_result<double> real_root =
+            m::expr_evaluate<double>(d_tests_parsed("sqrt(-4)"),
+                                     m::expr_bindings(),
+                                     real);
+
+        D_TESTS_EXPECT( (root.is_ok()) &&
+                        (d_tests_same_complex(root.value(), cd(nan, 0.0))) &&
+                        (power.is_ok()) &&
+                        (d_tests_same_complex(power.value(), cd(nan, 0.0))) &&
+                        (complex_root.is_ok()) &&
+                        (d_tests_same_complex(complex_root.value(),
+                                              cd(0.0, 2.0))) &&
+                        (real_root.is_ok()) &&
+                        (real_root.value() != real_root.value()),
+                        "the typed folds given the context: in "
+                        "math::complex<double> a real argument's NaN kept, "
+                        "sqrt(-4) and (-8) ^ (1/3) a real NaN, a complex "
+                        "argument's value its own; a NaN in double as ever "
+                        "(S340)");
+
+        const m::expr_function_table& table = m::expr_standard_functions();
+        const m::value                minus[1] = { m::value(-4) };
+        const m::value                parts[2] = { m::value(1),
+                                                   m::value(2) };
+
+        D_TESTS_EXPECT( (d_tests_is_error(
+                             table.find("sqrt")->evaluate_value(minus, 1,
+                                                                real),
+                             D_MATH_VALUE_ERROR_DOMAIN)) &&
+                        (table.find("sqrt")->evaluate_value(
+                             minus, 1, m::expr_context()) ==
+                             d_tests_complex(0, 1, 2, 1)) &&
+                        (m::expr_is_complex(
+                             table.find("complex")->evaluate_value(parts, 2,
+                                                                   real))) &&
+                        (d_tests_same_complex(
+                             table.find("sqrt")->evaluate_complex_double(
+                                 &root.value(), 1, real),
+                             sqrt(cd(nan, 0.0)))),
+                        "each evaluator given the context with its "
+                        "arguments: sqrt's as a value a domain error under "
+                        "it and 2im without, complex(x, y)'s its complex "
+                        "number (S340)");
 
         return;
     }
@@ -1131,6 +1263,15 @@ namespace
                         "a pole; elsewhere long double, acosh below 1 "
                         "complex");
 
+        return;
+    }
+
+    // d_tests_new_functions_edges
+    //   sign, min and max at the edges: signed zeros, NaNs, flags, complex
+    // operands, and the typed folds' (S203, S338).
+    void
+    d_tests_new_functions_edges()
+    {
         const float  nf  = std::numeric_limits<float>::quiet_NaN();
         const double nd  = std::numeric_limits<double>::quiet_NaN();
 
@@ -1191,14 +1332,18 @@ namespace
                         "a complex number or a boolean a domain error; an "
                         "argument's error passes");
 
-        const double six[4] = { 2.0, -0.0, 0.0, -1.5 };
+        const double         six[4] = { 2.0, -0.0, 0.0, -1.5 };
+        const m::expr_context plain;
 
-        D_TESTS_EXPECT( (d_tests_same_bits(m::internal::expr_min_in(six, 3),
-                                           -0.0)) &&
-                        (d_tests_same_bits(m::internal::expr_max_in(six + 1, 2),
-                                           0.0)) &&
-                        (d_tests_same_bits(m::internal::expr_min_in(six, 4),
-                                           -1.5)) &&
+        D_TESTS_EXPECT( (d_tests_same_bits(
+                             m::internal::expr_min_in(six, 3, plain),
+                             -0.0)) &&
+                        (d_tests_same_bits(
+                             m::internal::expr_max_in(six + 1, 2, plain),
+                             0.0)) &&
+                        (d_tests_same_bits(
+                             m::internal::expr_min_in(six, 4, plain),
+                             -1.5)) &&
                         (d_tests_same_bits(d_tests_in_real("min(1, x)", nd),
                                            nd)) &&
                         (d_tests_same_bits(d_tests_in_real("max(x, 1, 7)",
@@ -1258,7 +1403,9 @@ namespace
     }
 
     // d_tests_complex_fold
-    //   expr_evaluate<math::complex<T> > (S339).
+    //   expr_evaluate<math::complex<T> > (S339): real terms, complex
+    // values, the relations, logic and the functions; bound values, the
+    // fold's errors and evaluators are d_tests_complex_fold_bound's.
     void
     d_tests_complex_fold()
     {
@@ -1332,6 +1479,19 @@ namespace
                         "the parts, the modulus, complex(x, y), sign, and "
                         "linear algebra of real numbers");
 
+        return;
+    }
+
+    // d_tests_complex_fold_bound
+    //   expr_evaluate<math::complex<T> > (S339): bound values, float and
+    // long double, real operands beside complex ones, the fold's errors,
+    // and a function of no complex evaluator.
+    void
+    d_tests_complex_fold_bound()
+    {
+        typedef m::complex<double> cd;
+
+        const double nan = std::numeric_limits<double>::quiet_NaN();
         const m::expr_bindings bound =
             m::at("z", m::expr_complex(m::value(1), m::value(2)))
                 .at("t", true)
@@ -1344,10 +1504,12 @@ namespace
                         (d_tests_in_is("w", cd(0.5, 0.0), bound)) &&
                         (d_tests_in_is("z[1]", cd(nan), bound)) &&
                         (d_tests_in<cd>("[1, 2]").is_err()) &&
-                        (d_tests_in<cd>("jm").is_err()),
+                        (d_tests_in_is("jm", cd(nan, nan))) &&
+                        (d_tests_in_is("2 * km", cd(nan, nan))),
                         "a bound value its nearest, a boolean 1, none a NaN, "
                         "a complex number of imaginary part 0 complex; "
-                        "indexing a NaN, a literal bad_shape, jm not_yet");
+                        "indexing a NaN, a literal bad_shape; jm and km NaNs "
+                        "in both parts (S275)");
         D_TESTS_EXPECT( (d_tests_in_is("im * im",
                                        m::complex<float>(0.0f, 1.0f) *
                                            m::complex<float>(0.0f, 1.0f))) &&
@@ -1394,11 +1556,15 @@ namespace
         floor.evaluate_complex_double = D_NULLPTR;
         one[0] = typed::of_real(2.5);
 
-        const typed::carrier of_real = typed::call(floor, one);
+        const typed::carrier of_real = typed::call(floor,
+                                                   one,
+                                                   m::expr_context());
 
         one[0] = typed::of_complex(cd(2.5, 1.0));
 
-        const typed::carrier of_complex = typed::call(floor, one);
+        const typed::carrier of_complex = typed::call(floor,
+                                                      one,
+                                                      m::expr_context());
 
         D_TESTS_EXPECT( (of_real.real) &&
                         (of_real.z.real() == 2.0) &&
@@ -1421,6 +1587,7 @@ namespace
         typedef m::complex<double> cd;
 
         const m::expr_function_table& table = m::expr_standard_functions();
+        const m::expr_context         plain;
         const double                  nan   =
             std::numeric_limits<double>::quiet_NaN();
         const cd                      half[2] = { cd(2.5), cd(-1.5) };
@@ -1430,27 +1597,27 @@ namespace
 
         D_TESTS_EXPECT( (d_tests_same_complex(
                              table.find("floor")->evaluate_complex_double(
-                                 half, 1),
+                                 half, 1, plain),
                              cd(2.0))) &&
                         (d_tests_same_complex(
                              table.find("atan2")->evaluate_complex_double(
-                                 pair, 2),
+                                 pair, 2, plain),
                              cd(d_tests_stored(d_math_atan2(1.0, 1.0))))) &&
                         (d_tests_same_complex(
                              table.find("min")->evaluate_complex_double(
-                                 half, 2),
+                                 half, 2, plain),
                              cd(-1.5))) &&
                         (d_tests_same_complex(
                              table.find("max")->evaluate_complex_double(
-                                 half, 2),
+                                 half, 2, plain),
                              cd(2.5))) &&
                         (d_tests_same_complex(
                              table.find("max")->evaluate_complex_double(
-                                 mixed, 2),
+                                 mixed, 2, plain),
                              cd(nan, nan))) &&
                         (d_tests_same_complex(
                              table.find("norm")->evaluate_complex_double(
-                                 norm, 1),
+                                 norm, 1, plain),
                              cd(5.0))),
                         "a complex type's evaluators of real arguments: the "
                         "real ones', plus +0i; min and max of a complex "
@@ -1536,9 +1703,13 @@ namespace
         d_tests_dense_values();
         d_tests_references();
         d_tests_beyond_real();
+        d_tests_beyond_real_edges();
         d_tests_real_results();
+        d_tests_real_results_typed();
         d_tests_new_functions();
+        d_tests_new_functions_edges();
         d_tests_complex_fold();
+        d_tests_complex_fold_bound();
         d_tests_evaluators();
         d_tests_not_yet();
 

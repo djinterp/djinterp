@@ -1,14 +1,18 @@
-# djinterp math: the lane's decisions, S1 to S356
+# djinterp math: the lane's decisions, S1 to S394
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S347 stand, his own
+its delivery, his "continue", has accepted it: S1 to S382 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
-design of steps 22 to 24, among them. S348 to S356 are chunk 43's, open
-until his word on it. Where a later decision changes an earlier one, the
+design of steps 22 to 24, among them. His rulings of 2026.11.03 and
+2026.11.04 on the flagged decisions are in the reviews they rule, each
+"Ruled 2026.11.04", two of them, S336 and S340, his own choice of an
+alternative the review had set aside, made in chunk 46 (S384, S385). S383 to
+S394 are chunk 46's, open until his word on it; the first, S383, is his own
+choice of 2026.11.07. Where a later decision changes an earlier one, the
 later one says so; the earlier one stays here as it was taken.
 
 Each decision is followed by its review, written from chunk 34 on at the
@@ -18,7 +22,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-17 flagged decisions, the outstanding ones, come first, in five groups by
+22 flagged decisions, the outstanding ones, come first, in five groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -28,102 +32,159 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk43_2026.11.02/tools/decisions_c43.py`.
+`_handoffs/math98_chunk46_2026.11.08/tools/decisions_c46.py`.
 
 ## 1. Outstanding decisions
 
-The 17 flagged decisions: those whose review recommends what is not yet
+The 22 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c43.md`'s, in chunk 43's
+The groups and the steps are `decisions_outstanding_c46.md`'s, in chunk 46's
 record.
 
 ### 1.1 The expression language
 
-- S190. When: before step 25 (4a); no step of its own yet, the owner's to
-  place. Not the recommendation; a growing cost. Recommended: the
-  alternative, before Phase 4's rewrites and any further operator make the
-  layer larger.
+- S190. When: before step 25 (4a): decided on 2026.11.06 with lane F,
+  against expression core v2. Not the recommendation; a growing cost.
+  Recommended: the alternative, before Phase 4's rewrites and any further
+  operator make the layer larger. Ruled 2026.11.04: decided on 2026.11.06
+  with lane F against expression core v2's design: core v2 if its parser
+  holds postfix operators and calls, S209 and S252 then following it;
+  otherwise the language's own precedence parser, as S190's review
+  recommends.
 - S209. When: with S190. Follows from S190. Recommended: S190's alternative
-  would make it unnecessary.
+  would make it unnecessary. Ruled 2026.11.04: decided on 2026.11.06 with
+  lane F against expression core v2's design: core v2 if its parser holds
+  postfix operators and calls, S209 and S252 then following it; otherwise
+  the language's own precedence parser, as S190's review recommends.
 - S252. When: with S190. Follows from S190. Recommended: as taken within
   S190's shared climber, whose own alternative, a precedence parser of the
   language's, would hold postfix operators with operands as it holds calls.
-- S203. When: the eight in the table in chunk 41 (S338); `gamma`, `erf` and
-  the rest with their kernels, no step yet, the owner's to place.
-  Functionality gap, now `gamma`, `erf` and the rest alone. Recommended:
-  those five in the table in step 23 (S271), and `min`, `max` and `sign`
-  with them (exact, no kernel needed), sign(z) being z / |z| of a complex z;
-  `gamma`, `erf` and the rest with their kernels; chunk 40 placed the eight
-  in step 23's second part, chunk 41 (S324), which put them in the table
-  (S338), each with its complex value but the next chunk's two (S335);
-  `gamma`, `erf` and the rest wait for their kernels, which no step has yet.
+  Ruled 2026.11.04: decided on 2026.11.06 with lane F against expression
+  core v2's design: core v2 if its parser holds postfix operators and calls,
+  S209 and S252 then following it; otherwise the language's own precedence
+  parser, as S190's review recommends.
+- S391. When: before 0.8, 2026.11.30, fixes the language's names: the
+  owner's word on `rotmat` and `rotquat`; minor. Minor: the names `rotmat`
+  and `rotquat` are the lane's choice, for the owner's word; `rotquat` takes
+  its matrix for a rotation's untested. Recommended: as taken, the names for
+  the owner's word before 0.8 fixes them.
+- S203. When: step 36 (6a): `gamma`, `lgamma`, `erf` and `erfc` with their
+  kernels and the correctly rounded forms (S379). Functionality gap, now
+  `gamma`, `erf` and the rest alone. Recommended: those five in the table in
+  step 23 (S271), and `min`, `max` and `sign` with them (exact, no kernel
+  needed), sign(z) being z / |z| of a complex z; `gamma`, `erf` and the rest
+  with their kernels; chunk 40 placed the eight in step 23's second part,
+  chunk 41 (S324), which put them in the table (S338), each with its complex
+  value but the next chunk's two (S335); `gamma`, `erf` and the rest wait
+  for their kernels, which no step has yet. Ruled 2026.11.04: `gamma`, `erf`
+  and the rest wait for their kernels, the lane to place them: at step 36
+  (6a), `gamma`, `lgamma`, `erf` and `erfc`, with the correctly rounded
+  forms (S379).
 - S220. When: at any step that touches the folds' logic; minor. Not the
   recommendation; a minor point, changeable later, as it makes an error a
   value. Recommended: the alternative, the identities, with `piecewise` kept
-  at one argument at least.
-- S272. When: the option given in chunk 41 (S340); a documented drawback,
-  nothing due. Significant drawback, documented: a stray negative goes
-  complex silently unless the option is set. Recommended: as ruled, the
-  option given with the kind's functions, in step 23's second part, chunk 41
-  (S324), which gave it, `expr_context`'s `real_results` (S340).
+  at one argument at least. Ruled 2026.11.04: the alternative, as
+  recommended, at any step that touches the folds' logic.
+- S272. When: the option on every evaluator since chunk 46 (S385); a
+  documented drawback, nothing due. Significant drawback, documented: a
+  stray negative goes complex silently unless the option is set.
+  Recommended: as ruled, the option given with the kind's functions, in step
+  23's second part, chunk 41 (S324), which gave it, `expr_context`'s
+  `real_results` (S340). Ruled 2026.11.04: S272 follows S340's ruling, the
+  option on each function's evaluator, made in chunk 46 (S385).
 
 ### 1.2 Simplification and variables
 
-- S251. When: step 25 (4a), with declared domains (S274). Significant
-  drawback for variables bound to matrices. Recommended: declared domains
-  (S274), declared matrix variables among them, as SymPy's `MatrixSymbol`
-  and its non-commutative symbols are: a binding's or the syntax's mark that
-  a name is a matrix, of a shape where known, or a quaternion, which
-  simplification then treats as a literal is treated now, its powers'
-  identities included; in step 25 (4a), or sooner where a user simplifies
-  terms of matrix variables.
+- S251. When: step 25 (4a), with declared domains (S274), as ruled.
+  Significant drawback for variables bound to matrices. Recommended:
+  declared domains (S274), declared matrix variables among them, as SymPy's
+  `MatrixSymbol` and its non-commutative symbols are: a binding's or the
+  syntax's mark that a name is a matrix, of a shape where known, or a
+  quaternion, which simplification then treats as a literal is treated now,
+  its powers' identities included; in step 25 (4a), or sooner where a user
+  simplifies terms of matrix variables. Ruled 2026.11.04: declared domains,
+  matrix variables among them, at step 25 (4a); S376's variables beside
+  quaternions with them.
+- S376. When: step 25 (4a), with S251's declared domains. Significant
+  drawback until 4a: a variable bound to a number that does not commute with
+  a quaternion's factors gets another value from a simplified term.
+  Recommended: as taken, with S251's declared domains at step 25 (4a), a
+  variable declared complex or a quaternion then keeping its place.
 
 ### 1.3 Precision and one answer
 
 - S15. When: step 36 (6a), where one answer becomes bit-identity; sooner at
   no cost. Not the recommendation; two answers across levels. Recommended:
   the library's functions wherever `<math.h>` declares them, the `_c` forms
-  only where it does not.
+  only where it does not. Ruled 2026.11.04 (the owner's, settled): as
+  recommended, one answer per platform, at step 36 (6a).
 - S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
   without the builtin. Recommended: as taken, plus `std::bit_cast` from
   C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
-  in part.
+  in part. Ruled 2026.11.04: as recommended, at step 39 (6d).
 - S37. When: step 39 (6d), where clang on the x87 is taken up; documented
   until then. Significant drawback on clang's x87, documented. Recommended:
   as taken, given that C allows no fix inside a constant expression; keep
-  the SSE advice prominent. Taken.
+  the SSE advice prominent. Taken. Ruled 2026.11.04: as taken, the SSE
+  advice kept prominent.
 - S39. When: step 39 (6d), with the x87. Not the recommendation.
-  Recommended: the alternative, as S38 does for the roots.
+  Recommended: the alternative, as S38 does for the roots. Ruled 2026.11.04:
+  the alternative, as recommended, at step 39 (6d).
+- S370. When: step 40 (6e): chunk 42's whole power, in the family's own
+  type, a `_fast` form where measured demand asks for one. Significant
+  drawback: the plain forms' whole powers cost 2.0 to 3.5 times chunk 44's
+  time for double and 3.3 to 6.2 for float, n from 2 to 100. Recommended: as
+  taken, every part within its bound before a power is fast, as the
+  roadmap's seventh principle has it; chunk 42's squaring in the family's
+  own type, the faster, kept for a `_fast` form at step 40 (6e), where
+  measured demand asks for one.
 - S20. When: at any step that touches `power.h`; minor. Not the
   recommendation (minor). Recommended: the alternative, at its small cost.
+  Ruled 2026.11.04: the alternative, as recommended, at any step that
+  touches `power.h`.
 
-### 1.4 Number types and the value's kinds
+### 1.4 Linear algebra and eigenvalues
 
-- S130. When: step 45 (P3), big rationals, as planned. Significant drawback
-  until P3. Recommended: as taken as an interim, big rationals in P3, as
-  planned.
-
-### 1.5 Linear algebra and eigenvalues
-
+- S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
+  number type, both faces' matrices taking it. Not the earlier review's
+  recommendation in full: neither face's matrix holds quaternions; the
+  language's does. Recommended: the first alternative, with step 40 (6e) or
+  sooner on demand, both faces' matrices at once; as taken until then.
 - S301. When: at the next step that touches `vec.h`; minor. Minor: `project`
   and `reject` unscaled. Recommended: as taken, with `project` and `reject`
-  scaled the same way at the next step that touches `vec.h`.
+  scaled the same way at the next step that touches `vec.h`. Ruled
+  2026.11.04: as recommended, at the next step that touches `vec.h`.
 - S306. When: at the next step that touches the Jacobi functions; minor.
   Minor: no scaling before the Jacobi sweeps. Recommended: as taken, with
   the matrix scaled by a power of two first, as the driver is, at the next
-  step that touches the Jacobi functions, the bits in range unchanged.
+  step that touches the Jacobi functions, the bits in range unchanged. Ruled
+  2026.11.04: as recommended, at the next step that touches the Jacobi
+  functions.
 - S311. When: at the next step that touches the balancing; minor. Minor: the
   balancing exact only where no entry passes below the least normal.
   Recommended: the first alternative, the factors applied once at the end,
   at the next step that touches the balancing: exact wherever representable,
-  the same bits wherever no entry underflows.
-- S354. When: at the next step that touches `dynamic_matrix.hpp`, every
-  element type at once; minor. Minor: no runtime-sized complex matrix in the
-  C++ face. Recommended: as taken, and `dynamic_matrix` of every element
-  type the fixed-size matrix takes, complex numbers, values and quaternions
-  at once, at the next step that touches it.
+  the same bits wherever no entry underflows. Ruled 2026.11.04: the first
+  alternative, the factors applied once at the end, as recommended.
+- S360. When: at the next step that touches `quat.h`'s kernels; minor.
+  Minor: the accurate rotation costs some 900 ns, near two hundred times the
+  `_fast` form's. Recommended: as taken, and the rotation and its matrices
+  in double's pairs for float and double, as the product's (S358), at the
+  next step that touches `quat.h`'s kernels.
+- S364. When: at the next step that touches `quat.h`'s kernels; minor.
+  Minor: the plain exp's and pow's error grows with |v| and p. Recommended:
+  as taken for the `_c` forms, which the faces take; the plain forms
+  carrying |v| as a pair, as the product's double pairs do, at the next step
+  that touches `quat.h`'s kernels.
+
+### 1.5 Number types and the value's kinds
+
+- S130. When: step 45 (P3), big rationals, as planned. Significant drawback
+  until P3. Recommended: as taken as an interim, big rationals in P3, as
+  planned. Ruled 2026.11.04: the interim stands; big rationals at P3, step
+  45.
 
 ## 2. Every decision, by record
 
@@ -282,8 +343,8 @@ consolidation record's section 5; S1 to S3 in slice 3's; S4 to S7 in slice
 > no constant expression. The alternatives: `std::bit_cast` from C++20; or
 > -0 as +0, a second answer. Recommended: as taken, plus `std::bit_cast`
 > from C++20 where the builtin is missing, so every C++20 compiler gets it.
-> Taken in part. **Flag:** significant drawback on compilers without the
-> builtin.
+> Taken in part. Ruled 2026.11.04: as recommended, at step 39 (6d).
+> **Flag:** significant drawback on compilers without the builtin.
 
 - **S10. Where the kernel lives.** In `elementary.h`, beside the sine's,
   because asin and acos are there and tangent.h includes it; asin_c beside
@@ -384,8 +445,10 @@ S12, in the consolidation record and slices 3 to 6) stand.
 > against principle 4. The alternative (calling C99's functions, which every
 > real C++98 platform's `<math.h>` declares) keeps one answer per platform
 > and the library's speed. Recommended: the library's functions wherever
-> `<math.h>` declares them, the `_c` forms only where it does not. **Flag:**
-> not the recommendation; two answers across levels.
+> `<math.h>` declares them, the `_c` forms only where it does not. Ruled
+> 2026.11.04 (the owner's, settled): as recommended, one answer per
+> platform, at step 36 (6a). **Flag:** not the recommendation; two answers
+> across levels.
 
 - **S16. cbrt_c correctly rounded**, by the exact settle, as `sqrt_c` is.
   The settle costs a few products where its approximation decides, and the
@@ -462,8 +525,9 @@ S16, in the consolidation record and slices 3 to 7) stand.
 > **Review.** Taken: for, no third header touched; against, `power.h`
 > includes `tangent.h` for a sign helper that belongs with the order
 > helpers. The alternative, the helper in `float_order.h`, is the better
-> layering. Recommended: the alternative, at its small cost. **Flag:** not
-> the recommendation (minor).
+> layering. Recommended: the alternative, at its small cost. Ruled
+> 2026.11.04: the alternative, as recommended, at any step that touches
+> `power.h`. **Flag:** not the recommendation (minor).
 
 ### S21 to S24: slice 9, 2026.10.10
 
@@ -709,8 +773,8 @@ S35) stand.
 > x87 the float and double kernels give values of no float or double
 > arithmetic, so results differ by compiler there. Recommended: as taken,
 > given that C allows no fix inside a constant expression; keep the SSE
-> advice prominent. Taken. **Flag:** significant drawback on clang's x87,
-> documented.
+> advice prominent. Taken. Ruled 2026.11.04: as taken, the SSE advice kept
+> prominent. **Flag:** significant drawback on clang's x87, documented.
 
 ### S38 and S39: chunk 9, 2026.10.12
 
@@ -741,7 +805,8 @@ S37) stand.
 > evaluation is wide, costs a store and a load on the x87 alone and makes
 > every plain result a value of its type. Chunk 37's plain complex functions
 > show it on the x87, within their bounds (S288). Recommended: the
-> alternative, as S38 does for the roots. **Flag:** not the recommendation.
+> alternative, as S38 does for the roots. Ruled 2026.11.04: the alternative,
+> as recommended, at step 39 (6d). **Flag:** not the recommendation.
 
 ### S40: chunk 10, 2026.10.12
 
@@ -1951,7 +2016,8 @@ integer past 2^256 - 1.
 > **Review.** Taken: for, no new kind ahead of its step; against, a rational
 > of wide terms becomes the nearest long double, flagged inexact: exactness
 > lost where a CAS keeps it. Recommended: as taken as an interim, big
-> rationals in P3, as planned. **Flag:** significant drawback until P3.
+> rationals in P3, as planned. Ruled 2026.11.04: the interim stands; big
+> rationals at P3, step 45. **Flag:** significant drawback until P3.
 
 **S131. The long double is rounded once from the exact ratio, at twice the
 width, by `wide.h`'s division.** A result's terms run to 512 bits: the
@@ -2825,8 +2891,12 @@ tokens, not characters (chunk 27).
 > after the climb. The alternative, a precedence parser of the language's
 > own over the same term type, would be simpler and more capable, the term
 > and its folds still shared. Recommended: the alternative, before Phase 4's
-> rewrites and any further operator make the layer larger. **Flag:** not the
-> recommendation; a growing cost.
+> rewrites and any further operator make the layer larger. Ruled 2026.11.04:
+> decided on 2026.11.06 with lane F against expression core v2's design:
+> core v2 if its parser holds postfix operators and calls, S209 and S252
+> then following it; otherwise the language's own precedence parser, as
+> S190's review recommends. **Flag:** not the recommendation; a growing
+> cost.
 
 **S191. G5's precedences as the table's, ten apart: relations 10, `or` 20,
 `and` 30, `not` 40, `+ -` 50, `* / mod` 60, the unary `-` and `+` 70, `^`
@@ -2993,7 +3063,10 @@ type, and G5 names `log` natural.
 > the eight in step 23's second part, chunk 41 (S324), which put them in the
 > table (S338), each with its complex value but the next chunk's two (S335);
 > `gamma`, `erf` and the rest wait for their kernels, which no step has yet.
-> **Flag:** functionality gap, now `gamma`, `erf` and the rest alone.
+> Ruled 2026.11.04: `gamma`, `erf` and the rest wait for their kernels, the
+> lane to place them: at step 36 (6a), `gamma`, `lgamma`, `erf` and `erfc`,
+> with the correctly rounded forms (S379). **Flag:** functionality gap, now
+> `gamma`, `erf` and the rest alone.
 
 **S204. In a type, a function is the C core's plain form, as `^` is
 (S194); `factorial(n)` the product rounded as it is made, for a whole n ≥ 0,
@@ -3059,7 +3132,11 @@ S190), and the first error in the text is the one a reader looks for.
   P0 (chunk 27) changed only what stopped it compiling.
 
 > **Review.** Taken: follows from S190. Recommended: S190's alternative
-> would make it unnecessary. **Flag:** follows from S190.
+> would make it unnecessary. Ruled 2026.11.04: decided on 2026.11.06 with
+> lane F against expression core v2's design: core v2 if its parser holds
+> postfix operators and calls, S209 and S252 then following it; otherwise
+> the language's own precedence parser, as S190's review recommends.
+> **Flag:** follows from S190.
 
 **S210. `^`'s and `mod`'s arithmetic moves from `evaluate.hpp` to
 `function.hpp`, beside the functions'; the folds take functions from the
@@ -3215,9 +3292,10 @@ takes at least 1 argument, not 0".** The vocabulary's own names.
 > Mathematica's `And[]` and `Or[]` and SymPy's `And()` and `Or()` give, and
 > which a call over a list made by a program, a vector's elements once 3b
 > can spread them, will meet. Recommended: the alternative, the identities,
-> with `piecewise` kept at one argument at least. **Flag:** not the
-> recommendation; a minor point, changeable later, as it makes an error a
-> value.
+> with `piecewise` kept at one argument at least. Ruled 2026.11.04: the
+> alternative, as recommended, at any step that touches the folds' logic.
+> **Flag:** not the recommendation; a minor point, changeable later, as it
+> makes an error a value.
 
 **S221. The face test grows in place: the `not_yet` checks of the
 relations and logic become checks of what they do; a boolean bound in a
@@ -3821,7 +3899,9 @@ of step 20, before matrix products had values.
 > is a matrix, of a shape where known, or a quaternion, which simplification
 > then treats as a literal is treated now, its powers' identities included;
 > in step 25 (4a), or sooner where a user simplifies terms of matrix
-> variables. **Flag:** significant drawback for variables bound to matrices.
+> variables. Ruled 2026.11.04: declared domains, matrix variables among
+> them, at step 25 (4a); S376's variables beside quaternions with them.
+> **Flag:** significant drawback for variables bound to matrices.
 
 **S252. Indexing goes through the shared climber: a [ after an operand's
 end opens the operand's indices, never an implied product (S243), read as
@@ -3856,8 +3936,11 @@ logic (`roadmap.md`).
 > ^ 2' as A ^ 2 with no error; indexing as a group before the climb could
 > not index (a + b) or A'. Recommended: as taken within S190's shared
 > climber, whose own alternative, a precedence parser of the language's,
-> would hold postfix operators with operands as it holds calls. **Flag:**
-> follows from S190.
+> would hold postfix operators with operands as it holds calls. Ruled
+> 2026.11.04: decided on 2026.11.06 with lane F against expression core v2's
+> design: core v2 if its parser holds postfix operators and calls, S209 and
+> S252 then following it; otherwise the language's own precedence parser, as
+> S190's review recommends. **Flag:** follows from S190.
 
 **S253. A relation of two matrices is = or !=: they are equal where they are
 of one shape and their elements are equal, place by place, by `value.h`'s
@@ -4419,8 +4502,10 @@ real one exists is the tower's rule carried one kind further.
 > 1.732...im for (-8) ^ (1/3), where `cbrt` gives -2. Recommended: as ruled,
 > the option given with the kind's functions, in step 23's second part,
 > chunk 41 (S324), which gave it, `expr_context`'s `real_results` (S340).
-> **Flag:** significant drawback, documented: a stray negative goes complex
-> silently unless the option is set.
+> Ruled 2026.11.04: S272 follows S340's ruling, the option on each
+> function's evaluator, made in chunk 46 (S385). **Flag:** significant
+> drawback, documented: a stray negative goes complex silently unless the
+> option is set.
 
 **S273. Matrices of complex numbers, in step 23, are dense where every
 element is a floating-point number of one type, complex or real, the C
@@ -5159,6 +5244,7 @@ finite.
 > be; against, `project` and `reject` still divide by an unscaled squared
 > norm, an infinity or 0 at the range's ends. Recommended: as taken, with
 > `project` and `reject` scaled the same way at the next step that touches
+> `vec.h`. Ruled 2026.11.04: as recommended, at the next step that touches
 > `vec.h`. **Flag:** minor: `project` and `reject` unscaled.
 
 **S302. `mat.h`'s `d_mat_<S>_solve(x, scratch, a, b, n, m)` is Gaussian
@@ -5268,8 +5354,9 @@ to an error; the root equals 1 / (2 theta) within a part in 2^EMAX there.
 > 2 overflows twice itself, or two of opposite signs their difference, an
 > error in a constant expression. Recommended: as taken, with the matrix
 > scaled by a power of two first, as the driver is, at the next step that
-> touches the Jacobi functions, the bits in range unchanged. **Flag:**
-> minor: no scaling before the Jacobi sweeps.
+> touches the Jacobi functions, the bits in range unchanged. Ruled
+> 2026.11.04: as recommended, at the next step that touches the Jacobi
+> functions. **Flag:** minor: no scaling before the Jacobi sweeps.
 
 **S307. `t_decomp.c` and the new `t_cmat.c` check the paths against
 references made by mpmath at 80 digits, `math_tests_eig_refs.h` and
@@ -5371,8 +5458,9 @@ balancing, and MATLAB's and NumPy's through it, have the same property.
 > is not the exact similarity the earlier text claimed. Recommended: the
 > first alternative, the factors applied once at the end, at the next step
 > that touches the balancing: exact wherever representable, the same bits
-> wherever no entry underflows. **Flag:** minor: the balancing exact only
-> where no entry passes below the least normal.
+> wherever no entry underflows. Ruled 2026.11.04: the first alternative, the
+> factors applied once at the end, as recommended. **Flag:** minor: the
+> balancing exact only where no entry passes below the least normal.
 
 ### S312 to S323: chunk 39, 2026.10.31
 
@@ -6008,7 +6096,11 @@ arguments.
 > than its real counterpart's plain ones where both exist. The alternatives:
 > the plain forms, whose bits vary with the library and differ from the
 > face's; or two answers for one computation. Recommended: as taken, a
-> `_fast` form where a use asks for one (S266). Taken.
+> `_fast` form where a use asks for one (S266). Taken. Ruled 2026.11.04 (the
+> owner's): the second alternative, the plain forms in a complex type and
+> the `_c` forms as values, two answers for one computation, which the owner
+> chose over one answer, the docs saying where a value and
+> `math::complex<T>` may differ. Made in chunk 46 (S384).
 
 **S337. A function of exact arguments is exact wherever its value is a
 Gaussian rational: `sqrt(z)` and `z ^ (p/q)` where the principal `q`-th
@@ -6036,6 +6128,7 @@ Gelfond and Schneider), so no other exact value is lost.**
 > modulus is; against, a long double estimate and an exact power for each
 > root, and roots whose terms pass the family dense. The alternatives: the
 > square root alone exact; whole powers alone. Recommended: as taken. Taken.
+> Ruled 2026.11.04: as taken.
 
 **S338. `min` and `max` take any number of arguments from 1, as Julia's,
 Python's and Mathematica's do; in a floating-point type they are IEEE
@@ -6058,7 +6151,9 @@ exact x; and `sign(z)` of a complex `z` is `z / |z|`, 0 at 0 (S203).**
 > where those drop it, and `min` of an exact and an inexact argument may be
 > the exact one, not the tower's kind. The alternatives: a NaN dropped from
 > a result; an exact argument made inexact. Recommended: as taken, a
-> NaN-dropping form where a use asks for one. Taken.
+> NaN-dropping form where a use asks for one. Taken. Ruled 2026.11.04: as
+> taken, and the docs say how `min` and `max` differ from `fmin`; made in
+> chunk 45 (S379).
 
 **S339. The folds take `math::complex<T>` for T float, double and long
 double, as S271 rules: `expr_evaluate<math::complex<T>>`. A real number
@@ -6090,7 +6185,7 @@ functions of a number not real answer `not_yet`, the third part's.**
 > complex number and a real one keeping the zeros' signs C99's G.5 gives,
 > not those of x + 0i. The alternatives: every number complex, as
 > `std::complex` computes, two answers for `sqrt(-4)`; or no fold in a
-> complex type. Recommended: as taken. Taken.
+> complex type. Recommended: as taken. Taken. Ruled 2026.11.04: as taken.
 
 **S340. S272's option is `expr_context`'s first field, `real_results`,
 false by default: where it is true, an operation of real operands whose
@@ -6112,7 +6207,11 @@ C's is, and in a complex type the principal complex value.
 > unchanged, the caller's tables' too; against, the typed folds, which have
 > no context, answer as they always would: a NaN in a real type, the complex
 > value in a complex one. The alternatives: two answers for one option;
-> every evaluator's signature changed. Recommended: as taken. Taken.
+> every evaluator's signature changed. Recommended: as taken. Taken. Ruled
+> 2026.11.04 (the owner's): the second alternative, real_results an option
+> on each function's evaluator, which takes the context, every evaluator's
+> signature changed, the callers' tables' among them, S272 following it.
+> Made in chunk 46 (S385).
 
 **S341. A real argument on a branch cut is taken as x + 0i, its zero part
 +0, so that its value is the one C99's Annex G gives on the cut's upper
@@ -6132,6 +6231,8 @@ the two says.
 > them; against, a MATLAB user meets the other sign for `asin` and `acos`
 > past 1. The alternative: MATLAB's side, a value of the language other than
 > the face's at the same point. Recommended: as taken, documented. Taken.
+> Ruled 2026.11.04: as taken, and the docs give the MATLAB difference; made
+> in chunk 45 (S379).
 
 ### S342 to S347: chunk 42, 2026.11.02
 
@@ -6280,6 +6381,11 @@ step 23's third part's alone.** `log2(-8)` is 3 + 4.532...im, its real part
 ### S348 to S356: chunk 43, 2026.11.02
 
 The record: `_handoffs/math98_chunk43_2026.11.02/README.md`.
+
+S348 to S356, chunk 43's, as `decisions.md` has them; each is reviewed
+there, S354 flagged, minor. The 17 outstanding decisions of S1 to S356 come
+first, by group and urgency (section 2.5); S258 and S322 are done. The
+text below is `decisions_c43.md`, which `decisions_c43.py` reads.
 
 **S348. A matrix keeps a complex element as it is, as S239 keeps a real
 one: where every element is a float, a double, a long double or a complex
@@ -6461,8 +6567,10 @@ bilinear, and angles and the fluent members stay refused at compile time;
 > by type in the face; the name `inner`. Recommended: as taken, and
 > `dynamic_matrix` of every element type the fixed-size matrix takes,
 > complex numbers, values and quaternions at once, at the next step that
-> touches it. **Flag:** minor: no runtime-sized complex matrix in the C++
-> face.
+> touches it. Ruled 2026.11.04: stands, as recommended, the owner ruling no
+> other by the next window. Done in chunk 46 (S392): `dynamic_matrix` of
+> complex numbers, values and inline values; quaternions apart, which S392
+> flags.
 
 **S355. `number_traits<value>::sqrt` keeps no real root for a negative or
 complex number, a domain error, as S331 left it, the trait the ordered real
@@ -6516,3 +6624,1211 @@ files, as chunk 39's were (S323).**
 > in the code checked; against, the C core's harnesses not run again, which
 > nothing in the chunk touches, step 1 showing its files unchanged.
 > Recommended: as taken. Taken.
+
+### S357 to S368: chunk 44, 2026.11.03
+
+The record: `_handoffs/math98_chunk44_2026.11.03/README.md`.
+
+S357 to S368, chunk 44's, as `decisions.md` has them; each is reviewed
+there, S360 and S364 flagged, minor, and S368 flagged, not the
+recommendation and significant until chunk 45 does it. The 20 outstanding
+decisions of S1 to S368 come first, by group and urgency (section 2.4). The
+text below is `decisions_c44.md`, which `decisions_c44.py` reads.
+
+**S357. Step 24 (3f, quaternions) is made in three chunks, as S324 made
+step 23: chunk 44, the C core's quaternions grown as S276 rules, and both
+C++ faces taking each; chunk 45, the kind in the language as S275 rules --
+`jm`, `km`, `quat(w, x, y, z)`, `parts` and the functions, dense as the C
+core's array and exact as values -- with S277's order of factors and its
+right quotient; chunk 46, matrices of quaternions with S277's `A'`, `inv`,
+`solve` and Zhang's eigenvalues, and `dynamic_matrix` of every element type
+the fixed-size matrix takes (S354's recommendation).** Each chunk delivered
+and checked as the others.
+- Alternative: two chunks, the C core and the kind together: one chunk of
+  twice this one's size, its checks run on more at once.
+- Alternative: the kind first, on today's `quat.h`: the language's
+  quaternions on the former formulas, then their bits changed.
+
+> **Review.** Taken: for, three chunks each of a size the queue checks in a
+> day, the C core first, so that the kind and the matrices are built on the
+> bits they keep; the order S324 gave step 23; against, the step's last part
+> two chunks away. The alternatives: two chunks, each twice the size; the
+> kind first, on formulas then replaced. Recommended: as taken. Taken.
+
+**S358. `quat.h`'s product, inverse and two quotients are sums of exact
+products by Ogita, Rump and Oishi's Dot2, each part rounded once: for float
+and double in double's pairs where double is evaluated in its own type, as
+SSE evaluates it, a float's products exact there and a double's Dekker's;
+for long double, and for float and double where double is evaluated wider,
+as on a 32-bit x87, in long double's pairs. Each part is as accurate as its
+sum computed in twice the pairs' precision and rounded once: within a step
+but where the sum cancels, by some 16 u^2 times its terms' magnitudes. The
+operands are scaled by powers of 2 where Dekker's products could overflow or
+lose their low parts; an operand with an infinite or NaN part takes the
+formula as written (`_fast`); an exact sum of products not all 0 is +0, as
+IEEE's arithmetic makes it, and a sum of zero products their own sum in
+order.** Measured: 0 steps from the correctly rounded part at every
+reference but double's 8 at a sum cancelled to 2^-50 of its terms, within
+the promise; on the x86-64 here 61 ns a double product and 96 ns a float's,
+against 1.0 ns for `multiply_fast` and 431 ns for long double's.
+- Alternative: every family in long double's pairs: float's and double's
+  exact sum rounded once nearly always, but some 430 ns a product, the
+  x87's, where SSE's double pairs take a seventh of it.
+- Alternative: each family in its own type's pairs, as `cplx.h`'s
+  arithmetic: float's at twice float's precision, where double's pairs give
+  float more for the same cost.
+- Alternative: an exact sum of each part, as an expansion: correctly rounded
+  always, at several times Dot2's cost.
+
+> **Review.** Taken: for, each part of the product, the inverse and the
+> quotients as accurate as twice its pairs' precision, as S276 rules,
+> measured 0 steps from the correctly rounded part at every reference but
+> where a sum cancels to 2^-50 of its terms; float's and double's at SSE's
+> speed in double's pairs, a float's products exact; long double's, and the
+> x87's, in long double's pairs; the formula's IEEE values for an infinity
+> or a NaN; against, a product costs 60 to 100 ns for float and double and
+> 430 ns for long double, against 1.0 ns for `multiply_fast`, some 60 to 100
+> times, where S276's review put it at three times the operations: without a
+> fused multiply-add, which no constant expression has, each exact product
+> is Dekker's 17 operations. The alternatives: every family in long double's
+> pairs, exact but some 430 ns; each family in its own type's pairs, float's
+> at twice float's precision; an exact sum, several times Dot2's cost.
+> Recommended: as taken; the `_fast` forms for a renderer's inner loops.
+> Taken.
+
+**S359. The inverse and the two quotients of S277: `d_quat_*_inverse`, q* /
+|q|^2; `divide(a, b)`, a b^-1, the quotient on the right; `left_divide(a,
+b)`, a^-1 b, the quotient on the left; each part a numerator's pair over
+|q|^2's, as S358's. 0's inverse is a NaN in each part, the formula's 0 / 0
+and Eigen's; an infinite q's the zeros of its conjugate's signs, as 1 / inf
+is 0; a NaN's NaNs. Where an operand is not finite or the divisor is 0, a
+quotient is a times b's inverse, the product as written.**
+- Alternative: 1 / 0 an infinity, as C99's Annex G makes a complex number's:
+  a quaternion's infinity has no one direction to give it.
+- Alternative: the names `rdivide` and `ldivide`, MATLAB's: `divide` reads
+  as C's `/`, which is the right quotient.
+
+> **Review.** Taken: for, the quotient on the right that S277 names `/`, and
+> the left one, each part within a step; a zero's inverse NaN, as the
+> formula and Eigen give it; an infinity's inverse 0, as 1 / inf is;
+> against, no infinity for 1 / 0, where a complex number has Annex G's. The
+> alternatives: 1 / 0 an infinity, with no one direction; MATLAB's names.
+> Recommended: as taken. Taken.
+
+**S360. The rotation is q v q^-1 for any q not 0: `rotate`, and
+`to_matrix3` and `to_matrix4`, R / |q|^2, so that a q a few steps from unit
+length names the rotation of q / |q|, as v' = q v q* does for a unit q (S276):
+each part from pairs of exact products in long double, over |q|^2's pair,
+within a step (measured 0 for float and double, 1 for long double). q = 0, or
+a part not finite, gives NaNs; v = 0 is left as it is. `rotate_fast`,
+`to_matrix3_fast` and `to_matrix4_fast` keep the former formulas, for a unit
+q: S276's "the rotation" taken to include its matrices, which a renderer
+uploads.** Some 900 ns a rotation, the kernel's long double, against 5 ns
+for the `_fast` form, as the faces' `rotate` is the accurate one.
+- Alternative: q v q* computed accurately: a q a few steps off unit length
+  scales v by |q|^2, which q v q^-1 does not.
+- Alternative: the rotation and its matrices in double's pairs for float
+  and double, as the product (S358): some seven times faster, at more code.
+
+> **Review.** Taken: for, the rotation that any q not 0 names, the rotation
+> of q / |q|, each part within a step, so that rounding's few steps off unit
+> length do not scale v; the former formulas kept as the `_fast` forms, the
+> matrices among them, for a renderer; against, the accurate rotation costs
+> some 900 ns in long double's pairs, against 5 ns for `rotate_fast`, and
+> the faces' `rotate` is the accurate one; q = 0 gives NaNs where the former
+> formula gave v. The alternatives: q v q* accurately, which a q off unit
+> length scales; the rotation in double's pairs, as the product, seven times
+> faster. Recommended: as taken, and the rotation and its matrices in
+> double's pairs for float and double, as the product's (S358), at the next
+> step that touches `quat.h`'s kernels. **Flag:** minor: the accurate
+> rotation costs some 900 ns, near two hundred times the `_fast` form's.
+
+**S361. The norm and normalization: `norm_c` and `norm`, the scaled norm as
+a pair rounded once, +inf for an infinite part, NaN for a NaN, +0 for 0;
+`normalize_c` and `normalize(out, q)`, each part over the norm's pair, q = 0
+left as it is, an infinite part's quaternion the direction of its
+infinities, the limit of q / |q|, a NaN's NaNs. `normalize` takes no norm of
+the caller's now, as S276 puts the scaled norm in it; the `_c` and plain
+forms give the same bits, the root correctly rounded either way.
+`normalize_fast` is the reciprocal square root of the sum of squares, in the
+family's type and unscaled.** Measured 0 steps in every family.
+- Alternative: `normalize(out, q, norm)` as before: each caller's norm and
+  its accuracy its own.
+
+> **Review.** Taken: for, `normalize` scaled and within a step as S276
+> rules, with no norm of the caller's to be wrong; the limits of q / |q|
+> where a part is infinite; the two forms the same bits; `normalize_fast`
+> the renderer's reciprocal root; against, the three-argument `normalize` is
+> gone, so its callers change (the faces, here). The alternative: the
+> caller's norm, of the caller's accuracy. Recommended: as taken. Taken.
+
+**S362. Construction: `from_matrix3` and `from_matrix4` by Shepperd's
+method, the largest of 4w^2, 4x^2, 4y^2 and 4z^2 -- w first among equals,
+then x, y, z -- giving its part, the others the off-diagonal sums and
+differences over 4 times it, then q or -q, whichever has w >= 0; a NaN or
+infinite entry gives NaNs; the result not normalized after, so that an
+orthogonal matrix's quaternion is within a step and a nearly orthogonal one's
+as near unit length as the matrix is orthogonal. `from_two_vectors(a, b)`,
+the shortest rotation turning a's direction into b's: (a x b, |a| |b| + a .
+b) normalized, the sum taken as |a x b|^2 / (|a| |b| - a . b) where a . b <
+0, so that it does not cancel; exactly opposed, the half turn about a x e_k,
+e_k the unit vector along a's smallest part (the first among equals); a zero
+vector, the identity. `nlerp(a, b, t)`, (1 - t) a + t b along the shorter
+arc, normalized, exact at the ends before the root.**
+- Alternative: Eigen's sign, w's as the branch leaves it: one rotation's
+  quaternion either sign by which candidate was largest.
+- Alternative: from_matrix normalized: a step more for every exact rotation
+  matrix.
+- Alternative: an opposed pair's axis from a fixed axis's cross product, as
+  GLM's: none where a lies along that axis.
+
+> **Review.** Taken: for, Shepperd's method, the stable one, with one sign
+> for every rotation; a nearly orthogonal matrix's quaternion as near unit
+> length as the matrix is orthogonal, which normalizing would hide; two
+> vectors' quaternion without cancellation where they nearly oppose, and an
+> axis for exactly opposed ones whatever a's direction; nlerp along the
+> shorter arc; against, from_matrix of a matrix far from orthogonal gives a
+> quaternion far from unit length, which the caller normalizes. The
+> alternatives: Eigen's sign; a normalized from_matrix; GLM's fixed axis.
+> Recommended: as taken. Taken.
+
+**S363. `slerp` along the shorter arc, b or -b: theta = 2 atan2(|a - b|, |a
++ b|), accurate near 0 where acos(a . b) is not; at theta = 0 the line (1 -
+t) a + t b; sin((1 - t) theta) / sin theta and sin(t theta) / sin theta
+otherwise, each part the two products' sum. a at t = 0, b or -b at t = 1,
+and a at every t between a and a, exactly. `slerp_c` is one long double
+kernel, each part a pair, rounded once; the plain `slerp` the same algorithm
+in the family's type on the C library's. Its parts are sums that may cancel,
+so it is measured against its largest part: `slerp_c` within a step of it,
+and 2 for long double (measured 0, 0 and 2), the plain one within 4
+(measured 2).**
+- Alternative: the former acos(a . b), and a renormalized line past a . b =
+  0.9995: another curve near 0, and acos's error growing as 1 / theta there.
+
+> **Review.** Taken: for, the angle accurate near 0, so that slerp is one
+> curve at every angle; its ends exact; a at every t between a and a;
+> against, slerp's parts are bounded against its largest part, not each its
+> own, as they are sums that may cancel. The alternative: the former acos
+> and line. Recommended: as taken. Taken.
+
+**S364. exp, log, sqrt and real powers are the complex functions in q's
+plane (S275): f(q) = Re f(w + r i) + u Im f(w + r i), r = |v|, u = v / r;
+for v along im alone, y and z 0, `cplx.h`'s function of w + x i itself, bit
+for bit, y and z as given, so that a complex number's value is the same as a
+quaternion's. In the `_c` kernels r is a pair and f corrected to first order
+for its low part; log and sqrt take q scaled by a power of 2 only outside the
+safe range, as near |q| = 1 the scale's k ln 2 would cancel log |q|; sqrt's
+vector part is v / (2 Re) where the real part is the larger, 2 Re Im = r
+being exact, and log's v / w where r < w 2^-(P/2 + 2). A part of v that is 0
+stays 0, whatever it multiplies, an infinity or a NaN among them; a NaN part
+gives NaNs; an infinite part of v an infinite r along v's infinities. The
+`_c` forms are within a step for float and double and 4 for long double
+(measured 0, and 2 each), pow_c's of its largest part (measured 0, 1 and
+3), as a whole power's parts, by `cplx.h`'s repeated squaring, may cancel
+(S368); the plain forms, in the family's type with |v| rounded once, within
+12, 4, 4 and 12 steps of the largest part at the references' |v| below 16
+and |p| below 8 (measured 8, 3, 2 and 6), exp's and pow's error growing with
+|v| and p, as the cosine of a rounded |v| does.** The faces take the `_c`
+forms (S365).
+- Alternative: the plain forms on the `_c` kernels' algorithm in long double
+  on the C library's functions: as accurate as the `_c` forms, at long
+  double's cost.
+- Alternative: q^p for an integer p by repeated products: exact where the
+  products are, but a power with two definitions.
+
+> **Review.** Taken: for, the complex functions' principal values, a complex
+> number's bit for bit, as S275 rules; the `_c` forms within a step for
+> float and double, r carried as a pair so that a cosine of |v| near 0 is
+> right; zero parts of v kept 0, so that the complex case's jm and km parts
+> stay 0 whatever the plane's value; against, the plain forms take |v|
+> rounded once, so that exp's and pow's errors, measured against the largest
+> part, grow with |v| and with p: 8 and 6 steps at |v| below 16. The
+> alternatives: the plain forms in long double on the C library's, as
+> accurate as the `_c` forms at long double's cost; integer powers as
+> products. Recommended: as taken for the `_c` forms, which the faces take;
+> the plain forms carrying |v| as a pair, as the product's double pairs do,
+> at the next step that touches `quat.h`'s kernels. **Flag:** minor: the
+> plain exp's and pow's error grows with |v| and p.
+
+**S365. The C++ faces, `math::quaternion<T>` and `linalg::quaternion<T>`,
+take each: `operator*` accurate and `multiply_fast`; `inverse`, `operator/`,
+the right quotient, and `left_divide`; `norm` the C core's (no longer vec.h's
+norm of the four parts); `normalize` and `normalize_fast`; `rotate` and
+`rotate_fast`; `to_matrix` (`to_matrix3`) and `to_matrix4`, and their `_fast`
+forms; `from_matrix` of a 3x3 or a 4x4 matrix; `from_two_vectors`; `slerp`,
+`slerp_fast` and `nlerp`; `exp`, `log`, `sqrt` and `pow`. The accurate forms
+at every level: slerp, exp, log, sqrt and pow the C core's `_c` forms,
+constant expressions from C++14, as `math::complex`'s functions are; what
+takes a root alone by level, the same bits; `from_axis_angle` and
+`slerp_fast` the C library's at run time and constant expressions from
+C++20, as before. The generic path, any other T: the algebra in T's own
+arithmetic by the same definitions, exact where T is; roots as `norm` takes
+them; slerp, exp, log, sqrt and pow through double by the C core's double
+`_c` forms; the `_fast` forms the former expressions.**
+- Alternative: slerp, exp, log, sqrt and pow on the C library at run time,
+  as from_axis_angle: faster, a few steps off and exp's growing with |v|.
+- Alternative: the generic path's slerp in T's arithmetic with its sines
+  through double, as before: its own formula, a different curve.
+
+> **Review.** Taken: for, every function of S276 in both faces, the accurate
+> forms by default and constant expressions from C++14, as math::complex's;
+> the `_fast` forms for a renderer; the generic path by the same
+> definitions, exact where its type is, and through double where a sine or
+> an exponential is; against, the faces' slerp, exp, log, sqrt and pow take
+> the `_c` forms at run time too, 1 to 2 microseconds a call; the faces'
+> `norm` and `normalize` change their last bits. The alternatives: the C
+> library's at run time; the generic slerp's former formula. Recommended: as
+> taken. Taken.
+
+**S366. `elementary.h`'s `round_pair`, which rounds a long double pair once
+to float or double, gives an infinity for a finite pair past the family's
+largest finite value, but for the midpoint above it with the sum below,
+which rounds to the largest value. It gave the largest finite value wherever
+the low part pointed back, as the midpoint test met infinity less infinity;
+the quaternions' references found it, a left quotient past DBL_MAX coming
+back DBL_MAX. Only values past a family's range change.**
+- Alternative: each kernel testing for overflow before it rounds: the same
+  test in every caller, and a caller that forgets it.
+
+> **Review.** Taken: for, an infinity where the value is past the range,
+> every family's round_pair right at its edge; the change only there;
+> against, `elementary.h` changes in a quaternion chunk, so the C harnesses
+> and the C ladder run again. The alternative: a test in every caller.
+> Recommended: as taken. Taken.
+
+**S367. The checks: `t_quat.c` against `math_tests_quat_refs.h`, which
+`refs_c44.py` makes, mpmath's values at 400 bits settled at 640, an exact
+dyadic value written exactly, so that one on a midpoint stays there, as 45
+digits moved a product's off it, a false step; each function's, family's and
+form's largest distance printed; the product held to Dot2's promise; the
+`_fast` forms against the former formulas, bit for bit; identities; special
+values, the range's end and midpoints among them; each C++ overload; and
+the constant expressions against the run time's bits from C++14.
+`t_quaternion_face.cpp` grown with the faces, each function the C core's
+bit for bit in the form its level takes, and the generic path against the
+C core. The fault trial over the new code, before the queue and in it, by
+the C harness where double is evaluated in its own type and on the x87,
+and by the face test at C++11, C++17 and C++20; the sanitizers; the lines
+run; the C++ ladder; the lints; the levels. As C units changed, the queue
+runs the C harnesses' full tier and the C ladder again (steps 4 and 5);
+the render module's tests are built and run over the lane's math headers,
+as the restructuring script will lay them; and the cost of each form is
+measured (`timing_c44.c`).**
+- Alternative: chunk 43's queue, without steps 4 and 5: the C files changed
+  left to the smoke tier's one build each.
+
+> **Review.** Taken: for, every accurate function measured against
+> references made independently, at every family's range and width, each
+> form's largest distance in the record; the references exact where the
+> value is, so that no false step is counted; each path of the algebra,
+> double's pairs and the x87's, and each level of the faces under the fault
+> trial; the steps the C core's change needs, 4 and 5, run again; the render
+> module over the lane's headers, as it will be; the cost of each form
+> measured; against, a longer queue. The alternative: chunk 43's queue.
+> Recommended: as taken. Taken.
+
+**S368. `cplx.h`'s whole powers, z^n for n from -2^30 to 2^30 by repeated
+squaring as chunk 42 made them, each product rounded to the family, or to
+long double in the `_c` kernel, stay as they are in this chunk: within their
+bounds of the larger part, but not of each part where one cancels -- a cube
+of w + r i, its imaginary part some 2^-10 of its modulus, comes back
+hundreds of steps of that part off in long double, as the quaternions'
+references found at random points, `cplx.h`'s own having none such. The
+quaternions' `pow_c`, whose plane's power it is, is measured and bounded of
+its largest part meanwhile, as slerp is (S363), and `cplx.h`'s banner says
+so. Recommended: the `_c` kernel's repeated squaring carried in pairs, so
+that each part is within its bound again, exact where the power is, and the
+plain forms' whole powers by it, rounded once; at the next chunk, before
+the language's quaternions, with references at such points
+(`raw/pow_probe.txt` has this chunk's).**
+- Alternative: the fix in this chunk: `cplx.h`'s kernel, its tests and its
+  references changed beside `quat.h`, a second C unit's change in the
+  quaternions' first part.
+- Alternative: whole powers by exp(n log z), the general path, its angle
+  carried in pairs: each part accurate, but a Gaussian integer's square no
+  longer exact.
+
+> **Review.** Taken: for, the quaternions' first part kept to `quat.h` and
+> its faces, the finding recorded with its measure and its fix, the
+> quaternions' bound stated as it holds; against, `cplx.h`'s whole powers
+> keep, until the next chunk, an error of some steps of the larger part in a
+> part that cancels, in both forms and every family, which its banner now
+> states. The alternatives: the fix in this chunk; whole powers by exp(n log
+> z). Recommended: the pair kernel, at the next chunk, before the language's
+> quaternions. Taken in chunk 45, before the language's quaternions: the
+> pair kernel, every part within its bound again (S370).
+
+### S369 to S382: chunk 45, 2026.11.06
+
+The record: `_handoffs/math98_chunk45_2026.11.06/README.md`.
+
+S369 to S382, chunk 45's, as `decisions.md` has them; each is reviewed
+there, S376 flagged, a significant drawback until 4a, and S370 flagged, a
+significant drawback, its plain forms' cost. The owner's rulings of 11-03
+and 11-04 are recorded in the reviews they rule; S336 and S340, his choice
+of an alternative each review had set aside, are flagged until chunk 46
+makes them, and S368, done, is flagged no more. The 23 outstanding
+decisions of S1 to S382 come first in `decisions.md`, by group and urgency.
+The text below is `decisions_c45.md`, which `decisions_c45.py` reads.
+
+**S369. Step 24's second part, chunk 45, makes quaternions values of the
+language, as S275 and S277 rule, and leaves matrices of them to its third,
+chunk 46, as S357 planned. Until then a literal holding a quaternion, a
+product or a quotient of a matrix and a quaternion, and linear algebra's
+functions of a quaternion but `inv`, which S275 names, answer
+`expr_status::not_yet`, each with its message -- "a matrix of quaternions:
+not yet (step 24, 3f, its third part)", "det of a quaternion: not yet (step
+24, 3f, its third part)" -- after an operand's error, as S331 had chunk
+40's nodes answer; below the fold, `expr_matrix` answers an element that is
+a quaternion `not_yet` too, and the matrix kind's arithmetic, a literal's
+blocks and linear algebra's operands refuse one, a domain error. A sum of a
+matrix and a quaternion stays a domain error, as a matrix plus a number is
+(S246). `slerp`, a rotation's matrix and the quaternion of one come to the
+language with chunk 46's matrices, as each takes or gives one.**
+- Alternative: the third part's nodes a domain error now: an answer that
+  chunk 46 would change.
+- Alternative: matrices of quaternions in this chunk: a chunk of twice this
+  one's size, its checks run on more at once.
+
+> **Review.** Taken: for, no answer the third part would change: each node
+> it computes answers not_yet with its message, after the errors that come
+> first, as chunk 40's did (S331); a sum of a matrix and a quaternion a
+> domain error now and after, as S246 has every matrix plus a number;
+> against, two chunks in which [1, jm] has no value and det(jm) waits, and
+> the matrix kind's refusals, which callers below the fold see, become
+> values in chunk 46. The alternatives: a domain error that chunk 46 would
+> change; a chunk of twice the size. Recommended: as taken. Taken.
+
+**S370. `cplx.h`'s whole powers, z^n for n from -2^30 to 2^30, are carried
+in long double's pairs, as S368 recommended: repeated squaring from the
+exponent's highest bit, each product's parts sums of Dekker's exact products
+by `power.h`'s pairs, the larger part rescaled into [1, 2) after each step
+and its binade kept apart, so that no step overflows or underflows, the
+binade clamped where the result is surely an infinity or 0; a negative n's
+power inverted at the end, as pairs, the conjugate over the squared modulus;
+each part then scaled and rounded once, into the subnormals as the
+exponential scales its own. The plain forms take the same kernel, bit for
+bit, as no C library has a faster whole power to the same bound. Each part
+is within a step of the correctly rounded part where it is at least |n| 2^(4
+- P) of the larger part, P long double's precision, and below that, where it
+may cancel past what the pairs carry, within |n| 2^(3 - 2P) of the larger
+part; a power exact in twice long double's precision comes exactly, and an
+exact zero part takes the sign `d_cplx_ld_mul`'s and `d_cplx_ld_div`'s exact
+products give. `quat.h`'s `pow_c`, whose plane's power it is, is bounded of
+each part again: within a step for float and double and 4 for long double
+(measured 0, and 2).** Measured at the 1,027 points of
+`math_tests_cplx_pow_refs.h`: every part above its threshold within 0 steps
+in every family, and the 61 long double parts below it within 0.031 of their
+allowance; each whole power costs 461 to 1,690 ns a call from n = 2 to 100,
+in both forms and in double and float alike, where chunk 44's plain forms
+took 131 to 823 ns for double and 81 to 507 for float and its `_c` form 278
+to 1,851: the plain forms 2.0 to 3.5 times as long for double and 3.3 to 6.2
+for float, the `_c` form 0.9 to 1.7 times (`raw/timing.txt`).
+- Alternative: whole powers by exp(n log z), the angle carried in pairs:
+  each part accurate, but a Gaussian integer's square no longer exact.
+- Alternative: the plain forms' whole powers squared in each family's own
+  type, as chunk 42 made them, the `_c` form's alone in pairs: faster, but
+  a part that cancels some steps of the larger part off in the plain forms,
+  two bounds for one power.
+
+> **Review.** Taken: for, every part of a whole power within its bound
+> again, a part that cancels among them, in both forms and every family, as
+> S368 recommended; a Gaussian integer's power exact still; one kernel for
+> both forms, so that the plain form's whole power is the `_c` form's bit
+> for bit; `quat.h`'s `pow_c` bounded of each part again; against, the plain
+> forms' whole powers 2.0 to 3.5 times as long as chunk 44's for double and
+> 3.3 to 6.2 for float, the `_c` form's 0.9 to 1.7 times; for float and
+> double each part is the long double's conversion, as every `_c` form's is.
+> The alternatives: exp(n log z), no Gaussian integer's power exact; the
+> plain forms in their own type, two bounds for one power. Recommended: as
+> taken, every part within its bound before a power is fast, as the
+> roadmap's seventh principle has it; chunk 42's squaring in the family's
+> own type, the faster, kept for a `_fast` form at step 40 (6e), where
+> measured demand asks for one. **Flag:** significant drawback: the plain
+> forms' whole powers cost 2.0 to 3.5 times chunk 44's time for double and
+> 3.3 to 6.2 for float, n from 2 to 100.
+
+**S371. A quaternion is a boxed kind of the value, `expr/quaternion.hpp`'s,
+of rank 950: past the complex number's 900, so that in an operation of a
+quaternion and a real or complex number the quaternion's table handles it,
+and below the matrix's 1000, whose table handles a quaternion operand
+(S275, S238). It holds its parts as values where all four are exact, or
+where one is of a boxed kind that is not exact, and otherwise densely, as
+`math::quaternion<T>` of the widest floating-point type among them, the C
+core's array [x, y, z, w], each part its nearest there (S266). An exact
+quaternion whose jm and km parts come to 0 is the complex number of its
+other two, or the real number w where its im part is 0 too, as an exact
+complex number of imaginary part 0 is real (S327); an inexact one keeps its
+four parts, its zeros with their signs, as `quat(x, 0, 0, 0)` of a double x
+does. The kind's exact entry says which values are exact (S325), and its
+holders are counted atomically (S134): `jm` and `km` are a box each.**
+- Alternative: dense always, in long double where the parts are exact:
+  (1 + 2jm)(3 - km) no longer exactly 3 - 2im + 6jm - km.
+- Alternative: an inexact quaternion of jm and km parts 0 made complex
+  too: a dense value changing kind with its parts' values, its zeros'
+  signs lost, an operation's kind no longer its operands'.
+
+> **Review.** Taken: for, exact quaternions exact, as S266 rules for every
+> kind, and dense ones the C core's array, so that the language's dense
+> arithmetic is `quat.h`'s bits; an exact quaternion of jm and km parts 0
+> the complex number it equals, as S275 rules, so that jm km is im; an
+> inexact one its own four parts, its kind its operands', its zeros kept;
+> against, a value of exact parts holds four values, four times a complex
+> number's, and a boxed inexact part keeps the parts as values, computed by
+> its kind's operations one by one. The alternatives: dense always, no exact
+> quaternion; an inexact one made complex, its zeros' signs lost.
+> Recommended: as taken. Taken.
+
+**S372. A quaternion's arithmetic is the value's own, through the kind's
+table. Exact parts compute exactly by `value.h`'s operations: Hamilton's
+product, im jm = km, of sixteen products, and the quotient p / q = p
+inv(q), the quotient on the right (S277), p q* over |q|^2, an exact 0
+divisor a pole; a part past the family becomes G2's long double, flagged.
+Otherwise an operation computes in the widest floating-point type of its
+operands, each exact part its nearest there, by `quat.h`'s accurate forms
+through `math::quaternion<T>`: the product and the quotient each part
+rounded once from Dot2's sums (S358, S359), a sum each part rounded once. A
+real operand is taken as itself, as C99's G.5 takes one beside a complex
+number: a sum or a difference changes w alone, and a product or a quotient
+by it scales each part, so that a zero part's sign survives; a complex
+operand is taken with its im the first unit, a sum changing w and x alone;
+a real or complex number over a quaternion is the full quotient. No
+operator takes the quotient on the left: inv(q) p is written so, as S277
+rules.**
+- Alternative: `\` the quotient on the left, MATLAB's, as chunk 44's
+  handoff had it: an operator S277 did not give, one more for the parser
+  that S190's agreement is deciding.
+- Alternative: a real or complex operand taken as a quaternion of +0 parts:
+  one path for every operand, a zero part's sign lost, as G.5 avoids for
+  complex numbers.
+- Alternative: dense arithmetic by the `_fast` forms, the former formulas:
+  some 60 times faster in double, each part within a few steps, not one.
+
+> **Review.** Taken: for, exact arithmetic exact, the quotient on the right
+> as S277 rules; dense arithmetic `quat.h`'s accurate forms, each part
+> within a step; a real or complex operand taken as itself, so that a zero's
+> sign survives as C99's G.5 keeps it for complex numbers; against, a dense
+> product or quotient costs Dot2's pairs, some 60 ns in double where the
+> former formula took 1, as S358 measured; the quotient on the left has no
+> operator of its own. The alternatives: `\`, an operator S277 did not give;
+> every operand a quaternion of +0 parts, the zeros' signs lost; the `_fast`
+> forms, a few steps off. Recommended: as taken. Taken.
+
+**S373. |q| is the norm: of exact parts the root of the exact sum of their
+squares, exact where it is the square of a rational of the family, |1 + 2im
++ 2jm + 4km| being 5, and otherwise the long double nearest it; of dense
+parts `quat.h`'s scaled norm, the root correctly rounded (S361). A
+quaternion equals a number whose parts equal its own, a real or complex
+number's missing parts 0, by `value.h`'s exact order, and stands in no
+order otherwise, nor with a NaN part; the language's < <= > >= of one are a
+domain error. It converts to a float, double or long double where its im,
+jm and km parts are 0, of either sign, its w's nearest, with the rounding's
+direction; no exact quaternion converts, as none is real. Its text is w,
+then each other part's sign, magnitude and unit, 1 + 2im - 3jm + 4km, exact
+parts as integers or fractions, floating-point ones in max_digits10 digits,
+a part that is no finite number by its name, nan*jm; the language writes
+one in brackets, (1 + 2 * im - 3 * jm + 4 * km), and reads it back as its
+value.**
+- Alternative: `abs` the norm squared, as some libraries' `norm` is: no
+  root to round, but not |q|, which the bars mean.
+- Alternative: an order of the parts taken in turn, for sorting: an order
+  that no algebra of the quaternions keeps.
+
+> **Review.** Taken: for, |q| the norm the bars mean, exact where rational,
+> the C core's correctly rounded root where dense; equality by the parts, no
+> order, as no field's order of the quaternions exists; conversion where the
+> number is real, never of an exact quaternion; a text that reads as the
+> language writes it; against, a quaternion is unordered with every number,
+> so `min`, `max` and the order relations take none. The alternatives: the
+> norm squared, not |q|; an order no algebra keeps. Recommended: as taken.
+> Taken.
+
+**S374. The language's functions of a quaternion are those S275 names.
+`quat(w, x, y, z)` makes one of four real parts; `parts(q)` gives its parts
+as the row [w, x, y, z], of a real or complex number too, a missing part a
+0 of its parts' kind; `real` and `conj` give its real part and conjugate,
+and `q'` its conjugate, as a complex number's z' is (S333); `abs` and the
+bars its norm; `inv(q)` its inverse, exact for exact parts; `sign(q)` q /
+|q|, exact where |q| is rational, a 0 itself; `exp`, `log` and `sqrt` the
+complex functions in q's plane, `quat.h`'s `_c` forms in the tower's type,
+dense, `sqrt` exact where the root is a quaternion of rationals; and q ^ r
+of a real r exact by repeated squaring for a whole r, a negative one the
+inverse's, and for a rational p/s where q's principal s-th root is a
+quaternion of rationals, the Gaussian root in q's plane (S337) where |v| is
+rational, and otherwise `quat.h`'s `pow_c`. Every other function of a
+quaternion is a domain error -- `imag` and `arg`, whose parts `parts`
+gives, `complex(x, y)`, the functions of the real line's order, the
+trigonometric and hyperbolic functions and their inverses, `exp2`, `log2`,
+`log10`, `log1p` and `expm1` -- and so is a quaternion exponent of any
+base, and a complex one of a quaternion, whose two orders give two
+values.**
+- Alternative: `imag(q)` the vector part [x, y, z] and `arg(q)` its angle,
+  atan2(|v|, w): functions that give a number of every other number giving
+  a vector of a quaternion.
+- Alternative: every function of the complex numbers in q's plane, as
+  `exp`, `log` and `sqrt` are: `sin(q)`, `log2(q)` and the rest, past
+  S275's list, each without `quat.h`'s kernel.
+- Alternative: `parts(q)` a column: the language's vectors are rows, as
+  its literal [a, b] is (S240).
+
+> **Review.** Taken: for, the functions S275 names, each its principal
+> value, the complex function in q's plane, `quat.h`'s bits; exact roots and
+> powers wherever they are quaternions of rationals; every other function a
+> domain error, so that no value is given where the language has no kernel
+> or no one answer; against, `imag`, `arg`, the trigonometric functions and
+> `log2` of a quaternion have no value, where some libraries give one, and a
+> user writes `parts(q)` for the vector part. The alternatives: `imag` and
+> `arg` giving a vector and an angle; every complex function in q's plane,
+> without kernels; `parts` a column. Recommended: as taken. Taken.
+
+**S375. `rotate(q, v)` is the 3-vector q v q^-1, as S360 makes the C
+core's: v a vector of 1 by 3 or 3 by 1 of real numbers, the result of its
+shape; any q not 0 names the rotation of q / |q|, a real one rotating
+nothing; exact where q's parts and v's elements are, by q's rotation matrix
+times v over |q|^2, each element a sum of exact products, and otherwise
+`quat.h`'s accurate rotation in the widest type of the operands, each
+element within a step (S360). An exact 0 names no rotation, a domain error,
+as do a vector of other than three real numbers, a matrix for q and a
+boolean.**
+- Alternative: q made a unit first, its rotation then q v q*: an exact q
+  not of unit norm no longer exact, its norm irrational.
+- Alternative: a 0 q's rotation NaNs, as `quat.h`'s: a domain error says
+  better what an exact 0 is.
+
+> **Review.** Taken: for, the C core's rotation of any q not 0, exact where
+> q and v are, of v's shape; an exact 0 a domain error; against, an inexact
+> 0 gives the C core's NaNs, not an error, as its exactness is not known.
+> The alternatives: q made a unit first, no exact rotation by a q of
+> irrational norm; NaNs for an exact 0. Recommended: as taken. Taken.
+
+**S376. Simplification keeps a quaternion's factors in their order, as S277
+rules: a factor that holds one, `jm`, `km`, a call of `quat` or a quaternion
+a fold made, keeps its place among the others that do, as a matrix's does
+(S251); and in a product that holds a quaternion, a factor that holds a
+complex number, `im`, a call of `complex` or a complex number a fold made,
+keeps its place too, as im jm is km and jm im -km. Two terms are alike only
+where such factors stand in one order, so that jm * km + km * jm stays and
+jm * km + jm * km is 2 * jm * km; an exact quaternion, or an exact complex
+number beside one, is never part of a coefficient. A real number commutes
+with every factor, and so does a variable, taken for a real number, as S251
+takes one for a number: 2 * jm * 3 is 6 * jm, and x * jm + jm * x is 2 * x *
+jm.**
+- Alternative: a variable keeping its place beside a quaternion: x * jm +
+  jm * x kept as it is, where x is bound to a real number, the common case,
+  as where it is bound to im.
+- Alternative: every factor of a product that holds a quaternion keeping
+  its place, numbers among them: 2 * jm * 3 no longer 6 * jm.
+
+> **Review.** Taken: for, the order S277 rules: a quaternion's factors and a
+> complex number beside them keep their places, so that no simplification
+> changes a product of jm, km and im; numbers and variables still collected,
+> as S251 collects them beside matrices; against, a variable is taken for a
+> real number, so that x * jm + jm * x becomes 2 * x * jm, which bound to
+> im, or to a quaternion, is another value, as S251's x * y + y * x is for
+> matrices. The alternatives: variables keeping their places, x * jm + jm *
+> x uncollected where x is real, the common case; every factor in its place,
+> 2 * jm * 3 uncollected. Recommended: as taken, with S251's declared
+> domains at step 25 (4a), a variable declared complex or a quaternion then
+> keeping its place. **Flag:** significant drawback until 4a: a variable
+> bound to a number that does not commute with a quaternion's factors gets
+> another value from a simplified term.
+
+**S377. In float, double and long double `jm` and `km` are NaNs, as `im`
+is (S271); `quat(w, x, y, z)` is w where x, y and z are 0, of either sign,
+and a NaN otherwise, as complex(x, y) is (S332); `parts` and `rotate`,
+which give vectors, are NaNs, as `cross` is (S351); and a variable bound to
+a quaternion is its w's nearest where its other parts are 0, and a NaN
+otherwise. In math::complex<T> `jm` and `km` are NaNs in both parts, as no
+complex number is a unit past `im`; `quat` of real arguments is w + xi
+where y and z are 0, and a NaN in both parts otherwise; and a bound
+quaternion is the complex number of its w and x where its jm and km parts
+are 0. With real_results, `quat(w, x, y, z)` stands apart, as complex(x, y)
+does (S340): a quaternion asked for by name is not a stray result.**
+- Alternative: `quat` a NaN in every type: quat(2, 0, 0, 0), a real number
+  written as a quaternion, no longer 2 there.
+- Alternative: real_results refusing `quat` too: a context meant to keep
+  results real refusing a quaternion asked for by name, where it allows
+  complex(x, y).
+
+> **Review.** Taken: for, every number in a real type real, as S271 rules
+> for im, and quat's real or complex value where it has one, as complex(x,
+> y)'s is (S332); a bound quaternion its nearest real or complex number
+> where it is one; real_results leaving quat apart, as it leaves complex;
+> against, a typed fold gives a NaN where a value is a quaternion, with no
+> error to say why. The alternatives: quat a NaN in every type; real_results
+> refusing a quaternion asked for by name. Recommended: as taken. Taken.
+
+**S378. The owner's limit of 100 lines a function (2026.11.04) is kept by
+every function chunk 45 wrote or changed: the value fold's application is a
+function of its own, `expr_value_application`, which `expr_evaluate` calls;
+a quaternion's power and the routing of a function past the real numbers are
+functions of their own beside `expr_value_pow` and `expr_value_fn`; the
+standard function table is built in three parts; `expr_matrix` fills its box
+by `expr_matrix_fill_box`; two of the base's test functions it grew,
+`t_expr_face.cpp`'s `d_tests_tables` and
+`t_expr_complex_function_face.cpp`'s `d_tests_complex_fold`, are split; and
+the new test's exact cases are a function of their own. The other functions
+past the limit, 59 in the files chunk 45 changed, each the base's as it was,
+and more in the lane's others, are left for a sweep of their own (section
+6).**
+- Alternative: every function of the lane's past the limit split now: a
+  chunk's work of moves in headers this chunk does not otherwise touch.
+- Alternative: the limit kept by new functions alone: those chunk 45 grew
+  past it or further past it, `expr_evaluate` among them, longer still.
+
+> **Review.** Taken: for, the owner's limit kept by every function the chunk
+> wrote or changed, the five of the base's past it that the chunk changed,
+> `expr_evaluate`, `expr_matrix` and the standard table among them, now
+> within it; each split along a seam the function had, its behaviour
+> unchanged, every test giving what it gave; against, 59 of the base's
+> functions past the limit stay in the files the chunk changed, each as it
+> was, more in the lane's others. The alternatives: every one split now, a
+> chunk of moves; new functions alone within the limit. Recommended: as
+> taken, the rest swept at step 35 (5g), the style debt, the lane's headers
+> with the expression headers'. Taken.
+
+**S379. The owner's rulings of 2026.11.03 and 2026.11.04 on the flagged
+decisions (lane A's message of 11-04), each at the step the lane schedules,
+are scheduled so: S336's and S340's, which take the alternatives their
+reviews set aside -- the plain forms in a complex type and the `_c` forms as
+values, the docs saying where a value and `math::complex<T>` may differ;
+and real_results an option each function's evaluator takes with the
+context, every evaluator's signature changed -- in chunk 46, before
+matrices of quaternions, so that its evaluators are written once to S340's
+signature; S338's and S341's docs in chunk 45, `function.hpp` saying how
+`min` and `max` differ from C's `fmin` and `fmax` and where MATLAB takes
+`asin`'s and `acos`'s cuts from the other side; S203's `gamma`, `lgamma`,
+`erf` and `erfc` at step 36 (6a), their kernels with the correctly rounded
+forms and their entries in the language with them; S251's declared domains
+at step 25 (4a), as ruled, S376's variables among them; S190, S209 and S252
+as Friday's agreement with lane F decides; and every other at the step its
+review names, S15 at step 36.**
+- Alternative: S336 and S340 in chunk 45: this chunk larger, and its three
+  new entries written to the signature S340 then changes.
+- Alternative: S336 and S340 at step 25 (4a), with the derivative's
+  entries: the evaluators' signature changing after chunk 46's are written.
+
+> **Review.** Taken: for, S336 and S340 made in the chunk after the one
+> under way when they came, before chunk 46 writes evaluators that S340's
+> signature would change, and apart from the quaternions' kind, so that each
+> chunk's change is reviewed alone; the docs S338 and S341 ask for in this
+> chunk, at no cost; S203's special functions placed with the correctly
+> rounded forms, their kernels' method; against, chunk 45's three new
+> entries change their signature again in chunk 46, and S336's two answers
+> wait a chunk. The alternatives: both in chunk 45, a larger chunk; both at
+> 4a, the signature changing after chunk 46. Recommended: as taken. Taken.
+
+**S380. The checks: `t_expr_quaternion_face.cpp`, new, 71 checks: the kind,
+exact arithmetic against the test's own quaternions of rationals at 3,000
+random pairs, dense arithmetic at 1,500 pairs in each type `quat.h`'s bit
+for bit, the functions and the rotation at 300 random quaternions in each
+type, the rotation at 300 exact ones against the test's own rationals, the
+language, the folds in each type, the renderer read back at 500 random
+quaternions, simplification, the refusals, and every path no other check
+reaches, so that each line chunk 45 wrote that a test can reach is run;
+`t_cplx.c`'s whole powers against `math_tests_cplx_pow_refs.h`, 1,027 rows
+by `refs_c45.py` from mpmath, at points where a part cancels, and their
+zeros' signs at exact points; `t_expr_face.cpp` and
+`t_expr_complex_function_face.cpp` checking `jm`, `km` and the table's 55;
+the fault trial's 55 faults, each caught in every build that can reach it,
+the four its first run missed closed by checks of their own; the full tier
+of every face test and of the four harnesses that include `cplx.h`; the C
+ladder on both trees; and chunk 44's other steps. Laying the base over the
+owner's restructured tree, and the zip with its shims over it, wait for that
+tree, which the lane does not have: `zip_check.txt` lays the zip over the
+10.29 tree, the lane's old layout.**
+- Alternative: chunk 44's queue as it stood, over the restructured tree:
+  not to be had in this chunk.
+- Alternative: the face tests' smoke tier alone: the language's headers
+  changed under every one of them at every level unchecked.
+
+> **Review.** Taken: for, every function and rule chunk 45 wrote checked
+> against an oracle apart from it, the test's own quaternions of rationals
+> and mpmath's references; each path of the kind, exact, dense in each type
+> and of a boxed kind, under the fault trial; every face test at every level
+> of the full tier, and every harness that includes `cplx.h`; against, the
+> restructured tree's checks wait for that tree, and the zip is checked over
+> the 10.29 tree, so the shims lane A makes for it are not exercised here.
+> The alternatives: chunk 44's queue, not to be had; the smoke tier alone.
+> Recommended: as taken, the restructured tree's steps run again when lane
+> A's tree comes. Taken.
+
+**S381. The delivery's lines end as the owner ruled on 2026.11.05: in CRLF
+in every text file but those bash reads, which a carriage return would
+break, in LF: the `.sh` files, and the two ladders' known-failures lists,
+`ci/c_standards_known_failures.txt` and `ci/cpp_standards_known_failures.txt`,
+which `check_c_standards.sh` and `check_cpp_standards.sh` read with grep
+and comm. A file is text where it holds no NUL byte and reads as UTF-8.
+The working tree keeps the 10.29 tree's LF; the lane's tools read either
+ending, as Python's text files take CRLF as LF, and gcc and clang compile
+either.**
+- Alternative: the two lists in CRLF too, the ruling as written: each
+  ladder then taking every listed failure for a new one, and every listed
+  unit for one now passing.
+- Alternative: the two scripts made to strip carriage returns: two of the
+  owner's scripts changed for the sake of line endings.
+
+> **Review.** Taken: for, the ruling's own reason, that bash refuses a
+> carriage return, kept wherever bash reads a file, so that the delivered
+> tree's ladders run as they do in the lane's; every other text file CRLF,
+> as ruled; against, two files besides the `.sh` files in LF, an exception
+> the ruling did not name, which the owner may prefer otherwise. The
+> alternatives: the ladders broken by their lists' endings; two of the
+> owner's scripts changed. Recommended: as taken, the two lists named in the
+> note for the owner's word. Taken.
+
+**S382. A quotient's zero part takes the sign the textbook formula gives
+it, as `cplx.h` says of every operation and as `quat.h`'s quotient keeps
+it: `d_cplx_<S>_div` in every family, `real_div` through it, and the whole
+power's inverse divide the formula's zero by the squared modulus and keep
+it as it is. S281's quotient took q less q n_lo / n for a zero too, which
+makes a -0 +0 wherever the squared modulus's low part is not negative: 1 /
+(-2 + 0i) was -0.5 + 0i, where the formula's (0 (-2) - 1 0) / 4 is -0. The
+fault trial found it (step 8): the two faults planted in the whole power's
+zeros escaped every build, and the checks written for them showed it.**
+Three of the generator's templates change, the family's quotient, its wide
+form and the kernel's, each returning a zero as it is; no part that is not 0
+moves. `t_cplx.c` checks the zeros' signs of quotients exactly and of whole
+powers at exact points against the family's own products and quotient: at 16
+exact points, n from -6 to 6, in every family and both forms, no power off,
+of 234 zero parts for n > 0 and 234 for n < 0, on the host and on the x87
+(`raw/distances.txt`).
+- Alternative: the quotient as it was, the docs saying where its zero is
+  +0: a sign that follows how the squared modulus rounds.
+- Alternative: every zero part of a quotient +0: one rule, but not the
+  products' or `quat.h`'s, so that a complex number's quotient and a
+  quaternion's of the same parts would differ.
+
+> **Review.** Taken: for, the sign `cplx.h`'s text promises, the formula's,
+> kept by the quotient as by every other operation and by `quat.h`'s
+> quotient, so that a complex number's quotient and a quaternion's of the
+> same parts agree; the whole power's inverse, which takes its zero as the
+> division takes it, with it; a zero returned as it is in three templates,
+> no part that is not 0 moved; against, a quotient's zero that was +0 is -0
+> where the formula says so, a change a program that prints a quotient's
+> parts may see, though no value compares otherwise. The alternatives: the
+> old sign, documented, which follows the rounding of the squared modulus;
+> +0 for every zero of a quotient, apart from the products' rule and
+> `quat.h`'s. Recommended: as taken. Taken.
+
+### S383 to S394: chunk 46, 2026.11.08
+
+The record: `_handoffs/math98_chunk46_2026.11.08/README.md`.
+
+**S383. Chunks 44 and 45 are laid into the owner's restructured tree, his
+tree of 2026.11.07, by the lane itself, as he chose on 2026.11.07 ("Convert
+44+45 here"), and the lane's C types are renamed `dj_` inside the same
+conversion ("Inside this conversion"): `struct dj_cplx_f`, `dj_quat_d`,
+`dj_math_imax` and the rest, as his tree names every other module's. From
+this chunk the lane works in the restructured layout alone:
+`inc/djinterp/c/modules/math/`, `inc/djinterp/cpp/modules/math/` with
+`expr/` and `linear_algebra/` under it, the tests under
+`tests/djinterp/c/modules/math/` and `tests/djinterp/cpp/modules/math/`,
+the checks under `scripts/ci/`, the generator `scripts/gen_c_math_float.py`.
+Each file the two chunks changed was merged three ways against the lane's
+chunk 43, which his tree holds converted; the generator was converted and
+makes the C core's generated headers as the tree holds them; no check of a
+test changed but the names. The conversion's own edits: banners' tags and
+paths as the tree's, the changed files' revised dates, columns realigned
+where a name grew, lines past 80 broken, and `t_quat.c`'s
+`d_tests_references` in two, each under his 100 lines.** The package he
+asked for on 2026.11.07 and set aside the same evening ("Forget it, just
+continue with the next chunk") is this chunk's zip instead, with chunk 46.
+`t_interval_face`, which his tree does not build (`dj_math_umax` not
+declared, lane C's report), builds and passes with it.
+- Alternative: lane A converts, as it did chunks 41 to 43: the lane's tree
+  and his a chunk apart again, and chunk 46 built over a layout he no
+  longer has.
+- Alternative: the rename left to a chunk of its own: every later chunk's
+  merge crossing it.
+
+> **Review.** Taken: for, the lane's tree and the owner's one tree again, in
+> his layout and his names, so that chunk 46 and every later chunk is built
+> and checked on the tree he has, with his own checks; the merge three ways
+> against the lane's chunk 43, which his tree holds, so that his edits to
+> the lane's files since are kept; no check changed, which the smoke tier's
+> lines show, byte for byte chunk 45's; against, a conversion the lane had
+> not made before, a hundred and more files touched in one step, and the
+> records before it, with their tools, still name the old paths, so that an
+> old record's tool runs on the new tree only through `refs_paths_c46.py` or
+> by hand. The alternatives: lane A converting, a chunk behind again; the
+> rename apart, every later merge crossing it. Recommended: as taken, the
+> owner's own choice on 2026.11.07. Ruled 2026.11.07 (the owner's): convert
+> here, the rename inside.
+
+**S384. The owner's ruling S336 is made as he ruled it: `math::complex<T>`'s
+functions by their own names, `abs`, `arg`, `exp`, `log`, `sqrt`, `pow`
+and the rest, are `cplx.h`'s plain forms at run time, on the C library's
+real functions, and its `_c` forms in a constant expression from C++20,
+where `std::is_constant_evaluated` tells the two apart; the names ending
+`_c`, `exp_c` and the rest, new, are the `_c` forms at every level,
+constant expressions from C++14 as the functions were. The language's
+values keep the `_c` forms, one value on every build; a fold in
+`math::complex<T>` takes the plain ones, as a fold in a real type takes the
+C library's. So a value and a fold in a complex type may differ, each
+within its form's bound, as the README says where it describes both.**
+`t_complex_face.cpp` holds each function by its name to the plain form and
+by its `_c` name to the `_c` form, bit for bit, and counts the points where
+the two differ. With clang on the x87 the plain forms' bits in float and
+double are not held to, as S37 says of every float and double kernel there:
+one function gives one argument other bits from one call's place to
+another's.
+- Alternative: the `_c` forms by the plain names from C++14 as constant
+  expressions, the plain forms by names of their own: the ruling's
+  two answers, but the fast form no longer the default.
+- Alternative: below C++20 the names not constant expressions at all, so
+  that a constant expression never gives other bits than the run time:
+  C++14's and C++17's constant expressions of them lost. As made, below
+  C++20 a name is not a constant expression and its `_c` name is.
+
+> **Review.** Ruled: for, the ruling as the owner gave it: the C library's
+> speed by the names a caller reaches for, and the `_c` forms, one answer on
+> every build, by names of their own and in constant expressions;
+> `std::is_constant_evaluated` keeps a C++20 constant expression the `_c`
+> form's, so that a constant never depends on the library; against, two
+> answers for one computation, a value's and `math::complex<T>`'s, each
+> within its bound, which the ruling accepted; below C++20 a function by its
+> own name is no constant expression, where chunk 39's was from C++14, a
+> program that used one so must take the `_c` name; and the plain forms'
+> bits vary with the C library and, with clang on the x87, with the call's
+> place (S37). The alternatives: the `_c` forms by the plain names, the
+> default then the slow form; no constant expressions below C++20 under
+> either name. Recommended: as ruled and as made, the `_c` names keeping
+> every constant expression chunk 39 gave. Ruled 2026.11.04 (S336); made as
+> ruled.
+
+**S385. The owner's ruling S340 is made as he ruled it: every evaluator of
+the function table takes the fold's context, `Type (*)(const Type*,
+std::size_t, const expr_context&)`, the caller's tables' evaluators among
+them, and `expr_context` moves to `expr_common.hpp` so that the table can
+name it. Each value evaluator that can give a complex answer of real
+arguments holds its own answer real where the context asks
+(`expr_real_only`), a domain error whatever the operands' exactness; the
+fold no longer judges an answer after the call; the typed folds take a
+context too, a NaN in a real type and, under `real_results`, a NaN in a
+complex type where the arguments are real and the answer is not. A matrix
+holding a quaternion counts as not real, as one holding a complex number
+does. S272's drawback, the option on some evaluators and not others, is
+gone with it.** Every evaluator's signature changes: a caller's own table
+must add the parameter, a compile error until it does, as the ruling
+accepted.
+- Alternative: the old signature kept beside the new, a table taking
+  either: two kinds of evaluator for good, to spare one edit.
+- Alternative: the context reached through a thread's variable: no
+  signature changed, and an evaluator's answer no longer a function of its
+  arguments.
+
+> **Review.** Ruled: for, the ruling as the owner gave it: one rule, every
+> evaluator answering for its own result under the option, a function of its
+> arguments and the context alone; the fold's judgment after the call, which
+> could not see why an answer was complex, gone; the typed folds honoring
+> the option too; S272's uneven option even; against, every evaluator's
+> signature changed, a caller's own table a compile error until its
+> evaluators take the parameter, which the ruling accepted, and one more
+> argument passed on every call. The alternatives: both signatures for good;
+> the context in a thread's variable. Recommended: as ruled and as made.
+> Ruled 2026.11.04 (S340); made as ruled.
+
+**S386. A matrix holds a quaternion as it holds a complex number (S277,
+S243): densely, as `math::quaternion<T>` of the widest floating-point type
+among its elements' parts, where every element is a float, a double, a long
+double, or a complex number or a quaternion of such parts, three storages
+after the complex ones, a real element x then x + 0im + 0jm + 0km and a
+complex one x + y im + 0jm + 0km; as values, each element of its own kind,
+where any is exact or of a boxed kind. A dense storage of quaternions wins
+over a complex one of the same type, and a wider type over a narrower.
+`expr_matrix` answers no element `not_yet`; no node of the language does
+(S369's are all values now).**
+- Alternative: every matrix holding a quaternion as values: no new
+  storage, and each element's arithmetic through the value's tables, some
+  tens of times slower for the matrices a rotation's user has.
+- Alternative: a complex adjoint stored, 2n by 2n complex: the complex
+  kernels reused, twice the memory, and no element's bits `quat.h`'s.
+
+> **Review.** Taken: for, S277 as ruled and S243's pattern kept: a dense
+> matrix of quaternions is contiguous `math::quaternion<T>`, `quat.h`'s
+> array, its elements' bits the kind's; real and complex elements widen as
+> the kind widens them, with +0 parts; exact matrices stay exact as values;
+> against, three more storages for every function of the matrix kind to
+> dispatch on, some 2,200 lines of `expr/matrix.hpp`, which is past 8,000
+> now; a matrix of quaternions and real numbers stores each real one as four
+> parts. The alternatives: values always, tens of times slower dense; a
+> stored adjoint, twice the memory and no element's bits `quat.h`'s.
+> Recommended: as taken; `expr/matrix.hpp` split by concern at the next step
+> that touches it, which 4a's rewrite of the parser layer is not; minor.
+> Taken.
+
+**S387. A matrix of quaternions computes with the quaternion kind's own
+arithmetic, element by element: `expr_quaternion_operand`, a quaternion and
+the parts it holds, 1, 2 or 4, whose operators are the kind's dense
+arithmetic, a real or complex operand taken as itself, as the kind takes it
+(S372), so that each element of a sum, of a product's sum or of a scaling
+is the kind's own operation on its two, bit for bit. The generic kernels
+compute on these operands, their traits saying they do not commute (S269):
+a product's element sums a_ik b_kj, in that order, from 0; `q * A` and `A *
+q` are two matrices, `A / q` is `A inv(q)`, and `q / A` a domain error as
+every number over a matrix is; `-A` negates each part; `A'` conjugates each
+element and `transpose(A)` moves it; `A ^ n` is the product's power and
+`A ^ 0` the identity of A's storage. Exact matrices compute as values, each
+product in its order.** The kind's own dense binary operations were
+rewritten on the same operands, bit for bit what they were
+(`t_expr_quaternion_face.cpp`, unchanged, 71 of 71). Found with it: `A ^ 0`
+of a dense complex matrix was the exact identity, not complex; it is the
+identity of A's storage now.
+- Alternative: every element a full quaternion in the kernels, a real one
+  w + 0im + 0jm + 0km: simpler, but 2 * q then q's parts times 2 and a +0
+  or -0 from the products with 0, other bits than the kind's own 2 * q.
+- Alternative: `quat.h`'s Hamilton product on the adjoint's complex
+  blocks: no element's bits the kind's.
+
+> **Review.** Taken: for, one arithmetic for a quaternion wherever it
+> stands: an element's sum, product or quotient is the kind's own, bit for
+> bit, in a matrix or alone, a real or complex operand as itself, so that 2
+> * A is each element doubled and nothing else; the generic kernels, already
+> proved for values and complex numbers, keep each product's order (S269);
+> the kind's own operations rewritten on the same operands with no bit
+> changed; `A ^ 0` of a dense complex matrix found and fixed with it;
+> against, an operand carries the count of its parts beside them, a branch
+> in each product, some tens of percent slower than a bare Hamilton product;
+> a matrix product is the kernels' triple loop, no blocking. The
+> alternatives: every element a full quaternion, other bits than the kind's
+> for a real or complex element; the adjoint's complex products, no
+> element's bits the kind's. Recommended: as taken; speed with step 40's
+> work, measured first. Taken.
+
+**S388. The square algebra of a matrix of quaternions is the generic
+kernels' on the kind's operands, each product in its order and each row
+divided on the left, as A X = B asks (S269): `inv` by Gauss-Jordan with a
+pivot of largest |w| + |x| + |y| + |z|, `solve(A, B)` by elimination of
+[A | B], a singular matrix a pole; exact matrices on values whose traits
+say they do not commute (`expr_matrix_skew`), so that an exact inverse is
+exact; a matrix of values holding an inexact element in its widest type's
+quaternions. `det` of a matrix holding a quaternion is a domain error: no
+determinant of quaternion matrices is both multiplicative and the complex
+one on complex matrices (Dieudonne's is real, Study's the adjoint's, a
+square), and the language has one `det`. `trace` is the diagonal's sum;
+`norm` the Frobenius norm of the moduli, scaled as every norm is; `dot(a,
+b)` sums conj(a_i) b_i, in that order, from 0, as the complex one
+conjugates its first (S273); `cross` conjugates nothing, each product in
+its order.**
+- Alternative: `det` as Study's determinant, det of the complex adjoint, or
+  Dieudonne's, its root: each a real number that is not the complex
+  determinant on a complex matrix, under the name that is.
+- Alternative: `inv` and `solve` through the complex adjoint's LU: the
+  complex kernels reused, and an exact matrix's inverse no longer exact
+  without a path of its own.
+
+> **Review.** Taken: for, A X = B solved as it is written, every product in
+> its order and rows divided on the left, the one consistent convention with
+> S269's kernels; exact matrices exact, by values that say they do not
+> commute; a singular matrix a pole as every other is; `det` refused and not
+> given a meaning the name does not have on complex matrices, where every
+> system the language is measured against that has quaternion matrices
+> either has no determinant of them or names Dieudonne's and Study's apart;
+> `dot` conjugating its first as the complex one does; against, no
+> determinant at all of a quaternion matrix, where a user may want Study's,
+> a function of its own name a later step could give; Gauss-Jordan with a
+> pivot by the sum of the parts' magnitudes, not the modulus, within a
+> factor of 2 of it, as the complex kernel's is. The alternatives: `det` as
+> Study's or Dieudonne's under the complex determinant's name; the adjoint's
+> LU, an exact inverse lost. Recommended: as taken. Taken.
+
+**S389. `eig` of a matrix of quaternions gives Zhang's standard right
+eigenvalues: the n complex numbers of imaginary part 0 or more, one from
+each class of similar right eigenvalues, as a 1 by n row, by real part and
+then imaginary. They are those of the complex adjoint [A1, A2; -conj(A2),
+conj(A1)], A = A1 + A2 jm, 2n by 2n, found as a complex matrix's are, in
+A's type or exactly (S352, S353), which come in conjugate pairs; one of
+each pair is given, the pairs matched nearest first in the plane folded
+onto its upper half, the member of the larger imaginary part taken. A
+triangular matrix's are its diagonal's, each element's own, w + |v| i,
+exactly where |v| is rational, since rounding would part a repeated pair. A
+Hermitian matrix's are real. A domain error where the adjoint's are not
+each found, NaNs where A holds one.** Checked against references mpmath
+computes at 50 digits, ten matrices (`math_tests_expr_qmatrix_refs.h`,
+`refs_c46.py`): exact matrices within 2^-56 of each, double within 2^-44,
+float within 2^-16, relative to the spectrum's largest.
+- Alternative: left eigenvalues, A x = lambda x: no finite method finds
+  them past n = 2, and they are no invariants of similarity.
+- Alternative: every right eigenvalue's class given as a quaternion: an
+  answer of infinitely many members written as one of them, where the
+  standard one is the member every text picks.
+- Alternative: a quaternion QR on A itself, no adjoint: half the work at
+  large n, a kernel of its own to prove; the adjoint's is the complex
+  path's, already bounded. Worth taking up with step 40's speed work.
+
+> **Review.** Taken: for, the eigenvalues every text on quaternion matrices
+> means, the invariants of similarity, complex numbers a caller can compare
+> and sort, found by the complex path already bounded (S352, S353), exactly
+> where the adjoint's are Gaussian rationals; a triangular matrix's exact, a
+> repeated pair never parted by rounding; references from mpmath at 50
+> digits held to the complex path's own bounds; against, the adjoint is 2n
+> by 2n, so the work is some 8 times a complex matrix's of A's size and its
+> memory 4 times; the pairing of the adjoint's 2n eigenvalues into n is by
+> nearness, which a cluster of nearly equal eigenvalues may match across
+> pairs, each answer then still within the cluster's width; no eigenvectors,
+> as for complex matrices. The alternatives: left eigenvalues, which no
+> finite method finds past n = 2; a class written as one quaternion; a
+> quaternion QR, half the work, a kernel to prove. Recommended: as taken; a
+> quaternion QR at step 40 (6e) where measured demand asks for one. Taken.
+
+**S390. A quaternion is a scalar to linear algebra's functions, as a real
+or complex number is (S356): `det(q)` a domain error, as a matrix's is
+(S388); `inv(q)` 1 / q; `trace(q)` q; `norm(q)` |q|; `eig(q)` its standard
+eigenvalue w + |v| i, exact where |v| is rational and otherwise in q's type,
+`quat.h`'s norm of v; `dot(p, q)` conj(p) q; `transpose(q)` q and `q'`
+conj(q); `solve(a, B)` of a number a is B / a where a is real or nothing
+holds a quaternion, and otherwise a^-1 B, on the left, `quat.h`'s left
+quotient where dense.**
+- Alternative: `eig(q)` q itself, as `eig` of a real or complex number is:
+  not a complex number, where every other eigenvalue the language gives of
+  a quaternion matrix is, and other than `eig([q])`.
+- Alternative: `det(q)` |q| or |q|^2, the 1 by 1 Dieudonne and Study
+  determinants: S388's reason again.
+
+> **Review.** Taken: for, every function of linear algebra answering a
+> quaternion as it answers a 1 by 1 matrix of one, so that `eig(q)` and
+> `eig([q])` agree, a complex number as every eigenvalue of a quaternion
+> matrix is; `solve(q, B)` on the left, as `solve(A, B)` is; no node
+> `not_yet`; against, `eig(q)` is not q, where `eig(z)` of a complex z is z,
+> a difference a reader must learn, which the docs give with its reason: q's
+> class has one complex member of imaginary part 0 or more, and that is the
+> answer. The alternatives: `eig(q)` q itself, other than `eig([q])`;
+> `det(q)` a modulus, S388's reason against it. Recommended: as taken.
+> Taken.
+
+**S391. `expr/rotation.hpp`, new, holds a quaternion's functions that give
+or take a vector or a matrix, so that the matrix kind, which holds
+quaternions now, is read after the quaternion kind: `parts` and `rotate`
+move there from `quaternion.hpp`, unchanged, and three functions come to
+the language, 58 in its table. `rotmat(q)` is the 3 by 3 matrix of the
+rotation q names, R v = q v q^-1 for any q but 0: exact where q is, R |q|^2
+over |q|^2, and otherwise `quat.h`'s `to_matrix3`. `rotquat(R)` is the unit
+quaternion of a rotation's matrix, w >= 0, by Shepperd's method as `quat.h`
+computes it, w's candidate first among equals: exact where R is and the
+root is rational, otherwise `quat.h`'s `from_matrix3`; of a 4 by 4 matrix,
+its upper left; R is taken for a rotation's and not tested for one, as
+`quat.h` takes it. `slerp(p, q, t)` is the shorter arc between the
+rotations p and q name, `quat.h`'s accurate slerp of the two normalized,
+in the widest type among the three, long double where all are exact. An
+exact 0 names no rotation, a domain error; a dense 0 gives NaNs; a t that
+is not real, a matrix where a quaternion is asked, or a quaternion where a
+matrix is, a domain error; in a typed fold each is a NaN, as `parts` is.**
+- Alternative: MATLAB's names, `rotmat` and `quaternion(R, 'rotmat',
+  'point')`, or its Robotics toolbox's `quat2rotm` and `rotm2quat`: the
+  second pair says more, in a language whose other names (`quat`, `parts`,
+  `rotate`) are single words.
+- Alternative: `rotquat` testing R for a rotation's matrix within a
+  tolerance, a domain error otherwise: a tolerance to choose, and an
+  answer refused for a matrix a product of rotations has drifted to.
+- Alternative: `slerp` exact where its result is, t = 0, 1 or 1/2 of
+  suitable p and q: three special cases of a function whose answers are
+  otherwise never exact.
+
+> **Review.** Taken: for, the three functions S369 promised, each `quat.h`'s
+> kernel bit for bit where dense and exact where the answer is,
+> `rotquat(rotmat(q))` giving q's unit quaternion exactly for a q of
+> rational modulus; the kinds read in an order with no cycle; R v = q v q^-1
+> the one convention, `rotate`'s and MATLAB's 'point'; against, the names:
+> `rotmat` is MATLAB's, `rotquat` is the lane's own, made to pair with it,
+> where MATLAB's Robotics toolbox says `quat2rotm` and `rotm2quat` and SciPy
+> `as_matrix` and `from_matrix`, so a user arriving from either must look
+> them up; `rotquat` does not test its matrix for a rotation's, so a matrix
+> that is none gives a quaternion that means nothing, silently, as
+> `quat.h`'s kernel does; `slerp` is never exact. The alternatives:
+> `quat2rotm` and `rotm2quat`; `rotquat` refusing within a tolerance;
+> `slerp` exact at three special points. Recommended: as taken, the names
+> for the owner's word before 0.8 fixes them. **Flag:** minor: the names
+> `rotmat` and `rotquat` are the lane's choice, for the owner's word;
+> `rotquat` takes its matrix for a rotation's untested.
+
+**S392. `linalg::dynamic_matrix<T>` takes every element type the fixed-size
+matrix takes, each that `number_traits` specializes (S354): float, double
+and long double on the C core's kernels, any other arithmetic type through
+double, and `math::complex<T>`, `math::value` and `math::inline_value` on
+the generic path, each zero, one and tolerance the traits', each product in
+its order. The Frobenius norm of a complex one is a T, the C core's scaled
+norm of the parts, as the fixed-size matrix's is; a tolerance is of the
+traits' magnitude type; a type without traits is refused at compile time.
+Quaternions it does not take, where S354's review said all at once:
+neither face's quaternion has sums or traits, and the fixed-size matrix
+does not take them either; the language's matrices of quaternions compute
+with the kind's own operands (S387).**
+- Alternative: `math::quaternion<T>` given sums and `number_traits`, both
+  faces' matrices then taking it: the face's quaternion made a number
+  type, with a magnitude and a pivot rule to choose, for a matrix no user
+  has asked of the faces; the language has it.
+- Alternative: `dynamic_matrix` alone taking the language's operand type:
+  an internal type of the language in the face.
+
+> **Review.** Taken: for, the face's runtime-sized matrix of complex
+> numbers, Eigen's `MatrixXcd`, the gap S354's review named, closed, and of
+> values and inline values with it, each on the generic path the fixed-size
+> matrix proved, the two faces' matrices now taking the same element types;
+> a type without traits refused at compile time, not at link time or run
+> time; against, S354's review said complex numbers, values and quaternions
+> at once, and quaternions are not taken: the face's `math::quaternion<T>`
+> has products and no sums or traits, so neither matrix of the faces can
+> hold one, and a user who wants a matrix of quaternions has the language's
+> and no C++ type. The alternatives: `math::quaternion<T>` made a number
+> type, sums, traits, a magnitude and a pivot rule, both matrices then
+> taking it; the language's operand type in the face. Recommended: the first
+> alternative, with step 40 (6e) or sooner on demand, both faces' matrices
+> at once; as taken until then. **Flag:** not the earlier review's
+> recommendation in full: neither face's matrix holds quaternions; the
+> language's does.
+
+**S393. Chunk 46's checks are the restructured tree's own, the owner's
+tools where he has one: `scripts/ci/check_math_tests.sh` for the tiers,
+`scripts/ci/ladder.py` and `check_style.py` against their known lists in
+place of the lane's ladders and the consolidation's style check, the
+generator's `--check`; and the record's tools for the rest, each chunk
+45's rewritten for the layout. The smoke tier runs on the snapshot and on
+his tree, and each line is compared with chunk 45's run, byte for byte
+where chunk 46 changed no check: the conversion's proof that it changed
+none. The full tier runs every face test and every C harness, the C core
+renamed under each. References made before the restructure are made again
+by their tools and compared with the tree's, line for line, the banner's
+tag and date and the realigned columns apart (`refs_paths_c46.py`).
+`t_complex_face.cpp` does not hold the plain forms' bits in float or
+double with clang on the x87 (S384, S37).**
+- Alternative: the lane's own ladders and style check kept beside his:
+  two verdicts on one tree.
+- Alternative: the smoke tier alone after a conversion that changed no
+  check: the rename under every harness at every level unchecked.
+
+> **Review.** Taken: for, one verdict on one tree, the owner's tools', which
+> his CI runs; the conversion proved by the smoke tier's lines against chunk
+> 45's, byte for byte, and by every harness's full tier under the rename;
+> old references remade by their own tools and compared line for line; the
+> plain forms held to their bits wherever a compiler keeps them; against,
+> the lane's own ladders, which built every unit at every level, are retired
+> for his `ladder.py` and its known list, whose coverage is his to keep;
+> clang's x87 is not held to the plain forms' bits in float and double
+> (S37), a build the tier runs. The alternatives: both sets of checks, two
+> verdicts; the smoke tier alone after the rename. Recommended: as taken.
+> Taken.
+
+**S394. The delivery is one cumulative zip over the owner's tree of
+2026.11.07, the restructured layout: every file of the lane's working tree
+that his tree has not or holds otherwise, the records with it, the note,
+`MANIFEST.md` and `HANDOFF.md` beside its `djinterp/` folder, `decisions.md`
+and `zip_check.txt` apart. It supersedes chunk 45's zip, which was over his
+10.29 tree in the old layout, and needs no earlier one. Lines end in CRLF
+but in the `.sh` files, LF, as bash asks (S381, his ruling of 2026.11.05);
+`scripts/ci/`'s known lists, which his Python tools read, are CRLF as his
+tree has them, where the old layout's two, read by grep and comm, were LF.
+The lane commits nothing: the zip is files to copy.**
+- Alternative: a zip of chunk 46's changed files alone: smaller, and not
+  enough over his tree, which has chunks 41 to 43 and not 44 or 45.
+- Alternative: the zip over his tree of 2026.10.27 as before: the old
+  layout, which the lane has left (S383).
+
+> **Review.** Taken: for, one zip over the tree the owner has, in his
+> layout, enough alone; the records with it, which `decisions.md` and the
+> record tools read; the endings as he ruled and as his tree has them;
+> nothing committed, as he asked; against, the zip repeats every lane file
+> his tree lacks or holds otherwise, the records among them, tens of
+> megabytes for a chunk that changed 21 files; a tree older than 2026.11.07
+> is not served. The alternatives: chunk 46's files alone, not enough over
+> his tree; the old layout's base. Recommended: as taken. Taken.

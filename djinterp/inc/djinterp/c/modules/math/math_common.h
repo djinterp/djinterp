@@ -5,7 +5,7 @@
 *   The math module is a C core with C++ faces, as memory, color and
 * functional are. Every algorithm is written once, here in the C layer, and
 * compiled by both languages: a C program calls it, and the C++ faces under
-* inc/djinterp/math/ forward to it rather than restating it.
+* inc/djinterp/cpp/modules/math/ forward to it rather than restating it.
 *
 *   A kernel is a header-defined function. Five qualifiers say what kind:
 *
@@ -41,8 +41,8 @@
 * the two languages never share a symbol and can be linked together freely.
 *
 *   C has no templates, so a kernel that serves every integer type is written
-* once over the widest integer the build can spell -- d_math_imax and
-* d_math_umax, below -- and every narrower type reaches it by a conversion
+* once over the widest integer the build can spell -- dj_math_imax and
+* dj_math_umax, below -- and every narrower type reaches it by a conversion
 * that loses nothing. That is intmax_t and uintmax_t wherever dstdint.h
 * declares them, and long and unsigned long where it cannot (ISO strict C++98
 * wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS,
@@ -58,7 +58,7 @@
 * path:      /inc/djinterp/c/modules/math/math_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -75,8 +75,8 @@ TABLE OF CONTENTS
 2.  WIDEST INTEGERS
     ---------------
     1.  Types
-         1.  d_math_imax
-         2.  d_math_umax
+         1.  dj_math_imax
+         2.  dj_math_umax
     2.  Limits
          1.  D_MATH_UMAX_MAX
          2.  D_MATH_IMAX_MAX
@@ -84,7 +84,7 @@ TABLE OF CONTENTS
 3.  SHARED VALUE TYPES
     ------------------
     1.  Ratio
-         1.  d_math_ratio
+         1.  dj_math_ratio
 4.  EVALUATION
     ----------
     1.  Wider than the type
@@ -188,17 +188,17 @@ TABLE OF CONTENTS
 // 2.1    Types
 //------------------------------------------------------------------------------
 // 2.1.1
-// d_math_imax
+// dj_math_imax
 //   type: the widest signed integer the build can spell.
 // 2.1.2
-// d_math_umax
+// dj_math_umax
 //   type: the widest unsigned integer the build can spell.
 #if defined(INTMAX_MAX)
-    typedef intmax_t                d_math_imax;
-    typedef uintmax_t               d_math_umax;
+    typedef intmax_t                dj_math_imax;
+    typedef uintmax_t               dj_math_umax;
 #else
-    typedef long                    d_math_imax;
-    typedef unsigned long           d_math_umax;
+    typedef long                    dj_math_imax;
+    typedef unsigned long           dj_math_umax;
 #endif
 
 // 2.2    Limits
@@ -209,17 +209,17 @@ TABLE OF CONTENTS
 // C++20 require and every supported target has.
 // 2.2.1
 // D_MATH_UMAX_MAX
-//   constant: the greatest value of d_math_umax.
-#define D_MATH_UMAX_MAX             ((d_math_umax)-1)
+//   constant: the greatest value of dj_math_umax.
+#define D_MATH_UMAX_MAX             ((dj_math_umax)-1)
 
 // 2.2.2
 // D_MATH_IMAX_MAX
-//   constant: the greatest value of d_math_imax.
-#define D_MATH_IMAX_MAX             ((d_math_imax)(D_MATH_UMAX_MAX >> 1))
+//   constant: the greatest value of dj_math_imax.
+#define D_MATH_IMAX_MAX             ((dj_math_imax)(D_MATH_UMAX_MAX >> 1))
 
 // 2.2.3
 // D_MATH_IMAX_MIN
-//   constant: the least value of d_math_imax.
+//   constant: the least value of dj_math_imax.
 #define D_MATH_IMAX_MIN             (-D_MATH_IMAX_MAX - 1)
 
 
@@ -231,11 +231,11 @@ TABLE OF CONTENTS
 // 3.1    Ratio
 //------------------------------------------------------------------------------
 // 3.1.1
-// d_math_ratio
+// dj_math_ratio
 //   struct: a quotient kept as its two terms, each exact or rounded once, so a
 // caller divides in the precision it wants and the result is rounded only once
 // more: a C++ face asked for a float divides two floats, not a long double.
-struct d_math_ratio
+struct dj_math_ratio
 {
     long double numerator;    // the dividend
     long double denominator;  // the divisor; never 0

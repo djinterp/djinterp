@@ -46,13 +46,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_decomp.c -o t_decomp -lm
+*        tests/djinterp/c/modules/math/t_decomp.c -o t_decomp -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_decomp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON, DBL_EPSILON, LDBL_EPSILON, FLT_MIN, ...
@@ -786,7 +786,7 @@ static long double g_worst_vector_##S = 0.0L;                                  \
 static long double g_worst_schur_##S  = 0.0L;                                  \
                                                                                \
 static bool                                                                    \
-d_tests_csame_##S(struct d_cplx_##S _x, struct d_cplx_##S _y)                  \
+d_tests_csame_##S(struct dj_cplx_##S _x, struct dj_cplx_##S _y)                \
 {                                                                              \
     return d_tests_same_##S(_x.part[0], _y.part[0]) &&                         \
            d_tests_same_##S(_x.part[1], _y.part[1]);                           \
@@ -884,7 +884,7 @@ d_tests_residual_##S(const T* _a, size_t _n, const long double* _vr,           \
                                                                                \
 /* the case's matrix in the family, exactly */                                 \
 static void                                                                    \
-d_tests_case_##S(const struct d_tests_eig_case* _c, T* _a)                     \
+d_tests_case_##S(const struct dj_tests_eig_case* _c, T* _a)                    \
 {                                                                              \
     int k;                                                                     \
     for (k = 0; k < _c->n * _c->n; ++k)                                        \
@@ -894,11 +894,11 @@ d_tests_case_##S(const struct d_tests_eig_case* _c, T* _a)                     \
                                                                                \
 /* the driver, both forms, on a copy of _a; whether they agree */              \
 static bool                                                                    \
-d_tests_eigen_both_##S(const T* _a, size_t _n, struct d_cplx_##S* _v,          \
-                       struct d_cplx_##S* _x, bool* _ok, size_t _max_iter)     \
+d_tests_eigen_both_##S(const T* _a, size_t _n, struct dj_cplx_##S* _v,         \
+                       struct dj_cplx_##S* _x, bool* _ok, size_t _max_iter)    \
 {                                                                              \
     T w1[144], w2[144], work1[192], work2[192];                                \
-    struct d_cplx_##S v2[12], x2[144];                                         \
+    struct dj_cplx_##S v2[12], x2[144];                                        \
     size_t p1[12], p2[12], i;                                                  \
     bool ok2, same;                                                            \
     memcpy(w1, _a, sizeof(T) * _n * _n);                                       \
@@ -913,7 +913,7 @@ d_tests_eigen_both_##S(const T* _a, size_t _n, struct d_cplx_##S* _v,          \
 }                                                                              \
                                                                                \
 static void                                                                    \
-d_tests_schur_case_##S(const struct d_tests_eig_case* _c)                      \
+d_tests_schur_case_##S(const struct dj_tests_eig_case* _c)                     \
 {                                                                              \
     const size_t n = (size_t)_c->n;                                            \
     const long double eps = (long double)EPS;                                  \
@@ -921,7 +921,7 @@ d_tests_schur_case_##S(const struct d_tests_eig_case* _c)                      \
     T t[144], tc[144], z[144], zc[144], vr[144], vrc[144], sa[144];            \
     T sv[12], dcol[12], scale[12], scalec[12], rv[12], one[12];                \
     T w3[36], w3c[36];                                                         \
-    struct d_cplx_##S v[12], x[144], v3[12], x3[144], sval[12], svalc[12];     \
+    struct dj_cplx_##S v[12], x[144], v3[12], x3[144], sval[12], svalc[12];    \
     size_t perm[12], permc[12], rowof[12], ilo = 0, ihi = 0, iloc, ihic;       \
     long double norm, norm_b, worst = 0.0L;                                    \
     bool used[12], conv = false, conv3 = false, ok, okc;                       \
@@ -981,7 +981,7 @@ d_tests_schur_case_##S(const struct d_tests_eig_case* _c)                      \
         size_t pick = 0;                                                       \
         for (m = 0; m < n; ++m)                                                \
         {                                                                      \
-            const struct d_tests_eig_value* r = &g_eig_values[_c->value + m];  \
+            const struct dj_tests_eig_value* r = &g_eig_values[_c->value + m]; \
             long double dr, di, d;                                             \
             if (used[m]) continue;                                             \
             dr = (long double)v[k].part[0] - d_tests_text(r->re);              \
@@ -1297,7 +1297,7 @@ d_tests_schur_##S(void)                                                        \
         const T big2[4]  = { 0, -BIG, BIG, 0 };                                \
         const T tiny2[4] = { 0, -SMALL, SMALL, 0 };                            \
         T bad[9];                                                              \
-        struct d_cplx_##S v[12], x[144];                                       \
+        struct dj_cplx_##S v[12], x[144];                                      \
         bool conv = false, ok, nan = true;                                     \
                                                                                \
         ok = d_tests_eigen_both_##S(zero3, 0, v, x, &conv, 1000u);             \
@@ -1376,7 +1376,7 @@ D_TESTS_SCHUR_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MAX_EXP, 3000,
 // normal number and EMAX its largest exponent.
 #define D_TESTS_GUARD_FAMILY(T, S, EPS, TMIN, EMAX)                            \
 /* a case of dlaln2's: (T - w I) X = scale B, 1 by 1 or 2 by 2 */              \
-struct d_tests_solve_##S                                                       \
+struct dj_tests_solve_##S                                                      \
 {                                                                              \
     size_t na, nw;                                                             \
     T      smin, t[4], br[2], bi[2], wr, wi;                                   \
@@ -1397,7 +1397,7 @@ static bool                                                                    \
 d_tests_guard_schur_##S(const T* _h, size_t _n)                                \
 {                                                                              \
     T t[144], tc[144], z[144], zc[144];                                        \
-    struct d_cplx_##S v[12], vc[12];                                           \
+    struct dj_cplx_##S v[12], vc[12];                                          \
     long double norm = d_tests_fro_ld_##S(_h, _n), worst;                      \
     bool ok, okc, form;                                                        \
     size_t i, j;                                                               \
@@ -1483,7 +1483,7 @@ d_tests_guard_pair_##S(T _a, T _b, T _c, T _d)                                 \
 {                                                                              \
     T a = _a, b = _b, c = _c, d = _d, cs, sn;                                  \
     T a2 = _a, b2 = _b, c2 = _c, d2 = _d, cs2, sn2;                            \
-    struct d_cplx_##S v[2], v2[2];                                             \
+    struct dj_cplx_##S v[2], v2[2];                                            \
     long double in[4], out[4], m[4], r[4], err = 0.0L, norm = 0.0L;            \
     long double unit = 0.0L, lc, ls;                                           \
     volatile T im;                                                             \
@@ -1547,7 +1547,7 @@ d_tests_guard_pair_##S(T _a, T _b, T _c, T _d)                                 \
 /* to 2 epsilons; and each row's residual within 4 smin |X| and 8  */          \
 /* epsilons of |C| |X| + scale |B|                                 */          \
 static bool                                                                    \
-d_tests_guard_solve_##S(const struct d_tests_solve_##S* _c)                    \
+d_tests_guard_solve_##S(const struct dj_tests_solve_##S* _c)                   \
 {                                                                              \
     T xr[2] = { 0, 0 }, xi[2] = { 0, 0 }, scale = (T)0, xnorm = (T)0;          \
     const T smini = (_c->smin > (T)2 * TMIN) ? _c->smin : (T)2 * TMIN;         \
@@ -1652,7 +1652,7 @@ static bool                                                                    \
 d_tests_guard_norm_##S(const T* _x, size_t _count, int _kind,                  \
                        long double _want, T _unit)                             \
 {                                                                              \
-    struct d_cplx_##S cx[4], cy[4];                                            \
+    struct dj_cplx_##S cx[4], cy[4];                                           \
     T rn, rnc, cn, cnc, cm, cmc;                                               \
     long double got, gap, room;                                                \
     size_t i;                                                                  \
@@ -1768,7 +1768,7 @@ d_tests_guard_##S(void)                                                        \
     {                                                                          \
         const T h2 = H / (T)2, m3 = (T)1e-3, s2 = (T)2 * TMIN;                 \
         const T s4 = (T)4 * TMIN;                                              \
-        const struct d_tests_solve_##S c[] = {                                 \
+        const struct dj_tests_solve_##S c[] = {                                \
             { 1, 1, m3, { 2, 0, 0, 0 }, { 1, 0 }, { 0, 0 }, 2, 0, false },     \
             { 1, 1, s2, { s4, 0, 0, 0 }, { 4, 0 }, { 0, 0 }, 0, 0, true },     \
             { 1, 2, m3, { 1, 0, 0, 0 }, { 1, 0 }, { 1, 0 }, 1, 0, false },     \
@@ -1869,7 +1869,7 @@ d_tests_guard_##S(void)                                                        \
     /* hypot of a NaN; the parts of order 0 */                                 \
     {                                                                          \
         T a[1] = { 0 }, scale[1], w[1];                                        \
-        struct d_cplx_##S v[1];                                                \
+        struct dj_cplx_##S v[1];                                               \
         size_t perm[1], ilo = 7, ihi = 7, iloc = 7, ihic = 7;                  \
         const T nan = (T)HUGE_VAL - (T)HUGE_VAL;                               \
         ok = (d_internal_decomp_##S##_hypot(nan, (T)1) !=                      \
@@ -1895,7 +1895,7 @@ d_tests_guard_##S(void)                                                        \
     {                                                                          \
         const T m[4] = { 2, 1, 1, 2 };                                         \
         T a[4];                                                                \
-        struct d_cplx_##S v[2], x[4], v1[2], x1[4];                            \
+        struct dj_cplx_##S v[2], x[4], v1[2], x1[4];                           \
         bool conv1 = false, conv = false;                                      \
         ok = d_tests_eigen_both_##S(m, 2, v1, x1, &conv1, 1000u);              \
         for (i = 0; i < 4; ++i) a[i] = m[i] * (TMIN / (T)8);                   \
@@ -2175,8 +2175,8 @@ d_tests_constant_part_##S(size_t _k)                                           \
 {                                                                              \
     T a[9] = { 1, -2, 0, 3, 1, 1, 0, 1, 2 };                                   \
     T work[21] = {};                                                           \
-    struct d_cplx_##S v[3] = {};                                               \
-    struct d_cplx_##S x[9] = {};                                               \
+    struct dj_cplx_##S v[3] = {};                                              \
+    struct dj_cplx_##S x[9] = {};                                              \
     size_t perm[3] = { 0, 0, 0 };                                              \
     (void)d_decomp_##S##_eigen_c(a, 3, v, x, work, perm, 1000u, (T)0);         \
     return (_k < 6) ? v[_k / 2].part[_k % 2]                                   \
@@ -2215,7 +2215,7 @@ d_tests_schur_constant_##S(void)                                               \
 {                                                                              \
     volatile T src[9] = { 1, -2, 0, 3, 1, 1, 0, 1, 2 };                        \
     T a[9], work[21];                                                          \
-    struct d_cplx_##S v[3], x[9];                                              \
+    struct dj_cplx_##S v[3], x[9];                                             \
     size_t perm[3], k;                                                         \
     bool ok = true;                                                            \
     for (k = 0; k < 9; ++k) a[k] = src[k];                                     \

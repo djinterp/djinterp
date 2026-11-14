@@ -3,8 +3,9 @@
 The math subframework: scalar kernels, intervals, linear algebra, coordinate
 systems, geometry, and (in progress) expressions, functions and calculus.
 Everything is header-only. The numeric work is written once in C, under
-`inc/djinterp/c/math/`; the C++ headers under `inc/djinterp/math/` are faces
-over it that add what each language level allows.
+`inc/djinterp/c/modules/math/`; the C++ headers under
+`inc/djinterp/cpp/modules/math/` are faces over it that add what each
+language level allows.
 
 This file says what is here and how to build and check it. `roadmap.md`, beside
 it, says what comes next and in what order; `decisions.md` holds every
@@ -16,31 +17,42 @@ feature by feature.
 
 ---
 
-## 1. Status (2026.11.02)
+## 1. Status (2026.11.13)
 
 | Part | Headers | Compiles from | Notes |
 |---|---|---|---|
-| C core (`c/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42) |
+| C core (`c/modules/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44) |
 | interval | 5 | ISO strict C++98 | |
-| linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43) |
+| linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46) |
 | coordinate | 5 | ISO strict C++98 | points are `linalg::vector`s |
 | geometry | 14 | ISO strict C++98 | collections are `re_std::array`s |
-| `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11 |
+| `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; `math::quaternion<T>` and `linalg::quaternion<T>` take every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
 | expression, values, function, functional, calculus (6), `math.hpp` | 11 | C++14 | to be C++11 (owner's N1); kernels to move onto the C core (N3) |
 | `numeric_compare.hpp` | 1 | ISO strict C++98 | numbers written as text compared exactly (chunk 21, M3) |
 | `value.hpp` | 1 | ISO strict C++98 | the generic value's face (chunk 25): `math::value` holds any kind, a box as an `int` holds its number; `inline_value`'s operations are constant expressions from C++14, `math::value`'s from C++20; a complex value's modulus squared, exact where it is (chunk 43) |
 | `number_traits.hpp` | 1 | ISO strict C++98 | the static side (chunk 26): what generic code needs of a number type, the type two numbers combine to, and from C++20 the concept `number`; the field's and the order's traits, the magnitude, the epsilon and a relative tolerance (chunk 38); `number_modulus_squared`, \|x\|^2, which a type of numbers not all real overloads (chunk 43) |
-| `complex.hpp` | 1 | ISO strict C++98 | complex numbers (chunk 39): `math::complex<T>`, of `float`, `double` and `long double`, the face of `cplx.h`'s struct, its operators and C99's functions the C core's, the `_c` forms at every level, constant expressions from C++14; made from a `std::complex<T>` implicitly, giving one by `to_std()`; a field with no order to `number_traits`, its magnitude \|re\| + \|im\|; `exp2`, `log2`, `log10`, `log1p` and `expm1` (chunk 42) |
-| `expr/` | 17 | C++11, empty below | the run-time expression language (chunks 28 to 36 and 39 to 43): every header of Phases 2 to 4 in place, its types whole; numbers, `+ - * / mod ^`, the factorial, calls of the C core's functions, the constants `pi`, `e`, `true` and `false`, the relations, logic and piecewise parse, print and evaluate, in each floating-point type and exactly as a value; substitution and simplification; the handle, `math::expr`, chains them; vector and matrix literals, `[1, 2; 3, 4]`, blocks `[A, b]` and the empty matrix `[]`, parse, print and evaluate to matrix values, exact or dense, with their sums, products, transposes, powers and indexing, `A[i, j]`, and linear algebra's functions, `det`, `inv`, `trace`, `norm`, `eig`, `dot`, `cross` and `solve`; complex numbers, `3 + 4im`, a kind of the value exact where their parts are, with `complex`, `real`, `imag`, `conj`, `arg`, the modulus, `z'`, `=` and `!=`, and exact powers to a whole exponent (chunk 40); each function's principal complex value, exact where it is a Gaussian rational, a real function's outside its real domain unless the context asks real results, `log1p`, `expm1`, `asinh`, `acosh`, `atanh`, `sign`, `min` and `max`, and the folds in `math::complex<T>` (chunk 41); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex value, `cplx.h`'s, and of a real one outside its real domain (chunk 42); matrices of complex numbers, dense or exact, their arithmetic, `A'` conjugating, `transpose`, the parts of a matrix and `complex(A, B)`, linear algebra's functions of them, `dot` conjugating, and every eigenvalue, complex where it is, exact where it is a Gaussian rational (chunk 43); the names `jm` and `km`, constants that answer `not_yet` until step 24 (chunk 39); the rest stubs |
+| `complex.hpp` | 1 | ISO strict C++98 | complex numbers (chunk 39): `math::complex<T>`, of `float`, `double` and `long double`, the face of `cplx.h`'s struct, its operators and C99's functions the C core's, by their own names the plain forms at run time and the `_c` forms in a constant expression from C++20, by the names ending `_c` the `_c` forms at every level, constant expressions from C++14 (chunk 46, S336); made from a `std::complex<T>` implicitly, giving one by `to_std()`; a field with no order to `number_traits`, its magnitude \|re\| + \|im\|; `exp2`, `log2`, `log10`, `log1p` and `expm1` (chunk 42) |
+| `expr/` | 19 | C++11, empty below | the run-time expression language (chunks 28 to 36 and 39 to 46): every header of Phases 2 to 4 in place, its types whole; numbers, `+ - * / mod ^`, the factorial, calls of the C core's functions, the constants `pi`, `e`, `true` and `false`, the relations, logic and piecewise parse, print and evaluate, in each floating-point type and exactly as a value; substitution and simplification; the handle, `math::expr`, chains them; vector and matrix literals, `[1, 2; 3, 4]`, blocks `[A, b]` and the empty matrix `[]`, parse, print and evaluate to matrix values, exact or dense, with their sums, products, transposes, powers and indexing, `A[i, j]`, and linear algebra's functions, `det`, `inv`, `trace`, `norm`, `eig`, `dot`, `cross` and `solve`; complex numbers, `3 + 4im`, a kind of the value exact where their parts are, with `complex`, `real`, `imag`, `conj`, `arg`, the modulus, `z'`, `=` and `!=`, and exact powers to a whole exponent (chunk 40); each function's principal complex value, exact where it is a Gaussian rational, a real function's outside its real domain unless the context asks real results, `log1p`, `expm1`, `asinh`, `acosh`, `atanh`, `sign`, `min` and `max`, and the folds in `math::complex<T>` (chunk 41); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex value, `cplx.h`'s, and of a real one outside its real domain (chunk 42); matrices of complex numbers, dense or exact, their arithmetic, `A'` conjugating, `transpose`, the parts of a matrix and `complex(A, B)`, linear algebra's functions of them, `dot` conjugating, and every eigenvalue, complex where it is, exact where it is a Gaussian rational (chunk 43); quaternions, `1 + 2jm - km`, a kind of the value exact where their parts are, `jm` and `km` their units, with `quat`, `parts`, `real`, `conj`, the norm, `inv`, `sign`, `exp`, `log`, `sqrt`, powers to a real exponent and `rotate`, products in their order, `p / q` = `p inv(q)`, and simplification keeping a quaternion's factors in their order (chunk 45); matrices of quaternions, dense or exact, their arithmetic the kind's own in each product's order, `A'` conjugating, linear algebra's functions of them and of a quaternion, `det` a domain error, Zhang's standard eigenvalues, and `rotmat`, `rotquat` and `slerp`; every evaluator given the fold's context, and a value's complex functions the `_c` forms, the face's by their own names its plain forms at run time (chunk 46); the rest stubs |
 
-"Compiles from" means the C++ ladder (`ci/check_cpp_standards.sh`) passes the
-header with g++ and clang++ at every rung from that one to C++23. Every header
-not on the ladder's known-failures list passes all 16 configurations.
+From chunk 45b the lane works in the restructured tree: the C core in
+`inc/djinterp/c/modules/math/`, its configuration in
+`inc/djinterp/config/c/modules/math/`, the faces in
+`inc/djinterp/cpp/modules/math/` and the expression core in
+`inc/djinterp/cpp/modules/parse/expression/`, the tests likewise under
+`tests/djinterp/c/modules/math/` and `tests/djinterp/cpp/modules/math/`; and
+every C type is named with `dj_`, the restructure's prefix (`struct
+dj_cplx_d`, `dj_math_umax`), its functions keeping `d_`.
 
-Tests: 26 C harnesses (`tests/djinterp/c/math/`) and 36 face tests
-(`tests/djinterp/math/`), one of them for `parse/expression/` and five for
-`expr/`, four of them its complex numbers' (section 3). In the full matrix
-(section 5) every harness and face test passes in every configuration.
+"Compiles from" means the C++ ladder (`scripts/ci/ladder.py`) passes the
+header with g++ and clang++, plain and testing, at every rung from that one
+to C++26. Every header not on the ladder's known list
+(`scripts/ci/ladder_known.txt`) passes all of them.
+
+Tests: 26 C harnesses (`tests/djinterp/c/modules/math/`) and 37 face tests
+(`tests/djinterp/cpp/modules/math/`), one of them for `parse/expression/`
+and six for `expr/`, four of them its complex numbers' and one its
+quaternions' (section 3). In the full matrix (section 5) every harness and
+face test passes in every configuration.
 
 ---
 
@@ -53,7 +65,7 @@ it. Element types the C core does not cover (anything other than `float`,
 rulings of 2026.10.04.
 
 **Kernels.** A kernel is a function defined in a header, marked with one of
-five qualifiers from `c/math/math_common.h`:
+five qualifiers from `c/modules/math/math_common.h`:
 
 - `D_MATH_FN`: pure arithmetic. A `static inline` function in C, and an
   `inline` one in C++ that is `constexpr` from C++14.
@@ -93,26 +105,26 @@ results, so every build in the matrix computes the same bits. Clang on the
 32-bit x87 is the known exception, and stays out of the matrix (S37).
 
 **Generated code.** Eighteen of the core headers are generated by
-`tools/gen_c_math_float.py`, each from one template written out for each
+`scripts/gen_c_math_float.py`, each from one template written out for each
 family (`f`, `d`, `ld`). Edit the generator, never its output. `--check`
 fails if the headers are out of step. `math_common.h`, `interval.h`,
 `rational.h`, `value.h`, `decimal.h`, `literal.h`, `wide.h` and `value_wide.h`
 are written by hand.
 
 **Exact rationals.** `rational.h` holds rationals over the widest integer,
-`d_math_imax`, in one reduced form. Each kernel either stores the exact
+`dj_math_imax`, in one reduced form. Each kernel either stores the exact
 result or stores nothing and says why: overflow, a pole or an invalid
 operation. Overflow means that the reduced result does not fit, never that
 an intermediate did not: intermediates are held in two words. A rational
 converts to the nearest `float`, `double` or `long double`, ties to even,
 whatever the rounding mode.
 
-**The generic value.** `value.h`'s `struct d_math_value` holds one value of
+**The generic value.** `value.h`'s `struct dj_math_value` holds one value of
 any kind: none, an error, a boolean, an integer, a rational, a `float`, a
 `double` or a `long double`. Its operations follow a tower:
 
 - Exact numbers stay exact. A rational whose denominator comes to 1 is an
-  integer. An exact result too wide for `d_math_imax` becomes the nearest
+  integer. An exact result too wide for `dj_math_imax` becomes the nearest
   `long double`, flagged inexact, until bignum exists.
 - An exact number meeting a floating-point one is converted to the latter's
   type, correctly rounded. Two floating-point kinds meet in the wider.
@@ -122,7 +134,7 @@ any kind: none, an error, a boolean, an integer, a rational, a `float`, a
 
 **Boxed kinds.** A kind of number that does not fit in the value, such as a
 wide integer or a big float, is boxed. It fills in a table,
-`struct d_math_boxed_kind`, which is how it registers:
+`struct dj_math_boxed_kind`, which is how it registers:
 
 - its name, and its rank: its place in the tower, on one scale with the
   inline numbers (integer 100, rational 200, float 300, double 400, long
@@ -150,7 +162,7 @@ integer) and a sign, so the range is symmetric and 0 has one form. As in
 why: overflow, division by zero, 0/0, a rational that is no integer, or text
 that is no integer. Division truncates, as C's does. The kernels are add,
 subtract, multiply, divide with remainder (Knuth's algorithm D), gcd,
-comparison, conversion to and from `d_math_imax`, `d_math_umax` and
+comparison, conversion to and from `dj_math_imax`, `dj_math_umax` and
 rationals, text both ways, and the nearest `float`, `double` or
 `long double`, ties to even, with the rounding's direction; a float past
 the largest is an infinity. Nothing allocates, and every kernel but the
@@ -166,20 +178,20 @@ reads an integer back. With a wide integer, an inline integer or a
 rational, its arithmetic is exact:
 
 - an integer stays a wide integer, however small, so that arithmetic begun
-  with one stays exact past `d_math_imax`;
+  with one stays exact past `dj_math_imax`;
 - a result that is no integer is an inline rational, where it fits the
   family;
 - a result past both, an integer of more than 256 bits or a ratio past
-  `d_math_imax`, is the nearest `long double`, flagged inexact (G2),
+  `dj_math_imax`, is the nearest `long double`, flagged inexact (G2),
   rounded once from the exact ratio, whose terms run to 512 bits, by
   `wide.h`'s division.
 
 A float, double or long double meets it as `value.h` has an inline number
 meet any boxed kind: converted to the nearest value of its type, so a
 comparison stays exact too. Each value is a box of its own, allocated
-through two knobs in `config/c/math/cfg_value_wide.h` (`malloc` and `free`
-unless set otherwise); where no storage is given, the result is a memory
-error.
+through two knobs in `config/c/modules/math/cfg_value_wide.h` (`malloc`
+and `free` unless set otherwise); where no storage is given, the result is a
+memory error.
 
 **The value in C++.** `math/value.hpp` is the value's face. `math::value`
 holds one value of any kind, a boxed kind's included, and holds its box as
@@ -190,7 +202,7 @@ literal type, and its operations are constant expressions from C++14; from
 C++20, where a destructor may be constexpr, `math::value`'s are too, for the
 inline kinds. Both are made implicitly from the arithmetic types, a `bool`
 and an error code, and refuse a pointer: an unsigned integer past
-`d_math_imax` is G2's long double, through `value.h`'s
+`dj_math_imax` is G2's long double, through `value.h`'s
 `d_math_value_from_uint`. Their operators, `abs` and the six comparisons
 are found by argument-dependent lookup only, and an operation makes its
 result in place from `value.h`'s, so it costs what `value.h`'s call does.
@@ -386,7 +398,7 @@ one answer in both. On 2026.10.27 the owner added three steps before Phase
 C core and the language (`roadmap.md`; `decisions.md`, S265 to S278).
 
 **Complex numbers.** `cplx.h` holds the C core's complex numbers, step 22's
-first part (chunk 37): `struct d_cplx_f`, `d_cplx_d` and `d_cplx_ld`, one
+first part (chunk 37): `struct dj_cplx_f`, `dj_cplx_d` and `dj_cplx_ld`, one
 member, `part[2]`, the real part first, the layout of `T[2]` that C99's
 `_Complex` and C++'s `std::complex` share (S267, S280). Its functions are
 C99's 22: `d_cplx_d_real`, `_imag`, `_conj` and `_proj`, exact, once, with
@@ -396,43 +408,45 @@ and hyperbolic functions and their inverses, each in both forms. In C++
 there is one name for every family, `d_cplx_exp(z)`. The arithmetic is pure
 and comes once: a product's parts by exact products, a quotient by the
 conjugate over the squared modulus and a residual's step, each part within a
-step of the correctly rounded one (S281). The `_c` forms are one long double
-kernel for the three families, compiled once in a unit (`D_MATH_FN_KERNEL`,
-S282); the plain forms the same algorithms in each family's type on the C
-library's real functions, but for the plain `pow`'s general case, the `_c`
-kernel's (S283). The values at the cuts, the zeros, the infinities and the
-NaNs are C99's Annex G's, as C17 corrects them (S284), and in C a value
-converts to and from `_Complex` (S285). Where a target evaluates float and
-double wider than their types, as a 32-bit x87 does, their exact steps are
-taken in long double (S287). The real functions it needs, `log1p` and
-`expm1` in `exponential.h`, `asinh`, `acosh` and `atanh` in `hyperbolic.h`,
-are the core's too, in every family and both forms, their long double
-kernels and exp's within 0.53 of an ulp (S286). Each function's bound in
-steps is in the header's banner, and `tests/djinterp/c/math/t_cplx.c` checks
-them against references made by mpmath, kept beside it (S288). Chunk 42 adds
-the five C99 has only for real arguments, `exp2`, `log2`, `log10`, `log1p`
-and `expm1` of a complex number: each one long double kernel of pure
-arithmetic, its parts carried as pairs to past twice the value's precision
-and rounded once, and both forms of every family that kernel rounded to the
-family, as standard C's library has none of them to be faster with, glibc
-and the UCRT giving `clog10` alone (S342); on the real axis, where the value
-is real, each form is the family's real function in that form, so that
-`log2(x + 0i)` is `log2(x)` bit for bit and `log2(-8)` 3 + 4.532...i (S343).
-`exp2`'s angle y ln 2 is reduced by pi/2 exactly for every y, by Payne and
-Hanek's method with 2 ln 2 / pi's digits (S344); `expm1`'s real part, which
-vanishes on the curve e^x cos y = 1, is formed of terms good to some
-2^-(P+28), by series in pairs of its own for the exponential, the sine and
-the cosine (S345); and at an infinite or NaN part each takes the value of
-the function it is a form of, clog's or cexp's (S346). Each part is within a
-step of the correctly rounded one in every family and both forms; `t_cplx.c`
-checks them against `math_tests_cplx_five_refs.h`, made by mpmath.
+step of the correctly rounded one (S281), a zero part of the sign the
+textbook formula gives it, a quotient's as a product's (S382). The `_c`
+forms are one long double kernel for the three families, compiled once in a
+unit (`D_MATH_FN_KERNEL`, S282); the plain forms the same algorithms in each
+family's type on the C library's real functions, but for the plain `pow`'s
+general case, the `_c` kernel's (S283). The values at the cuts, the zeros,
+the infinities and the NaNs are C99's Annex G's, as C17 corrects them
+(S284), and in C a value converts to and from `_Complex` (S285). Where a
+target evaluates float and double wider than their types, as a 32-bit x87
+does, their exact steps are taken in long double (S287). The real functions
+it needs, `log1p` and `expm1` in `exponential.h`, `asinh`, `acosh` and
+`atanh` in `hyperbolic.h`, are the core's too, in every family and both
+forms, their long double kernels and exp's within 0.53 of an ulp (S286).
+Each function's bound in steps is in the header's banner, and
+`tests/djinterp/c/modules/math/t_cplx.c` checks them against references made by
+mpmath, kept beside it (S288). Chunk 42 adds the five C99 has only for real
+arguments, `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number:
+each one long double kernel of pure arithmetic, its parts carried as pairs
+to past twice the value's precision and rounded once, and both forms of
+every family that kernel rounded to the family, as standard C's library has
+none of them to be faster with, glibc and the UCRT giving `clog10` alone
+(S342); on the real axis, where the value is real, each form is the family's
+real function in that form, so that `log2(x + 0i)` is `log2(x)` bit for bit
+and `log2(-8)` 3 + 4.532...i (S343). `exp2`'s angle y ln 2 is reduced by
+pi/2 exactly for every y, by Payne and Hanek's method with 2 ln 2 / pi's
+digits (S344); `expm1`'s real part, which vanishes on the curve e^x cos y =
+1, is formed of terms good to some 2^-(P+28), by series in pairs of its own
+for the exponential, the sine and the cosine (S345); and at an infinite or
+NaN part each takes the value of the function it is a form of, clog's or
+cexp's (S346). Each part is within a step of the correctly rounded one in
+every family and both forms; `t_cplx.c` checks them against
+`math_tests_cplx_five_refs.h`, made by mpmath.
 
 **Eigenvalues and complex matrices.** Step 22's second part (chunk 38).
 `decomp.h` finds a general real matrix's eigenvalues and eigenvectors by
 LAPACK's `dgeev` path, each part public in every family and both forms:
 `d_decomp_d_balance` and `_balance_back`, `_hessenberg_q`, `_schur`
 (Francis's double-shift QR, as `dlahqr`), `_schur_vectors` (as `dtrevc`) and
-the driver, `d_decomp_d_eigen`, its eigenvalues `struct d_cplx_d`, ascending
+the driver, `d_decomp_d_eigen`, its eigenvalues `struct dj_cplx_d`, ascending
 by real part then imaginary, a pair exactly conjugate, and its eigenvectors
 of unit length with their largest entry real and positive, 2^k A's 2^k
 times A's bit for bit (S292 to S296). `cmat.h` holds complex matrices: LU,
@@ -454,7 +468,9 @@ operand taken as itself; `real`, `imag`, `conj`, `proj`, `abs`, `arg` and
 C99's 16 other functions, and from chunk 42 `exp2`, `log2`, `log10`,
 `log1p` and `expm1`, are `cplx.h`'s, each the `_c` form at every level,
 so that a result has the same bits on every compiler, in a constant
-expression or not, from C++14 (S313). They are found by argument-dependent
+expression or not, from C++14 (S313); from chunk 46 those by their own
+names are the plain forms at run time and the names ending `_c` the `_c`
+forms, as the owner ruled (S336, below). They are found by argument-dependent
 lookup, as `math::value`'s are. A `std::complex<T>` converts to it
 implicitly, and `to_std()` gives one back, so that no expression of the two
 is ambiguous. To `number_traits` it is a commutative field with no order,
@@ -499,8 +515,8 @@ complex numbers answer `not_yet`, naming step 23's part that brings them
 too, are counted by `value.h`'s `d_math_boxed_hold` and
 `d_math_boxed_unhold`, atomically by default wherever the compiler can,
 behind the knob `D_CFG_MATH_VALUE_ATOMIC_HOLDERS` of the new
-`config/c/math/cfg_value.h`, so that values may be shared between threads
-(S326, closing S134's flag).
+`config/c/modules/math/cfg_value.h`, so that values may be shared between
+threads (S326, closing S134's flag).
 
 **Complex functions in the language.** Step 23's second part comes in two
 chunks (S335), of which chunk 41 is the first. Each function of a complex
@@ -510,9 +526,10 @@ where it is a Gaussian rational, `sqrt(2im)` being 1 + im, `sqrt(3 + 4im)`
 p/q exact where its principal q-th root is a Gaussian rational, found as D
 times the long double root rounded to whole numbers and taken where its
 q-th power is the number exactly, `(-2 + 2im) ^ (1/3)` being 1 + im (S337);
-otherwise `math::complex<T>`'s, so `cplx.h`'s `_c` form, in the tower's
-type, a long double where every argument is exact, dense and never made
-real, so that a value and the face give the same bits (S336). So too a real
+otherwise `cplx.h`'s `_c` form, `math::complex<T>`'s `exp_c` and its kin
+from chunk 46, in the tower's type, a long double where every argument is
+exact, dense and never made real, so that a value has the same bits on
+every build (S336). So too a real
 function of a real argument outside its real domain (S272): `sqrt(-4)` is
 2im, `log(-1)` pi im, `(-8) ^ (1/3)` 1 + 1.732...im while `cbrt(-8)` is -2,
 and `asin(2)` pi/2 + 1.317...im, a real argument on a cut taken as x + 0i,
@@ -555,15 +572,149 @@ matrix's exact wherever they are Gaussian rationals, `eig([0, -1; 1, 0])`
 being `[-im, im]`; a spectrum ascends by real part, then by imaginary part,
 and `real_results` makes a complex spectrum of a real matrix a domain error;
 each solver is given 30 QR steps a row, at least 1000, the budget under which
-a matrix of 700 rows ran out (S352). No node of the language answers `not_yet` now but `jm` and `km`,
-step 24's (S353). The C++ face gives vectors of `math::complex<T>` `vdot`,
-the conjugating inner product, and `norm`, `length`, `norm_squared`,
-`normalize` and `distance` of the moduli, and matrices of them
-`frobenius_norm` and `is_unitary` (S354); and the generic kernels' norms
+a matrix of 700 rows ran out (S352). No node of the language answered
+`not_yet` then but `jm` and `km`, step 24's (S353). The C++ face gives
+vectors of `math::complex<T>` `vdot`, the conjugating inner product, and
+`norm`, `length`, `norm_squared`, `normalize` and `distance` of the moduli,
+and matrices of them `frobenius_norm` and `is_unitary` (S354); and the
+generic kernels' norms
 sum `number_modulus_squared`, so that a `vector<value>` holding complex
 numbers has the norm of its moduli, the language's, exactly (S355).
 `t_expr_complex_matrix_face.cpp` checks them, the eigenvalues against
 references mpmath computes, `math_tests_expr_cmatrix_refs.h`.
+
+**Whole powers in pairs.** Chunk 45 (S370, as S368 recommended).
+`cplx.h`'s whole powers, z^n for n from -2^30 to 2^30, are repeated
+squaring carried in long double's pairs, each product's parts exact sums of
+exact products, the result scaled by a power of two and rounded once: the
+`_c` kernel's to each family, and the plain forms by the same kernel, bit
+for bit, as no C library has a faster whole power to lean on. A power exact
+in twice long double's precision comes exactly; each part is within a step
+of the part correctly rounded where it is at least |n| 2^(4 - P) of the
+larger part, P long double's precision, and below that, where it may cancel
+past what the pairs carry, within |n| 2^(3 - 2P) of the larger part, so a
+part that cancels is no longer some steps of the larger part off, as chunk
+44's references found. `quat.h`'s `pow_c`, whose plane's power it is, is
+bounded of each part again. `t_cplx.c` checks 1,027 powers in the three
+families at points where a part cancels, against `math_tests_cplx_pow_refs.h`,
+made by mpmath.
+
+**Quaternions in the language.** Step 24's second part (chunk 45), as the
+owner's rulings S275 and S277 have it. `expr/quaternion.hpp` makes a
+quaternion a boxed kind of the value, of rank 950, past the complex number's
+900 and below the matrix's 1000: exact where its four parts are, kept as
+values, and otherwise dense in the widest floating-point type of its parts,
+`math::quaternion<T>`, `quat.h`'s array; an exact one whose `jm` and `km`
+parts come to 0 is the complex number of the other two, or a real one, and
+an inexact one keeps its four parts (S371). `jm` and `km` are its units, so
+`1 + 2jm - km` is one. Its arithmetic is exact on exact parts, Hamilton's
+product of sixteen products and `p / q` = `p inv(q)`, the quotient on the
+right, and dense by `quat.h`'s accurate forms, each part rounded once, a real
+operand taken as itself and a complex one with its `im` the first unit
+(S372). `|q|` is the norm, exact where it is rational, `|1 + 2im + 2jm +
+4km|` being 5; a quaternion equals a number whose parts equal its own and
+stands in no order; it converts to a real type where its other parts are 0;
+its text is `1 + 2im - 3jm + 4km` (S373). `quat(w, x, y, z)` makes one,
+`parts(q)` gives the row [w, x, y, z]; `real`, `conj` and `q'`, `abs` and the
+bars, `inv` and `sign` take one, exactly where they can; `exp`, `log` and
+`sqrt` are the complex functions in q's plane, `quat.h`'s `_c` forms, `sqrt`
+exact where the root is a quaternion of rationals; `q ^ r` takes a real
+exponent, exactly to a whole one and to a rational one whose root is
+rational, `(-46 + 3im + 6jm + 6km) ^ (1/3)` being `2 + im + 2jm + 2km`; and
+the others, `imag` and `arg` among them, and any complex or quaternion
+exponent, are a domain error (S374). `rotate(q, v)` is the 3-vector q v q^-1
+of any q not 0, exact where q and v are, of v's shape (S375). Simplification
+keeps a quaternion's factors in their order, and a complex number's beside
+one, so that `jm * km + km * jm` stays; a real number and a variable still
+commute (S376). In a type `jm` and `km` are NaNs, `quat` its real or complex
+value where it is one, and `real_results` leaves `quat` apart, as it does
+`complex` (S377). A literal holding a quaternion, a product or quotient of a
+matrix and one, and linear algebra's functions of one but `inv` answered
+`not_yet` until chunk 46, matrices of quaternions (S369).
+`t_expr_quaternion_face.cpp` checks them: the kind, exact arithmetic against
+the test's own quaternions of rationals, dense arithmetic and the functions
+and rotation in each type `quat.h`'s bit for bit, the language, the folds
+in each type, the renderer and simplification.
+
+**Matrices of quaternions.** Step 24's third part (chunk 46), as the
+owner's ruling S277 has it, which ends the step. A matrix holds a
+quaternion as it holds a complex number (S386): densely, as
+`math::quaternion<T>` of the widest type, where every element is a float, a
+double, a long double or a complex number or a quaternion of such parts, a
+real one x then x + 0im + 0jm + 0km and a complex one x + yi x + yim + 0jm +
+0km; as values, each of its own kind, where any is exact or boxed. Its
+arithmetic is the quaternion kind's own, element by element: the generic
+kernels compute on the kind's operands, `expr_quaternion_operand`, whose
+operators are the kind's dense arithmetic, a real or complex operand taken
+as itself, so that each element of a sum, of a product's sum or of a scaling
+is the kind's own operation on its two, bit for bit; a product's element
+sums a row's products with a column's, a_ik b_kj in that order, from 0;
+and a number's product with a matrix keeps its order, `q * A` and `A * q`
+two matrices, `A / q` being `A inv(q)` (S387). `A'` conjugates each
+element, `transpose` moves it, `real` and `conj` of a matrix are its
+elements', and `imag`, `arg` and `complex` of one a domain error. `inv` and
+`solve` are the generic kernels' Gauss-Jordan and elimination of [A | B],
+each product in its order and each row divided on the left, as A X = B
+asks: on the kind's operands where dense, and on values whose traits say
+they do not commute where exact, so that an exact inverse is exact; a
+singular matrix's a pole. `det` is a domain error, no determinant of
+quaternion matrices being both multiplicative and the complex one on
+complex matrices; `trace` is the kernels', `norm` of the moduli, `dot(a,
+b)` sums conj(a_i) b_i in that order, and `cross` conjugates nothing, each
+product in its order (S388). `eig` gives Zhang's standard right
+eigenvalues, the n complex ones of imaginary part 0 or more to one of which
+each right eigenvalue is similar: those of the complex adjoint
+[A1, A2; -conj(A2), conj(A1)], A = A1 + A2 jm, 2n by 2n, found as a complex
+matrix's are, by Jacobi where A is Hermitian and exactly where they are
+Gaussian rationals, one of each conjugate pair; a triangular matrix's are
+its diagonal's, each w + |v|i (S389). A quaternion is a scalar to linear
+algebra too: `det(q)` a domain error, `trace(q)` q, `norm(q)` |q|, `eig(q)`
+its standard eigenvalue, `dot(p, q)` conj(p) q, and `solve(q, B)` q^-1 B, on
+the left, `quat.h`'s left quotient where dense (S390). `A ^ 0` is the
+identity of A's storage, a dense complex matrix's too, which was the exact
+identity until now. No node of the language answers `not_yet` (S369).
+`t_expr_quaternion_matrix_face.cpp` checks them, the eigenvalues against
+references mpmath computes, `math_tests_expr_qmatrix_refs.h`.
+
+**Rotations.** `expr/rotation.hpp`, new in chunk 46, holds a quaternion's
+functions that give or take a vector or a matrix, so that the matrix kind,
+which holds quaternions now, comes after the quaternion kind: `parts` and
+`rotate`, from `quaternion.hpp`, and three new ones (S391). `rotmat(q)` is
+the 3 by 3 matrix of the rotation q names, R v = q v q^-1, as MATLAB's
+`rotmat(q, 'point')` is: exact where q is, and otherwise `quat.h`'s
+`to_matrix3`, each element within a step of the correctly rounded one.
+`rotquat(R)` is the unit quaternion of a rotation's matrix, w >= 0, by
+Shepperd's method as `quat.h` computes it: exact where R is and the root its
+largest candidate takes is rational, `rotquat(rotmat(1 + im + jm + km))`
+being `1/2 + im/2 + jm/2 + km/2`, otherwise `quat.h`'s `from_matrix3`; of a
+4 by 4 matrix, its upper left. `slerp(p, q, t)` is the shorter arc between
+the rotations p and q name, `quat.h`'s accurate slerp of the two
+normalized: 58 functions.
+
+**The owner's rulings S336 and S340.** Chunk 46 makes them, as he ruled on
+2026.11.04. S336: `math::complex<T>`'s functions by their own names are
+`cplx.h`'s plain forms at run time, on the C library's real functions, and
+its `_c` forms in a constant expression from C++20; the names ending `_c`,
+`exp_c` and the rest, are the `_c` forms at every level, constant
+expressions from C++14. The language's values take the `_c` forms, so that
+a value has the same bits on every build, and the fold in
+`math::complex<T>` the plain ones, as a fold in a real type takes the C
+library's. S340: every evaluator of the function table takes the fold's
+`expr_context`, which moves to `expr_common.hpp`, so that an evaluator is
+`Type (*)(const Type*, std::size_t, const expr_context&)`; every value
+evaluator holds its own answer real where the context asks
+(`expr_real_only`), so that the fold no longer judges an answer after the
+call; and the typed folds take a context too.
+
+**`dynamic_matrix` of every element type.** Chunk 46 (S354, S392).
+`linalg::dynamic_matrix<T>` takes every element type the fixed-size matrix
+takes: float, double and long double on the C core's kernels, any other
+arithmetic type through double, and `math::complex<T>`, `math::value` and
+`math::inline_value` on the generic path, each zero, one and tolerance the
+traits', the `frobenius_norm` of a complex one a T, as the fixed-size
+matrix's is. Quaternions neither face's matrix takes, as neither face's
+quaternion has sums or traits; the language's matrices of them compute with
+the kind's own operands.
 
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
@@ -578,10 +729,10 @@ any input, however long.
 
 **Literals.** `literal.h` reads a number's text as a value: an integer, a
 decimal, scientific notation, a fraction (`2/3`) or a mixed number
-(`1 1/2`). The value is exact wherever it is a rational over `d_math_imax`,
+(`1 1/2`). The value is exact wherever it is a rational over `dj_math_imax`,
 so `0.1` is the rational 1/10 and `1 1/2` is 3/2. Otherwise it is the long
 double nearest the literal, flagged inexact, as an exact result too wide
-for `d_math_imax` is. A fraction over 0 is a pole, or invalid for 0/0. A
+for `dj_math_imax` is. A fraction over 0 is a pole, or invalid for 0/0. A
 literal past every long double, or a fraction whose terms pass two words,
 is a range error until bignum exists. A decimal literal read straight into
 a `float`, `double` or `long double` goes through `decimal.h`, rounded once.
@@ -600,7 +751,7 @@ over 0, is unordered with everything, as a NaN is.
 ## 3. Layout
 
 ```
-inc/djinterp/c/math/                    the C core
+inc/djinterp/c/modules/math/            the C core
   math_common.h        kernel qualifiers, widest integers, evaluation width
   float_order.h        next_up, next_down, advance, steps between values
   interval.h           integer intervals (hand-written)
@@ -632,7 +783,7 @@ inc/djinterp/c/math/                    the C core
   cmat.h               complex matrices: LU, inverse, solution,
                        Hermitian and general eigenvalues and vectors
 
-inc/djinterp/math/                      the C++ faces
+inc/djinterp/cpp/modules/math/          the C++ faces
   math_common.hpp      NS_MATH and the environment
   constants.hpp        constants::of<T>::pi() and kin; number bases
   quaternion.hpp
@@ -655,34 +806,45 @@ inc/djinterp/math/                      the C++ faces
   expr/                the run-time expression language (C++11): token,
                        operator, parse, term, evaluate, function, render,
                        substitute, simplify, derivative, numeric, series,
-                       antiderivative; matrix and complex, the matrix and
-                       complex kinds; expr_common, what they share; expr,
-                       the handle, which includes them all
+                       antiderivative; matrix, complex and quaternion, the
+                       matrix, complex and quaternion kinds; rotation, a
+                       quaternion's functions of vectors and matrices;
+                       expr_common, what they share; expr, the handle,
+                       which includes them all
   math.hpp             umbrella
   README.md, roadmap.md, decisions.md, comparison.md
 
-inc/djinterp/config/c/math/             the C core's knobs
+inc/djinterp/config/c/modules/math/     the C core's knobs
   cfg_value.h          how every box counts its holders
   cfg_value_wide.h     where the wide integer's boxes are stored
 
-tests/djinterp/c/math/t_*.c             C harnesses, one per core header
-tests/djinterp/c/math/math_tests_*.h    their shared random numbers, exact
-                                        reference and mpmath's references
-tests/djinterp/math/**/t_*_face.cpp     face tests
-tools/gen_c_math_float.py               the generator
-ci/check_math_tests.sh                  the tests: smoke and full tiers
-ci/check_c_standards.sh                 the C ladder
-ci/check_cpp_standards.sh               the C++ ladder (+ known-failures list)
+inc/djinterp/cpp/modules/parse/expression/
+                       the expression core the language is built on
+
+tests/djinterp/c/modules/math/t_*.c     C harnesses, one per core header
+tests/djinterp/c/modules/math/math_tests_*.h
+                       their shared random numbers, exact reference and
+                       mpmath's references
+tests/djinterp/cpp/modules/math/**/t_*_face.cpp
+                       face tests
+scripts/gen_c_math_float.py             the generator
+scripts/ci/check_math_tests.sh          the tests: smoke and full tiers
+scripts/ci/ladder.py                    the C and C++ ladders
+                                        (+ ladder_known.txt, the known list)
+scripts/ci/check_style.py               the guides' measurable rules
+                                        (+ style_known.txt)
 _handoffs/math98_*                      one record per delivered step
 ```
 
 The run-time expression language, `math/expr/`, is built on
-`inc/djinterp/parse/expression/`, the framework's shared expression core: a
-term type, folds, a precedence-climbing parser, a renderer and a compile-time
-term. Its floor is C++11. Chunk 27 fixed what stopped each part compiling once
-used, and `tests/djinterp/math/t_parse_expression_face.cpp` runs all of it,
-over a small language of its own; `tests/djinterp/math/expr/t_expr_face.cpp`
-runs `math/expr/`, and `t_expr_complex_face.cpp` beside it its complex
+`inc/djinterp/cpp/modules/parse/expression/`, the framework's shared
+expression core: a term type, folds, a precedence-climbing parser, a
+renderer and a compile-time term. Its floor is C++11. Chunk 27 fixed what
+stopped each part compiling once used, and
+`tests/djinterp/cpp/modules/math/t_parse_expression_face.cpp` runs all of
+it, over a small language of its own;
+`tests/djinterp/cpp/modules/math/expr/t_expr_face.cpp` runs `math/expr/`,
+and `t_expr_complex_face.cpp` beside it its complex
 numbers, and `t_expr_complex_function_face.cpp` their functions, with the
 references of `math_tests_expr_complex_refs.h`, which
 `_handoffs/math98_chunk41_2026.11.01/tools/refs_c41.py` makes from mpmath,
@@ -716,18 +878,23 @@ Everything was verified on Ubuntu 24.04 with GCC 13.3 and Clang 18.1, plus
 the 32-bit libraries. From the repository root:
 
 ```bash
-ci/check_math_tests.sh                        # the tests, smoke tier
-ci/check_math_tests.sh full                   # the tests, full matrix
-ci/check_math_tests.sh full t_decomp          # one test, every build
-python3 tools/gen_c_math_float.py --check     # generated headers in step
-bash ci/check_c_standards.sh                  # the C ladder
-UNIT_FILTER='djinterp/(c/)?math/' bash ci/check_cpp_standards.sh
+bash scripts/ci/check_math_tests.sh               # the tests, smoke tier
+bash scripts/ci/check_math_tests.sh full          # the tests, full matrix
+bash scripts/ci/check_math_tests.sh full t_decomp # one test, every build
+python3 scripts/gen_c_math_float.py --check       # generated headers in step
+python3 scripts/ci/ladder.py --known scripts/ci/ladder_known.txt \
+    inc/djinterp/c/modules/math inc/djinterp/cpp/modules/math
+                                                  # the ladders, the module
+python3 scripts/ci/check_style.py --known scripts/ci/style_known.txt \
+    inc/djinterp/c/modules/math inc/djinterp/cpp/modules/math
+                                                  # the guides' rules
 ```
 
-`ci/check_math_tests.sh` finds every C harness (`tests/djinterp/c/math/t_*.c`)
-and every face test (`tests/djinterp/math/**/t_*_face.cpp`) on each run, then
-builds and runs them in one of two tiers. A build passes when it compiles
-with warnings as errors, exits 0, and reports 0 failures.
+`scripts/ci/check_math_tests.sh` finds every C harness
+(`tests/djinterp/c/modules/math/t_*.c`) and every face test
+(`tests/djinterp/cpp/modules/math/**/t_*_face.cpp`) on each run, then builds
+and runs them in one of two tiers. A build passes when it compiles with
+warnings as errors, exits 0, and reports 0 failures.
 
 - `JOBS` sets how many builds run at once; the default is one per core.
 - `--list` prints the commands without running them.
@@ -735,10 +902,10 @@ with warnings as errors, exits 0, and reports 0 failures.
 - Naming tests (`t_decomp`, `t_eigen_face`) runs only those.
 
 **The smoke tier** is the default. It builds every harness once (gcc, C99) and
-every face test at three rungs (g++ at ISO strict C++98, C++14 and C++20): 134
+every face test at three rungs (g++ at ISO strict C++98, C++14 and C++20): 137
 builds. It needs only gcc and g++. On a 2.1 GHz Xeon it took 8 minutes with
 one job and 4 with two; chunk 40's, on two cores of it, 7, chunk 41's, 6,
-and chunks 42's and 43's, 7.
+chunks 42's and 43's, 7, chunk 44's, 9, and chunk 45's, 7.
 
 **The full tier** is the matrix. Each C harness is built 12 ways:
 
@@ -750,9 +917,9 @@ and chunks 42's and 43's, 7.
 - g++ ISO strict C++98 `-m32` on the x87.
 
 A harness with a C++14 section, where it checks constant evaluation
-(seventeen today), is also built at C++14 and C++20 by g++ and clang++. Each
+(eighteen today), is also built at C++14 and C++20 by g++ and clang++. Each
 face test is built 64 ways: 2 compilers, 64-bit and `-m32`, 8 rungs, plain
-and testing. That makes 380 harness builds and 2,304 face builds. On two
+and testing. That makes 384 harness builds and 2,368 face builds. On two
 cores of a 2.8 GHz Xeon, chunk 26's run took 107 minutes: 85 for the
 harnesses, a third of it `t_power`'s, whose 16 builds compile slowly, and 22
 for the face tests; chunk 27's face test adds a minute, and chunk 28's, as
@@ -768,9 +935,13 @@ builds, `t_expr_complex_function_face.cpp`'s among them, in 33; chunk 42's,
 the 2,240 face builds, `t_expr_complex_five_face.cpp`'s among them, in 38,
 and the 380 harness builds, `t_cplx.c`'s references grown, in 80; chunk
 43's, the 2,304 face builds, `t_expr_complex_matrix_face.cpp`'s among them,
-in 40. The full
-tier needs clang and the 32-bit libraries; if either is missing, it stops
-before building anything.
+in 40; chunk 44's, the 2,304 face builds, `t_quaternion_face.cpp` grown,
+in 47, and the 384 harness builds, `t_quat.c`'s 16 among them, in 97;
+chunk 45's, the 2,368 face builds, `t_expr_quaternion_face.cpp`'s among
+them, in 39, and the 64 builds of the four harnesses that include `cplx.h`
+in 21.
+The full tier needs clang and the 32-bit libraries; if either is missing,
+it stops before building anything.
 
 ### On Windows
 
@@ -784,8 +955,8 @@ before building anything.
   ```
 
   Clone into the Linux file system (`~/`), not `/mnt/c`. File access across
-  the boundary is many times slower. Then run `ci/check_math_tests.sh` from
-  the clone's root.
+  the boundary is many times slower. Then run
+  `scripts/ci/check_math_tests.sh` from the clone's root.
 - **MSYS2** (MinGW-w64 GCC or Clang, with bash) should run the 64-bit builds.
   The `-m32` builds need the 32-bit MinGW environment. Not yet tried.
 - **MSVC** has never compiled the math core. On MSVC `long double` is
@@ -843,6 +1014,7 @@ module:
 | 2026.10.13 | `_fast` variants only where measured demand exists, each with a documented ulp bound; eager values by default and laziness as an opt-in from C++11; chaining wherever it is appropriate; a generic value mechanism before further features; benchmarks and bignum near the end of the roadmap |
 | 2026.10.13 | the root's `D_STATIC_ASSERT` fallback gets `D_MAYBE_UNUSED` (C2); the lane fixes the test headers' floor comments (C3); the 09.29 lane is mined only for what is missing (C6) |
 | 2026.10.18 | no commits from the lane: everything in plain files, delivered as a zip of the modified files, which the owner tests on his machine and commits himself; work through the rest of Phase 1 |
+| 2026.11.04 | `math::complex<T>`'s functions by their own names `cplx.h`'s plain forms at run time, the `_c` forms in constant evaluation and by the `_c` names; the language's values the `_c` forms (S336); every evaluator given the fold's context, each value evaluator holding its answer real where it asks (S340) |
 
 ---
 
@@ -877,20 +1049,28 @@ files the lane changed, at the paths the restructure gave them; no test of
 the lane's reaches one, and the lane's copies are the ones the script
 should move into those paths (chunk 41's record, `raw/base_tree.txt`).
 
-Outside `math/`, `c/math/` and their tests, this lane changed:
+From chunk 45b (2026.11.07) the lane works in the owner's restructured tree
+itself, as lane A ruled for chunk 44 on: chunks 44 and 45 laid into his tree
+of 2026.11.07, every file of the lane at its restructured path, its banners'
+paths and tags and its generator's paths as the tree has them, every C type
+renamed `dj_`, and no shims (chunk 45b's record).
+
+Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane
+changed:
 
 - `re_std`'s `array` (5 files), and `reverse_iterator.hpp` (to C++98; the
   owner's tree of 2026.10.23 has the same port, and its version stands);
 - the root's `D_STATIC_ASSERT` fallback (chunk 15, C2; the owner's tree of
   2026.10.23 has his own form of it, which stands);
-- the ladders' known lists and the stdint lint's in `ci/`, and
-  `ci/check_math_tests.sh` (new);
-- `src/djinterp/core/math/numeric_compare.cpp`, now a translation unit that
-  only includes its header, as its neighbours there do;
-- `tools/gen_c_math_float.py` (new);
-- `config/c/math/cfg_value_wide.h` (new), the wide integer's allocation
-  hooks;
-- `parse/expression/`'s four headers `expression_ops.hpp`,
+- the ladders' known lists and the stdint lint's, then in `ci/` (lane A's
+  `scripts/ci/` holds their successors), and
+  `scripts/ci/check_math_tests.sh` (new);
+- `src/djinterp/cpp/modules/math/numeric_compare.cpp`, now a translation
+  unit that only includes its header, as its neighbours there do;
+- `scripts/gen_c_math_float.py` (new);
+- `config/c/modules/math/cfg_value_wide.h` (new), the wide integer's
+  allocation hooks;
+- `cpp/modules/parse/expression/`'s four headers `expression_ops.hpp`,
   `expression_parse.hpp`, `expression_render.hpp` and `expression_static.hpp`
   (chunk 27, P0): their defects fixed, nothing else changed;
 - seven test headers' comments.

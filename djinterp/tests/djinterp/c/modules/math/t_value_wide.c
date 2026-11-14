@@ -53,13 +53,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_value_wide.c -o t_value_wide -lm
+*        tests/djinterp/c/modules/math/t_value_wide.c -o t_value_wide -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_value_wide.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MANT_DIG ... LDBL_MAX
@@ -150,7 +150,7 @@ static long g_kind_live = 0;
 static long g_calls[D_TESTS_KINDS][D_TESTS_ENTRIES];
 
 // the result a failure report shows beside its operands
-static struct d_math_value g_shown;
+static struct dj_math_value g_shown;
 
 
 //==============================================================================
@@ -220,14 +220,14 @@ d_tests_give_back(
 // for here, the wide integer being above them all; each counts the calls
 // into its entries.
 
-// d_tests_box
+// dj_tests_box
 //   struct: a box of one of the harness's kinds.
-struct d_tests_box
+struct dj_tests_box
 {
-    long                refs;     // its holders
-    int                 kind;     // D_TESTS_SMALL ... D_TESTS_TOKEN
-    bool                refuses;  // a small that converts to nothing
-    struct d_math_value held;     // a small's integer, a blur's long double
+    long                 refs;     // its holders
+    int                  kind;     // D_TESTS_SMALL ... D_TESTS_TOKEN
+    bool                 refuses;  // a small that converts to nothing
+    struct dj_math_value held;     // a small's integer, a blur's long double
 };
 
 // the entries, defined below
@@ -235,48 +235,48 @@ static void
 d_tests_kind_retain(void* _box);
 static void
 d_tests_kind_release(void* _box);
-static struct d_math_value
-d_tests_kind_unary(enum d_math_value_op _op,
-                   struct d_math_value  _x);
-static struct d_math_value
-d_tests_kind_binary(enum d_math_value_op _op,
-                    struct d_math_value  _a,
-                    struct d_math_value  _b);
-static enum d_math_value_order
-d_tests_kind_cmp(struct d_math_value _a,
-                 struct d_math_value _b);
+static struct dj_math_value
+d_tests_kind_unary(enum dj_math_value_op _op,
+                   struct dj_math_value  _x);
+static struct dj_math_value
+d_tests_kind_binary(enum dj_math_value_op _op,
+                    struct dj_math_value _a,
+                    struct dj_math_value _b);
+static enum dj_math_value_order
+d_tests_kind_cmp(struct dj_math_value _a,
+                 struct dj_math_value _b);
 static bool
-d_tests_kind_convert(struct d_math_value*   _out,
-                     int*                   _direction,
-                     struct d_math_value    _x,
-                     enum d_math_value_kind _to);
+d_tests_kind_convert(struct dj_math_value*   _out,
+                     int*                    _direction,
+                     struct dj_math_value    _x,
+                     enum dj_math_value_kind _to);
 static size_t
 d_tests_kind_text(char*               _buffer,
-                  size_t              _size,
-                  struct d_math_value _x);
+                  size_t               _size,
+                  struct dj_math_value _x);
 
-static const struct d_math_boxed_kind g_kind_small = {
+static const struct dj_math_boxed_kind g_kind_small = {
     "small", D_TESTS_RANK_SMALL, D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
     d_tests_kind_retain, d_tests_kind_release, d_tests_kind_unary,
     d_tests_kind_binary, d_tests_kind_cmp, d_tests_kind_convert,
     d_tests_kind_text, NULL
 };
 
-static const struct d_math_boxed_kind g_kind_blur = {
+static const struct dj_math_boxed_kind g_kind_blur = {
     "blur", D_TESTS_RANK_BLUR, D_MATH_BOXED_NUMBER,
     d_tests_kind_retain, d_tests_kind_release, d_tests_kind_unary,
     d_tests_kind_binary, d_tests_kind_cmp, d_tests_kind_convert,
     d_tests_kind_text, NULL
 };
 
-static const struct d_math_boxed_kind g_kind_token = {
+static const struct dj_math_boxed_kind g_kind_token = {
     "token", D_TESTS_RANK_TOKEN, 0u,
     d_tests_kind_retain, d_tests_kind_release, d_tests_kind_unary,
     d_tests_kind_binary, d_tests_kind_cmp, d_tests_kind_convert,
     d_tests_kind_text, NULL
 };
 
-static const struct d_math_boxed_kind* const g_tables[D_TESTS_KINDS] = {
+static const struct dj_math_boxed_kind* const g_tables[D_TESTS_KINDS] = {
     &g_kind_small, &g_kind_blur, &g_kind_token
 };
 
@@ -285,7 +285,7 @@ static const struct d_math_boxed_kind* const g_tables[D_TESTS_KINDS] = {
 // else.
 static int
 d_tests_kind_of(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     int k = 0;
@@ -312,16 +312,16 @@ d_tests_kind_of(
 // d_tests_new_box
 //   a value of the harness's kind _kind, holding _held, refusing to convert
 // where _refuses, with one holder; none where the system has no storage.
-static struct d_math_value
+static struct dj_math_value
 d_tests_new_box(
-    int                 _kind,
-    struct d_math_value _held,
-    bool                _refuses
+    int                  _kind,
+    struct dj_math_value _held,
+    bool                 _refuses
 )
 {
-    struct d_math_value result = d_math_value_none();
-    struct d_tests_box* box    =
-        (struct d_tests_box*)malloc(sizeof(struct d_tests_box));
+    struct dj_math_value result = d_math_value_none();
+    struct dj_tests_box* box    =
+        (struct dj_tests_box*)malloc(sizeof(struct dj_tests_box));
 
     // no storage
     if (box == NULL)
@@ -347,7 +347,7 @@ d_tests_kind_retain(
     void* _box
 )
 {
-    struct d_tests_box* box = (struct d_tests_box*)_box;
+    struct dj_tests_box* box = (struct dj_tests_box*)_box;
 
     ++g_calls[box->kind][D_TESTS_RETAIN];
     ++box->refs;
@@ -360,7 +360,7 @@ d_tests_kind_release(
     void* _box
 )
 {
-    struct d_tests_box* box = (struct d_tests_box*)_box;
+    struct dj_tests_box* box = (struct dj_tests_box*)_box;
 
     ++g_calls[box->kind][D_TESTS_RELEASE];
     --box->refs;
@@ -377,23 +377,23 @@ d_tests_kind_release(
 
 // d_tests_kind_unary, d_tests_kind_binary, d_tests_kind_cmp
 //   never asked for here: counted, and a domain error, or no order.
-static struct d_math_value
+static struct dj_math_value
 d_tests_kind_unary(
-    enum d_math_value_op _op,
-    struct d_math_value  _x
+    enum dj_math_value_op _op,
+    struct dj_math_value  _x
 )
 {
     (void)_op;
-    ++g_calls[((const struct d_tests_box*)_x.box)->kind][D_TESTS_UNARY];
+    ++g_calls[((const struct dj_tests_box*)_x.box)->kind][D_TESTS_UNARY];
 
     return d_math_value_from_error(D_MATH_VALUE_ERROR_DOMAIN);
 }
 
-static struct d_math_value
+static struct dj_math_value
 d_tests_kind_binary(
-    enum d_math_value_op _op,
-    struct d_math_value  _a,
-    struct d_math_value  _b
+    enum dj_math_value_op _op,
+    struct dj_math_value  _a,
+    struct dj_math_value  _b
 )
 {
     const int kind = (d_tests_kind_of(_a) >= 0) ? d_tests_kind_of(_a)
@@ -409,10 +409,10 @@ d_tests_kind_binary(
     return d_math_value_from_error(D_MATH_VALUE_ERROR_DOMAIN);
 }
 
-static enum d_math_value_order
+static enum dj_math_value_order
 d_tests_kind_cmp(
-    struct d_math_value _a,
-    struct d_math_value _b
+    struct dj_math_value _a,
+    struct dj_math_value _b
 )
 {
     const int kind = (d_tests_kind_of(_a) >= 0) ? d_tests_kind_of(_a)
@@ -432,13 +432,13 @@ d_tests_kind_cmp(
 // contract leaves a kind free to, and says false.
 static bool
 d_tests_kind_convert(
-    struct d_math_value*   _out,
-    int*                   _direction,
-    struct d_math_value    _x,
-    enum d_math_value_kind _to
+    struct dj_math_value*   _out,
+    int*                    _direction,
+    struct dj_math_value    _x,
+    enum dj_math_value_kind _to
 )
 {
-    const struct d_tests_box* box = (const struct d_tests_box*)_x.box;
+    const struct dj_tests_box* box = (const struct dj_tests_box*)_x.box;
 
     ++g_calls[box->kind][D_TESTS_CONVERT];
 
@@ -469,15 +469,15 @@ d_tests_kind_convert(
 //   the kind's name, as snprintf would put it.
 static size_t
 d_tests_kind_text(
-    char*               _buffer,
-    size_t              _size,
-    struct d_math_value _x
+    char*                _buffer,
+    size_t               _size,
+    struct dj_math_value _x
 )
 {
     const char*  name   = _x.type->name;
     const size_t length = strlen(name);
 
-    ++g_calls[((const struct d_tests_box*)_x.box)->kind][D_TESTS_TEXT];
+    ++g_calls[((const struct dj_tests_box*)_x.box)->kind][D_TESTS_TEXT];
 
     // room for some of it
     if (_size > 0u)
@@ -491,17 +491,17 @@ d_tests_kind_text(
     return length;
 }
 
-// d_tests_counts
+// dj_tests_counts
 //   struct: the calls into the harness's kinds at one moment.
-struct d_tests_counts
+struct dj_tests_counts
 {
     long calls[D_TESTS_KINDS][D_TESTS_ENTRIES];  // as g_calls held them
 };
 
-static struct d_tests_counts
+static struct dj_tests_counts
 d_tests_counted(void)
 {
-    struct d_tests_counts result;
+    struct dj_tests_counts result;
 
     memcpy(result.calls, g_calls, sizeof(g_calls));
 
@@ -513,9 +513,9 @@ d_tests_counted(void)
 // _count calls into the conversion of the kind _kind; _kind -1 for none.
 static bool
 d_tests_calls_are(
-    const struct d_tests_counts* _before,
-    int                          _kind,
-    long                         _count
+    const struct dj_tests_counts* _before,
+    int                           _kind,
+    long                          _count
 )
 {
     int k = 0;
@@ -552,7 +552,7 @@ d_tests_calls_are(
 // whole, and of the rank it states.
 static bool
 d_tests_is_wide(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     return ( (_x.kind == D_MATH_VALUE_BOXED) &&
@@ -563,12 +563,12 @@ d_tests_is_wide(
 
 // d_tests_held
 //   the integer a value of the wide kind holds, read from its box.
-static struct d_math_wide
+static struct dj_math_wide
 d_tests_held(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
-    return ((const struct d_internal_math_value_wide_box*)_x.box)->value;
+    return ((const struct dj_internal_math_value_wide_box*)_x.box)->value;
 }
 
 // d_tests_holders
@@ -576,18 +576,18 @@ d_tests_held(
 // inline value.
 static long
 d_tests_holders(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     // the harness's, the wide kind's, or none
     if (d_tests_kind_of(_x) >= 0)
     {
-        return ((const struct d_tests_box*)_x.box)->refs;
+        return ((const struct dj_tests_box*)_x.box)->refs;
     }
 
     if (d_tests_is_wide(_x))
     {
-        return (long)((const struct d_internal_math_value_wide_box*)_x.box)
+        return (long)((const struct dj_internal_math_value_wide_box*)_x.box)
             ->holders;
     }
 
@@ -603,7 +603,7 @@ d_tests_holders(
 // it.
 static void
 d_tests_drop(
-    struct d_math_value* _x
+    struct dj_math_value* _x
 )
 {
     // inline, or the wide integer's
@@ -620,14 +620,14 @@ d_tests_drop(
 
 // d_tests_big_of_integer
 //   _x, exactly: each of its limbs in pieces of 16 bits.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_big_of_integer(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
-    struct d_tests_big result = { { 0UL }, 0 };
-    int                i      = 0;
-    int                k      = 0;
+    struct dj_tests_big result = { { 0UL }, 0 };
+    int                 i      = 0;
+    int                 k      = 0;
 
     for (i = 0; i < D_TESTS_N; ++i)
     {
@@ -646,23 +646,23 @@ d_tests_big_of_integer(
 
 // d_tests_integer_of_big
 //   _x, below 2^256 in magnitude, as the unit's integer.
-static struct d_math_wide
+static struct dj_math_wide
 d_tests_integer_of_big(
-    struct d_tests_big _x
+    struct dj_tests_big _x
 )
 {
-    struct d_math_wide result = { { 0u }, false };
-    int                i      = 0;
-    int                k      = 0;
+    struct dj_math_wide result = { { 0u }, false };
+    int                 i      = 0;
+    int                 k      = 0;
 
     for (i = 0; i < D_TESTS_N; ++i)
     {
         for (k = 0; k < D_TESTS_PIECES; ++k)
         {
-            result.limb[i] = (d_math_wide_limb)(
+            result.limb[i] = (dj_math_wide_limb)(
                 result.limb[i] |
-                (d_math_wide_limb)(_x.limb[(i * D_TESTS_PIECES) + k]
-                                   << (16 * k)));
+                (dj_math_wide_limb)(_x.limb[(i * D_TESTS_PIECES) + k]
+                                    << (16 * k)));
         }
     }
 
@@ -675,9 +675,9 @@ d_tests_integer_of_big(
 //   |_x| into _out's _n limbs of the unit's.
 static void
 d_tests_limbs_of_big(
-    struct d_tests_big _x,
-    d_math_wide_limb*  _out,
-    int                _n
+    struct dj_tests_big _x,
+    dj_math_wide_limb*  _out,
+    int                 _n
 )
 {
     int i = 0;
@@ -689,10 +689,10 @@ d_tests_limbs_of_big(
 
         for (k = 0; k < D_TESTS_PIECES; ++k)
         {
-            _out[i] = (d_math_wide_limb)(
+            _out[i] = (dj_math_wide_limb)(
                 _out[i] |
-                (d_math_wide_limb)(_x.limb[(i * D_TESTS_PIECES) + k]
-                                   << (16 * k)));
+                (dj_math_wide_limb)(_x.limb[(i * D_TESTS_PIECES) + k]
+                                    << (16 * k)));
         }
     }
 
@@ -703,7 +703,7 @@ d_tests_limbs_of_big(
 //   whether _x is in the one form: no negative 0.
 static bool
 d_tests_wide_in_one_form(
-    struct d_math_wide _x
+    struct dj_math_wide _x
 )
 {
     int i = 0;
@@ -724,7 +724,7 @@ d_tests_wide_in_one_form(
 
 // d_tests_one
 //   1.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_one(void)
 {
     return d_tests_big_of_umax(1u, false);
@@ -732,7 +732,7 @@ d_tests_one(void)
 
 // d_tests_power
 //   2^_k.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_power(
     int _k
 )
@@ -742,24 +742,24 @@ d_tests_power(
 
 // d_tests_plus
 //   _a + _k, _k of either sign and small.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_plus(
-    struct d_tests_big _a,
-    long               _k
+    struct dj_tests_big _a,
+    long                _k
 )
 {
-    const struct d_tests_big k = d_tests_big_of_umax(
-        (d_math_umax)((_k < 0L) ? -_k : _k), (_k < 0L));
+    const struct dj_tests_big k = d_tests_big_of_umax(
+        (dj_math_umax)((_k < 0L) ? -_k : _k), (_k < 0L));
 
     return d_tests_big_add(_a, k);
 }
 
 // d_tests_minus
 //   _a - _b.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_minus(
-    struct d_tests_big _a,
-    struct d_tests_big _b
+    struct dj_tests_big _a,
+    struct dj_tests_big _b
 )
 {
     return d_tests_big_add(_a, d_tests_big_neg(_b));
@@ -767,19 +767,19 @@ d_tests_minus(
 
 // d_tests_raised
 //   _base^_k.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_raised(
     unsigned long _base,
     int           _k
 )
 {
-    struct d_tests_big result = d_tests_one();
-    int                i      = 0;
+    struct dj_tests_big result = d_tests_one();
+    int                 i      = 0;
 
     for (i = 0; i < _k; ++i)
     {
         result = d_tests_big_mul(result,
-                                 d_tests_big_of_umax((d_math_umax)_base,
+                                 d_tests_big_of_umax((dj_math_umax)_base,
                                                      false));
     }
 
@@ -792,15 +792,15 @@ d_tests_raised(
 // divided by ten a limb at a time, the highest first.
 static const char*
 d_tests_big_text(
-    struct d_tests_big _x,
-    char*              _buffer
+    struct dj_tests_big _x,
+    char*               _buffer
 )
 {
-    char               digits[D_TESTS_TEXT_ROOM];
-    struct d_tests_big rest  = d_tests_big_abs(_x);
-    int                count = 0;
-    int                at    = 0;
-    int                i     = 0;
+    char                digits[D_TESTS_TEXT_ROOM];
+    struct dj_tests_big rest  = d_tests_big_abs(_x);
+    int                 count = 0;
+    int                 at    = 0;
+    int                 i     = 0;
 
     // the digits, the lowest first
     do
@@ -848,11 +848,11 @@ d_tests_big_text(
 // False for anything else.
 static bool
 d_tests_value_exact(
-    struct d_math_value   _x,
-    struct d_tests_exact* _out
+    struct dj_math_value   _x,
+    struct dj_tests_exact* _out
 )
 {
-    struct d_math_value x = _x;
+    struct dj_math_value x = _x;
 
     // a wide integer
     if (d_tests_is_wide(_x))
@@ -866,7 +866,7 @@ d_tests_value_exact(
     // a small: what it holds, unless it refuses
     if (d_tests_kind_of(_x) == D_TESTS_SMALL)
     {
-        const struct d_tests_box* box = (const struct d_tests_box*)_x.box;
+        const struct dj_tests_box* box = (const struct dj_tests_box*)_x.box;
 
         if (box->refuses)
         {
@@ -894,8 +894,8 @@ d_tests_value_exact(
 // are ordered by it; otherwise |n| 2^s against m d 2^(e + s), exactly.
 static int
 d_tests_order_real(
-    struct d_tests_exact _x,
-    long double          _f
+    struct dj_tests_exact _x,
+    long double           _f
 )
 {
     const int x_sign = d_tests_big_is_zero(_x.n)
@@ -943,7 +943,7 @@ d_tests_order_real(
     }
     else
     {
-        const struct d_tests_parts parts =
+        const struct dj_tests_parts parts =
             d_tests_parts_of(fraction, exponent, LDBL_MANT_DIG);
         const int shift = (parts.exponent < 0) ? -parts.exponent : 0;
 
@@ -961,7 +961,7 @@ d_tests_order_real(
 
 // d_tests_order_of
 //   the order -1, 0, 1 or 2 as value.h's order.
-static enum d_math_value_order
+static enum dj_math_value_order
 d_tests_order_of(
     int _order
 )
@@ -987,8 +987,8 @@ d_tests_order_of(
 // kind and value, and its flags.
 static const char*
 d_tests_value_text(
-    struct d_math_value _x,
-    char*               _buffer
+    struct dj_math_value _x,
+    char*                _buffer
 )
 {
     char num[24];
@@ -1050,11 +1050,11 @@ d_tests_value_text(
 // the result last shown.
 static void
 d_tests_expect(
-    bool                _ok,
-    const char*         _what,
-    struct d_math_value _a,
-    struct d_math_value _b,
-    int                 _line
+    bool                 _ok,
+    const char*          _what,
+    struct dj_math_value _a,
+    struct dj_math_value _b,
+    int                  _line
 )
 {
     char text[3][2 * D_TESTS_TEXT_ROOM];
@@ -1158,8 +1158,8 @@ d_tests_same_real(
 // fields, and no table or box.
 static bool
 d_tests_same(
-    struct d_math_value _a,
-    struct d_math_value _b
+    struct dj_math_value _a,
+    struct dj_math_value _b
 )
 {
     return ( (_a.kind == _b.kind) &&
@@ -1181,9 +1181,9 @@ d_tests_same(
 // integer in the one form.
 static bool
 d_tests_is_fresh(
-    struct d_math_value             _r,
-    const struct d_math_boxed_kind* _type,
-    unsigned                        _flags
+    struct dj_math_value             _r,
+    const struct dj_math_boxed_kind* _type,
+    unsigned                         _flags
 )
 {
     return ( (d_tests_is_wide(_r)) &&
@@ -1201,12 +1201,12 @@ d_tests_is_fresh(
 //   whether _r is the error _code, with _flags, its other fields 0.
 static bool
 d_tests_is_error(
-    struct d_math_value     _r,
-    enum d_math_value_error _code,
-    unsigned                _flags
+    struct dj_math_value     _r,
+    enum dj_math_value_error _code,
+    unsigned                 _flags
 )
 {
-    struct d_math_value want = d_math_value_from_error(_code);
+    struct dj_math_value want = d_math_value_from_error(_code);
 
     want.flags = _flags;
 
@@ -1217,7 +1217,7 @@ d_tests_is_error(
 //   whether _x is an inline float, double or long double.
 static bool
 d_tests_is_float_kind(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     return ( (_x.kind == D_MATH_VALUE_FLOAT) ||
@@ -1229,7 +1229,7 @@ d_tests_is_float_kind(
 //   whether _x is none, an error or a boolean.
 static bool
 d_tests_is_other(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     return ( (_x.kind == D_MATH_VALUE_NONE) ||
@@ -1246,9 +1246,9 @@ d_tests_is_other(
 // 5.1    The exact result
 //------------------------------------------------------------------------------
 
-// d_tests_outcome
+// dj_tests_outcome
 //   enum: what an operation of the kind's must give.
-enum d_tests_outcome
+enum dj_tests_outcome
 {
     D_TESTS_BOXED    = 0,  // a wide integer, in a box of its own
     D_TESTS_RATIONAL = 1,  // an inline rational
@@ -1257,12 +1257,12 @@ enum d_tests_outcome
     D_TESTS_INVALID  = 4   // invalid: 0 / 0
 };
 
-// d_tests_expected
+// dj_tests_expected
 //   struct: an operation's outcome and its exact value, not reduced.
-struct d_tests_expected
+struct dj_tests_expected
 {
-    enum d_tests_outcome outcome;  // what the result must be
-    struct d_tests_exact value;    // its exact value
+    enum dj_tests_outcome outcome;  // what the result must be
+    struct dj_tests_exact value;    // its exact value
 };
 
 // d_tests_expected_of
@@ -1270,15 +1270,15 @@ struct d_tests_expected
 // and its outcome, sorted by its reduced form. An integer is one whose
 // denominator divides its numerator, which is where their greatest common
 // divisor is the denominator; it fits 256 bits where |n| < d 2^256.
-static struct d_tests_expected
+static struct dj_tests_expected
 d_tests_expected_of(
-    enum d_math_value_op _op,
-    struct d_tests_exact _a,
-    struct d_tests_exact _b
+    enum dj_math_value_op _op,
+    struct dj_tests_exact _a,
+    struct dj_tests_exact _b
 )
 {
-    struct d_tests_expected result = { D_TESTS_BOXED, _a };
-    bool                    whole  = false;
+    struct dj_tests_expected result = { D_TESTS_BOXED, _a };
+    bool                     whole  = false;
 
     // the exact value; over 0, a pole or invalid
     if (_op == D_MATH_VALUE_OP_ADD)
@@ -1339,13 +1339,13 @@ d_tests_expected_of(
 // of the kind's made under the table _type.
 static bool
 d_tests_is_result(
-    struct d_math_value             _r,
-    struct d_tests_expected         _want,
-    unsigned                        _flags,
-    const struct d_math_boxed_kind* _type
+    struct dj_math_value             _r,
+    struct dj_tests_expected         _want,
+    unsigned                         _flags,
+    const struct dj_math_boxed_kind* _type
 )
 {
-    struct d_math_value blank = d_math_value_none();
+    struct dj_math_value blank = d_math_value_none();
 
     // by outcome
     switch (_want.outcome)
@@ -1393,11 +1393,11 @@ d_tests_is_result(
 
 // d_tests_apply
 //   value.h's _a _op _b.
-static struct d_math_value
+static struct dj_math_value
 d_tests_apply(
-    enum d_math_value_op _op,
-    struct d_math_value  _a,
-    struct d_math_value  _b
+    enum dj_math_value_op _op,
+    struct dj_math_value  _a,
+    struct dj_math_value  _b
 )
 {
     // the operation
@@ -1420,10 +1420,10 @@ d_tests_apply(
 // d_tests_converted
 //   the wide integer _x as the inline number of kind _to, converted as the
 // unit converts it; any other _x as it is.
-static struct d_math_value
+static struct dj_math_value
 d_tests_converted(
-    struct d_math_value    _x,
-    enum d_math_value_kind _to
+    struct dj_math_value    _x,
+    enum dj_math_value_kind _to
 )
 {
     // not a wide integer
@@ -1454,7 +1454,7 @@ d_tests_converted(
 //   the operation's sign, for a report.
 static const char*
 d_tests_operation_name(
-    enum d_math_value_op _op
+    enum dj_math_value_op _op
 )
 {
     static const char* const names[6] = {
@@ -1472,20 +1472,20 @@ d_tests_operation_name(
 // Each list holds its values, and gives them back at the end.
 
 
-static struct d_math_value g_wides[D_TESTS_LIST_MAX];
-static int                 g_wide_count = 0;
-static struct d_math_value g_others[D_TESTS_LIST_MAX];
-static int                 g_other_count = 0;
+static struct dj_math_value g_wides[D_TESTS_LIST_MAX];
+static int                  g_wide_count = 0;
+static struct dj_math_value g_others[D_TESTS_LIST_MAX];
+static int                  g_other_count = 0;
 
 // d_tests_wide_value
 //   the wide integer _x as a value, with _flags.
-static struct d_math_value
+static struct dj_math_value
 d_tests_wide_value(
-    struct d_tests_big _x,
-    unsigned           _flags
+    struct dj_tests_big _x,
+    unsigned            _flags
 )
 {
-    struct d_math_value result =
+    struct dj_math_value result =
         d_math_value_from_wide(d_tests_integer_of_big(_x));
 
     result.flags = _flags;
@@ -1497,8 +1497,8 @@ d_tests_wide_value(
 //   _x, and -_x, to the wide integers, with _flags.
 static void
 d_tests_add_wide(
-    struct d_tests_big _x,
-    unsigned           _flags
+    struct dj_tests_big _x,
+    unsigned            _flags
 )
 {
     int sign = 0;
@@ -1530,7 +1530,7 @@ d_tests_add_wide(
 //   _x to the other operands.
 static void
 d_tests_add_other(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     if (g_other_count < D_TESTS_LIST_MAX)
@@ -1544,13 +1544,13 @@ d_tests_add_other(
 
 // d_tests_flagged
 //   _x with _flags.
-static struct d_math_value
+static struct dj_math_value
 d_tests_flagged(
-    struct d_math_value _x,
-    unsigned            _flags
+    struct dj_math_value _x,
+    unsigned             _flags
 )
 {
-    struct d_math_value result = _x;
+    struct dj_math_value result = _x;
 
     result.flags = _flags;
 
@@ -1571,7 +1571,7 @@ d_tests_make_wides(void)
 
     for (i = 0; i < 8; ++i)
     {
-        d_tests_add_wide(d_tests_big_of_umax((d_math_umax)small[i], false),
+        d_tests_add_wide(d_tests_big_of_umax((dj_math_umax)small[i], false),
                          0u);
     }
 
@@ -1621,11 +1621,11 @@ d_tests_make_wides(void)
 static void
 d_tests_make_others(void)
 {
-    const d_math_imax quarter = (d_math_imax)((d_math_umax)1
-                                              << (D_TESTS_W - 2));
-    const d_math_imax half    = (d_math_imax)((d_math_umax)1
-                                              << (D_TESTS_W / 2));
-    volatile float    zero_f  = 0.0f;
+    const dj_math_imax quarter = (dj_math_imax)((dj_math_umax)1
+                                                << (D_TESTS_W - 2));
+    const dj_math_imax half    = (dj_math_imax)((dj_math_umax)1
+                                                << (D_TESTS_W / 2));
+    volatile float     zero_f  = 0.0f;
 
     // integers
     d_tests_add_other(d_math_value_from_int(0));
@@ -1741,12 +1741,12 @@ d_tests_release_operands(void)
 // and exact; of the kind; and its integer read back.
 static void
 d_tests_queries(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
-    const struct d_math_wide held = d_tests_held(_x);
+    const struct dj_math_wide held = d_tests_held(_x);
 
-    struct d_math_wide read = d_math_wide_from_imax(-1);
+    struct dj_math_wide read = d_math_wide_from_imax(-1);
 
     D_TESTS_EXPECT(d_math_value_rank(_x) == D_TESTS_RANK_WIDE, "its rank", _x,
                    d_math_value_none());
@@ -1772,18 +1772,19 @@ d_tests_queries(
 // or cleared, with _x's flags, its holders as they were.
 static void
 d_tests_sign(
-    struct d_math_value _x,
-    bool                _negate
+    struct dj_math_value _x,
+    bool                 _negate
 )
 {
-    const long               live    = g_live;
-    const long               holders = d_tests_holders(_x);
-    const struct d_tests_big value   = d_tests_big_of_integer(d_tests_held(_x));
+    const long                live    = g_live;
+    const long                holders = d_tests_holders(_x);
+    const struct dj_tests_big value   =
+        d_tests_big_of_integer(d_tests_held(_x));
 
-    struct d_tests_expected want = { D_TESTS_BOXED,
-                                     d_tests_exact_from(value, d_tests_one()) };
-    struct d_math_value     r    = (_negate) ? d_math_value_neg(_x)
-                                             : d_math_value_abs(_x);
+    struct dj_tests_expected want = {
+        D_TESTS_BOXED, d_tests_exact_from(value, d_tests_one()) };
+    struct dj_math_value     r    = (_negate) ? d_math_value_neg(_x)
+                                              : d_math_value_abs(_x);
 
     want.value.n = (_negate) ? d_tests_big_neg(value) : d_tests_big_abs(value);
     g_shown      = r;
@@ -1811,7 +1812,7 @@ d_tests_sign(
 // d_tests_threshold
 //   the float's threshold for an infinity: FLT_MAX and half its last place,
 // 2^MAX_EXP - 2^(MAX_EXP - P - 1), which rounds, ties to even, to 2^MAX_EXP.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_threshold(void)
 {
     return d_tests_minus(d_tests_power(FLT_MAX_EXP),
@@ -1826,19 +1827,19 @@ d_tests_threshold(void)
 // it would round to an infinity.
 static bool
 d_tests_nearest_float(
-    bool               _negative,
-    struct d_tests_big _n,
-    float              _f
+    bool                _negative,
+    struct dj_tests_big _n,
+    float               _f
 )
 {
     const float magnitude = (_negative) ? -_f : _f;
 
-    struct d_tests_parts above   = { { { 0UL }, 0 }, 0 };
-    float                below   = 0.0f;
-    float                f_r     = 0.0f;
-    float                f_below = 0.0f;
-    int                  e_r     = 0;
-    int                  e_below = 0;
+    struct dj_tests_parts above   = { { { 0UL }, 0 }, 0 };
+    float                 below   = 0.0f;
+    float                 f_r     = 0.0f;
+    float                 f_below = 0.0f;
+    int                   e_r     = 0;
+    int                   e_below = 0;
 
     // below the largest: the oracle as it is
     if (magnitude != FLT_MAX)
@@ -1866,18 +1867,19 @@ d_tests_nearest_float(
 // stands to _x, exactly.
 static void
 d_tests_convert_entry(
-    struct d_math_value    _x,
-    enum d_math_value_kind _to,
-    long double            _real
+    struct dj_math_value    _x,
+    enum dj_math_value_kind _to,
+    long double             _real
 )
 {
-    const struct d_tests_exact exact =
+    const struct dj_tests_exact exact =
         d_tests_exact_from(d_tests_big_of_integer(d_tests_held(_x)),
                            d_tests_one());
 
-    struct d_math_value out       = d_math_value_from_bool(true);
-    int                 direction = 7;
-    bool                ok        = _x.type->convert(&out, &direction, _x, _to);
+    struct dj_math_value out       = d_math_value_from_bool(true);
+    int                  direction = 7;
+    bool                 ok        =
+        _x.type->convert(&out, &direction, _x, _to);
 
     g_shown = out;
 
@@ -1899,26 +1901,26 @@ d_tests_convert_entry(
 // the integer where it fits the family; and to anything else, nothing.
 static void
 d_tests_conversions(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
-    const struct d_tests_big value    =
+    const struct dj_tests_big value    =
         d_tests_big_of_integer(d_tests_held(_x));
-    const struct d_tests_big most     = d_tests_big_of(D_TESTS_MOST);
-    const struct d_tests_big least    = d_tests_big_of(D_TESTS_LEAST);
-    const bool               negative = (value.negative != 0);
-    const bool               fits     =
+    const struct dj_tests_big most     = d_tests_big_of(D_TESTS_MOST);
+    const struct dj_tests_big least    = d_tests_big_of(D_TESTS_LEAST);
+    const bool                negative = (value.negative != 0);
+    const bool                fits     =
         ( (d_tests_big_cmp(value, most) <= 0) &&
           (d_tests_big_cmp(value, least) >= 0) );
 
-    float               f         = 0.0f;
-    double              d         = 0.0;
-    long double         ld        = 0.0L;
-    struct d_rational   r         = { 3, 7 };
-    struct d_math_value out       = d_math_value_from_bool(true);
-    int                 direction = 7;
-    int                 k         = 0;
-    bool                ok        = false;
+    float                f         = 0.0f;
+    double               d         = 0.0;
+    long double          ld        = 0.0L;
+    struct dj_rational   r         = { 3, 7 };
+    struct dj_math_value out       = d_math_value_from_bool(true);
+    int                  direction = 7;
+    int                  k         = 0;
+    bool                 ok        = false;
 
     // a float: the nearest, or an infinity at the threshold and past it
     ok = d_math_value_to_f(&f, _x);
@@ -1980,7 +1982,7 @@ d_tests_conversions(
         out       = d_math_value_from_bool(true);
         direction = 7;
         ok        = _x.type->convert(&out, &direction, _x,
-                                     (enum d_math_value_kind)k);
+                                     (enum dj_math_value_kind)k);
         g_shown   = out;
 
         D_TESTS_EXPECT( ( (fits) &&
@@ -2011,7 +2013,7 @@ d_tests_conversions(
         out       = d_math_value_from_bool(true);
         direction = 7;
         ok        = _x.type->convert(&out, &direction, _x,
-                                     (enum d_math_value_kind)k);
+                                     (enum dj_math_value_kind)k);
         g_shown   = out;
 
         D_TESTS_EXPECT( (!ok) &&
@@ -2033,7 +2035,7 @@ d_tests_conversions(
 // returned whatever the room, and cut short as snprintf cuts it.
 static void
 d_tests_texts(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     char   want[D_TESTS_TEXT_ROOM];
@@ -2093,13 +2095,13 @@ d_tests_texts(
 // that hold back; neither allocates or frees.
 static void
 d_tests_holds(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     const long live    = g_live;
     const long holders = d_tests_holders(_x);
 
-    struct d_math_value copy = d_math_value_retain(_x);
+    struct dj_math_value copy = d_math_value_retain(_x);
 
     D_TESTS_EXPECT( (copy.box == _x.box) &&
                     (copy.type == _x.type) &&
@@ -2152,7 +2154,7 @@ d_tests_ones(void)
 // small; none for anything else.
 static long
 d_tests_reads(
-    struct d_math_value _x
+    struct dj_math_value _x
 )
 {
     return (d_tests_kind_of(_x) == D_TESTS_SMALL) ? 1L : 0L;
@@ -2162,8 +2164,8 @@ d_tests_reads(
 //   the harness's kind among _a and _b, -1 for none.
 static int
 d_tests_harness_kind(
-    struct d_math_value _a,
-    struct d_math_value _b
+    struct dj_math_value _a,
+    struct dj_math_value _b
 )
 {
     return (d_tests_kind_of(_a) >= 0) ? d_tests_kind_of(_a)
@@ -2180,25 +2182,25 @@ d_tests_harness_kind(
 // harness's kinds.
 static void
 d_tests_two_op(
-    enum d_math_value_op _op,
-    struct d_math_value  _a,
-    struct d_math_value  _b
+    enum dj_math_value_op _op,
+    struct dj_math_value  _a,
+    struct dj_math_value  _b
 )
 {
-    const struct d_math_value   wide      = d_tests_is_wide(_a) ? _a : _b;
-    const unsigned              flags     = _a.flags | _b.flags;
-    const long                  live      = g_live;
-    const long                  a_holders = d_tests_holders(_a);
-    const long                  b_holders = d_tests_holders(_b);
-    const struct d_tests_counts before    = d_tests_counted();
-    const char*                 what      = d_tests_operation_name(_op);
+    const struct dj_math_value   wide      = d_tests_is_wide(_a) ? _a : _b;
+    const unsigned               flags     = _a.flags | _b.flags;
+    const long                   live      = g_live;
+    const long                   a_holders = d_tests_holders(_a);
+    const long                   b_holders = d_tests_holders(_b);
+    const struct dj_tests_counts before    = d_tests_counted();
+    const char*                  what      = d_tests_operation_name(_op);
 
-    struct d_tests_exact    ea    = d_tests_exact_of(0, 1);
-    struct d_tests_exact    eb    = d_tests_exact_of(0, 1);
-    struct d_tests_expected want  = { D_TESTS_BOXED, ea };
-    struct d_math_value     other = d_math_value_none();
-    struct d_math_value     r     = d_tests_apply(_op, _a, _b);
-    long                    boxes = 0L;
+    struct dj_tests_exact    ea    = d_tests_exact_of(0, 1);
+    struct dj_tests_exact    eb    = d_tests_exact_of(0, 1);
+    struct dj_tests_expected want  = { D_TESTS_BOXED, ea };
+    struct dj_math_value     other = d_math_value_none();
+    struct dj_math_value     r     = d_tests_apply(_op, _a, _b);
+    long                     boxes = 0L;
 
     g_shown = r;
 
@@ -2220,7 +2222,7 @@ d_tests_two_op(
     else if ( (d_tests_is_float_kind(_a)) ||
               (d_tests_is_float_kind(_b)) )
     {
-        const enum d_math_value_kind to =
+        const enum dj_math_value_kind to =
             d_tests_is_float_kind(_a) ? _a.kind : _b.kind;
 
         other       = d_tests_apply(_op, d_tests_converted(_a, to),
@@ -2268,17 +2270,17 @@ d_tests_two_op(
 // exact order. Nothing allocated, and eq as cmp says.
 static void
 d_tests_two_cmp(
-    struct d_math_value _a,
-    struct d_math_value _b
+    struct dj_math_value _a,
+    struct dj_math_value _b
 )
 {
-    const long                  live   = g_live;
-    const struct d_tests_counts before = d_tests_counted();
+    const long                   live   = g_live;
+    const struct dj_tests_counts before = d_tests_counted();
 
-    struct d_tests_exact    ea    = d_tests_exact_of(0, 1);
-    struct d_tests_exact    eb    = d_tests_exact_of(0, 1);
-    enum d_math_value_order want  = D_MATH_VALUE_UNORDERED;
-    enum d_math_value_order order = d_math_value_cmp(_a, _b);
+    struct dj_tests_exact    ea    = d_tests_exact_of(0, 1);
+    struct dj_tests_exact    eb    = d_tests_exact_of(0, 1);
+    enum dj_math_value_order want  = D_MATH_VALUE_UNORDERED;
+    enum dj_math_value_order order = d_math_value_cmp(_a, _b);
 
     g_shown = d_math_value_none();
 
@@ -2317,15 +2319,15 @@ d_tests_two_cmp(
 //   every operation, and the comparison, on _a and _b.
 static void
 d_tests_two(
-    struct d_math_value _a,
-    struct d_math_value _b
+    struct dj_math_value _a,
+    struct dj_math_value _b
 )
 {
     int op = 0;
 
     for (op = (int)D_MATH_VALUE_OP_ADD; op <= (int)D_MATH_VALUE_OP_DIV; ++op)
     {
-        d_tests_two_op((enum d_math_value_op)op, _a, _b);
+        d_tests_two_op((enum dj_math_value_op)op, _a, _b);
     }
 
     d_tests_two_cmp(_a, _b);
@@ -2372,20 +2374,20 @@ d_tests_pairs(void)
 // refused.
 static void
 d_tests_refused_op(
-    enum d_math_value_op _op,
-    struct d_math_value  _a,
-    struct d_math_value  _b
+    enum dj_math_value_op _op,
+    struct dj_math_value  _a,
+    struct dj_math_value  _b
 )
 {
-    const struct d_math_value wide    = d_tests_is_wide(_a) ? _a : _b;
-    const unsigned            flags   = _a.flags | _b.flags;
-    const long                live    = g_live;
-    const long                refused = g_refused;
+    const struct dj_math_value wide    = d_tests_is_wide(_a) ? _a : _b;
+    const unsigned             flags   = _a.flags | _b.flags;
+    const long                 live    = g_live;
+    const long                 refused = g_refused;
 
-    struct d_tests_exact    ea   = d_tests_exact_of(0, 1);
-    struct d_tests_exact    eb   = d_tests_exact_of(0, 1);
-    struct d_tests_expected want = { D_TESTS_BOXED, ea };
-    struct d_math_value     r    = d_math_value_none();
+    struct dj_tests_exact    ea   = d_tests_exact_of(0, 1);
+    struct dj_tests_exact    eb   = d_tests_exact_of(0, 1);
+    struct dj_tests_expected want = { D_TESTS_BOXED, ea };
+    struct dj_math_value     r    = d_math_value_none();
 
     (void)d_tests_value_exact(_a, &ea);
     (void)d_tests_value_exact(_b, &eb);
@@ -2426,20 +2428,20 @@ d_tests_refused_op(
 static void
 d_tests_refused(void)
 {
-    const struct d_math_value exact[4] = {
+    const struct dj_math_value exact[4] = {
         d_math_value_from_int(1), d_math_value_from_int(-3),
         d_math_value_from_ratio(1, 2), d_math_value_from_int(0)
     };
 
-    struct d_math_value r = d_math_value_none();
-    int                 i = 0;
-    int                 j = 0;
-    int                 op = 0;
+    struct dj_math_value r = d_math_value_none();
+    int                  i = 0;
+    int                  j = 0;
+    int                  op = 0;
 
     for (i = 0; i < g_wide_count; ++i)
     {
-        const struct d_math_value x    = g_wides[i];
-        const long                live = g_live;
+        const struct dj_math_value x    = g_wides[i];
+        const long                 live = g_live;
 
         // -x and |x|
         g_refuse = 0L;
@@ -2475,8 +2477,8 @@ d_tests_refused(void)
             for (op = (int)D_MATH_VALUE_OP_ADD;
                  op <= (int)D_MATH_VALUE_OP_DIV; ++op)
             {
-                d_tests_refused_op((enum d_math_value_op)op, x, exact[j]);
-                d_tests_refused_op((enum d_math_value_op)op, exact[j], x);
+                d_tests_refused_op((enum dj_math_value_op)op, x, exact[j]);
+                d_tests_refused_op((enum dj_math_value_op)op, exact[j], x);
             }
         }
     }
@@ -2516,15 +2518,15 @@ d_tests_random_below(
 // d_tests_random_big
 //   a natural of _bits bits, its top bit set (0 for 0 bits): random limbs,
 // or a quarter of the time limbs of all ones or all zeros.
-static struct d_tests_big
+static struct dj_tests_big
 d_tests_random_big(
     int _bits
 )
 {
     const bool runs = (d_tests_random_below(4) == 0);
 
-    struct d_tests_big result = { { 0UL }, 0 };
-    int                i      = 0;
+    struct dj_tests_big result = { { 0UL }, 0 };
+    int                 i      = 0;
 
     for (i = 0; (i * 16) < _bits; ++i)
     {
@@ -2551,10 +2553,10 @@ d_tests_random_big(
 
 // d_tests_random_wide
 //   a wide integer of a random length up to 256 bits, of either sign.
-static struct d_math_value
+static struct dj_math_value
 d_tests_random_wide(void)
 {
-    const struct d_tests_big x =
+    const struct dj_tests_big x =
         d_tests_random_big(d_tests_random_below(257));
 
     return d_tests_wide_value(
@@ -2563,33 +2565,33 @@ d_tests_random_wide(void)
 
 // d_tests_random_imax
 //   an integer of the family of a random length below a word, either sign.
-static d_math_imax
+static dj_math_imax
 d_tests_random_imax(void)
 {
     const int bits = 1 + d_tests_random_below(D_TESTS_W - 1);
 
-    d_math_umax x = 0u;
-    int         i = 0;
+    dj_math_umax x = 0u;
+    int          i = 0;
 
     for (i = 0; i < D_TESTS_W; i = i + 16)
     {
-        x = (x << 16) | (d_math_umax)d_tests_random();
+        x = (x << 16) | (dj_math_umax)d_tests_random();
     }
 
-    x = x & (((d_math_umax)1 << bits) - 1u);
+    x = x & (((dj_math_umax)1 << bits) - 1u);
 
-    return (d_tests_random_below(2) == 0) ? (d_math_imax)x
-                                          : -(d_math_imax)x;
+    return (d_tests_random_below(2) == 0) ? (dj_math_imax)x
+                                          : -(dj_math_imax)x;
 }
 
 // d_tests_random_other
 //   an inline integer or rational, or a wide integer, drawn at random.
-static struct d_math_value
+static struct dj_math_value
 d_tests_random_other(void)
 {
     const int choice = d_tests_random_below(3);
 
-    d_math_imax den = 0;
+    dj_math_imax den = 0;
 
     // a wide integer, an integer, or a rational
     if (choice == 0)
@@ -2624,8 +2626,8 @@ d_tests_random_trials(void)
 
     for (trial = 0L; trial < D_TESTS_TRIALS; ++trial)
     {
-        struct d_math_value x = d_tests_random_wide();
-        struct d_math_value y = d_tests_random_other();
+        struct dj_math_value x = d_tests_random_wide();
+        struct dj_math_value y = d_tests_random_other();
 
         d_tests_two(x, y);
         d_tests_two(y, x);
@@ -2637,9 +2639,9 @@ d_tests_random_trials(void)
     // long operands: products past 256 bits, and quotients past the family
     for (trial = 0L; trial < (D_TESTS_TRIALS / 4L); ++trial)
     {
-        struct d_math_value x = d_tests_wide_value(
+        struct dj_math_value x = d_tests_wide_value(
             d_tests_random_big(160 + d_tests_random_below(97)), 0u);
-        struct d_math_value y = d_tests_wide_value(
+        struct dj_math_value y = d_tests_wide_value(
             d_tests_random_big(160 + d_tests_random_below(97)), 0u);
 
         d_tests_two(x, y);
@@ -2651,15 +2653,15 @@ d_tests_random_trials(void)
     // a common factor of up to 128 bits
     for (trial = 0L; trial < (D_TESTS_TRIALS / 4L); ++trial)
     {
-        const struct d_tests_big g =
+        const struct dj_tests_big g =
             d_tests_random_big(1 + d_tests_random_below(128));
-        const struct d_tests_big p =
+        const struct dj_tests_big p =
             d_tests_random_big(1 + d_tests_random_below(128));
-        const struct d_tests_big q =
+        const struct dj_tests_big q =
             d_tests_random_big(1 + d_tests_random_below(128));
 
-        struct d_math_value x = d_tests_wide_value(d_tests_big_mul(g, p), 0u);
-        struct d_math_value y = d_tests_wide_value(d_tests_big_mul(g, q), 0u);
+        struct dj_math_value x = d_tests_wide_value(d_tests_big_mul(g, p), 0u);
+        struct dj_math_value y = d_tests_wide_value(d_tests_big_mul(g, q), 0u);
 
         d_tests_two_op(D_MATH_VALUE_OP_DIV, x, y);
         d_tests_two_op(D_MATH_VALUE_OP_MUL, x, y);
@@ -2685,9 +2687,9 @@ d_tests_random_trials(void)
 //   -1, 0 or 1 as _n / _d is below, equal to or above m 2^e.
 static int
 d_tests_order_parts(
-    struct d_tests_big   _n,
-    struct d_tests_big   _d,
-    struct d_tests_parts _v
+    struct dj_tests_big   _n,
+    struct dj_tests_big   _d,
+    struct dj_tests_parts _v
 )
 {
     const int shift = (_v.exponent < 0) ? -_v.exponent : 0;
@@ -2703,22 +2705,22 @@ d_tests_order_parts(
 // _precision bits, against the reference.
 static void
 d_tests_rounding_one(
-    struct d_tests_big _n,
-    struct d_tests_big _d,
-    unsigned           _precision
+    struct dj_tests_big _n,
+    struct dj_tests_big _d,
+    unsigned            _precision
 )
 {
     const int precision = (int)_precision;
 
-    d_math_wide_limb num[D_INTERNAL_MATH_VALUE_WIDE_RATIO_LIMBS] = { 0u };
-    d_math_wide_limb den[D_INTERNAL_MATH_VALUE_WIDE_RATIO_LIMBS] = { 0u };
-    struct d_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
-    struct d_tests_parts               r       = { { { 0UL }, 0 }, 0 };
-    struct d_tests_parts               below   = { { { 0UL }, 0 }, 0 };
-    struct d_tests_parts               above   = { { { 0UL }, 0 }, 0 };
-    char                               detail[2 * D_TESTS_TEXT_ROOM];
-    char                               n_text[D_TESTS_TEXT_ROOM];
-    char                               d_text[D_TESTS_TEXT_ROOM];
+    dj_math_wide_limb num[D_INTERNAL_MATH_VALUE_WIDE_RATIO_LIMBS] = { 0u };
+    dj_math_wide_limb den[D_INTERNAL_MATH_VALUE_WIDE_RATIO_LIMBS] = { 0u };
+    struct dj_internal_rational_rounded rounded = { { 0u, 0u }, 0, 0 };
+    struct dj_tests_parts               r       = { { { 0UL }, 0 }, 0 };
+    struct dj_tests_parts               below   = { { { 0UL }, 0 }, 0 };
+    struct dj_tests_parts               above   = { { { 0UL }, 0 }, 0 };
+    char                                detail[2 * D_TESTS_TEXT_ROOM];
+    char                                n_text[D_TESTS_TEXT_ROOM];
+    char                                d_text[D_TESTS_TEXT_ROOM];
 
     d_tests_limbs_of_big(_n, num, D_TESTS_RATIO);
     d_tests_limbs_of_big(_d, den, D_TESTS_RATIO);
@@ -2766,9 +2768,9 @@ d_tests_rounding_at(
     unsigned _precision
 )
 {
-    const int                precision = (int)_precision;
-    const struct d_tests_big top       = d_tests_plus(d_tests_power(512), -1L);
-    const struct d_tests_big one       = d_tests_one();
+    const int                 precision = (int)_precision;
+    const struct dj_tests_big top       = d_tests_plus(d_tests_power(512), -1L);
+    const struct dj_tests_big one       = d_tests_one();
 
     long trial = 0L;
 
@@ -2785,14 +2787,14 @@ d_tests_rounding_at(
     // ((2m + 1) D + e) / 2D for a long D and e of -1, 0 or 1
     for (trial = 0L; trial < 40L; ++trial)
     {
-        const struct d_tests_big m =
+        const struct dj_tests_big m =
             d_tests_random_big(precision - (int)(trial % 3L));
-        const struct d_tests_big odd =
+        const struct dj_tests_big odd =
             d_tests_plus(d_tests_big_twice(m), 1L);
-        const struct d_tests_big big_d =
+        const struct dj_tests_big big_d =
             d_tests_random_big(1 + d_tests_random_below(512 - precision - 2));
-        const struct d_tests_big scaled = d_tests_big_mul(odd, big_d);
-        const struct d_tests_big twice_d = d_tests_big_twice(big_d);
+        const struct dj_tests_big scaled = d_tests_big_mul(odd, big_d);
+        const struct dj_tests_big twice_d = d_tests_big_twice(big_d);
 
         d_tests_rounding_one(odd, d_tests_big_of_umax(2u, false), _precision);
         d_tests_rounding_one(scaled, twice_d, _precision);
@@ -2803,9 +2805,9 @@ d_tests_rounding_at(
     // at random
     for (trial = 0L; trial < D_TESTS_ROUND_TRIALS; ++trial)
     {
-        const struct d_tests_big n =
+        const struct dj_tests_big n =
             d_tests_random_big(1 + d_tests_random_below(512));
-        const struct d_tests_big d =
+        const struct dj_tests_big d =
             d_tests_random_big(1 + d_tests_random_below(512));
 
         d_tests_rounding_one(n, d, _precision);
@@ -2872,10 +2874,10 @@ d_tests_copy_release(
     return;
 }
 
-static struct d_math_value
+static struct dj_math_value
 d_tests_copy_unary(
-    enum d_math_value_op _op,
-    struct d_math_value  _x
+    enum dj_math_value_op _op,
+    struct dj_math_value  _x
 )
 {
     ++g_copy_calls[D_TESTS_UNARY];
@@ -2883,11 +2885,11 @@ d_tests_copy_unary(
     return d_math_value_wide_kind()->unary(_op, _x);
 }
 
-static struct d_math_value
+static struct dj_math_value
 d_tests_copy_binary(
-    enum d_math_value_op _op,
-    struct d_math_value  _a,
-    struct d_math_value  _b
+    enum dj_math_value_op _op,
+    struct dj_math_value  _a,
+    struct dj_math_value  _b
 )
 {
     ++g_copy_calls[D_TESTS_BINARY];
@@ -2895,10 +2897,10 @@ d_tests_copy_binary(
     return d_math_value_wide_kind()->binary(_op, _a, _b);
 }
 
-static enum d_math_value_order
+static enum dj_math_value_order
 d_tests_copy_cmp(
-    struct d_math_value _a,
-    struct d_math_value _b
+    struct dj_math_value _a,
+    struct dj_math_value _b
 )
 {
     ++g_copy_calls[D_TESTS_CMP];
@@ -2908,10 +2910,10 @@ d_tests_copy_cmp(
 
 static bool
 d_tests_copy_convert(
-    struct d_math_value*   _out,
-    int*                   _direction,
-    struct d_math_value    _x,
-    enum d_math_value_kind _to
+    struct dj_math_value*   _out,
+    int*                    _direction,
+    struct dj_math_value    _x,
+    enum dj_math_value_kind _to
 )
 {
     ++g_copy_calls[D_TESTS_CONVERT];
@@ -2921,9 +2923,9 @@ d_tests_copy_convert(
 
 static size_t
 d_tests_copy_text(
-    char*               _buffer,
-    size_t              _size,
-    struct d_math_value _x
+    char*                _buffer,
+    size_t               _size,
+    struct dj_math_value _x
 )
 {
     ++g_copy_calls[D_TESTS_TEXT];
@@ -2931,7 +2933,7 @@ d_tests_copy_text(
     return d_math_value_wide_kind()->text(_buffer, _size, _x);
 }
 
-static const struct d_math_boxed_kind g_kind_copy = {
+static const struct dj_math_boxed_kind g_kind_copy = {
     D_TESTS_NAME_WIDE, D_TESTS_RANK_WIDE,
     D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
     d_tests_copy_retain, d_tests_copy_release, d_tests_copy_unary,
@@ -2941,7 +2943,7 @@ static const struct d_math_boxed_kind g_kind_copy = {
 
 // a table like the wide integer's at a rank above it, which is another
 // kind's
-static const struct d_math_boxed_kind g_kind_above = {
+static const struct dj_math_boxed_kind g_kind_above = {
     "above", D_TESTS_RANK_WIDE + 10,
     D_MATH_BOXED_NUMBER | D_MATH_BOXED_EXACT,
     d_tests_copy_retain, d_tests_copy_release, d_tests_copy_unary,
@@ -2955,7 +2957,7 @@ static const struct d_math_boxed_kind g_kind_above = {
 static void
 d_tests_table_held(void)
 {
-    const struct d_math_boxed_kind* table = d_math_value_wide_kind();
+    const struct dj_math_boxed_kind* table = d_math_value_wide_kind();
 
     D_TESTS_EXPECT( (table != NULL) &&
                     (table == d_math_value_wide_kind()) &&
@@ -2986,10 +2988,10 @@ d_tests_table_copies(void)
 {
     const long live = g_live;
 
-    struct d_math_value a = d_tests_wide_value(d_tests_power(200), 0u);
-    struct d_math_value b = d_tests_wide_value(d_tests_power(100), 0u);
-    struct d_math_value r = d_math_value_none();
-    int                 e = 0;
+    struct dj_math_value a = d_tests_wide_value(d_tests_power(200), 0u);
+    struct dj_math_value b = d_tests_wide_value(d_tests_power(100), 0u);
+    struct dj_math_value r = d_math_value_none();
+    int                  e = 0;
 
     a.type = &g_kind_copy;
 
@@ -3059,15 +3061,15 @@ d_tests_table_copies(void)
 static void
 d_tests_table_breaches(void)
 {
-    const struct d_math_boxed_kind* table = d_math_value_wide_kind();
-    const long                      live  = g_live;
+    const struct dj_math_boxed_kind* table = d_math_value_wide_kind();
+    const long                       live  = g_live;
 
-    struct d_math_value wide  = d_tests_wide_value(d_tests_power(70), 0u);
-    struct d_math_value three = d_math_value_from_int(3);
-    struct d_math_value out   = d_math_value_from_bool(true);
-    struct d_math_value r     = d_math_value_none();
-    char                text[8];
-    int                 direction = 7;
+    struct dj_math_value wide  = d_tests_wide_value(d_tests_power(70), 0u);
+    struct dj_math_value three = d_math_value_from_int(3);
+    struct dj_math_value out   = d_math_value_from_bool(true);
+    struct dj_math_value r     = d_math_value_none();
+    char                 text[8];
+    int                  direction = 7;
 
     r = table->unary(D_MATH_VALUE_OP_NEG, three);
     D_TESTS_EXPECT(d_tests_is_error(r, D_MATH_VALUE_ERROR_DOMAIN, 0u),
@@ -3134,13 +3136,13 @@ d_tests_table_breaches(void)
 static void
 d_tests_table_values(void)
 {
-    const struct d_math_wide seven = d_math_wide_from_imax(7);
+    const struct dj_math_wide seven = d_math_wide_from_imax(7);
 
-    struct d_math_wide  zero  = { { 0u }, true };
-    struct d_math_wide  read  = seven;
-    struct d_math_value x     = d_math_value_from_wide(zero);
-    struct d_math_value fake  = x;
-    int                 i     = 0;
+    struct dj_math_wide  zero = { { 0u }, true };
+    struct dj_math_wide  read = seven;
+    struct dj_math_value x    = d_math_value_from_wide(zero);
+    struct dj_math_value fake = x;
+    int                  i    = 0;
 
     g_shown = x;
     D_TESTS_EXPECT( (d_tests_is_fresh(x, d_math_value_wide_kind(), 0u)) &&
@@ -3159,11 +3161,11 @@ d_tests_table_values(void)
 
     for (i = 0; i < g_other_count; ++i)
     {
-        struct d_tests_exact exact = d_tests_exact_of(0, 1);
-        const bool           whole =
+        struct dj_tests_exact exact = d_tests_exact_of(0, 1);
+        const bool            whole =
             ( (d_tests_value_exact(g_others[i], &exact)) &&
               (d_tests_big_cmp_mag(exact.d, d_tests_one()) == 0) );
-        const bool           ok    = d_math_value_to_wide(&read, g_others[i]);
+        const bool            ok    = d_math_value_to_wide(&read, g_others[i]);
 
         D_TESTS_EXPECT( ( (whole) &&
                           (ok) &&
@@ -3221,16 +3223,16 @@ d_tests_table_values(void)
 
 // d_tests_dirty_ratio
 //   a ratio full of the pattern: every limb 0xA5..., and negative.
-static struct d_internal_math_value_wide_ratio
+static struct dj_internal_math_value_wide_ratio
 d_tests_dirty_ratio(void)
 {
-    struct d_internal_math_value_wide_ratio result = { false, { 0u }, { 0u } };
-    int                                     i      = 0;
+    struct dj_internal_math_value_wide_ratio result = { false, { 0u }, { 0u } };
+    int                                      i      = 0;
 
     for (i = 0; i < D_TESTS_RATIO; ++i)
     {
-        result.num[i] = (d_math_wide_limb)0xA5A5A5A5UL;
-        result.den[i] = (d_math_wide_limb)0x5A5A5A5AUL;
+        result.num[i] = (dj_math_wide_limb)0xA5A5A5A5UL;
+        result.den[i] = (dj_math_wide_limb)0x5A5A5A5AUL;
     }
 
     result.negative = true;
@@ -3242,8 +3244,8 @@ d_tests_dirty_ratio(void)
 //   whether _a and _b hold the same terms and sign, limb for limb.
 static bool
 d_tests_same_ratio(
-    const struct d_internal_math_value_wide_ratio* _a,
-    const struct d_internal_math_value_wide_ratio* _b
+    const struct dj_internal_math_value_wide_ratio* _a,
+    const struct dj_internal_math_value_wide_ratio* _b
 )
 {
     int i = 0;
@@ -3266,21 +3268,21 @@ d_tests_same_ratio(
 static void
 d_tests_dirty_reads(void)
 {
-    const struct d_internal_math_value_wide_term dirty = {
-        { { (d_math_wide_limb)0xA5A5A5A5UL }, true }, 99u
+    const struct dj_internal_math_value_wide_term dirty = {
+        { { (dj_math_wide_limb)0xA5A5A5A5UL }, true }, 99u
     };
 
     int i = 0;
 
     for (i = 0; i < (g_wide_count + g_other_count); ++i)
     {
-        const struct d_math_value x = (i < g_wide_count)
+        const struct dj_math_value x = (i < g_wide_count)
                                           ? g_wides[i]
                                           : g_others[i - g_wide_count];
 
-        struct d_internal_math_value_wide_term term  = dirty;
-        struct d_tests_exact                   exact = d_tests_exact_of(0, 1);
-        const bool readable = d_tests_value_exact(x, &exact);
+        struct dj_internal_math_value_wide_term term  = dirty;
+        struct dj_tests_exact                   exact = d_tests_exact_of(0, 1);
+        const bool readable = d_tests_value_exact(x,  &exact);
         const bool ok       = d_internal_math_value_wide_read(&term, x);
 
         D_TESTS_EXPECT( ( (readable) &&
@@ -3292,7 +3294,7 @@ d_tests_dirty_reads(void)
                                    d_tests_big_of_umax(term.den, false)),
                                exact) == 0) &&
                           (term.den == ( (x.kind == D_MATH_VALUE_RATIONAL)
-                                             ? (d_math_umax)x.exact.den
+                                             ? (dj_math_umax)x.exact.den
                                              : 1u )) ) ||
                         ( (!readable) &&
                           (!ok) &&
@@ -3311,7 +3313,7 @@ d_tests_dirty_reads(void)
 static void
 d_tests_dirty_results(void)
 {
-    const struct d_internal_math_value_wide_ratio pattern =
+    const struct dj_internal_math_value_wide_ratio pattern =
         d_tests_dirty_ratio();
 
     int i  = 0;
@@ -3322,13 +3324,13 @@ d_tests_dirty_results(void)
     {
         for (j = 0; j < (g_wide_count + g_other_count); j = j + 2)
         {
-            const struct d_math_value y = (j < g_wide_count)
+            const struct dj_math_value y = (j < g_wide_count)
                                               ? g_wides[j]
                                               : g_others[j - g_wide_count];
 
-            struct d_internal_math_value_wide_term a =
+            struct dj_internal_math_value_wide_term a =
                 { { { 0u }, false }, 1u };
-            struct d_internal_math_value_wide_term b =
+            struct dj_internal_math_value_wide_term b =
                 { { { 0u }, false }, 1u };
 
             // operands the kind reads only
@@ -3341,15 +3343,15 @@ d_tests_dirty_results(void)
             for (op = (int)D_MATH_VALUE_OP_ADD;
                  op <= (int)D_MATH_VALUE_OP_DIV; ++op)
             {
-                struct d_internal_math_value_wide_ratio clean =
+                struct dj_internal_math_value_wide_ratio clean =
                     { false, { 0u }, { 0u } };
-                struct d_internal_math_value_wide_ratio dirty = pattern;
-                const enum d_math_wide_status first =
+                struct dj_internal_math_value_wide_ratio dirty = pattern;
+                const enum dj_math_wide_status first =
                     d_internal_math_value_wide_exact(
-                        &clean, (enum d_math_value_op)op, a, b);
-                const enum d_math_wide_status second =
+                        &clean, (enum dj_math_value_op)op, a, b);
+                const enum dj_math_wide_status second =
                     d_internal_math_value_wide_exact(
-                        &dirty, (enum d_math_value_op)op, a, b);
+                        &dirty, (enum dj_math_value_op)op, a, b);
 
                 D_TESTS_EXPECT( (first == second) &&
                                 ( ( (first == D_MATH_WIDE_OK) &&
@@ -3379,30 +3381,30 @@ d_tests_dirty_results(void)
 
 // d_tests_ce_term
 //   _num / _den as a term.
-static constexpr struct d_internal_math_value_wide_term
+static constexpr struct dj_internal_math_value_wide_term
 d_tests_ce_term(
-    d_math_imax _num,
-    d_math_imax _den
+    dj_math_imax _num,
+    dj_math_imax _den
 )
 {
-    struct d_internal_math_value_wide_term result = { { { 0u }, false }, 1u };
+    struct dj_internal_math_value_wide_term result = { { { 0u }, false }, 1u };
 
     result.num = d_math_wide_from_imax(_num);
-    result.den = (d_math_umax)_den;
+    result.den = (dj_math_umax)_den;
 
     return result;
 }
 
 // d_tests_ce_top
 //   2^255 as a term.
-static constexpr struct d_internal_math_value_wide_term
+static constexpr struct dj_internal_math_value_wide_term
 d_tests_ce_top(void)
 {
-    struct d_internal_math_value_wide_term result = { { { 0u }, false }, 1u };
+    struct dj_internal_math_value_wide_term result = { { { 0u }, false }, 1u };
 
     result.num.limb[D_MATH_WIDE_LIMBS - 1u] =
-        (d_math_wide_limb)((d_math_wide_limb)1u
-                           << (D_MATH_WIDE_LIMB_BITS - 1u));
+        (dj_math_wide_limb)((dj_math_wide_limb)1u
+                            << (D_MATH_WIDE_LIMB_BITS - 1u));
 
     return result;
 }
@@ -3412,7 +3414,7 @@ d_tests_ce_top(void)
 static constexpr bool
 d_tests_ce_carry(void)
 {
-    struct d_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
+    struct dj_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
 
     (void)d_internal_math_value_wide_exact(&r, D_MATH_VALUE_OP_ADD,
                                            d_tests_ce_top(),
@@ -3429,7 +3431,7 @@ d_tests_ce_carry(void)
 static constexpr bool
 d_tests_ce_quotient(void)
 {
-    struct d_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
+    struct dj_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
 
     (void)d_internal_math_value_wide_exact(&r, D_MATH_VALUE_OP_DIV,
                                            d_tests_ce_term(6, 1),
@@ -3444,10 +3446,10 @@ d_tests_ce_quotient(void)
 
 // d_tests_ce_pole
 //   1 / 0.
-static constexpr enum d_math_wide_status
+static constexpr enum dj_math_wide_status
 d_tests_ce_pole(void)
 {
-    struct d_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
+    struct dj_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
 
     return d_internal_math_value_wide_exact(&r, D_MATH_VALUE_OP_DIV,
                                             d_tests_ce_term(1, 1),
@@ -3468,7 +3470,7 @@ d_tests_ce_order(void)
 static constexpr long double
 d_tests_ce_third(void)
 {
-    struct d_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
+    struct dj_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
 
     r.num[0] = 1u;
     r.den[0] = 3u;
@@ -3482,7 +3484,7 @@ d_tests_ce_third(void)
 static constexpr long double
 d_tests_ce_square(void)
 {
-    struct d_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
+    struct dj_internal_math_value_wide_ratio r = { false, { 0u }, { 0u } };
 
     (void)d_internal_math_value_wide_exact(&r, D_MATH_VALUE_OP_MUL,
                                            d_tests_ce_top(),

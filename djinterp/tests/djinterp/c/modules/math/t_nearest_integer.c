@@ -19,17 +19,18 @@
 * overloads; from C++14, that the four are constant expressions, every
 * family -- far past 2^63 among them -- with the bits they have at run time.
 * It needs no 64-bit integer, so that ISO-strict C++98 on a 32-bit target,
-* where d_math_umax has 32 bits, builds it too.
+* where dj_math_umax has 32 bits, builds it too.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_nearest_integer.c -o t_nearest_integer -lm
+*        tests/djinterp/c/modules/math/t_nearest_integer.c                     \
+*        -o t_nearest_integer -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_nearest_integer.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MANT_DIG ... LDBL_MAX

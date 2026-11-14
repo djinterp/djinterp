@@ -24,7 +24,7 @@
  * @param[in] _counter  the counter; not `NULL`.
  * @return its bounds, or `NULL` when it has none.
  */
-static const struct d_interval_imax*
+static const struct dj_interval_imax*
 d_internal_counter_atomic_bounds(
     const struct dj_counter_atomic* _counter
 )
@@ -52,7 +52,7 @@ d_internal_counter_atomic_step(
     bool                      _is_decrement
 )
 {
-    const struct d_interval_imax* bounds   =
+    const struct dj_interval_imax* bounds  =
         d_internal_counter_atomic_bounds(_counter);
     long long                     current  =
         d_atomic_load_llong(&_counter->value);
@@ -120,7 +120,7 @@ bool
 d_counter_atomic_init_bounded(
     struct dj_counter_atomic*     _counter,
     int64_t                       _initial,
-    const struct d_interval_imax* _bounds
+    const struct dj_interval_imax* _bounds
 )
 {
     struct dj_counter checked = D_COUNTER_INIT;

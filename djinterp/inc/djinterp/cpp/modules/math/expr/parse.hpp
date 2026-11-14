@@ -99,7 +99,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/parse.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.27
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -351,7 +351,7 @@ NS_INTERNAL
                 expr_parse_unexpected(_token.text, _token.offset));
         }
 
-        d_math_value exact = d_math_value_none();
+        dj_math_value exact = d_math_value_none();
 
         // a decimal number is a literal: its value, exact where it can be
         static_cast<void>(d_math_literal_to_value(&exact,
@@ -1442,7 +1442,7 @@ NS_INTERNAL
                               _token.offset);
 
         atom.atom = expr_atom(expr_atom_kind::variable,
-                              value(static_cast<d_math_imax>(index)),
+                              value(static_cast<dj_math_imax>(index)),
                               expr_group_mark());
         _state.flat.push_back(atom);
 
@@ -1464,7 +1464,7 @@ NS_INTERNAL
             // a leaf: a group's term, or itself
             [&_parts](const expr_atom& _atom) -> expr_term
             {
-                d_math_imax index = 0;
+                dj_math_imax index = 0;
 
                 // an atom that stands for a group
                 if ( (_atom.kind == expr_atom_kind::variable) &&

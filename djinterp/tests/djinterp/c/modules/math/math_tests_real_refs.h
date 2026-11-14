@@ -20,28 +20,28 @@
 * path:      /tests/djinterp/c/modules/math/math_tests_real_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.27
-*                                                            revised: 2026.10.29
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_MATH_MATH_TESTS_REAL_REFS_H
 #define DJINTERP_TESTS_C_MATH_MATH_TESTS_REAL_REFS_H 1
 
 
-// d_tests_real_ref
+// dj_tests_real_ref
 //   struct: a point x = m 2^e and the exact value as text.
-struct d_tests_real_ref
+struct dj_tests_real_ref
 {
     long        m;
     int         e;
     const char* value;
 };
 
-// d_tests_real_wide
+// dj_tests_real_wide
 //   struct: a point of long double's full width, x = (m[0] 2^48 + m[1] 2^24
 // + m[2]) 2^e, each m[k] of x's sign and below 2^24 in magnitude; the exact
 // value as text; and the exact value's offset from the long double nearest
 // it, in units of that long double's last place, as text.
-struct d_tests_real_wide
+struct dj_tests_real_wide
 {
     long        m[3];
     int         e;
@@ -50,7 +50,7 @@ struct d_tests_real_wide
 };
 
 // the points of log1p
-static const struct d_tests_real_ref g_ref_log1p[] =
+static const struct dj_tests_real_ref g_ref_log1p[] =
 {
     { 8100467, -21, "1.58157402787375548845347537899822296085552711" },
     { 15039491, -23, "1.02706151901696179541093533862558783434250069" },
@@ -309,7 +309,7 @@ static const struct d_tests_real_ref g_ref_log1p[] =
 };
 
 // the points of expm1
-static const struct d_tests_real_ref g_ref_expm1[] =
+static const struct dj_tests_real_ref g_ref_expm1[] =
 {
     { -11171363, -18, "-9.99999999999999999689271648241347193354005415e-1" },
     { 13677769, -18, "4.57074384345486868728094701615396695104757342e+22" },
@@ -584,7 +584,7 @@ static const struct d_tests_real_ref g_ref_expm1[] =
 };
 
 // the points of asinh
-static const struct d_tests_real_ref g_ref_asinh[] =
+static const struct dj_tests_real_ref g_ref_asinh[] =
 {
     { 14319441, -21, "2.61950470523594496781691287123815876014522901" },
     { 1577793, -18, "2.49486628495354697603036894563584152388688401" },
@@ -859,7 +859,7 @@ static const struct d_tests_real_ref g_ref_asinh[] =
 };
 
 // the points of acosh
-static const struct d_tests_real_ref g_ref_acosh[] =
+static const struct dj_tests_real_ref g_ref_acosh[] =
 {
     { 4194305, -22, "6.90533952282811303138503051075315690808024032e-4" },
     { 1, 0, "0.0" },
@@ -1074,7 +1074,7 @@ static const struct d_tests_real_ref g_ref_acosh[] =
 };
 
 // the points of atanh
-static const struct d_tests_real_ref g_ref_atanh[] =
+static const struct dj_tests_real_ref g_ref_atanh[] =
 {
     { -1042505, -20, "-2.92095654998812953908909663731363599343539265" },
     { -4194299, -22, "-7.16647332219900817616740166238654801418967200" },
@@ -1289,7 +1289,7 @@ static const struct d_tests_real_ref g_ref_atanh[] =
 };
 
 // the points of log1p, at long double's full width
-static const struct d_tests_real_wide g_wide_log1p[] =
+static const struct dj_tests_real_wide g_wide_log1p[] =
 {
     { { 34701, 8146222, 2690426 }, -64,
       "4.24942616025240998551706910481975551721399259e-1",
@@ -1864,7 +1864,7 @@ static const struct d_tests_real_wide g_wide_log1p[] =
 };
 
 // the points of expm1, at long double's full width
-static const struct d_tests_real_wide g_wide_expm1[] =
+static const struct dj_tests_real_wide g_wide_expm1[] =
 {
     { { -59839, -11624116, -9271659 }, -58,
       "-9.99999999999999999999999958212491268154037412e-1",
@@ -2649,7 +2649,7 @@ static const struct d_tests_real_wide g_wide_expm1[] =
 };
 
 // the points of asinh, at long double's full width
-static const struct d_tests_real_wide g_wide_asinh[] =
+static const struct dj_tests_real_wide g_wide_asinh[] =
 {
     { { 54062, 258497, 2802965 }, -65,
       "4.01579548070074439965902649692164307426375345e-1",
@@ -3254,7 +3254,7 @@ static const struct d_tests_real_wide g_wide_asinh[] =
 };
 
 // the points of acosh, at long double's full width
-static const struct d_tests_real_wide g_wide_acosh[] =
+static const struct dj_tests_real_wide g_wide_acosh[] =
 {
     { { 32787, 11203987, 12116555 }, -63,
       "3.46454581766808916777899641977568803174332624e-2",
@@ -3739,7 +3739,7 @@ static const struct d_tests_real_wide g_wide_acosh[] =
 };
 
 // the points of atanh, at long double's full width
-static const struct d_tests_real_wide g_wide_atanh[] =
+static const struct dj_tests_real_wide g_wide_atanh[] =
 {
     { { -65528, -8065704, -3055593 }, -64,
       "-4.88298937907151878781741443272229695401589482",
@@ -4224,7 +4224,7 @@ static const struct d_tests_real_wide g_wide_atanh[] =
 };
 
 // the points of exp, at long double's full width
-static const struct d_tests_real_wide g_wide_exp[] =
+static const struct dj_tests_real_wide g_wide_exp[] =
 {
     { { 35868, 15759505, 3567283 }, -65,
       "1.31476545649275490967998957369946963053341648",

@@ -8,13 +8,13 @@
 * structural trait families (is_vector / is_matrix / is_square_matrix with
 * their _v and concept parallels), and the default comparison tolerance.
 *
-*   A FACE OVER THE C CORE. The kernels are c/math/vec.h's and mat.h's, for
-* float, double and long double; internal::linalg_kernel<Type> forwards to
-* them through the overloads that name each kernel once for the three, and
-* for any other element type -- an integer, a user's numeric type -- runs
-* the same operations in the type's own arithmetic, taking a root through
-* double as the subframework always has: the generic path, kept by the
-* owner's ruling. A root has two forms, the C library's and a pure-
+*   A FACE OVER THE C CORE. The kernels are c/math/vec.h's, mat.h's and
+* quat.h's, for float, double and long double; internal::linalg_kernel<Type>
+* forwards to them through the overloads that name each kernel once for the
+* three, and for any other element type -- an integer, a user's numeric type
+* -- runs the same operations in the type's own arithmetic, taking a root
+* through double as the subframework always has: the generic path, kept by
+* the owner's ruling. A root has two forms, the C library's and a pure-
 * arithmetic one, correctly rounded both, so the same bit for bit: below
 * C++14 a face takes the library's, from C++14 the constant-expression one,
 * and from C++20 whichever std::is_constant_evaluated asks for. An angle's
@@ -28,6 +28,12 @@
 * for a number of a real value and, for a value's complex number, its
 * modulus squared, so a vector of values holding complex numbers has the
 * norm of its moduli, the language's (S355).
+*   The quaternion kernels are c/math/quat.h's, accurate by default: the
+* product, inverse, quotients, rotation and matrices sums of exact products,
+* each part rounded once, and the former formulas the _fast forms (S358 to
+* S365). The generic path takes the algebra in the type's arithmetic by the
+* same definitions, and slerp, exp, log, sqrt and pow through double, by the
+* C core's double _c forms.
 *
 * NAMESPACE NOTE:
 *   Unlike the geometry subframework, which is flat in djinterp::math, the
@@ -48,7 +54,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 /*
@@ -738,11 +744,24 @@ NS_INTERNAL
         }
 
         // ---- quaternions: arrays [x, y, z, w] ------------------------------
+        // The C core's accurate forms (S276): the algebra and the rotations
+        // constant expressions from C++14; what takes a root alone in the
+        // form the level allows, as sqrt, the two forms' bits the same;
+        // slerp, exp, log, sqrt and pow the _c forms at every level, the
+        // accurate ones, constant expressions from C++14; the _fast forms
+        // the former formulas, for a renderer.
 
         static D_CONSTEXPR_CPP14 void
         quat_multiply(Type* _out, const Type* _a, const Type* _b) D_NOEXCEPT
         {
             d_quat_multiply(_out, _a, _b);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_multiply_fast(Type* _out, const Type* _a, const Type* _b)
+            D_NOEXCEPT
+        {
+            d_quat_multiply_fast(_out, _a, _b);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -752,9 +771,22 @@ NS_INTERNAL
         }
 
         static D_CONSTEXPR_CPP14 void
-        quat_normalize(Type* _out, const Type* _q) D_NOEXCEPT
+        quat_inverse(Type* _out, const Type* _q) D_NOEXCEPT
         {
-            d_quat_normalize(_out, _q, norm(_q, 4));
+            d_quat_inverse(_out, _q);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_divide(Type* _out, const Type* _a, const Type* _b) D_NOEXCEPT
+        {
+            d_quat_divide(_out, _a, _b);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_left_divide(Type* _out, const Type* _a, const Type* _b)
+            D_NOEXCEPT
+        {
+            d_quat_left_divide(_out, _a, _b);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -764,9 +796,22 @@ NS_INTERNAL
         }
 
         static D_CONSTEXPR_CPP14 void
+        quat_rotate_fast(Type* _out, const Type* _q, const Type* _v)
+            D_NOEXCEPT
+        {
+            d_quat_rotate_fast(_out, _q, _v);
+        }
+
+        static D_CONSTEXPR_CPP14 void
         quat_to_matrix3(Type* _out, const Type* _q) D_NOEXCEPT
         {
             d_quat_to_matrix3(_out, _q);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_to_matrix3_fast(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_to_matrix3_fast(_out, _q);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -775,9 +820,125 @@ NS_INTERNAL
             d_quat_to_matrix4(_out, _q);
         }
 
-        // the three that need a sine or a cosine: the C library's at run
-        // time, constant expressions from C++20
+        static D_CONSTEXPR_CPP14 void
+        quat_to_matrix4_fast(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_to_matrix4_fast(_out, _q);
+        }
+
+        // the reciprocal square root, the C library's, at run time
+        static void
+        quat_normalize_fast(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_normalize_fast(_out, _q);
+        }
+
+        // the _c forms of what takes a sine or a cosine: the accurate ones
+        static D_CONSTEXPR_CPP14 void
+        quat_slerp(Type*       _out,
+                   const Type* _a,
+                   const Type* _b,
+                   Type        _t) D_NOEXCEPT
+        {
+            d_quat_slerp_c(_out, _a, _b, _t);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_exp(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_exp_c(_out, _q);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_log(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_log_c(_out, _q);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_sqrt(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_sqrt_c(_out, _q);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_pow(Type* _out, const Type* _q, Type _p) D_NOEXCEPT
+        {
+            d_quat_pow_c(_out, _q, _p);
+        }
+
+        // what takes a root alone, and the sines' library forms, by level:
+        // the root's two forms the same bits, the sines' the C library's at
+        // run time, constant expressions from C++20
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+        static constexpr Type
+        quat_norm(const Type* _q) noexcept
+        {
+            if (std::is_constant_evaluated())
+            {
+                return d_quat_norm_c(_q);
+            }
+
+            return d_quat_norm(_q);
+        }
+
+        static constexpr void
+        quat_normalize(Type* _out, const Type* _q) noexcept
+        {
+            if (std::is_constant_evaluated())
+            {
+                d_quat_normalize_c(_out, _q);
+            }
+            else
+            {
+                d_quat_normalize(_out, _q);
+            }
+        }
+
+        static constexpr void
+        quat_from_matrix3(Type* _out, const Type* _m) noexcept
+        {
+            if (std::is_constant_evaluated())
+            {
+                d_quat_from_matrix3_c(_out, _m);
+            }
+            else
+            {
+                d_quat_from_matrix3(_out, _m);
+            }
+        }
+
+        static constexpr void
+        quat_from_two_vectors(Type*       _out,
+                              const Type* _a,
+                              const Type* _b) noexcept
+        {
+            if (std::is_constant_evaluated())
+            {
+                d_quat_from_two_vectors_c(_out, _a, _b);
+            }
+            else
+            {
+                d_quat_from_two_vectors(_out, _a, _b);
+            }
+        }
+
+        static constexpr void
+        quat_nlerp(Type*       _out,
+                   const Type* _a,
+                   const Type* _b,
+                   Type        _t) noexcept
+        {
+            if (std::is_constant_evaluated())
+            {
+                d_quat_nlerp_c(_out, _a, _b, _t);
+            }
+            else
+            {
+                d_quat_nlerp(_out, _a, _b, _t);
+            }
+        }
+
         static constexpr void
         quat_from_axis_angle(Type*       _out,
                              const Type* _axis,
@@ -809,10 +970,10 @@ NS_INTERNAL
         }
 
         static constexpr void
-        quat_slerp(Type*       _out,
-                   const Type* _a,
-                   const Type* _b,
-                   Type        _t) noexcept
+        quat_slerp_fast(Type*       _out,
+                        const Type* _a,
+                        const Type* _b,
+                        Type        _t) noexcept
         {
             if (std::is_constant_evaluated())
             {
@@ -824,6 +985,78 @@ NS_INTERNAL
             }
         }
 #else
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+        static constexpr Type
+        quat_norm(const Type* _q) noexcept
+        {
+            return d_quat_norm_c(_q);
+        }
+
+        static constexpr void
+        quat_normalize(Type* _out, const Type* _q) noexcept
+        {
+            d_quat_normalize_c(_out, _q);
+        }
+
+        static constexpr void
+        quat_from_matrix3(Type* _out, const Type* _m) noexcept
+        {
+            d_quat_from_matrix3_c(_out, _m);
+        }
+
+        static constexpr void
+        quat_from_two_vectors(Type*       _out,
+                              const Type* _a,
+                              const Type* _b) noexcept
+        {
+            d_quat_from_two_vectors_c(_out, _a, _b);
+        }
+
+        static constexpr void
+        quat_nlerp(Type*       _out,
+                   const Type* _a,
+                   const Type* _b,
+                   Type        _t) noexcept
+        {
+            d_quat_nlerp_c(_out, _a, _b, _t);
+        }
+#else
+        static Type
+        quat_norm(const Type* _q) D_NOEXCEPT
+        {
+            return d_quat_norm(_q);
+        }
+
+        static void
+        quat_normalize(Type* _out, const Type* _q) D_NOEXCEPT
+        {
+            d_quat_normalize(_out, _q);
+        }
+
+        static void
+        quat_from_matrix3(Type* _out, const Type* _m) D_NOEXCEPT
+        {
+            d_quat_from_matrix3(_out, _m);
+        }
+
+        static void
+        quat_from_two_vectors(Type*       _out,
+                              const Type* _a,
+                              const Type* _b) D_NOEXCEPT
+        {
+            d_quat_from_two_vectors(_out, _a, _b);
+        }
+
+        static void
+        quat_nlerp(Type*       _out,
+                   const Type* _a,
+                   const Type* _b,
+                   Type        _t) D_NOEXCEPT
+        {
+            d_quat_nlerp(_out, _a, _b, _t);
+        }
+#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
+
         static void
         quat_from_axis_angle(Type*       _out,
                              const Type* _axis,
@@ -841,10 +1074,10 @@ NS_INTERNAL
         }
 
         static void
-        quat_slerp(Type*       _out,
-                   const Type* _a,
-                   const Type* _b,
-                   Type        _t) D_NOEXCEPT
+        quat_slerp_fast(Type*       _out,
+                        const Type* _a,
+                        const Type* _b,
+                        Type        _t) D_NOEXCEPT
         {
             d_quat_slerp(_out, _a, _b, _t);
         }
@@ -1679,7 +1912,14 @@ NS_INTERNAL
             _out[8] = _c + kz * kz * t;
         }
 
-        // ---- quaternions, in the quaternion headers' former expressions ----
+        // ---- quaternions, in Type's own arithmetic -----------------------
+        // As the C core defines each (S276), exact where Type is: the
+        // product as the quaternion headers wrote it, the inverse q* / |q|^2
+        // and the quotients by it, the rotation and its matrix over |q|^2,
+        // so that any q not 0 names the rotation of q / |q|; Shepperd's
+        // method, two vectors' quaternion and nlerp with their roots as norm
+        // takes its own. The _fast forms are the former expressions. slerp,
+        // exp, log, sqrt and pow go through double, by the C core's _c forms.
 
         static D_CONSTEXPR_CPP14 void
         quat_multiply(Type* _out, const Type* _a, const Type* _b)
@@ -1700,12 +1940,57 @@ NS_INTERNAL
         }
 
         static D_CONSTEXPR_CPP14 void
+        quat_multiply_fast(Type* _out, const Type* _a, const Type* _b)
+        {
+            quat_multiply(_out, _a, _b);
+        }
+
+        static D_CONSTEXPR_CPP14 void
         quat_conjugate(Type* _out, const Type* _q)
         {
             _out[0] = -_q[0];
             _out[1] = -_q[1];
             _out[2] = -_q[2];
             _out[3] = _q[3];
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_inverse(Type* _out, const Type* _q)
+        {
+            const Type n = dot(_q, _q, 4);
+            const Type x = -_q[0] / n;
+            const Type y = -_q[1] / n;
+            const Type z = -_q[2] / n;
+            const Type w = _q[3] / n;
+
+            _out[0] = x;
+            _out[1] = y;
+            _out[2] = z;
+            _out[3] = w;
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_divide(Type* _out, const Type* _a, const Type* _b)
+        {
+            Type inverse[4] = { Type(), Type(), Type(), Type() };
+
+            quat_inverse(inverse, _b);
+            quat_multiply(_out, _a, inverse);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_left_divide(Type* _out, const Type* _a, const Type* _b)
+        {
+            Type inverse[4] = { Type(), Type(), Type(), Type() };
+
+            quat_inverse(inverse, _a);
+            quat_multiply(_out, inverse, _b);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        quat_norm(const Type* _q)
+        {
+            return norm(_q, 4);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -1720,7 +2005,40 @@ NS_INTERNAL
         }
 
         static D_CONSTEXPR_CPP14 void
+        quat_normalize_fast(Type* _out, const Type* _q)
+        {
+            quat_normalize(_out, _q);
+        }
+
+        // ((w^2 - |u|^2) v + 2 (u . v) u + 2 w (u x v)) / |q|^2
+        static D_CONSTEXPR_CPP14 void
         quat_rotate(Type* _out, const Type* _q, const Type* _v)
+        {
+            const Type two = traits::one() + traits::one();
+            const Type uu  = dot(_q, _q, 3);
+            const Type ww  = _q[3] * _q[3];
+            const Type n   = uu + ww;
+            const Type a   = ww - uu;
+            const Type uv  = two * dot(_q, _v, 3);
+            const Type tw  = two * _q[3];
+            Type       c[3] = { Type(), Type(), Type() };
+            Type       r[3] = { Type(), Type(), Type() };
+
+            cross(c, _q, _v);
+
+            for (std::size_t i = 0; i < 3; ++i)
+            {
+                r[i] = ((a * _v[i]) + (uv * _q[i]) + (tw * c[i])) / n;
+            }
+
+            for (std::size_t i = 0; i < 3; ++i)
+            {
+                _out[i] = r[i];
+            }
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_rotate_fast(Type* _out, const Type* _q, const Type* _v)
         {
             Type t[3]  = { Type(), Type(), Type() };
             Type ut[3] = { Type(), Type(), Type() };
@@ -1737,6 +2055,31 @@ NS_INTERNAL
 
         static D_CONSTEXPR_CPP14 void
         quat_to_matrix3(Type* _out, const Type* _q)
+        {
+            const Type x   = _q[0];
+            const Type y   = _q[1];
+            const Type z   = _q[2];
+            const Type w   = _q[3];
+            const Type two = traits::one() + traits::one();
+            const Type xx  = x * x;
+            const Type yy  = y * y;
+            const Type zz  = z * z;
+            const Type ww  = w * w;
+            const Type n   = (xx + yy) + (zz + ww);
+
+            _out[0] = ((ww + xx) - (yy + zz)) / n;
+            _out[1] = (two * ((x * y) - (w * z))) / n;
+            _out[2] = (two * ((x * z) + (w * y))) / n;
+            _out[3] = (two * ((x * y) + (w * z))) / n;
+            _out[4] = ((ww + yy) - (xx + zz)) / n;
+            _out[5] = (two * ((y * z) - (w * x))) / n;
+            _out[6] = (two * ((x * z) - (w * y))) / n;
+            _out[7] = (two * ((y * z) + (w * x))) / n;
+            _out[8] = ((ww + zz) - (xx + yy)) / n;
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_to_matrix3_fast(Type* _out, const Type* _q)
         {
             const Type x   = _q[0];
             const Type y   = _q[1];
@@ -1763,15 +2106,237 @@ NS_INTERNAL
                           Type(), Type(), Type(), Type() };
 
             quat_to_matrix3(r, _q);
-            identity(_out, 4);
+            embed3(_out, r);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_to_matrix4_fast(Type* _out, const Type* _q)
+        {
+            Type r[9] = { Type(), Type(), Type(), Type(), Type(),
+                          Type(), Type(), Type(), Type() };
+
+            quat_to_matrix3_fast(r, _q);
+            embed3(_out, r);
+        }
+
+        // Shepperd's method: the largest of 4w^2, 4x^2, 4y^2, 4z^2 (w first
+        // among equals) gives its part, the rest over 4 times it; w >= 0
+        static D_CONSTEXPR_CPP14 void
+        quat_from_matrix3(Type* _out, const Type* _m)
+        {
+            const Type one  = traits::one();
+            const Type two  = one + one;
+            const Type c[4] = { ((one + _m[0]) - _m[4]) - _m[8],
+                                ((one - _m[0]) + _m[4]) - _m[8],
+                                ((one - _m[0]) - _m[4]) + _m[8],
+                                ((one + _m[0]) + _m[4]) + _m[8] };
+            std::size_t k   = 3;
+            Type        q[4] = { Type(), Type(), Type(), Type() };
 
             for (std::size_t i = 0; i < 3; ++i)
             {
-                for (std::size_t j = 0; j < 3; ++j)
+                if (c[i] > c[k])
                 {
-                    _out[(i * 4) + j] = r[(i * 3) + j];
+                    k = i;
                 }
             }
+
+            {
+                const Type s   = traits::sqrt(c[k]);
+                const Type den = two * s;
+
+                q[k] = s / two;
+
+                if (k == 0)
+                {
+                    q[1] = (_m[1] + _m[3]) / den;
+                    q[2] = (_m[2] + _m[6]) / den;
+                    q[3] = (_m[7] - _m[5]) / den;
+                }
+                else if (k == 1)
+                {
+                    q[0] = (_m[1] + _m[3]) / den;
+                    q[2] = (_m[5] + _m[7]) / den;
+                    q[3] = (_m[2] - _m[6]) / den;
+                }
+                else if (k == 2)
+                {
+                    q[0] = (_m[2] + _m[6]) / den;
+                    q[1] = (_m[5] + _m[7]) / den;
+                    q[3] = (_m[3] - _m[1]) / den;
+                }
+                else
+                {
+                    q[0] = (_m[7] - _m[5]) / den;
+                    q[1] = (_m[2] - _m[6]) / den;
+                    q[2] = (_m[3] - _m[1]) / den;
+                }
+            }
+
+            // q or -q: the one with w >= 0
+            if (q[3] < traits::zero())
+            {
+                negate(q, q, 4);
+            }
+
+            for (std::size_t i = 0; i < 4; ++i)
+            {
+                _out[i] = q[i];
+            }
+        }
+
+        // (a x b, |a| |b| + a . b) normalized, the sum taken as |a x b|^2 /
+        // (|a| |b| - a . b) where a . b < 0, so that it does not cancel;
+        // exactly opposed, the half turn about a x e_k, e_k along a's
+        // smallest part
+        static D_CONSTEXPR_CPP14 void
+        quat_from_two_vectors(Type* _out, const Type* _a, const Type* _b)
+        {
+            Type q[4] = { Type(), Type(), Type(), Type() };
+
+            cross(q, _a, _b);
+
+            // a zero vector names no direction: the identity
+            if ( (dot(_a, _a, 3) == traits::zero()) ||
+                 (dot(_b, _b, 3) == traits::zero()) )
+            {
+                _out[0] = traits::zero();
+                _out[1] = traits::zero();
+                _out[2] = traits::zero();
+                _out[3] = traits::one();
+
+                return;
+            }
+
+            {
+                const Type d = dot(_a, _b, 3);
+                const Type m = norm(_a, 3) * norm(_b, 3);
+
+                // |a| |b| + a . b, a quotient where a . b < 0; 0 where the
+                // two are exactly opposed, a x b 0
+                if (d < traits::zero())
+                {
+                    const Type c = dot(q, q, 3);
+
+                    q[3] = (c == traits::zero()) ? traits::zero()
+                                                 : (c / (m - d));
+                }
+                else
+                {
+                    q[3] = m + d;
+                }
+            }
+
+            // exactly opposed: an axis perpendicular to a
+            if ( (q[0] == traits::zero()) &&
+                 (q[1] == traits::zero()) &&
+                 (q[2] == traits::zero()) &&
+                 (q[3] == traits::zero()) )
+            {
+                const Type x = traits::abs(_a[0]);
+                const Type y = traits::abs(_a[1]);
+                const Type z = traits::abs(_a[2]);
+
+                if ( (!(y < x)) &&
+                     (!(z < x)) )
+                {
+                    q[1] = _a[2];
+                    q[2] = -_a[1];
+                }
+                else if (!(z < y))
+                {
+                    q[0] = -_a[2];
+                    q[2] = _a[0];
+                }
+                else
+                {
+                    q[0] = _a[1];
+                    q[1] = -_a[0];
+                }
+            }
+
+            quat_normalize(_out, q);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_nlerp(Type* _out, const Type* _a, const Type* _b, Type _t)
+        {
+            const Type rest  = traits::one() - _t;
+            const bool flip  = (dot(_a, _b, 4) < traits::zero());
+            Type       l[4]  = { Type(), Type(), Type(), Type() };
+
+            for (std::size_t i = 0; i < 4; ++i)
+            {
+                const Type b = flip ? -_b[i] : _b[i];
+
+                l[i] = (rest * _a[i]) + (_t * b);
+            }
+
+            quat_normalize(_out, l);
+        }
+
+        // through double, by the C core's _c forms
+        static D_CONSTEXPR_CPP14 void
+        quat_slerp(Type* _out, const Type* _a, const Type* _b, Type _t)
+        {
+            double a[4] = { 0.0, 0.0, 0.0, 0.0 };
+            double b[4] = { 0.0, 0.0, 0.0, 0.0 };
+            double r[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+            to_doubles(a, _a, 4);
+            to_doubles(b, _b, 4);
+            d_quat_d_slerp_c(r, a, b, traits::to_double(_t));
+            from_doubles(_out, r, 4);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_slerp_fast(Type* _out, const Type* _a, const Type* _b, Type _t)
+        {
+            quat_slerp(_out, _a, _b, _t);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_exp(Type* _out, const Type* _q)
+        {
+            double q[4] = { 0.0, 0.0, 0.0, 0.0 };
+            double r[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+            to_doubles(q, _q, 4);
+            d_quat_d_exp_c(r, q);
+            from_doubles(_out, r, 4);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_log(Type* _out, const Type* _q)
+        {
+            double q[4] = { 0.0, 0.0, 0.0, 0.0 };
+            double r[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+            to_doubles(q, _q, 4);
+            d_quat_d_log_c(r, q);
+            from_doubles(_out, r, 4);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_sqrt(Type* _out, const Type* _q)
+        {
+            double q[4] = { 0.0, 0.0, 0.0, 0.0 };
+            double r[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+            to_doubles(q, _q, 4);
+            d_quat_d_sqrt_c(r, q);
+            from_doubles(_out, r, 4);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        quat_pow(Type* _out, const Type* _q, Type _p)
+        {
+            double q[4] = { 0.0, 0.0, 0.0, 0.0 };
+            double r[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+            to_doubles(q, _q, 4);
+            d_quat_d_pow_c(r, q, traits::to_double(_p));
+            from_doubles(_out, r, 4);
         }
 
         // the sine and cosine through double, as the angles are
@@ -1816,52 +2381,41 @@ NS_INTERNAL
             _out[3] = traits::from_double(roots::cos(traits::to_double(half)));
         }
 
-        static D_CONSTEXPR_CPP20 void
-        quat_slerp(Type* _out, const Type* _a, const Type* _b, Type _t)
+    private:
+        // the 3 x 3 _r into the 4 x 4 identity's upper left
+        static D_CONSTEXPR_CPP14 void
+        embed3(Type* _out, const Type* _r)
         {
-            Type b[4] = { _b[0], _b[1], _b[2], _b[3] };
-            Type d    = dot(_a, _b, 4);
+            identity(_out, 4);
 
-            // q and -q are the same rotation: take the shorter arc
-            if (d < traits::zero())
+            for (std::size_t i = 0; i < 3; ++i)
             {
-                negate(b, b, 4);
-                d = -d;
-            }
-
-            // nearly parallel: the arc is a line, renormalized
-            if (d > traits::from_double(0.9995))
-            {
-                Type l[4] = { Type(), Type(), Type(), Type() };
-
-                for (std::size_t i = 0; i < 4; ++i)
+                for (std::size_t j = 0; j < 3; ++j)
                 {
-                    l[i] = _a[i] + (_t * (b[i] - _a[i]));
+                    _out[(i * 4) + j] = _r[(i * 3) + j];
                 }
-
-                quat_normalize(_out, l);
-
-                return;
-            }
-
-            const Type theta_0 = traits::from_double(roots::acos(
-                                     traits::to_double(d)));
-            const Type theta   = theta_0 * _t;
-            const Type sin_0   = traits::from_double(roots::sin(
-                                     traits::to_double(theta_0)));
-            const Type s_a     = traits::from_double(roots::sin(
-                                     traits::to_double(theta_0 - theta))) /
-                                 sin_0;
-            const Type s_b     = traits::from_double(roots::sin(
-                                     traits::to_double(theta))) / sin_0;
-
-            for (std::size_t i = 0; i < 4; ++i)
-            {
-                _out[i] = (s_a * _a[i]) + (s_b * b[i]);
             }
         }
 
-    private:
+        // _n parts to and from double, by the traits
+        static D_CONSTEXPR_CPP14 void
+        to_doubles(double* _out, const Type* _v, std::size_t _n)
+        {
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                _out[i] = traits::to_double(_v[i]);
+            }
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        from_doubles(Type* _out, const double* _v, std::size_t _n)
+        {
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                _out[i] = traits::from_double(_v[i]);
+            }
+        }
+
         // Bareiss's elimination: each entry below and right of the pivot its
         // 2-by-2 minor over the previous pivot, exact where Type is.
         static D_CONSTEXPR_CPP14 Type

@@ -19,11 +19,11 @@
 *
 * BOUNDS ARE MATH'S INTERVALS
 * ---------------------------
-*   A counter's range is a struct d_interval_imax (c/modules/math/interval.h),
+*   A counter's range is a struct dj_interval_imax (c/modules/math/interval.h),
 * closed or open at either end. A side with no limit is that side of
-* d_math_imax's range. The interval's stride is not used: a counter steps by any
-* amount, so the init functions refuse a discrete interval, as they refuse an
-* empty or malformed one.
+* dj_math_imax's range. The interval's stride is not used: a counter steps
+* by any amount, so the init functions refuse a discrete interval, as they
+* refuse an empty or malformed one.
 *
 * SATURATING, NEVER WRAPPING
 * --------------------------
@@ -53,7 +53,7 @@
 * OPTIONS
 * -------
 *   A counter's bounds, given once to d_counter_init_bounded as a struct
-* d_interval_imax, closed or open at either end. Nothing else is chosen at run
+* dj_interval_imax, closed or open at either end. Nothing else is chosen at run
 * time.
 *
 * CONFIGURATION
@@ -97,7 +97,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../djinterp.h"  // framework root
-#include "../../modules/math/interval.h"  // d_interval_imax
+#include "../../modules/math/interval.h"  // dj_interval_imax
 // re_std
 #include "../../../../re_std/c/cstdint/dstdint.h"  // int64_t
 
@@ -121,10 +121,10 @@ D_EXTERN_C_BEGIN
 // two counters that start at 10 and each count 3 merge to 16, not 23.
 struct dj_counter
 {
-    int64_t                initial;     // the start, for reset and merge
-    int64_t                value;       // the count now
-    struct d_interval_imax bounds;      // the range, when has_bounds
-    bool                   has_bounds;  // whether bounds applies
+    int64_t                 initial;    // the start, for reset and merge
+    int64_t                 value;      // the count now
+    struct dj_interval_imax bounds;     // the range, when has_bounds
+    bool                    has_bounds; // whether bounds applies
 };
 
 // 1.1.2
@@ -218,7 +218,7 @@ struct dj_counter_ref
  */
 int64_t
 d_counter_bounds_add(
-    const struct d_interval_imax* _bounds,
+    const struct dj_interval_imax* _bounds,
     int64_t                       _value,
     int64_t                       _amount,
     bool*                         _is_exact
@@ -239,7 +239,7 @@ d_counter_bounds_add(
  */
 int64_t
 d_counter_bounds_sub(
-    const struct d_interval_imax* _bounds,
+    const struct dj_interval_imax* _bounds,
     int64_t                       _value,
     int64_t                       _amount,
     bool*                         _is_exact
@@ -274,7 +274,7 @@ bool
 d_counter_init_bounded(
     struct dj_counter*            _counter,
     int64_t                       _initial,
-    const struct d_interval_imax* _bounds
+    const struct dj_interval_imax* _bounds
 );
 
 // 2.3    The five operations

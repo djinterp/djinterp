@@ -14,17 +14,17 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/math_tests_expr_complex_refs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.01
-*                                                            revised: 2026.11.01
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_MATH_EXPR_MATH_TESTS_EXPR_COMPLEX_REFS_H
 #define DJINTERP_TESTS_MATH_EXPR_MATH_TESTS_EXPR_COMPLEX_REFS_H 1
 
 
-// d_tests_expr_complex_ref
+// dj_tests_expr_complex_ref
 //   struct: a text of the language, its exact value's two parts as text,
 // and the bound in steps of each.
-struct d_tests_expr_complex_ref
+struct dj_tests_expr_complex_ref
 {
     const char* text;
     const char* re;
@@ -34,7 +34,7 @@ struct d_tests_expr_complex_ref
 
 // g_expr_complex_refs
 //   the references, 40 of them.
-static const struct d_tests_expr_complex_ref g_expr_complex_refs[] =
+static const struct dj_tests_expr_complex_ref g_expr_complex_refs[] =
 {
     { "sqrt(1 + 2im)",
       "1.27201964951406896425242246173749149171560804",

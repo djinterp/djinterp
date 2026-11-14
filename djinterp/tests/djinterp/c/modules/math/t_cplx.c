@@ -21,36 +21,44 @@
 * less 1 is no longer exact in one value. At every reference point, the
 * product's and the quotient's float and double parts are measured too, in
 * ulps of the exact value: rounded once, each is within half an ulp of it
-* and 2^-8 more.
+* and 2^-8 more. Then the whole powers, z^n by repeated squaring in pairs,
+* at the points of math_tests_cplx_pow_refs.h, where one part of z^n
+* cancels, at exponents from 2 to 2^30 of both signs: a part at least |n|
+* 2^(4 - P) of the larger within a step of the part correctly rounded, a
+* smaller one within a step or within |n| 2^(3 - 2P) of the larger, P long
+* double's precision; the plain form's the _c form's, bit for bit; and at
+* exact points on and off the axes, z^n for n from -6 to 6 the bits of the
+* family's own products and quotient it stands for, each zero's sign among
+* them (S382).
 *
-*   Then C99's Annex G (G.6), as C17 has it (its DR 471 for cacosh and
-* ctanh): every value its text gives at the zeros, the infinities and the
-* NaNs, with the symmetries applied to each entry -- conj for every function,
-* and the odd and even functions' own -- and the functions G.6 defines
-* through others (casin, catan, ccos, csin, ctan) equal to their
-* definitions, bit for bit, at every pair of special parts and a few finite
-* ones; and the five's values at the same parts, those of the functions
-* each is a form of: clog's for log2, log10 and log1p, at 1 + z for log1p,
-* and cexp's for exp2 and expm1, less 1 for expm1. Then exact values: the
-* cuts' sides chosen by a zero's sign, the powers that are exact, the
-* operations with a real operand (G.5), the infinities of products and
-* quotients, the modulus past overflow, the argument's quadrants, the five's
-* exact parts. Then the real axis: each of the five, in both forms, the real
-* function's value in the same form and the zero of y, bit for bit; and
-* expm1's real part on the imaginary axis -0 where it underflows. In C, where
-* the compiler has _Complex, the conversions to and from it; in C++, the
-* one-name overloads; from C++14, every function a constant expression, for
-* every family, with the bits it has at run time.
+*   Then C99's Annex G (G.6), as C17 has it (its DR 471 for cacosh and ctanh):
+* every value its text gives at the zeros, the infinities and the NaNs, with the
+* symmetries applied to each entry -- conj for every function, and the odd and
+* even functions' own -- and the functions G.6 defines through others (casin,
+* catan, ccos, csin, ctan) equal to their definitions, bit for bit, at every
+* pair of special parts and a few finite ones; and the five's values at the same
+* parts, those of the functions each is a form of: clog's for log2, log10 and
+* log1p, at 1 + z for log1p, and cexp's for exp2 and expm1, less 1 for expm1.
+* Then exact values: the cuts' sides chosen by a zero's sign, the powers that
+* are exact, the operations with a real operand (G.5), the infinities of
+* products and quotients, the modulus past overflow, the argument's quadrants,
+* the five's exact parts, a quotient's zero the formula's (S382). Then the real
+* axis: each of the five, in both forms, the real function's value in the same
+* form and the zero of y, bit for bit; and expm1's real part on the imaginary
+* axis -0 where it underflows. In C, where the compiler has _Complex, the
+* conversions to and from it; in C++, the one-name overloads; from C++14, every
+* function a constant expression, for every family, with the bits it has at run
+* time, pow_c's at a whole exponent of each sign among them.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_cplx.c -o t_cplx -lm
+*        tests/djinterp/c/modules/math/t_cplx.c -o t_cplx -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_cplx.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.27
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <float.h>   // the families' digits and least exponents
@@ -62,6 +70,7 @@
 // tests
 #include "./math_tests_cplx_refs.h"       // g_ref_exp ... g_ref_pow
 #include "./math_tests_cplx_five_refs.h"  // g_ref_exp2 ... g_wide_ld_expm1
+#include "./math_tests_cplx_pow_refs.h"   // g_power_f ... g_power_ld
 
 
 #define D_TESTS_COUNT(array)                                                   \
@@ -114,7 +123,7 @@ d_tests_expect(
 // as the references' points are -- and its result widened, exactly, to long
 // double, read through volatile so that no x87 register's extra bits remain.
 
-enum d_tests_op
+enum dj_tests_op
 {
     D_TESTS_EXP = 0,
     D_TESTS_LOG,
@@ -168,9 +177,9 @@ static const char* const g_op_names[D_TESTS_OPS] =
 static const char* const g_family_names[3] = { "float", "double",
                                                "long double" };
 
-// d_tests_result
+// dj_tests_result
 //   struct: a result's two parts, widened to long double.
-struct d_tests_result
+struct dj_tests_result
 {
     long double part[2];
 };
@@ -183,12 +192,12 @@ struct d_tests_result
 // kernel would be inlined into one function, which compilers optimize in
 // time far past the sum of its parts'.
 #define D_TESTS_CPLX_CALL(T, S)                                                \
-typedef struct d_cplx_##S (*d_tests_unary_##S)(struct d_cplx_##S);             \
-typedef struct d_cplx_##S (*d_tests_binary_##S)(struct d_cplx_##S,             \
-                                                struct d_cplx_##S);            \
-typedef struct d_cplx_##S (*d_tests_mixed_##S)(struct d_cplx_##S, T);          \
-typedef struct d_cplx_##S (*d_tests_left_##S)(T, struct d_cplx_##S);           \
-typedef T (*d_tests_real_##S)(struct d_cplx_##S);                              \
+typedef struct dj_cplx_##S (*d_tests_unary_##S)(struct dj_cplx_##S);           \
+typedef struct dj_cplx_##S (*d_tests_binary_##S)(struct dj_cplx_##S,           \
+                                                 struct dj_cplx_##S);          \
+typedef struct dj_cplx_##S (*d_tests_mixed_##S)(struct dj_cplx_##S, T);        \
+typedef struct dj_cplx_##S (*d_tests_left_##S)(T, struct dj_cplx_##S);         \
+typedef T (*d_tests_real_##S)(struct dj_cplx_##S);                             \
                                                                                \
 static const d_tests_unary_##S g_pure_##S[D_TESTS_POW] =                       \
 {                                                                              \
@@ -244,20 +253,20 @@ static const d_tests_unary_##S g_other_##S[3] =                                \
     d_cplx_##S##_conj, d_cplx_##S##_proj, d_cplx_##S##_neg                     \
 };                                                                             \
                                                                                \
-static struct d_tests_result                                                   \
+static struct dj_tests_result                                                  \
 d_tests_call_##S(                                                              \
     int                _op,                                                    \
     bool               _pure,                                                  \
     const long double* _in                                                     \
 )                                                                              \
 {                                                                              \
-    const struct d_cplx_##S z = d_cplx_##S##_make((T)_in[0], (T)_in[1]);       \
-    const struct d_cplx_##S w = d_cplx_##S##_make((T)_in[2], (T)_in[3]);       \
-    const T                 x = (T)_in[2];                                     \
-    volatile struct d_cplx_##S r = { { (T)0, (T)0 } };                         \
+    const struct dj_cplx_##S z = d_cplx_##S##_make((T)_in[0], (T)_in[1]);      \
+    const struct dj_cplx_##S w = d_cplx_##S##_make((T)_in[2], (T)_in[3]);      \
+    const T                  x = (T)_in[2];                                    \
+    volatile struct dj_cplx_##S r = { { (T)0, (T)0 } };                        \
     volatile T              v = (T)0;                                          \
-    struct d_tests_result   result = { { 0.0L, 0.0L } };                       \
-    struct d_cplx_##S       out = z;                                           \
+    struct dj_tests_result  result = { { 0.0L, 0.0L } };                       \
+    struct dj_cplx_##S      out = z;                                           \
                                                                                \
     if (_op < D_TESTS_POW)                                                     \
     {                                                                          \
@@ -311,7 +320,7 @@ D_TESTS_CPLX_CALL(long double, ld)
 // d_tests_call
 //   the operation _op of the family _family (0 float, 1 double, 2 long
 // double), as d_tests_call_<S>.
-static struct d_tests_result
+static struct dj_tests_result
 d_tests_call(
     int                _family,
     int                _op,
@@ -373,11 +382,11 @@ d_tests_text(
 //   a count of steps as an unsigned long, D_TESTS_FAR past it.
 static unsigned long
 d_tests_clamp(
-    d_math_umax _steps
+    dj_math_umax _steps
 )
 {
-    return (_steps >= (d_math_umax)D_TESTS_FAR) ? D_TESTS_FAR
-                                                : (unsigned long)_steps;
+    return (_steps >= (dj_math_umax)D_TESTS_FAR) ? D_TESTS_FAR
+                                                 : (unsigned long)_steps;
 }
 
 // d_tests_steps
@@ -485,15 +494,15 @@ d_tests_same(
 // Where long double is no wider than double, double's _c bound is long
 // double's (d_tests_bound).
 
-// d_tests_bounds
+// dj_tests_bounds
 //   struct: an operation's bounds.
-struct d_tests_bounds
+struct dj_tests_bounds
 {
     unsigned pure[3];
     unsigned plain[3];
 };
 
-static const struct d_tests_bounds g_bounds[D_TESTS_ABS + 1] =
+static const struct dj_tests_bounds g_bounds[D_TESTS_ABS + 1] =
 {
     { { 1u, 1u, 3u }, { 4u, 4u, 4u } },  // exp
     { { 1u, 1u, 2u }, { 3u, 3u, 3u } },  // log
@@ -604,12 +613,12 @@ d_tests_ulps(
 // D_TESTS_HALF_BOUND of the exact parts _re and _im; the largest kept.
 static void
 d_tests_check_half(
-    int                          _op,
-    int                          _family,
-    const long double*           _in,
-    const struct d_tests_result* _got,
-    const char*                  _re,
-    const char*                  _im
+    int                           _op,
+    int                           _family,
+    const long double*            _in,
+    const struct dj_tests_result* _got,
+    const char*                   _re,
+    const char*                   _im
 )
 {
     const int         which = (_op == D_TESTS_MUL) ? 0 : 1;
@@ -657,14 +666,14 @@ d_tests_check_half(
 //   one point's failure, once the distance passes the bound.
 static void
 d_tests_report(
-    int                          _op,
-    int                          _family,
-    bool                         _pure,
-    const long double*           _in,
-    const struct d_tests_result* _got,
-    const char*                  _re,
-    const char*                  _im,
-    unsigned long                _steps
+    int                           _op,
+    int                           _family,
+    bool                          _pure,
+    const long double*            _in,
+    const struct dj_tests_result* _got,
+    const char*                   _re,
+    const char*                   _im,
+    unsigned long                 _steps
 )
 {
     if (g_failures <= D_TESTS_SHOW)
@@ -716,7 +725,7 @@ d_tests_check_ref(
         for (form = 0; form < 2; ++form)
         {
             const bool pure = (form == 0);
-            const struct d_tests_result got =
+            const struct dj_tests_result got =
                 d_tests_call(family, _op, pure, _in);
             unsigned long steps = d_tests_steps(family, got.part[0], re);
             unsigned long other = 0ul;
@@ -795,7 +804,7 @@ d_tests_print_worst(
 }
 
 // the unary references, in the operations' order
-static const struct d_tests_cplx_ref* const g_unary_refs[D_TESTS_POW] =
+static const struct dj_tests_cplx_ref* const g_unary_refs[D_TESTS_POW] =
 {
     g_ref_exp,   g_ref_log,   g_ref_sqrt,  g_ref_sin,   g_ref_cos,
     g_ref_tan,   g_ref_asin,  g_ref_acos,  g_ref_atan,  g_ref_sinh,
@@ -833,7 +842,7 @@ d_tests_references(void)
 
         for (i = 0u; i < g_unary_counts[op]; ++i)
         {
-            const struct d_tests_cplx_ref* r = &g_unary_refs[op][i];
+            const struct dj_tests_cplx_ref* r = &g_unary_refs[op][i];
             long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
             in[0] = d_tests_point(r->xm, r->xe);
@@ -850,7 +859,7 @@ d_tests_references(void)
 
         for (i = 0u; i < D_TESTS_COUNT(g_ref_abs_arg); ++i)
         {
-            const struct d_tests_cplx_ref* r = &g_ref_abs_arg[i];
+            const struct dj_tests_cplx_ref* r = &g_ref_abs_arg[i];
             long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
             in[0] = d_tests_point(r->xm, r->xe);
@@ -866,7 +875,7 @@ d_tests_references(void)
     }
 
     {
-        const struct d_tests_cplx_ref2* const tables[3] =
+        const struct dj_tests_cplx_ref2* const tables[3] =
             { g_ref_mul, g_ref_div, g_ref_pow };
         const size_t counts[3] = { D_TESTS_COUNT(g_ref_mul),
                                    D_TESTS_COUNT(g_ref_div),
@@ -880,7 +889,7 @@ d_tests_references(void)
 
             for (i = 0u; i < counts[k]; ++i)
             {
-                const struct d_tests_cplx_ref2* r = &tables[k][i];
+                const struct dj_tests_cplx_ref2* r = &tables[k][i];
                 long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
                 in[0] = d_tests_point(r->xm, r->xe);
@@ -900,7 +909,7 @@ d_tests_references(void)
 
         for (i = 0u; i < D_TESTS_COUNT(g_ref_pow_axes); ++i)
         {
-            const struct d_tests_cplx_ref2* r = &g_ref_pow_axes[i];
+            const struct dj_tests_cplx_ref2* r = &g_ref_pow_axes[i];
             long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
             in[0] = d_tests_point(r->xm, r->xe);
@@ -917,14 +926,14 @@ d_tests_references(void)
 }
 
 
-// d_tests_edge
+// dj_tests_edge
 //   struct: one family's points at the ends of its range, for one function.
-struct d_tests_edge
+struct dj_tests_edge
 {
-    int                            family;
-    int                            op;
-    const struct d_tests_cplx_ref* refs;
-    size_t                         count;
+    int                             family;
+    int                             op;
+    const struct dj_tests_cplx_ref* refs;
+    size_t                          count;
 };
 
 #define D_TESTS_EDGE(F, S, OP, NAME)                                           \
@@ -948,7 +957,7 @@ struct d_tests_edge
     D_TESTS_EDGE(F, S, D_TESTS_ABS, abs_arg),                                  \
     D_TESTS_EDGE(F, S, D_TESTS_ARG, abs_arg)
 
-static const struct d_tests_edge g_edges[] =
+static const struct dj_tests_edge g_edges[] =
 {
     D_TESTS_EDGES(0, f),
     D_TESTS_EDGES(1, d),
@@ -969,7 +978,7 @@ d_tests_edges(void)
 
     for (k = 0u; k < D_TESTS_COUNT(g_edges); ++k)
     {
-        const struct d_tests_edge* e = &g_edges[k];
+        const struct dj_tests_edge* e = &g_edges[k];
         unsigned long worst[6] = { 0ul, 0ul, 0ul, 0ul, 0ul, 0ul };
         size_t        i        = 0u;
 
@@ -1015,7 +1024,7 @@ d_tests_full_point(
 //   the full-width tables of one family's unary operations, in the
 // operations' order, and their counts.
 #define D_TESTS_WIDE_UNARY(S)                                                  \
-static const struct d_tests_cplx_wide* const g_wide_unary_##S[D_TESTS_POW] =  \
+static const struct dj_tests_cplx_wide* const g_wide_unary_##S[D_TESTS_POW] =  \
 {                                                                              \
     g_wide_##S##_exp,   g_wide_##S##_log,   g_wide_##S##_sqrt,                 \
     g_wide_##S##_sin,   g_wide_##S##_cos,   g_wide_##S##_tan,                  \
@@ -1048,13 +1057,13 @@ D_TESTS_WIDE_UNARY(ld)
 // operation's largest distances printed.
 static void
 d_tests_full_width_family(
-    int                                     _family,
-    const struct d_tests_cplx_wide* const*  _unary,
-    const size_t*                           _counts,
-    const struct d_tests_cplx_wide*         _abs_arg,
-    size_t                                  _abs_arg_count,
-    const struct d_tests_cplx_wide2* const* _binary,
-    const size_t*                           _binary_counts
+    int                                      _family,
+    const struct dj_tests_cplx_wide* const*  _unary,
+    const size_t*                            _counts,
+    const struct dj_tests_cplx_wide*         _abs_arg,
+    size_t                                   _abs_arg_count,
+    const struct dj_tests_cplx_wide2* const* _binary,
+    const size_t*                            _binary_counts
 )
 {
     static const int binary_ops[3] = { D_TESTS_MUL, D_TESTS_DIV,
@@ -1070,7 +1079,7 @@ d_tests_full_width_family(
     {
         for (i = 0u; i < _counts[op]; ++i)
         {
-            const struct d_tests_cplx_wide* r = &_unary[op][i];
+            const struct dj_tests_cplx_wide* r = &_unary[op][i];
             long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
             in[0] = d_tests_full_point(r->xm, r->xe);
@@ -1082,7 +1091,7 @@ d_tests_full_width_family(
 
     for (i = 0u; i < _abs_arg_count; ++i)
     {
-        const struct d_tests_cplx_wide* r = &_abs_arg[i];
+        const struct dj_tests_cplx_wide* r = &_abs_arg[i];
         long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
         in[0] = d_tests_full_point(r->xm, r->xe);
@@ -1102,7 +1111,7 @@ d_tests_full_width_family(
 
         for (i = 0u; i < _binary_counts[k]; ++i)
         {
-            const struct d_tests_cplx_wide2* r = &_binary[k][i];
+            const struct dj_tests_cplx_wide2* r = &_binary[k][i];
             long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
 
             in[0] = d_tests_full_point(r->xm, r->xe);
@@ -1138,12 +1147,12 @@ d_tests_full_width_family(
 static void
 d_tests_full_width(void)
 {
-    const struct d_tests_cplx_wide2* const binary_d[3] =
+    const struct dj_tests_cplx_wide2* const binary_d[3] =
         { g_wide_d_mul, g_wide_d_div, g_wide_d_pow };
     const size_t binary_counts_d[3] = { D_TESTS_COUNT(g_wide_d_mul),
                                         D_TESTS_COUNT(g_wide_d_div),
                                         D_TESTS_COUNT(g_wide_d_pow) };
-    const struct d_tests_cplx_wide2* const binary_ld[3] =
+    const struct dj_tests_cplx_wide2* const binary_ld[3] =
         { g_wide_ld_mul, g_wide_ld_div, g_wide_ld_pow };
     const size_t binary_counts_ld[3] = { D_TESTS_COUNT(g_wide_ld_mul),
                                          D_TESTS_COUNT(g_wide_ld_div),
@@ -1175,6 +1184,346 @@ d_tests_full_width(void)
     return;
 }
 
+// The whole powers, z^n by repeated squaring carried in pairs (cplx.h,
+// S370), at the points of math_tests_cplx_pow_refs.h, where one part of z^n
+// cancels to some 2^-c of the modulus: each part that is at least |n|
+// 2^(4 - P) of the larger part, P long double's precision, within a step of
+// the part correctly rounded; each smaller part, which may cancel past what
+// long double's pairs carry to a step, within a step or within |n|
+// 2^(3 - 2P) of the larger part; and the plain form's parts the _c form's,
+// bit for bit. Then, at exact points on and off the axes, whose powers and
+// inverses are exact, z^n the bits of the products and the quotient it
+// stands for, each zero's sign among them: the family's own d_cplx_<S>_mul
+// from n's highest bit down, and its d_cplx_<S>_div of 1 by that for n < 0
+// (S370, S382).
+
+// d_tests_power_scale
+//   |_n| times the larger of the exact parts _re and _im, times 2^_k: a
+// whole power's threshold, k = 4 - P, and its allowance, k = 3 - 2P.
+static long double
+d_tests_power_scale(
+    long        _n,
+    long double _re,
+    long double _im,
+    int         _k
+)
+{
+    const long double a     = (_re < 0.0L) ? -_re : _re;
+    const long double b     = (_im < 0.0L) ? -_im : _im;
+    const long double count = (_n < 0) ? -(long double)_n : (long double)_n;
+
+    return (count * ((a > b) ? a : b)) * d_internal_math_ld_pow2(_k);
+}
+
+// dj_tests_power_tally
+//   struct: one form's whole powers in one family: the largest distance in
+// steps of a part above the threshold; the parts below it; and the largest
+// error of those, as a share of the allowance.
+struct dj_tests_power_tally
+{
+    unsigned long within;
+    unsigned long below;
+    long double   share;
+};
+
+// d_tests_power_part
+//   one part of a whole power against its reference: where the exact part,
+// _exact, is at least _threshold, within a step of the part correctly
+// rounded, _want; otherwise within a step too or within _allowance of the
+// exact part; counted in _tally, and the steps into *_steps where larger.
+static bool
+d_tests_power_part(
+    int                          _family,
+    long double                  _got,
+    long double                  _want,
+    long double                  _exact,
+    long double                  _threshold,
+    long double                  _allowance,
+    unsigned long*               _steps,
+    struct dj_tests_power_tally* _tally
+)
+{
+    const unsigned long steps = d_tests_steps(_family, _got, _want);
+    const long double   size  = (_exact < 0.0L) ? -_exact : _exact;
+    const long double   error = (_got > _exact) ? (_got - _exact)
+                                                : (_exact - _got);
+
+    if (steps > *_steps)
+    {
+        *_steps = steps;
+    }
+
+    // at least the threshold: within a step
+    if (size >= _threshold)
+    {
+        if (steps > _tally->within)
+        {
+            _tally->within = steps;
+        }
+
+        return (steps <= 1ul);
+    }
+
+    ++_tally->below;
+
+    // below it, within a step too, or, past it, within the allowance, its
+    // share kept: the family's own rounding is within the step
+    if (steps <= 1ul)
+    {
+        return true;
+    }
+
+    if ( (_got == _got) &&
+         (_allowance > 0.0L) &&
+         ((error / _allowance) > _tally->share) )
+    {
+        _tally->share = error / _allowance;
+    }
+
+    return ( (_got == _got) &&
+             (error <= _allowance) );
+}
+
+// d_tests_check_powers
+//   one family's whole powers, _rows: each row's parts, in both forms,
+// within a step of the reference above the threshold and within the
+// allowance below it; the plain form's parts the _c form's, bit for bit;
+// each form's tally printed.
+static void
+d_tests_check_powers(
+    int                               _family,
+    const struct dj_tests_cplx_power* _rows,
+    size_t                            _count
+)
+{
+    struct dj_tests_power_tally tally[2] = { { 0ul, 0ul, 0.0L },
+                                             { 0ul, 0ul, 0.0L } };
+    size_t                      i        = 0u;
+
+    for (i = 0u; i < _count; ++i)
+    {
+        const struct dj_tests_cplx_power* r = &_rows[i];
+        const long double re    = d_tests_text(_family, r->re);
+        const long double im    = d_tests_text(_family, r->im);
+        const long double re_x  = d_tests_text(2, r->re);
+        const long double im_x  = d_tests_text(2, r->im);
+        const long double least = d_tests_power_scale(r->n, re_x, im_x,
+                                                      4 - LDBL_MANT_DIG);
+        const long double allow = d_tests_power_scale(r->n, re_x, im_x,
+                                                      3 - (2 * LDBL_MANT_DIG));
+        struct dj_tests_result got[2] = { { { 0.0L, 0.0L } },
+                                          { { 0.0L, 0.0L } } };
+        long double in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+        int         form  = 0;
+
+        in[0] = d_tests_full_point(r->xm, r->xe);
+        in[1] = d_tests_full_point(r->ym, r->ye);
+        in[2] = (long double)r->n;
+
+        for (form = 0; form < 2; ++form)
+        {
+            const bool pure = (form == 0);
+            unsigned long here = 0ul;
+            bool          ok   = true;
+
+            got[form] = d_tests_call(_family, D_TESTS_POW, pure, in);
+            ok = d_tests_power_part(_family, got[form].part[0], re, re_x,
+                                    least, allow, &here, &tally[form]);
+            ok = d_tests_power_part(_family, got[form].part[1], im, im_x,
+                                    least, allow, &here, &tally[form]) && ok;
+
+            D_TESTS_EXPECT(ok, "a whole power's part within a step, or, "
+                               "below the threshold, within the allowance");
+
+            if (!ok)
+            {
+                d_tests_report(D_TESTS_POW, _family, pure, in, &got[form],
+                               r->re, r->im, here);
+            }
+        }
+
+        D_TESTS_EXPECT( (d_tests_same(got[0].part[0], got[1].part[0])) &&
+                        (d_tests_same(got[0].part[1], got[1].part[1])),
+                        "a whole power's plain form the _c form's, bit for "
+                        "bit" );
+    }
+
+    printf("    %-11s %3lu rows: at most %lu %lu steps; below the threshold"
+           " %lu %lu parts, at most %.3Lf %.3Lf of the allowance\n",
+           g_family_names[_family],
+           (unsigned long)_count,
+           tally[0].within,
+           tally[1].within,
+           tally[0].below,
+           tally[1].below,
+           tally[0].share,
+           tally[1].share);
+
+    return;
+}
+
+// d_tests_power_by_products
+//   _z^_n in the family as the products and the quotient it stands for:
+// the family's own d_cplx_<S>_mul from _n's highest bit down, the power
+// squared and then times _z where the bit is set, as cplx.h's kernel takes
+// the bits, and for _n < 0 the family's d_cplx_<S>_div of 1 by that power.
+static struct dj_tests_result
+d_tests_power_by_products(
+    int                _family,
+    const long double* _z,
+    int                _n
+)
+{
+    const unsigned         count = (_n < 0) ? (unsigned)(-_n) : (unsigned)_n;
+    struct dj_tests_result m     = { { 0.0L, 0.0L } };
+    long double            in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
+    unsigned               bit   = 1u;
+
+    m.part[0] = _z[0];
+    m.part[1] = _z[1];
+
+    // the highest bit
+    while (bit <= (count / 2u))
+    {
+        bit = bit * 2u;
+    }
+
+    // squared, then times z where the bit is set
+    for (bit = bit / 2u; bit > 0u; bit = bit / 2u)
+    {
+        in[0] = m.part[0];
+        in[1] = m.part[1];
+        in[2] = m.part[0];
+        in[3] = m.part[1];
+        m     = d_tests_call(_family, D_TESTS_MUL, true, in);
+
+        if ((count & bit) != 0u)
+        {
+            in[0] = m.part[0];
+            in[1] = m.part[1];
+            in[2] = _z[0];
+            in[3] = _z[1];
+            m     = d_tests_call(_family, D_TESTS_MUL, true, in);
+        }
+    }
+
+    // a negative exponent: 1 over the power
+    if (_n < 0)
+    {
+        in[0] = 1.0L;
+        in[1] = 0.0L;
+        in[2] = m.part[0];
+        in[3] = m.part[1];
+        m     = d_tests_call(_family, D_TESTS_DIV, true, in);
+    }
+
+    return m;
+}
+
+// d_tests_power_zeros
+//   z^n at exact points whose powers and inverses are exact, on the axes
+// with zeros of either sign and off them, n from -6 to 6, in every family
+// and both forms: the bits of d_tests_power_by_products, each zero's sign
+// among them -- the products' for n > 0 (S370), the quotient's, the
+// formula's, for n < 0 (S382).
+static void
+d_tests_power_zeros(void)
+{
+    static const long double points[][2] =
+    {
+        { -2.0L, 0.0L },  { -2.0L, -0.0L }, { 2.0L, 0.0L },   { 2.0L, -0.0L },
+        { 0.0L, 2.0L },   { 0.0L, -2.0L },  { -0.0L, 2.0L },  { -0.0L, -2.0L },
+        { 1.0L, 1.0L },   { 1.0L, -1.0L },  { -1.0L, 1.0L },  { -1.0L, -1.0L },
+        { -0.5L, 0.5L },  { 2.0L, -2.0L },  { -1.0L, -0.0L }, { -0.0L, 1.0L }
+    };
+    long failed[2] = { 0L, 0L };  // n > 0, n < 0
+    long zeros[2]  = { 0L, 0L };
+    int  family    = 0;
+
+    for (family = 0; family < 3; ++family)
+    {
+        size_t k = 0u;
+
+        for (k = 0u; k < D_TESTS_COUNT(points); ++k)
+        {
+            int n = 0;
+
+            for (n = -6; n <= 6; ++n)
+            {
+                const int              side = (n < 0) ? 1 : 0;
+                struct dj_tests_result want = { { 0.0L, 0.0L } };
+                long double            in[4];
+                int                    form = 0;
+
+                // no z^0 here: 1 for every z, among the exact values
+                if (n == 0)
+                {
+                    continue;
+                }
+
+                want  = d_tests_power_by_products(family, points[k], n);
+                in[0] = points[k][0];
+                in[1] = points[k][1];
+                in[2] = (long double)n;
+                in[3] = 0.0L;
+                zeros[side] += ( ((want.part[0] == 0.0L) ? 1L : 0L) +
+                                 ((want.part[1] == 0.0L) ? 1L : 0L) );
+
+                for (form = 0; form < 2; ++form)
+                {
+                    const struct dj_tests_result got =
+                        d_tests_call(family, D_TESTS_POW, (form == 0), in);
+
+                    failed[side] +=
+                        ( (d_tests_same(got.part[0], want.part[0])) &&
+                          (d_tests_same(got.part[1], want.part[1])) )
+                            ? 0L : 1L;
+                }
+            }
+        }
+    }
+
+    D_TESTS_EXPECT( (failed[0] == 0L) &&
+                    (zeros[0] > 0L),
+                    "z^n, n from 1 to 6, at exact points: the bits of the "
+                    "family's repeated squaring by d_cplx_<S>_mul, each "
+                    "zero's sign the products' (S370)" );
+    D_TESTS_EXPECT( (failed[1] == 0L) &&
+                    (zeros[1] > 0L),
+                    "z^n, n from -6 to -1, at exact points: the bits of 1 "
+                    "over that by d_cplx_<S>_div, each zero's sign the "
+                    "quotient's, the formula's (S382)" );
+    printf("    zeros' signs at exact points: %ld and %ld powers off, of "
+           "%ld and %ld zero parts\n",
+           failed[0],
+           failed[1],
+           zeros[0],
+           zeros[1]);
+
+    return;
+}
+
+// d_tests_whole_powers
+//   the whole powers of every family, long double's where it holds the
+// points' 64 bits; then their zeros' signs at exact points.
+static void
+d_tests_whole_powers(void)
+{
+    printf("  whole powers where a part cancels, _c then plain:\n");
+    d_tests_check_powers(0, g_power_f, D_TESTS_COUNT(g_power_f));
+    d_tests_check_powers(1, g_power_d, D_TESTS_COUNT(g_power_d));
+
+    // a long double of double's width takes no point of 64 bits exactly
+    if (LDBL_MANT_DIG >= 64)
+    {
+        d_tests_check_powers(2, g_power_ld, D_TESTS_COUNT(g_power_ld));
+    }
+
+    d_tests_power_zeros();
+
+    return;
+}
+
 
 //==============================================================================
 // 3.  ANNEX G
@@ -1193,16 +1542,16 @@ d_tests_full_width(void)
 // cexp's, cis(2.5 ln 2) having cis(2.5)'s signs; log2 and log10 clog's, the
 // angle over ln b; log1p clog's at 1 + z; expm1 cexp's less 1.
 
-// d_tests_special
+// dj_tests_special
 //   struct: one of G.6's values.
-struct d_tests_special
+struct dj_tests_special
 {
     int         op;
     const char* in;   // the argument's parts
     const char* out;  // the result's
 };
 
-static const struct d_tests_special g_specials[] =
+static const struct dj_tests_special g_specials[] =
 {
     // G.6.1.1 cacos
     { D_TESTS_ACOS,  "00", "Ho" }, { D_TESTS_ACOS,  "o0", "Ho" },
@@ -1570,7 +1919,7 @@ d_tests_special_one(
 
         for (form = 0; form < 2; ++form)
         {
-            const struct d_tests_result got =
+            const struct dj_tests_result got =
                 d_tests_call(family, _op, (form == 0), in);
             const bool ok = ( (d_tests_matches(family, got.part[0],
                                                _out[0])) &&
@@ -1608,7 +1957,7 @@ d_tests_annex_g(void)
 
     for (k = 0u; k < D_TESTS_COUNT(g_specials); ++k)
     {
-        const struct d_tests_special* s = &g_specials[k];
+        const struct dj_tests_special* s = &g_specials[k];
         const bool odd  = ( (s->op == D_TESTS_ASINH) ||
                             (s->op == D_TESTS_ATANH) ||
                             (s->op == D_TESTS_SINH) ||
@@ -1747,8 +2096,8 @@ d_tests_definitions(void)
                         const bool        pure  = (form == 0);
                         long double       in[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
                         long double       iz[4] = { 0.0L, 0.0L, 0.0L, 0.0L };
-                        struct d_tests_result f;
-                        struct d_tests_result h;
+                        struct dj_tests_result f;
+                        struct dj_tests_result h;
                         bool              ok    = false;
 
                         in[0] = parts[a];
@@ -1825,9 +2174,9 @@ d_tests_definitions(void)
 // the given steps of the value written, its sign that value's, a zero's
 // among them; NaN for a NaN.
 
-// d_tests_exact
+// dj_tests_exact
 //   struct: one exact value.
-struct d_tests_exact
+struct dj_tests_exact
 {
     int         op;
     long double in[4];
@@ -1836,7 +2185,7 @@ struct d_tests_exact
     bool        signs;  // whether a zero part's sign is checked too
 };
 
-static const struct d_tests_exact g_exact[] =
+static const struct dj_tests_exact g_exact[] =
 {
     // the square root's cut, its side the zero's sign: sqrt(-4 -+ 0i)
     { D_TESTS_SQRT, { -4.0L, -0.0L, 0.0L, 0.0L }, { 0.0L, -2.0L }, 0u, true },
@@ -1863,12 +2212,15 @@ static const struct d_tests_exact g_exact[] =
     { D_TESTS_ASIN, { -0.0L, -0.0L, 0.0L, 0.0L }, { -0.0L, -0.0L }, 0u, true },
     { D_TESTS_COS,  { 0.0L, 0.0L, 0.0L, 0.0L },   { 1.0L, -0.0L }, 0u, true },
     { D_TESTS_EXP,  { 0.0L, -0.0L, 0.0L, 0.0L },  { 1.0L, -0.0L }, 0u, true },
-    // the powers: z^0 = 1 for every z, NaNs too; whole powers by squaring;
-    // a negative or imaginary base to a real power by turns
+    // the powers: z^0 = 1 for every z, NaNs too; whole powers by squaring,
+    // each zero the products' and the quotient's (S382); a negative or
+    // imaginary base to a real power by turns
     { D_TESTS_POW,  { 2.5L, -3.0L, 0.0L, 0.0L },  { 1.0L, 0.0L },  0u, true },
     { D_TESTS_POW,  { 1.0L, 1.0L, 10.0L, 0.0L },  { 0.0L, 32.0L }, 0u, true },
-    { D_TESTS_POW,  { 1.0L, 1.0L, -2.0L, 0.0L },  { 0.0L, -0.5L }, 0u, false },
-    { D_TESTS_POW,  { 0.0L, 1.0L, 3.0L, 0.0L },   { 0.0L, -1.0L }, 0u, false },
+    { D_TESTS_POW,  { 1.0L, 1.0L, -2.0L, 0.0L },  { 0.0L, -0.5L }, 0u, true },
+    { D_TESTS_POW,  { 0.0L, 1.0L, 3.0L, 0.0L },   { -0.0L, -1.0L }, 0u, true },
+    { D_TESTS_POW,  { -2.0L, 0.0L, -1.0L, 0.0L }, { -0.5L, -0.0L }, 0u, true },
+    { D_TESTS_POW,  { 0.0L, 2.0L, -3.0L, 0.0L },  { -0.0L, 0.125L }, 0u, true },
     { D_TESTS_POW,  { 3.0L, 4.0L, 2.0L, 0.0L },   { -7.0L, 24.0L }, 0u, true },
     { D_TESTS_POW,  { -4.0L, 0.0L, 0.5L, 0.0L },  { 0.0L, 2.0L },  0u, true },
     { D_TESTS_POW,  { -4.0L, -0.0L, 0.5L, 0.0L }, { 0.0L, -2.0L }, 0u, true },
@@ -1908,6 +2260,11 @@ static const struct d_tests_exact g_exact[] =
     { D_TESTS_DIV,  { 1.0L, 2.0L, 3.0L, 4.0L },
                     { 0.44L, 0.08L }, 1u, true },
     { D_TESTS_DIV,  { 5.0L, 5.0L, 3.0L, -1.0L },  { 1.0L, 2.0L },  0u, true },
+    // a quotient's zero the formula's, of its sign (S382)
+    { D_TESTS_DIV,  { 1.0L, 0.0L, -2.0L, 0.0L },  { -0.5L, -0.0L }, 0u, true },
+    { D_TESTS_DIV,  { 1.0L, 0.0L, -2.0L, -0.0L }, { -0.5L, 0.0L },  0u, true },
+    { D_TESTS_DIV,  { 1.0L, -0.0L, 2.0L, 0.0L },  { 0.5L, -0.0L },  0u, true },
+    { D_TESTS_DIV,  { 0.0L, -1.0L, 0.0L, 2.0L },  { -0.5L, -0.0L }, 0u, true },
     { D_TESTS_ADD,  { 1.0L, -0.0L, 2.0L, -0.0L }, { 3.0L, -0.0L }, 0u, true },
     { D_TESTS_SUB,  { 1.0L, 0.0L, 2.0L, 0.0L },   { -1.0L, 0.0L }, 0u, true },
     { D_TESTS_ADD_REAL, { 1.0L, -0.0L, 2.0L, 0.0L },
@@ -1924,6 +2281,8 @@ static const struct d_tests_exact g_exact[] =
                         { 0.0L, -1.0L }, 0u, true },
     { D_TESTS_REAL_DIV, { 3.0L, 4.0L, 25.0L, 0.0L },
                         { 3.0L, -4.0L }, 0u, true },
+    { D_TESTS_REAL_DIV, { -2.0L, 0.0L, 1.0L, 0.0L },
+                        { -0.5L, -0.0L }, 0u, true },
     { D_TESTS_CONJ, { 1.0L, 0.0L, 0.0L, 0.0L },   { 1.0L, -0.0L }, 0u, true },
     { D_TESTS_NEG,  { 0.0L, -0.0L, 0.0L, 0.0L },  { -0.0L, 0.0L }, 0u, true },
     { D_TESTS_PROJ, { 2.0L, 3.0L, 0.0L, 0.0L },   { 2.0L, 3.0L },  0u, true },
@@ -1977,8 +2336,8 @@ d_tests_exact_values(void)
 
     for (k = 0u; k < D_TESTS_COUNT(g_exact); ++k)
     {
-        const struct d_tests_exact* e = &g_exact[k];
-        int                         family = 0;
+        const struct dj_tests_exact* e = &g_exact[k];
+        int                          family = 0;
 
         for (family = 0; family < 3; ++family)
         {
@@ -1991,7 +2350,7 @@ d_tests_exact_values(void)
                 // nearest long double to a constant, rounded once more
                 long double in[4];
                 long double want[2];
-                struct d_tests_result got;
+                struct dj_tests_result got;
                 bool        ok = true;
                 int         j  = 0;
 
@@ -2169,7 +2528,7 @@ d_tests_real_axis(void)
                     for (form = 0; form < 2; ++form)
                     {
                         const bool pure = (form == 0);
-                        const struct d_tests_result got =
+                        const struct dj_tests_result got =
                             d_tests_call(family, op, pure, in);
                         const long double want =
                             d_tests_real_of(family, op, pure, x);
@@ -2223,7 +2582,7 @@ d_tests_underflow(void)
 
     for (form = 0; form < 2; ++form)
     {
-        const struct d_tests_result got =
+        const struct dj_tests_result got =
             d_tests_call(2, D_TESTS_EXPM1, (form == 0), in);
         const bool ok = ( (got.part[0] == 0.0L) &&
                           (d_internal_math_ld_negative(got.part[0])) &&
@@ -2257,26 +2616,26 @@ d_tests_infinities(void)
         const long double in_rdiv[4] = { 0.0L, 0.0L, 1.0L, 0.0L };
         const long double in_proj[4] = { nan, -inf, 0.0L, 0.0L };
         const long double in_proj2[4] = { -inf, 3.0L, 0.0L, 0.0L };
-        const long double in_abs[4]  = { nan, -inf, 0.0L, 0.0L };
-        const struct d_tests_result mul  =
+        const long double in_abs[4]  = {  nan, -inf, 0.0L, 0.0L };
+        const struct dj_tests_result mul  =
             d_tests_call(family, D_TESTS_MUL, true, in_mul);
-        const struct d_tests_result mul2 =
+        const struct dj_tests_result mul2 =
             d_tests_call(family, D_TESTS_MUL, true, in_mul2);
-        const struct d_tests_result div0 =
+        const struct dj_tests_result div0 =
             d_tests_call(family, D_TESTS_DIV, true, in_div0);
-        const struct d_tests_result divi =
+        const struct dj_tests_result divi =
             d_tests_call(family, D_TESTS_DIV, true, in_divi);
-        const struct d_tests_result divz =
+        const struct dj_tests_result divz =
             d_tests_call(family, D_TESTS_DIV, true, in_divz);
-        const struct d_tests_result rdiv =
+        const struct dj_tests_result rdiv =
             d_tests_call(family, D_TESTS_REAL_DIV, true, in_rdiv);
-        const struct d_tests_result proj =
+        const struct dj_tests_result proj =
             d_tests_call(family, D_TESTS_PROJ, true, in_proj);
-        const struct d_tests_result proj2 =
+        const struct dj_tests_result proj2 =
             d_tests_call(family, D_TESTS_PROJ, true, in_proj2);
-        const struct d_tests_result abs_c =
+        const struct dj_tests_result abs_c =
             d_tests_call(family, D_TESTS_ABS, true, in_abs);
-        const struct d_tests_result abs_p =
+        const struct dj_tests_result abs_p =
             d_tests_call(family, D_TESTS_ABS, false, in_abs);
 
         D_TESTS_EXPECT( ( (d_tests_matches(family, mul.part[0], 'J')) ||
@@ -2320,9 +2679,9 @@ d_tests_infinities(void)
 
             for (form = 0; form < 2; ++form)
             {
-                const struct d_tests_result b =
+                const struct dj_tests_result b =
                     d_tests_call(family, D_TESTS_ABS, (form == 0), big);
-                const struct d_tests_result t =
+                const struct dj_tests_result t =
                     d_tests_call(family, D_TESTS_ABS, (form == 0), tiny);
 
                 D_TESTS_EXPECT( ( (b.part[0] ==
@@ -2356,13 +2715,13 @@ d_tests_infinities(void)
 
             for (form = 0; form < 2; ++form)
             {
-                const struct d_tests_result p =
+                const struct dj_tests_result p =
                     d_tests_call(family, D_TESTS_POW, (form == 0), scaled);
-                const struct d_tests_result q =
+                const struct dj_tests_result q =
                     d_tests_call(family, D_TESTS_POW, (form == 0), unit);
-                const struct d_tests_result r =
+                const struct dj_tests_result r =
                     d_tests_call(family, D_TESTS_POW, (form == 0), small);
-                const struct d_tests_result f =
+                const struct dj_tests_result f =
                     d_tests_call(family, D_TESTS_POW, (form == 0), far);
 
                 D_TESTS_EXPECT( ( (p.part[0] ==
@@ -2433,19 +2792,19 @@ d_tests_paths(void)
         const long double in_sub[4]   = { tiny, 0.0L, lift, 0.0L };
         const long double in_imag[4]  = { 0.0L, 2.0L, 1.0L, 1.0L };
         const long double in_nan0[4]  = { nan, 1.0L, 0.0L, 0.0L };
-        const struct d_tests_result mul_nans =
+        const struct dj_tests_result mul_nans =
             d_tests_call(family, D_TESTS_MUL, true, in_nans);
-        const struct d_tests_result mul_infx =
+        const struct dj_tests_result mul_infx =
             d_tests_call(family, D_TESTS_MUL, true, in_infx);
-        const struct d_tests_result mul_far =
+        const struct dj_tests_result mul_far =
             d_tests_call(family, D_TESTS_MUL, true, in_far);
-        const struct d_tests_result mul_sub =
+        const struct dj_tests_result mul_sub =
             d_tests_call(family, D_TESTS_MUL, true, in_sub);
-        const struct d_tests_result div_imag =
+        const struct dj_tests_result div_imag =
             d_tests_call(family, D_TESTS_DIV, true, in_imag);
-        const struct d_tests_result div_nan0 =
+        const struct dj_tests_result div_nan0 =
             d_tests_call(family, D_TESTS_DIV, true, in_nan0);
-        const struct d_tests_result div_nans =
+        const struct dj_tests_result div_nans =
             d_tests_call(family, D_TESTS_DIV, true, in_nans);
         int form = 0;
 
@@ -2486,25 +2845,25 @@ d_tests_paths(void)
             const long double in_pinf[4]  = { inf, 0.0L, 1.0L, 1.0L };
             const long double in_one[4]   = { 1.0L, 0.0L, 0.0L, 0.0L };
             const long double in_onem[4]  = { 1.0L, -0.0L, 0.0L, 0.0L };
-            const struct d_tests_result up =
+            const struct dj_tests_result up =
                 d_tests_call(family, D_TESTS_POW, pure, in_up);
-            const struct d_tests_result down =
+            const struct dj_tests_result down =
                 d_tests_call(family, D_TESTS_POW, pure, in_down);
-            const struct d_tests_result small =
+            const struct dj_tests_result small =
                 d_tests_call(family, D_TESTS_POW, pure, in_small);
-            const struct d_tests_result pnan =
+            const struct dj_tests_result pnan =
                 d_tests_call(family, D_TESTS_POW, pure, in_pnan);
-            const struct d_tests_result zneg =
+            const struct dj_tests_result zneg =
                 d_tests_call(family, D_TESTS_POW, pure, in_zneg);
-            const struct d_tests_result zcpx =
+            const struct dj_tests_result zcpx =
                 d_tests_call(family, D_TESTS_POW, pure, in_zcpx);
-            const struct d_tests_result zimg =
+            const struct dj_tests_result zimg =
                 d_tests_call(family, D_TESTS_POW, pure, in_zimg);
-            const struct d_tests_result pinf =
+            const struct dj_tests_result pinf =
                 d_tests_call(family, D_TESTS_POW, pure, in_pinf);
-            const struct d_tests_result one =
+            const struct dj_tests_result one =
                 d_tests_call(family, D_TESTS_ACOS, pure, in_one);
-            const struct d_tests_result onem =
+            const struct dj_tests_result onem =
                 d_tests_call(family, D_TESTS_ACOS, pure, in_onem);
 
             D_TESTS_EXPECT( ( (d_tests_matches(family, up.part[0], 'I')) &&
@@ -2554,12 +2913,12 @@ d_tests_paths(void)
 static void
 d_tests_complex(void)
 {
-    const struct d_cplx_f  f = d_cplx_f_make(1.5f, -0.0f);
-    const struct d_cplx_d  d = d_cplx_d_make(-2.25, 3.0);
-    const struct d_cplx_ld l = d_cplx_ld_make(0.125L, -7.0L);
-    const float _Complex       fc = d_cplx_f_to_complex(f);
-    const double _Complex      dc = d_cplx_d_to_complex(d);
-    const long double _Complex lc = d_cplx_ld_to_complex(l);
+    const struct dj_cplx_f  f = d_cplx_f_make(1.5f, -0.0f);
+    const struct dj_cplx_d  d = d_cplx_d_make(-2.25, 3.0);
+    const struct dj_cplx_ld l = d_cplx_ld_make(0.125L, -7.0L);
+    const float _Complex        fc = d_cplx_f_to_complex(f);
+    const double _Complex       dc = d_cplx_d_to_complex(d);
+    const long double _Complex  lc = d_cplx_ld_to_complex(l);
     float       fp[2] = { 0.0f, 0.0f };
     double      dp[2] = { 0.0, 0.0 };
     long double lp[2] = { 0.0L, 0.0L };
@@ -2598,9 +2957,9 @@ d_tests_complex(void)
 static void
 d_tests_overloads(void)
 {
-    const struct d_cplx_f  f = d_cplx_f_make(0.75f, -1.25f);
-    const struct d_cplx_d  d = d_cplx_d_make(0.75, -1.25);
-    const struct d_cplx_ld l = d_cplx_ld_make(0.75L, -1.25L);
+    const struct dj_cplx_f  f = d_cplx_f_make(0.75f, -1.25f);
+    const struct dj_cplx_d  d = d_cplx_d_make(0.75, -1.25);
+    const struct dj_cplx_ld l = d_cplx_ld_make(0.75L, -1.25L);
 
     D_TESTS_EXPECT( (d_cplx_f_equal(d_cplx_exp(f), d_cplx_f_exp(f))) &&
                     (d_cplx_d_equal(d_cplx_exp_c(d), d_cplx_d_exp_c(d))) &&
@@ -2631,12 +2990,13 @@ d_tests_overloads(void)
 
 // D_TESTS_CPLX_CONSTANT
 //   stamps, for one family, every function's _c form at one point as a
-// constant expression, and d_tests_constant_<S>, which compares each with
-// the run time's result at the same point, read through volatiles.
+// constant expression, pow_c's at a whole exponent of each sign too, and
+// d_tests_constant_<S>, which compares each with the run time's result at
+// the same point, read through volatiles.
 #define D_TESTS_CPLX_CONSTANT(T, S, X, Y, U, V)                                \
-static constexpr struct d_cplx_##S g_cz_##S = d_cplx_##S##_make(X, Y);         \
-static constexpr struct d_cplx_##S g_cw_##S = d_cplx_##S##_make(U, V);         \
-static constexpr struct d_cplx_##S g_cr_##S[] =                                \
+static constexpr struct dj_cplx_##S g_cz_##S = d_cplx_##S##_make(X, Y);        \
+static constexpr struct dj_cplx_##S g_cw_##S = d_cplx_##S##_make(U, V);        \
+static constexpr struct dj_cplx_##S g_cr_##S[] =                               \
 {                                                                              \
     d_cplx_##S##_exp_c(g_cz_##S),   d_cplx_##S##_log_c(g_cz_##S),              \
     d_cplx_##S##_sqrt_c(g_cz_##S),  d_cplx_##S##_sin_c(g_cz_##S),              \
@@ -2649,6 +3009,8 @@ static constexpr struct d_cplx_##S g_cr_##S[] =                                \
     d_cplx_##S##_log2_c(g_cz_##S),  d_cplx_##S##_log10_c(g_cz_##S),            \
     d_cplx_##S##_log1p_c(g_cz_##S), d_cplx_##S##_expm1_c(g_cz_##S),            \
     d_cplx_##S##_pow_c(g_cz_##S, g_cw_##S),                                    \
+    d_cplx_##S##_pow_c(g_cz_##S, d_cplx_##S##_make((T)7, (T)0)),               \
+    d_cplx_##S##_pow_c(g_cz_##S, d_cplx_##S##_make((T)-3, (T)0)),              \
     d_cplx_##S##_mul(g_cz_##S, g_cw_##S),                                      \
     d_cplx_##S##_div(g_cz_##S, g_cw_##S),                                      \
     d_cplx_##S##_make(d_cplx_##S##_abs_c(g_cz_##S),                            \
@@ -2658,13 +3020,13 @@ static constexpr struct d_cplx_##S g_cr_##S[] =                                \
 static void                                                                    \
 d_tests_constant_##S(void)                                                     \
 {                                                                              \
-    volatile T              x = X;                                             \
-    volatile T              y = Y;                                             \
-    volatile T              u = U;                                             \
-    volatile T              v = V;                                             \
-    const struct d_cplx_##S z = d_cplx_##S##_make(x, y);                       \
-    const struct d_cplx_##S w = d_cplx_##S##_make(u, v);                       \
-    const struct d_cplx_##S r[] =                                              \
+    volatile T               x = X;                                            \
+    volatile T               y = Y;                                            \
+    volatile T               u = U;                                            \
+    volatile T               v = V;                                            \
+    const struct dj_cplx_##S z = d_cplx_##S##_make(x, y);                      \
+    const struct dj_cplx_##S w = d_cplx_##S##_make(u, v);                      \
+    const struct dj_cplx_##S r[] =                                             \
     {                                                                          \
         d_cplx_##S##_exp_c(z),   d_cplx_##S##_log_c(z),                        \
         d_cplx_##S##_sqrt_c(z),  d_cplx_##S##_sin_c(z),                        \
@@ -2677,6 +3039,8 @@ d_tests_constant_##S(void)                                                     \
         d_cplx_##S##_log2_c(z),  d_cplx_##S##_log10_c(z),                      \
         d_cplx_##S##_log1p_c(z), d_cplx_##S##_expm1_c(z),                      \
         d_cplx_##S##_pow_c(z, w),                                              \
+        d_cplx_##S##_pow_c(z, d_cplx_##S##_make((T)7, (T)0)),                  \
+        d_cplx_##S##_pow_c(z, d_cplx_##S##_make((T)-3, (T)0)),                 \
         d_cplx_##S##_mul(z, w),  d_cplx_##S##_div(z, w),                       \
         d_cplx_##S##_make(d_cplx_##S##_abs_c(z), d_cplx_##S##_arg_c(z))        \
     };                                                                         \
@@ -2721,6 +3085,7 @@ main(void)
     d_tests_references();
     d_tests_edges();
     d_tests_full_width();
+    d_tests_whole_powers();
     d_tests_annex_g();
     d_tests_definitions();
     d_tests_exact_values();

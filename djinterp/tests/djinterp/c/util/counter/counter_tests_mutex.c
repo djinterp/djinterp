@@ -102,7 +102,7 @@ d_tests_counter_mutex_lifetime
 bool
 d_tests_counter_mutex_lifetime(void)
 {
-    const struct d_interval_imax range   = d_tests_counter_range(0,
+    const struct dj_interval_imax range  = d_tests_counter_range(0,
                                                                  10);
     struct dj_counter_mutex      counter = { D_COUNTER_INIT };
     struct dj_counter            copy    = D_COUNTER_INIT;
@@ -160,7 +160,7 @@ d_tests_counter_mutex_step
 bool
 d_tests_counter_mutex_step(void)
 {
-    const struct d_interval_imax range = d_tests_counter_range(0,
+    const struct dj_interval_imax range = d_tests_counter_range(0,
                                                                10);
     struct dj_counter_mutex      a     = { D_COUNTER_INIT };
     struct dj_counter_mutex      b     = { D_COUNTER_INIT };
@@ -277,7 +277,7 @@ d_tests_counter_mutex_threads(void)
 {
     const int64_t                total   =
         (int64_t)D_TESTS_COUNTER_MUTEX_THREADS * D_TESTS_COUNTER_MUTEX_STEPS;
-    const struct d_interval_imax range   = d_tests_counter_range(0,
+    const struct dj_interval_imax range  = d_tests_counter_range(0,
                                                                  1000);
     struct dj_counter_mutex      counter = { D_COUNTER_INIT };
 

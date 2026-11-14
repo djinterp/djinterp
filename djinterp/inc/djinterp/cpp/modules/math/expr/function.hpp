@@ -7,16 +7,28 @@
 *   A FUNCTION is an entry of the function table: its name; the numbers of
 * arguments it takes; an evaluator for each type a fold computes in, float,
 * double and long double from the C core's kernels, and math::value exactly
-* where it can be; and a slot for the rule of its partial derivatives, which
-* the derivative (Phase 4, derivative.hpp) asks of it. A call names its
-* function, and its function is the table's entry of that name.
+* where it can be, each given the arguments and the fold's context
+* (expr_context, S340); and a slot for the rule of its partial derivatives,
+* which the derivative (Phase 4, derivative.hpp) asks of it. A call names
+* its function, and its function is the table's entry of that name.
+*   THE CONTEXT's real_results is an option of each evaluator (S340): where
+* it is set, every standard function's evaluator as a value gives a domain
+* error where its real arguments' value is complex alone or a quaternion --
+* sqrt(-4), log(-1), asin(2), log2(-8), pow(-8, 1/3), eig of a real matrix
+* with a complex pair -- complex(x, y) and quat(w, x, y, z) apart, as Julia's
+* and C's are (S272); in a type it changes no evaluator's answer, a real
+* type's being a NaN there already, and evaluate.hpp's fold in a complex type
+* keeps a real argument's NaN rather than ask the complex evaluator. A
+* caller's table gives its evaluators the same context, to read as its
+* functions need.
 *   A NAMED CONSTANT is an entry of the constant table: its name, and its value
 * in each type: the 40-digit literal of constants::of<T> (constants.hpp),
 * rounded to each type as of<T> rounds it, and as a value the long double
 * nearest it; or, for a constant whose step has not come, the message of the
-* expr_status::not_yet a fold answers it with. constants.hpp itself is not
-* included: from C++14 it brings math/expression.hpp, whose names x, y, z, t, r,
-* rho, theta and phi would stand in djinterp::math beside this language's.
+* expr_status::not_yet a fold answers it with, which no standard constant has
+* from step 24 (3f). constants.hpp itself is not included: from C++14 it
+* brings math/expression.hpp, whose names x, y, z, t, r, rho, theta and phi
+* would stand in djinterp::math beside this language's.
 *   THE TABLES are one kind, expr_table, of entries kept by name. The
 * standard ones are the language's own; a caller may build others.
 *   THE STANDARD FUNCTIONS are the C core's: sqrt, cbrt, sin, cos, tan, asin,
@@ -29,35 +41,56 @@
 * vocabulary of math/function/function.hpp, piecewise, all_of and any_of, each
 * of any number of arguments from 1; and linear algebra's, transpose, det,
 * inv, trace, norm and eig of one argument and dot, cross and solve of two
-* (S256, S350): 52 in all. log is the natural logarithm, as in C (gate G5).
-* The constants are pi and e, as G5 says, and the booleans true and false; im,
-* the imaginary unit, so that 3 + 4im is a complex number (S271); and jm and
-* km, the quaternions' units (S275), which answer expr_status::not_yet until
-* step 24 (3f) gives them their values, so that neither is a variable's name
-* meanwhile.
-*   IN A TYPE, a function is the C core's plain form in it, the C library's,
-* as ^ is (S194): fast, and within an ulp of the _c forms (gate G6); abs is
-* |x|. factorial(n) is n! for a whole n >= 0, the product rounded to the
-* type as it is made, an infinity past the type's range; a NaN for any other
-* n, as the C core has no gamma function. sign(x) is 1 or -1 by x's sign, a
-* 0 or a NaN itself, as Julia's is; min and max IEEE 754-2019's minimum and
-* maximum, a NaN where any argument is one and -0 below +0 (S338). Every
-* number in a real type is real: real(x) is x, imag(x) 0, conj(x) x, arg(x)
-* carg(x + 0i), pi where x is negative or -0 and +0 otherwise, complex(x, y)
-* x where y is 0 and a NaN otherwise, and im a NaN, as sqrt(-1) is (S271,
-* S332).
-*   IN A COMPLEX TYPE, math::complex<T> of float, double or long double
-* (S339), a function with a principal complex value is the face's, so
-* cplx.h's _c form, as a value's dense one is (S336): sqrt, exp, log, pow,
-* the trigonometric and hyperbolic functions and their inverses, and exp2,
-* log2, log10, log1p and expm1, whose complex forms cplx.h has from chunk 42
-* (S335, S342); one of the real line's order is its real form of the real
-* parts, plus +0i, where every argument is real, and a NaN in both parts
-* otherwise; abs, real, imag and arg are the face's, plus +0i, conj
-* its conjugate, complex(x, y) of real x and y the number x + yi, sign(z)
-* z / |z| and a 0 itself, and min and max of real numbers alone. The
-* constants are their real values plus +0i, and im 0 + 1i. evaluate.hpp's
-* fold there keeps a real number real, as the value does.
+* (S256, S350); and the quaternions' quat(w, x, y, z), parts of one argument
+* and rotate of two (S275, quaternion.hpp), and rotmat and rotquat of one and
+* slerp of three (S391, rotation.hpp): 58 in all. log is the natural
+* logarithm, as in C (gate G5). The constants are pi and e, as G5 says, and
+* the booleans true and false; im, the imaginary unit, so that 3 + 4im is a
+* complex number (S271); and jm and km, the quaternions' units, so that 1 +
+* 2jm - km is a quaternion (S275).
+*   IN A TYPE, a function is the C core's plain form in it, the C library's, as
+* ^ is (S194): fast, and within an ulp of the _c forms (gate G6); abs is |x|.
+* factorial(n) is n! for a whole n >= 0, the product rounded to the type as it
+* is made, an infinity past the type's range; a NaN for any other n, as the C
+* core has no gamma function. sign(x) is 1 or -1 by x's sign, a 0 or a NaN
+* itself, as Julia's is; min and max IEEE 754-2019's minimum and maximum, a NaN
+* where any argument is one and -0 below +0 (S338), where C's fmin and fmax give
+* the other argument for a NaN, as IEEE 754-2008's minNum and maxNum did, and
+* either of two zeros. Every number in a real type is real: real(x) is x,
+* imag(x) 0, conj(x) x, arg(x) carg(x + 0i), pi where x is negative or -0 and +0
+* otherwise, complex(x, y) x where y is 0 and a NaN otherwise, and im a NaN, as
+* sqrt(-1) is (S271, S332); so too quat(w, x, y, z) w where x, y and z are 0,
+* and a NaN otherwise, and jm and km NaNs; parts, rotate, rotmat, rotquat and
+* slerp, which give or take vectors, matrices and quaternions, are NaNs, as
+* cross is (S275, S391).
+*   IN A COMPLEX TYPE, math::complex<T> of float, double or long double (S339),
+* a function with a principal complex value is the face's by its own name, so
+* cplx.h's plain form at run time, on the C library's real functions, as the
+* owner ruled (S336), as a real type takes the C library's: sqrt, exp, log, pow,
+* the trigonometric and hyperbolic functions and their inverses, and exp2, log2,
+* log10, log1p and expm1, whose complex forms cplx.h has from chunk 42 (S335,
+* S342), the last five's plain forms their _c forms' bits; one of the real
+* line's order is its real form of the real parts, plus +0i, where every
+* argument is real, and a NaN in both parts otherwise; abs, real, imag and arg
+* are the face's, plus +0i, conj its conjugate, complex(x, y) of real x and y
+* the number x + yi, sign(z) z / |z| and a 0 itself, and min and max of real
+* numbers alone; quat(w, x, y, z) of real arguments w + xi where y and z are 0,
+* and a NaN in both parts otherwise; abs and arg there are the plain forms too.
+* The constants are their real values plus +0i, im 0 + 1i, and jm and km NaNs in
+* both parts, as no complex number is a unit past im. evaluate.hpp's fold there
+* keeps a real number real, as the value does.
+*   WHERE A VALUE AND math::complex<T> MAY DIFFER (S336): a function with a
+* principal complex value, computed densely as a value, is cplx.h's _c form,
+* one long double kernel rounded once, the same bits at every level and on
+* every compiler, within a step of the correctly rounded parts for float and
+* double; computed in a complex type it is the plain form, its bits the C
+* library's, within the plain bounds cplx.h's banner states, up to 6 steps.
+* So sqrt(z), exp(z) and the rest of one inexact z may differ in their last
+* bits between a value and the fold in math::complex<T>, each within its
+* bound; an exact value, a Gaussian rational (S337), is the value's alone;
+* the modulus and the argument of a dense number as their own forms; and
+* the arithmetic + - * /, which comes once, and exp2, log2, log10, log1p and
+* expm1, whose plain forms are their _c forms, never differ.
 *   AS A VALUE, a function is exact wherever its value is a rational number
 * of the family: abs, floor, ceil, round, trunc, fmod and remainder always;
 * sqrt and cbrt where the argument's terms are whole squares or cubes, hypot
@@ -77,35 +110,69 @@
 * gives: the widest of the inexact arguments' kinds, a long double where
 * all are exact, as ^'s is. Errors pass, the first; a boolean or none is a
 * domain error; every result carries its arguments' flags.
-*   COMPLEX NUMBERS (complex.hpp, step 23, 3e) are values too. complex(x, y)
-* is the number of two real parts, exact where both are, a real number where
-* they are exact and y is 0; real, imag and conj give a number's parts and
-* conjugate, a real number's imaginary part a 0 of its kind; arg its angle in
-* (-pi, pi], exactly 0 for an exact real number not negative, and otherwise
-* cplx.h's arg_c in the tower's kind; abs and the bars its modulus, exact
-* where it is rational, |3 + 4im| being 5. Each function of a complex argument
-* gives its principal value, with C99 Annex G's cuts (S271): exact where it is
-* a Gaussian rational, sqrt(2im) being 1 + im, sqrt(3 + 4im) 2 + im and
-* sign(3 + 4im) 3/5 + 4/5im, an exact number to a whole power by repeated
-* squaring and to a rational p/q where its principal q-th root is a Gaussian
-* rational, (2im) ^ (1/2) being 1 + im (S337); and otherwise the face's in the
-* tower's type, a long double where every argument is exact, so cplx.h's _c
-* form, dense and never made real (S336). So too a real argument where the
-* function has no real value but a complex one (S272): sqrt and log of a
-* negative number, sqrt(-4) being 2im and log(-1) pi im; asin, acos and atanh
-* past -1 or 1, and acosh below 1, each taken as x + 0i, so the value Annex G
-* gives on the upper side of the cut; and a negative base to a finite
-* fractional power, (-8) ^ (1/3) being 1 + 1.732...im, where cbrt(-8) is -2.
-* Of a complex argument, the functions of the real line's order, cbrt, floor,
-* ceil, round, trunc, fmod, remainder, mod, atan2, hypot, the factorial, min
-* and max, are a domain error (S271). exp2, log2, log10, log1p and expm1 of a
-* complex argument, and log2 and log10 of a negative number and log1p of one
-* below -1, are their principal values with cplx.h's forms of them (S342),
-* dense, none being a Gaussian rational: log2(-8) is 3 + 4.532...im, its real
-* part exactly 3, the real function's on the axis (S343). real, imag, conj and
-* arg of a matrix are its elements', each element's, and complex(A, B) of two
-* matrices of one shape the matrix of complex(a_ij, b_ij), of a matrix and a
-* number a domain error (S350).
+*   COMPLEX NUMBERS (complex.hpp, step 23, 3e) are values too. complex(x, y) is
+* the number of two real parts, exact where both are, a real number where they
+* are exact and y is 0; real, imag and conj give a number's parts and conjugate,
+* a real number's imaginary part a 0 of its kind; arg its angle in (-pi, pi],
+* exactly 0 for an exact real number not negative, and otherwise cplx.h's arg_c
+* in the tower's kind; abs and the bars its modulus, exact where it is rational,
+* |3 + 4im| being 5. Each function of a complex argument gives its principal
+* value, with C99 Annex G's cuts (S271): exact where it is a Gaussian rational,
+* sqrt(2im) being 1 + im, sqrt(3 + 4im) 2 + im and sign(3 + 4im) 3/5 + 4/5im, an
+* exact number to a whole power by repeated squaring and to a rational p/q where
+* its principal q-th root is a Gaussian rational, (2im) ^ (1/2) being 1 + im
+* (S337); and otherwise the face's _c form in the tower's type, a long double
+* where every argument is exact, so cplx.h's _c form, dense and never made real
+* (S336). So too a real argument where the function has no real value but a
+* complex one (S272): sqrt and log of a negative number, sqrt(-4) being 2im and
+* log(-1) pi im; asin, acos and atanh past -1 or 1, and acosh below 1, each
+* taken as x + 0i, so the value Annex G gives on the upper side of the cut,
+* asin(2) being pi/2 + 1.317...im and acos(2) -1.317...im, as C, Python, NumPy
+* and Scilab give them, where MATLAB takes asin's and acos's cuts past 1 from
+* below, its asin(2) 1.5708 - 1.3170i and acos(2) 0 + 1.3170i, the imaginary
+* parts' signs the opposite (S341); and a negative base to a finite fractional
+* power, (-8) ^ (1/3) being 1 + 1.732...im, where cbrt(-8) is -2. Of a complex
+* argument, the functions of the real line's order, cbrt, floor, ceil, round,
+* trunc, fmod, remainder, mod, atan2, hypot, the factorial, min and max, are a
+* domain error (S271). exp2, log2, log10, log1p and expm1 of a complex argument,
+* and log2 and log10 of a negative number and log1p of one below -1, are their
+* principal values with cplx.h's forms of them (S342), dense, none being a
+* Gaussian rational: log2(-8) is 3 + 4.532...im, its real part exactly 3, the
+* real function's on the axis (S343). real, imag, conj and arg of a matrix are
+* its elements', each element's, and complex(A, B) of two matrices of one shape
+* the matrix of complex(a_ij, b_ij), of a matrix and a number a domain error
+* (S350).
+*   QUATERNIONS (quaternion.hpp, step 24, 3f) are values too. quat(w, x, y, z)
+* is the number of four real parts, exact where all four are, a complex
+* number where they are exact and y and z are 0, and a real one where x is 0
+* too (S275); parts(q) the vector [w, x, y, z], of a real or complex number
+* too, its missing parts 0; real and conj its real part and conjugate; abs
+* and the bars its norm, exact where it is rational, |1 + 2im + 2jm + 4km|
+* being 5; inv(q) its inverse, q* / |q|^2, exact for exact parts; and sign(q)
+* q / |q|, exact where |q| is rational. exp, log and sqrt of a quaternion are
+* their principal values, the complex ones in q's plane, w + |v| u for u = v
+* / |v| (S364), in the tower's type, quat.h's _c forms, dense; sqrt exact
+* where the root is a quaternion of rationals, sqrt(-2 + 2im + 2jm + 2km)
+* being 1 + im + jm + km. q ^ r takes a real exponent: an exact whole r by
+* repeated squaring, inv(q)'s for a negative one; an exact rational p/s
+* where q's principal s-th root is a quaternion of rationals, (-46 + 3im +
+* 6jm + 6km) ^ (1/3) being 2 + im + 2jm + 2km; otherwise quat.h's pow_c in
+* the tower's type. A quaternion exponent, of any base, and a complex one of
+* a quaternion are a domain error, as their two orders give two values; so
+* are imag, arg and complex(x, y) of a quaternion, whose parts parts gives,
+* the functions of the real line's order, and the trigonometric and
+* hyperbolic functions and their inverses, which the language does not give
+* a quaternion. rotate(q, v) is the 3-vector q v q^-1, of a vector of 1 by 3
+* or 3 by 1 of real numbers, of its shape: exact where q and v are, and
+* otherwise quat.h's accurate rotation (S360); q may be any number but an
+* exact 0, which names no rotation, a real one rotating nothing. rotmat(q) is
+* that rotation's 3 by 3 matrix, rotquat(R) the unit quaternion of a
+* rotation's matrix, w >= 0, and slerp(p, q, t) the shorter arc between two
+* rotations at a constant speed (S391, rotation.hpp). Linear algebra takes
+* quaternions (S388, S390, matrix.hpp): det of one, or of a matrix of them,
+* is a domain error (S277); eig of one its standard eigenvalue, w + |v|i,
+* and of a matrix of them Zhang's standard right eigenvalues (S389); dot(p,
+* q) conj(p) q; solve(q, B) q^-1 B, on the left.
 *   THE ARITHMETIC of ^ and mod, which value.h does not have, is here too,
 * beside the functions': evaluate.hpp's folds apply it. A ^ n of a matrix is
 * the matrix kind's power, a square matrix to a whole n, a negative one its
@@ -118,16 +185,18 @@
 * too, exact for exact elements, a number taken as a scalar: transpose(A) the
 * transpose, where A' conjugates (S350); norm of the moduli, dot(a, b) the sum
 * of conj(a_i) b_i, and eig every eigenvalue, complex where it is
-* (S351, S352). In a type, where every value is a number, a scalar's, as in
+* (S351, S352); inv(q) of a quaternion its inverse (S275). In a type, where
+* every value is a number, a scalar's, as in
 * Julia: transpose, det, trace and eig of x are x, inv(x) 1 / x, norm(x) |x|,
 * dot(x, y) x y, solve(a, b) b / a, and cross a NaN, as it takes no number; in
 * a complex type the same, dot(x, y) conj(x) y, and inv(z) 1 / z, a real 1
 * taken as itself (G.5, S351).
 *   THE RELATIONS AND LOGIC, = != < <= > >= and and, or and not, are here as
 * well. As a value a relation is a boolean: of two numbers, by value.h's exact
-* order, none holding of a NaN but !=; of a complex number and a number, =
-* and != by their parts, and <, <=, > and >= a domain error, as no order of
-* the complex numbers is a field's (S271); of two booleans, = and != by their
+* order, none holding of a NaN but !=; of a complex number or a quaternion
+* and a number, = and != by their parts, and <, <=, > and >= a domain error,
+* as no order of the complex numbers or the quaternions is a field's (S271,
+* S275); of two booleans, = and != by their
 * truth; of two matrices, = and != element by element (S242); of anything else
 * a domain error. Logic takes booleans, and is Kleene's: a false operand makes
 * and false, and a true one makes or true, whatever the other operands are,
@@ -157,15 +226,19 @@
 * log10, log1p and expm1 with cplx.h's own (S335, S342); its third, in chunk
 * 43, matrices of complex numbers: transpose, the parts of a matrix and
 * complex(A, B), dot conjugating and linear algebra's functions of complex
-* numbers in each type (S350, S351); step 25 (4a) brings the rules of the
-* derivatives. A function that binds a variable of its own, as sum(f, k, a, b)
-* does, is step 27's (4c) to shape.
+* numbers in each type (S350, S351); step 24 (3f), its second part, in chunk
+* 45, jm's and km's values, quat, parts and rotate, and the functions,
+* powers and relations of quaternions (S275), its third, in chunk 46,
+* matrices of them, linear algebra's functions of them, rotmat, rotquat and
+* slerp (S386 to S391); step 25 (4a) brings the rules of the derivatives. A
+* function that binds a variable of its own, as sum(f, k, a, b) does, is
+* step 27's (4c) to shape.
 *
 *
-* path:      /inc/djinterp/math/expr/function.hpp
+* path:      /inc/djinterp/cpp/modules/math/expr/function.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -201,16 +274,19 @@ TABLE OF CONTENTS
          3.  Exact functions
          4.  In the tower's kind
          5.  expr_value_pow, expr_value_mod, expr_value_fn
+         6.  expr_holds_complex, expr_real_only
 4.  THE RELATIONS AND LOGIC
     -----------------------
     1.  In a floating-point type
          1.  expr_truth_in
          2.  expr_relation_in
-         3.  expr_all_in, expr_any_in, expr_not_in
+         3.  expr_all_in, expr_any_in, expr_not_in, expr_all_of_in,
+             expr_any_of_in
          4.  expr_piecewise_in
     2.  As a value
          1.  expr_relation_value
-         2.  expr_all_value, expr_any_value, expr_not_value
+         2.  expr_all_value, expr_any_value, expr_all_of_value,
+             expr_any_of_value, expr_not_value
          3.  expr_piecewise_value
 5.  LINEAR ALGEBRA
     --------------
@@ -221,6 +297,10 @@ TABLE OF CONTENTS
          1.  expr_transpose_fn_value, expr_det_value, expr_inv_value,
              expr_trace_value, expr_norm_value, expr_eig_value,
              expr_dot_value, expr_cross_value, expr_solve_value
+    3.  The quaternions' own
+         1.  expr_quat_in, expr_quat_complex, expr_quat_value
+         2.  expr_parts_value, expr_rotate_value
+         3.  expr_rotmat_value, expr_rotquat_value, expr_slerp_value
 6.  THE STANDARD TABLES
     -------------------
     1.  The functions
@@ -256,6 +336,8 @@ TABLE OF CONTENTS
 #include "./complex.hpp"                                 // expr_complex, expr_real, ...
 #include "./expr_common.hpp"                             // expr_result
 #include "./matrix.hpp"                                  // expr_is_matrix, the powers
+#include "./quaternion.hpp"                              // expr_quaternion, ...
+#include "./rotation.hpp"                                // parts, rotate, rotmat, ...
 #include "./term.hpp"                                    // expr_term
 
 
@@ -279,12 +361,15 @@ D_CONSTEXPR_VAR std::size_t expr_variadic = static_cast<std::size_t>(-1);
 // 1.1.2
 // expr_evaluator
 //   type: a function's evaluator in one type: its value at _count arguments
-// of that type, the first at _arguments. The C core's kernels are reached
-// through functions of the table's own, never by pointer to a kernel, which
-// is forced inline outside testing builds (S165).
+// of that type, the first at _arguments, under the fold's _context, whose
+// real_results it reads where its function's value can be complex alone
+// (S340). The C core's kernels are reached through functions of the table's
+// own, never by pointer to a kernel, which is forced inline outside testing
+// builds (S165).
 template<typename Type>
-using expr_evaluator = Type (*)(const Type* _arguments,
-                                std::size_t _count);
+using expr_evaluator = Type (*)(const Type*         _arguments,
+                                std::size_t         _count,
+                                const expr_context& _context);
 
 // 1.1.3
 // expr_partial
@@ -300,7 +385,8 @@ typedef expr_result<expr_term> (*expr_partial)(
 //   struct: a function of the table: its name; the least and the greatest
 // number of arguments it takes (expr_variadic for no greatest); its
 // evaluators in float, double, long double, the math::complex of each, and
-// math::value; and the rule of its partial derivatives. A slot that is null
+// math::value, each given the fold's context (S340); and the rule of its
+// partial derivatives. A slot that is null
 // is one the function has not; a complex type's that is null takes the
 // real type's evaluator where every argument is real, and is a NaN
 // otherwise, as a function of the real line is there (S339). Each standard
@@ -841,20 +927,26 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_min_in(
-        const Type* _x,
-        std::size_t _count
+        const Type*         _x,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
+        static_cast<void>(_context);
+
         return expr_extreme_in(_x, _count, false);
     }
 
     template<typename Type>
     Type
     expr_max_in(
-        const Type* _x,
-        std::size_t _count
+        const Type*         _x,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
+        static_cast<void>(_context);
+
         return expr_extreme_in(_x, _count, true);
     }
 
@@ -924,12 +1016,14 @@ NS_INTERNAL
     // In a complex type
     //   functions: an operation in math::complex<Type>, of the arguments it
     // takes, the first at _z (S339). A function with a principal complex
-    // value is math::complex<Type>'s, so cplx.h's _c form (S313, S336); a
-    // function of the real line's order its real form of the real parts,
-    // plus +0i, where every argument is real, its imaginary part 0 of either
-    // sign, and a NaN in both parts otherwise; the parts,
-    // the modulus and the argument as the face's, complex(x, y) of two real
-    // numbers x + yi, and sign(z) z / |z|, a 0 itself.
+    // value is math::complex<Type>'s: by its own name in a complex type, so
+    // cplx.h's plain form at run time, and by its _c name, cplx.h's _c form,
+    // as a value (S336); a function of the real line's order its real form
+    // of the real parts, plus +0i, where every argument is real, its
+    // imaginary part 0 of either sign, and a NaN in both parts otherwise;
+    // the parts, the modulus and the argument as the face's, in the same
+    // form, complex(x, y) of two real numbers x + yi, and sign(z) z / |z|, a
+    // 0 itself.
 
     // expr_is_real_of
     //   function: whether a complex number is real, its imaginary part 0 of
@@ -972,12 +1066,15 @@ NS_INTERNAL
     }
 
     // expr_fn_complex
-    //   function: an operation in math::complex<Type>, as 3.2.5 says.
+    //   function: an operation in math::complex<Type>, as 3.2.5 says: in
+    // cplx.h's plain form, as a complex type takes it, or where _exact in
+    // its _c form, as a value takes it (S336).
     template<typename Type>
     math::complex<Type>
     expr_fn_complex(
         expr_fn                    _fn,
-        const math::complex<Type>* _z
+        const math::complex<Type>* _z,
+        bool                       _exact = false
     )
     {
         typedef math::complex<Type> number;
@@ -985,32 +1082,55 @@ NS_INTERNAL
         // by operation
         switch (_fn)
         {
-            case expr_fn::sqrt:  return sqrt(_z[0]);
-            case expr_fn::sin:   return sin(_z[0]);
-            case expr_fn::cos:   return cos(_z[0]);
-            case expr_fn::tan:   return tan(_z[0]);
-            case expr_fn::asin:  return asin(_z[0]);
-            case expr_fn::acos:  return acos(_z[0]);
-            case expr_fn::atan:  return atan(_z[0]);
-            case expr_fn::sinh:  return sinh(_z[0]);
-            case expr_fn::cosh:  return cosh(_z[0]);
-            case expr_fn::tanh:  return tanh(_z[0]);
-            case expr_fn::asinh: return asinh(_z[0]);
-            case expr_fn::acosh: return acosh(_z[0]);
-            case expr_fn::atanh: return atanh(_z[0]);
-            case expr_fn::exp:   return exp(_z[0]);
-            case expr_fn::log:   return log(_z[0]);
-            case expr_fn::exp2:  return exp2(_z[0]);
-            case expr_fn::log2:  return log2(_z[0]);
-            case expr_fn::log10: return log10(_z[0]);
-            case expr_fn::log1p: return log1p(_z[0]);
-            case expr_fn::expm1: return expm1(_z[0]);
-            case expr_fn::pow:   return pow(_z[0], _z[1]);
-            case expr_fn::abs:   return number(abs(_z[0]));
+            case expr_fn::sqrt:  return ( _exact ? sqrt_c(_z[0])
+                                                 : sqrt(_z[0]) );
+            case expr_fn::sin:   return ( _exact ? sin_c(_z[0])
+                                                 : sin(_z[0]) );
+            case expr_fn::cos:   return ( _exact ? cos_c(_z[0])
+                                                 : cos(_z[0]) );
+            case expr_fn::tan:   return ( _exact ? tan_c(_z[0])
+                                                 : tan(_z[0]) );
+            case expr_fn::asin:  return ( _exact ? asin_c(_z[0])
+                                                 : asin(_z[0]) );
+            case expr_fn::acos:  return ( _exact ? acos_c(_z[0])
+                                                 : acos(_z[0]) );
+            case expr_fn::atan:  return ( _exact ? atan_c(_z[0])
+                                                 : atan(_z[0]) );
+            case expr_fn::sinh:  return ( _exact ? sinh_c(_z[0])
+                                                 : sinh(_z[0]) );
+            case expr_fn::cosh:  return ( _exact ? cosh_c(_z[0])
+                                                 : cosh(_z[0]) );
+            case expr_fn::tanh:  return ( _exact ? tanh_c(_z[0])
+                                                 : tanh(_z[0]) );
+            case expr_fn::asinh: return ( _exact ? asinh_c(_z[0])
+                                                 : asinh(_z[0]) );
+            case expr_fn::acosh: return ( _exact ? acosh_c(_z[0])
+                                                 : acosh(_z[0]) );
+            case expr_fn::atanh: return ( _exact ? atanh_c(_z[0])
+                                                 : atanh(_z[0]) );
+            case expr_fn::exp:   return ( _exact ? exp_c(_z[0])
+                                                 : exp(_z[0]) );
+            case expr_fn::log:   return ( _exact ? log_c(_z[0])
+                                                 : log(_z[0]) );
+            case expr_fn::exp2:  return ( _exact ? exp2_c(_z[0])
+                                                 : exp2(_z[0]) );
+            case expr_fn::log2:  return ( _exact ? log2_c(_z[0])
+                                                 : log2(_z[0]) );
+            case expr_fn::log10: return ( _exact ? log10_c(_z[0])
+                                                 : log10(_z[0]) );
+            case expr_fn::log1p: return ( _exact ? log1p_c(_z[0])
+                                                 : log1p(_z[0]) );
+            case expr_fn::expm1: return ( _exact ? expm1_c(_z[0])
+                                                 : expm1(_z[0]) );
+            case expr_fn::pow:   return ( _exact ? pow_c(_z[0], _z[1])
+                                                 : pow(_z[0], _z[1]) );
+            case expr_fn::abs:   return number( _exact ? abs_c(_z[0])
+                                                       : abs(_z[0]) );
             case expr_fn::real:  return number(_z[0].real());
             case expr_fn::imag:  return number(_z[0].imag());
             case expr_fn::conj:  return conj(_z[0]);
-            case expr_fn::arg:   return number(arg(_z[0]));
+            case expr_fn::arg:   return number( _exact ? arg_c(_z[0])
+                                                       : arg(_z[0]) );
             case expr_fn::complex:
                 // two real parts
                 if ( (!expr_is_real_of(_z[0])) ||
@@ -1027,7 +1147,8 @@ NS_INTERNAL
                     return _z[0];
                 }
 
-                return (_z[0] / abs(_z[0]));
+                return ( _z[0] / ( _exact ? abs_c(_z[0])
+                                          : abs(_z[0]) ) );
             case expr_fn::atan2:
             case expr_fn::hypot:
             case expr_fn::fmod:
@@ -1074,9 +1195,12 @@ NS_INTERNAL
     math::complex<Type>
     expr_min_complex(
         const math::complex<Type>* _z,
-        std::size_t                _count
+        std::size_t                _count,
+        const expr_context&        _context
     )
     {
+        static_cast<void>(_context);
+
         return expr_extreme_complex(_z, _count, false);
     }
 
@@ -1084,16 +1208,20 @@ NS_INTERNAL
     math::complex<Type>
     expr_max_complex(
         const math::complex<Type>* _z,
-        std::size_t                _count
+        std::size_t                _count,
+        const expr_context&        _context
     )
     {
+        static_cast<void>(_context);
+
         return expr_extreme_complex(_z, _count, true);
     }
 
     // expr_complex_function
     //   struct: the operation fn as expr_complex_apply takes it (complex.hpp),
-    // expr_fn_complex's in each type, so that a value and a fold in
-    // math::complex<T> give one answer.
+    // expr_fn_complex's in each type in the _c forms, as a value takes them:
+    // one answer at every level, where the fold in math::complex<T> takes
+    // the plain forms (S336).
     struct expr_complex_function
     {
         expr_fn fn;
@@ -1104,7 +1232,9 @@ NS_INTERNAL
             const math::complex<Type>* _z
         ) const
         {
-            return expr_fn_complex<Type>(fn, _z);
+            return expr_fn_complex<Type>(fn,
+                                         _z,
+                                         true);
         }
     };
 
@@ -1125,16 +1255,16 @@ NS_INTERNAL
     // the power, in _power: each product checked before it is made.
     inline bool
     expr_power_capped(
-        d_math_imax  _root,
-        d_math_imax  _k,
-        d_math_imax  _n,
-        d_math_imax& _power
+        dj_math_imax  _root,
+        dj_math_imax  _k,
+        dj_math_imax  _n,
+        dj_math_imax& _power
     )
     {
-        d_math_imax product = 1;
+        dj_math_imax product = 1;
 
         // _k factors, none past _n
-        for (d_math_imax i = 0; i < _k; ++i)
+        for (dj_math_imax i = 0; i < _k; ++i)
         {
             if (product > _n / _root)
             {
@@ -1155,9 +1285,9 @@ NS_INTERNAL
     // at most _n, by bisection, then its power compared.
     inline bool
     expr_whole_root(
-        d_math_imax  _n,
-        d_math_imax  _k,
-        d_math_imax& _root
+        dj_math_imax  _n,
+        dj_math_imax  _k,
+        dj_math_imax& _root
     )
     {
         // 0 and 1 are their own roots
@@ -1169,20 +1299,20 @@ NS_INTERNAL
         }
 
         // past the word's width, no whole number's power is _n
-        if (_k >= static_cast<d_math_imax>(
-                      std::numeric_limits<d_math_imax>::digits))
+        if (_k >= static_cast<dj_math_imax>(
+                      std::numeric_limits<dj_math_imax>::digits))
         {
             return false;
         }
 
-        d_math_imax low   = 1;
-        d_math_imax high  = _n;
-        d_math_imax power = 0;
+        dj_math_imax low   = 1;
+        dj_math_imax high  = _n;
+        dj_math_imax power = 0;
 
         // the greatest root whose power is at most _n
         while (low < high)
         {
-            const d_math_imax middle = low + (high - low + 1) / 2;
+            const dj_math_imax middle = low + (high - low + 1) / 2;
 
             if (expr_power_capped(middle, _k, _n, power))
             {
@@ -1206,19 +1336,19 @@ NS_INTERNAL
     // only for an odd _k, and the negative of its magnitude's.
     inline bool
     expr_ratio_root(
-        const d_rational& _q,
-        d_math_imax       _k,
-        value&            _out
+        const dj_rational& _q,
+        dj_math_imax       _k,
+        value&             _out
     )
     {
-        d_math_imax num_root = 0;
-        d_math_imax den_root = 1;
+        dj_math_imax num_root = 0;
+        dj_math_imax den_root = 1;
 
         // a negative number: an odd root, of a magnitude a word holds
         if (_q.num < 0)
         {
             if ( ((_k % 2) == 0) ||
-                 (_q.num == std::numeric_limits<d_math_imax>::min()) ||
+                 (_q.num == std::numeric_limits<dj_math_imax>::min()) ||
                  (!expr_whole_root(-_q.num, _k, num_root)) ||
                  (!expr_whole_root(_q.den, _k, den_root)) )
             {
@@ -1249,14 +1379,14 @@ NS_INTERNAL
     inline value
     expr_whole_power(
         const value& _base,
-        d_math_imax  _n
+        dj_math_imax _n
     )
     {
-        d_math_umax left = ( (_n < 0)
-                                 ? (d_math_umax(0) - d_math_umax(_n))
-                                 : d_math_umax(_n) );
-        value       power(1);
-        value       square = _base;
+        dj_math_umax left = ( (_n < 0)
+                                  ? (dj_math_umax(0) - dj_math_umax(_n))
+                                  : dj_math_umax(_n) );
+        value        power(1);
+        value        square = _base;
 
         // a factor for each bit of the exponent
         while (left != 0)
@@ -1291,14 +1421,14 @@ NS_INTERNAL
     // expr_value_pow's.
     inline bool
     expr_ratio_power(
-        const value&      _base,
-        const d_rational& _exponent,
-        value&            _out
+        const value&       _base,
+        const dj_rational& _exponent,
+        value&             _out
     )
     {
-        d_rational  terms    = { 0, 1 };
-        d_math_imax num_root = 0;
-        d_math_imax den_root = 1;
+        dj_rational  terms    = { 0, 1 };
+        dj_math_imax num_root = 0;
+        dj_math_imax den_root = 1;
 
         // terms that are whole q-th powers
         if ( (_base.to(terms)) &&
@@ -1317,16 +1447,16 @@ NS_INTERNAL
     // expr_gcd
     //   function: the greatest common divisor of two positive whole numbers,
     // Euclid's.
-    inline d_math_imax
+    inline dj_math_imax
     expr_gcd(
-        d_math_imax _a,
-        d_math_imax _b
+        dj_math_imax _a,
+        dj_math_imax _b
     )
     {
         // each remainder in turn
         while (_b != 0)
         {
-            const d_math_imax rest = _a % _b;
+            const dj_math_imax rest = _a % _b;
 
             _a = _b;
             _b = rest;
@@ -1351,12 +1481,12 @@ NS_INTERNAL
     inline bool
     expr_gaussian_root(
         const value& _z,
-        d_math_imax  _q,
+        dj_math_imax _q,
         value&       _out
     )
     {
-        d_rational  re  = { 0, 1 };
-        d_rational  im  = { 0, 1 };
+        dj_rational re  = { 0, 1 };
+        dj_rational im  = { 0, 1 };
         long double zr  = 0.0L;
         long double zi  = 0.0L;
 
@@ -1365,8 +1495,8 @@ NS_INTERNAL
              (!expr_real(_z).to(re)) ||
              (!expr_imag(_z).to(im)) ||
              (_q < 2) ||
-             (_q >= static_cast<d_math_imax>(
-                        std::numeric_limits<d_math_imax>::digits)) )
+             (_q >= static_cast<dj_math_imax>(
+                        std::numeric_limits<dj_math_imax>::digits)) )
         {
             return false;
         }
@@ -1380,7 +1510,7 @@ NS_INTERNAL
         static_cast<void>(den.to(d));
 
         const math::complex<long double> principal =
-            exp(log(math::complex<long double>(zr, zi)) /
+            exp_c(log_c(math::complex<long double>(zr, zi)) /
                 static_cast<long double>(_q));
         const long double gr    = std::floor((d * principal.real()) + 0.5L);
         const long double gi    = std::floor((d * principal.imag()) + 0.5L);
@@ -1395,8 +1525,8 @@ NS_INTERNAL
         }
 
         const value       root  = expr_complex(
-                                      value(static_cast<d_math_imax>(gr)),
-                                      value(static_cast<d_math_imax>(gi))) /
+                                      value(static_cast<dj_math_imax>(gr)),
+                                      value(static_cast<dj_math_imax>(gi))) /
                                   den;
         const value       power = expr_whole_power(root, _q);
         const long double dr    = (gr / d) - principal.real();
@@ -1423,12 +1553,12 @@ NS_INTERNAL
     // compared with 1, the power 0.
     inline bool
     expr_power_of(
-        d_math_imax  _n,
-        d_math_imax  _base,
-        d_math_imax& _k
+        dj_math_imax  _n,
+        dj_math_imax  _base,
+        dj_math_imax& _k
     )
     {
-        d_math_imax exponent = 0;
+        dj_math_imax exponent = 0;
 
         while ( (_n % _base) == 0 )
         {
@@ -1458,16 +1588,16 @@ NS_INTERNAL
     // expr_whole_of
     //   function: the rational _q rounded to a whole number by _how; the
     // quotient of terms of the family, so that no step leaves the word.
-    inline d_math_imax
+    inline dj_math_imax
     expr_whole_of(
-        const d_rational& _q,
-        expr_rounding     _how
+        const dj_rational& _q,
+        expr_rounding      _how
     )
     {
-        const d_math_imax whole = _q.num / _q.den;
-        const d_math_imax rest  = _q.num % _q.den;
-        const d_math_imax step  = ( (_q.num < 0) ? -1 : 1 );
-        const d_math_imax size  = ( (rest < 0) ? -rest : rest );
+        const dj_math_imax whole = _q.num / _q.den;
+        const dj_math_imax rest  = _q.num % _q.den;
+        const dj_math_imax step  = ( (_q.num < 0) ? -1 : 1 );
+        const dj_math_imax size  = ( (rest < 0) ? -rest : rest );
 
         // a whole number already
         if (rest == 0)
@@ -1518,7 +1648,7 @@ NS_INTERNAL
         value&        _out
     )
     {
-        d_rational quotient = { 0, 1 };
+        dj_rational quotient = { 0, 1 };
 
         // an exact zero divisor: no remainder
         if (_b == value(0))
@@ -1544,7 +1674,7 @@ NS_INTERNAL
     // family G2's long double, until it passes long double's range.
     inline value
     expr_exact_factorial(
-        d_math_imax _n
+        dj_math_imax _n
     )
     {
         value       product(1);
@@ -1552,7 +1682,7 @@ NS_INTERNAL
 
         // each factor in turn, and at the latest until long double's largest
         // exponent, as expr_factorial_in counts
-        for (d_math_imax factor = 2;
+        for (dj_math_imax factor = 2;
              ( (factor <= _n) &&
                (factor <= std::numeric_limits<long double>::max_exponent) );
              ++factor)
@@ -1582,10 +1712,10 @@ NS_INTERNAL
     // exact _value, in _out: the one point where a function is rational.
     inline bool
     expr_exact_at(
-        const d_rational& _x,
-        d_math_imax       _at,
-        d_math_imax       _value,
-        value&            _out
+        const dj_rational& _x,
+        dj_math_imax       _at,
+        dj_math_imax       _value,
+        value&             _out
     )
     {
         // the point itself
@@ -1606,12 +1736,12 @@ NS_INTERNAL
     // 2 or 10, the exponent of a whole power, 1/_base^k among them.
     inline bool
     expr_exact_log(
-        const d_rational& _x,
-        d_math_imax       _base,
-        value&            _out
+        const dj_rational& _x,
+        dj_math_imax       _base,
+        value&             _out
     )
     {
-        d_math_imax k = 0;
+        dj_math_imax k = 0;
 
         // 0, and below it
         if (_x.num <= 0)
@@ -1647,9 +1777,9 @@ NS_INTERNAL
     // family, by the banner's rules.
     inline bool
     expr_exact_one(
-        expr_fn           _fn,
-        const d_rational& _x,
-        value&            _out
+        expr_fn            _fn,
+        const dj_rational& _x,
+        value&             _out
     )
     {
         const bool past_one = ( (_x.num > _x.den) ||
@@ -1813,9 +1943,9 @@ NS_INTERNAL
         value&       _out
     )
     {
-        d_rational x   = { 0, 1 };
-        d_rational y   = { 0, 1 };
-        d_rational sum = { 0, 1 };
+        dj_rational x   = { 0, 1 };
+        dj_rational y   = { 0, 1 };
+        dj_rational sum = { 0, 1 };
 
         // by function
         switch (_fn)
@@ -1865,7 +1995,7 @@ NS_INTERNAL
     // expr_inexact_kind
     //   function: a number's kind, where it is an inline inexact one; a long
     // double for a boxed inexact kind; none for an exact one.
-    inline d_math_value_kind
+    inline dj_math_value_kind
     expr_inexact_kind(
         const value& _x
     )
@@ -1904,7 +2034,7 @@ NS_INTERNAL
         // library may hand it back with more precision than Type has
         volatile Type answer = expr_fn_in<Type>(_fn, x);
         value         result(static_cast<Type>(answer));
-        d_math_value  held = result.detach();
+        dj_math_value held = result.detach();
 
         held.flags |= flags;
 
@@ -1918,12 +2048,12 @@ NS_INTERNAL
         std::size_t  _count
     )
     {
-        d_math_value_kind widest = D_MATH_VALUE_NONE;
+        dj_math_value_kind widest = D_MATH_VALUE_NONE;
 
         // the widest inexact kind of the arguments
         for (std::size_t i = 0; i < _count; ++i)
         {
-            const d_math_value_kind kind = expr_inexact_kind(_x[i]);
+            const dj_math_value_kind kind = expr_inexact_kind(_x[i]);
 
             if (kind > widest)
             {
@@ -2018,7 +2148,7 @@ NS_INTERNAL
         const value& _x
     )
     {
-        d_rational  q       = { 0, 1 };
+        dj_rational q       = { 0, 1 };
         long double nearest = 0.0L;
 
         // exact: a rational of a denominator past 1
@@ -2043,9 +2173,9 @@ NS_INTERNAL
         const value& _x
     )
     {
-        const d_math_value_order below =
+        const dj_math_value_order below =
             d_math_value_cmp(_x.c_value(), d_math_value_from_int(-1));
-        const d_math_value_order above =
+        const dj_math_value_order above =
             d_math_value_cmp(_x.c_value(), d_math_value_from_int(1));
 
         // by function
@@ -2154,6 +2284,108 @@ NS_INTERNAL
         return value(D_MATH_VALUE_ERROR_DOMAIN);
     }
 
+    // expr_quaternion_exact_root
+    //   function: whether the principal _den-th root of the exact quaternion
+    // _q is a quaternion of rationals, and if so it, in _out: the square
+    // root by quaternion.hpp's expr_quaternion_root; any other where |v| is
+    // rational, in q's plane, the Gaussian root of w + |v| im (S337) taken
+    // back along u = v / |v|, as each function of a quaternion is the
+    // complex one in its plane (S275).
+    inline bool
+    expr_quaternion_exact_root(
+        const value& _q,
+        dj_math_imax _den,
+        value&       _out
+    )
+    {
+        // the square root
+        if (_den == 2)
+        {
+            return expr_quaternion_root(_q, _out);
+        }
+
+        const expr_quaternion_parts_held parts =
+            expr_quaternion_parts_of(_q.c_value());
+        const value r = value_root_of( ( (parts.x * parts.x) +
+                                         (parts.y * parts.y) ) +
+                                       (parts.z * parts.z) );
+        value       root;
+
+        // |v| irrational, or no Gaussian root in the plane
+        if ( (!expr_is_quaternion(_q)) ||
+             (!r.is_exact()) ||
+             (!expr_gaussian_root(expr_complex(parts.w, r), _den, root)) )
+        {
+            return false;
+        }
+
+        const value c = expr_real(root);
+        const value d = expr_imag(root);
+
+        _out = expr_complex_flagged(
+            expr_quaternion_made(c,
+                                 (d * parts.x) / r,
+                                 (d * parts.y) / r,
+                                 (d * parts.z) / r,
+                                 0u),
+            _q.flags());
+
+        return true;
+    }
+
+    // expr_quaternion_value_fn
+    //   function: _fn of _count arguments, one of them a quaternion, as 3.3.5
+    // says: exp and log their principal values, the complex ones in q's
+    // plane, in the tower's type; sqrt too, but exact where the root is a
+    // quaternion of rationals; and sign q / |q|; any other function a domain
+    // error, of the real line's order or none a quaternion has (S275).
+    inline value
+    expr_quaternion_value_fn(
+        expr_fn      _fn,
+        const value* _x,
+        std::size_t  _count
+    )
+    {
+        value root;
+
+        // of one argument: exp, log, sqrt and sign
+        if (_count == 1)
+        {
+            switch (_fn)
+            {
+                case expr_fn::exp:
+                    return expr_quaternion_apply(expr_quaternion_fn::exp,
+                                                 _x[0],
+                                                 value(0));
+
+                case expr_fn::log:
+                    return expr_quaternion_apply(expr_quaternion_fn::log,
+                                                 _x[0],
+                                                 value(0));
+
+                case expr_fn::sqrt:
+                    // an exact root, where it is a quaternion of rationals
+                    if (expr_quaternion_root(_x[0], root))
+                    {
+                        return root;
+                    }
+
+                    return expr_quaternion_apply(expr_quaternion_fn::sqrt,
+                                                 _x[0],
+                                                 value(0));
+
+                case expr_fn::sign:
+                    return expr_quaternion_sign(_x[0]);
+
+                default:
+                    break;
+            }
+        }
+
+        // none of a quaternion
+        return value(D_MATH_VALUE_ERROR_DOMAIN);
+    }
+
     // expr_value_signbit
     //   function: whether a real number's sign bit is set: an inexact
     // one's, -0 among them; never an exact one's.
@@ -2172,7 +2404,8 @@ NS_INTERNAL
     // expr_extreme_value
     //   function: min or max of _count values, the first at _x: an error,
     // the first; a domain error for what is no number, and for a complex
-    // number, as no order of them is a field's (S271); a NaN, the first,
+    // number or a quaternion, as no order of them is a field's (S271,
+    // S275); a NaN, the first,
     // where any is one; and otherwise the least or the greatest argument
     // itself, by value.h's exact order, the first of equal ones but -0
     // below 0 (S338); with every argument's flags.
@@ -2193,10 +2426,11 @@ NS_INTERNAL
             return failed;
         }
 
-        // a complex number: no order
+        // a complex number or a quaternion: no order
         for (std::size_t i = 0; i < _count; ++i)
         {
-            if (expr_is_complex(_x[i]))
+            if ( (expr_is_complex(_x[i])) ||
+                 (expr_is_quaternion(_x[i])) )
             {
                 return value(D_MATH_VALUE_ERROR_DOMAIN);
             }
@@ -2217,7 +2451,7 @@ NS_INTERNAL
         // each argument past the best, or a 0 of the sign the extreme takes
         for (std::size_t i = 1; i < _count; ++i)
         {
-            const d_math_value_order order =
+            const dj_math_value_order order =
                 d_math_value_cmp(_x[i].c_value(), _x[best].c_value());
             const bool past  = ( _greatest
                                      ? (order == D_MATH_VALUE_GREATER)
@@ -2240,20 +2474,68 @@ NS_INTERNAL
 
     inline value
     expr_min_value(
-        const value* _x,
-        std::size_t  _count
+        const value*        _x,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
+        static_cast<void>(_context);
+
         return expr_extreme_value(_x, _count, false);
     }
 
     inline value
     expr_max_value(
-        const value* _x,
-        std::size_t  _count
+        const value*        _x,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
+        static_cast<void>(_context);
+
         return expr_extreme_value(_x, _count, true);
+    }
+
+    // expr_quaternion_value_pow
+    //   function: _a ^ _b, one of them a quaternion: to a real exponent
+    // alone, a complex or quaternion one a domain error, as its two orders
+    // give two values (S275); exact operands to a whole exponent exactly, by
+    // repeated squaring, and to a rational one where the root is a
+    // quaternion of rationals; otherwise the principal value, quat.h's in
+    // the tower's type.
+    inline value
+    expr_quaternion_value_pow(
+        const value& _a,
+        const value& _b
+    )
+    {
+        dj_math_imax whole    = 0;
+        dj_rational  exponent = { 0, 1 };
+        value        root;
+
+        // no real exponent
+        if (!expr_complex_real_number(_b))
+        {
+            return value(D_MATH_VALUE_ERROR_DOMAIN);
+        }
+
+        // exact operands: a whole exponent, or a rational one
+        if ( (_a.is_exact()) &&
+             (_b.is_exact()) )
+        {
+            if (_b.to(whole))
+            {
+                return expr_whole_power(_a, whole);
+            }
+
+            if ( (_b.to(exponent)) &&
+                 (expr_quaternion_exact_root(_a, exponent.den, root)) )
+            {
+                return expr_whole_power(root, exponent.num);
+            }
+        }
+
+        return expr_quaternion_apply(expr_quaternion_fn::pow, _a, _b);
     }
 
     inline value
@@ -2262,10 +2544,10 @@ NS_INTERNAL
         const value& _b
     )
     {
-        const value x[2]     = { _a, _b };
-        d_math_imax whole    = 0;
-        d_rational  exponent = { 0, 1 };
-        value       exact;
+        const value  x[2]     = { _a, _b };
+        dj_math_imax whole    = 0;
+        dj_rational  exponent = { 0, 1 };
+        value        exact;
 
         // a matrix: an error passes, the first; then a matrix's power
         if ( (expr_is_matrix(_a)) ||
@@ -2289,6 +2571,13 @@ NS_INTERNAL
         if (expr_value_failed(x, 2, exact))
         {
             return exact;
+        }
+
+        // a quaternion: expr_quaternion_value_pow's (S275)
+        if ( (expr_is_quaternion(_a)) ||
+             (expr_is_quaternion(_b)) )
+        {
+            return expr_quaternion_value_pow(_a, _b);
         }
 
         // a complex operand, or a negative real base to a power not whole
@@ -2341,6 +2630,54 @@ NS_INTERNAL
         return expr_tower(expr_fn::pow, x, 2);
     }
 
+    // expr_value_fn_beyond_real
+    //   function: whether _fn of the _count arguments at _x takes its value
+    // past the real numbers: of a quaternion argument its principal value,
+    // or none (S275); of a complex one likewise, none of the real line's
+    // order (S271); and of a real one where its value is complex alone
+    // (S272); and if so that value, in _out.
+    inline bool
+    expr_value_fn_beyond_real(
+        expr_fn      _fn,
+        const value* _x,
+        std::size_t  _count,
+        value&       _out
+    )
+    {
+        // a quaternion argument
+        for (std::size_t i = 0; i < _count; ++i)
+        {
+            if (expr_is_quaternion(_x[i]))
+            {
+                _out = expr_quaternion_value_fn(_fn, _x, _count);
+
+                return true;
+            }
+        }
+
+        // a complex argument
+        for (std::size_t i = 0; i < _count; ++i)
+        {
+            if (expr_is_complex(_x[i]))
+            {
+                _out = expr_complex_value_fn(_fn, _x, _count);
+
+                return true;
+            }
+        }
+
+        // a real argument where the function's value is complex alone
+        if ( (_count == 1) &&
+             (expr_beyond_real(_fn, _x[0])) )
+        {
+            _out = expr_complex_value_fn(_fn, _x, _count);
+
+            return true;
+        }
+
+        return false;
+    }
+
     inline value
     expr_value_fn(
         expr_fn      _fn,
@@ -2348,23 +2685,24 @@ NS_INTERNAL
         std::size_t  _count
     )
     {
-        d_rational one   = { 0, 1 };
-        bool       exact = true;
-        value      answer;
+        dj_rational one   = { 0, 1 };
+        bool        exact = true;
+        value       answer;
 
         // of a matrix, each element's, element by element: matrix.hpp's
-        // (S350)
+        // (S350), real and conj quaternion.hpp's, which take every number
         if ( ( (_fn == expr_fn::real) ||
                (_fn == expr_fn::imag) ||
                (_fn == expr_fn::conj) ||
                (_fn == expr_fn::arg) ) &&
              (expr_is_matrix(_x[0])) )
         {
-            return expr_matrix_each(_x[0],
-                                    ( (_fn == expr_fn::real) ? &expr_real
-                                    : (_fn == expr_fn::imag) ? &expr_imag
-                                    : (_fn == expr_fn::conj) ? &expr_conj
-                                                             : &expr_arg ));
+            return expr_matrix_each(
+                _x[0],
+                ( (_fn == expr_fn::real) ? &expr_quaternion_real
+                : (_fn == expr_fn::imag) ? &expr_imag
+                : (_fn == expr_fn::conj) ? &expr_quaternion_conj
+                                         : &expr_arg ));
         }
 
         // complex(A, B) of matrices: the matrix of complex(a_ij, b_ij)
@@ -2376,13 +2714,14 @@ NS_INTERNAL
                                           _x[1]);
         }
 
-        // a complex number's parts, conjugate and argument, and complex(x,
-        // y): complex.hpp's
+        // a number's real part and conjugate, a quaternion's among them,
+        // quaternion.hpp's; a complex number's imaginary part and argument,
+        // and complex(x, y), complex.hpp's, of a quaternion a domain error
         switch (_fn)
         {
-            case expr_fn::real:    return expr_real(_x[0]);
+            case expr_fn::real:    return expr_quaternion_real(_x[0]);
             case expr_fn::imag:    return expr_imag(_x[0]);
-            case expr_fn::conj:    return expr_conj(_x[0]);
+            case expr_fn::conj:    return expr_quaternion_conj(_x[0]);
             case expr_fn::arg:     return expr_arg(_x[0]);
             case expr_fn::complex: return expr_complex(_x[0], _x[1]);
             default:
@@ -2413,21 +2752,11 @@ NS_INTERNAL
             return answer;
         }
 
-        // a complex argument: its principal value, or none, of the real
-        // line's order (S271)
-        for (std::size_t i = 0; i < _count; ++i)
+        // a quaternion or complex argument, or a real one where the value
+        // is complex alone: its principal value, or none
+        if (expr_value_fn_beyond_real(_fn, _x, _count, answer))
         {
-            if (expr_is_complex(_x[i]))
-            {
-                return expr_complex_value_fn(_fn, _x, _count);
-            }
-        }
-
-        // a real argument where the function's value is complex alone (S272)
-        if ( (_count == 1) &&
-             (expr_beyond_real(_fn, _x[0])) )
-        {
-            return expr_complex_value_fn(_fn, _x, _count);
+            return answer;
         }
 
         for (std::size_t i = 0; i < _count; ++i)
@@ -2456,6 +2785,56 @@ NS_INTERNAL
         const value x[2] = { _a, _b };
 
         return expr_value_fn(expr_fn::mod, x, 2);
+    }
+
+    // 3.3.6
+    // expr_holds_complex, expr_real_only
+    //   functions: whether a value is or holds a number not real, a complex
+    // number, a quaternion, or a matrix holding either; and an
+    // answer under _context: a domain error where it asks real results, none
+    // of the _count arguments at _arguments holds a number not real, and the
+    // answer does (S272, S340), so that sqrt(-4) and eig of a real matrix
+    // with a complex pair (S352) are domain errors there, and a function of
+    // a complex argument keeps its complex value. Each standard evaluator
+    // as a value that can stray so applies it to its own answer.
+    inline bool
+    expr_holds_complex(
+        const value& _x
+    )
+    {
+        return ( (expr_is_complex(_x)) ||
+                 (expr_is_quaternion(_x)) ||
+                 ( (expr_is_matrix(_x)) &&
+                   ( (expr_matrix_has_complex(_x)) ||
+                     (expr_matrix_has_quaternion(_x)) ) ) );
+    }
+
+    inline value
+    expr_real_only(
+        const expr_context& _context,
+        const value*        _arguments,
+        std::size_t         _count,
+        const value&        _answer
+    )
+    {
+        // real results not asked
+        if (!_context.real_results)
+        {
+            return _answer;
+        }
+
+        // an argument not real: a complex answer is its own
+        for (std::size_t i = 0; i < _count; ++i)
+        {
+            if (expr_holds_complex(_arguments[i]))
+            {
+                return _answer;
+            }
+        }
+
+        return ( (expr_holds_complex(_answer))
+                     ? value(D_MATH_VALUE_ERROR_DOMAIN)
+                     : _answer );
     }
 
 NS_END  // internal
@@ -2591,6 +2970,35 @@ NS_INTERNAL
         return expr_truth_in<Type>(_x == Type(0));
     }
 
+    // expr_all_of_in, expr_any_of_in
+    //   functions: all_of and any_of in Type as evaluators: and and or of
+    // the _count truths at _x, the context unread.
+    template<typename Type>
+    Type
+    expr_all_of_in(
+        const Type*         _x,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_context);
+
+        return expr_all_in(_x, _count);
+    }
+
+    template<typename Type>
+    Type
+    expr_any_of_in(
+        const Type*         _x,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_context);
+
+        return expr_any_in(_x, _count);
+    }
+
     // 4.1.4
     // expr_piecewise_in
     //   function: piecewise of _count arguments in Type, the first at _x: the
@@ -2600,10 +3008,13 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_piecewise_in(
-        const Type* _x,
-        std::size_t _count
+        const Type*         _x,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
+        static_cast<void>(_context);
+
         std::size_t i = 0;
 
         // each branch in turn, by its condition
@@ -2639,9 +3050,10 @@ NS_INTERNAL
     // expr_relation_value
     //   function: the relation _kind of _a and _b as a value, a boolean: of
     // two numbers by value.h's exact order, unordered for a NaN, which none
-    // holds of but !=; of a complex number and a number, = and != by their
-    // parts, and the others a domain error, as no order of the complex
-    // numbers is a field's (S271); of two booleans, = and != by their truth;
+    // holds of but !=; of a complex number or a quaternion and a number, =
+    // and != by their parts, and the others a domain error, as no order of
+    // the complex numbers or the quaternions is a field's (S271, S275); of
+    // two booleans, = and != by their truth;
     // of two matrices, = and != by the kind's comparison, equal where of one
     // shape and equal place by place (S242). An error passes, the first; any
     // other operands are a domain error.
@@ -2681,10 +3093,12 @@ NS_INTERNAL
         if ( (_a.is_number()) &&
              (_b.is_number()) )
         {
-            const d_math_value_order order = _a.compare(_b);
+            const dj_math_value_order order = _a.compare(_b);
 
             if ( ( (expr_is_complex(_a)) ||
-                   (expr_is_complex(_b)) ) &&
+                   (expr_is_complex(_b)) ||
+                   (expr_is_quaternion(_a)) ||
+                   (expr_is_quaternion(_b)) ) &&
                  (_kind != expr_op_kind::eq) &&
                  (_kind != expr_op_kind::ne) )
             {
@@ -2792,6 +3206,33 @@ NS_INTERNAL
         return expr_logic_value(_x, _count, true);
     }
 
+    // expr_all_of_value, expr_any_of_value
+    //   functions: all_of and any_of as values, as evaluators: and and or of
+    // the _count values at _x, the context unread.
+    inline value
+    expr_all_of_value(
+        const value*        _x,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_context);
+
+        return expr_all_value(_x, _count);
+    }
+
+    inline value
+    expr_any_of_value(
+        const value*        _x,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_context);
+
+        return expr_any_value(_x, _count);
+    }
+
     inline value
     expr_not_value(
         const value& _x
@@ -2821,10 +3262,13 @@ NS_INTERNAL
     // branch holds, a domain error. An odd last argument is the otherwise.
     inline value
     expr_piecewise_value(
-        const value* _x,
-        std::size_t  _count
+        const value*        _x,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
+        static_cast<void>(_context);
+
         bool        truth = false;
         std::size_t i     = 0;
 
@@ -2901,11 +3345,13 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_itself_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return _arguments[0];
     }
@@ -2931,11 +3377,13 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_reciprocal_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_one_over(_arguments[0]);
     }
@@ -2943,11 +3391,13 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_magnitude_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_magnitude_of(_arguments[0]);
     }
@@ -2973,11 +3423,13 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_product_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return (expr_conjugate_of(_arguments[0]) * _arguments[1]);
     }
@@ -2985,11 +3437,13 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_quotient_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return (_arguments[1] / _arguments[0]);
     }
@@ -2997,12 +3451,14 @@ NS_INTERNAL
     template<typename Type>
     Type
     expr_no_scalar_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_arguments);
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_nan_of<Type>::make();
     }
@@ -3020,14 +3476,18 @@ NS_INTERNAL
     //   functions: each function of linear algebra as a value, matrix.hpp's
     // (3.3, 3.5): of a matrix, or of a number, a scalar, transpose(A) the
     // transpose, unconjugated (S350); an error passes, the first; a boolean
-    // or none, and a shape the function does not take, a domain error.
+    // or none, and a shape the function does not take, a domain error; eig
+    // of a real matrix with a complex pair a domain error too where the
+    // context asks real results (S340, S352).
     inline value
     expr_transpose_fn_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_transpose_value(_arguments[0],
                                     false);
@@ -3035,66 +3495,88 @@ NS_INTERNAL
 
     inline value
     expr_det_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_matrix_det(_arguments[0]);
     }
 
     inline value
     expr_inv_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        // a quaternion: its inverse (S275)
+        if (expr_is_quaternion(_arguments[0]))
+        {
+            return expr_quaternion_inverse(_arguments[0]);
+        }
 
         return expr_matrix_inv(_arguments[0]);
     }
 
     inline value
     expr_trace_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_matrix_trace(_arguments[0]);
     }
 
     inline value
     expr_norm_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_matrix_norm(_arguments[0]);
     }
 
     inline value
     expr_eig_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
 
-        return expr_matrix_eig(_arguments[0]);
+        // a real matrix's complex pair, a domain error where real results
+        // are asked (S352)
+        return expr_real_only(_context,
+                              _arguments,
+                              1,
+                              expr_matrix_eig(_arguments[0]));
     }
 
     inline value
     expr_dot_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_matrix_dot(_arguments[0],
                                _arguments[1]);
@@ -3102,11 +3584,13 @@ NS_INTERNAL
 
     inline value
     expr_cross_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_matrix_cross(_arguments[0],
                                  _arguments[1]);
@@ -3114,14 +3598,181 @@ NS_INTERNAL
 
     inline value
     expr_solve_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_matrix_solve(_arguments[0],
                                  _arguments[1]);
+    }
+
+NS_END  // internal
+
+// 5.3    The quaternions' own
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // 5.3.1
+    // expr_quat_in, expr_quat_complex, expr_quat_value
+    //   functions: quat(w, x, y, z), the quaternion of four real parts
+    // (S275): in a real type w where x, y and z are 0, of either sign, and a
+    // NaN otherwise, as complex(x, y) is there (S332); in a complex type, of
+    // real arguments, w + x i where y and z are 0, and a NaN in both parts
+    // otherwise; as a value quaternion.hpp's expr_quaternion.
+    template<typename Type>
+    Type
+    expr_quat_in(
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        // a part past w not 0, or a NaN: no real number
+        if ( (_arguments[1] != Type(0)) ||
+             (_arguments[2] != Type(0)) ||
+             (_arguments[3] != Type(0)) )
+        {
+            return expr_nan_of<Type>::make();
+        }
+
+        return _arguments[0];
+    }
+
+    template<typename Type>
+    math::complex<Type>
+    expr_quat_complex(
+        const math::complex<Type>* _arguments,
+        std::size_t                _count,
+        const expr_context&        _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        // an argument not real: no part
+        for (std::size_t i = 0; i < 4; ++i)
+        {
+            if (_arguments[i].imag() != Type(0))
+            {
+                return expr_nan_of<math::complex<Type> >::make();
+            }
+        }
+
+        // a jm or km part not 0, or a NaN: no complex number
+        if ( (_arguments[2].real() != Type(0)) ||
+             (_arguments[3].real() != Type(0)) )
+        {
+            return expr_nan_of<math::complex<Type> >::make();
+        }
+
+        return math::complex<Type>(_arguments[0].real(),
+                                   _arguments[1].real());
+    }
+
+    inline value
+    expr_quat_value(
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        return expr_quaternion(_arguments[0],
+                               _arguments[1],
+                               _arguments[2],
+                               _arguments[3]);
+    }
+
+    // 5.3.2
+    // expr_parts_value, expr_rotate_value
+    //   functions: parts(q), a number's four parts, the vector [w, x, y, z],
+    // and rotate(q, v), a 3-vector rotated by q, q v q^-1 (S275), as values:
+    // quaternion.hpp's expr_quaternion_parts and expr_quaternion_rotate. In
+    // a type, which holds no vector, each is a NaN, as cross is
+    // (expr_no_scalar_in).
+    inline value
+    expr_parts_value(
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        return expr_quaternion_parts(_arguments[0]);
+    }
+
+    inline value
+    expr_rotate_value(
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        return expr_quaternion_rotate(_arguments[0],
+                                      _arguments[1]);
+    }
+
+    // 5.3.3
+    // expr_rotmat_value, expr_rotquat_value, expr_slerp_value
+    //   functions: rotmat(q), the 3 by 3 matrix of the rotation q names;
+    // rotquat(R), the unit quaternion of a rotation's matrix, w >= 0; and
+    // slerp(p, q, t), the shorter arc from p's rotation to q's (S391), as
+    // values: rotation.hpp's expr_quaternion_matrix,
+    // expr_quaternion_of_rotation and expr_quaternion_slerp. In a type each
+    // is a NaN, as parts is (expr_no_scalar_in).
+    inline value
+    expr_rotmat_value(
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        return expr_quaternion_matrix(_arguments[0]);
+    }
+
+    inline value
+    expr_rotquat_value(
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        return expr_quaternion_of_rotation(_arguments[0]);
+    }
+
+    inline value
+    expr_slerp_value(
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
+    )
+    {
+        static_cast<void>(_count);
+        static_cast<void>(_context);
+
+        return expr_quaternion_slerp(_arguments[0],
+                                     _arguments[1],
+                                     _arguments[2]);
     }
 
 NS_END  // internal
@@ -3139,16 +3790,21 @@ NS_INTERNAL
 
     // expr_entry_in, expr_entry_complex, expr_entry_value
     //   functions: the evaluators of the operation Fn, in a real type, in a
-    // complex one and as a value, as an expr_function holds them.
+    // complex one and as a value, as an expr_function holds them, each given
+    // the fold's context (S340): in a type it changes no answer, and as a
+    // value it holds the answer real where it asks (expr_real_only),
+    // complex(x, y) apart, which makes a complex number of its asking.
     template<expr_fn Fn,
              typename Type>
     Type
     expr_entry_in(
-        const Type* _arguments,
-        std::size_t _count
+        const Type*         _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_fn_in<Type>(Fn, _arguments);
     }
@@ -3158,10 +3814,12 @@ NS_INTERNAL
     math::complex<Type>
     expr_entry_complex(
         const math::complex<Type>* _arguments,
-        std::size_t                _count
+        std::size_t                _count,
+        const expr_context&        _context
     )
     {
         static_cast<void>(_count);
+        static_cast<void>(_context);
 
         return expr_fn_complex<Type>(Fn, _arguments);
     }
@@ -3169,11 +3827,23 @@ NS_INTERNAL
     template<expr_fn Fn>
     value
     expr_entry_value(
-        const value* _arguments,
-        std::size_t  _count
+        const value*        _arguments,
+        std::size_t         _count,
+        const expr_context& _context
     )
     {
-        return expr_value_fn(Fn, _arguments, _count);
+        const value answer = expr_value_fn(Fn, _arguments, _count);
+
+        // complex(x, y): the complex number asked for
+        if (Fn == expr_fn::complex)
+        {
+            return answer;
+        }
+
+        return expr_real_only(_context,
+                              _arguments,
+                              _count,
+                              answer);
     }
 
     // expr_entry
@@ -3231,9 +3901,10 @@ NS_INTERNAL
     }
 
     // expr_entry_algebra
-    //   function: a function of linear algebra (S256), of its name, its
-    // number of arguments and its seven evaluators; no rule of its partial
-    // derivatives before step 25 (4a).
+    //   function: a function of linear algebra (S256), or of the
+    // quaternions' own (S275), of its name, its number of arguments and its
+    // seven evaluators; no rule of its partial derivatives before step 25
+    // (4a).
     inline expr_function
     expr_entry_algebra(
         const char*                                 _name,
@@ -3262,8 +3933,226 @@ NS_INTERNAL
         return entry;
     }
 
+    // expr_define_extensions
+    //   function: into _table, the functions past the C core's first ones:
+    // log1p, expm1, asinh, acosh, atanh and sign (S203, S338), min and max
+    // of any number of arguments from 1, and the vocabulary's piecewise,
+    // all_of and any_of, in the banner's order.
+    inline void
+    expr_define_extensions(
+        expr_function_table& _table
+    )
+    {
+        typedef math::complex<float>       complex_f;
+        typedef math::complex<double>      complex_d;
+        typedef math::complex<long double> complex_ld;
+
+        _table.define(expr_entry<expr_fn::log1p>("log1p", 1))
+              .define(expr_entry<expr_fn::expm1>("expm1", 1))
+              .define(expr_entry<expr_fn::asinh>("asinh", 1))
+              .define(expr_entry<expr_fn::acosh>("acosh", 1))
+              .define(expr_entry<expr_fn::atanh>("atanh", 1))
+              .define(expr_entry<expr_fn::sign>("sign", 1))
+              .define(expr_entry_any("min",
+                                     &expr_min_in<float>,
+                                     &expr_min_in<double>,
+                                     &expr_min_in<long double>,
+                                     &expr_min_complex<float>,
+                                     &expr_min_complex<double>,
+                                     &expr_min_complex<long double>,
+                                     &expr_min_value))
+              .define(expr_entry_any("max",
+                                     &expr_max_in<float>,
+                                     &expr_max_in<double>,
+                                     &expr_max_in<long double>,
+                                     &expr_max_complex<float>,
+                                     &expr_max_complex<double>,
+                                     &expr_max_complex<long double>,
+                                     &expr_max_value))
+              .define(expr_entry_any("piecewise",
+                                     &expr_piecewise_in<float>,
+                                     &expr_piecewise_in<double>,
+                                     &expr_piecewise_in<long double>,
+                                     &expr_piecewise_in<complex_f>,
+                                     &expr_piecewise_in<complex_d>,
+                                     &expr_piecewise_in<complex_ld>,
+                                     &expr_piecewise_value))
+              .define(expr_entry_any("all_of",
+                                     &expr_all_of_in<float>,
+                                     &expr_all_of_in<double>,
+                                     &expr_all_of_in<long double>,
+                                     &expr_all_of_in<complex_f>,
+                                     &expr_all_of_in<complex_d>,
+                                     &expr_all_of_in<complex_ld>,
+                                     &expr_all_of_value))
+              .define(expr_entry_any("any_of",
+                                     &expr_any_of_in<float>,
+                                     &expr_any_of_in<double>,
+                                     &expr_any_of_in<long double>,
+                                     &expr_any_of_in<complex_f>,
+                                     &expr_any_of_in<complex_d>,
+                                     &expr_any_of_in<complex_ld>,
+                                     &expr_any_of_value));
+
+        return;
+    }
+
+    // expr_define_algebra
+    //   function: into _table, linear algebra's functions, transpose, det,
+    // inv, trace, norm, eig, dot, cross and solve (S256, S350), in the
+    // banner's order.
+    inline void
+    expr_define_algebra(
+        expr_function_table& _table
+    )
+    {
+        typedef math::complex<float>       complex_f;
+        typedef math::complex<double>      complex_d;
+        typedef math::complex<long double> complex_ld;
+
+        _table.define(expr_entry_algebra("transpose",
+                                         1,
+                                         &expr_itself_in<float>,
+                                         &expr_itself_in<double>,
+                                         &expr_itself_in<long double>,
+                                         &expr_itself_in<complex_f>,
+                                         &expr_itself_in<complex_d>,
+                                         &expr_itself_in<complex_ld>,
+                                         &expr_transpose_fn_value))
+              .define(expr_entry_algebra("det",
+                                         1,
+                                         &expr_itself_in<float>,
+                                         &expr_itself_in<double>,
+                                         &expr_itself_in<long double>,
+                                         &expr_itself_in<complex_f>,
+                                         &expr_itself_in<complex_d>,
+                                         &expr_itself_in<complex_ld>,
+                                         &expr_det_value))
+              .define(expr_entry_algebra("inv",
+                                         1,
+                                         &expr_reciprocal_in<float>,
+                                         &expr_reciprocal_in<double>,
+                                         &expr_reciprocal_in<long double>,
+                                         &expr_reciprocal_in<complex_f>,
+                                         &expr_reciprocal_in<complex_d>,
+                                         &expr_reciprocal_in<complex_ld>,
+                                         &expr_inv_value))
+              .define(expr_entry_algebra("trace",
+                                         1,
+                                         &expr_itself_in<float>,
+                                         &expr_itself_in<double>,
+                                         &expr_itself_in<long double>,
+                                         &expr_itself_in<complex_f>,
+                                         &expr_itself_in<complex_d>,
+                                         &expr_itself_in<complex_ld>,
+                                         &expr_trace_value))
+              .define(expr_entry_algebra("norm",
+                                         1,
+                                         &expr_magnitude_in<float>,
+                                         &expr_magnitude_in<double>,
+                                         &expr_magnitude_in<long double>,
+                                         &expr_magnitude_in<complex_f>,
+                                         &expr_magnitude_in<complex_d>,
+                                         &expr_magnitude_in<complex_ld>,
+                                         &expr_norm_value))
+              .define(expr_entry_algebra("eig",
+                                         1,
+                                         &expr_itself_in<float>,
+                                         &expr_itself_in<double>,
+                                         &expr_itself_in<long double>,
+                                         &expr_itself_in<complex_f>,
+                                         &expr_itself_in<complex_d>,
+                                         &expr_itself_in<complex_ld>,
+                                         &expr_eig_value))
+              .define(expr_entry_algebra("dot",
+                                         2,
+                                         &expr_product_in<float>,
+                                         &expr_product_in<double>,
+                                         &expr_product_in<long double>,
+                                         &expr_product_in<complex_f>,
+                                         &expr_product_in<complex_d>,
+                                         &expr_product_in<complex_ld>,
+                                         &expr_dot_value))
+              .define(expr_entry_algebra("cross",
+                                         2,
+                                         &expr_no_scalar_in<float>,
+                                         &expr_no_scalar_in<double>,
+                                         &expr_no_scalar_in<long double>,
+                                         &expr_no_scalar_in<complex_f>,
+                                         &expr_no_scalar_in<complex_d>,
+                                         &expr_no_scalar_in<complex_ld>,
+                                         &expr_cross_value))
+              .define(expr_entry_algebra("solve",
+                                         2,
+                                         &expr_quotient_in<float>,
+                                         &expr_quotient_in<double>,
+                                         &expr_quotient_in<long double>,
+                                         &expr_quotient_in<complex_f>,
+                                         &expr_quotient_in<complex_d>,
+                                         &expr_quotient_in<complex_ld>,
+                                         &expr_solve_value));
+
+        return;
+    }
+
+    // expr_define_rotations
+    //   function: into _table, the functions of a rotation, the quaternions'
+    // rotate (S275), rotmat, rotquat and slerp (S391), in the banner's
+    // order: each no function of numbers alone, so a NaN in a type.
+    inline void
+    expr_define_rotations(
+        expr_function_table& _table
+    )
+    {
+        typedef math::complex<float>       complex_f;
+        typedef math::complex<double>      complex_d;
+        typedef math::complex<long double> complex_ld;
+
+        _table.define(expr_entry_algebra("rotate",
+                                         2,
+                                         &expr_no_scalar_in<float>,
+                                         &expr_no_scalar_in<double>,
+                                         &expr_no_scalar_in<long double>,
+                                         &expr_no_scalar_in<complex_f>,
+                                         &expr_no_scalar_in<complex_d>,
+                                         &expr_no_scalar_in<complex_ld>,
+                                         &expr_rotate_value))
+              .define(expr_entry_algebra("rotmat",
+                                         1,
+                                         &expr_no_scalar_in<float>,
+                                         &expr_no_scalar_in<double>,
+                                         &expr_no_scalar_in<long double>,
+                                         &expr_no_scalar_in<complex_f>,
+                                         &expr_no_scalar_in<complex_d>,
+                                         &expr_no_scalar_in<complex_ld>,
+                                         &expr_rotmat_value))
+              .define(expr_entry_algebra("rotquat",
+                                         1,
+                                         &expr_no_scalar_in<float>,
+                                         &expr_no_scalar_in<double>,
+                                         &expr_no_scalar_in<long double>,
+                                         &expr_no_scalar_in<complex_f>,
+                                         &expr_no_scalar_in<complex_d>,
+                                         &expr_no_scalar_in<complex_ld>,
+                                         &expr_rotquat_value))
+              .define(expr_entry_algebra("slerp",
+                                         3,
+                                         &expr_no_scalar_in<float>,
+                                         &expr_no_scalar_in<double>,
+                                         &expr_no_scalar_in<long double>,
+                                         &expr_no_scalar_in<complex_f>,
+                                         &expr_no_scalar_in<complex_d>,
+                                         &expr_no_scalar_in<complex_ld>,
+                                         &expr_slerp_value));
+
+        return;
+    }
+
     // expr_build_functions
-    //   function: the standard function table, in the banner's order.
+    //   function: the standard function table, in the banner's order: the
+    // C core's and the language's first, the complex numbers' and the
+    // quaternions' own, then expr_define_extensions',
+    // expr_define_algebra's and expr_define_rotations'.
     inline expr_function_table
     expr_build_functions()
     {
@@ -3305,133 +4194,28 @@ NS_INTERNAL
              .define(expr_entry<expr_fn::imag>("imag", 1))
              .define(expr_entry<expr_fn::conj>("conj", 1))
              .define(expr_entry<expr_fn::arg>("arg", 1))
-             .define(expr_entry<expr_fn::log1p>("log1p", 1))
-             .define(expr_entry<expr_fn::expm1>("expm1", 1))
-             .define(expr_entry<expr_fn::asinh>("asinh", 1))
-             .define(expr_entry<expr_fn::acosh>("acosh", 1))
-             .define(expr_entry<expr_fn::atanh>("atanh", 1))
-             .define(expr_entry<expr_fn::sign>("sign", 1))
-             .define(expr_entry_any("min",
-                                    &expr_min_in<float>,
-                                    &expr_min_in<double>,
-                                    &expr_min_in<long double>,
-                                    &expr_min_complex<float>,
-                                    &expr_min_complex<double>,
-                                    &expr_min_complex<long double>,
-                                    &expr_min_value))
-             .define(expr_entry_any("max",
-                                    &expr_max_in<float>,
-                                    &expr_max_in<double>,
-                                    &expr_max_in<long double>,
-                                    &expr_max_complex<float>,
-                                    &expr_max_complex<double>,
-                                    &expr_max_complex<long double>,
-                                    &expr_max_value))
-             .define(expr_entry_any("piecewise",
-                                    &expr_piecewise_in<float>,
-                                    &expr_piecewise_in<double>,
-                                    &expr_piecewise_in<long double>,
-                                    &expr_piecewise_in<complex_f>,
-                                    &expr_piecewise_in<complex_d>,
-                                    &expr_piecewise_in<complex_ld>,
-                                    &expr_piecewise_value))
-             .define(expr_entry_any("all_of",
-                                    &expr_all_in<float>,
-                                    &expr_all_in<double>,
-                                    &expr_all_in<long double>,
-                                    &expr_all_in<complex_f>,
-                                    &expr_all_in<complex_d>,
-                                    &expr_all_in<complex_ld>,
-                                    &expr_all_value))
-             .define(expr_entry_any("any_of",
-                                    &expr_any_in<float>,
-                                    &expr_any_in<double>,
-                                    &expr_any_in<long double>,
-                                    &expr_any_in<complex_f>,
-                                    &expr_any_in<complex_d>,
-                                    &expr_any_in<complex_ld>,
-                                    &expr_any_value))
-             .define(expr_entry_algebra("transpose",
+             .define(expr_entry_algebra("quat",
+                                        4,
+                                        &expr_quat_in<float>,
+                                        &expr_quat_in<double>,
+                                        &expr_quat_in<long double>,
+                                        &expr_quat_complex<float>,
+                                        &expr_quat_complex<double>,
+                                        &expr_quat_complex<long double>,
+                                        &expr_quat_value))
+             .define(expr_entry_algebra("parts",
                                         1,
-                                        &expr_itself_in<float>,
-                                        &expr_itself_in<double>,
-                                        &expr_itself_in<long double>,
-                                        &expr_itself_in<complex_f>,
-                                        &expr_itself_in<complex_d>,
-                                        &expr_itself_in<complex_ld>,
-                                        &expr_transpose_fn_value))
-             .define(expr_entry_algebra("det",
-                                        1,
-                                        &expr_itself_in<float>,
-                                        &expr_itself_in<double>,
-                                        &expr_itself_in<long double>,
-                                        &expr_itself_in<complex_f>,
-                                        &expr_itself_in<complex_d>,
-                                        &expr_itself_in<complex_ld>,
-                                        &expr_det_value))
-             .define(expr_entry_algebra("inv",
-                                        1,
-                                        &expr_reciprocal_in<float>,
-                                        &expr_reciprocal_in<double>,
-                                        &expr_reciprocal_in<long double>,
-                                        &expr_reciprocal_in<complex_f>,
-                                        &expr_reciprocal_in<complex_d>,
-                                        &expr_reciprocal_in<complex_ld>,
-                                        &expr_inv_value))
-             .define(expr_entry_algebra("trace",
-                                        1,
-                                        &expr_itself_in<float>,
-                                        &expr_itself_in<double>,
-                                        &expr_itself_in<long double>,
-                                        &expr_itself_in<complex_f>,
-                                        &expr_itself_in<complex_d>,
-                                        &expr_itself_in<complex_ld>,
-                                        &expr_trace_value))
-             .define(expr_entry_algebra("norm",
-                                        1,
-                                        &expr_magnitude_in<float>,
-                                        &expr_magnitude_in<double>,
-                                        &expr_magnitude_in<long double>,
-                                        &expr_magnitude_in<complex_f>,
-                                        &expr_magnitude_in<complex_d>,
-                                        &expr_magnitude_in<complex_ld>,
-                                        &expr_norm_value))
-             .define(expr_entry_algebra("eig",
-                                        1,
-                                        &expr_itself_in<float>,
-                                        &expr_itself_in<double>,
-                                        &expr_itself_in<long double>,
-                                        &expr_itself_in<complex_f>,
-                                        &expr_itself_in<complex_d>,
-                                        &expr_itself_in<complex_ld>,
-                                        &expr_eig_value))
-             .define(expr_entry_algebra("dot",
-                                        2,
-                                        &expr_product_in<float>,
-                                        &expr_product_in<double>,
-                                        &expr_product_in<long double>,
-                                        &expr_product_in<complex_f>,
-                                        &expr_product_in<complex_d>,
-                                        &expr_product_in<complex_ld>,
-                                        &expr_dot_value))
-             .define(expr_entry_algebra("cross",
-                                        2,
                                         &expr_no_scalar_in<float>,
                                         &expr_no_scalar_in<double>,
                                         &expr_no_scalar_in<long double>,
                                         &expr_no_scalar_in<complex_f>,
                                         &expr_no_scalar_in<complex_d>,
                                         &expr_no_scalar_in<complex_ld>,
-                                        &expr_cross_value))
-             .define(expr_entry_algebra("solve",
-                                        2,
-                                        &expr_quotient_in<float>,
-                                        &expr_quotient_in<double>,
-                                        &expr_quotient_in<long double>,
-                                        &expr_quotient_in<complex_f>,
-                                        &expr_quotient_in<complex_d>,
-                                        &expr_quotient_in<complex_ld>,
-                                        &expr_solve_value));
+                                        &expr_parts_value));
+
+        expr_define_extensions(table);
+        expr_define_algebra(table);
+        expr_define_rotations(table);
 
         return table;
     }
@@ -3440,7 +4224,7 @@ NS_END  // internal
 
 // 6.1.1
 // expr_standard_functions
-//   function: the language's functions, the banner's 52, built once.
+//   function: the language's functions, the banner's 58, built once.
 inline const expr_function_table&
 expr_standard_functions()
 {
@@ -3491,6 +4275,38 @@ NS_INTERNAL
         return unit;
     }
 
+    // expr_quaternion_unit_entry
+    //   function: jm or km, where _km, a unit of the quaternions (S275): as a
+    // value the exact quaternion 0 + 1jm or 0 + 1km, one box, which every
+    // fold that reads it holds, counted atomically (S134); in each real
+    // floating-point type a NaN, as im is there (S271); and in each complex
+    // one a NaN in both parts, as no complex number is a unit past im.
+    inline expr_named_constant
+    expr_quaternion_unit_entry(
+        const char* _name,
+        bool        _km
+    )
+    {
+        expr_named_constant unit(
+            _name,
+            std::numeric_limits<float>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<long double>::quiet_NaN(),
+            expr_quaternion(value(0),
+                            value(0),
+                            value( _km ? 0 : 1 ),
+                            value( _km ? 1 : 0 )));
+
+        unit.as_complex_float       =
+            expr_nan_of<math::complex<float> >::make();
+        unit.as_complex_double      =
+            expr_nan_of<math::complex<double> >::make();
+        unit.as_complex_long_double =
+            expr_nan_of<math::complex<long double> >::make();
+
+        return unit;
+    }
+
     // expr_boolean_entry
     //   function: a constant of the table from its truth: 1 or 0 in each
     // type, and as a value the boolean.
@@ -3513,8 +4329,9 @@ NS_END  // internal
 // expr_standard_constants
 //   function: the language's named constants: pi and e, from the literals
 // of constants::of<T>; true and false; im, the imaginary unit, exact, and a
-// NaN in each floating-point type (S271); and jm and km, answering not_yet
-// until step 24 (3f) (S275). Built once.
+// NaN in each floating-point type (S271); and jm and km, the quaternions'
+// units, exact, and a NaN in each floating-point type, real or complex
+// (S275). Built once.
 inline const expr_constant_table&
 expr_standard_constants()
 {
@@ -3529,8 +4346,8 @@ expr_standard_constants()
             .define(internal::expr_boolean_entry("true", true))
             .define(internal::expr_boolean_entry("false", false))
             .define(internal::expr_unit_entry())
-            .define(expr_named_constant("jm", "jm: not yet (step 24, 3f)"))
-            .define(expr_named_constant("km", "km: not yet (step 24, 3f)"));
+            .define(internal::expr_quaternion_unit_entry("jm", false))
+            .define(internal::expr_quaternion_unit_entry("km", true));
 
     return table;
 }

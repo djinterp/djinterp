@@ -23,13 +23,15 @@
 * (2f) the entries subs and simplify are: subs("x", t) puts t in place of x,
 * and simplify() folds constants, applies identities and collects like
 * terms (simplify.hpp). Until step 25 (4a), diff gives a handle of
-* expr_derivative's error not_yet.
+* expr_derivative's error not_yet. Step 24 (3f), its second part, named
+* complex.hpp and quaternion.hpp among the headers this one includes, which
+* it had read only through the others.
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/expr.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.08
 *******************************************************************************/
 
 /*
@@ -58,6 +60,7 @@ TABLE OF CONTENTS
 #include "../math_common.hpp"     // NS_MATH
 #include "../value.hpp"           // value
 #include "./antiderivative.hpp"   // expr_antiderivative
+#include "./complex.hpp"          // complex numbers
 #include "./derivative.hpp"       // expr_derivative, expr_gradient
 #include "./evaluate.hpp"         // expr_evaluate, expr_bindings, at
 #include "./expr_common.hpp"      // expr_error, expr_result, expr_syntax
@@ -66,7 +69,9 @@ TABLE OF CONTENTS
 #include "./numeric.hpp"          // expr_integrate, expr_derivative_at
 #include "./operator.hpp"         // expr_op, expr_signature
 #include "./parse.hpp"            // expr_parse
+#include "./quaternion.hpp"       // quaternions
 #include "./render.hpp"           // expr_render
+#include "./rotation.hpp"         // rotations, slerp
 #include "./series.hpp"           // expr_sum, expr_limit, expr_taylor
 #include "./simplify.hpp"         // expr_simplify
 #include "./substitute.hpp"       // expr_substitute
@@ -161,15 +166,19 @@ public:
     }
 
     /**
-     * @brief The expression's value in float, double or long double.
+     * @brief The expression's value in float, double or long double, or in
+     *        the math::complex of one.
      *
      * @param[in] _bindings  the values of its variables; none by default.
+     * @param[in] _context   what the fold computes under; by default
+     *                       expr_context().
      * @return expr_evaluate<Type>'s answer, or the error the handle holds.
      */
     template<typename Type>
     D_NODISCARD expr_result<Type>
     eval(
-        const expr_bindings& _bindings = expr_bindings()
+        const expr_bindings& _bindings = expr_bindings(),
+        const expr_context&  _context  = expr_context()
     ) const
     {
         // an error: passed on
@@ -179,7 +188,8 @@ public:
         }
 
         return expr_evaluate<Type>(m_term,
-                                   _bindings);
+                                   _bindings,
+                                   _context);
     }
 
     /**

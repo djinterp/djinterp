@@ -21,7 +21,7 @@
 *                     rational, number_base / radix system
 *   values.hpp      - compile-time sampling of an expression over points
 *   value.hpp       - the generic value: math::value, one number of any
-*                     kind over the C core's d_math_value, and inline_value
+*                     kind over the C core's dj_math_value, and inline_value
 *   number_traits.hpp - what generic code needs of a number type, the type
 *                     two numbers combine to, and the concept number
 *   complex.hpp     - complex numbers: math::complex<T>, of float, double
@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/cpp/modules/math/math.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_MATH_HPP

@@ -72,11 +72,11 @@ d_internal_timer_atomic_value(
  *
  * @return [0, D_TIMER_ATOMIC_MAX].
  */
-static struct d_interval_imax
+static struct dj_interval_imax
 d_internal_timer_atomic_time_range(void)
 {
     return d_interval_imax_make(0,
-                                (d_math_imax)D_TIMER_ATOMIC_MAX,
+                                (dj_math_imax)D_TIMER_ATOMIC_MAX,
                                 D_INTERVAL_CLOSED,
                                 0);
 }
@@ -86,11 +86,11 @@ d_internal_timer_atomic_time_range(void)
  *
  * @return [-D_TIMER_ATOMIC_MAX, D_TIMER_ATOMIC_MAX].
  */
-static struct d_interval_imax
+static struct dj_interval_imax
 d_internal_timer_atomic_word_range(void)
 {
-    return d_interval_imax_make(-(d_math_imax)D_TIMER_ATOMIC_MAX,
-                                (d_math_imax)D_TIMER_ATOMIC_MAX,
+    return d_interval_imax_make(-(dj_math_imax)D_TIMER_ATOMIC_MAX,
+                                (dj_math_imax)D_TIMER_ATOMIC_MAX,
                                 D_INTERVAL_CLOSED,
                                 0);
 }
@@ -105,12 +105,12 @@ d_internal_timer_atomic_word_range(void)
  * Each side is clamped to the word's range, and clamping keeps their order,
  * so the bounds are never inverted.
  */
-static struct d_interval_imax
+static struct dj_interval_imax
 d_internal_timer_atomic_open_range(
     int64_t _now
 )
 {
-    const struct d_interval_imax word = d_internal_timer_atomic_word_range();
+    const struct dj_interval_imax word = d_internal_timer_atomic_word_range();
     const int64_t                low  = d_counter_bounds_sub(&word,
                                                              0,
                                                              _now,
@@ -120,8 +120,8 @@ d_internal_timer_atomic_open_range(
                                                              _now,
                                                              NULL);
 
-    return d_interval_imax_make((d_math_imax)low,
-                                (d_math_imax)high,
+    return d_interval_imax_make((dj_math_imax)low,
+                                (dj_math_imax)high,
                                 D_INTERVAL_CLOSED,
                                 0);
 }
@@ -158,7 +158,7 @@ d_internal_timer_atomic_time(
     int64_t _now
 )
 {
-    const struct d_interval_imax range = d_internal_timer_atomic_time_range();
+    const struct dj_interval_imax range = d_internal_timer_atomic_time_range();
 
     // a stopped timer's v is its time
     if (!_is_running)
@@ -210,7 +210,7 @@ d_internal_timer_atomic_step(
             has_now = true;
         }
 
-        const struct d_interval_imax range =
+        const struct dj_interval_imax range =
             (running)
                 ? d_internal_timer_atomic_open_range(now)
                 : d_internal_timer_atomic_time_range();
@@ -326,7 +326,7 @@ d_timer_atomic_start(
         return false;
     }
 
-    const struct d_interval_imax word  = d_internal_timer_atomic_word_range();
+    const struct dj_interval_imax word = d_internal_timer_atomic_word_range();
     const int64_t                now   = d_internal_timer_atomic_now(_timer);
     long long                    state = d_atomic_load_llong(&_timer->state);
 

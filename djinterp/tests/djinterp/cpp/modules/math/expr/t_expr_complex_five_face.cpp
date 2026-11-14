@@ -24,13 +24,14 @@
 *     answering not_yet, in either fold.
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++11 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
-*         tests/djinterp/math/expr/t_expr_complex_five_face.cpp -o t_c5
+*         tests/djinterp/cpp/modules/math/expr/t_expr_complex_five_face.cpp    \
+*         -o t_c5
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_five_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -162,7 +163,7 @@ namespace
     // d_tests_kind_of
     //   the value kind of a type: float, double or long double.
     template<typename Type>
-    d_math_value_kind
+    dj_math_value_kind
     d_tests_kind_of()
     {
         return ( (sizeof(Type) == sizeof(float))
@@ -242,8 +243,8 @@ namespace
     //   whether a value is the error given.
     bool
     d_tests_is_error(
-        const m::value&    _value,
-        d_math_value_error _error
+        const m::value&     _value,
+        dj_math_value_error _error
     )
     {
         return ( (_value.kind() == D_MATH_VALUE_ERROR) &&
@@ -372,7 +373,7 @@ namespace
 
     // d_tests_steps
     //   the steps between two long doubles, either above the other.
-    d_math_umax
+    dj_math_umax
     d_tests_steps(
         long double _a,
         long double _b
@@ -493,12 +494,12 @@ namespace
 
         for (std::size_t i = 0u; i < count; ++i)
         {
-            const d_tests_expr_complex_ref& ref = g_expr_five_refs[i];
-            const m::value                  got = d_tests_value_of(ref.text);
-            m::complex<long double>         z;
-            const d_math_umax               bound =
-                static_cast<d_math_umax>(ref.bound);
-            const bool                      ok =
+            const dj_tests_expr_complex_ref& ref = g_expr_five_refs[i];
+            const m::value                   got = d_tests_value_of(ref.text);
+            m::complex<long double>          z;
+            const dj_math_umax               bound =
+                static_cast<dj_math_umax>(ref.bound);
+            const bool                       ok =
                 ( (m::expr_is_complex(got)) &&
                   (m::internal::expr_complex_type_of(got.c_value()) ==
                        D_MATH_VALUE_LONG_DOUBLE) &&

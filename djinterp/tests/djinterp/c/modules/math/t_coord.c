@@ -12,13 +12,13 @@
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
-*        tests/djinterp/c/math/t_coord.c -o t_coord -lm
+*        tests/djinterp/c/modules/math/t_coord.c -o t_coord -lm
 *
 *
 * path:      /tests/djinterp/c/modules/math/t_coord.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
-*                                                            revised: 2026.10.06
+*                                                            revised: 2026.11.07
 *******************************************************************************/
 // std
 #include <math.h>    // sqrt, sin, cos, atan2, acos, fmod

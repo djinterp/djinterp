@@ -69,7 +69,7 @@ bool
 d_counter_mutex_init_bounded(
     struct dj_counter_mutex*      _counter,
     int64_t                       _initial,
-    const struct d_interval_imax* _bounds
+    const struct dj_interval_imax* _bounds
 )
 {
     // parameter validation
