@@ -81,7 +81,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/simplify.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -138,8 +138,8 @@ TABLE OF CONTENTS
 #include "../value.hpp"                                // value
 #include "./evaluate.hpp"                              // expr_evaluate
 #include "./expr_common.hpp"                           // expr_result
-#include "./matrix.hpp"                                // expr_is_matrix
-#include "./quaternion.hpp"                            // expr_is_quaternion
+#include "./matrix_kind.hpp"                           // expr_is_matrix
+#include "./quaternion_kind.hpp"                       // expr_is_quaternion
 #include "./operator.hpp"                              // expr_op_kind
 #include "./term.hpp"                                  // expr_term
 

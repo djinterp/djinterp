@@ -1,10 +1,10 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             quaternion.hpp
+* djinterp [cpp/math]                                        quaternion_kind.hpp
 *
 * Quaternions as values of the run-time expression language; roadmap Phase
 * 3, step 24 (3f), its second part.
 *   THE KIND is a boxed kind of the value layer, as the complex number is
-* (complex.hpp, S271), written here, in C++, from C++11. It is one kind,
+* (complex_kind.hpp, S271), written here, in C++, from C++11. It is one kind,
 * "quaternion", of the rank 950, past the complex number's 900, so that in an
 * operation of a quaternion and a real or complex number the quaternion's
 * table handles it, and below the matrix's 1000 (S275). A quaternion is a
@@ -42,7 +42,7 @@
 * complex number's missing parts being 0; and stands in no order otherwise,
 * as no order of the quaternions is a field's, nor with a NaN part. The
 * language's <, <=, > and >= of a quaternion are a domain error
-* (function.hpp).
+* (logic.hpp).
 *   CONVERSION to a real type is of a number whose im, jm and km parts are 0,
 * of either sign: its w part's nearest float, double or long double; no
 * exact quaternion converts, as none is real.
@@ -62,7 +62,7 @@
 * itself, two complex ones as the complex kind computes them; with
 * number_traits saying its products do not commute, the generic kernels
 * compute a matrix of quaternions with it, each element as this kind makes
-* it (matrix.hpp, S269, S387).
+* it (matrix_kind.hpp, matrix_function.hpp, S269, S387).
 *   IN C++, expr_quaternion(w, x, y, z) makes the number of four parts, as the
 * language's quat(w, x, y, z) does; expr_is_quaternion asks whether a value
 * is one; expr_quaternion_real and expr_quaternion_conj give its real part
@@ -74,18 +74,21 @@
 * expr_quaternion_root an exact square root where the root is a quaternion
 * of rationals. A quaternion's functions that give or take a vector or a
 * matrix -- its parts, its rotations and slerp -- are rotation.hpp's.
+*   ITS NAME. Until chunk 48 this header was quaternion.hpp, the name of
+* the header of math::quaternion<T> (../quaternion.hpp), which it includes;
+* it is named for what it holds, the quaternion kind (S400).
 *   STEPS. Step 24 (3f) comes in parts (S357): the C core's quat.h, grown and
 * accurate by default, and the C++ faces, in chunk 44; this header, the kind
 * in the language, its functions and the order of its factors (S275, S277),
-* in chunk 45; and in chunk 46, matrices of quaternions (matrix.hpp), whose
+* in chunk 45; and in chunk 46, matrices of quaternions (matrix_kind.hpp), whose
 * elements this header's operands compute, its parts and its rotation moved
-* to rotation.hpp, which matrix.hpp's kind comes before (S387, S391).
+* to rotation.hpp, which matrix_kind.hpp's kind comes before (S387, S391).
 *
 *
-* path:      /inc/djinterp/cpp/modules/math/expr/quaternion.hpp
+* path:      /inc/djinterp/cpp/modules/math/expr/quaternion_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -130,8 +133,8 @@ TABLE OF CONTENTS
          3.  expr_quaternion_root
 */
 
-#ifndef DJINTERP_MATH_EXPR_QUATERNION_HPP
-#define DJINTERP_MATH_EXPR_QUATERNION_HPP 1
+#ifndef DJINTERP_MATH_EXPR_QUATERNION_KIND_HPP
+#define DJINTERP_MATH_EXPR_QUATERNION_KIND_HPP 1
 
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
@@ -149,7 +152,7 @@ TABLE OF CONTENTS
 #include "../math_common.hpp"                  // NS_MATH
 #include "../quaternion.hpp"                   // quaternion<T>, quat.h's face
 #include "../value.hpp"                        // value, value_root_of
-#include "./complex.hpp"                       // expr_complex_*
+#include "./complex_kind.hpp"                  // expr_complex_*
 #include "./expr_common.hpp"                   // expr_result
 
 
@@ -271,10 +274,10 @@ NS_INTERNAL
         expr_quaternion_parts_held&   _parts
     )
     {
-        _parts.w = value(_q.w);
-        _parts.x = value(_q.x);
-        _parts.y = value(_q.y);
-        _parts.z = value(_q.z);
+        _parts.w = value(_q.m_w);
+        _parts.x = value(_q.m_x);
+        _parts.y = value(_q.m_y);
+        _parts.z = value(_q.m_z);
 
         return;
     }
@@ -338,7 +341,7 @@ NS_INTERNAL
 
     // expr_quaternion_type_of
     //   function: the kind an operation with _x among its operands computes
-    // in, as far as _x asks, as complex.hpp's expr_complex_type_of says: a
+    // in, as far as _x asks, as complex_kind.hpp's expr_complex_type_of says: a
     // quaternion's storage's type, a boxed kind's for parts of a boxed kind
     // that is not exact, none for exact ones; any other number's as that
     // function gives it.
@@ -668,10 +671,10 @@ NS_INTERNAL
             return expr_complex_flagged(value(norm(_q)), _flags);
         }
 
-        return expr_quaternion_dense(math::quaternion<Type>(-_q.x,
-                                                            -_q.y,
-                                                            -_q.z,
-                                                            -_q.w),
+        return expr_quaternion_dense(math::quaternion<Type>(-_q.m_x,
+                                                            -_q.m_y,
+                                                            -_q.m_z,
+                                                            -_q.m_w),
                                      _flags);
     }
 
@@ -757,7 +760,7 @@ NS_INTERNAL
     // number, 2 for a complex one and 4 for a quaternion, each part past those
     // +0. Its operators, below, are the kind's arithmetic in Type, and the
     // generic kernels compute a matrix of quaternions' with them, so that each
-    // element is as the kind makes it (matrix.hpp, S269, S387).
+    // element is as the kind makes it (matrix_kind.hpp, S269, S387).
     template<typename Type>
     struct expr_quaternion_operand
     {
@@ -776,10 +779,10 @@ NS_INTERNAL
     )
     {
         const expr_quaternion_operand<Type> operand =
-            { math::quaternion<Type>( ( (_held >= 2) ? _q.x : Type(0) ),
-                                      ( (_held == 4) ? _q.y : Type(0) ),
-                                      ( (_held == 4) ? _q.z : Type(0) ),
-                                      _q.w ),
+            { math::quaternion<Type>( ( (_held >= 2) ? _q.m_x : Type(0) ),
+                                      ( (_held == 4) ? _q.m_y : Type(0) ),
+                                      ( (_held == 4) ? _q.m_z : Type(0) ),
+                                      _q.m_w ),
               _held };
 
         return operand;
@@ -796,10 +799,10 @@ NS_INTERNAL
     {
         math::quaternion<Type> q(Type(0), Type(0), Type(0), Type(0));
 
-        static_cast<void>(_parts.w.to(q.w));
-        static_cast<void>(_parts.x.to(q.x));
-        static_cast<void>(_parts.y.to(q.y));
-        static_cast<void>(_parts.z.to(q.z));
+        static_cast<void>(_parts.w.to(q.m_w));
+        static_cast<void>(_parts.x.to(q.m_x));
+        static_cast<void>(_parts.y.to(q.m_y));
+        static_cast<void>(_parts.z.to(q.m_z));
 
         return expr_quaternion_operand_made(q, _parts.held);
     }
@@ -850,16 +853,16 @@ NS_INTERNAL
         // over _r, or times it
         if (_over)
         {
-            return math::quaternion<Type>(_q.x / _r,
-                                          _q.y / _r,
-                                          _q.z / _r,
-                                          _q.w / _r);
+            return math::quaternion<Type>(_q.m_x / _r,
+                                          _q.m_y / _r,
+                                          _q.m_z / _r,
+                                          _q.m_w / _r);
         }
 
-        return math::quaternion<Type>(_q.x * _r,
-                                      _q.y * _r,
-                                      _q.z * _r,
-                                      _q.w * _r);
+        return math::quaternion<Type>(_q.m_x * _r,
+                                      _q.m_y * _r,
+                                      _q.m_z * _r,
+                                      _q.m_w * _r);
     }
 
     // expr_quaternion_complex_part, expr_quaternion_of_complex
@@ -871,7 +874,7 @@ NS_INTERNAL
         const expr_quaternion_operand<Type>& _a
     )
     {
-        return math::complex<Type>(_a.q.w, _a.q.x);
+        return math::complex<Type>(_a.q.m_w, _a.q.m_x);
     }
 
     template<typename Type>
@@ -896,15 +899,17 @@ NS_INTERNAL
         bool                                 _minus
     )
     {
-        const std::size_t ha = _a.held;
-        const std::size_t hb = _b.held;
+        const math::quaternion<Type>& a  = _a.q;
+        const math::quaternion<Type>& b  = _b.q;
+        const std::size_t             ha = _a.held;
+        const std::size_t             hb = _b.held;
 
         return expr_quaternion_operand_made(
             math::quaternion<Type>(
-                expr_quaternion_sum_part(_a.q.x, _b.q.x, 1, ha, hb, _minus),
-                expr_quaternion_sum_part(_a.q.y, _b.q.y, 2, ha, hb, _minus),
-                expr_quaternion_sum_part(_a.q.z, _b.q.z, 3, ha, hb, _minus),
-                expr_quaternion_sum_part(_a.q.w, _b.q.w, 0, ha, hb, _minus)),
+                expr_quaternion_sum_part(a.m_x, b.m_x, 1, ha, hb, _minus),
+                expr_quaternion_sum_part(a.m_y, b.m_y, 2, ha, hb, _minus),
+                expr_quaternion_sum_part(a.m_z, b.m_z, 3, ha, hb, _minus),
+                expr_quaternion_sum_part(a.m_w, b.m_w, 0, ha, hb, _minus)),
             ( (ha > hb) ? ha : hb ));
     }
 
@@ -960,14 +965,14 @@ NS_INTERNAL
         if (_a.held == 1)
         {
             return expr_quaternion_operand_made(
-                expr_quaternion_scaled(_b.q, _a.q.w, false),
+                expr_quaternion_scaled(_b.q, _a.q.m_w, false),
                 _b.held);
         }
 
         if (_b.held == 1)
         {
             return expr_quaternion_operand_made(
-                expr_quaternion_scaled(_a.q, _b.q.w, false),
+                expr_quaternion_scaled(_a.q, _b.q.m_w, false),
                 _a.held);
         }
 
@@ -994,7 +999,7 @@ NS_INTERNAL
         if (_b.held == 1)
         {
             return expr_quaternion_operand_made(
-                expr_quaternion_scaled(_a.q, _b.q.w, true),
+                expr_quaternion_scaled(_a.q, _b.q.m_w, true),
                 _a.held);
         }
 
@@ -1004,7 +1009,7 @@ NS_INTERNAL
         {
             return expr_quaternion_of_complex(
                 ( (_a.held == 1)
-                      ? (_a.q.w / expr_quaternion_complex_part(_b))
+                      ? (_a.q.m_w / expr_quaternion_complex_part(_b))
                       : (expr_quaternion_complex_part(_a) /
                          expr_quaternion_complex_part(_b)) ));
         }
@@ -1043,10 +1048,10 @@ NS_INTERNAL
         const expr_quaternion_operand<Type>& _b
     )
     {
-        return ( (_a.q.w == _b.q.w) &&
-                 (_a.q.x == _b.q.x) &&
-                 (_a.q.y == _b.q.y) &&
-                 (_a.q.z == _b.q.z) );
+        return ( (_a.q.m_w == _b.q.m_w) &&
+                 (_a.q.m_x == _b.q.m_x) &&
+                 (_a.q.m_y == _b.q.m_y) &&
+                 (_a.q.m_z == _b.q.m_z) );
     }
 
     template<typename Type>
@@ -1068,7 +1073,7 @@ NS_INTERNAL
     )
     {
         return expr_quaternion_operand_made(
-            math::quaternion<Type>(-_a.q.x, -_a.q.y, -_a.q.z, _a.q.w),
+            math::quaternion<Type>(-_a.q.m_x, -_a.q.m_y, -_a.q.m_z, _a.q.m_w),
             _a.held);
     }
 
@@ -1110,14 +1115,14 @@ NS_INTERNAL
         // by the parts it holds
         if (_a.held == 1)
         {
-            return expr_complex_flagged(value(_a.q.w),
+            return expr_complex_flagged(value(_a.q.m_w),
                                         _flags);
         }
 
         if (_a.held == 2)
         {
             return expr_complex_flagged(
-                expr_complex_of(math::complex<Type>(_a.q.w, _a.q.x)),
+                expr_complex_of(math::complex<Type>(_a.q.m_w, _a.q.m_x)),
                 _flags);
         }
 
@@ -1588,10 +1593,10 @@ struct number_traits<internal::expr_quaternion_operand<Type> >
         const internal::expr_quaternion_operand<Type>& _a
     )
     {
-        return ( ( number_traits<Type>::abs(_a.q.w) +
-                   number_traits<Type>::abs(_a.q.x) ) +
-                 ( number_traits<Type>::abs(_a.q.y) +
-                   number_traits<Type>::abs(_a.q.z) ) );
+        return ( ( number_traits<Type>::abs(_a.q.m_w) +
+                   number_traits<Type>::abs(_a.q.m_x) ) +
+                 ( number_traits<Type>::abs(_a.q.m_y) +
+                   number_traits<Type>::abs(_a.q.m_z) ) );
     }
 };
 
@@ -1707,7 +1712,7 @@ NS_INTERNAL
     //   function: a 0 of _part's kind: an exact 0 for an exact part, a +0 of
     // its type for a float, a double or a long double, and a long double's
     // +0 for any other inexact kind, as a real number's imaginary part is
-    // (complex.hpp's expr_imag).
+    // (complex_kind.hpp's expr_imag).
     inline value
     expr_quaternion_zero_like(
         const value& _part
@@ -1812,10 +1817,10 @@ expr_quaternion_to(
         internal::expr_quaternion_parts_of(_value.c_value());
     math::quaternion<Type> q(Type(0), Type(0), Type(0), Type(0));
 
-    static_cast<void>(parts.w.to(q.w));
-    static_cast<void>(parts.x.to(q.x));
-    static_cast<void>(parts.y.to(q.y));
-    static_cast<void>(parts.z.to(q.z));
+    static_cast<void>(parts.w.to(q.m_w));
+    static_cast<void>(parts.x.to(q.m_x));
+    static_cast<void>(parts.y.to(q.m_y));
+    static_cast<void>(parts.z.to(q.m_z));
     _out = q;
 
     return true;
@@ -1823,7 +1828,7 @@ expr_quaternion_to(
 
 // 2.2    The parts
 //------------------------------------------------------------------------------
-// The language's real and conj of a number (function.hpp), and parts
+// The language's real and conj of a number (arithmetic.hpp), and parts
 // (rotation.hpp): an error passes, and what is no number, a boolean, none or
 // a matrix, is a domain error; every result carries the argument's flags.
 // 2.2.1
@@ -1833,7 +1838,7 @@ expr_quaternion_to(
  *
  * @param[in] _value  the number.
  * @return a quaternion's w, as it holds it; any other number's real part,
- *         complex.hpp's expr_real; an error, or a domain error, as section
+ *         complex_kind.hpp's expr_real; an error, or a domain error, as section
  *         2.2 says.
  */
 D_NODISCARD inline value
@@ -1849,7 +1854,7 @@ expr_quaternion_real(
         return failed;
     }
 
-    // a real or complex number: complex.hpp's
+    // a real or complex number: complex_kind.hpp's
     if (!expr_is_quaternion(_value))
     {
         return expr_real(_value);
@@ -1868,7 +1873,7 @@ expr_quaternion_real(
  * @param[in] _value  the number.
  * @return a quaternion's conjugate, w - x im - y jm - z km, a dense one's by
  *         quat.h's, each sign flipped whatever it holds; any other number's,
- *         complex.hpp's expr_conj; an error, or a domain error, as section
+ *         complex_kind.hpp's expr_conj; an error, or a domain error, as section
  *         2.2 says.
  */
 D_NODISCARD inline value
@@ -1884,7 +1889,7 @@ expr_quaternion_conj(
         return failed;
     }
 
-    // a real or complex number: complex.hpp's
+    // a real or complex number: complex_kind.hpp's
     if (!expr_is_quaternion(_value))
     {
         return expr_conj(_value);
@@ -2016,7 +2021,7 @@ NS_END  // internal
  *         in the parts' floating-point type, a long double for exact ones,
  *         by quat.h's scaled normalization, dense; a 0 quaternion itself;
  *         an error passes; a domain error for any value but a quaternion,
- *         whose sign is function.hpp's.
+ *         whose sign is arithmetic.hpp's.
  */
 D_NODISCARD inline value
 expr_quaternion_sign(
@@ -2062,7 +2067,7 @@ expr_quaternion_sign(
 //------------------------------------------------------------------------------
 // A function's principal value of a quaternion, in its parts' floating-point
 // type, as the language's exp, log, sqrt and ^ of a real exponent take it
-// (function.hpp, S275): the complex function in q's plane, quat.h's _c form
+// (arithmetic.hpp, S275): the complex function in q's plane, quat.h's _c form
 // through math::quaternion<T>, the same bits as the face's.
 NS_INTERNAL
 
@@ -2236,4 +2241,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_MATH_EXPR_QUATERNION_HPP
+#endif  // DJINTERP_MATH_EXPR_QUATERNION_KIND_HPP

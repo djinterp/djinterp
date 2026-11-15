@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 series.hpp
+* djinterp [cpp/math]                                              summation.hpp
 *
 * Sums, products, limits and Taylor series of terms; roadmap Phase 4's third
 * item, 4c.
@@ -9,16 +9,20 @@
 * nearer the point. A TAYLOR SERIES is symbolic: the polynomial of the given
 * order in the variable about a point, from the derivatives (derivative.hpp).
 * In the language each is a call that binds a variable of its own, as
-* sum(f, k, a, b), whose shape in the function table (function.hpp) this step
-* decides; and infinite series, with their convergence, are its to add.
+* sum(f, k, a, b), whose shape in the function table (function_table.hpp) this
+* step decides; and infinite series, with their convergence, are its to add.
+*   ITS NAME. Until chunk 48 this header was series.hpp, the name of the
+* compile-time language's calculus/series.hpp; it is named for what step 27
+* fills it with, sums and products and the series and limits made of them
+* (S400).
 *   STEPS. Step 27 (4c) fills every entry. Until then each answers
 * expr_status::not_yet.
 *
 *
-* path:      /inc/djinterp/cpp/modules/math/expr/series.hpp
+* path:      /inc/djinterp/cpp/modules/math/expr/summation.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -36,8 +40,8 @@ TABLE OF CONTENTS
          1.  expr_taylor
 */
 
-#ifndef DJINTERP_MATH_EXPR_SERIES_HPP
-#define DJINTERP_MATH_EXPR_SERIES_HPP 1
+#ifndef DJINTERP_MATH_EXPR_SUMMATION_HPP
+#define DJINTERP_MATH_EXPR_SUMMATION_HPP 1
 
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
@@ -227,4 +231,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_MATH_EXPR_SERIES_HPP
+#endif  // DJINTERP_MATH_EXPR_SUMMATION_HPP

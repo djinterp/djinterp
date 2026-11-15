@@ -1,19 +1,31 @@
-# djinterp math: the lane's decisions, S1 to S394
+# djinterp math: the lane's decisions, S1 to S403
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S382 stand, his own
+its delivery, his "continue", has accepted it: S1 to S396 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
-design of steps 22 to 24, among them. His rulings of 2026.11.03 and
-2026.11.04 on the flagged decisions are in the reviews they rule, each
-"Ruled 2026.11.04", two of them, S336 and S340, his own choice of an
-alternative the review had set aside, made in chunk 46 (S384, S385). S383 to
-S394 are chunk 46's, open until his word on it; the first, S383, is his own
-choice of 2026.11.07. Where a later decision changes an earlier one, the
-later one says so; the earlier one stays here as it was taken.
+design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
+His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
+reviews they rule, each "Ruled 2026.11.04", two of them, S336 and S340, his
+own choice of an alternative the review had set aside, made in chunk 46
+(S384, S385). S397 to S403 are chunk 48's, open until his word on it: his
+word of 2026.11.14 on the language's names, which kept them flat in
+`djinterp::math` (S397), and the second of the four groups of fixes he chose
+on 2026.11.12, consolidation. Where a later decision changes an earlier one,
+the later one says so; the earlier one stays here as it was taken.
+
+A decision names files as they were when it was taken. Chunk 48 merged the
+two quaternion classes (S398) and renamed or split five of the language's
+headers (S400, S401): `expr/complex.hpp` is `expr/complex_kind.hpp`,
+`expr/quaternion.hpp` `expr/quaternion_kind.hpp`, `expr/series.hpp`
+`expr/summation.hpp`; `expr/matrix.hpp` became `expr/matrix_kind.hpp` and
+`expr/matrix_function.hpp`, and `expr/function.hpp`
+`expr/function_table.hpp`, `expr/arithmetic.hpp` and `expr/logic.hpp`;
+`linalg::quaternion`'s `to_matrix` is `to_matrix3` in both names.
+`expr/expr_common.hpp`'s banner maps the language's headers as they are.
 
 Each decision is followed by its review, written from chunk 34 on at the
 owner's asking, each chunk reviewing its own: what the path taken gains and
@@ -22,7 +34,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-22 flagged decisions, the outstanding ones, come first, in five groups by
+23 flagged decisions, the outstanding ones, come first, in six groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -32,15 +44,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk46_2026.11.08/tools/decisions_c46.py`.
+`_handoffs/math98_chunk48_2026.11.14/tools/decisions_c48.py`.
 
 ## 1. Outstanding decisions
 
-The 22 flagged decisions: those whose review recommends what is not yet
+The 23 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c46.md`'s, in chunk 46's
+The groups and the steps are `decisions_outstanding_c48.md`'s, in chunk 48's
 record.
 
 ### 1.1 The expression language
@@ -113,7 +125,15 @@ record.
   Recommended: as taken, with S251's declared domains at step 25 (4a), a
   variable declared complex or a quaternion then keeping its place.
 
-### 1.3 Precision and one answer
+### 1.3 The compile-time core
+
+- S403. When: step 29 (5a): `expression.hpp`'s variables `x` to `phi` in a
+  namespace of their own; minor. Minor: `math.hpp` is not clean under
+  `-Wshadow` until step 29. Recommended: as taken; at step 29 (5a),
+  `expression.hpp`'s variables in a namespace of their own, which ends every
+  such warning at once.
+
+### 1.4 Precision and one answer
 
 - S15. When: step 36 (6a), where one answer becomes bit-identity; sooner at
   no cost. Not the recommendation; two answers across levels. Recommended:
@@ -145,7 +165,7 @@ record.
   Ruled 2026.11.04: the alternative, as recommended, at any step that
   touches `power.h`.
 
-### 1.4 Linear algebra and eigenvalues
+### 1.5 Linear algebra and eigenvalues
 
 - S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
   number type, both faces' matrices taking it. Not the earlier review's
@@ -179,7 +199,7 @@ record.
   carrying |v| as a pair, as the product's double pairs do, at the next step
   that touches `quat.h`'s kernels.
 
-### 1.5 Number types and the value's kinds
+### 1.6 Number types and the value's kinds
 
 - S130. When: step 45 (P3), big rationals, as planned. Significant drawback
   until P3. Recommended: as taken as an interim, big rationals in P3, as
@@ -7832,3 +7852,398 @@ The lane commits nothing: the zip is files to copy.**
 > megabytes for a chunk that changed 21 files; a tree older than 2026.11.07
 > is not served. The alternatives: chunk 46's files alone, not enough over
 > his tree; the old layout's base. Recommended: as taken. Taken.
+
+### S395 and S396: chunk 47, 2026.11.13
+
+The record: `_handoffs/math98_chunk47_2026.11.13/README.md`.
+
+**S395. A term is compiled once for a type, the first of the evaluation's
+fixes the owner chose on 2026.11.12 ("Speed, no API change"):
+`expr_compile<T>(term)`, or `expr_compile<T>(term, names)`, gives an
+`expr_program<T>`, in the new `expr/program.hpp`, for float, double or long
+double or the `math::complex` of one, and the handle's `compile<T>()` gives
+one too. Its steps are the typed fold's, in the order the fold computes,
+each operand before its operation, left to right: a literal rounded once to
+T, a constant's value in T, a variable's slot, an operator of the table's,
+a function's evaluator, indexing's NaN. A run does them on a stack whose
+greatest depth the compiler counted, in the caller's frame up to
+`D_CFG_MATH_EXPR_PROGRAM_STACK` (32), the language's first knob, in
+`config/cpp/modules/math/expr/cfg_expr.h`, which `dconfig.h` includes, and
+on the heap past it. A run's answer is the fold's, bit for bit, and its
+error the fold's first: the term's shape's when it is compiled, an unbound
+variable's at a run of bindings, the first read in the fold's order. A run
+takes T's own numbers in slot order, `math::value`s, a vector of them or
+bindings, and a context, which each evaluator is given (S340). For it the
+complex fold's operations take their operands where they lie, in an array
+of the frame up to eight (`expr_operands`), where each built up to three
+vectors; the fold is faster with it, its answers unchanged. No constant is
+folded, and the value fold is not compiled.** Measured
+(`bench_program_c47.cpp`, the median of seven timings, five terms of 8 to
+40 steps): a run of doubles takes 2.9 to 11.4 times the same term written
+in C++, where the typed fold takes 79 to 624 times, so a run is 26 to 55
+times sooner than a fold; a run of bindings, which looks each name up,
+takes 1.5 to 3.1 times a run of doubles; a run in `math::complex<double>`
+is 8.1 to 15.2 times sooner than that fold; a compile, 992 to 5,874 ns,
+pays for itself at the second run.
+- Alternative: constants folded when the term is compiled, `2 * pi` one
+  step of `2 * pi * x`: fewer steps, and a folded constant computed under
+  the compiler's rounding mode and context, not the run's, so that a run
+  would no longer be the fold wherever either differs. A literal is rounded
+  from its text in any mode (`decimal.h`), so literals are made at compile
+  time.
+- Alternative: machine code, through LLVM as SymEngine's `lambdify` does,
+  or a JIT: several times faster again on a long term; a dependency the
+  framework has no other like, code generated for each platform, and none
+  at all in a constant expression.
+- Alternative: a tree of nodes specialized to each operation, ExprTk's
+  design: a call through a pointer at every node, which the flat steps
+  already make, and a node allocated for each.
+- Alternative: the value fold compiled too: a value's arithmetic allocates
+  and its errors are values, so a program of values would save the lookups
+  alone; S396 makes the value's arithmetic itself faster instead.
+- Alternative: a run of an array of `math::complex<T>`: a complex number
+  cannot say it is real, and the fold's answers turn on it (S339), so a run
+  in a complex type takes `math::value`s or bindings.
+
+> **Review.** Taken: for, the 130 times a fold cost, as the evaluation
+> measured it, cut to a few times the term written in C++, with nothing
+> given up: each run's answer the fold's bit for bit and its error the
+> fold's first, in all six types the fold takes, proved on 2,000 random
+> terms in each against the fold itself and on 500,000 points of five terms
+> by the benchmark; a compile pays for itself at the second run; a run of a
+> real type allocates nothing, nor, with the complex fold's operations in
+> place, a run of a complex one; the API only grows, as the owner chose.
+> Against: a second way to evaluate a term in a type, `eval` once and
+> `compile` for many, which a reader must learn; a run of bindings looks
+> each name up, several times a run of numbers; past 32 levels of operands a
+> run allocates; still no machine code, several times slower than
+> SymEngine's LLVM back end would be on a long term; the names
+> `expr_compile`, `expr_program` and `expr_variables` are prefixed, and will
+> move with `math::expr::`. The alternatives: constants folded; machine
+> code; a tree of specialized nodes; the value fold compiled; a run of
+> `math::complex<T>`s. Recommended: as taken.
+
+**S396. The value's binary arithmetic, the second of the speed fixes, sends
+two inline numbers to their arithmetic before the checks that cannot hold
+for them: two integers whose sum, difference or product a test of the
+operands shows fits the word, at once, a product where each factor's
+magnitude is below 2^(w/2 - 1); two exact numbers to the exact arithmetic;
+two numbers of one inexact kind to that kind's arithmetic, past the checks
+for errors, boxes, booleans and none. The floating-point tail is one helper,
+which both paths call. `math::value`'s move assignment moves the value once,
+where it moved it into a temporary and swapped. Each result is the general
+path's, field by field.** `value_fast_c47.sh` compares chunk 46's `value.h`
+with chunk 47's on 2,214,884 pairs in each of eight builds, and none
+differs; the two faults planted in the shortcut, a product bound too large
+and flags dropped, it catches. `t_value.c` gains the operands at 2^(w/2 - 1)
+and three flagged values, each checked against its exact reference. Measured
+(`bench_value_c47.sh`, chunk 46's header and chunk 47's built alike, the
+median of three rounds): `math::value`'s sum of two doubles from 39.2 to
+13.0 ns, 75 times a double's sum to 25; a product from 39.0 to 13.3; a sum
+of two integers from 28.7 to 21.0; of two rationals, which no shortcut
+takes, from 60.9 to 57.8.
+- Alternative: the shortcut in the C++ face alone, `value.hpp` testing the
+  kinds before it calls the C core: C callers left the long path, and the
+  dispatch in two places.
+- Alternative: a smaller value, a union of the fields where 64 bytes hold
+  them all: copies halved; constant evaluation could not switch a union's
+  member before C++20 (`value.h`'s banner), and every C caller's layout
+  would change.
+- Alternative: every integer product that fits taken at once, by the two
+  words of `d_internal_rational_mul_wide`: two words multiplied for each
+  product, where most factors are small; a product of large factors that
+  fits takes the exact arithmetic, as before.
+
+> **Review.** Taken: for, `math::value`'s arithmetic on the numbers it most
+> often holds several times faster, in C and C++ alike, with every result
+> the general path's field by field, proved by `value_fast_c47.sh` against
+> chunk 46's header on two million pairs in eight builds, and by `t_value.c`
+> against its exact reference with operands at the shortcut's bound; the
+> faults a shortcut invites, a bound too large and flags lost, caught by the
+> comparison. Against: three paths to read where one was, though each ends
+> in the function the general path calls; an integer product of large
+> factors that fits still takes the long way; the value stays 64 bytes, so
+> copies still cost what they did. The alternatives: the shortcut in the C++
+> face alone; a union; every product that fits by a wide multiply.
+> Recommended: as taken.
+
+### S397 to S403: chunk 48, 2026.11.14
+
+The record: `_handoffs/math98_chunk48_2026.11.14/README.md`.
+
+**S397. The run-time language keeps its names, flat in `djinterp::math`
+with the `expr_` prefix, as S179 set them; the namespace `math::expr::`
+the owner chose on 2026.11.12 is withdrawn at his word of 2026.11.14,
+"flat in djinterp::math", which left the prefix to the lane's
+recommendation "for fewer/no namespace levels below math".** A class and a
+namespace cannot share a name in one scope, so `math::expr::` would have
+moved the handle, `math::expr`; flat, the handle stays where it is. Without
+the prefix eleven of the language's 91 public names would clash with
+names `math` already has (`complex`, `quaternion` and `function`, class
+templates or a function template of them; `constant`, `derivative`,
+`gradient`, `sum` and `integrate`, the compile-time language's; `norm` and
+`dot`, the quaternion's; `parse`, the handle's own), and nine would hide
+`djinterp`'s inside `math` (`evaluate`, `render`, `substitute`, `atom_of`,
+`sum`, `product`, `constant`, `parse` and `result`), found by a compiler
+probe of every name with every math header included. Lane F was told on
+2026.11.14 that `expr_op`, `expr_atom` and `expr_term` are final.
+- Alternative: the prefix dropped, `math::term`, `math::evaluate`,
+  `math::compile`: shorter names; the eleven clashes renamed each its own
+  way (`complex_value`, `quaternion_value`, `named_function`,
+  `constant_term`, `parse_term`, `result<T, error>` for `expr_result<T>`),
+  so that `number()` would stand beside `constant_term()`; math's own calls
+  of `djinterp`'s names qualified; and a user's `using namespace` of both
+  namespaces ambiguous for `evaluate`, `render`, `substitute`, `sum` and
+  `parse`.
+- Alternative: `math::expr::`, the handle `math::expr::expression`: the
+  names grouped, a level below `math`, which the owner ruled out.
+
+> **Review.** Taken: for, the owner's word of 2026.11.14, flat in
+> `djinterp::math`, kept to the letter, and the rest left to the lane's
+> recommendation, "fewer or no namespace levels below math", met with none;
+> the handle `math::expr` where it is; no name of the language's clashing
+> with one of `math`'s or hiding one of `djinterp`'s, eleven and nine that
+> the prefix's removal would bring, found by a compiler probe with every
+> header read; lane F building on names that do not move, as it was told the
+> same day; no break for any caller. Against: the prefix stays, `expr_` on
+> 91 names, longer to write than a namespace's names would be inside it; the
+> evaluation's third group, an API break before 0.8 or never, is now never,
+> and with it the shorter spelling. The alternatives: the prefix dropped,
+> eleven names renamed each its own way; `math::expr::`, which the owner
+> ruled out. Recommended: as taken.
+
+**S398. The framework has one quaternion: `math::quaternion<T>`, in
+`quaternion.hpp`, takes linear algebra's names, its members `m_x`, `m_y`,
+`m_z` and `m_w`, the default element type `double`, `identity()`,
+`vector_part()`, `to_matrix3` and `to_matrix3_fast` for `to_matrix` and
+`to_matrix_fast`, and its `from_axis_angle`, the C core's
+`d_quat_from_axis_angle`; and `linear_algebra/quaternion.hpp`, which held a
+second class over the same `quat.h`, names the one class and each of its
+functions in `linalg` by using-declarations, so that
+`linalg::from_axis_angle` and `math::from_axis_angle` are one function and
+no call is ambiguous.** The second of the evaluation's groups of fixes the
+owner chose on 2026.11.12, "one header per concept". Two classes made two of
+every function, and a call such as `from_matrix(m)` of a `linalg::matrix`,
+its own namespace searched by argument, found both and was ambiguous
+wherever both headers were read, as in a translation unit of every header
+(`expr/rotation.hpp`'s). The render module's code, which uses
+`linalg::quaternion`, its `m_` members and its functions' names, compiles
+and passes unchanged: each name it uses stands. What changes for
+`math::quaternion`'s callers: its members are `m_x`, `m_y`, `m_z` and `m_w`,
+as the C++ style guide names members, where they were `x`, `y`, `z` and
+`w`; `to_matrix` is `to_matrix3`; and `from_axis_angle`, which normalized
+the axis in the face and then took `d_quat_from_unit_axis_angle`, scales
+once, axis sin(a/2) / |axis|, as `linalg`'s did, so that its parts may
+differ from before in the last bit, each within a step, and a zero axis,
+which named no rotation, gives the identity where it gave (0, 0, 0,
+cos(a/2)), a quaternion that rotates nothing only by being divided by its
+norm.
+- Alternative: two classes, each call that is ambiguous written out by its
+  namespace: no caller changes; two of every function to keep in step, the
+  ambiguity left for every user who includes both and calls by argument,
+  and two names for one concept, which the evaluation found.
+- Alternative: the one class in `linalg`, `math` naming it: `linalg`'s
+  callers untouched as now; the language's kinds, the complex face's
+  neighbour and `math.hpp`'s entry point would reach a quaternion through
+  linear algebra's namespace, where the module's numbers, `math::value` and
+  `math::complex<T>`, stand in `math`.
+- Alternative: `linear_algebra/quaternion.hpp` removed, its
+  using-declarations in `quaternion.hpp`: no second header of the name;
+  the render module's include of it, outside the lane's paths, broken.
+- Alternative: `math`'s members `x`, `y`, `z` and `w` kept and `linalg`'s
+  callers changed: no change for `math::quaternion`'s callers, the render
+  module's code edited outside the lane's paths, and public members against
+  the style guide's `m_`.
+
+> **Review.** Taken: for, one quaternion where there were two, one of every
+> function, and no call ambiguous by its argument's namespace, as a
+> translation unit of every header found; the render module, the one user of
+> `linalg`'s class outside math, compiling and passing unchanged, each name
+> it uses standing; the members named as the style guide names them;
+> `from_axis_angle` the C core's in both names, the axis scaled once and a
+> zero axis the identity, a rotation, where `math`'s gave a quaternion that
+> rotated nothing only once normalized. Against: `math::quaternion`'s
+> callers change, its members `x`..`w` now `m_x`..`m_w`, `to_matrix` now
+> `to_matrix3`, and `from_axis_angle`'s parts may differ in the last bit and
+> are the identity for a zero axis; within the framework those callers are
+> the lane's own, changed with it, and a caller outside the framework would
+> change too, a break before 0.8, as the owner prefers breaks to be. The
+> alternatives: two classes, the ambiguous calls written out; the one class
+> in `linalg`; `math`'s members kept; the `linalg` header removed.
+> Recommended: as taken.
+
+**S399. `math.hpp` includes every header of the module, `expr/expr.hpp`,
+`linear_algebra/linalg.hpp`, `linear_algebra/quaternion.hpp`,
+`quaternion.hpp`, `functional.hpp` and `numeric_compare.hpp` among them, and
+its banner begins with the entry points, where to start for each part; and
+`geometry/geometry.hpp` includes `platonic.hpp`, the one geometry header it
+did not.** A header that says it includes everything now does: before, a
+user of `math.hpp` had no run-time language, no quaternion and no linear
+algebra beyond what other headers happened to read. `math.hpp` compiles
+from C++14, the compile-time core's floor, as it did; `expr/` is empty
+below C++11. With every header read, a probe of `math.hpp` with `-Wshadow`
+found the lane's own locals named as the compile-time core's variables
+`x`, `z` and `r` in `quaternion.hpp` and three of `expr/`; they are
+renamed (S403).
+- Alternative: `math.hpp` as it was, its banner saying what it leaves out:
+  no new compile cost for its users; one header named for the module that
+  does not hold it, and the evaluation's finding left standing.
+- Alternative: an umbrella for each part, `math.hpp` of the compile-time
+  core alone: a user picks; three more names to learn for what one header
+  can give, and the module's name on the narrowest of them.
+
+> **Review.** Taken: for, `math.hpp` holding what its banner says, every
+> header, with the entry points first, so that a user who includes it has
+> the language, the quaternion and linear algebra; the floor unchanged,
+> C++14; a header left out of `geometry.hpp`, `platonic.hpp`, read with the
+> rest. Against: `math.hpp` costs more to compile, the language's 23 headers
+> among what it reads; a user who wants one part still includes that part's
+> header, as the banner and the README advise; reading the compile-time core
+> beside the rest brings its namespace variables `x` to `phi` beside every
+> function of `math`, whose locals of those names `-Wshadow` reports (S403).
+> The alternatives: `math.hpp` as it was, its banner saying what it leaves
+> out; an umbrella for each part. Recommended: as taken.
+
+**S400. The language's headers whose names another math header had are
+named for what they hold: `expr/complex.hpp` is `expr/complex_kind.hpp`,
+`expr/quaternion.hpp` `expr/quaternion_kind.hpp`, `expr/matrix.hpp`
+`expr/matrix_kind.hpp` (and `expr/matrix_function.hpp`, S401) and
+`expr/series.hpp` `expr/summation.hpp`, beside `complex.hpp`,
+`quaternion.hpp`, `linear_algebra/matrix.hpp` and `calculus/series.hpp`;
+and `expr/function.hpp`, beside `function/function.hpp`, is split
+(S401), its tables in `expr/function_table.hpp`. No two math headers share
+a name but the quaternion's, the second its name in `linalg`. Each include
+guard follows its file's name; no forwarding header stands at an old
+name.** The evaluation of 2026.11.12 found the names twice
+over, and the owner chose the fix with the group. The language's side is
+renamed: its headers are the lane's, where `calculus/series.hpp` and
+`function/function.hpp` are the compile-time core's, on the owner's punch
+list (`scripts/ci/ladder_known.txt`), and the class headers are the
+module's entry points. A copy of the zip over the owner's tree leaves the
+five old files in place, as a copy deletes nothing: they are to be deleted,
+and the note names them. `linear_algebra/quaternion.hpp` keeps its name
+beside `quaternion.hpp`: it holds no code of its own, but names the one
+class and its functions in `linalg` (S398), and the render module includes
+it by that path.
+- Alternative: the names kept, each folder saying which: no break, as the
+  includes stand; two `complex.hpp` and two `matrix.hpp` to tell apart in
+  every search, editor and message, the evaluation's finding left standing.
+- Alternative: the other side renamed: the language's includes stand; the
+  owner's compile-time core and punch list edited, and the class headers,
+  each a concept's first name, renamed for the language's sake.
+- Alternative: forwarding headers at the old names until 0.8: old includes
+  build for a while; the two names stay, each a header, until a second
+  break removes them.
+
+> **Review.** Taken: for, each of the language's headers of a name no other
+> math header has, each named for what it holds, the language's kinds
+> `_kind` and its tables `function_table`, so that a search, an editor's
+> list or a compiler's message names one file; the renames on the lane's
+> side, its own headers, the owner's compile-time core and punch list
+> untouched and the class headers keeping the concepts' first names; include
+> guards that follow the names; the break before 0.8, as the owner chose for
+> the names on 2026.11.14. Against: an include of an old path fails, a break
+> for any caller outside the framework, the framework's own changed with it;
+> a copy of the zip over the owner's tree deletes nothing, so the five old
+> files stay until he deletes them, and an old file left beside its new one
+> defines the same entities under another guard, which a translation unit
+> reading both would find twice; the decisions before S400 name the headers
+> as they were; `quaternion.hpp` stays a name of two headers, the second the
+> `linalg` alias the render module includes. The alternatives: the names
+> kept, the folders telling them apart; the other side renamed; forwarding
+> headers until 0.8. Recommended: as taken.
+
+**S401. `expr/function.hpp`, 4,363 lines, and `expr/matrix.hpp`, 7,979, are
+split along their concepts: the tables (`expr/function_table.hpp`: the
+entries, the table, linear algebra's and the quaternions' evaluators and the
+standard tables), the arithmetic beyond `value.h`'s (`expr/arithmetic.hpp`:
+the functions' evaluators in a type and as a value, and `^` and `mod`, which
+the operators share) and the relations and logic (`expr/logic.hpp`), from
+`function.hpp`; the matrix kind, its values, operators, transposes and
+blocks (`expr/matrix_kind.hpp`) and linear algebra's functions of them,
+det, inv, trace, norm, eig, dot, cross and solve
+(`expr/matrix_function.hpp`), from `matrix.hpp`. Each section moves whole,
+its own numbers its new
+header's; each header includes what it uses and compiles alone; no
+statement changes.** `function.hpp`'s sections depended in one direction
+(the logic on two helpers of the arithmetic, the standard tables on every
+other), and `matrix.hpp`'s functions on the kind and nothing after them,
+so each cut follows a line the code already drew. `evaluate.hpp` includes
+the arithmetic and the logic, which its operators use, and the table;
+`expr/expr.hpp` includes all 23. The tests' outputs are the same, byte for
+byte, before and after.
+- Alternative: `matrix_kind.hpp`'s arithmetic, 3,150 lines, in a header of
+  its own: no header past 3,300 lines; the kind's table calls the
+  arithmetic, which needs the kind, so one would include the other at its
+  end, or every user would need both, the kind alone an ODR trap.
+- Alternative: each family's evaluators beside its kind, the complex
+  functions' in `complex_kind.hpp`: one header per family; the table's
+  arithmetic, which takes every kind in one function, cut across five
+  headers, and a reader of one function sent to several.
+- Alternative: the two headers left whole: no move; two headers of 4,363
+  and 7,979 lines, the evaluation's finding left standing.
+
+> **Review.** Taken: for, the two largest headers, 4,363 and 7,979 lines,
+> cut along lines their code already drew, the largest header now the matrix
+> kind's, 4,811; each concept a header: the tables, the arithmetic the
+> operators share, the logic, the kind, its functions; each header compiling
+> alone at C++11 and empty below; no statement changed in the move, every
+> test's output the same byte for byte; `evaluate.hpp` reading the
+> arithmetic and logic it uses, not reaching them through the table.
+> Against: three headers more to find, which `expr_common.hpp`'s map and the
+> README name; the matrix kind still 4,811 lines, its arithmetic in it, as
+> the kind's table needs it; a caller who included `function.hpp` for an
+> evaluator now includes the header that holds it, or the table, which
+> includes all three. The alternatives: the kind's arithmetic apart; each
+> family's evaluators beside its kind; the headers whole. Recommended: as
+> taken.
+
+**S402. `values.hpp`, the compile-time core's sampler, a near twin of
+`value.hpp`'s name, keeps its name until step 30 (5b) ports it.** Renaming
+it now would edit the owner's punch list, where `values.hpp` has its line,
+and the roadmap's 5b, which names it; the port is the place where its name
+can follow what it becomes.
+- Alternative: renamed now, `sampling.hpp`: the near twin gone in this
+  chunk; the owner's punch list and roadmap edited for a header the lane
+  does not port until step 30.
+
+> **Review.** Taken: for, the owner's punch list and roadmap unedited for a
+> header the lane ports at step 30, where its name can follow what it
+> becomes; the near twin documented in `math.hpp`'s map, `values.hpp`,
+> sampling, and `value.hpp`, the generic value, each said. Against: until
+> step 30 the two names stand side by side, the one near twin the evaluation
+> named that this chunk leaves. The alternatives: renamed now. Recommended:
+> as taken, the rename with step 30.
+
+**S403. Locals of the lane's headers named as the compile-time core's
+namespace variables `x`, `z` and `r` are renamed: nine `r`s in
+`quaternion.hpp`'s functions are `out`, and three of `expr/`, in
+`rotation.hpp`, `complex_kind.hpp` and `evaluate.hpp`, `entries`, `nearest`
+and `values`, so that no header of the lane shadows them where `math.hpp`
+reads both; the 26 such locals of `function/function.hpp` and of six
+geometry headers stay, for step 29 (5a), which ports `expression.hpp`, to
+end at their root.** `expression.hpp` defines `x`, `y`, `z`, `t`, `r`,
+`rho`, `theta` and `phi` as variables of `djinterp::math`, so that every
+local of that name in a function of `math` shadows one, a warning under
+`-Wshadow`, which the face tests build with and the ladder does not: before
+this chunk, `math.hpp` gave such warnings at 20 places, all in `function/`
+and `geometry/`; reading every header, it gave them at 38, and gives them
+at 26 now, those of `function/` and `geometry/`, `platonic.hpp`'s six among
+them.
+- Alternative: the 26 left renamed now too: `math.hpp` clean under
+  `-Wshadow` in this chunk; edits across the owner's compile-time core and
+  six geometry headers for a hazard whose cause is one header's
+  namespace-scope names, which 5a can put in a namespace of their own.
+
+> **Review.** Taken: for, no header of the lane's shadowing the compile-time
+> core's variables wherever both are read, twelve locals renamed, each name
+> saying what it holds; `math.hpp` under `-Wshadow` back to the hazard it
+> had before this chunk, in `function/` and `geometry/` alone, where 20
+> places were and 26 are, `platonic.hpp`'s six read since S399. Against: a
+> user who includes `math.hpp` and builds with `-Wshadow` still sees 26
+> warnings, none of them the lane's code; the cause, eight variables of
+> `djinterp::math` named as the commonest locals, stands until step 29. The
+> alternatives: the 26 renamed now too. Recommended: as taken; at step 29
+> (5a), `expression.hpp`'s variables in a namespace of their own, which ends
+> every such warning at once. **Flag:** minor: `math.hpp` is not clean under
+> `-Wshadow` until step 29.

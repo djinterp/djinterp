@@ -2,7 +2,8 @@
 * djinterp [cpp/math]                           t_expr_complex_function_face.cpp
 *
 * Tests for what step 23's second part, in chunk 41, made of complex numbers
-* in the language (math/expr/function.hpp, evaluate.hpp, complex.hpp):
+* in the language (math/expr/arithmetic.hpp, function_table.hpp, evaluate.hpp,
+* complex_kind.hpp):
 *   - the table: log1p, expm1, asinh, acosh, atanh, sign, min and max, and
 *     every function's evaluators in each complex type (S203, S339);
 *   - exact values (S337): roots and rational powers where the principal
@@ -42,7 +43,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_function_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.01
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -109,8 +110,8 @@ namespace
 #include <vector>   // std::vector
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/math/float_order.h"        // d_math_ld_steps
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex.hpp"   // the kind
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function.hpp"  // the tables
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex_kind.hpp"   // the kind
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"  // the tables
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"     // expr_parse
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/token.hpp"     // the decimals
 #include "./math_tests_expr_complex_refs.h"                                   // the references
@@ -1530,13 +1531,15 @@ namespace
                         (d_tests_in_is("2 - im", 2.0 - cd(0.0, 1.0))) &&
                         (d_tests_in_is("norm(-3)", cd(3.0))) &&
                         (d_tests_in_is("sqrt(n)", cd(nan), odd)) &&
+                        (d_tests_in_is("n ^ 0.5", cd(nan), odd)) &&
                         (d_tests_in_is("u and true", cd(nan), odd)) &&
                         (d_tests_in_is("v and true", cd(nan), odd)) &&
                         (d_tests_in_is("(1 + 0im) * -1",
                                        cd(1.0, 0.0) * -1.0)),
                         "a real operand on either side taken as itself; "
-                        "norm of a real number; a NaN given stays real; a "
-                        "NaN part's truth unknown");
+                        "norm of a real number; a NaN given stays real, to "
+                        "a function or a power; a NaN part's truth "
+                        "unknown");
         D_TESTS_EXPECT( (m::expr_evaluate<cd>(m::expr_term()).is_err()) &&
                         (d_tests_in<cd>("y").is_err()) &&
                         (d_tests_in<cd>("f(1)").is_err()) &&

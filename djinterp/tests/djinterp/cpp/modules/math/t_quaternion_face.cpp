@@ -1,10 +1,12 @@
 /*******************************************************************************
 * djinterp [cpp/math]                                      t_quaternion_face.cpp
 *
-*   Tests for both quaternion headers -- math/quaternion.hpp and
-* math/linear_algebra/quaternion.hpp -- at every level from C++98: from an
-* axis and angle, each the C library's sine and cosine in its own formula,
-* bit for bit; the Hamilton product, the norm and the rotation within a
+*   Tests for the one quaternion, math::quaternion, by both its names -- its
+* header, math/quaternion.hpp, and math/linear_algebra/quaternion.hpp, whose
+* linalg::quaternion and functions are its by using-declarations (S398) --
+* at every level from C++98: from an axis and angle, the C library's sine
+* and cosine in the C core's formula, bit for bit, by either name the same
+* function; the Hamilton product, the norm and the rotation within a
 * step of the correctly rounded value, taken in a wider type; the _fast
 * forms the C core's former formulas, bit for bit; rotation equal to the
 * matrix's product, q and -q the same rotation, q q^-1 the identity, the
@@ -29,7 +31,7 @@
 * path:      /tests/djinterp/cpp/modules/math/t_quaternion_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.05
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/quaternion.hpp"  // tested
 // djinterp
@@ -169,198 +171,300 @@ namespace
                4.0;
     }
 
+    // d_tests_family_axis, d_tests_family_products,
+    // d_tests_family_rotation, d_tests_family_inverses,
+    // d_tests_family_powers, d_tests_family_turns
+    //   d_tests_family's parts, each trial's in its order: from an axis and
+    // an angle; the norm and the products; rotation; Shepperd's method and
+    // two vectors' quaternion; exp, log, powers and the interpolations; and
+    // the fixed turns after the trials.
     template<typename Type>
     void
-    d_tests_family(Type _tol)
+    d_tests_family_axis(
+        const vector<Type, 3>&                          _axis,
+        const djinterp::math::linalg::quaternion<Type>& _a,
+        const djinterp::math::quaternion<Type>&         _b,
+        Type                                            _sine,
+        Type                                            _cosine
+    )
+    {
+        typedef djinterp::math::linalg::quaternion<Type> lq;
+        typedef djinterp::math::quaternion<Type>         q;
+        const vector<Type, 3>& axis   = _axis;
+        const lq&              a      = _a;
+        const q&               b      = _b;
+        const Type             sine   = _sine;
+        const Type             cosine = _cosine;
+
+        // from an axis and angle: the library's sine and cosine, in each
+        // header's own formula
+        // (the length stored: on an x87 a returned double may carry
+        // excess precision, which only an assignment or a cast removes)
+        volatile Type length = axis.length();
+        const Type    s      = sine / static_cast<Type>(length);
+
+        D_TESTS_EXPECT( (d_tests_same(a.m_x, axis[0] * s)) &&
+                        (d_tests_same(a.m_z, axis[2] * s)) &&
+                        (d_tests_same(a.m_w, cosine)),
+                        "linalg::from_axis_angle");
+
+        // the one class's one function, by either name (S398)
+        lq*      as_l = static_cast<lq*>(0);
+        const q* as_m = as_l;
+
+        D_TESTS_EXPECT( (as_m == static_cast<const q*>(0)) &&
+                        (d_tests_same(b.m_x, a.m_x)) &&
+                        (d_tests_same(b.m_y, a.m_y)) &&
+                        (d_tests_same(b.m_z, a.m_z)) &&
+                        (d_tests_same(b.m_w, a.m_w)),
+                        "math::from_axis_angle, linalg's: one class, "
+                        "one function, the same bits");
+
+        return;
+    }
+
+    template<typename Type>
+    void
+    d_tests_family_products(
+        const djinterp::math::linalg::quaternion<Type>& _a,
+        const djinterp::math::quaternion<Type>&         _b,
+        const djinterp::math::linalg::quaternion<Type>& _c
+    )
     {
         typedef djinterp::math::linalg::quaternion<Type> lq;
         typedef djinterp::math::quaternion<Type>         q;
         namespace la = djinterp::math::linalg;
         namespace ma = djinterp::math;
+        const lq& a = _a;
+        const q&  b = _b;
+        const lq& c = _c;
 
-        for (int trial = 0; trial < 3000; ++trial)
+        // the norm, the product and the fast product: the C core's,
+        // which t_quat.c holds to its references
+        const lq ac = a * c;
+        Type ea[4] = { a.m_x, a.m_y, a.m_z, a.m_w };
+        Type ec[4] = { c.m_x, c.m_y, c.m_z, c.m_w };
+        Type ep[4] = { Type(), Type(), Type(), Type() };
+        Type ef[4] = { Type(), Type(), Type(), Type() };
+
+        d_quat_multiply(ep, ea, ec);
+        d_quat_multiply_fast(ef, ea, ec);
+        D_TESTS_EXPECT( (d_tests_same(la::norm(a), d_quat_norm(ea))) &&
+                        (d_tests_same(ma::norm(b), la::norm(lq(b.m_x, b.m_y,
+                                                               b.m_z,
+                                                               b.m_w)))),
+                       "the norm is the C core's");
+        D_TESTS_EXPECT( (d_tests_same(ac.m_w, ep[3])) &&
+                        (d_tests_same(ac.m_y, ep[1])),
+                       "the Hamilton product is the C core's");
+        D_TESTS_EXPECT( (d_tests_same(la::multiply_fast(a, c).m_w,
+                                      ef[3])) &&
+                        (d_tests_same(la::multiply_fast(a, c).m_x,
+                                      ef[0])),
+                        "multiply_fast is the C core's former formula");
+
+        return;
+    }
+
+    template<typename Type>
+    void
+    d_tests_family_rotation(
+        const djinterp::math::linalg::quaternion<Type>& _a,
+        const djinterp::math::quaternion<Type>&         _b,
+        const djinterp::math::linalg::quaternion<Type>& _c,
+        const vector<Type, 3>&                          _v,
+        Type                                            _tol
+    )
+    {
+        typedef djinterp::math::linalg::quaternion<Type> lq;
+        typedef djinterp::math::quaternion<Type>         q;
+        namespace la = djinterp::math::linalg;
+        namespace ma = djinterp::math;
+        const lq&              a = _a;
+        const q&               b = _b;
+        const lq&              c = _c;
+        const vector<Type, 3>& v = _v;
+        Type                   ea[4] = { a.m_x, a.m_y, a.m_z, a.m_w };
+        Type                   ec[4] = { c.m_x, c.m_y, c.m_z, c.m_w };
+
+        // rotation: the matrix's product, q and -q, q q^-1; the fast
+        // forms the C core's
+        const vector<Type, 3> r  = la::rotate(a, v);
+        const vector<Type, 3> rm = la::to_matrix3(a).times(v);
+        const lq              na(-a.m_x, -a.m_y, -a.m_z, -a.m_w);
+        const lq              one;
+
+        D_TESTS_EXPECT(r.equals(rm, static_cast<Type>(_tol * 64)),
+                       "rotation is the matrix's product");
+        D_TESTS_EXPECT(la::rotate(na, v) == r,
+                       "q and -q are the same rotation");
+        D_TESTS_EXPECT(d_tests_quat_near(a * la::inverse(a), one,
+                                         static_cast<double>(_tol)),
+                       "q q^-1 = 1");
+        D_TESTS_EXPECT( (d_tests_quat_near((a * c) / c, a,
+                                           static_cast<double>(_tol * 8)))
+                        &&
+                        (d_tests_quat_near(la::left_divide(a, a * c), c,
+                                           static_cast<double>(_tol * 8))),
+                        "(a c) / c = a, a \\ (a c) = c");
+        D_TESTS_EXPECT( (ma::rotate(b, v).equals(
+                             ma::to_matrix3(b).times(v),
+                             static_cast<Type>(_tol * 64))) &&
+                        (d_tests_near(ma::norm(b * ma::inverse(b)),
+                                      static_cast<Type>(1), _tol)),
+                        "math::rotate is its matrix's; q q^-1");
+        D_TESTS_EXPECT( (ma::to_matrix4(b)(3, 3) ==
+                         static_cast<Type>(1)) &&
+                        (ma::to_matrix4(b)(0, 1) ==
+                         ma::to_matrix3(b)(0, 1)) &&
+                        (d_tests_near(ma::dot(b, b),
+                                      static_cast<Type>(1), _tol)),
+                        "math::to_matrix4, dot and norm");
         {
-            const vector<Type, 3> axis(d_tests_random(),
-                                       d_tests_random(),
-                                       d_tests_random());
-            const Type            angle = static_cast<Type>(d_tests_random());
-            const Type            half  = angle / static_cast<Type>(2);
-            const Type            sine  = std::sin(half);
-            const Type            cosine = std::cos(half);
+            Type vf[3] = { Type(), Type(), Type() };
+            Type mf[9] = { Type(), Type(), Type(), Type(), Type(),
+                           Type(), Type(), Type(), Type() };
+            Type nf[4] = { Type(), Type(), Type(), Type() };
 
-            // from an axis and angle: the library's sine and cosine, in each
-            // header's own formula
-            const lq a = la::from_axis_angle(axis, angle);
-            // (the length stored: on an x87 a returned double may carry
-            // excess precision, which only an assignment or a cast removes)
-            volatile Type length = axis.length();
-            const Type    s      = sine / static_cast<Type>(length);
-
-            D_TESTS_EXPECT( (d_tests_same(a.m_x, axis[0] * s)) &&
-                            (d_tests_same(a.m_z, axis[2] * s)) &&
-                            (d_tests_same(a.m_w, cosine)),
-                            "linalg::from_axis_angle");
-
-            const q b = ma::from_axis_angle(axis, angle);
-            const vector<Type, 3> unit = axis.normalized();
-
-            D_TESTS_EXPECT( (d_tests_same(b.x, unit[0] * sine)) &&
-                            (d_tests_same(b.y, unit[1] * sine)) &&
-                            (d_tests_same(b.w, cosine)),
-                            "math::from_axis_angle");
-
-            // the norm, the product and the fast product: the C core's,
-            // which t_quat.c holds to its references
-            const lq c(a.m_y, a.m_w, a.m_x, a.m_z);
-            const lq ac = a * c;
-            Type ea[4] = { a.m_x, a.m_y, a.m_z, a.m_w };
-            Type ec[4] = { c.m_x, c.m_y, c.m_z, c.m_w };
-            Type ep[4] = { Type(), Type(), Type(), Type() };
-            Type ef[4] = { Type(), Type(), Type(), Type() };
-
-            d_quat_multiply(ep, ea, ec);
-            d_quat_multiply_fast(ef, ea, ec);
-            D_TESTS_EXPECT( (d_tests_same(la::norm(a), d_quat_norm(ea))) &&
-                            (d_tests_same(ma::norm(b), la::norm(lq(b.x, b.y,
-                                                                   b.z,
-                                                                   b.w)))),
-                           "the norm is the C core's");
-            D_TESTS_EXPECT( (d_tests_same(ac.m_w, ep[3])) &&
-                            (d_tests_same(ac.m_y, ep[1])),
-                           "the Hamilton product is the C core's");
-            D_TESTS_EXPECT( (d_tests_same(la::multiply_fast(a, c).m_w,
-                                          ef[3])) &&
-                            (d_tests_same(la::multiply_fast(a, c).m_x,
-                                          ef[0])),
-                            "multiply_fast is the C core's former formula");
-
-            // rotation: the matrix's product, q and -q, q q^-1; the fast
-            // forms the C core's
-            const vector<Type, 3> v(d_tests_random(), d_tests_random(),
-                                    d_tests_random());
-            const vector<Type, 3> r  = la::rotate(a, v);
-            const vector<Type, 3> rm = la::to_matrix3(a).times(v);
-            const lq              na(-a.m_x, -a.m_y, -a.m_z, -a.m_w);
-            const lq              one;
-
-            D_TESTS_EXPECT(r.equals(rm, static_cast<Type>(_tol * 64)),
-                           "rotation is the matrix's product");
-            D_TESTS_EXPECT(la::rotate(na, v) == r,
-                           "q and -q are the same rotation");
-            D_TESTS_EXPECT(d_tests_quat_near(a * la::inverse(a), one,
-                                             static_cast<double>(_tol)),
-                           "q q^-1 = 1");
-            D_TESTS_EXPECT( (d_tests_quat_near((a * c) / c, a,
-                                               static_cast<double>(_tol * 8)))
-                            &&
-                            (d_tests_quat_near(la::left_divide(a, a * c), c,
-                                               static_cast<double>(_tol * 8))),
-                            "(a c) / c = a, a \\ (a c) = c");
-            D_TESTS_EXPECT( (ma::rotate(b, v).equals(
-                                 ma::to_matrix(b).times(v),
-                                 static_cast<Type>(_tol * 64))) &&
-                            (d_tests_near(ma::norm(b * ma::inverse(b)),
-                                          static_cast<Type>(1), _tol)),
-                            "math::rotate is its matrix's; q q^-1");
-            D_TESTS_EXPECT( (ma::to_matrix4(b)(3, 3) ==
-                             static_cast<Type>(1)) &&
-                            (ma::to_matrix4(b)(0, 1) ==
-                             ma::to_matrix(b)(0, 1)) &&
-                            (d_tests_near(ma::dot(b, b),
-                                          static_cast<Type>(1), _tol)),
-                            "math::to_matrix4, dot and norm");
-            {
-                Type vf[3] = { Type(), Type(), Type() };
-                Type mf[9] = { Type(), Type(), Type(), Type(), Type(),
-                               Type(), Type(), Type(), Type() };
-                Type nf[4] = { Type(), Type(), Type(), Type() };
-
-                d_quat_rotate_fast(vf, ea, v.data());
-                d_quat_to_matrix3_fast(mf, ea);
-                d_quat_normalize_fast(nf, ec);
-                D_TESTS_EXPECT( (d_tests_same(la::rotate_fast(a, v)[0],
-                                              vf[0])) &&
-                                (d_tests_same(ma::rotate_fast(b, v)[2],
-                                              ma::rotate_fast(b, v)[2])) &&
-                                (d_tests_same(la::to_matrix3_fast(a)(1, 2),
-                                              mf[5])) &&
-                                (d_tests_same(la::to_matrix4_fast(a)(2, 0),
-                                              mf[6])) &&
-                                (d_tests_same(la::normalize_fast(c).m_y,
-                                              nf[1])),
-                                "the _fast forms are the C core's");
-            }
-
-            // Shepperd's method inverts the matrix; two vectors' quaternion
-            const lq unit_a = la::normalize(a * c);
-            const lq back   = la::from_matrix(la::to_matrix3(unit_a));
-            const lq back4  = la::from_matrix(la::to_matrix4(unit_a));
-            const lq signed_a = (unit_a.m_w < static_cast<Type>(0)) ?
-                                    lq(-unit_a.m_x, -unit_a.m_y,
-                                       -unit_a.m_z, -unit_a.m_w) :
-                                    unit_a;
-
-            D_TESTS_EXPECT( (d_tests_quat_near(back, signed_a,
-                                               static_cast<double>(_tol * 8)))
-                            &&
-                            (d_tests_quat_same(back, back4)),
-                            "from_matrix inverts to_matrix3");
-
-            const lq turn = la::from_two_vectors(axis, v);
-            const vector<Type, 3> image = la::rotate(turn, axis);
-
-            D_TESTS_EXPECT(image.normalized().equals(
-                               v.normalized(), static_cast<Type>(_tol * 64)),
-                           "from_two_vectors turns a into b");
-            D_TESTS_EXPECT( (ma::from_two_vectors(axis, v).x == turn.m_x) &&
-                            (ma::from_two_vectors(axis, v).w == turn.m_w),
-                            "the two faces' two vectors agree");
-
-            // exp and log; the root squared; a power as products
-            const lq e = la::exp(la::log(a * c));
-
-            D_TESTS_EXPECT(d_tests_quat_near(e, a * c,
-                                             static_cast<double>(_tol * 8)),
-                           "exp(log q) = q");
-            D_TESTS_EXPECT( (d_tests_quat_near(la::sqrt(ac) * la::sqrt(ac),
-                                               ac,
-                                               static_cast<double>(_tol * 8)))
-                            &&
-                            (d_tests_quat_near(la::pow(ac,
-                                                       static_cast<Type>(2)),
-                                               ac * ac,
-                                               static_cast<double>(_tol * 32))),
-                            "sqrt(q)^2 = q, q^2 = q q");
-            D_TESTS_EXPECT( (d_tests_near(ma::exp(ma::log(b)).y, b.y,
-                                          static_cast<Type>(_tol * 8))) &&
-                            (d_tests_near(ma::sqrt(b).w * ma::sqrt(b).w -
-                                              ma::sqrt(b).x * ma::sqrt(b).x -
-                                              ma::sqrt(b).y * ma::sqrt(b).y -
-                                              ma::sqrt(b).z * ma::sqrt(b).z,
-                                          b.w, static_cast<Type>(_tol * 8)))
-                            &&
-                            (d_tests_near(ma::pow(b, static_cast<Type>(3)).w,
-                                          (b * b * b).w,
-                                          static_cast<Type>(_tol * 8))),
-                            "math's exp, log, sqrt and pow");
-
-            // slerp's ends exact; nlerp's ends normalized; slerp_fast near
-            const lq ua = la::normalize(a);
-            const lq uc = la::normalize(c);
-
-            D_TESTS_EXPECT( (d_tests_quat_same(
-                                 la::slerp(ua, uc, static_cast<Type>(0)),
-                                 ua)) &&
-                            (d_tests_quat_near(
-                                 la::slerp_fast(ua, uc,
-                                                static_cast<Type>(0.375)),
-                                 la::slerp(ua, uc, static_cast<Type>(0.375)),
-                                 static_cast<double>(_tol * 8))) &&
-                            (d_tests_quat_same(
-                                 la::nlerp(ua, uc, static_cast<Type>(0)),
-                                 la::normalize(ua))),
-                            "slerp's and nlerp's ends; slerp_fast");
+            d_quat_rotate_fast(vf, ea, v.data());
+            d_quat_to_matrix3_fast(mf, ea);
+            d_quat_normalize_fast(nf, ec);
+            D_TESTS_EXPECT( (d_tests_same(la::rotate_fast(a, v)[0],
+                                          vf[0])) &&
+                            (d_tests_same(ma::rotate_fast(b, v)[2],
+                                          ma::rotate_fast(b, v)[2])) &&
+                            (d_tests_same(la::to_matrix3_fast(a)(1, 2),
+                                          mf[5])) &&
+                            (d_tests_same(la::to_matrix4_fast(a)(2, 0),
+                                          mf[6])) &&
+                            (d_tests_same(la::normalize_fast(c).m_y,
+                                          nf[1])),
+                            "the _fast forms are the C core's");
         }
+
+        return;
+    }
+
+    template<typename Type>
+    void
+    d_tests_family_inverses(
+        const vector<Type, 3>&                          _axis,
+        const vector<Type, 3>&                          _v,
+        const djinterp::math::linalg::quaternion<Type>& _a,
+        const djinterp::math::linalg::quaternion<Type>& _c,
+        Type                                            _tol
+    )
+    {
+        typedef djinterp::math::linalg::quaternion<Type> lq;
+        namespace la = djinterp::math::linalg;
+        namespace ma = djinterp::math;
+        const vector<Type, 3>& axis = _axis;
+        const vector<Type, 3>& v    = _v;
+        const lq&              a    = _a;
+        const lq&              c    = _c;
+
+        // Shepperd's method inverts the matrix; two vectors' quaternion
+        const lq unit_a = la::normalize(a * c);
+        const lq back   = la::from_matrix(la::to_matrix3(unit_a));
+        const lq back4  = la::from_matrix(la::to_matrix4(unit_a));
+        const lq signed_a = (unit_a.m_w < static_cast<Type>(0)) ?
+                                lq(-unit_a.m_x, -unit_a.m_y,
+                                   -unit_a.m_z, -unit_a.m_w) :
+                                unit_a;
+
+        D_TESTS_EXPECT( (d_tests_quat_near(back, signed_a,
+                                           static_cast<double>(_tol * 8)))
+                        &&
+                        (d_tests_quat_same(back, back4)),
+                        "from_matrix inverts to_matrix3");
+
+        const lq turn = la::from_two_vectors(axis, v);
+        const vector<Type, 3> image = la::rotate(turn, axis);
+
+        D_TESTS_EXPECT(image.normalized().equals(
+                           v.normalized(), static_cast<Type>(_tol * 64)),
+                       "from_two_vectors turns a into b");
+        D_TESTS_EXPECT( (ma::from_two_vectors(axis, v).m_x == turn.m_x) &&
+                        (ma::from_two_vectors(axis, v).m_w == turn.m_w),
+                        "from_two_vectors by either name");
+
+        return;
+    }
+
+    template<typename Type>
+    void
+    d_tests_family_powers(
+        const djinterp::math::linalg::quaternion<Type>& _a,
+        const djinterp::math::quaternion<Type>&         _b,
+        const djinterp::math::linalg::quaternion<Type>& _c,
+        Type                                            _tol
+    )
+    {
+        typedef djinterp::math::linalg::quaternion<Type> lq;
+        typedef djinterp::math::quaternion<Type>         q;
+        namespace la = djinterp::math::linalg;
+        namespace ma = djinterp::math;
+        const lq& a  = _a;
+        const q&  b  = _b;
+        const lq& c  = _c;
+        const lq  ac = a * c;
+
+        // exp and log; the root squared; a power as products
+        const lq e = la::exp(la::log(a * c));
+
+        D_TESTS_EXPECT(d_tests_quat_near(e, a * c,
+                                         static_cast<double>(_tol * 8)),
+                       "exp(log q) = q");
+        D_TESTS_EXPECT( (d_tests_quat_near(la::sqrt(ac) * la::sqrt(ac),
+                                           ac,
+                                           static_cast<double>(_tol * 8)))
+                        &&
+                        (d_tests_quat_near(la::pow(ac,
+                                                   static_cast<Type>(2)),
+                                           ac * ac,
+                                           static_cast<double>(_tol * 32))),
+                        "sqrt(q)^2 = q, q^2 = q q");
+        D_TESTS_EXPECT( (d_tests_near(ma::exp(ma::log(b)).m_y, b.m_y,
+                                      static_cast<Type>(_tol * 8))) &&
+                        (d_tests_near(ma::sqrt(b).m_w * ma::sqrt(b).m_w -
+                                        ma::sqrt(b).m_x * ma::sqrt(b).m_x -
+                                        ma::sqrt(b).m_y * ma::sqrt(b).m_y -
+                                        ma::sqrt(b).m_z * ma::sqrt(b).m_z,
+                                      b.m_w, static_cast<Type>(_tol * 8)))
+                        &&
+                        (d_tests_near(ma::pow(b, static_cast<Type>(3)).m_w,
+                                      (b * b * b).m_w,
+                                      static_cast<Type>(_tol * 8))),
+                        "math's exp, log, sqrt and pow");
+
+        // slerp's ends exact; nlerp's ends normalized; slerp_fast near
+        const lq ua = la::normalize(a);
+        const lq uc = la::normalize(c);
+
+        D_TESTS_EXPECT( (d_tests_quat_same(
+                             la::slerp(ua, uc, static_cast<Type>(0)),
+                             ua)) &&
+                        (d_tests_quat_near(
+                             la::slerp_fast(ua, uc,
+                                            static_cast<Type>(0.375)),
+                             la::slerp(ua, uc, static_cast<Type>(0.375)),
+                             static_cast<double>(_tol * 8))) &&
+                        (d_tests_quat_same(
+                             la::nlerp(ua, uc, static_cast<Type>(0)),
+                             la::normalize(ua))),
+                        "slerp's and nlerp's ends; slerp_fast");
+
+        return;
+    }
+
+    template<typename Type>
+    void
+    d_tests_family_turns(Type _tol)
+    {
+        typedef djinterp::math::linalg::quaternion<Type> lq;
+        typedef djinterp::math::quaternion<Type>         q;
+        namespace la = djinterp::math::linalg;
+        namespace ma = djinterp::math;
 
         // slerp: an eighth turn halfway to a quarter turn
         const vector<Type, 3> z(0, 0, 1);
@@ -382,7 +486,7 @@ namespace
                                                    static_cast<Type>(1)),
                                          quarter),
                        "slerp at 1");
-        D_TESTS_EXPECT(ma::slerp(q(), q(), static_cast<Type>(0.3)).w ==
+        D_TESTS_EXPECT(ma::slerp(q(), q(), static_cast<Type>(0.3)).m_w ==
                            static_cast<Type>(1),
                        "math::slerp between equal rotations");
 
@@ -391,6 +495,47 @@ namespace
                            static_cast<Type>(
                                3.14159265358979323846264338327950288L),
                        "log(-1) = pi i");
+
+        return;
+    }
+
+    // d_tests_family
+    //   the one quaternion by both its names, on 3,000 random rotations in
+    // Type, each part's checks in its order, then the fixed turns.
+    template<typename Type>
+    void
+    d_tests_family(Type _tol)
+    {
+        typedef djinterp::math::linalg::quaternion<Type> lq;
+        typedef djinterp::math::quaternion<Type>         q;
+        namespace la = djinterp::math::linalg;
+        namespace ma = djinterp::math;
+
+        for (int trial = 0; trial < 3000; ++trial)
+        {
+            const vector<Type, 3> axis(d_tests_random(),
+                                       d_tests_random(),
+                                       d_tests_random());
+            const Type            angle = static_cast<Type>(d_tests_random());
+            const Type            half  = angle / static_cast<Type>(2);
+            const Type            sine  = std::sin(half);
+            const Type            cosine = std::cos(half);
+            const lq              a = la::from_axis_angle(axis, angle);
+            const q               b = ma::from_axis_angle(axis, angle);
+            const lq              c(a.m_y, a.m_w, a.m_x, a.m_z);
+
+            d_tests_family_axis(axis, a, b, sine, cosine);
+            d_tests_family_products(a, b, c);
+
+            const vector<Type, 3> v(d_tests_random(), d_tests_random(),
+                                    d_tests_random());
+
+            d_tests_family_rotation(a, b, c, v, _tol);
+            d_tests_family_inverses(axis, v, a, c, _tol);
+            d_tests_family_powers(a, b, c, _tol);
+        }
+
+        d_tests_family_turns(_tol);
 
         return;
     }
@@ -413,10 +558,10 @@ namespace
     d_tests_mq_is(const djinterp::math::quaternion<Type>& _q,
                   const Type*                             _p)
     {
-        return ( (d_tests_same(_q.x, _p[0])) &&
-                 (d_tests_same(_q.y, _p[1])) &&
-                 (d_tests_same(_q.z, _p[2])) &&
-                 (d_tests_same(_q.w, _p[3])) );
+        return ( (d_tests_same(_q.m_x, _p[0])) &&
+                 (d_tests_same(_q.m_y, _p[1])) &&
+                 (d_tests_same(_q.m_z, _p[2])) &&
+                 (d_tests_same(_q.m_w, _p[3])) );
     }
 
     // d_tests_matrix_is
@@ -547,11 +692,11 @@ namespace
             }
             d_quat_to_matrix3(r, ea);
             D_TESTS_EXPECT( (d_tests_matrix_is(la::to_matrix3(a), r)) &&
-                            (d_tests_matrix_is(ma::to_matrix(am), r)),
+                            (d_tests_matrix_is(ma::to_matrix3(am), r)),
                             "to_matrix3 forwards");
             d_quat_to_matrix3_fast(r, ea);
             D_TESTS_EXPECT( (d_tests_matrix_is(la::to_matrix3_fast(a), r)) &&
-                            (d_tests_matrix_is(ma::to_matrix_fast(am), r)),
+                            (d_tests_matrix_is(ma::to_matrix3_fast(am), r)),
                             "to_matrix3_fast forwards");
             d_quat_to_matrix4(r, ea);
             D_TESTS_EXPECT( (d_tests_matrix_is(la::to_matrix4(a), r)) &&
@@ -846,7 +991,7 @@ static_assert(djinterp::math::linalg::sqrt(cq(0, 0, 0, 4)).m_w == 2.0,
 static_assert(djinterp::math::linalg::pow(cq(0, 0, 0, 2), 3.0).m_w == 8.0,
               "a constexpr pow");
 static_assert(djinterp::math::exp(djinterp::math::quaternion<double>(
-                  0.0, 0.0, 0.0, 0.0)).w == 1.0,
+                  0.0, 0.0, 0.0, 0.0)).m_w == 1.0,
               "math's constexpr exp");
 #endif
 

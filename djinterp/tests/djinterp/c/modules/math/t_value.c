@@ -20,13 +20,15 @@
 * products; an exact number and a floating-point one by the latter's exact
 * mantissa and exponent, from the C library's frexp; two floating-point ones
 * as long doubles. eq must be cmp's EQUAL, and cmp(b, a) cmp(a, b) turned.
-*   The operands: 33 exact numbers -- small ones, the family's ends, and the
-* values around 2^(w/2) and 2^(w-1) where sums and products overflow -- 54
+*   The operands: 37 exact numbers -- small ones, the family's ends, the
+* values around 2^(w/2) and 2^(w-1) where sums and products overflow, and
+* around 2^(w/2 - 1), below which two integers are multiplied at once -- 54
 * floating-point ones, 18 of each type, zeros, infinities and a NaN among
 * them; the nearest float, double and long double of -1/3 and of MAX/3, which
 * a comparison must tell from the rationals themselves; none, both booleans
-* and the four errors; and two flagged values, an exact sum past the family
-* and an error made from it: each pair, for every operation and the
+* and the four errors; and five flagged values, an exact sum past the family,
+* an error made from it, and two integers and a double as if computed from
+* one: each pair, for every operation and the
 * comparison. Then 20,000 pairs of exact numbers drawn at
 * random, each term of a random length. from_uint is checked against the
 * reference too, an integer up to dj_math_imax's top and the long double
@@ -44,7 +46,7 @@
 * path:      /tests/djinterp/c/modules/math/t_value.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, FLT_MIN, DBL_MAX ... LDBL_MIN
@@ -61,6 +63,9 @@
 #define D_TESTS_LEAST  D_MATH_IMAX_MIN
 #define D_TESTS_HALF                                                           \
     ((dj_math_imax)((dj_math_umax)1 << D_INTERNAL_RATIONAL_HALF_BITS))
+
+// 2^(w/2 - 1), below which value.h multiplies two integers at once (S396)
+#define D_TESTS_SMALL  (D_TESTS_HALF / 2)
 
 // the pairs of exact numbers drawn at random
 #define D_TESTS_TRIALS  20000L
@@ -812,11 +817,11 @@ d_tests_add_value(
     return;
 }
 
-// d_tests_make_values
-//   the operands: exact numbers, floating-point ones of each type, and the
-// other kinds.
+// d_tests_make_exact
+//   the exact operands: small ones, the family's ends, and the values
+// around 2^(w/2 - 1), 2^(w/2) and 2^(w-1).
 static void
-d_tests_make_values(void)
+d_tests_make_exact(void)
 {
     // each in the one form; integers as n/1
     static const dj_math_imax exact[][2] = {
@@ -846,20 +851,35 @@ d_tests_make_values(void)
         { D_TESTS_MOST / 2,  1                },
         { 1,                 D_TESTS_MOST / 2 },
         { 5,                 D_TESTS_MOST / 4 },
-        { D_TESTS_MOST,      D_TESTS_HALF + 1 }
+        { D_TESTS_MOST,      D_TESTS_HALF + 1 },
+        { D_TESTS_SMALL - 1, 1                },
+        { D_TESTS_SMALL,     1                },
+        { 1 - D_TESTS_SMALL, 1                },
+        { -D_TESTS_SMALL,    1                }
     };
     const int exact_count = (int)(sizeof(exact) / sizeof(exact[0]));
 
-    volatile float       zero_f  = 0.0f;
-    volatile double      zero_d  = 0.0;
-    volatile long double zero_ld = 0.0L;
-    int                  i       = 0;
+    int i = 0;
 
     // the exact numbers, as values
     for (i = 0; i < exact_count; ++i)
     {
         d_tests_add_value(d_math_value_from_ratio(exact[i][0], exact[i][1]));
     }
+
+    return;
+}
+
+// d_tests_make_floating
+//   the floating-point operands, 18 of each type: zeros of both signs,
+// small and large numbers, the type's ends and a subnormal, infinities and
+// a NaN.
+static void
+d_tests_make_floating(void)
+{
+    volatile float       zero_f  = 0.0f;
+    volatile double      zero_d  = 0.0;
+    volatile long double zero_ld = 0.0L;
 
     // float
     d_tests_add_value(d_math_value_from_f(0.0f));
@@ -921,6 +941,17 @@ d_tests_make_values(void)
     d_tests_add_value(d_math_value_from_ld(-1.0L / zero_ld));
     d_tests_add_value(d_math_value_from_ld(zero_ld / zero_ld));
 
+    return;
+}
+
+// d_tests_make_others
+//   the other operands: none, the booleans and the errors; the nearest
+// float, double and long double of two rationals; and the flagged values.
+static void
+d_tests_make_others(void)
+{
+    int i = 0;
+
     // the other kinds
     d_tests_add_value(d_math_value_none());
     d_tests_add_value(d_math_value_from_bool(false));
@@ -953,15 +984,43 @@ d_tests_make_values(void)
         }
     }
 
-    // flagged: an exact sum past the family, and an error made from it
+    // flagged: an exact sum past the family, and an error made from it;
+    // and two integers and a double as if computed from such a sum, so that
+    // each of the arithmetic's shortcuts carries its operands' flags (S396)
     {
         const struct dj_math_value past =
             d_math_value_add(d_math_value_from_int(D_TESTS_MOST),
                              d_math_value_from_int(1));
 
+        struct dj_math_value carried = d_math_value_from_int(5);
+
         d_tests_add_value(past);
         d_tests_add_value(d_math_value_add(past, d_math_value_none()));
+
+        carried.flags = D_MATH_VALUE_FLAG_INEXACT;
+        d_tests_add_value(carried);
+
+        carried       = d_math_value_from_int(1 - D_TESTS_SMALL);
+        carried.flags = D_MATH_VALUE_FLAG_INEXACT;
+        d_tests_add_value(carried);
+
+        carried       = d_math_value_from_d(2.5);
+        carried.flags = D_MATH_VALUE_FLAG_INEXACT;
+        d_tests_add_value(carried);
     }
+
+    return;
+}
+
+// d_tests_make_values
+//   the operands: exact numbers, floating-point ones of each type, and the
+// other kinds.
+static void
+d_tests_make_values(void)
+{
+    d_tests_make_exact();
+    d_tests_make_floating();
+    d_tests_make_others();
 
     return;
 }

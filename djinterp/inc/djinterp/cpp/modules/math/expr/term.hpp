@@ -9,7 +9,7 @@
 * once, from its text, to the type it asks for; a number a fold made has no
 * literal. A variable and a named constant are held by name: a variable's
 * value comes from the bindings (evaluate.hpp), a constant's from the
-* constant table (function.hpp), at the type a fold asks for.
+* constant table (function_table.hpp), at the type a fold asks for.
 *   THE TERM, expr_term, is expression<expr_op, expr_atom>: a leaf holding an
 * atom, or an operator applied to its operands, a call's to its arguments.
 * parse/expression's folds, queries and transforms take it, naming its two
@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/term.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*

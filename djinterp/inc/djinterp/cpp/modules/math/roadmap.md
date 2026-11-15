@@ -489,16 +489,25 @@ instead.
 | `parse.hpp` | 2, the parser layer | 2b; 2c (calls); 2d (chains, piecewise); 3a (literals); 3b (indexing, `'`); 3c (`[]`, blocks) |
 | `term.hpp` | 3, the term | 2a (whole) |
 | `evaluate.hpp` | 4, to numbers and values | 2b; 2c; 2d; 3b; 3c (blocks) |
-| `function.hpp` | 4, the function and constant tables | 2c; 2d (piecewise, `true`, `false`); 3b (`^` and relations of matrices); 3c; 4a (rules) |
+| `function_table.hpp` | 4, the function and constant tables | 2c; 2d (piecewise, `true`, `false`); 3c; 4a (rules) |
+| `arithmetic.hpp` | 4, the functions' evaluators, `^` and `mod` | 2c; 3b (`^` of matrices) |
+| `logic.hpp` | 4, the relations, logic and piecewise | 2d; 3b (relations of matrices) |
 | `render.hpp` | 4, to text | 2b; 2c; 2d; 3a; 3b (indexing) |
 | `substitute.hpp` | 5 | 2f |
 | `simplify.hpp` | 5 | 2f; 3b (matrix factors in order); 3c (blocks never square by structure); 4a |
 | `expr.hpp` | 6, the handle, and every header | 2e |
-| `matrix.hpp` | Phase 3 | 3a, 3b, 3c |
+| `matrix_kind.hpp` | Phase 3, the matrix kind | 3a, 3b, 3c (blocks, the empty matrix, negative powers) |
+| `matrix_function.hpp` | Phase 3, linear algebra's functions | 3c |
 | `derivative.hpp` | Phase 4 | 4a |
 | `numeric.hpp` | Phase 4 | 4b |
-| `series.hpp` | Phase 4 | 4c |
+| `summation.hpp` | Phase 4 | 4c |
 | `antiderivative.hpp` | Phase 4 | 4d |
+
+Chunk 48 renamed and split five of these headers and two of steps 23 and 24
+(S400, S401): `function.hpp` became `function_table.hpp`, `arithmetic.hpp`
+and `logic.hpp`; `matrix.hpp` became `matrix_kind.hpp` and
+`matrix_function.hpp`; `series.hpp` `summation.hpp`; and `complex.hpp` and
+`quaternion.hpp` `complex_kind.hpp` and `quaternion_kind.hpp`.
 
 **What the shared parser does today.** This was measured with chunk 12's
 probe, `_handoffs/math98_chunk12_2026.10.13/`, with P0's fixes applied:
@@ -1031,8 +1040,16 @@ day named: a term compiled once and a fast path in `math::value`; one
 header for each concept, `math.hpp` complete, entry points and a quick
 start; `math::expr::` in place of the `expr_` prefix; and correctly
 rounded `_c` forms (step 36 brought forward), compensated sums and
-refinement in `solve`. Step 29, 5a, follows them, as lane A asks, before
-0.8 on 2026.11.30.
+refinement in `solve`. Chunk 47 made the first group: a term compiled once
+for a type, its runs the typed fold's answers bit for bit (S395), and the
+value's arithmetic on two inline numbers sent to their kind's at once
+(S396). Chunk 48 made the second: one quaternion class, `linalg`'s a name
+for it (S398); `math.hpp` complete, with entry points, and the README's
+quick start (S399); and the language's headers named for what they hold,
+`function.hpp` and `matrix.hpp` split (S400, S401). The third, `math::expr::`,
+the owner withdrew on 2026.11.14: the language stays flat in
+`djinterp::math`, its names keeping the `expr_` prefix (S397). Accuracy is
+next; step 29, 5a, follows it, as lane A asks, before 0.8 on 2026.11.30.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.

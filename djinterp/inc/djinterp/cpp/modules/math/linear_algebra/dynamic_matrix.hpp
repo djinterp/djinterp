@@ -33,9 +33,10 @@
 * its order. The Frobenius norm of a matrix of math::complex<T> is a T, the
 * C core's scaled norm of the parts, as the fixed-size matrix's is; a
 * tolerance is of the traits' magnitude type, a complex one's real type.
-* Quaternions it takes no more than the fixed-size matrix does: neither
-* face's quaternion has sums or traits, and the language's matrices of them
-* compute with the quaternion kind's own operands (expr/quaternion.hpp).
+* Quaternions it takes no more than the fixed-size matrix does: the
+* quaternion has no sums or traits (S398), and the language's matrices of
+* them compute with the quaternion kind's own operands
+* (expr/quaternion_kind.hpp).
 *
 * CONVENTIONS THAT DIFFER FROM THE FIXED-SIZE TYPE:
 *   - Where the fixed type enforces shapes with static_assert, dynamic_matrix
@@ -50,7 +51,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/dynamic_matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.23
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*

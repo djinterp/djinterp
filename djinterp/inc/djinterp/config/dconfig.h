@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -136,6 +136,8 @@
 // c/modules/math: the generic value's boxes, then the wide integer's
 #include "djinterp/config/c/modules/math/cfg_value.h"       // boxed holders
 #include "djinterp/config/c/modules/math/cfg_value_wide.h"  // wide integer
+// cpp/modules/math: the expression language's compiled terms
+#include "djinterp/config/cpp/modules/math/expr/cfg_expr.h"  // a run's stack
 // net: the foundation, then the bindings, kernels and transports
 #include "djinterp/config/c/modules/net/cfg_net.h"            // foundation
 #include "djinterp/config/c/modules/net/curl/cfg_curl.h"      // libcurl

@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/vector.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -1012,9 +1012,9 @@ approx_equal(
 // stays the bilinear sum of a_i b_i, the matrix product's row by column;
 // vdot(a, b) is the sum of conj(a_i) b_i, from 0 in order, as Julia's dot,
 // NumPy's vdot and BLAS's zdotc conjugate a, the language's dot's bits for
-// a dense vector (expr/matrix.hpp), and of a real vector its dot; norm,
-// length and norm_squared are of the moduli, a T: the C core's scaled norm,
-// and sum of squares, of the 2N parts, re and im in turn, so that a norm
+// a dense vector (expr/matrix_function.hpp), and of a real vector its dot;
+// norm, length and norm_squared are of the moduli, a T: the C core's scaled
+// norm, and sum of squares, of the 2N parts, re and im in turn, so that a norm
 // the type holds is never an infinity or 0 for a square that overflowed or
 // underflowed; normalize divides each component by the norm, as a real
 // number (G.5); distance is the norm of the difference. Angles stay

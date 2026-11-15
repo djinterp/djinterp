@@ -17,22 +17,85 @@ feature by feature.
 
 ---
 
-## 1. Status (2026.11.13)
+## Quick start
+
+Include the header of each part you use, as below, from C++11; `math.hpp`
+includes every header of the module, from C++14, the compile-time
+expression core's floor.
+
+```cpp
+#include "djinterp/cpp/modules/math/expr/expr.hpp"              // the language
+#include "djinterp/cpp/modules/math/complex.hpp"                // complex<T>
+#include "djinterp/cpp/modules/math/quaternion.hpp"             // quaternion<T>
+#include "djinterp/cpp/modules/math/linear_algebra/linalg.hpp"  // linalg
+
+namespace m  = djinterp::math;
+namespace la = djinterp::math::linalg;
+
+// a formula as text: parsed once, then evaluated, exactly or in a type
+const m::expr  f = m::parse("x ^ 2 - 2 * x * y + y ^ 2");
+const double   d = f.eval<double>(m::at("x", 0.5).at("y", 2.0)).value();
+const m::value h = m::parse("1/3 + 1/6").eval().value();   // exactly 1/2
+const m::value r = m::parse("sqrt(-4)").eval().value();    // exactly 2im
+
+// compiled once for a type, then run many times, the same bits as eval
+const m::expr_program<double> p = f.compile<double>().value();  // x, y
+const double                  xy[2] = { 0.5, 2.0 };
+const double                  q = p.run(xy);                    // 2.25
+
+// one number of any kind, exact where it can be
+const m::value tenth = m::value(1) / m::value(10);
+const m::value sum   = tenth + tenth + tenth;                 // exactly 3/10
+
+// the C core's faces: complex numbers, quaternions, linear algebra
+const m::complex<double>    z(3.0, 4.0);                      // abs(z) is 5
+const m::quaternion<double> turn =                            // a quarter
+    m::from_axis_angle(la::vector<double, 3>(0.0, 0.0, 1.0),  // turn about
+                       1.5707963267948966);                   // z
+const la::vector<double, 3> v =                               // about
+    m::rotate(turn, la::vector<double, 3>(1.0, 0.0, 0.0));    // (0, 1, 0)
+const double                a_[4] = { 2.0, 1.0,
+                                      1.0, 3.0 };
+const double                b_[2] = { 3.0, 5.0 };
+const la::vector<double, 2> s =                               // (0.8, 1.4)
+    la::solve(la::matrix<double, 2, 2>(a_), la::vector<double, 2>(b_));
+```
+
+Each value in a comment is what the program `quickstart_c48.cpp` of chunk
+48's record prints, built with g++ and clang++ from C++11 to C++20. A step
+of the language that can fail returns `expr_result<T>`, its answer or an
+`expr_error`; `value()` takes the answer, and an error passes through every
+step chained after it.
+
+**Where to start.**
+
+| To | Use | Header |
+|---|---|---|
+| parse, evaluate, compile, simplify a formula given as text | `math::expr`, `math::parse` | `expr/expr.hpp`; `expr/expr_common.hpp`'s banner maps the language's headers |
+| hold one number of any kind, exact where it can be | `math::value` | `value.hpp` |
+| compute with complex numbers or quaternions | `math::complex<T>`, `math::quaternion<T>` (`linalg::quaternion<T>` is it) | `complex.hpp`, `quaternion.hpp` |
+| compute with vectors and matrices | `linalg::vector`, `linalg::matrix`, `linalg::dynamic_matrix`, `solve`, `eigen_symmetric`, `eigen_general`, `svd` | `linear_algebra/linalg.hpp` |
+| write C, or reach the kernels under every face | `d_math_*`, `dj_math_value`, `cplx.h`, `quat.h`, `mat.h`, ... | `inc/djinterp/c/modules/math/` (section 3) |
+| take all of it | everything above, in `djinterp::math` | `math.hpp` (C++14) |
+
+---
+
+## 1. Status (2026.11.14)
 
 | Part | Headers | Compiles from | Notes |
 |---|---|---|---|
-| C core (`c/modules/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44) |
+| C core (`c/modules/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44); two inline numbers' arithmetic sent to their kind's at once, before the checks that cannot hold for them, the same results, a sum or product of two doubles three times sooner (chunk 47, S396) |
 | interval | 5 | ISO strict C++98 | |
 | linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46) |
 | coordinate | 5 | ISO strict C++98 | points are `linalg::vector`s |
 | geometry | 14 | ISO strict C++98 | collections are `re_std::array`s |
-| `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; `math::quaternion<T>` and `linalg::quaternion<T>` take every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
-| expression, values, function, functional, calculus (6), `math.hpp` | 11 | C++14 | to be C++11 (owner's N1); kernels to move onto the C core (N3) |
+| `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; the one quaternion, `math::quaternion<T>`, which `linalg::quaternion<T>` names (chunk 48, S398), takes every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
+| expression, values, function, functional, calculus (6), `math.hpp` | 11 | C++14 | to be C++11 (owner's N1); kernels to move onto the C core (N3); `math.hpp` includes every header of the module, `expr/` and `linear_algebra/` among them (chunk 48, S399) |
 | `numeric_compare.hpp` | 1 | ISO strict C++98 | numbers written as text compared exactly (chunk 21, M3) |
 | `value.hpp` | 1 | ISO strict C++98 | the generic value's face (chunk 25): `math::value` holds any kind, a box as an `int` holds its number; `inline_value`'s operations are constant expressions from C++14, `math::value`'s from C++20; a complex value's modulus squared, exact where it is (chunk 43) |
 | `number_traits.hpp` | 1 | ISO strict C++98 | the static side (chunk 26): what generic code needs of a number type, the type two numbers combine to, and from C++20 the concept `number`; the field's and the order's traits, the magnitude, the epsilon and a relative tolerance (chunk 38); `number_modulus_squared`, \|x\|^2, which a type of numbers not all real overloads (chunk 43) |
 | `complex.hpp` | 1 | ISO strict C++98 | complex numbers (chunk 39): `math::complex<T>`, of `float`, `double` and `long double`, the face of `cplx.h`'s struct, its operators and C99's functions the C core's, by their own names the plain forms at run time and the `_c` forms in a constant expression from C++20, by the names ending `_c` the `_c` forms at every level, constant expressions from C++14 (chunk 46, S336); made from a `std::complex<T>` implicitly, giving one by `to_std()`; a field with no order to `number_traits`, its magnitude \|re\| + \|im\|; `exp2`, `log2`, `log10`, `log1p` and `expm1` (chunk 42) |
-| `expr/` | 19 | C++11, empty below | the run-time expression language (chunks 28 to 36 and 39 to 46): every header of Phases 2 to 4 in place, its types whole; numbers, `+ - * / mod ^`, the factorial, calls of the C core's functions, the constants `pi`, `e`, `true` and `false`, the relations, logic and piecewise parse, print and evaluate, in each floating-point type and exactly as a value; substitution and simplification; the handle, `math::expr`, chains them; vector and matrix literals, `[1, 2; 3, 4]`, blocks `[A, b]` and the empty matrix `[]`, parse, print and evaluate to matrix values, exact or dense, with their sums, products, transposes, powers and indexing, `A[i, j]`, and linear algebra's functions, `det`, `inv`, `trace`, `norm`, `eig`, `dot`, `cross` and `solve`; complex numbers, `3 + 4im`, a kind of the value exact where their parts are, with `complex`, `real`, `imag`, `conj`, `arg`, the modulus, `z'`, `=` and `!=`, and exact powers to a whole exponent (chunk 40); each function's principal complex value, exact where it is a Gaussian rational, a real function's outside its real domain unless the context asks real results, `log1p`, `expm1`, `asinh`, `acosh`, `atanh`, `sign`, `min` and `max`, and the folds in `math::complex<T>` (chunk 41); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex value, `cplx.h`'s, and of a real one outside its real domain (chunk 42); matrices of complex numbers, dense or exact, their arithmetic, `A'` conjugating, `transpose`, the parts of a matrix and `complex(A, B)`, linear algebra's functions of them, `dot` conjugating, and every eigenvalue, complex where it is, exact where it is a Gaussian rational (chunk 43); quaternions, `1 + 2jm - km`, a kind of the value exact where their parts are, `jm` and `km` their units, with `quat`, `parts`, `real`, `conj`, the norm, `inv`, `sign`, `exp`, `log`, `sqrt`, powers to a real exponent and `rotate`, products in their order, `p / q` = `p inv(q)`, and simplification keeping a quaternion's factors in their order (chunk 45); matrices of quaternions, dense or exact, their arithmetic the kind's own in each product's order, `A'` conjugating, linear algebra's functions of them and of a quaternion, `det` a domain error, Zhang's standard eigenvalues, and `rotmat`, `rotquat` and `slerp`; every evaluator given the fold's context, and a value's complex functions the `_c` forms, the face's by their own names its plain forms at run time (chunk 46); the rest stubs |
+| `expr/` | 23 | C++11, empty below | the run-time expression language (chunks 28 to 36 and 39 to 48): every header of Phases 2 to 4 in place, its types whole; numbers, `+ - * / mod ^`, the factorial, calls of the C core's functions, the constants `pi`, `e`, `true` and `false`, the relations, logic and piecewise parse, print and evaluate, in each floating-point type and exactly as a value; substitution and simplification; the handle, `math::expr`, chains them; vector and matrix literals, `[1, 2; 3, 4]`, blocks `[A, b]` and the empty matrix `[]`, parse, print and evaluate to matrix values, exact or dense, with their sums, products, transposes, powers and indexing, `A[i, j]`, and linear algebra's functions, `det`, `inv`, `trace`, `norm`, `eig`, `dot`, `cross` and `solve`; complex numbers, `3 + 4im`, a kind of the value exact where their parts are, with `complex`, `real`, `imag`, `conj`, `arg`, the modulus, `z'`, `=` and `!=`, and exact powers to a whole exponent (chunk 40); each function's principal complex value, exact where it is a Gaussian rational, a real function's outside its real domain unless the context asks real results, `log1p`, `expm1`, `asinh`, `acosh`, `atanh`, `sign`, `min` and `max`, and the folds in `math::complex<T>` (chunk 41); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex value, `cplx.h`'s, and of a real one outside its real domain (chunk 42); matrices of complex numbers, dense or exact, their arithmetic, `A'` conjugating, `transpose`, the parts of a matrix and `complex(A, B)`, linear algebra's functions of them, `dot` conjugating, and every eigenvalue, complex where it is, exact where it is a Gaussian rational (chunk 43); quaternions, `1 + 2jm - km`, a kind of the value exact where their parts are, `jm` and `km` their units, with `quat`, `parts`, `real`, `conj`, the norm, `inv`, `sign`, `exp`, `log`, `sqrt`, powers to a real exponent and `rotate`, products in their order, `p / q` = `p inv(q)`, and simplification keeping a quaternion's factors in their order (chunk 45); matrices of quaternions, dense or exact, their arithmetic the kind's own in each product's order, `A'` conjugating, linear algebra's functions of them and of a quaternion, `det` a domain error, Zhang's standard eigenvalues, and `rotmat`, `rotquat` and `slerp`; every evaluator given the fold's context, and a value's complex functions the `_c` forms, the face's by their own names its plain forms at run time (chunk 46); a term compiled once for a type, `expr_compile<T>`, its runs the typed fold's answers bit for bit, 26 to 55 times sooner (chunk 47); each header named for what it holds, none of a name another math header has, `matrix.hpp` and `function.hpp` split in five (chunk 48, S400, S401); the rest stubs |
 
 From chunk 45b the lane works in the restructured tree: the C core in
 `inc/djinterp/c/modules/math/`, its configuration in
@@ -48,11 +111,11 @@ header with g++ and clang++, plain and testing, at every rung from that one
 to C++26. Every header not on the ladder's known list
 (`scripts/ci/ladder_known.txt`) passes all of them.
 
-Tests: 26 C harnesses (`tests/djinterp/c/modules/math/`) and 37 face tests
+Tests: 26 C harnesses (`tests/djinterp/c/modules/math/`) and 39 face tests
 (`tests/djinterp/cpp/modules/math/`), one of them for `parse/expression/`
-and six for `expr/`, four of them its complex numbers' and one its
-quaternions' (section 3). In the full matrix (section 5) every harness and
-face test passes in every configuration.
+and eight for `expr/`: four its complex numbers', two its quaternions' and
+one its compiled terms' (section 3). In the full matrix (section 5) every
+harness and face test passes in every configuration.
 
 ---
 
@@ -259,19 +322,28 @@ takes a call as it takes a sum. The six layers:
 2. the operator table and the parser layer (`operator.hpp`, `parse.hpp`);
 3. the term (`term.hpp`);
 4. the folds, to numbers and values (`evaluate.hpp`, with the function and
-   constant tables of `function.hpp`) and to text (`render.hpp`);
+   constant tables of `function_table.hpp`, the arithmetic of
+   `arithmetic.hpp` and the relations and logic of `logic.hpp`), to a
+   program run many times (`program.hpp`), and to text (`render.hpp`);
 5. the rewrites (`substitute.hpp`, `simplify.hpp`, and Phase 4's
    `derivative.hpp`);
 6. the handle, `math::expr` (`expr.hpp`, which includes every header).
 
-Phase 3's `matrix.hpp` and Phase 4's `numeric.hpp`, `series.hpp` and
-`antiderivative.hpp` stand beside them. A step that can fail returns
-`expr_result<T>`, which is `result<T, expr_error>`; the handle holds a term
-or an error, and passes an error through every member chained after it.
-Step 13 (chunk 28) made every header: its types are whole, and each entry is
-a stub, which answers `expr_status::not_yet` with a message naming the step
-that fills it, or, where it cannot fail, the placeholder its contract names.
-Each step from 14 on fills one or two headers.
+Phase 3's kinds, `complex_kind.hpp`, `quaternion_kind.hpp` and
+`matrix_kind.hpp`, with `matrix_function.hpp` and `rotation.hpp`, and Phase
+4's `numeric.hpp`, `summation.hpp` and `antiderivative.hpp` stand beside
+them; `expr_common.hpp`'s banner maps them all. Chunk 48 renamed the four
+whose names another math header had (`complex.hpp`, `quaternion.hpp`,
+`matrix.hpp`, `series.hpp`) and split the two largest, `function.hpp` into
+the tables, the arithmetic and the logic and `matrix.hpp` into the kind and
+its functions (S400, S401); the steps below name each header as it is now. A
+step that can fail returns `expr_result<T>`, which is `result<T,
+expr_error>`; the handle holds a term or an error, and passes an error
+through every member chained after it. Step 13 (chunk 28) made every header:
+its types are whole, and each entry is a stub, which answers
+`expr_status::not_yet` with a message naming the step that fills it, or,
+where it cannot fail, the placeholder its contract names. Each step from 14
+on fills one or two headers.
 
 Step 14 (chunk 29) filled the arithmetic. The tokenizer reads numbers by
 `decimal.h`'s grammar, names, symbols and round brackets. The operator table
@@ -288,7 +360,7 @@ remainder, with the divisor's sign. `expr_evaluate` with a context gives a
 exactly 2. `expr_render` writes a term as text that `expr_parse` reads back
 as the same term, every literal kept.
 
-Step 15 (chunk 30) filled the functions. `function.hpp`'s standard table
+Step 15 (chunk 30) filled the functions. `function_table.hpp`'s standard table
 holds the C core's 25 functions, `sqrt` to `trunc`, with `abs` and
 `factorial`, and its constant table `pi` and `e`, from the literals of
 `constants::of<T>`. A name before an open bracket is a call, `atan2(y, x)`,
@@ -311,7 +383,7 @@ no link. As a value a relation is a boolean, by `value.h`'s exact order, so
 that `0.1 + 0.2 = 0.3` holds, and logic is Kleene's: `false and x` is false
 whatever `x` is, an error among what it may be. In a type the booleans are
 1 and 0, a relation is C's comparison, and logic reads a NaN as unknown.
-`piecewise(when(x < 0, -x), otherwise(x))`, in `function.hpp`'s vocabulary,
+`piecewise(when(x < 0, -x), otherwise(x))`, in `function/function.hpp`'s vocabulary,
 is the call `piecewise(x < 0, -x, x)`, written back in its branches; its
 value is that of the first branch whose condition holds. `all_of` and
 `any_of` are `and` and `or` of any number of operands, and `true` and
@@ -348,7 +420,7 @@ value; elsewhere, as in other computer algebra systems, it may differ:
 
 Step 19 (chunk 34) filled the matrix kind and the literals, the first of
 Phase 3. A matrix is a boxed kind of the value layer, "matrix", as the wide
-integer is, its table written in C++ in `expr/matrix.hpp`; it is no number,
+integer is, its table written in C++ in `expr/matrix_kind.hpp`; it is no number,
 and ranks past every number, so that its own table handles an operation of
 a matrix and a number. It keeps each element as it is given: as a dense
 array of `float`, `double` or `long double` where every element is one of
@@ -487,7 +559,7 @@ them values (S271, S275, S318), and the stubs' messages name the steps
 S265 made: 4a step 25 to 4d step 28 (S319).
 
 **Complex numbers in the language.** Step 23's first part (chunk 40), of
-three (S324). `math/expr/complex.hpp` makes complex numbers a boxed kind of
+three (S324). `math/expr/complex_kind.hpp` makes complex numbers a boxed kind of
 the value, "complex", of rank 900, past every real kind's, written in C++
 from C++11 beside the matrix kind (S327). Its parts are exact where both
 are given exact, kept as values, so that (1 + 2im)(3 - im) is exactly
@@ -600,7 +672,7 @@ families at points where a part cancels, against `math_tests_cplx_pow_refs.h`,
 made by mpmath.
 
 **Quaternions in the language.** Step 24's second part (chunk 45), as the
-owner's rulings S275 and S277 have it. `expr/quaternion.hpp` makes a
+owner's rulings S275 and S277 have it. `expr/quaternion_kind.hpp` makes a
 quaternion a boxed kind of the value, of rank 950, past the complex number's
 900 and below the matrix's 1000: exact where its four parts are, kept as
 values, and otherwise dense in the widest floating-point type of its parts,
@@ -679,7 +751,7 @@ references mpmath computes, `math_tests_expr_qmatrix_refs.h`.
 **Rotations.** `expr/rotation.hpp`, new in chunk 46, holds a quaternion's
 functions that give or take a vector or a matrix, so that the matrix kind,
 which holds quaternions now, comes after the quaternion kind: `parts` and
-`rotate`, from `quaternion.hpp`, and three new ones (S391). `rotmat(q)` is
+`rotate`, from `quaternion_kind.hpp`, and three new ones (S391). `rotmat(q)` is
 the 3 by 3 matrix of the rotation q names, R v = q v q^-1, as MATLAB's
 `rotmat(q, 'point')` is: exact where q is, and otherwise `quat.h`'s
 `to_matrix3`, each element within a step of the correctly rounded one.
@@ -712,9 +784,59 @@ takes: float, double and long double on the C core's kernels, any other
 arithmetic type through double, and `math::complex<T>`, `math::value` and
 `math::inline_value` on the generic path, each zero, one and tolerance the
 traits', the `frobenius_norm` of a complex one a T, as the fixed-size
-matrix's is. Quaternions neither face's matrix takes, as neither face's
-quaternion has sums or traits; the language's matrices of them compute with
-the kind's own operands.
+matrix's is. Quaternions neither face's matrix takes, as the quaternion has
+no sums or traits; the language's matrices of them compute with the kind's
+own operands.
+
+**A term compiled once.** Chunk 47 (S395). A fold walks the tree at every
+evaluation: it builds a vector of its children's answers at each node and
+looks each function and constant up by name, and in `double` it takes 79 to
+624 times the C++ it stands for (chunk 47's benchmark, five terms).
+`expr_compile<T>(term)`, in `expr/program.hpp`, does that work once. It
+gives an `expr_program<T>`, for `float`, `double` or `long double` or the
+`math::complex` of one: the term's operations in postfix order, each literal
+already a number of T, each constant and function found, each variable a
+slot. A run is a loop over those steps on a stack of T whose depth is known
+at compile time, held in the caller's frame up to
+`D_CFG_MATH_EXPR_PROGRAM_STACK` (32, in `cfg_expr.h`), so a run allocates
+nothing; in a complex type too, as the complex fold's operations take their
+operands where they lie, but for a call of more than eight arguments.
+
+A run is the typed fold, not an approximation of it. Postfix order is the
+order in which the fold computes, children left to right and then the
+parent, and each step calls the function the fold calls on the same numbers.
+So each answer is the fold's bit for bit, and each error is the fold's
+first: the errors of a term's shape (an unknown name, a wrong number of
+arguments, a vector) at compile time, an unbound variable at a run of
+bindings. A run takes the variables' numbers in slot order (the term's own
+order unless another is given), `math::value`s, or bindings by name. The
+handle compiles too, `parse("x ^ 2 - y").compile<double>()`. A run of
+doubles takes 2.9 to 11.4 times the C++, a run of bindings 1.5 to 3.1 times
+a run of doubles, and a compile pays for itself at the second run.
+`t_expr_program_face.cpp` checks it against the fold on 2,000 random terms
+in each of the six types, every operator, call, constant and literal at
+every sort of value, and on its own edges.
+
+**One header per concept.** Chunk 48 (S398 to S401). The framework had two
+quaternions, `math::quaternion` and `linalg::quaternion`, each a face of
+`quat.h`, and two of every function, so that a call such as
+`from_matrix(m)` of a `linalg::matrix` was ambiguous wherever both were
+read. Now `math::quaternion<T>` is the one class, with linear algebra's
+names, members `m_x`, `m_y`, `m_z` and `m_w`, `to_matrix3` and the default
+element type `double`, and `linear_algebra/quaternion.hpp` names it and
+each of its functions in `linalg` by using-declarations, so that
+`linalg::from_axis_angle` and `math::from_axis_angle` are one function
+(S398). `math.hpp` includes every header of the module, `expr/` and
+`linear_algebra/` among them, with its entry points first (S399). Of the
+language's headers, the four whose names another math header had are named
+for what they hold, `complex_kind.hpp`, `quaternion_kind.hpp`,
+`matrix_kind.hpp` and `summation.hpp` (S400); and the two largest are
+split along their concepts: `function.hpp`, 4,363 lines, into the tables
+(`function_table.hpp`), the arithmetic (`arithmetic.hpp`) and the relations
+and logic (`logic.hpp`), and `matrix.hpp`, 7,979 lines, into the kind
+(`matrix_kind.hpp`, 4,811) and linear algebra's functions of it
+(`matrix_function.hpp`, 3,256) (S401). No code changed in the move: every
+test's output is the same, byte for byte.
 
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
@@ -786,11 +908,12 @@ inc/djinterp/c/modules/math/            the C core
 inc/djinterp/cpp/modules/math/          the C++ faces
   math_common.hpp      NS_MATH and the environment
   constants.hpp        constants::of<T>::pi() and kin; number bases
-  quaternion.hpp
+  quaternion.hpp       the one quaternion: math::quaternion<T>, quat.h's face
   interval/            interval, closed/open/discrete, interval_common
-  linear_algebra/      vector, matrix, square, transform, quaternion,
-                       decomposition, solve, svd, eigen, dynamic_matrix,
-                       linalg_common, linalg.hpp (umbrella)
+  linear_algebra/      vector, matrix, square, transform, decomposition,
+                       solve, svd, eigen, dynamic_matrix, linalg_common,
+                       linalg.hpp (umbrella), and quaternion, which names
+                       math::quaternion and its functions in linalg
   coordinate/          cartesian, polar, cylindrical, spherical, coordinate
   geometry/            13 headers and geometry.hpp (umbrella)
   expression.hpp       compile-time expression templates (C++14 for now)
@@ -804,19 +927,28 @@ inc/djinterp/cpp/modules/math/          the C++ faces
   number_traits.hpp    number_traits, common_number and the concept number
   complex.hpp          complex numbers: math::complex<T>, cplx.h's face
   expr/                the run-time expression language (C++11): token,
-                       operator, parse, term, evaluate, function, render,
-                       substitute, simplify, derivative, numeric, series,
-                       antiderivative; matrix, complex and quaternion, the
-                       matrix, complex and quaternion kinds; rotation, a
-                       quaternion's functions of vectors and matrices;
-                       expr_common, what they share; expr, the handle,
-                       which includes them all
-  math.hpp             umbrella
+                       operator, parse, term, evaluate, render,
+                       substitute, simplify, derivative, numeric,
+                       summation, antiderivative; function_table, the
+                       function and constant tables; arithmetic, the
+                       functions' evaluators and ^ and mod; logic, the
+                       relations, logic and piecewise; complex_kind,
+                       quaternion_kind and matrix_kind, the kinds;
+                       matrix_function, linear algebra's functions of
+                       them; rotation, a quaternion's functions of
+                       vectors and matrices; program, a term compiled
+                       once for a type; expr_common, what they share and
+                       a map of them; expr, the handle, which includes
+                       them all
+  math.hpp             umbrella: every header of the module
   README.md, roadmap.md, decisions.md, comparison.md
 
 inc/djinterp/config/c/modules/math/     the C core's knobs
   cfg_value.h          how every box counts its holders
   cfg_value_wide.h     where the wide integer's boxes are stored
+
+inc/djinterp/config/cpp/modules/math/expr/
+  cfg_expr.h           the language's knobs: a compiled term's stack
 
 inc/djinterp/cpp/modules/parse/expression/
                        the expression core the language is built on
@@ -1015,6 +1147,8 @@ module:
 | 2026.10.13 | the root's `D_STATIC_ASSERT` fallback gets `D_MAYBE_UNUSED` (C2); the lane fixes the test headers' floor comments (C3); the 09.29 lane is mined only for what is missing (C6) |
 | 2026.10.18 | no commits from the lane: everything in plain files, delivered as a zip of the modified files, which the owner tests on his machine and commits himself; work through the rest of Phase 1 |
 | 2026.11.04 | `math::complex<T>`'s functions by their own names `cplx.h`'s plain forms at run time, the `_c` forms in constant evaluation and by the `_c` names; the language's values the `_c` forms (S336); every evaluator given the fold's context, each value evaluator holding its answer real where it asks (S340) |
+| 2026.11.12 | before the itinerary goes on, the four groups of fixes of the lane's evaluation: speed, consolidation, `math::expr::` and accuracy |
+| 2026.11.14 | the language flat in `djinterp::math`, no namespace below it; a clean break for the old names; the prefix left to the lane's recommendation, fewer or no levels below `math` (S397) |
 
 ---
 

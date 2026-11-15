@@ -72,7 +72,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/render.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -116,9 +116,9 @@ TABLE OF CONTENTS
 #include "../../parse/expression/expression_render.hpp"  // render
 #include "../math_common.hpp"                             // NS_MATH
 #include "../value.hpp"                                   // value
-#include "./complex.hpp"                                  // expr_is_complex
-#include "./quaternion.hpp"                               // the quaternions
-#include "./matrix.hpp"                                   // expr_is_matrix
+#include "./complex_kind.hpp"                             // expr_is_complex
+#include "./quaternion_kind.hpp"                          // the quaternions
+#include "./matrix_kind.hpp"                              // expr_is_matrix
 #include "./operator.hpp"                                 // expr_signature
 #include "./term.hpp"                                     // expr_term
 #include "./token.hpp"                                    // expr_read_decimal

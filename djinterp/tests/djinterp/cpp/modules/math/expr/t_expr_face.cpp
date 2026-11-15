@@ -91,50 +91,60 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.14
 *******************************************************************************/
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/antiderivative.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/derivative.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/expr.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/expr_common.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/numeric.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/operator.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/quaternion.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/render.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/series.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/simplify.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/substitute.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/term.hpp"
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/token.hpp"
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/antiderivative.hpp"   // expr_antiderivative
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/arithmetic.hpp"       // ^, mod, the functions' evaluators
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex_kind.hpp"     // the complex kind
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/derivative.hpp"       // expr_derivative
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"         // expr_evaluate, expr_bindings
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/expr.hpp"             // math::expr, parse
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/expr_common.hpp"      // expr_error, expr_result, expr_context
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"   // the function and constant tables
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/logic.hpp"            // the relations, logic, piecewise
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_function.hpp"  // det, inv, trace, norm, eig, dot, ...
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"      // the matrix kind, expr_matrix
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/numeric.hpp"          // expr_integrate, expr_derivative_at
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/operator.hpp"         // expr_op, expr_signature
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"            // expr_parse
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/program.hpp"          // expr_compile, expr_program
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/quaternion_kind.hpp"  // the quaternion kind
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/render.hpp"           // expr_render
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/rotation.hpp"         // parts, rotate, rotmat, rotquat, slerp
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/simplify.hpp"         // expr_simplify
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/substitute.hpp"       // expr_substitute
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/summation.hpp"        // expr_sum, expr_limit, expr_taylor
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/term.hpp"             // expr_term, expr_number
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/token.hpp"            // expr_tokenize, expr_read_decimal
 // std
 #include <cstdio>  // std::printf
 
 
 // D_TESTS_MODULE_READ
-//   1 where each of math/expr/'s eighteen headers was read: at every level,
-// as each defines its guard before its floor.
-#if ( defined(DJINTERP_MATH_EXPR_ANTIDERIVATIVE_HPP) &&                       \
-      defined(DJINTERP_MATH_EXPR_COMPLEX_HPP)        &&                       \
-      defined(DJINTERP_MATH_EXPR_DERIVATIVE_HPP)     &&                       \
-      defined(DJINTERP_MATH_EXPR_EVALUATE_HPP)       &&                       \
-      defined(DJINTERP_MATH_EXPR_EXPR_HPP)           &&                       \
-      defined(DJINTERP_MATH_EXPR_EXPR_COMMON_HPP)    &&                       \
-      defined(DJINTERP_MATH_EXPR_FUNCTION_HPP)       &&                       \
-      defined(DJINTERP_MATH_EXPR_MATRIX_HPP)         &&                       \
-      defined(DJINTERP_MATH_EXPR_NUMERIC_HPP)        &&                       \
-      defined(DJINTERP_MATH_EXPR_OPERATOR_HPP)       &&                       \
-      defined(DJINTERP_MATH_EXPR_PARSE_HPP)          &&                       \
-      defined(DJINTERP_MATH_EXPR_QUATERNION_HPP)     &&                       \
-      defined(DJINTERP_MATH_EXPR_RENDER_HPP)         &&                       \
-      defined(DJINTERP_MATH_EXPR_SERIES_HPP)         &&                       \
-      defined(DJINTERP_MATH_EXPR_SIMPLIFY_HPP)       &&                       \
-      defined(DJINTERP_MATH_EXPR_SUBSTITUTE_HPP)     &&                       \
-      defined(DJINTERP_MATH_EXPR_TERM_HPP)           &&                       \
+//   1 where each of math/expr/'s twenty-three headers was read: at every
+// level, as each defines its guard before its floor.
+#if ( defined(DJINTERP_MATH_EXPR_ANTIDERIVATIVE_HPP)  &&                       \
+      defined(DJINTERP_MATH_EXPR_ARITHMETIC_HPP)      &&                       \
+      defined(DJINTERP_MATH_EXPR_COMPLEX_KIND_HPP)    &&                       \
+      defined(DJINTERP_MATH_EXPR_DERIVATIVE_HPP)      &&                       \
+      defined(DJINTERP_MATH_EXPR_EVALUATE_HPP)        &&                       \
+      defined(DJINTERP_MATH_EXPR_EXPR_HPP)            &&                       \
+      defined(DJINTERP_MATH_EXPR_EXPR_COMMON_HPP)     &&                       \
+      defined(DJINTERP_MATH_EXPR_FUNCTION_TABLE_HPP)  &&                       \
+      defined(DJINTERP_MATH_EXPR_LOGIC_HPP)           &&                       \
+      defined(DJINTERP_MATH_EXPR_MATRIX_FUNCTION_HPP) &&                       \
+      defined(DJINTERP_MATH_EXPR_MATRIX_KIND_HPP)     &&                       \
+      defined(DJINTERP_MATH_EXPR_NUMERIC_HPP)         &&                       \
+      defined(DJINTERP_MATH_EXPR_OPERATOR_HPP)        &&                       \
+      defined(DJINTERP_MATH_EXPR_PARSE_HPP)           &&                       \
+      defined(DJINTERP_MATH_EXPR_PROGRAM_HPP)         &&                       \
+      defined(DJINTERP_MATH_EXPR_QUATERNION_KIND_HPP) &&                       \
+      defined(DJINTERP_MATH_EXPR_RENDER_HPP)          &&                       \
+      defined(DJINTERP_MATH_EXPR_ROTATION_HPP)        &&                       \
+      defined(DJINTERP_MATH_EXPR_SIMPLIFY_HPP)        &&                       \
+      defined(DJINTERP_MATH_EXPR_SUBSTITUTE_HPP)      &&                       \
+      defined(DJINTERP_MATH_EXPR_SUMMATION_HPP)       &&                       \
+      defined(DJINTERP_MATH_EXPR_TERM_HPP)            &&                       \
       defined(DJINTERP_MATH_EXPR_TOKEN_HPP) )
     #define D_TESTS_MODULE_READ 1
 #else
@@ -11566,7 +11576,7 @@ namespace
     d_tests_module()
     {
         D_TESTS_EXPECT( (D_TESTS_MODULE_READ == 1),
-                        "the module's seventeen headers read");
+                        "the module's twenty-three headers read");
 
         d_tests_errors();
         d_tests_tokens();
@@ -11656,7 +11666,7 @@ namespace
     d_tests_module()
     {
         D_TESTS_EXPECT( (D_TESTS_MODULE_READ == 1),
-                        "the module's seventeen headers read");
+                        "the module's twenty-three headers read");
 
         return;
     }

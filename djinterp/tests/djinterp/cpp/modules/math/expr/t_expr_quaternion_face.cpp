@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp/math]                                 t_expr_quaternion_face.cpp
 *
-* Tests for math/expr/quaternion.hpp, the language's quaternions, and for what
-* step 24's second part (3f) made of them in the language: the kind and the
+* Tests for math/expr/quaternion_kind.hpp, the language's quaternions, and for
+* what step 24's second part (3f) made of them in the language: the kind and the
 * folds, the functions, the order of factors and the renderer.
 *   - the kind: its table, its rank, a number exact or not value by value,
 *     and its holders, the constants jm and km among them;
@@ -57,9 +57,9 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_quaternion_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.06
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/quaternion.hpp"
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/quaternion_kind.hpp"
 // std
 #include <cstdio>  // std::printf
 
@@ -67,7 +67,7 @@
 // D_TESTS_HEADER_READ
 //   1 where the header was read: at every level, as it defines its guard
 // before its floor.
-#if defined(DJINTERP_MATH_EXPR_QUATERNION_HPP)
+#if defined(DJINTERP_MATH_EXPR_QUATERNION_KIND_HPP)
     #define D_TESTS_HEADER_READ 1
 #else
     #define D_TESTS_HEADER_READ 0
@@ -125,8 +125,8 @@ namespace
 #include <vector>   // std::vector
 // djinterp
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"  // the folds
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function.hpp"  // the tables
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix.hpp"  // matrices
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"  // the tables
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"  // matrices
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"  // expr_parse
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/render.hpp"  // expr_render
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/simplify.hpp"  // expr_simplify
@@ -224,10 +224,10 @@ namespace
         const m::quaternion<Type>& _b
     )
     {
-        return ( (d_tests_same_bits(_a.w, _b.w)) &&
-                 (d_tests_same_bits(_a.x, _b.x)) &&
-                 (d_tests_same_bits(_a.y, _b.y)) &&
-                 (d_tests_same_bits(_a.z, _b.z)) );
+        return ( (d_tests_same_bits(_a.m_w, _b.m_w)) &&
+                 (d_tests_same_bits(_a.m_x, _b.m_x)) &&
+                 (d_tests_same_bits(_a.m_y, _b.m_y)) &&
+                 (d_tests_same_bits(_a.m_z, _b.m_z)) );
     }
 
     // d_tests_storage
@@ -1183,18 +1183,18 @@ namespace
         // a real or complex operand: its other parts +0
         if (_held < 4)
         {
-            _read.y = Type(0);
-            _read.z = Type(0);
+            _read.m_y = Type(0);
+            _read.m_z = Type(0);
         }
 
         if (_held < 2)
         {
-            _read.x = Type(0);
+            _read.m_x = Type(0);
         }
 
-        return ( (_held == 1) ? m::value(_q.w)
-               : (_held == 2) ? m::expr_complex_of(m::complex<Type>(_q.w,
-                                                                    _q.x))
+        return ( (_held == 1) ? m::value(_q.m_w)
+               : (_held == 2) ? m::expr_complex_of(m::complex<Type>(_q.m_w,
+                                                                    _q.m_x))
                               : m::expr_quaternion_of(_q) );
     }
 
@@ -1242,25 +1242,25 @@ namespace
             case D_MATH_VALUE_OP_ADD:
             case D_MATH_VALUE_OP_SUB:
                 return d_tests_quat(
-                    d_tests_part_sum(_a.w, true, _b.w, true, minus),
-                    d_tests_part_sum(_a.x, (_held_a > 1), _b.x,
+                    d_tests_part_sum(_a.m_w, true, _b.m_w, true, minus),
+                    d_tests_part_sum(_a.m_x, (_held_a > 1), _b.m_x,
                                      (_held_b > 1), minus),
-                    d_tests_part_sum(_a.y, (_held_a > 2), _b.y,
+                    d_tests_part_sum(_a.m_y, (_held_a > 2), _b.m_y,
                                      (_held_b > 2), minus),
-                    d_tests_part_sum(_a.z, (_held_a > 2), _b.z,
+                    d_tests_part_sum(_a.m_z, (_held_a > 2), _b.m_z,
                                      (_held_b > 2), minus));
 
             case D_MATH_VALUE_OP_MUL:
                 if (_held_a == 1)
                 {
-                    return d_tests_quat(_b.w * _a.w, _b.x * _a.w,
-                                        _b.y * _a.w, _b.z * _a.w);
+                    return d_tests_quat(_b.m_w * _a.m_w, _b.m_x * _a.m_w,
+                                        _b.m_y * _a.m_w, _b.m_z * _a.m_w);
                 }
 
                 if (_held_b == 1)
                 {
-                    return d_tests_quat(_a.w * _b.w, _a.x * _b.w,
-                                        _a.y * _b.w, _a.z * _b.w);
+                    return d_tests_quat(_a.m_w * _b.m_w, _a.m_x * _b.m_w,
+                                        _a.m_y * _b.m_w, _a.m_z * _b.m_w);
                 }
 
                 return (_a * _b);
@@ -1273,8 +1273,8 @@ namespace
         // by a real number each part; any other on the right
         if (_held_b == 1)
         {
-            return d_tests_quat(_a.w / _b.w, _a.x / _b.w,
-                                _a.y / _b.w, _a.z / _b.w);
+            return d_tests_quat(_a.m_w / _b.m_w, _a.m_x / _b.m_w,
+                                _a.m_y / _b.m_w, _a.m_z / _b.m_w);
         }
 
         return (_a / _b);
@@ -1359,10 +1359,10 @@ namespace
                                           q / d_tests_quat(third, 2.0, 3.0,
                                                            4.0))) &&
                         (d_tests_is_dense(m::value::ratio(1, 3) * vf,
-                                          d_tests_quat(f.w * fthird,
-                                                       f.x * fthird,
-                                                       f.y * fthird,
-                                                       f.z * fthird))) &&
+                                          d_tests_quat(f.m_w * fthird,
+                                                       f.m_x * fthird,
+                                                       f.m_y * fthird,
+                                                       f.m_z * fthird))) &&
                         (d_tests_is_dense(vf + m::value(0.1),
                                           d_tests_quat(0.5 + 0.1, -0.0, 1.25,
                                                        3.0))) &&
@@ -1735,7 +1735,7 @@ namespace
                         "the sign: q / |q| exactly where |q| is rational; "
                         "otherwise quat.h's scaled normalization, a long "
                         "double for exact parts (S361); a 0 itself; no "
-                        "quaternion a domain error, its sign function.hpp's");
+                        "quaternion a domain error, its sign arithmetic.hpp's");
 
         return;
     }

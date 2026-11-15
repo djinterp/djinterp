@@ -12,7 +12,8 @@ its second chunk, the five complex functions the C core lacked; chunk 43,
 its third part, matrices of complex numbers; chunk 44, step 24's first
 part, the C core's quaternions and their C++ faces; chunk 45, its second
 part, quaternions in the language; chunk 46, its third, matrices of them,
-their rotations and dynamic matrices of every element type):
+their rotations and dynamic matrices of every element type; chunk 47, a
+term compiled once; chunk 48, one quaternion class):
 what djinterp's math
 framework does or is planned to do, by the roadmap's 51 steps (48 until
 chunk 36's rulings added 3d to 3f, every step from 22 on three further),
@@ -21,7 +22,7 @@ against. It compares features alone. How fast each is, and how accurate its
 functions are in ulps, are Phase 7's measurements (steps 41 and 42); nothing
 here is measured.
 
-In the djinterp column, "done" means in the tree as of chunk 46, with the
+In the djinterp column, "done" means in the tree as of chunk 48, with the
 step that did it; "step N" means the roadmap plans it at that step; "later"
 means the roadmap lists it under "Later, not yet decided"; "none" means no
 step plans it. In the other columns, "yes" is a documented feature, "part"
@@ -64,7 +65,7 @@ certain from the library's own documentation it says so.
 | Big floats, correctly rounded | step 47 (the MPFR model) | part (mpmath's precision; correct rounding not promised) | yes (MPFR, optional) | part (CLN's floats) | part (`bignumber`, decimal) | yes, MPFR as its type |
 | Ball arithmetic | step 48 | no (mpmath has intervals) | part (Arb, optional) | no | no | no |
 | Complex numbers | the C core's done (step 22, `cplx.h`, S280 to S288): float, double and long double, C99's 22 functions; their C++ face, `math::complex<T>`, from C++98, the C core's bits at every level (step 22, chunk 39, S313); a kind of the value, exact Gaussian rationals and each floating-point type, its arithmetic `cplx.h`'s or exact (step 23, chunk 40, S327, S328); each function's principal complex value, exact where it is a Gaussian rational (chunk 41, S336, S337), and `exp2`, `log2`, `log10`, `log1p` and `expm1`'s, in the C core, the face and the language (chunk 42, S342 to S347); matrices of them, dense or exact (chunk 43, S348) | yes | yes | yes | yes | no |
-| Quaternions | the C core's and the C++ faces done (`quat.h`, `quaternion.hpp`), accurate by default (step 24, chunk 44, S358 to S365): the product, inverse and both quotients, the rotation and its matrix of any q not 0, Shepperd's method, two vectors' quaternion, nlerp and slerp, and exp, log, sqrt and real powers, the principal values, each part within a step or a few; the former formulas as `_fast` forms; a kind of the value, exact or dense, in the language (step 24, chunk 45, S369 to S377); matrices of them, their rotations' matrices and slerp in the language (chunk 46, S386 to S391) | yes (`Quaternion`) | no | part (Clifford algebras) | no | no |
+| Quaternions | the C core's and the C++ face done (`quat.h`, `quaternion.hpp`, one class, which `linalg` names, chunk 48, S398), accurate by default (step 24, chunk 44, S358 to S365): the product, inverse and both quotients, the rotation and its matrix of any q not 0, Shepperd's method, two vectors' quaternion, nlerp and slerp, and exp, log, sqrt and real powers, the principal values, each part within a step or a few; the former formulas as `_fast` forms; a kind of the value, exact or dense, in the language (step 24, chunk 45, S369 to S377); matrices of them, their rotations' matrices and slerp in the language (chunk 46, S386 to S391) | yes (`Quaternion`) | no | part (Clifford algebras) | no | no |
 | Units of measure | none | yes (`sympy.physics.units`) | no | no | yes | no |
 | Errors as values that pass through, the first kept; Kleene's logic | done (steps 14 to 17) | no: exceptions, or unevaluated forms | no: exceptions | no: exceptions | no: exceptions | part: NaN |
 | A new number kind without changing the core (boxed kinds) | done (step 9) | yes (Python classes) | part (C++ subclasses) | part | yes (typed-function types) | yes (the numeric type is a template parameter) |
@@ -121,7 +122,7 @@ proven behaviour is the oracle of step 41.
 | Evaluation at any precision | step 49 | yes | yes (MPFR) | yes | yes (`bignumber`) | yes (MPFR type) | no |
 | A handle that chains each step, failure through `result` | done (step 17) | methods, exceptions | methods, exceptions | methods, exceptions | methods, exceptions | no | no |
 | Loops, assignment, strings, `return` | none | Python itself | no | C++ itself | part (assignment, functions) | yes | no |
-| Compile once, evaluate fast many times | part: a term folds each time | `lambdify` to NumPy | `lambdify`, LLVM back end | part | `compile()` | yes, its design | yes, its design |
+| Compile once, evaluate fast many times | done (chunk 47, S395): `expr_compile<T>`, steps run on a stack, each answer the fold's; as values, a term folds each time | `lambdify` to NumPy | `lambdify`, LLVM back end | part | `compile()` | yes, its design | yes, its design |
 | Compile-time expressions, and `reify` from compile time to run time | steps 29 to 32 | no | no | no | no | no | no |
 | LaTeX out and in | later | yes, both | out | out | out | no | no |
 | Code generation, C or Fortran | none | yes | part (LLVM) | out as C | no | no | no |
@@ -212,9 +213,11 @@ them:
 
 **It meets** them, once the planned steps are done, in: parsing, printing
 and evaluating a language of arithmetic, relations, logic and piecewise
-(ExprTk, muParser, math.js); MATLAB's matrix literals, blocks, products,
-transpose, indexing and its `det`, `inv`, `solve` and `eig` (math.js); the
-basic rewrites of math.js's `simplify`;
+(ExprTk, muParser, math.js); compiling a term once to be run many times in a
+type, as muParser's bytecode and math.js's `compile()` do, though not to
+machine code, as SymEngine's LLVM back end does (S395); MATLAB's matrix
+literals, blocks, products, transpose, indexing and its `det`, `inv`,
+`solve` and `eig` (math.js); the basic rewrites of math.js's `simplify`;
 correctly rounded elementary functions (CORE-MATH, LLVM libc, from step 36);
 the dense decompositions most users need (Eigen's main ones); and the kinds
 of big numbers GMP and MPFR have (steps 44 to 49), though not their speed at

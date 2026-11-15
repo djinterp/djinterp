@@ -2,7 +2,7 @@
 * djinterp [cpp/math]                               t_expr_complex_five_face.cpp
 *
 * Tests for what step 23's second part, in its second chunk, chunk 42, made
-* of complex numbers in the language (math/expr/function.hpp,
+* of complex numbers in the language (math/expr/function_table.hpp,
 * evaluate.hpp): exp2, log2, log10, log1p and expm1 of a complex number,
 * cplx.h's own from chunk 42 (S342).
 *   - dense values: each of the five, of random complex arguments in float,
@@ -31,7 +31,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_five_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -97,8 +97,8 @@ namespace
 #include <string>   // std::string
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/math/float_order.h"        // d_math_ld_steps
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex.hpp"   // the kind
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function.hpp"  // the tables
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex_kind.hpp"   // the kind
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"  // the tables
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"     // expr_parse
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/token.hpp"     // the decimals
 #include "./math_tests_expr_five_refs.h"                                      // the references

@@ -70,7 +70,7 @@
 * path:      /inc/djinterp/c/modules/math/value.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -1215,12 +1215,102 @@ d_internal_math_value_boxed_binary(
     return false;
 }
 
+// d_internal_math_value_integer_op
+//   _a _op _b of two integers into *_result, its flags _flags, and true,
+// where it is a sum, a difference or a product that a test of the operands
+// shows fits dj_math_imax: the integer, as the exact arithmetic gives it, in
+// its one form; else false, for the exact arithmetic: a quotient, or a
+// result that may not fit (S396). A product fits where each factor's
+// magnitude is below 2^(w/2 - 1), w the word's bits.
+D_MATH_FN bool
+d_internal_math_value_integer_op(
+    struct dj_math_value* _result,
+    enum dj_math_value_op _op,
+    dj_math_imax          _a,
+    dj_math_imax          _b,
+    unsigned              _flags
+)
+{
+    const dj_math_umax small = (D_INTERNAL_RATIONAL_HALF_MASK >> 1);
+
+    dj_math_imax n = 0;
+
+    // a sum, a difference or a product within the word; else none here
+    if ( (_op == D_MATH_VALUE_OP_ADD) &&
+         ( (_b >= 0) ? (_a <= (D_MATH_IMAX_MAX - _b))
+                     : (_a >= (D_MATH_IMAX_MIN - _b)) ) )
+    {
+        n = _a + _b;
+    }
+    else if ( (_op == D_MATH_VALUE_OP_SUB) &&
+              ( (_b >= 0) ? (_a >= (D_MATH_IMAX_MIN + _b))
+                          : (_a <= (D_MATH_IMAX_MAX + _b)) ) )
+    {
+        n = _a - _b;
+    }
+    else if ( (_op == D_MATH_VALUE_OP_MUL) &&
+              (d_internal_rational_magnitude(_a) <= small) &&
+              (d_internal_rational_magnitude(_b) <= small) )
+    {
+        n = _a * _b;
+    }
+    else
+    {
+        return false;
+    }
+
+    *_result       = d_math_value_from_int(n);
+    _result->flags = _flags;
+
+    return true;
+}
+
+// d_internal_math_value_inexact_op
+//   _a _op _b in _kind, an inexact kind at least each operand's: the type's
+// own arithmetic, each operand converted to it, its flags _flags.
+D_MATH_FN struct dj_math_value
+d_internal_math_value_inexact_op(
+    enum dj_math_value_op   _op,
+    enum dj_math_value_kind _kind,
+    struct dj_math_value    _a,
+    struct dj_math_value    _b,
+    unsigned                _flags
+)
+{
+    struct dj_math_value result = d_internal_math_value_blank(_kind, _flags);
+
+    // the type's own arithmetic, the operands converted to it
+    if (_kind == D_MATH_VALUE_FLOAT)
+    {
+        result.real = (long double)d_internal_math_value_op_f(
+            _op, d_internal_math_value_as_f(_a),
+            d_internal_math_value_as_f(_b));
+    }
+    else if (_kind == D_MATH_VALUE_DOUBLE)
+    {
+        result.real = (long double)d_internal_math_value_op_d(
+            _op, d_internal_math_value_as_d(_a),
+            d_internal_math_value_as_d(_b));
+    }
+    else
+    {
+        result.real = d_internal_math_value_op_ld(
+            _op, d_internal_math_value_as_ld(_a),
+            d_internal_math_value_as_ld(_b));
+    }
+
+    return result;
+}
+
 // d_internal_math_value_binary
 //   _a _op _b for any two values: an error passes through, the first of
 // two; a boxed operand goes to the operand higher in the tower; a boolean or
 // none is a domain error; two exact numbers stay exact; otherwise the
 // operation is done in the wider of the inexact kinds, an exact operand
-// converted to it.
+// converted to it. Two integers whose sum, difference or product fits,
+// and two inline numbers both exact or of one inexact kind, the operands of
+// most operations, are sent to their arithmetic first, past the checks that
+// cannot hold for them, as those checks would send them (S396).
 D_MATH_FN struct dj_math_value
 d_internal_math_value_binary(
     enum dj_math_value_op _op,
@@ -1231,6 +1321,32 @@ d_internal_math_value_binary(
     const unsigned flags = _a.flags | _b.flags;
 
     struct dj_math_value result = d_math_value_none();
+
+    // two integers: a sum, a difference or a product that fits, at once
+    if ( (_a.kind == D_MATH_VALUE_INTEGER) &&
+         (_b.kind == D_MATH_VALUE_INTEGER) &&
+         (d_internal_math_value_integer_op(&result, _op, _a.exact.num,
+                                           _b.exact.num, flags)) )
+    {
+        return result;
+    }
+
+    // two exact inline numbers: their exact arithmetic
+    if ( (_a.kind >= D_MATH_VALUE_INTEGER)  &&
+         (_a.kind <= D_MATH_VALUE_RATIONAL) &&
+         (_b.kind >= D_MATH_VALUE_INTEGER)  &&
+         (_b.kind <= D_MATH_VALUE_RATIONAL) )
+    {
+        return d_internal_math_value_exact_op(_op, _a.exact, _b.exact, flags);
+    }
+
+    // two inline numbers of one inexact kind: its arithmetic
+    if ( (_a.kind == _b.kind) &&
+         (_a.kind >= D_MATH_VALUE_FLOAT) &&
+         (_a.kind <= D_MATH_VALUE_LONG_DOUBLE) )
+    {
+        return d_internal_math_value_inexact_op(_op, _a.kind, _a, _b, flags);
+    }
 
     // an error operand, the first of two
     if ( (_a.kind == D_MATH_VALUE_ERROR) ||
@@ -1268,30 +1384,8 @@ d_internal_math_value_binary(
     }
 
     // the wider of the inexact kinds: an exact kind is below them all
-    result = d_internal_math_value_blank(
-        (_a.kind > _b.kind) ? _a.kind : _b.kind, flags);
-
-    // the type's own arithmetic, the operands converted to it
-    if (result.kind == D_MATH_VALUE_FLOAT)
-    {
-        result.real = (long double)d_internal_math_value_op_f(
-            _op, d_internal_math_value_as_f(_a),
-            d_internal_math_value_as_f(_b));
-    }
-    else if (result.kind == D_MATH_VALUE_DOUBLE)
-    {
-        result.real = (long double)d_internal_math_value_op_d(
-            _op, d_internal_math_value_as_d(_a),
-            d_internal_math_value_as_d(_b));
-    }
-    else
-    {
-        result.real = d_internal_math_value_op_ld(
-            _op, d_internal_math_value_as_ld(_a),
-            d_internal_math_value_as_ld(_b));
-    }
-
-    return result;
+    return d_internal_math_value_inexact_op(
+        _op, (_a.kind > _b.kind) ? _a.kind : _b.kind, _a, _b, flags);
 }
 
 // 4.2    d_math_value_neg, d_math_value_abs

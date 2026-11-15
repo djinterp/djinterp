@@ -2,8 +2,8 @@
 * djinterp [cpp/math]                          t_expr_quaternion_matrix_face.cpp
 *
 * Tests for what step 24's third part, chunk 46, made of matrices of
-* quaternions in the language (math/expr/matrix.hpp, rotation.hpp,
-* quaternion.hpp, function.hpp, evaluate.hpp).
+* quaternions in the language (math/expr/matrix_kind.hpp, matrix_function.hpp,
+* rotation.hpp, quaternion_kind.hpp, function_table.hpp, evaluate.hpp).
 *   - storage (S386): exact and boxed elements as values; dense where each
 *     is a float, a double, a long double or a complex number or a
 *     quaternion of such parts, the widest type's quaternions where any is
@@ -42,7 +42,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_quaternion_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.08
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -108,8 +108,9 @@ namespace
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function.hpp"  // the tables
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix.hpp"    // the kind
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"  // the tables
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_function.hpp"  // det, inv, eig, solve
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"      // the kind
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"     // expr_parse
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/rotation.hpp"  // rotations
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/token.hpp"     // the decimals
@@ -156,10 +157,10 @@ namespace
         const m::quaternion<Type>& _b
     )
     {
-        return ( (d_tests_same_bits(_a.w, _b.w)) &&
-                 (d_tests_same_bits(_a.x, _b.x)) &&
-                 (d_tests_same_bits(_a.y, _b.y)) &&
-                 (d_tests_same_bits(_a.z, _b.z)) );
+        return ( (d_tests_same_bits(_a.m_w, _b.m_w)) &&
+                 (d_tests_same_bits(_a.m_x, _b.m_x)) &&
+                 (d_tests_same_bits(_a.m_y, _b.m_y)) &&
+                 (d_tests_same_bits(_a.m_z, _b.m_z)) );
     }
 
     // d_tests_q
@@ -187,10 +188,14 @@ namespace
         bool                       _minus
     )
     {
-        return ( _minus ? m::quaternion<Type>(_a.x - _b.x, _a.y - _b.y,
-                                              _a.z - _b.z, _a.w - _b.w)
-                        : m::quaternion<Type>(_a.x + _b.x, _a.y + _b.y,
-                                              _a.z + _b.z, _a.w + _b.w) );
+        return ( _minus ? m::quaternion<Type>(_a.m_x - _b.m_x,
+                                              _a.m_y - _b.m_y,
+                                              _a.m_z - _b.m_z,
+                                              _a.m_w - _b.m_w)
+                        : m::quaternion<Type>(_a.m_x + _b.m_x,
+                                              _a.m_y + _b.m_y,
+                                              _a.m_z + _b.m_z,
+                                              _a.m_w + _b.m_w) );
     }
 
     // d_tests_exact
@@ -994,9 +999,10 @@ namespace
 
         for (std::size_t i = 0; i < 6; ++i)
         {
-            negated.push_back(q_type(-q[i].x, -q[i].y, -q[i].z, -q[i].w));
+            negated.push_back(q_type(-q[i].m_x, -q[i].m_y,
+                                     -q[i].m_z, -q[i].m_w));
             conjugated.push_back(conjugate(q[i]));
-            real.push_back(m::value(q[i].w));
+            real.push_back(m::value(q[i].m_w));
         }
 
         return ( (d_tests_holds<Type>(m::expr_transpose(A).value(), 3, 2,
@@ -1127,10 +1133,10 @@ namespace
             const Type                w = ( ((i % (_n + 1)) == 0) ? Type(1)
                                                                   : Type(0) );
 
-            ok = ( (std::fabs(q.w - w) <= _tolerance) &&
-                   (std::fabs(q.x) <= _tolerance) &&
-                   (std::fabs(q.y) <= _tolerance) &&
-                   (std::fabs(q.z) <= _tolerance) );
+            ok = ( (std::fabs(q.m_w - w) <= _tolerance) &&
+                   (std::fabs(q.m_x) <= _tolerance) &&
+                   (std::fabs(q.m_y) <= _tolerance) &&
+                   (std::fabs(q.m_z) <= _tolerance) );
         }
 
         return ok;
@@ -1160,9 +1166,9 @@ namespace
             const std::vector<m::quaternion<Type> > b =
                 d_tests_random_q<Type>(_rng, 6);
 
-            q[0].w += Type(4);
-            q[4].w += Type(4);
-            q[8].w += Type(4);
+            q[0].m_w += Type(4);
+            q[4].m_w += Type(4);
+            q[8].m_w += Type(4);
 
             const m::value             A  = d_tests_matrix_of<Type>(3, 3, q);
             const m::value             B  = d_tests_matrix_of<Type>(3, 2, b);
@@ -1230,14 +1236,14 @@ namespace
             for (std::size_t i = 0; i < 3; ++i)
             {
                 complexes.push_back(m::expr_complex_of(
-                    m::complex<Type>(a[i].w, a[i].x)));
-                sum  += ( ( (static_cast<long double>(a[i].w) * a[i].w) +
-                            (static_cast<long double>(a[i].x) * a[i].x) ) +
-                          ( (static_cast<long double>(a[i].y) * a[i].y) +
-                            (static_cast<long double>(a[i].z) * a[i].z) ) );
+                    m::complex<Type>(a[i].m_w, a[i].m_x)));
+                sum  += ( ( (static_cast<long double>(a[i].m_w) * a[i].m_w) +
+                            (static_cast<long double>(a[i].m_x) * a[i].m_x) ) +
+                          ( (static_cast<long double>(a[i].m_y) * a[i].m_y) +
+                            (static_cast<long double>(a[i].m_z) * a[i].m_z) ) );
                 dot   = d_tests_sum(dot, (conjugate(a[i]) * b[i]), false);
                 mixed = d_tests_sum(mixed,
-                                    (d_tests_q(a[i].w, -a[i].x, Type(0),
+                                    (d_tests_q(a[i].m_w, -a[i].m_x, Type(0),
                                                Type(0)) *
                                      b[i]),
                                     false);
@@ -1729,13 +1735,13 @@ namespace
                 const m::quaternion<Type>& e = _q[(i * _n) + j];
 
                 z[(i * w) + j]             = m::expr_complex_of(
-                    m::complex<Type>(e.w, e.x));
+                    m::complex<Type>(e.m_w, e.m_x));
                 z[(i * w) + _n + j]        = m::expr_complex_of(
-                    m::complex<Type>(e.y, e.z));
+                    m::complex<Type>(e.m_y, e.m_z));
                 z[((_n + i) * w) + j]      = m::expr_complex_of(
-                    m::complex<Type>(-e.y, e.z));
+                    m::complex<Type>(-e.m_y, e.m_z));
                 z[((_n + i) * w) + _n + j] = m::expr_complex_of(
-                    m::complex<Type>(e.w, -e.x));
+                    m::complex<Type>(e.m_w, -e.m_x));
             }
         }
 
@@ -1816,8 +1822,8 @@ namespace
             }
 
             const long double trace = ( 2.0L * ( static_cast<long double>(
-                                                     q[0].w) +
-                                                 q[4].w + q[8].w ) );
+                                                     q[0].m_w) +
+                                                 q[4].m_w + q[8].m_w ) );
 
             ok = ( (ok) &&
                    (d_tests_one_of_each<Type>(d_tests_elements(eig),
@@ -1879,14 +1885,16 @@ namespace
     {
         const m::quaternion<Type> q = d_tests_q(Type(0.5), Type(-1.25),
                                                 Type(2), Type(0.75));
-        const Type                v = norm(m::quaternion<Type>(q.x, q.y,
-                                                                q.z, Type(0)));
+        const Type                v = norm(m::quaternion<Type>(q.m_x,
+                                                                q.m_y,
+                                                                q.m_z,
+                                                                Type(0)));
         m::complex<Type>          z;
 
         return ( (m::expr_complex_to(m::expr_eig(m::expr_quaternion_of(q))
                                          .value(),
                                      z)) &&
-                 (d_tests_same_bits(z.real(), q.w)) &&
+                 (d_tests_same_bits(z.real(), q.m_w)) &&
                  (d_tests_same_bits(z.imag(), v)) );
     }
 
@@ -1942,12 +1950,14 @@ namespace
                  (m::expr_eig(L).value() == m::expr_eig(U).value()) &&
                  (m::expr_complex_to(e[0], z0)) &&
                  (m::expr_complex_to(e[1], z1)) &&
-                 (d_tests_same_bits(z0.real(), a.w)) &&
+                 (d_tests_same_bits(z0.real(), a.m_w)) &&
                  (d_tests_same_bits(z0.imag(),
-                                    norm(q_type(a.x, a.y, a.z, Type(0))))) &&
-                 (d_tests_same_bits(z1.real(), b.w)) &&
+                                    norm(q_type(a.m_x, a.m_y, a.m_z,
+                                                Type(0))))) &&
+                 (d_tests_same_bits(z1.real(), b.m_w)) &&
                  (d_tests_same_bits(z1.imag(),
-                                    norm(q_type(b.x, b.y, b.z, Type(0))))) );
+                                    norm(q_type(b.m_x, b.m_y, b.m_z,
+                                                Type(0))))) );
     }
 
     // d_tests_eig
@@ -2073,7 +2083,7 @@ namespace
             const Type                 t = static_cast<Type>(_rng.unit());
             const m::value             p = m::expr_quaternion_of(q[0]);
             const m::value             s = m::expr_quaternion_of(q[1]);
-            const la::matrix<Type, 3, 3> R = to_matrix(q[0]);
+            const la::matrix<Type, 3, 3> R = to_matrix3(q[0]);
             const m::value             rotm = m::expr_quaternion_matrix(p);
             const m::value             back =
                 m::expr_quaternion_of_rotation(rotm);
@@ -2206,10 +2216,10 @@ namespace
                              m::expr_quaternion_of(
                                  d_tests_q(0.0, 0.0, 0.0, 0.0))));
 
-        D_TESTS_EXPECT( (nans.w != nans.w) &&
-                        (nans.x != nans.x) &&
-                        (nans.y != nans.y) &&
-                        (nans.z != nans.z),
+        D_TESTS_EXPECT( (nans.m_w != nans.m_w) &&
+                        (nans.m_x != nans.m_x) &&
+                        (nans.m_y != nans.m_y) &&
+                        (nans.m_z != nans.m_z),
                         "slerp from a dense 0, which names no rotation: "
                         "NaNs in its type (S391)");
 

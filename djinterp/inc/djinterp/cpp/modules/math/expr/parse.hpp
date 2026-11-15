@@ -99,7 +99,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/parse.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -142,7 +142,7 @@ TABLE OF CONTENTS
 #include "../math_common.hpp"                             // NS_MATH
 #include "../value.hpp"                                   // value
 #include "./expr_common.hpp"                              // expr_result
-#include "./function.hpp"                                 // the constants
+#include "./function_table.hpp"                           // the constants
 #include "./operator.hpp"                                 // expr_signature
 #include "./term.hpp"                                     // expr_term
 #include "./token.hpp"                                    // expr_tokenize

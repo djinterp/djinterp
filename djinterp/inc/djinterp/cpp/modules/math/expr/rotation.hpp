@@ -26,15 +26,16 @@
 * numbers or of another shape, and an exact 0 where a rotation is named, is
 * a domain error; a dense 0 gives NaNs, as quat.h's rotation of 0 does.
 * Every result carries its arguments' flags.
-*   THE HEADER. matrix.hpp's kind holds quaternions (S386), so it comes after
-* quaternion.hpp, and these functions, which make or read matrices, after
-* both; parts and rotate came here from quaternion.hpp in chunk 46 (S391).
+*   THE HEADER. matrix_kind.hpp's kind holds quaternions (S386), so it comes
+* after quaternion_kind.hpp, and these functions, which make or read matrices,
+* after both; parts and rotate came here from quaternion_kind.hpp in chunk 46
+* (S391).
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/rotation.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.07
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -75,12 +76,12 @@ TABLE OF CONTENTS
 #include "../../../../c/modules/math/value.h"  // d_math_value_cmp
 #include "../linear_algebra/matrix.hpp"        // linalg::matrix
 #include "../math_common.hpp"                  // NS_MATH
-#include "../quaternion.hpp"                   // to_matrix, from_matrix, slerp
+#include "../quaternion.hpp"                   // to_matrix3, from_matrix, slerp
 #include "../value.hpp"                        // value, value_root_of
-#include "./complex.hpp"                       // expr_complex_flagged
+#include "./complex_kind.hpp"                  // expr_complex_flagged
 #include "./expr_common.hpp"                   // expr_result
-#include "./matrix.hpp"                        // expr_vector, expr_matrix
-#include "./quaternion.hpp"                    // the kind, its parts
+#include "./matrix_kind.hpp"                   // expr_vector, expr_matrix
+#include "./quaternion_kind.hpp"               // the kind, its parts
 
 
 NS_DJINTERP
@@ -104,7 +105,7 @@ NS_MATH
  * @return the vector, a matrix of one row: a quaternion's parts as it holds
  *         them, a dense part a value of its type; a complex number's two and
  *         a real number's one, each other part a 0 of the parts' kind, as a
- *         real number's imaginary part is (complex.hpp's expr_imag); an
+ *         real number's imaginary part is (complex_kind.hpp's expr_imag); an
  *         error, or a domain error, as section 2.2 says.
  */
 D_NODISCARD inline value
@@ -486,7 +487,7 @@ NS_INTERNAL
 
         static_cast<void>(expr_quaternion_to(_q, q));
 
-        const linalg::matrix<Type, 3, 3> m = to_matrix(q);
+        const linalg::matrix<Type, 3, 3> m = to_matrix3(q);
 
         // row by row
         for (std::size_t i = 0; i < 9; ++i)
@@ -531,14 +532,14 @@ expr_quaternion_matrix(
     // exactly, or in the parts' type
     if (_q.is_exact())
     {
-        value       r[9];
+        value       entries[9];
         const value n = internal::expr_rotation_scaled(
             internal::expr_quaternion_parts_of(_q.c_value()),
-            r);
+            entries);
 
         for (std::size_t i = 0; i < 9; ++i)
         {
-            elements.push_back(r[i] / n);
+            elements.push_back(entries[i] / n);
         }
     }
     else

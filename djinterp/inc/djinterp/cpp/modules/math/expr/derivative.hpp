@@ -5,7 +5,7 @@
 * gradient; roadmap Phase 4's first item, 4a.
 *   THE DERIVATIVE is one fold over the term, by the rules of each operator
 * (the sum, product, quotient and power rules) and of each function, its
-* partial derivatives from the function table (function.hpp) by the chain
+* partial derivatives from the function table (function_table.hpp) by the chain
 * rule; then the result simplified (simplify.hpp). A function with no rule is
 * the error not_differentiable. The n-th derivative is the first, n times;
 * the gradient, the derivative by each variable named.
@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/derivative.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp/math]                                    t_expr_complex_face.cpp
 *
-* Tests for math/expr/complex.hpp, the language's complex numbers, and for
+* Tests for math/expr/complex_kind.hpp, the language's complex numbers, and for
 * what step 23's first part (3e) made of them in the language: the kind and
 * the folds, the functions, the relations and the renderer.
 *   - the kind: its table, its rank, a number exact or not value by value,
@@ -52,9 +52,9 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex.hpp"
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/complex_kind.hpp"
 // std
 #include <cstdio>  // std::printf
 
@@ -62,7 +62,7 @@
 // D_TESTS_HEADER_READ
 //   1 where the header was read: at every level, as it defines its guard
 // before its floor.
-#if defined(DJINTERP_MATH_EXPR_COMPLEX_HPP)
+#if defined(DJINTERP_MATH_EXPR_COMPLEX_KIND_HPP)
     #define D_TESTS_HEADER_READ 1
 #else
     #define D_TESTS_HEADER_READ 0
@@ -121,8 +121,8 @@ namespace
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/math/value_wide.h"         // a boxed kind
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"  // the folds
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function.hpp"  // the tables
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix.hpp"    // matrices
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/function_table.hpp"  // the tables
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"    // matrices
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"     // expr_parse
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/render.hpp"    // expr_render
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/simplify.hpp"  // expr_simplify

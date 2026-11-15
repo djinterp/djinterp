@@ -17,7 +17,7 @@
 * constant expression from C++14. So exp(z) at run time and exp_c(z) may
 * differ in their last bits, each within its bound; the language's values
 * take the _c forms, and its fold in a complex type the plain ones, as its
-* folds in a real type take the C library's (expr/function.hpp). An
+* folds in a real type take the C library's (expr/arithmetic.hpp). An
 * operation with a real operand takes it as itself, not as x + 0i (C99's
 * G.5), so that a zero's sign survives and no infinity meets a zero.
 *   CONSTRUCTION is from two parts, the imaginary +0 when it is left out;
@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/modules/math/complex.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*

@@ -48,7 +48,8 @@
 * that generic norms are of the moduli (S355); common_number says an
 * inline value with a number stays inline, and with a value becomes one. So
 * vectors and matrices of values compute, and compare, exactly.
-*   LEVELS. Everything from C++98; from C++11, moves. inline_value is a
+*   LEVELS. Everything from C++98; from C++11, moves, a move assigned
+* without a swap (S396). inline_value is a
 * literal type, and its operations are constant expressions from C++14, as
 * value.h's are. value, whose destructor releases, is a literal type from
 * C++20, where a destructor may be constexpr, and is a constant expression
@@ -59,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/math/value.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -972,15 +973,26 @@ public:
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // _other's hold, taken, and _other left none; this value's, one holder
-    // fewer.
+    // fewer: the value moved once, with no swap (S396).
     D_CONSTEXPR_CPP20 value&
     operator=(
         value&& _other
     ) D_NOEXCEPT
     {
-        value taken(static_cast<value&&>(_other));
+        // a value moved onto itself keeps it
+        if (this != &_other)
+        {
+            dj_math_value held = m_value;
 
-        swap(taken);
+            m_value        = _other.m_value;
+            _other.m_value = d_math_value_none();
+
+            // the value given up, a box: one holder fewer
+            if (held.kind == D_MATH_VALUE_BOXED)
+            {
+                d_math_value_release(&held);
+            }
+        }
 
         return *this;
     }

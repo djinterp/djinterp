@@ -34,12 +34,13 @@
 *   measure_3d.hpp      - patch_area, volume (+ volume_divergence),
 *                         surface_area, centroid_3d, bounding_box
 *                         helpers
+*   platonic.hpp        - the five Platonic solids as triangle meshes
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/geometry/geometry.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 #ifndef DJINTERP_MATH_GEOMETRY_GEOMETRY_HPP
@@ -59,6 +60,7 @@
 #include "./named_3d.hpp"
 #include "./star_3d.hpp"
 #include "./measure_3d.hpp"
+#include "./platonic.hpp"
 
 
 #endif  // DJINTERP_MATH_GEOMETRY_GEOMETRY_HPP

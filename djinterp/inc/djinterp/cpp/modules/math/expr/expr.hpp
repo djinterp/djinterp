@@ -16,8 +16,9 @@
 * for a caller who branches on it (principle 5: steps that can fail chain
 * through result<T, E>).
 *   ENTRIES. Each member is a term-level entry's: str() expr_render's, eval
-* expr_evaluate's, subs expr_substitute's, simplify expr_simplify's and diff
-* expr_derivative's; parse and try_parse are expr_parse's. Each answers as
+* expr_evaluate's, compile expr_compile's, subs expr_substitute's, simplify
+* expr_simplify's and diff expr_derivative's; parse and try_parse are
+* expr_parse's. Each answers as
 * its entry does, so that a step that fills an entry fills its member too.
 *   STEPS. Step 17 (2e) filled the handle and the entries, and step 18
 * (2f) the entries subs and simplify are: subs("x", t) puts t in place of x,
@@ -25,13 +26,20 @@
 * terms (simplify.hpp). Until step 25 (4a), diff gives a handle of
 * expr_derivative's error not_yet. Step 24 (3f), its second part, named
 * complex.hpp and quaternion.hpp among the headers this one includes, which
-* it had read only through the others.
+* it had read only through the others. Chunk 47 added compile, a term
+* compiled once for a type, and program.hpp among the headers (S395). Chunk
+* 48 renamed four headers whose names math had twice, complex.hpp,
+* quaternion.hpp, matrix.hpp and series.hpp, complex_kind.hpp,
+* quaternion_kind.hpp, matrix_kind.hpp and summation.hpp, and split
+* function.hpp and matrix.hpp: the tables function_table.hpp, the
+* arithmetic arithmetic.hpp, the relations and logic logic.hpp, and the
+* matrices' functions matrix_function.hpp (S400, S401).
 *
 *
 * path:      /inc/djinterp/cpp/modules/math/expr/expr.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -60,21 +68,25 @@ TABLE OF CONTENTS
 #include "../math_common.hpp"     // NS_MATH
 #include "../value.hpp"           // value
 #include "./antiderivative.hpp"   // expr_antiderivative
-#include "./complex.hpp"          // complex numbers
+#include "./arithmetic.hpp"       // the arithmetic: ^, mod, the functions
+#include "./complex_kind.hpp"     // complex numbers
 #include "./derivative.hpp"       // expr_derivative, expr_gradient
 #include "./evaluate.hpp"         // expr_evaluate, expr_bindings, at
 #include "./expr_common.hpp"      // expr_error, expr_result, expr_syntax
-#include "./function.hpp"         // the function and constant tables
-#include "./matrix.hpp"           // matrix values
+#include "./function_table.hpp"   // the function and constant tables
+#include "./logic.hpp"            // the relations and logic
+#include "./matrix_function.hpp"  // det, inv, eig, solve, ...
+#include "./matrix_kind.hpp"      // matrix values
 #include "./numeric.hpp"          // expr_integrate, expr_derivative_at
 #include "./operator.hpp"         // expr_op, expr_signature
 #include "./parse.hpp"            // expr_parse
-#include "./quaternion.hpp"       // quaternions
+#include "./program.hpp"          // expr_compile
+#include "./quaternion_kind.hpp"  // quaternions
 #include "./render.hpp"           // expr_render
 #include "./rotation.hpp"         // rotations, slerp
-#include "./series.hpp"           // expr_sum, expr_limit, expr_taylor
 #include "./simplify.hpp"         // expr_simplify
 #include "./substitute.hpp"       // expr_substitute
+#include "./summation.hpp"        // expr_sum, expr_limit, expr_taylor
 #include "./term.hpp"             // expr_term
 #include "./token.hpp"            // expr_tokenize
 
@@ -190,6 +202,45 @@ public:
         return expr_evaluate<Type>(m_term,
                                    _bindings,
                                    _context);
+    }
+
+    /**
+     * @brief The expression compiled for float, double or long double, or
+     *        the math::complex of one, to be run many times (S395).
+     *
+     * @param[in] _variables  the variables' names, in the order a run takes
+     *                        their values; by default the term's own, in
+     *                        the order first read (expr_variables).
+     * @return expr_compile<Type>'s program, or its error, or the error the
+     *         handle holds.
+     */
+    template<typename Type>
+    D_NODISCARD expr_result<expr_program<Type> >
+    compile(
+        const std::vector<std::string>& _variables
+    ) const
+    {
+        // an error: passed on
+        if (!m_ok)
+        {
+            return err<expr_program<Type>, expr_error>(m_error);
+        }
+
+        return expr_compile<Type>(m_term,
+                                  _variables);
+    }
+
+    template<typename Type>
+    D_NODISCARD expr_result<expr_program<Type> >
+    compile() const
+    {
+        // an error: passed on
+        if (!m_ok)
+        {
+            return err<expr_program<Type>, expr_error>(m_error);
+        }
+
+        return expr_compile<Type>(m_term);
     }
 
     /**

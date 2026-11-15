@@ -11,21 +11,31 @@
 * blends two orientations along the shorter arc at a constant speed, nlerp
 * cheaply; exp, log, sqrt and pow are the principal values (S275).
 *
+* ONE CLASS:
+*   math::quaternion is the framework's one quaternion (S398). linalg's,
+* linalg::quaternion, is this class, as is each of its functions, named in
+* linear_algebra/quaternion.hpp by a using-declaration, so that the two
+* names never make one call ambiguous; the default element type is double,
+* as linalg's was.
+*
 * BRIDGE TO LINEAR ALGEBRA:
-*   axes and rotated vectors are linalg::vector<Type, 3>; to_matrix /
+*   axes and rotated vectors are linalg::vector<Type, 3>; to_matrix3 /
 * to_matrix4 yield linalg::matrix values and from_matrix takes them, so a
 * quaternion drops straight into the same transform pipeline as
-* linalg::transform's rotation builders.
+* linalg::transform's rotation builders. CONVENTION: matching
+* linalg::matrix and linalg::transform_point, the matrices are row-major
+* for column vectors -- a point is rotated as M * p; a rotation is active
+* and right-handed, q v q^-1, as glTF's, Eigen's and GLM's (S276).
 *
 * THE C CORE:
-*   a face over c/math/quat.h, as linear_algebra/quaternion.hpp is, through
-* the same internal::linalg_kernel; the generic path serves any other
-* element type. Everything compiles from C++98. Accurate by default (S276):
+*   a face over c/math/quat.h through internal::linalg_kernel; the generic
+* path serves any other element type. Everything compiles from C++98.
+* Accurate by default (S276):
 * each part of the product, the inverse, the quotients, the rotation and its
 * matrix within a step of the correctly rounded one, and the rotation and
 * the matrix of any q not 0, a unit q's own; the _fast forms are the former
 * formulas, for a renderer's inner loops (multiply_fast, rotate_fast,
-* to_matrix_fast, to_matrix4_fast, normalize_fast, slerp_fast).
+* to_matrix3_fast, to_matrix4_fast, normalize_fast, slerp_fast).
 *
 * CONSTEXPR:
 *   everything but from_axis_angle, slerp_fast and normalize_fast is a
@@ -40,7 +50,7 @@
 * path:      /inc/djinterp/cpp/modules/math/quaternion.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.18
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -82,9 +92,10 @@ NS_MATH
 
 
 // quaternion
-//   struct: a quaternion x i + y j + z k + w, with vector part (x, y, z) and
-// scalar part w. The default value is the identity rotation.
-template<typename Type>
+//   struct: a quaternion x i + y j + z k + w, with vector part (m_x, m_y,
+// m_z) and scalar part m_w. The default value is the identity rotation; the
+// default element type, double. linalg::quaternion is this class (S398).
+template<typename Type = double>
 struct quaternion
 {
     // ---- type aliases -------------------------------------------------------
@@ -94,20 +105,20 @@ struct quaternion
 
     // ---- data ---------------------------------------------------------------
 
-    Type x;
-    Type y;
-    Type z;
-    Type w;
+    Type m_x;
+    Type m_y;
+    Type m_z;
+    Type m_w;
 
     // ---- construction -------------------------------------------------------
 
     // default: the identity rotation (0, 0, 0, 1).
     D_CONSTEXPR
     quaternion() D_NOEXCEPT
-        : x(static_cast<Type>(0)),
-          y(static_cast<Type>(0)),
-          z(static_cast<Type>(0)),
-          w(static_cast<Type>(1))
+        : m_x(static_cast<Type>(0)),
+          m_y(static_cast<Type>(0)),
+          m_z(static_cast<Type>(0)),
+          m_w(static_cast<Type>(1))
     {}
 
     // from explicit components.
@@ -118,19 +129,28 @@ struct quaternion
         Type _z,
         Type _w
     ) D_NOEXCEPT
-        : x(_x),
-          y(_y),
-          z(_z),
-          w(_w)
+        : m_x(_x),
+          m_y(_y),
+          m_z(_z),
+          m_w(_w)
     {}
 
     // ---- named factories ----------------------------------------------------
 
     // identity: the identity rotation.
-    static D_CONSTEXPR quaternion
+    D_NODISCARD static D_CONSTEXPR quaternion
     identity() D_NOEXCEPT
     {
         return quaternion();
+    }
+
+    // ---- parts --------------------------------------------------------------
+
+    // vector_part: (x, y, z) as a linalg vector.
+    D_NODISCARD D_CONSTEXPR_CPP14 vector_type
+    vector_part() const D_NOEXCEPT
+    {
+        return vector_type(m_x, m_y, m_z);
     }
 };
 
@@ -145,10 +165,10 @@ NS_INTERNAL
         Type*                   _out
     ) D_NOEXCEPT
     {
-        _out[0] = _q.x;
-        _out[1] = _q.y;
-        _out[2] = _q.z;
-        _out[3] = _q.w;
+        _out[0] = _q.m_x;
+        _out[1] = _q.m_y;
+        _out[2] = _q.m_z;
+        _out[3] = _q.m_w;
     }
 
     template<typename Type>
@@ -167,9 +187,9 @@ NS_END  // internal
 
 
 // from_axis_angle
-//   the rotation of _angle radians about _axis. The axis is normalized
-// internally, so it need not be a unit vector (a zero one gives (0, 0, 0,
-// cos(angle / 2))).
+//   the rotation of _angle radians about _axis, which need not be a unit
+// vector: (axis sin(a/2) / |axis|, cos(a/2)), the C core's; a zero axis
+// names no rotation, the identity (S398).
 template<typename Type>
 D_NODISCARD D_CONSTEXPR_CPP20 quaternion<Type>
 from_axis_angle(
@@ -177,18 +197,17 @@ from_axis_angle(
     Type                           _angle
 ) D_NOEXCEPT
 {
-    const linalg::vector<Type, 3> a    = _axis.normalized();
-    Type                          q[4] = { Type(), Type(), Type(), Type() };
+    Type q[4] = { Type(), Type(), Type(), Type() };
 
-    linalg::internal::linalg_kernel<Type>::quat_from_unit_axis_angle(
-        q, a.data(), _angle);
+    linalg::internal::linalg_kernel<Type>::quat_from_axis_angle(
+        q, _axis.data(), _angle);
 
     return internal::quaternion_out(q);
 }
 
 // from_matrix
 //   the unit quaternion, w >= 0, of the rotation matrix _m, by Shepperd's
-// method: to_matrix's inverse, q or -q; of a 4x4 matrix, its upper-left
+// method: to_matrix3's inverse, q or -q; of a 4x4 matrix, its upper-left
 // 3x3. A matrix a few steps from orthogonal gives a quaternion as many from
 // unit length.
 template<typename Type>
@@ -369,7 +388,7 @@ conjugate(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
-    return quaternion<Type>(-_q.x, -_q.y, -_q.z, _q.w);
+    return quaternion<Type>(-_q.m_x, -_q.m_y, -_q.m_z, _q.m_w);
 }
 
 // norm
@@ -438,12 +457,12 @@ rotate(
 ) D_NOEXCEPT
 {
     Type                    q[4] = { Type(), Type(), Type(), Type() };
-    linalg::vector<Type, 3> r;
+    linalg::vector<Type, 3> out;
 
     internal::quaternion_in(_q, q);
-    linalg::internal::linalg_kernel<Type>::quat_rotate(&r[0], q, _v.data());
+    linalg::internal::linalg_kernel<Type>::quat_rotate(&out[0], q, _v.data());
 
-    return r;
+    return out;
 }
 
 // rotate_fast
@@ -457,51 +476,51 @@ rotate_fast(
 ) D_NOEXCEPT
 {
     Type                    q[4] = { Type(), Type(), Type(), Type() };
-    linalg::vector<Type, 3> r;
+    linalg::vector<Type, 3> out;
 
     internal::quaternion_in(_q, q);
-    linalg::internal::linalg_kernel<Type>::quat_rotate_fast(&r[0], q,
+    linalg::internal::linalg_kernel<Type>::quat_rotate_fast(&out[0], q,
                                                             _v.data());
 
-    return r;
+    return out;
 }
 
-// to_matrix, to_matrix_fast
+// to_matrix3, to_matrix3_fast
 //   the 3x3 rotation matrix of _q: of any q not 0, each entry within a step
 // of the correctly rounded one; and the former formula's, 1 - 2 (y^2 + z^2)
 // and so on, of a unit q.
 template<typename Type>
 D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 3, 3>
-to_matrix(
+to_matrix3(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
     Type                       q[4] = { Type(), Type(), Type(), Type() };
-    linalg::matrix<Type, 3, 3> r;
+    linalg::matrix<Type, 3, 3> out;
 
     internal::quaternion_in(_q, q);
-    linalg::internal::linalg_kernel<Type>::quat_to_matrix3(&r(0, 0), q);
+    linalg::internal::linalg_kernel<Type>::quat_to_matrix3(&out(0, 0), q);
 
-    return r;
+    return out;
 }
 
 template<typename Type>
 D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 3, 3>
-to_matrix_fast(
+to_matrix3_fast(
     const quaternion<Type>& _q
 ) D_NOEXCEPT
 {
     Type                       q[4] = { Type(), Type(), Type(), Type() };
-    linalg::matrix<Type, 3, 3> r;
+    linalg::matrix<Type, 3, 3> out;
 
     internal::quaternion_in(_q, q);
-    linalg::internal::linalg_kernel<Type>::quat_to_matrix3_fast(&r(0, 0), q);
+    linalg::internal::linalg_kernel<Type>::quat_to_matrix3_fast(&out(0, 0), q);
 
-    return r;
+    return out;
 }
 
 // to_matrix4, to_matrix4_fast
-//   the 4x4 homogeneous rotation matrix: to_matrix's, or to_matrix_fast's,
+//   the 4x4 homogeneous rotation matrix: to_matrix3's, or to_matrix3_fast's,
 // in its upper left.
 template<typename Type>
 D_NODISCARD D_CONSTEXPR_CPP14 linalg::matrix<Type, 4, 4>
@@ -510,12 +529,12 @@ to_matrix4(
 ) D_NOEXCEPT
 {
     Type                       q[4] = { Type(), Type(), Type(), Type() };
-    linalg::matrix<Type, 4, 4> r;
+    linalg::matrix<Type, 4, 4> out;
 
     internal::quaternion_in(_q, q);
-    linalg::internal::linalg_kernel<Type>::quat_to_matrix4(&r(0, 0), q);
+    linalg::internal::linalg_kernel<Type>::quat_to_matrix4(&out(0, 0), q);
 
-    return r;
+    return out;
 }
 
 template<typename Type>
@@ -525,12 +544,12 @@ to_matrix4_fast(
 ) D_NOEXCEPT
 {
     Type                       q[4] = { Type(), Type(), Type(), Type() };
-    linalg::matrix<Type, 4, 4> r;
+    linalg::matrix<Type, 4, 4> out;
 
     internal::quaternion_in(_q, q);
-    linalg::internal::linalg_kernel<Type>::quat_to_matrix4_fast(&r(0, 0), q);
+    linalg::internal::linalg_kernel<Type>::quat_to_matrix4_fast(&out(0, 0), q);
 
-    return r;
+    return out;
 }
 
 
@@ -552,15 +571,15 @@ slerp(
     Type                    _t
 ) D_NOEXCEPT
 {
-    Type a[4] = { Type(), Type(), Type(), Type() };
-    Type b[4] = { Type(), Type(), Type(), Type() };
-    Type r[4] = { Type(), Type(), Type(), Type() };
+    Type a[4]   = { Type(), Type(), Type(), Type() };
+    Type b[4]   = { Type(), Type(), Type(), Type() };
+    Type out[4] = { Type(), Type(), Type(), Type() };
 
     internal::quaternion_in(_a, a);
     internal::quaternion_in(_b, b);
-    linalg::internal::linalg_kernel<Type>::quat_slerp(r, a, b, _t);
+    linalg::internal::linalg_kernel<Type>::quat_slerp(out, a, b, _t);
 
-    return internal::quaternion_out(r);
+    return internal::quaternion_out(out);
 }
 
 // slerp_fast
@@ -574,15 +593,15 @@ slerp_fast(
     Type                    _t
 ) D_NOEXCEPT
 {
-    Type a[4] = { Type(), Type(), Type(), Type() };
-    Type b[4] = { Type(), Type(), Type(), Type() };
-    Type r[4] = { Type(), Type(), Type(), Type() };
+    Type a[4]   = { Type(), Type(), Type(), Type() };
+    Type b[4]   = { Type(), Type(), Type(), Type() };
+    Type out[4] = { Type(), Type(), Type(), Type() };
 
     internal::quaternion_in(_a, a);
     internal::quaternion_in(_b, b);
-    linalg::internal::linalg_kernel<Type>::quat_slerp_fast(r, a, b, _t);
+    linalg::internal::linalg_kernel<Type>::quat_slerp_fast(out, a, b, _t);
 
-    return internal::quaternion_out(r);
+    return internal::quaternion_out(out);
 }
 
 // nlerp
@@ -596,15 +615,15 @@ nlerp(
     Type                    _t
 ) D_NOEXCEPT
 {
-    Type a[4] = { Type(), Type(), Type(), Type() };
-    Type b[4] = { Type(), Type(), Type(), Type() };
-    Type r[4] = { Type(), Type(), Type(), Type() };
+    Type a[4]   = { Type(), Type(), Type(), Type() };
+    Type b[4]   = { Type(), Type(), Type(), Type() };
+    Type out[4] = { Type(), Type(), Type(), Type() };
 
     internal::quaternion_in(_a, a);
     internal::quaternion_in(_b, b);
-    linalg::internal::linalg_kernel<Type>::quat_nlerp(r, a, b, _t);
+    linalg::internal::linalg_kernel<Type>::quat_nlerp(out, a, b, _t);
 
-    return internal::quaternion_out(r);
+    return internal::quaternion_out(out);
 }
 
 

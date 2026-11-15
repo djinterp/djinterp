@@ -2,8 +2,8 @@
 * djinterp [cpp/math]                             t_expr_complex_matrix_face.cpp
 *
 * Tests for what step 23's third part, chunk 43, made of matrices of complex
-* numbers in the language (math/expr/matrix.hpp, function.hpp,
-* evaluate.hpp).
+* numbers in the language (math/expr/matrix_kind.hpp, matrix_function.hpp,
+* function_table.hpp, evaluate.hpp).
 *   - storage (S348): exact and boxed elements as values; dense where each
 *     is a float, a double, a long double or a complex number of such
 *     parts, the widest type's complex numbers where any is, a real element
@@ -34,7 +34,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -102,7 +102,8 @@ namespace
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/math/cmat.h"             // d_cmat_*
 #include "../../../../../../inc/djinterp/c/modules/math/decomp.h"           // d_decomp_eigen
-#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix.hpp"  // the kind
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_function.hpp"  // det, inv, eig, solve
+#include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"      // the kind
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"   // expr_parse
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/token.hpp"   // the decimals
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/matrix.hpp"

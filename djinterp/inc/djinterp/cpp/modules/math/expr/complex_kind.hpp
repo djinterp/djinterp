@@ -1,12 +1,12 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                complex.hpp
+* djinterp [cpp/math]                                           complex_kind.hpp
 *
 * Complex numbers as values of the run-time expression language; roadmap
 * Phase 3, step 23 (3e), its first part.
 *   THE KIND is a boxed kind of the value layer, as the matrix is
-* (matrix.hpp, S237), written here, in C++, from C++11, as the language that
-* makes complex numbers is. It is one kind, "complex", of the rank 900, past
-* every real kind's, so that in an operation of a complex number and a real
+* (matrix_kind.hpp, S237), written here, in C++, from C++11, as the language
+* that makes complex numbers is. It is one kind, "complex", of the rank 900,
+* past every real kind's, so that in an operation of a complex number and a real
 * one the complex number's table handles it, and below the quaternion's 950
 * and the matrix's 1000 (S271). A complex number is a number, exact or not
 * value by value, as its parts are, which its table's exact entry says
@@ -42,7 +42,7 @@
 * imaginary part being 0, so that 3 + 0.0im equals 3 and 1/2 + im equals
 * 0.5 + 1.0im; and stands in no order otherwise, as no order of the complex
 * numbers is a field's, nor with a NaN part (S329). The language's <, <=, >
-* and >= of a complex number are a domain error (function.hpp, S271).
+* and >= of a complex number are a domain error (logic.hpp, S271).
 *   CONVERSION to a real type is of a number whose imaginary part is 0: an
 * inexact complex number's, ±0, its real part's nearest float, double or
 * long double; no exact complex number converts, as none is real, and none
@@ -64,26 +64,29 @@
 * a math::complex<T>, and expr_complex_to gives a number's nearest one; and
 * expr_complex_apply computes an operation of numbers, real or complex, in
 * the widest floating-point type of theirs, as the language's functions of
-* a complex number take their principal values there (function.hpp). A
-* number past the complex ones, a quaternion (quaternion.hpp, S275), is none
-* of theirs: each refuses it, a domain error, and expr_complex_to gives no
+* a complex number take their principal values there (arithmetic.hpp). A
+* number past the complex ones, a quaternion (quaternion_kind.hpp, S275), is
+* none of theirs: each refuses it, a domain error, and expr_complex_to gives no
 * nearest complex number of it.
+*   ITS NAME. Until chunk 48 this header was complex.hpp, the name of the
+* header of math::complex<T> (../complex.hpp), which it includes; it is
+* named for what it holds, the complex kind (S400).
 *   STEPS. Step 23 (3e) comes in parts (S324, S335): this header is its
 * first's, with the language's im, complex, real, imag, conj, arg, the
 * modulus, the relations and the exact powers to a whole exponent
-* (function.hpp, evaluate.hpp); its second, in two chunks, gives each
-* function of the table its principal complex value, expr_complex_apply
+* (arithmetic.hpp, logic.hpp, evaluate.hpp); its second, in two chunks, gives
+* each function of the table its principal complex value, expr_complex_apply
 * its dense one, the first those cplx.h has and the second exp2, log2,
 * log10, log1p and expm1 with cplx.h's own; and its third, in chunk 43,
-* matrices of complex numbers, matrix.hpp's, which hold this kind's numbers
+* matrices of complex numbers, matrix_kind.hpp's, which hold this kind's numbers
 * as elements, and densely math::complex<T>, and take real, imag, conj and
 * arg of a matrix element by element (S348, S350).
 *
 *
-* path:      /inc/djinterp/cpp/modules/math/expr/complex.hpp
+* path:      /inc/djinterp/cpp/modules/math/expr/complex_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.31
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -125,8 +128,8 @@ TABLE OF CONTENTS
          2.  expr_complex_apply
 */
 
-#ifndef DJINTERP_MATH_EXPR_COMPLEX_HPP
-#define DJINTERP_MATH_EXPR_COMPLEX_HPP 1
+#ifndef DJINTERP_MATH_EXPR_COMPLEX_KIND_HPP
+#define DJINTERP_MATH_EXPR_COMPLEX_KIND_HPP 1
 
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
@@ -1230,7 +1233,7 @@ NS_INTERNAL
 
     // expr_complex_beyond
     //   function: whether _x is a number of a kind past the complex numbers,
-    // of a rank above theirs: a quaternion (S275, quaternion.hpp), which
+    // of a rank above theirs: a quaternion (S275, quaternion_kind.hpp), which
     // this header's functions do not take.
     inline bool
     expr_complex_beyond(
@@ -1382,10 +1385,10 @@ expr_complex_to(
 
 // 2.2    The parts
 //------------------------------------------------------------------------------
-// The language's real, imag, conj and arg of a number (function.hpp): an
+// The language's real, imag, conj and arg of a number (arithmetic.hpp): an
 // error passes, and what is no number, a boolean, none or a matrix, is a
 // domain error; every result carries the argument's flags. The language's
-// of a matrix are each element's, by matrix.hpp's expr_matrix_each (S350).
+// of a matrix are each element's, by matrix_kind.hpp's expr_matrix_each (S350).
 NS_INTERNAL
 
     // expr_complex_number_failed
@@ -1574,7 +1577,7 @@ expr_arg(
 )
 {
     value                      failed;
-    math::complex<long double> z;
+    math::complex<long double> nearest;
 
     // an error, or no number
     if (internal::expr_complex_number_failed(_value, failed))
@@ -1633,15 +1636,16 @@ expr_arg(
     }
 
     // a long double's, of exact parts or a boxed kind's
-    static_cast<void>(expr_complex_to(_value, z));
+    static_cast<void>(expr_complex_to(_value, nearest));
 
-    return internal::expr_complex_flagged(value(arg_c(z)), _value.flags());
+    return internal::expr_complex_flagged(value(arg_c(nearest)),
+                                          _value.flags());
 }
 
 // 2.3    Functions
 //------------------------------------------------------------------------------
 // A function's principal complex value in the parts' floating-point type, as
-// the language's functions of a complex number take it (function.hpp, S271,
+// the language's functions of a complex number take it (arithmetic.hpp, S271,
 // S336): the operation is math::complex<T>'s _c form, F_c, so cplx.h's _c
 // form, one answer at every level, where the face's own name and the fold in
 // a complex type give the plain form at run time (S336).
@@ -1738,4 +1742,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_MATH_EXPR_COMPLEX_HPP
+#endif  // DJINTERP_MATH_EXPR_COMPLEX_KIND_HPP
