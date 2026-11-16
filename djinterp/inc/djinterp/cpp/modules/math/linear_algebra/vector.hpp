@@ -525,10 +525,18 @@ public:
 
     // ---- products, norms, geometry ----------------------------------------
 
+    // dot: for float, double and long double compensated, rounded once
+    // from Dot2's pair (S404); dot_fast as written, each product rounded
     D_CONSTEXPR_CPP14 Type
     dot(const vector& _o) const D_NOEXCEPT
     {
         return kernel::dot(m_data, _o.m_data, N);
+    }
+
+    D_CONSTEXPR_CPP14 Type
+    dot_fast(const vector& _o) const D_NOEXCEPT
+    {
+        return kernel::dot_fast(m_data, _o.m_data, N);
     }
 
     // cross: 3-vector cross product (compile error if N != 3).
@@ -540,6 +548,20 @@ public:
         vector v;
 
         kernel::cross(v.m_data, m_data, _o.m_data);
+
+        return v;
+    }
+
+    // cross_fast: each part's two products rounded, then subtracted.
+    D_CONSTEXPR_CPP14 vector
+    cross_fast(const vector& _o) const D_NOEXCEPT
+    {
+        D_STATIC_ASSERT((N == 3),
+                        "vector::cross_fast: only defined for 3-vectors.");
+
+        vector v;
+
+        kernel::cross_fast(v.m_data, m_data, _o.m_data);
 
         return v;
     }
@@ -705,10 +727,18 @@ public:
 
     // ---- reductions --------------------------------------------------------
 
+    // sum: for float, double and long double compensated, rounded once
+    // from Sum2's pair (S404); sum_fast as written, in order
     D_CONSTEXPR_CPP14 Type
     sum() const D_NOEXCEPT
     {
         return kernel::sum(m_data, N);
+    }
+
+    D_CONSTEXPR_CPP14 Type
+    sum_fast() const D_NOEXCEPT
+    {
+        return kernel::sum_fast(m_data, N);
     }
 
     D_CONSTEXPR_CPP14 Type
@@ -882,11 +912,25 @@ dot(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
     return _a.dot(_b);
 }
 
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+dot_fast(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
+{
+    return _a.dot_fast(_b);
+}
+
 template<typename Type>
 D_CONSTEXPR_CPP14 vector<Type, 3>
 cross(const vector<Type, 3>& _a, const vector<Type, 3>& _b) D_NOEXCEPT
 {
     return _a.cross(_b);
+}
+
+template<typename Type>
+D_CONSTEXPR_CPP14 vector<Type, 3>
+cross_fast(const vector<Type, 3>& _a, const vector<Type, 3>& _b) D_NOEXCEPT
+{
+    return _a.cross_fast(_b);
 }
 
 template<typename Type, std::size_t N>
@@ -982,6 +1026,13 @@ D_CONSTEXPR_CPP14 Type
 sum(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.sum();
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+sum_fast(const vector<Type, N>& _v) D_NOEXCEPT
+{
+    return _v.sum_fast();
 }
 
 template<typename Type, std::size_t N>

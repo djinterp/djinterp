@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/c/modules/math/isect.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -163,8 +163,8 @@ d_isect_f_ray_triangle(
 
     d_vec_f_sub(edge1, _v1, _v0, 3u);
     d_vec_f_sub(edge2, _v2, _v0, 3u);
-    d_vec_f_cross(h, _dir, edge2);
-    a = d_vec_f_dot(edge1, h, 3u);
+    d_vec_f_cross_fast(h, _dir, edge2);
+    a = d_vec_f_dot_fast(edge1, h, 3u);
 
     // parallel to the triangle's plane
     if ( (a > -_epsilon) &&
@@ -180,7 +180,7 @@ d_isect_f_ray_triangle(
         float       t = (float)0;
 
         d_vec_f_sub(s, _origin, _v0, 3u);
-        u = f * d_vec_f_dot(s, h, 3u);
+        u = f * d_vec_f_dot_fast(s, h, 3u);
 
         // outside the edge opposite v2 or v1
         if ( (u < (float)0) ||
@@ -189,8 +189,8 @@ d_isect_f_ray_triangle(
             return false;
         }
 
-        d_vec_f_cross(q, s, edge1);
-        v = f * d_vec_f_dot(_dir, q, 3u);
+        d_vec_f_cross_fast(q, s, edge1);
+        v = f * d_vec_f_dot_fast(_dir, q, 3u);
 
         // outside the remaining edges
         if ( (v < (float)0) ||
@@ -199,7 +199,7 @@ d_isect_f_ray_triangle(
             return false;
         }
 
-        t = f * d_vec_f_dot(edge2, q, 3u);
+        t = f * d_vec_f_dot_fast(edge2, q, 3u);
 
         // only ahead of the origin
         if (t > _epsilon)
@@ -333,8 +333,8 @@ d_isect_d_ray_triangle(
 
     d_vec_d_sub(edge1, _v1, _v0, 3u);
     d_vec_d_sub(edge2, _v2, _v0, 3u);
-    d_vec_d_cross(h, _dir, edge2);
-    a = d_vec_d_dot(edge1, h, 3u);
+    d_vec_d_cross_fast(h, _dir, edge2);
+    a = d_vec_d_dot_fast(edge1, h, 3u);
 
     // parallel to the triangle's plane
     if ( (a > -_epsilon) &&
@@ -350,7 +350,7 @@ d_isect_d_ray_triangle(
         double       t = (double)0;
 
         d_vec_d_sub(s, _origin, _v0, 3u);
-        u = f * d_vec_d_dot(s, h, 3u);
+        u = f * d_vec_d_dot_fast(s, h, 3u);
 
         // outside the edge opposite v2 or v1
         if ( (u < (double)0) ||
@@ -359,8 +359,8 @@ d_isect_d_ray_triangle(
             return false;
         }
 
-        d_vec_d_cross(q, s, edge1);
-        v = f * d_vec_d_dot(_dir, q, 3u);
+        d_vec_d_cross_fast(q, s, edge1);
+        v = f * d_vec_d_dot_fast(_dir, q, 3u);
 
         // outside the remaining edges
         if ( (v < (double)0) ||
@@ -369,7 +369,7 @@ d_isect_d_ray_triangle(
             return false;
         }
 
-        t = f * d_vec_d_dot(edge2, q, 3u);
+        t = f * d_vec_d_dot_fast(edge2, q, 3u);
 
         // only ahead of the origin
         if (t > _epsilon)
@@ -503,8 +503,8 @@ d_isect_ld_ray_triangle(
 
     d_vec_ld_sub(edge1, _v1, _v0, 3u);
     d_vec_ld_sub(edge2, _v2, _v0, 3u);
-    d_vec_ld_cross(h, _dir, edge2);
-    a = d_vec_ld_dot(edge1, h, 3u);
+    d_vec_ld_cross_fast(h, _dir, edge2);
+    a = d_vec_ld_dot_fast(edge1, h, 3u);
 
     // parallel to the triangle's plane
     if ( (a > -_epsilon) &&
@@ -520,7 +520,7 @@ d_isect_ld_ray_triangle(
         long double       t = (long double)0;
 
         d_vec_ld_sub(s, _origin, _v0, 3u);
-        u = f * d_vec_ld_dot(s, h, 3u);
+        u = f * d_vec_ld_dot_fast(s, h, 3u);
 
         // outside the edge opposite v2 or v1
         if ( (u < (long double)0) ||
@@ -529,8 +529,8 @@ d_isect_ld_ray_triangle(
             return false;
         }
 
-        d_vec_ld_cross(q, s, edge1);
-        v = f * d_vec_ld_dot(_dir, q, 3u);
+        d_vec_ld_cross_fast(q, s, edge1);
+        v = f * d_vec_ld_dot_fast(_dir, q, 3u);
 
         // outside the remaining edges
         if ( (v < (long double)0) ||
@@ -539,7 +539,7 @@ d_isect_ld_ray_triangle(
             return false;
         }
 
-        t = f * d_vec_ld_dot(edge2, q, 3u);
+        t = f * d_vec_ld_dot_fast(edge2, q, 3u);
 
         // only ahead of the origin
         if (t > _epsilon)

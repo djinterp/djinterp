@@ -32,7 +32,7 @@
 * path:      /tests/djinterp/c/modules/math/t_quat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.05
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 // std
 #include <float.h>   // LDBL_MANT_DIG, FLT_MAX_EXP
@@ -865,10 +865,10 @@ d_tests_fast_##S(const T* a, const T* b, const T* v)                           \
     d_quat_##S##_rotate_fast(out, a, v);                                       \
     {                                                                          \
         T t[3], wt[3], ut[3];                                                  \
-        d_vec_##S##_cross(t, a, v);                                            \
+        d_vec_##S##_cross_fast(t, a, v);                                       \
         d_vec_##S##_scale(t, t, (T)2, 3u);                                     \
         d_vec_##S##_scale(wt, t, a[3], 3u);                                    \
-        d_vec_##S##_cross(ut, a, t);                                           \
+        d_vec_##S##_cross_fast(ut, a, t);                                      \
         d_vec_##S##_add(want, v, wt, 3u);                                      \
         d_vec_##S##_add(want, want, ut, 3u);                                   \
     }                                                                          \

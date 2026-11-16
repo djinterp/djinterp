@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.02
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -399,7 +399,8 @@ public:
     // ---- products ---------------------------------------------------------
 
     // times (matrix): the matrix product (*this) * _rhs, each entry its dot
-    // product in order of k.
+    // product: for float, double and long double rounded once from Dot2's
+    // pair (S404), else in order of k.
     template<std::size_t OtherCols>
     D_CONSTEXPR_CPP14 matrix<Type, Rows, OtherCols>
     times(const matrix<Type, Cols, OtherCols>& _rhs) const D_NOEXCEPT
@@ -427,6 +428,39 @@ public:
         return result;
     }
 
+    // times_fast (matrix): the product as written, each entry's products
+    // rounded, then added, in order of k.
+    template<std::size_t OtherCols>
+    D_CONSTEXPR_CPP14 matrix<Type, Rows, OtherCols>
+    times_fast(const matrix<Type, Cols, OtherCols>& _rhs) const D_NOEXCEPT
+    {
+        matrix<Type, Rows, OtherCols> result;
+
+        kernel::multiply_fast(result.m_data,
+                              m_data,
+                              _rhs.m_data,
+                              Rows,
+                              Cols,
+                              OtherCols);
+
+        return result;
+    }
+
+    // times_fast (vector): the matrix-vector product as written.
+    D_CONSTEXPR_CPP14 column_vector
+    times_fast(const row_vector& _v) const D_NOEXCEPT
+    {
+        column_vector result;
+
+        kernel::multiply_vector_fast(&result[0],
+                                     m_data,
+                                     _v.data(),
+                                     Rows,
+                                     Cols);
+
+        return result;
+    }
+
     // operator(): apply the matrix as a linear map (functional bridge).
     D_CONSTEXPR_CPP14 column_vector
     operator()(const row_vector& _v) const D_NOEXCEPT
@@ -446,6 +480,17 @@ public:
         return kernel::trace(m_data, Rows);
     }
 
+    // trace_fast: the diagonal summed as written, in order.
+    D_CONSTEXPR_CPP14 Type
+    trace_fast() const D_NOEXCEPT
+    {
+        D_STATIC_ASSERT((Rows == Cols),
+                        "matrix::trace_fast: only defined for square "
+                        "matrices.");
+
+        return kernel::trace_fast(m_data, Rows);
+    }
+
     // power: integer matrix power (square only); _n == 0 yields the
     // identity; otherwise by squaring, as the C core's d_mat_power: from the
     // exponent's highest bit down, the power squared, then times A on the
@@ -460,6 +505,22 @@ public:
         matrix scratch;
 
         kernel::power(result.m_data, scratch.m_data, m_data, Rows, _n);
+
+        return result;
+    }
+
+    // power_fast: the power by squaring, each product as written.
+    D_CONSTEXPR_CPP14 matrix
+    power_fast(std::size_t _n) const D_NOEXCEPT
+    {
+        D_STATIC_ASSERT((Rows == Cols),
+                        "matrix::power_fast: only defined for square "
+                        "matrices.");
+
+        matrix result;
+        matrix scratch;
+
+        kernel::power_fast(result.m_data, scratch.m_data, m_data, Rows, _n);
 
         return result;
     }
@@ -717,6 +778,29 @@ multiply(
     return _m.times(_v);
 }
 
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Inner,
+         std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
+multiply_fast(
+    const matrix<Type, Rows, Inner>& _a,
+    const matrix<Type, Inner, Cols>& _b
+) D_NOEXCEPT
+{
+    return _a.times_fast(_b);
+}
+
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 vector<Type, Rows>
+multiply_fast(
+    const matrix<Type, Rows, Cols>& _m,
+    const vector<Type, Cols>&       _v
+) D_NOEXCEPT
+{
+    return _m.times_fast(_v);
+}
+
 template<typename Type, std::size_t Rows, std::size_t Cols>
 D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 add(
@@ -762,6 +846,13 @@ D_CONSTEXPR_CPP14 Type
 trace(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     return _m.trace();
+}
+
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+trace_fast(const matrix<Type, N, N>& _m) D_NOEXCEPT
+{
+    return _m.trace_fast();
 }
 
 template<typename Type, std::size_t Rows, std::size_t Cols>

@@ -10,13 +10,15 @@
 * BLAS takes them; the C++ face's storage is that array. What is entry-wise
 * -- sums, scaling, norms, comparison -- is vec.h's over the entries; this
 * header has what knows the shape. Every kernel is a constant expression
-* from C++14.
+* from C++14. The products and the trace are compensated, and solve
+* refines its solution with extra precision; their _fast forms are the
+* formulas as written (S404, S406).
 *
 *
 * path:      /inc/djinterp/c/modules/math/mat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -56,8 +58,9 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>          // size_t
 // djinterp
+#include "../../../config/c/modules/math/cfg_mat.h"  // D_CFG_MATH_MAT_*
 #include "./math_common.h"   // D_MATH_FN
-#include "./vec.h"           // d_vec_*_fill, _dot: the entry-wise kernels
+#include "./vec.h"           // d_vec_*_fill, _dot, the compensated sums
 
 //==============================================================================
 // 1.  THE FLOAT FAMILY (_f)
@@ -175,13 +178,69 @@ d_mat_f_transpose(
 
 // 1.3    Products
 //------------------------------------------------------------------------------
-// Each entry is its dot product in order of k, each product rounded before it
-// is summed. _out must not be an input.
+// Each entry is its dot product rounded once from Dot2's pair (vec.h's
+// compensated sums, S404), as accurate as the dot product computed in twice
+// the precision and rounded once. The operands are tested once for the
+// range where Dekker's products are exact; where both lie in it, each entry
+// is summed with no test of its own, and elsewhere each entry tests and
+// scales its own row and column, and is the formula as written where one
+// has a NaN or an infinity. The _fast forms are the formulas as written,
+// in order of k, each product rounded before it is summed. _out must not
+// be an input.
 
 // d_mat_f_multiply
-//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols).
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols), each
+// entry rounded once from Dot2's pair.
 D_MATH_FN void
 d_mat_f_multiply(
+    float*       _out,
+    const float* _a,
+    const float* _b,
+    size_t     _rows,
+    size_t     _inner,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_f_reach(_a, 1u, _rows * _inner) == 0) &&
+          (d_internal_vec_f_reach(_b, 1u, _inner * _cols) == 0) );
+    const float  zero     = (float)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by column j of _b
+    for (i = 0u; i < _rows; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < _cols; ++j)
+        {
+            const float* row = _a + (i * _inner);
+            const float* col = _b + j;
+
+            // in range: no test of its own
+            if (in_range)
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_f_dot2_direct(false, row, 1u, col, _cols,
+                                                   _inner);
+            }
+            else
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_f_dot2(zero, false, row, 1u, col, _cols,
+                                            col, _cols, false, _inner);
+            }
+        }
+    }
+
+    return;
+}
+
+// d_mat_f_multiply_fast
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols) as
+// written: each entry its products rounded, then added, in order of k.
+D_MATH_FN void
+d_mat_f_multiply_fast(
     float*       _out,
     const float* _a,
     const float* _b,
@@ -216,9 +275,49 @@ d_mat_f_multiply(
 }
 
 // d_mat_f_multiply_vector
-//   _out (_rows) = _a (_rows x _cols) * _v (_cols).
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols), each entry rounded once
+// from Dot2's pair. _out must not be _v.
 D_MATH_FN void
 d_mat_f_multiply_vector(
+    float*       _out,
+    const float* _a,
+    const float* _v,
+    size_t     _rows,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_f_reach(_a, 1u, _rows * _cols) == 0) &&
+          (d_internal_vec_f_reach(_v, 1u, _cols) == 0) );
+    const float  zero     = (float)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by _v
+    for (i = 0u; i < _rows; ++i)
+    {
+        const float* row = _a + (i * _cols);
+
+        // in range: no test of its own
+        if (in_range)
+        {
+            _out[i] = d_internal_vec_f_dot2_direct(false, row, 1u, _v, 1u,
+                                                     _cols);
+        }
+        else
+        {
+            _out[i] = d_internal_vec_f_dot2(zero, false, row, 1u, _v, 1u, _v,
+                                              1u, false, _cols);
+        }
+    }
+
+    return;
+}
+
+// d_mat_f_multiply_vector_fast
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols) as written
+// (d_vec_f_dot_fast for each row).
+D_MATH_FN void
+d_mat_f_multiply_vector_fast(
     float*       _out,
     const float* _a,
     const float* _v,
@@ -230,26 +329,29 @@ d_mat_f_multiply_vector(
 
     for (i = 0u; i < _rows; ++i)
     {
-        _out[i] = d_vec_f_dot(_a + (i * _cols), _v, _cols);
+        _out[i] = d_vec_f_dot_fast(_a + (i * _cols), _v, _cols);
     }
 
     return;
 }
 
-// d_mat_f_power
+// d_internal_mat_f_power
 //   _out = _a^_exponent for an _n x _n matrix, the identity for 0: by
 // squaring, from the exponent's highest bit down, the power begun as _a and,
 // at each bit below it, squared, then multiplied by _a on the left where the
 // bit is 1, as A^(2k) = A^k A^k and A^(2k+1) = A A^(2k) compose: at most
 // 2 log2(_exponent) products, where A^k = A * A^(k-1) takes _exponent - 1.
-// _scratch holds _n * _n entries; neither it nor _out may be _a.
+// _scratch holds _n * _n entries; neither it nor _out may be _a. Each
+// product is d_mat_f_multiply's, compensated, or where _fast
+// d_mat_f_multiply_fast's, as written.
 D_MATH_FN void
-d_mat_f_power(
+d_internal_mat_f_power(
     float*       _out,
     float*       _scratch,
     const float* _a,
     size_t     _n,
-    size_t     _exponent
+    size_t     _exponent,
+    bool       _fast
 )
 {
     size_t top = 1u;
@@ -279,7 +381,14 @@ d_mat_f_power(
     // each bit below: the power squared, then times _a where the bit is 1
     for (bit = top / 2u; bit > 0u; bit /= 2u)
     {
-        d_mat_f_multiply(_scratch, _out, _out, _n, _n, _n);
+        if (_fast)
+        {
+            d_mat_f_multiply_fast(_scratch, _out, _out, _n, _n, _n);
+        }
+        else
+        {
+            d_mat_f_multiply(_scratch, _out, _out, _n, _n, _n);
+        }
 
         for (i = 0u; i < (_n * _n); ++i)
         {
@@ -288,7 +397,14 @@ d_mat_f_power(
 
         if ((_exponent & bit) != 0u)
         {
-            d_mat_f_multiply(_scratch, _a, _out, _n, _n, _n);
+            if (_fast)
+            {
+                d_mat_f_multiply_fast(_scratch, _a, _out, _n, _n, _n);
+            }
+            else
+            {
+                d_mat_f_multiply(_scratch, _a, _out, _n, _n, _n);
+            }
 
             for (i = 0u; i < (_n * _n); ++i)
             {
@@ -300,13 +416,63 @@ d_mat_f_power(
     return;
 }
 
+// d_mat_f_power
+//   _out = _a^_exponent by squaring (d_internal_mat_f_power), each product
+// compensated (d_mat_f_multiply). _scratch holds _n * _n entries; neither
+// it nor _out may be _a.
+D_MATH_FN void
+d_mat_f_power(
+    float*       _out,
+    float*       _scratch,
+    const float* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_f_power(_out, _scratch, _a, _n, _exponent, false);
+
+    return;
+}
+
+// d_mat_f_power_fast
+//   _out = _a^_exponent by squaring, each product as written
+// (d_mat_f_multiply_fast).
+D_MATH_FN void
+d_mat_f_power_fast(
+    float*       _out,
+    float*       _scratch,
+    const float* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_f_power(_out, _scratch, _a, _n, _exponent, true);
+
+    return;
+}
+
 // 1.4    Square-matrix queries
 //------------------------------------------------------------------------------
-// trace sums the diagonal; is_symmetric and is_identity allow each entry
+// trace sums the diagonal, rounded once from Sum2's pair (S404), and
+// trace_fast as written; is_symmetric and is_identity allow each entry
 // _tolerance.
 
+// d_mat_f_trace
+//   the sum of the _n x _n matrix's diagonal, rounded once from Sum2's pair;
+// where an entry of it is a NaN or an infinity, d_mat_f_trace_fast's.
 D_MATH_FN float
 d_mat_f_trace(
+    const float* _a,
+    size_t     _n
+)
+{
+    return d_internal_vec_f_sum2(_a, _n + 1u, _n);
+}
+
+// d_mat_f_trace_fast
+//   the sum of the diagonal as written, in order from +0.
+D_MATH_FN float
+d_mat_f_trace_fast(
     const float* _a,
     size_t     _n
 )
@@ -382,9 +548,11 @@ d_mat_f_is_identity(
 // determinant by Bareiss's fraction-free elimination (exact for integers,
 // and the subframework's algorithm), the inverse by Gauss-Jordan with
 // partial pivoting, and the solution of A X = B by Gaussian elimination of
-// [A | B] with partial pivoting, LAPACK's dgesv (S257). Each product is
-// rounded before it is combined. Every kernel takes the scratch it needs
-// from the caller.
+// [A | B] with partial pivoting, LAPACK's dgesv (S257), then refined with
+// extra precision, as LAPACK's dgerfsx refines (S406). Each product of the
+// eliminations is rounded before it is combined; the refinement's residual
+// is Dot2's (vec.h). Every kernel takes the scratch it needs from the
+// caller.
 
 // d_mat_f_determinant
 //   the determinant of the _n x _n matrix _a; _scratch holds _n * _n
@@ -569,7 +737,7 @@ d_mat_f_inverse(
     return true;
 }
 
-// d_mat_f_solve
+// d_mat_f_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
 // with partial pivoting -- the pivot the first entry of largest magnitude
@@ -579,7 +747,7 @@ d_mat_f_inverse(
 // d_decomp_f_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
 D_MATH_FN bool
-d_mat_f_solve(
+d_mat_f_solve_fast(
     float*       _x,
     float*       _scratch,
     const float* _a,
@@ -699,6 +867,348 @@ d_mat_f_solve(
             }
 
             _x[(i * _m) + k] = s / _scratch[(i * _n) + i];
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_f_lu
+//   _lu = the LU factors of the _n x _n matrix _a with partial pivoting, as
+// d_mat_f_solve_fast eliminates: U on and above the diagonal, each
+// multiplier below it, in the row it was applied to, the rows interchanged
+// as the pivots were taken, and _pivots[k] the row column k's pivot came
+// from: true; false for a singular _a, a column with no pivot.
+D_MATH_FN bool
+d_internal_mat_f_lu(
+    float*       _lu,
+    size_t*    _pivots,
+    const float* _a,
+    size_t     _n
+)
+{
+    size_t col = 0u;
+    size_t k   = 0u;
+
+    for (k = 0u; k < (_n * _n); ++k)
+    {
+        _lu[k] = _a[k];
+    }
+
+    // each column: its pivot, the interchange, the rows below less it
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t pivot = col;
+        float    maxv  = (_lu[(col * _n) + col] < (float)0)
+                           ? -_lu[(col * _n) + col]
+                           : _lu[(col * _n) + col];
+        size_t r     = 0u;
+        size_t c     = 0u;
+
+        // the largest magnitude in the column, at or below the diagonal
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const float v = (_lu[(r * _n) + col] < (float)0)
+                              ? -_lu[(r * _n) + col]
+                              : _lu[(r * _n) + col];
+
+            if (v > maxv)
+            {
+                maxv  = v;
+                pivot = r;
+            }
+        }
+
+        // no pivot: singular
+        if (_lu[(pivot * _n) + col] == (float)0)
+        {
+            return false;
+        }
+
+        _pivots[col] = pivot;
+
+        // the pivot row up, whole
+        if (pivot != col)
+        {
+            for (c = 0u; c < _n; ++c)
+            {
+                const float t = _lu[(col * _n) + c];
+
+                _lu[(col * _n) + c]   = _lu[(pivot * _n) + c];
+                _lu[(pivot * _n) + c] = t;
+            }
+        }
+
+        // the rows below less their multiples of it, each multiplier kept
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const float f = _lu[(r * _n) + col] / _lu[(col * _n) + col];
+
+            _lu[(r * _n) + col] = f;
+
+            for (c = col + 1u; c < _n; ++c)
+            {
+                const float prod = f * _lu[(col * _n) + c];
+
+                _lu[(r * _n) + c] = _lu[(r * _n) + c] - prod;
+            }
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_f_lu_solve
+//   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
+// (d_internal_mat_f_lu): the interchanges in order, then L's forward
+// substitution and U's back-substitution, each product rounded before it is
+// combined -- d_mat_f_solve_fast's arithmetic on one column of B, its
+// interchanges carried through the eliminations the same: bit for bit where
+// the family is evaluated in its own type.
+D_MATH_FN void
+d_internal_mat_f_lu_solve(
+    float*          _y,
+    size_t        _stride,
+    const float*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t col = 0u;
+    size_t i   = 0u;
+
+    // the interchanges, in the order they were made
+    for (col = 0u; col < _n; ++col)
+    {
+        if (_pivots[col] != col)
+        {
+            const float t = _y[col * _stride];
+
+            _y[col * _stride]          = _y[_pivots[col] * _stride];
+            _y[_pivots[col] * _stride] = t;
+        }
+    }
+
+    // forward: each row below less its multiple of the row
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t r = 0u;
+
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const float prod = _lu[(r * _n) + col] * _y[col * _stride];
+
+            _y[r * _stride] = _y[r * _stride] - prod;
+        }
+    }
+
+    // back-substitution, the last row first
+    for (i = _n; i-- > 0u; )
+    {
+        float    s = _y[i * _stride];
+        size_t j = 0u;
+
+        for (j = i + 1u; j < _n; ++j)
+        {
+            const float prod = _lu[(i * _n) + j] * _y[j * _stride];
+
+            s = s - prod;
+        }
+
+        _y[i * _stride] = s / _lu[(i * _n) + i];
+    }
+
+    return;
+}
+
+// d_internal_mat_f_correction
+//   _fix = the correction of the solution _x + _tail (_x's entries _sx apart)
+// of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
+// by Dot2 rounded once (vec.h's d_internal_vec_f_dot2), solved by A's
+// factors. *_largest is its largest magnitude, *_relative its largest
+// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+D_MATH_FN void
+d_internal_mat_f_correction(
+    float*          _fix,
+    float*          _largest,
+    float*          _relative,
+    const float*    _x,
+    size_t        _sx,
+    const float*    _tail,
+    const float*    _a,
+    const float*    _b,
+    size_t        _sb,
+    const float*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t i = 0u;
+
+    *_largest  = (float)0;
+    *_relative = (float)0;
+
+    // the residual, row by row
+    for (i = 0u; i < _n; ++i)
+    {
+        _fix[i] = d_internal_vec_f_dot2(_b[i * _sb], true, _a + (i * _n), 1u,
+                                          _x, _sx, _tail, 1u, true, _n);
+    }
+
+    d_internal_mat_f_lu_solve(_fix, 1u, _lu, _pivots, _n);
+
+    // its sizes, whole and against x
+    for (i = 0u; i < _n; ++i)
+    {
+        const float xe = _x[i * _sx];
+        const float d  = (_fix[i] < (float)0) ? -_fix[i] : _fix[i];
+        const float x  = (xe < (float)0) ? -xe : xe;
+        const float r  = (d >= x) ? (float)1 : (d / x);
+
+        if (d > *_largest)
+        {
+            *_largest = d;
+        }
+
+        // a zero correction leaves its entry as it is
+        if ( (d != (float)0) &&
+             (r > *_relative) )
+        {
+            *_relative = r;
+        }
+    }
+
+    return;
+}
+
+// d_internal_mat_f_refine
+//   _x, one column of the solution of A x = b (_n entries _sx apart, b's _sb
+// apart) as A's factors gave it, refined (d_mat_f_solve); _tail and _fix
+// are _n entries each.
+D_MATH_FN void
+d_internal_mat_f_refine(
+    float*          _x,
+    size_t        _sx,
+    float*          _tail,
+    float*          _fix,
+    const float*    _a,
+    const float*    _b,
+    size_t        _sb,
+    const float*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    float    last_largest  = (float)0;
+    float    last_relative = (float)0;
+    size_t step          = 0u;
+    size_t i             = 0u;
+
+    for (i = 0u; i < _n; ++i)
+    {
+        _tail[i] = (float)0;
+    }
+
+    // each step: the correction, then whether it is worth adding
+    for (step = 0u; step < (size_t)D_CFG_MATH_MAT_REFINE_STEPS; ++step)
+    {
+        float largest  = (float)0;
+        float relative = (float)0;
+
+        d_internal_mat_f_correction(_fix, &largest, &relative, _x, _sx, _tail,
+                                      _a, _b, _sb, _lu, _pivots, _n);
+
+        // no progress: neither the correction nor its relative size halved
+        if ( (step > 0u) &&
+             (largest > (last_largest / (float)2)) &&
+             (relative > (last_relative / (float)2)) )
+        {
+            break;
+        }
+
+        // the correction into the solution and its tail
+        for (i = 0u; i < _n; ++i)
+        {
+            d_internal_vec_f_add_pair(&_x[i * _sx], &_tail[i], _fix[i]);
+        }
+
+        // converged: every entry's correction below half its unit in the
+        // last place
+        if (relative <= (FLT_EPSILON / (float)2))
+        {
+            break;
+        }
+
+        last_largest  = largest;
+        last_relative = relative;
+    }
+
+    return;
+}
+
+// d_mat_f_solve
+//   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
+// singular A, the zero matrix and false. Each column first as
+// d_mat_f_solve_fast takes it, A's factors kept -- the first n * n of
+// _scratch's entries and the interchanges in _pivots -- then refined as
+// LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
+// Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
+// a pair, x and its tail, the correction solved by the factors and added,
+// until every entry's correction lies below half its unit in the last place
+// (converged), neither the largest correction nor the largest relative to
+// its entry halves (no progress, the last not added), or
+// D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
+// tail rounded once: for an A far enough from singular -- cond(A) times the
+// family's epsilon well below 1 -- the solution correctly rounded but where
+// it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
+// B has a NaN or an infinity, or the first solution does, the column is
+// solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither
+// may be an operand, nor _x _a or _b.
+D_MATH_FN bool
+d_mat_f_solve(
+    float*       _x,
+    float*       _scratch,
+    size_t*    _pivots,
+    const float* _a,
+    const float* _b,
+    size_t     _n,
+    size_t     _m
+)
+{
+    float* const tail = _scratch + (_n * _n);
+    float* const fix  = tail + _n;
+    const bool a_ok = (d_internal_vec_f_reach(_a, 1u, _n * _n) != 2);
+    size_t     col  = 0u;
+    size_t     k    = 0u;
+
+    // singular: the zero matrix
+    if (!d_internal_mat_f_lu(_scratch, _pivots, _a, _n))
+    {
+        for (k = 0u; k < (_n * _m); ++k)
+        {
+            _x[k] = (float)0;
+        }
+
+        return false;
+    }
+
+    // each column: solved by the factors, then refined
+    for (col = 0u; col < _m; ++col)
+    {
+        for (k = 0u; k < _n; ++k)
+        {
+            _x[(k * _m) + col] = _b[(k * _m) + col];
+        }
+
+        d_internal_mat_f_lu_solve(_x + col, _m, _scratch, _pivots, _n);
+
+        // finite throughout: refined
+        if ( (a_ok) &&
+             (d_internal_vec_f_reach(_b + col, _m, _n) != 2) &&
+             (d_internal_vec_f_reach(_x + col, _m, _n) != 2) )
+        {
+            d_internal_mat_f_refine(_x + col, _m, tail, fix, _a, _b + col,
+                                      _m, _scratch, _pivots, _n);
         }
     }
 
@@ -1004,13 +1514,69 @@ d_mat_d_transpose(
 
 // 2.3    Products
 //------------------------------------------------------------------------------
-// Each entry is its dot product in order of k, each product rounded before it
-// is summed. _out must not be an input.
+// Each entry is its dot product rounded once from Dot2's pair (vec.h's
+// compensated sums, S404), as accurate as the dot product computed in twice
+// the precision and rounded once. The operands are tested once for the
+// range where Dekker's products are exact; where both lie in it, each entry
+// is summed with no test of its own, and elsewhere each entry tests and
+// scales its own row and column, and is the formula as written where one
+// has a NaN or an infinity. The _fast forms are the formulas as written,
+// in order of k, each product rounded before it is summed. _out must not
+// be an input.
 
 // d_mat_d_multiply
-//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols).
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols), each
+// entry rounded once from Dot2's pair.
 D_MATH_FN void
 d_mat_d_multiply(
+    double*       _out,
+    const double* _a,
+    const double* _b,
+    size_t     _rows,
+    size_t     _inner,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_d_reach(_a, 1u, _rows * _inner) == 0) &&
+          (d_internal_vec_d_reach(_b, 1u, _inner * _cols) == 0) );
+    const double  zero     = (double)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by column j of _b
+    for (i = 0u; i < _rows; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < _cols; ++j)
+        {
+            const double* row = _a + (i * _inner);
+            const double* col = _b + j;
+
+            // in range: no test of its own
+            if (in_range)
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_d_dot2_direct(false, row, 1u, col, _cols,
+                                                   _inner);
+            }
+            else
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_d_dot2(zero, false, row, 1u, col, _cols,
+                                            col, _cols, false, _inner);
+            }
+        }
+    }
+
+    return;
+}
+
+// d_mat_d_multiply_fast
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols) as
+// written: each entry its products rounded, then added, in order of k.
+D_MATH_FN void
+d_mat_d_multiply_fast(
     double*       _out,
     const double* _a,
     const double* _b,
@@ -1045,9 +1611,49 @@ d_mat_d_multiply(
 }
 
 // d_mat_d_multiply_vector
-//   _out (_rows) = _a (_rows x _cols) * _v (_cols).
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols), each entry rounded once
+// from Dot2's pair. _out must not be _v.
 D_MATH_FN void
 d_mat_d_multiply_vector(
+    double*       _out,
+    const double* _a,
+    const double* _v,
+    size_t     _rows,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_d_reach(_a, 1u, _rows * _cols) == 0) &&
+          (d_internal_vec_d_reach(_v, 1u, _cols) == 0) );
+    const double  zero     = (double)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by _v
+    for (i = 0u; i < _rows; ++i)
+    {
+        const double* row = _a + (i * _cols);
+
+        // in range: no test of its own
+        if (in_range)
+        {
+            _out[i] = d_internal_vec_d_dot2_direct(false, row, 1u, _v, 1u,
+                                                     _cols);
+        }
+        else
+        {
+            _out[i] = d_internal_vec_d_dot2(zero, false, row, 1u, _v, 1u, _v,
+                                              1u, false, _cols);
+        }
+    }
+
+    return;
+}
+
+// d_mat_d_multiply_vector_fast
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols) as written
+// (d_vec_d_dot_fast for each row).
+D_MATH_FN void
+d_mat_d_multiply_vector_fast(
     double*       _out,
     const double* _a,
     const double* _v,
@@ -1059,26 +1665,29 @@ d_mat_d_multiply_vector(
 
     for (i = 0u; i < _rows; ++i)
     {
-        _out[i] = d_vec_d_dot(_a + (i * _cols), _v, _cols);
+        _out[i] = d_vec_d_dot_fast(_a + (i * _cols), _v, _cols);
     }
 
     return;
 }
 
-// d_mat_d_power
+// d_internal_mat_d_power
 //   _out = _a^_exponent for an _n x _n matrix, the identity for 0: by
 // squaring, from the exponent's highest bit down, the power begun as _a and,
 // at each bit below it, squared, then multiplied by _a on the left where the
 // bit is 1, as A^(2k) = A^k A^k and A^(2k+1) = A A^(2k) compose: at most
 // 2 log2(_exponent) products, where A^k = A * A^(k-1) takes _exponent - 1.
-// _scratch holds _n * _n entries; neither it nor _out may be _a.
+// _scratch holds _n * _n entries; neither it nor _out may be _a. Each
+// product is d_mat_d_multiply's, compensated, or where _fast
+// d_mat_d_multiply_fast's, as written.
 D_MATH_FN void
-d_mat_d_power(
+d_internal_mat_d_power(
     double*       _out,
     double*       _scratch,
     const double* _a,
     size_t     _n,
-    size_t     _exponent
+    size_t     _exponent,
+    bool       _fast
 )
 {
     size_t top = 1u;
@@ -1108,7 +1717,14 @@ d_mat_d_power(
     // each bit below: the power squared, then times _a where the bit is 1
     for (bit = top / 2u; bit > 0u; bit /= 2u)
     {
-        d_mat_d_multiply(_scratch, _out, _out, _n, _n, _n);
+        if (_fast)
+        {
+            d_mat_d_multiply_fast(_scratch, _out, _out, _n, _n, _n);
+        }
+        else
+        {
+            d_mat_d_multiply(_scratch, _out, _out, _n, _n, _n);
+        }
 
         for (i = 0u; i < (_n * _n); ++i)
         {
@@ -1117,7 +1733,14 @@ d_mat_d_power(
 
         if ((_exponent & bit) != 0u)
         {
-            d_mat_d_multiply(_scratch, _a, _out, _n, _n, _n);
+            if (_fast)
+            {
+                d_mat_d_multiply_fast(_scratch, _a, _out, _n, _n, _n);
+            }
+            else
+            {
+                d_mat_d_multiply(_scratch, _a, _out, _n, _n, _n);
+            }
 
             for (i = 0u; i < (_n * _n); ++i)
             {
@@ -1129,13 +1752,63 @@ d_mat_d_power(
     return;
 }
 
+// d_mat_d_power
+//   _out = _a^_exponent by squaring (d_internal_mat_d_power), each product
+// compensated (d_mat_d_multiply). _scratch holds _n * _n entries; neither
+// it nor _out may be _a.
+D_MATH_FN void
+d_mat_d_power(
+    double*       _out,
+    double*       _scratch,
+    const double* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_d_power(_out, _scratch, _a, _n, _exponent, false);
+
+    return;
+}
+
+// d_mat_d_power_fast
+//   _out = _a^_exponent by squaring, each product as written
+// (d_mat_d_multiply_fast).
+D_MATH_FN void
+d_mat_d_power_fast(
+    double*       _out,
+    double*       _scratch,
+    const double* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_d_power(_out, _scratch, _a, _n, _exponent, true);
+
+    return;
+}
+
 // 2.4    Square-matrix queries
 //------------------------------------------------------------------------------
-// trace sums the diagonal; is_symmetric and is_identity allow each entry
+// trace sums the diagonal, rounded once from Sum2's pair (S404), and
+// trace_fast as written; is_symmetric and is_identity allow each entry
 // _tolerance.
 
+// d_mat_d_trace
+//   the sum of the _n x _n matrix's diagonal, rounded once from Sum2's pair;
+// where an entry of it is a NaN or an infinity, d_mat_d_trace_fast's.
 D_MATH_FN double
 d_mat_d_trace(
+    const double* _a,
+    size_t     _n
+)
+{
+    return d_internal_vec_d_sum2(_a, _n + 1u, _n);
+}
+
+// d_mat_d_trace_fast
+//   the sum of the diagonal as written, in order from +0.
+D_MATH_FN double
+d_mat_d_trace_fast(
     const double* _a,
     size_t     _n
 )
@@ -1211,9 +1884,11 @@ d_mat_d_is_identity(
 // determinant by Bareiss's fraction-free elimination (exact for integers,
 // and the subframework's algorithm), the inverse by Gauss-Jordan with
 // partial pivoting, and the solution of A X = B by Gaussian elimination of
-// [A | B] with partial pivoting, LAPACK's dgesv (S257). Each product is
-// rounded before it is combined. Every kernel takes the scratch it needs
-// from the caller.
+// [A | B] with partial pivoting, LAPACK's dgesv (S257), then refined with
+// extra precision, as LAPACK's dgerfsx refines (S406). Each product of the
+// eliminations is rounded before it is combined; the refinement's residual
+// is Dot2's (vec.h). Every kernel takes the scratch it needs from the
+// caller.
 
 // d_mat_d_determinant
 //   the determinant of the _n x _n matrix _a; _scratch holds _n * _n
@@ -1398,7 +2073,7 @@ d_mat_d_inverse(
     return true;
 }
 
-// d_mat_d_solve
+// d_mat_d_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
 // with partial pivoting -- the pivot the first entry of largest magnitude
@@ -1408,7 +2083,7 @@ d_mat_d_inverse(
 // d_decomp_d_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
 D_MATH_FN bool
-d_mat_d_solve(
+d_mat_d_solve_fast(
     double*       _x,
     double*       _scratch,
     const double* _a,
@@ -1528,6 +2203,348 @@ d_mat_d_solve(
             }
 
             _x[(i * _m) + k] = s / _scratch[(i * _n) + i];
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_d_lu
+//   _lu = the LU factors of the _n x _n matrix _a with partial pivoting, as
+// d_mat_d_solve_fast eliminates: U on and above the diagonal, each
+// multiplier below it, in the row it was applied to, the rows interchanged
+// as the pivots were taken, and _pivots[k] the row column k's pivot came
+// from: true; false for a singular _a, a column with no pivot.
+D_MATH_FN bool
+d_internal_mat_d_lu(
+    double*       _lu,
+    size_t*    _pivots,
+    const double* _a,
+    size_t     _n
+)
+{
+    size_t col = 0u;
+    size_t k   = 0u;
+
+    for (k = 0u; k < (_n * _n); ++k)
+    {
+        _lu[k] = _a[k];
+    }
+
+    // each column: its pivot, the interchange, the rows below less it
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t pivot = col;
+        double    maxv  = (_lu[(col * _n) + col] < (double)0)
+                           ? -_lu[(col * _n) + col]
+                           : _lu[(col * _n) + col];
+        size_t r     = 0u;
+        size_t c     = 0u;
+
+        // the largest magnitude in the column, at or below the diagonal
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const double v = (_lu[(r * _n) + col] < (double)0)
+                              ? -_lu[(r * _n) + col]
+                              : _lu[(r * _n) + col];
+
+            if (v > maxv)
+            {
+                maxv  = v;
+                pivot = r;
+            }
+        }
+
+        // no pivot: singular
+        if (_lu[(pivot * _n) + col] == (double)0)
+        {
+            return false;
+        }
+
+        _pivots[col] = pivot;
+
+        // the pivot row up, whole
+        if (pivot != col)
+        {
+            for (c = 0u; c < _n; ++c)
+            {
+                const double t = _lu[(col * _n) + c];
+
+                _lu[(col * _n) + c]   = _lu[(pivot * _n) + c];
+                _lu[(pivot * _n) + c] = t;
+            }
+        }
+
+        // the rows below less their multiples of it, each multiplier kept
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const double f = _lu[(r * _n) + col] / _lu[(col * _n) + col];
+
+            _lu[(r * _n) + col] = f;
+
+            for (c = col + 1u; c < _n; ++c)
+            {
+                const double prod = f * _lu[(col * _n) + c];
+
+                _lu[(r * _n) + c] = _lu[(r * _n) + c] - prod;
+            }
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_d_lu_solve
+//   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
+// (d_internal_mat_d_lu): the interchanges in order, then L's forward
+// substitution and U's back-substitution, each product rounded before it is
+// combined -- d_mat_d_solve_fast's arithmetic on one column of B, its
+// interchanges carried through the eliminations the same: bit for bit where
+// the family is evaluated in its own type.
+D_MATH_FN void
+d_internal_mat_d_lu_solve(
+    double*          _y,
+    size_t        _stride,
+    const double*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t col = 0u;
+    size_t i   = 0u;
+
+    // the interchanges, in the order they were made
+    for (col = 0u; col < _n; ++col)
+    {
+        if (_pivots[col] != col)
+        {
+            const double t = _y[col * _stride];
+
+            _y[col * _stride]          = _y[_pivots[col] * _stride];
+            _y[_pivots[col] * _stride] = t;
+        }
+    }
+
+    // forward: each row below less its multiple of the row
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t r = 0u;
+
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const double prod = _lu[(r * _n) + col] * _y[col * _stride];
+
+            _y[r * _stride] = _y[r * _stride] - prod;
+        }
+    }
+
+    // back-substitution, the last row first
+    for (i = _n; i-- > 0u; )
+    {
+        double    s = _y[i * _stride];
+        size_t j = 0u;
+
+        for (j = i + 1u; j < _n; ++j)
+        {
+            const double prod = _lu[(i * _n) + j] * _y[j * _stride];
+
+            s = s - prod;
+        }
+
+        _y[i * _stride] = s / _lu[(i * _n) + i];
+    }
+
+    return;
+}
+
+// d_internal_mat_d_correction
+//   _fix = the correction of the solution _x + _tail (_x's entries _sx apart)
+// of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
+// by Dot2 rounded once (vec.h's d_internal_vec_d_dot2), solved by A's
+// factors. *_largest is its largest magnitude, *_relative its largest
+// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+D_MATH_FN void
+d_internal_mat_d_correction(
+    double*          _fix,
+    double*          _largest,
+    double*          _relative,
+    const double*    _x,
+    size_t        _sx,
+    const double*    _tail,
+    const double*    _a,
+    const double*    _b,
+    size_t        _sb,
+    const double*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t i = 0u;
+
+    *_largest  = (double)0;
+    *_relative = (double)0;
+
+    // the residual, row by row
+    for (i = 0u; i < _n; ++i)
+    {
+        _fix[i] = d_internal_vec_d_dot2(_b[i * _sb], true, _a + (i * _n), 1u,
+                                          _x, _sx, _tail, 1u, true, _n);
+    }
+
+    d_internal_mat_d_lu_solve(_fix, 1u, _lu, _pivots, _n);
+
+    // its sizes, whole and against x
+    for (i = 0u; i < _n; ++i)
+    {
+        const double xe = _x[i * _sx];
+        const double d  = (_fix[i] < (double)0) ? -_fix[i] : _fix[i];
+        const double x  = (xe < (double)0) ? -xe : xe;
+        const double r  = (d >= x) ? (double)1 : (d / x);
+
+        if (d > *_largest)
+        {
+            *_largest = d;
+        }
+
+        // a zero correction leaves its entry as it is
+        if ( (d != (double)0) &&
+             (r > *_relative) )
+        {
+            *_relative = r;
+        }
+    }
+
+    return;
+}
+
+// d_internal_mat_d_refine
+//   _x, one column of the solution of A x = b (_n entries _sx apart, b's _sb
+// apart) as A's factors gave it, refined (d_mat_d_solve); _tail and _fix
+// are _n entries each.
+D_MATH_FN void
+d_internal_mat_d_refine(
+    double*          _x,
+    size_t        _sx,
+    double*          _tail,
+    double*          _fix,
+    const double*    _a,
+    const double*    _b,
+    size_t        _sb,
+    const double*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    double    last_largest  = (double)0;
+    double    last_relative = (double)0;
+    size_t step          = 0u;
+    size_t i             = 0u;
+
+    for (i = 0u; i < _n; ++i)
+    {
+        _tail[i] = (double)0;
+    }
+
+    // each step: the correction, then whether it is worth adding
+    for (step = 0u; step < (size_t)D_CFG_MATH_MAT_REFINE_STEPS; ++step)
+    {
+        double largest  = (double)0;
+        double relative = (double)0;
+
+        d_internal_mat_d_correction(_fix, &largest, &relative, _x, _sx, _tail,
+                                      _a, _b, _sb, _lu, _pivots, _n);
+
+        // no progress: neither the correction nor its relative size halved
+        if ( (step > 0u) &&
+             (largest > (last_largest / (double)2)) &&
+             (relative > (last_relative / (double)2)) )
+        {
+            break;
+        }
+
+        // the correction into the solution and its tail
+        for (i = 0u; i < _n; ++i)
+        {
+            d_internal_vec_d_add_pair(&_x[i * _sx], &_tail[i], _fix[i]);
+        }
+
+        // converged: every entry's correction below half its unit in the
+        // last place
+        if (relative <= (DBL_EPSILON / (double)2))
+        {
+            break;
+        }
+
+        last_largest  = largest;
+        last_relative = relative;
+    }
+
+    return;
+}
+
+// d_mat_d_solve
+//   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
+// singular A, the zero matrix and false. Each column first as
+// d_mat_d_solve_fast takes it, A's factors kept -- the first n * n of
+// _scratch's entries and the interchanges in _pivots -- then refined as
+// LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
+// Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
+// a pair, x and its tail, the correction solved by the factors and added,
+// until every entry's correction lies below half its unit in the last place
+// (converged), neither the largest correction nor the largest relative to
+// its entry halves (no progress, the last not added), or
+// D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
+// tail rounded once: for an A far enough from singular -- cond(A) times the
+// family's epsilon well below 1 -- the solution correctly rounded but where
+// it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
+// B has a NaN or an infinity, or the first solution does, the column is
+// solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither
+// may be an operand, nor _x _a or _b.
+D_MATH_FN bool
+d_mat_d_solve(
+    double*       _x,
+    double*       _scratch,
+    size_t*    _pivots,
+    const double* _a,
+    const double* _b,
+    size_t     _n,
+    size_t     _m
+)
+{
+    double* const tail = _scratch + (_n * _n);
+    double* const fix  = tail + _n;
+    const bool a_ok = (d_internal_vec_d_reach(_a, 1u, _n * _n) != 2);
+    size_t     col  = 0u;
+    size_t     k    = 0u;
+
+    // singular: the zero matrix
+    if (!d_internal_mat_d_lu(_scratch, _pivots, _a, _n))
+    {
+        for (k = 0u; k < (_n * _m); ++k)
+        {
+            _x[k] = (double)0;
+        }
+
+        return false;
+    }
+
+    // each column: solved by the factors, then refined
+    for (col = 0u; col < _m; ++col)
+    {
+        for (k = 0u; k < _n; ++k)
+        {
+            _x[(k * _m) + col] = _b[(k * _m) + col];
+        }
+
+        d_internal_mat_d_lu_solve(_x + col, _m, _scratch, _pivots, _n);
+
+        // finite throughout: refined
+        if ( (a_ok) &&
+             (d_internal_vec_d_reach(_b + col, _m, _n) != 2) &&
+             (d_internal_vec_d_reach(_x + col, _m, _n) != 2) )
+        {
+            d_internal_mat_d_refine(_x + col, _m, tail, fix, _a, _b + col,
+                                      _m, _scratch, _pivots, _n);
         }
     }
 
@@ -1833,13 +2850,69 @@ d_mat_ld_transpose(
 
 // 3.3    Products
 //------------------------------------------------------------------------------
-// Each entry is its dot product in order of k, each product rounded before it
-// is summed. _out must not be an input.
+// Each entry is its dot product rounded once from Dot2's pair (vec.h's
+// compensated sums, S404), as accurate as the dot product computed in twice
+// the precision and rounded once. The operands are tested once for the
+// range where Dekker's products are exact; where both lie in it, each entry
+// is summed with no test of its own, and elsewhere each entry tests and
+// scales its own row and column, and is the formula as written where one
+// has a NaN or an infinity. The _fast forms are the formulas as written,
+// in order of k, each product rounded before it is summed. _out must not
+// be an input.
 
 // d_mat_ld_multiply
-//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols).
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols), each
+// entry rounded once from Dot2's pair.
 D_MATH_FN void
 d_mat_ld_multiply(
+    long double*       _out,
+    const long double* _a,
+    const long double* _b,
+    size_t     _rows,
+    size_t     _inner,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_ld_reach(_a, 1u, _rows * _inner) == 0) &&
+          (d_internal_vec_ld_reach(_b, 1u, _inner * _cols) == 0) );
+    const long double  zero     = (long double)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by column j of _b
+    for (i = 0u; i < _rows; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < _cols; ++j)
+        {
+            const long double* row = _a + (i * _inner);
+            const long double* col = _b + j;
+
+            // in range: no test of its own
+            if (in_range)
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_ld_dot2_direct(false, row, 1u, col, _cols,
+                                                   _inner);
+            }
+            else
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_ld_dot2(zero, false, row, 1u, col, _cols,
+                                            col, _cols, false, _inner);
+            }
+        }
+    }
+
+    return;
+}
+
+// d_mat_ld_multiply_fast
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols) as
+// written: each entry its products rounded, then added, in order of k.
+D_MATH_FN void
+d_mat_ld_multiply_fast(
     long double*       _out,
     const long double* _a,
     const long double* _b,
@@ -1874,9 +2947,49 @@ d_mat_ld_multiply(
 }
 
 // d_mat_ld_multiply_vector
-//   _out (_rows) = _a (_rows x _cols) * _v (_cols).
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols), each entry rounded once
+// from Dot2's pair. _out must not be _v.
 D_MATH_FN void
 d_mat_ld_multiply_vector(
+    long double*       _out,
+    const long double* _a,
+    const long double* _v,
+    size_t     _rows,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_ld_reach(_a, 1u, _rows * _cols) == 0) &&
+          (d_internal_vec_ld_reach(_v, 1u, _cols) == 0) );
+    const long double  zero     = (long double)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by _v
+    for (i = 0u; i < _rows; ++i)
+    {
+        const long double* row = _a + (i * _cols);
+
+        // in range: no test of its own
+        if (in_range)
+        {
+            _out[i] = d_internal_vec_ld_dot2_direct(false, row, 1u, _v, 1u,
+                                                     _cols);
+        }
+        else
+        {
+            _out[i] = d_internal_vec_ld_dot2(zero, false, row, 1u, _v, 1u, _v,
+                                              1u, false, _cols);
+        }
+    }
+
+    return;
+}
+
+// d_mat_ld_multiply_vector_fast
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols) as written
+// (d_vec_ld_dot_fast for each row).
+D_MATH_FN void
+d_mat_ld_multiply_vector_fast(
     long double*       _out,
     const long double* _a,
     const long double* _v,
@@ -1888,26 +3001,29 @@ d_mat_ld_multiply_vector(
 
     for (i = 0u; i < _rows; ++i)
     {
-        _out[i] = d_vec_ld_dot(_a + (i * _cols), _v, _cols);
+        _out[i] = d_vec_ld_dot_fast(_a + (i * _cols), _v, _cols);
     }
 
     return;
 }
 
-// d_mat_ld_power
+// d_internal_mat_ld_power
 //   _out = _a^_exponent for an _n x _n matrix, the identity for 0: by
 // squaring, from the exponent's highest bit down, the power begun as _a and,
 // at each bit below it, squared, then multiplied by _a on the left where the
 // bit is 1, as A^(2k) = A^k A^k and A^(2k+1) = A A^(2k) compose: at most
 // 2 log2(_exponent) products, where A^k = A * A^(k-1) takes _exponent - 1.
-// _scratch holds _n * _n entries; neither it nor _out may be _a.
+// _scratch holds _n * _n entries; neither it nor _out may be _a. Each
+// product is d_mat_ld_multiply's, compensated, or where _fast
+// d_mat_ld_multiply_fast's, as written.
 D_MATH_FN void
-d_mat_ld_power(
+d_internal_mat_ld_power(
     long double*       _out,
     long double*       _scratch,
     const long double* _a,
     size_t     _n,
-    size_t     _exponent
+    size_t     _exponent,
+    bool       _fast
 )
 {
     size_t top = 1u;
@@ -1937,7 +3053,14 @@ d_mat_ld_power(
     // each bit below: the power squared, then times _a where the bit is 1
     for (bit = top / 2u; bit > 0u; bit /= 2u)
     {
-        d_mat_ld_multiply(_scratch, _out, _out, _n, _n, _n);
+        if (_fast)
+        {
+            d_mat_ld_multiply_fast(_scratch, _out, _out, _n, _n, _n);
+        }
+        else
+        {
+            d_mat_ld_multiply(_scratch, _out, _out, _n, _n, _n);
+        }
 
         for (i = 0u; i < (_n * _n); ++i)
         {
@@ -1946,7 +3069,14 @@ d_mat_ld_power(
 
         if ((_exponent & bit) != 0u)
         {
-            d_mat_ld_multiply(_scratch, _a, _out, _n, _n, _n);
+            if (_fast)
+            {
+                d_mat_ld_multiply_fast(_scratch, _a, _out, _n, _n, _n);
+            }
+            else
+            {
+                d_mat_ld_multiply(_scratch, _a, _out, _n, _n, _n);
+            }
 
             for (i = 0u; i < (_n * _n); ++i)
             {
@@ -1958,13 +3088,63 @@ d_mat_ld_power(
     return;
 }
 
+// d_mat_ld_power
+//   _out = _a^_exponent by squaring (d_internal_mat_ld_power), each product
+// compensated (d_mat_ld_multiply). _scratch holds _n * _n entries; neither
+// it nor _out may be _a.
+D_MATH_FN void
+d_mat_ld_power(
+    long double*       _out,
+    long double*       _scratch,
+    const long double* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_ld_power(_out, _scratch, _a, _n, _exponent, false);
+
+    return;
+}
+
+// d_mat_ld_power_fast
+//   _out = _a^_exponent by squaring, each product as written
+// (d_mat_ld_multiply_fast).
+D_MATH_FN void
+d_mat_ld_power_fast(
+    long double*       _out,
+    long double*       _scratch,
+    const long double* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_ld_power(_out, _scratch, _a, _n, _exponent, true);
+
+    return;
+}
+
 // 3.4    Square-matrix queries
 //------------------------------------------------------------------------------
-// trace sums the diagonal; is_symmetric and is_identity allow each entry
+// trace sums the diagonal, rounded once from Sum2's pair (S404), and
+// trace_fast as written; is_symmetric and is_identity allow each entry
 // _tolerance.
 
+// d_mat_ld_trace
+//   the sum of the _n x _n matrix's diagonal, rounded once from Sum2's pair;
+// where an entry of it is a NaN or an infinity, d_mat_ld_trace_fast's.
 D_MATH_FN long double
 d_mat_ld_trace(
+    const long double* _a,
+    size_t     _n
+)
+{
+    return d_internal_vec_ld_sum2(_a, _n + 1u, _n);
+}
+
+// d_mat_ld_trace_fast
+//   the sum of the diagonal as written, in order from +0.
+D_MATH_FN long double
+d_mat_ld_trace_fast(
     const long double* _a,
     size_t     _n
 )
@@ -2040,9 +3220,11 @@ d_mat_ld_is_identity(
 // determinant by Bareiss's fraction-free elimination (exact for integers,
 // and the subframework's algorithm), the inverse by Gauss-Jordan with
 // partial pivoting, and the solution of A X = B by Gaussian elimination of
-// [A | B] with partial pivoting, LAPACK's dgesv (S257). Each product is
-// rounded before it is combined. Every kernel takes the scratch it needs
-// from the caller.
+// [A | B] with partial pivoting, LAPACK's dgesv (S257), then refined with
+// extra precision, as LAPACK's dgerfsx refines (S406). Each product of the
+// eliminations is rounded before it is combined; the refinement's residual
+// is Dot2's (vec.h). Every kernel takes the scratch it needs from the
+// caller.
 
 // d_mat_ld_determinant
 //   the determinant of the _n x _n matrix _a; _scratch holds _n * _n
@@ -2227,7 +3409,7 @@ d_mat_ld_inverse(
     return true;
 }
 
-// d_mat_ld_solve
+// d_mat_ld_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
 // with partial pivoting -- the pivot the first entry of largest magnitude
@@ -2237,7 +3419,7 @@ d_mat_ld_inverse(
 // d_decomp_ld_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
 D_MATH_FN bool
-d_mat_ld_solve(
+d_mat_ld_solve_fast(
     long double*       _x,
     long double*       _scratch,
     const long double* _a,
@@ -2357,6 +3539,348 @@ d_mat_ld_solve(
             }
 
             _x[(i * _m) + k] = s / _scratch[(i * _n) + i];
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_ld_lu
+//   _lu = the LU factors of the _n x _n matrix _a with partial pivoting, as
+// d_mat_ld_solve_fast eliminates: U on and above the diagonal, each
+// multiplier below it, in the row it was applied to, the rows interchanged
+// as the pivots were taken, and _pivots[k] the row column k's pivot came
+// from: true; false for a singular _a, a column with no pivot.
+D_MATH_FN bool
+d_internal_mat_ld_lu(
+    long double*       _lu,
+    size_t*    _pivots,
+    const long double* _a,
+    size_t     _n
+)
+{
+    size_t col = 0u;
+    size_t k   = 0u;
+
+    for (k = 0u; k < (_n * _n); ++k)
+    {
+        _lu[k] = _a[k];
+    }
+
+    // each column: its pivot, the interchange, the rows below less it
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t pivot = col;
+        long double    maxv  = (_lu[(col * _n) + col] < (long double)0)
+                           ? -_lu[(col * _n) + col]
+                           : _lu[(col * _n) + col];
+        size_t r     = 0u;
+        size_t c     = 0u;
+
+        // the largest magnitude in the column, at or below the diagonal
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const long double v = (_lu[(r * _n) + col] < (long double)0)
+                              ? -_lu[(r * _n) + col]
+                              : _lu[(r * _n) + col];
+
+            if (v > maxv)
+            {
+                maxv  = v;
+                pivot = r;
+            }
+        }
+
+        // no pivot: singular
+        if (_lu[(pivot * _n) + col] == (long double)0)
+        {
+            return false;
+        }
+
+        _pivots[col] = pivot;
+
+        // the pivot row up, whole
+        if (pivot != col)
+        {
+            for (c = 0u; c < _n; ++c)
+            {
+                const long double t = _lu[(col * _n) + c];
+
+                _lu[(col * _n) + c]   = _lu[(pivot * _n) + c];
+                _lu[(pivot * _n) + c] = t;
+            }
+        }
+
+        // the rows below less their multiples of it, each multiplier kept
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const long double f = _lu[(r * _n) + col] / _lu[(col * _n) + col];
+
+            _lu[(r * _n) + col] = f;
+
+            for (c = col + 1u; c < _n; ++c)
+            {
+                const long double prod = f * _lu[(col * _n) + c];
+
+                _lu[(r * _n) + c] = _lu[(r * _n) + c] - prod;
+            }
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_ld_lu_solve
+//   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
+// (d_internal_mat_ld_lu): the interchanges in order, then L's forward
+// substitution and U's back-substitution, each product rounded before it is
+// combined -- d_mat_ld_solve_fast's arithmetic on one column of B, its
+// interchanges carried through the eliminations the same: bit for bit where
+// the family is evaluated in its own type.
+D_MATH_FN void
+d_internal_mat_ld_lu_solve(
+    long double*          _y,
+    size_t        _stride,
+    const long double*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t col = 0u;
+    size_t i   = 0u;
+
+    // the interchanges, in the order they were made
+    for (col = 0u; col < _n; ++col)
+    {
+        if (_pivots[col] != col)
+        {
+            const long double t = _y[col * _stride];
+
+            _y[col * _stride]          = _y[_pivots[col] * _stride];
+            _y[_pivots[col] * _stride] = t;
+        }
+    }
+
+    // forward: each row below less its multiple of the row
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t r = 0u;
+
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const long double prod = _lu[(r * _n) + col] * _y[col * _stride];
+
+            _y[r * _stride] = _y[r * _stride] - prod;
+        }
+    }
+
+    // back-substitution, the last row first
+    for (i = _n; i-- > 0u; )
+    {
+        long double    s = _y[i * _stride];
+        size_t j = 0u;
+
+        for (j = i + 1u; j < _n; ++j)
+        {
+            const long double prod = _lu[(i * _n) + j] * _y[j * _stride];
+
+            s = s - prod;
+        }
+
+        _y[i * _stride] = s / _lu[(i * _n) + i];
+    }
+
+    return;
+}
+
+// d_internal_mat_ld_correction
+//   _fix = the correction of the solution _x + _tail (_x's entries _sx apart)
+// of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
+// by Dot2 rounded once (vec.h's d_internal_vec_ld_dot2), solved by A's
+// factors. *_largest is its largest magnitude, *_relative its largest
+// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+D_MATH_FN void
+d_internal_mat_ld_correction(
+    long double*          _fix,
+    long double*          _largest,
+    long double*          _relative,
+    const long double*    _x,
+    size_t        _sx,
+    const long double*    _tail,
+    const long double*    _a,
+    const long double*    _b,
+    size_t        _sb,
+    const long double*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t i = 0u;
+
+    *_largest  = (long double)0;
+    *_relative = (long double)0;
+
+    // the residual, row by row
+    for (i = 0u; i < _n; ++i)
+    {
+        _fix[i] = d_internal_vec_ld_dot2(_b[i * _sb], true, _a + (i * _n), 1u,
+                                          _x, _sx, _tail, 1u, true, _n);
+    }
+
+    d_internal_mat_ld_lu_solve(_fix, 1u, _lu, _pivots, _n);
+
+    // its sizes, whole and against x
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double xe = _x[i * _sx];
+        const long double d  = (_fix[i] < (long double)0) ? -_fix[i] : _fix[i];
+        const long double x  = (xe < (long double)0) ? -xe : xe;
+        const long double r  = (d >= x) ? (long double)1 : (d / x);
+
+        if (d > *_largest)
+        {
+            *_largest = d;
+        }
+
+        // a zero correction leaves its entry as it is
+        if ( (d != (long double)0) &&
+             (r > *_relative) )
+        {
+            *_relative = r;
+        }
+    }
+
+    return;
+}
+
+// d_internal_mat_ld_refine
+//   _x, one column of the solution of A x = b (_n entries _sx apart, b's _sb
+// apart) as A's factors gave it, refined (d_mat_ld_solve); _tail and _fix
+// are _n entries each.
+D_MATH_FN void
+d_internal_mat_ld_refine(
+    long double*          _x,
+    size_t        _sx,
+    long double*          _tail,
+    long double*          _fix,
+    const long double*    _a,
+    const long double*    _b,
+    size_t        _sb,
+    const long double*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    long double    last_largest  = (long double)0;
+    long double    last_relative = (long double)0;
+    size_t step          = 0u;
+    size_t i             = 0u;
+
+    for (i = 0u; i < _n; ++i)
+    {
+        _tail[i] = (long double)0;
+    }
+
+    // each step: the correction, then whether it is worth adding
+    for (step = 0u; step < (size_t)D_CFG_MATH_MAT_REFINE_STEPS; ++step)
+    {
+        long double largest  = (long double)0;
+        long double relative = (long double)0;
+
+        d_internal_mat_ld_correction(_fix, &largest, &relative, _x, _sx, _tail,
+                                      _a, _b, _sb, _lu, _pivots, _n);
+
+        // no progress: neither the correction nor its relative size halved
+        if ( (step > 0u) &&
+             (largest > (last_largest / (long double)2)) &&
+             (relative > (last_relative / (long double)2)) )
+        {
+            break;
+        }
+
+        // the correction into the solution and its tail
+        for (i = 0u; i < _n; ++i)
+        {
+            d_internal_vec_ld_add_pair(&_x[i * _sx], &_tail[i], _fix[i]);
+        }
+
+        // converged: every entry's correction below half its unit in the
+        // last place
+        if (relative <= (LDBL_EPSILON / (long double)2))
+        {
+            break;
+        }
+
+        last_largest  = largest;
+        last_relative = relative;
+    }
+
+    return;
+}
+
+// d_mat_ld_solve
+//   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
+// singular A, the zero matrix and false. Each column first as
+// d_mat_ld_solve_fast takes it, A's factors kept -- the first n * n of
+// _scratch's entries and the interchanges in _pivots -- then refined as
+// LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
+// Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
+// a pair, x and its tail, the correction solved by the factors and added,
+// until every entry's correction lies below half its unit in the last place
+// (converged), neither the largest correction nor the largest relative to
+// its entry halves (no progress, the last not added), or
+// D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
+// tail rounded once: for an A far enough from singular -- cond(A) times the
+// family's epsilon well below 1 -- the solution correctly rounded but where
+// it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
+// B has a NaN or an infinity, or the first solution does, the column is
+// solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither
+// may be an operand, nor _x _a or _b.
+D_MATH_FN bool
+d_mat_ld_solve(
+    long double*       _x,
+    long double*       _scratch,
+    size_t*    _pivots,
+    const long double* _a,
+    const long double* _b,
+    size_t     _n,
+    size_t     _m
+)
+{
+    long double* const tail = _scratch + (_n * _n);
+    long double* const fix  = tail + _n;
+    const bool a_ok = (d_internal_vec_ld_reach(_a, 1u, _n * _n) != 2);
+    size_t     col  = 0u;
+    size_t     k    = 0u;
+
+    // singular: the zero matrix
+    if (!d_internal_mat_ld_lu(_scratch, _pivots, _a, _n))
+    {
+        for (k = 0u; k < (_n * _m); ++k)
+        {
+            _x[k] = (long double)0;
+        }
+
+        return false;
+    }
+
+    // each column: solved by the factors, then refined
+    for (col = 0u; col < _m; ++col)
+    {
+        for (k = 0u; k < _n; ++k)
+        {
+            _x[(k * _m) + col] = _b[(k * _m) + col];
+        }
+
+        d_internal_mat_ld_lu_solve(_x + col, _m, _scratch, _pivots, _n);
+
+        // finite throughout: refined
+        if ( (a_ok) &&
+             (d_internal_vec_ld_reach(_b + col, _m, _n) != 2) &&
+             (d_internal_vec_ld_reach(_x + col, _m, _n) != 2) )
+        {
+            d_internal_mat_ld_refine(_x + col, _m, tail, fix, _a, _b + col,
+                                      _m, _scratch, _pivots, _n);
         }
     }
 
@@ -2623,6 +4147,19 @@ d_mat_multiply(
 }
 
 D_MATH_FN void
+d_mat_multiply_fast(
+    float*       _out,
+    const float* _a,
+    const float* _b,
+    size_t       _rows,
+    size_t       _inner,
+    size_t       _cols
+)
+{
+    return d_mat_f_multiply_fast(_out, _a, _b, _rows, _inner, _cols);
+}
+
+D_MATH_FN void
 d_mat_multiply_vector(
     float*       _out,
     const float* _a,
@@ -2632,6 +4169,18 @@ d_mat_multiply_vector(
 )
 {
     return d_mat_f_multiply_vector(_out, _a, _v, _rows, _cols);
+}
+
+D_MATH_FN void
+d_mat_multiply_vector_fast(
+    float*       _out,
+    const float* _a,
+    const float* _v,
+    size_t       _rows,
+    size_t       _cols
+)
+{
+    return d_mat_f_multiply_vector_fast(_out, _a, _v, _rows, _cols);
 }
 
 D_MATH_FN void
@@ -2646,6 +4195,18 @@ d_mat_power(
     return d_mat_f_power(_out, _scratch, _a, _n, _exponent);
 }
 
+D_MATH_FN void
+d_mat_power_fast(
+    float*       _out,
+    float*       _scratch,
+    const float* _a,
+    size_t       _n,
+    size_t       _exponent
+)
+{
+    return d_mat_f_power_fast(_out, _scratch, _a, _n, _exponent);
+}
+
 D_MATH_FN float
 d_mat_trace(
     const float* _a,
@@ -2653,6 +4214,15 @@ d_mat_trace(
 )
 {
     return d_mat_f_trace(_a, _n);
+}
+
+D_MATH_FN float
+d_mat_trace_fast(
+    const float* _a,
+    size_t       _n
+)
+{
+    return d_mat_f_trace_fast(_a, _n);
 }
 
 D_MATH_FN bool
@@ -2697,7 +4267,7 @@ d_mat_inverse(
 }
 
 D_MATH_FN bool
-d_mat_solve(
+d_mat_solve_fast(
     float*       _x,
     float*       _scratch,
     const float* _a,
@@ -2706,7 +4276,21 @@ d_mat_solve(
     size_t       _m
 )
 {
-    return d_mat_f_solve(_x, _scratch, _a, _b, _n, _m);
+    return d_mat_f_solve_fast(_x, _scratch, _a, _b, _n, _m);
+}
+
+D_MATH_FN bool
+d_mat_solve(
+    float*       _x,
+    float*       _scratch,
+    size_t*      _pivots,
+    const float* _a,
+    const float* _b,
+    size_t       _n,
+    size_t       _m
+)
+{
+    return d_mat_f_solve(_x, _scratch, _pivots, _a, _b, _n, _m);
 }
 
 D_MATH_FN void
@@ -2844,6 +4428,19 @@ d_mat_multiply(
 }
 
 D_MATH_FN void
+d_mat_multiply_fast(
+    double*       _out,
+    const double* _a,
+    const double* _b,
+    size_t        _rows,
+    size_t        _inner,
+    size_t        _cols
+)
+{
+    return d_mat_d_multiply_fast(_out, _a, _b, _rows, _inner, _cols);
+}
+
+D_MATH_FN void
 d_mat_multiply_vector(
     double*       _out,
     const double* _a,
@@ -2853,6 +4450,18 @@ d_mat_multiply_vector(
 )
 {
     return d_mat_d_multiply_vector(_out, _a, _v, _rows, _cols);
+}
+
+D_MATH_FN void
+d_mat_multiply_vector_fast(
+    double*       _out,
+    const double* _a,
+    const double* _v,
+    size_t        _rows,
+    size_t        _cols
+)
+{
+    return d_mat_d_multiply_vector_fast(_out, _a, _v, _rows, _cols);
 }
 
 D_MATH_FN void
@@ -2867,6 +4476,18 @@ d_mat_power(
     return d_mat_d_power(_out, _scratch, _a, _n, _exponent);
 }
 
+D_MATH_FN void
+d_mat_power_fast(
+    double*       _out,
+    double*       _scratch,
+    const double* _a,
+    size_t        _n,
+    size_t        _exponent
+)
+{
+    return d_mat_d_power_fast(_out, _scratch, _a, _n, _exponent);
+}
+
 D_MATH_FN double
 d_mat_trace(
     const double* _a,
@@ -2874,6 +4495,15 @@ d_mat_trace(
 )
 {
     return d_mat_d_trace(_a, _n);
+}
+
+D_MATH_FN double
+d_mat_trace_fast(
+    const double* _a,
+    size_t        _n
+)
+{
+    return d_mat_d_trace_fast(_a, _n);
 }
 
 D_MATH_FN bool
@@ -2918,7 +4548,7 @@ d_mat_inverse(
 }
 
 D_MATH_FN bool
-d_mat_solve(
+d_mat_solve_fast(
     double*       _x,
     double*       _scratch,
     const double* _a,
@@ -2927,7 +4557,21 @@ d_mat_solve(
     size_t        _m
 )
 {
-    return d_mat_d_solve(_x, _scratch, _a, _b, _n, _m);
+    return d_mat_d_solve_fast(_x, _scratch, _a, _b, _n, _m);
+}
+
+D_MATH_FN bool
+d_mat_solve(
+    double*       _x,
+    double*       _scratch,
+    size_t*       _pivots,
+    const double* _a,
+    const double* _b,
+    size_t        _n,
+    size_t        _m
+)
+{
+    return d_mat_d_solve(_x, _scratch, _pivots, _a, _b, _n, _m);
 }
 
 D_MATH_FN void
@@ -3065,6 +4709,19 @@ d_mat_multiply(
 }
 
 D_MATH_FN void
+d_mat_multiply_fast(
+    long double*       _out,
+    const long double* _a,
+    const long double* _b,
+    size_t             _rows,
+    size_t             _inner,
+    size_t             _cols
+)
+{
+    return d_mat_ld_multiply_fast(_out, _a, _b, _rows, _inner, _cols);
+}
+
+D_MATH_FN void
 d_mat_multiply_vector(
     long double*       _out,
     const long double* _a,
@@ -3074,6 +4731,18 @@ d_mat_multiply_vector(
 )
 {
     return d_mat_ld_multiply_vector(_out, _a, _v, _rows, _cols);
+}
+
+D_MATH_FN void
+d_mat_multiply_vector_fast(
+    long double*       _out,
+    const long double* _a,
+    const long double* _v,
+    size_t             _rows,
+    size_t             _cols
+)
+{
+    return d_mat_ld_multiply_vector_fast(_out, _a, _v, _rows, _cols);
 }
 
 D_MATH_FN void
@@ -3088,6 +4757,18 @@ d_mat_power(
     return d_mat_ld_power(_out, _scratch, _a, _n, _exponent);
 }
 
+D_MATH_FN void
+d_mat_power_fast(
+    long double*       _out,
+    long double*       _scratch,
+    const long double* _a,
+    size_t             _n,
+    size_t             _exponent
+)
+{
+    return d_mat_ld_power_fast(_out, _scratch, _a, _n, _exponent);
+}
+
 D_MATH_FN long double
 d_mat_trace(
     const long double* _a,
@@ -3095,6 +4776,15 @@ d_mat_trace(
 )
 {
     return d_mat_ld_trace(_a, _n);
+}
+
+D_MATH_FN long double
+d_mat_trace_fast(
+    const long double* _a,
+    size_t             _n
+)
+{
+    return d_mat_ld_trace_fast(_a, _n);
 }
 
 D_MATH_FN bool
@@ -3139,7 +4829,7 @@ d_mat_inverse(
 }
 
 D_MATH_FN bool
-d_mat_solve(
+d_mat_solve_fast(
     long double*       _x,
     long double*       _scratch,
     const long double* _a,
@@ -3148,7 +4838,21 @@ d_mat_solve(
     size_t             _m
 )
 {
-    return d_mat_ld_solve(_x, _scratch, _a, _b, _n, _m);
+    return d_mat_ld_solve_fast(_x, _scratch, _a, _b, _n, _m);
+}
+
+D_MATH_FN bool
+d_mat_solve(
+    long double*       _x,
+    long double*       _scratch,
+    size_t*            _pivots,
+    const long double* _a,
+    const long double* _b,
+    size_t             _n,
+    size_t             _m
+)
+{
+    return d_mat_ld_solve(_x, _scratch, _pivots, _a, _b, _n, _m);
 }
 
 D_MATH_FN void

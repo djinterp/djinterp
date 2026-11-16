@@ -1180,8 +1180,9 @@ namespace
 
             static_cast<void>(kernel::inverse(inverse.data(), scratch.data(),
                                               oa.data(), 3));
-            static_cast<void>(kernel::solve(x.data(), scratch.data(),
-                                            oa.data(), ob.data(), 3, 2));
+            static_cast<void>(kernel::solve_fast(x.data(), scratch.data(),
+                                                 oa.data(), ob.data(), 3,
+                                                 2));
 
             const m::value inv = m::expr_inv(A).value();
             const m::value X   = m::expr_solve(A, B).value();

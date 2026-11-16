@@ -8350,6 +8350,958 @@ def nearest_integer():
 # vec.h
 # -----------------------------------------------------------------------------
 
+VEC_SHARED = r"""
+
+//==============================================================================
+// 1.  THE COMPENSATED SUMS' ARITHMETIC
+//==============================================================================
+// dot, sum and cross, and mat.h's products, trace and refinement, sum their
+// terms as Ogita, Rump and Oishi's Dot2 and Sum2 do (S404): each product
+// exact as a pair, by Dekker's product with Veltkamp's split, each sum by
+// Knuth's two-sum, the errors summed apart and added last -- as accurate as
+// the sum computed in twice the precision and rounded once. They work in
+// pairs of double where double is evaluated in its own type, as SSE
+// evaluates it, for the float and double families, and in pairs of long
+// double otherwise and for the long double family, as quat.h's products do
+// (S276): where double is evaluated wider, as on a 32-bit x87, a split or a
+// two-sum in double cannot be made exact in pure arithmetic. The long double
+// pairs are elementary.h's (1.1); here are the double ones and the scaling.
+
+
+// 1.1    In double
+//------------------------------------------------------------------------------
+#if !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_d2_two_sum
+//   _a + _b exactly, as high + low: Knuth's two-sum, which needs no order
+// between the operands' magnitudes.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d2_two_sum(
+    double _a,
+    double _b
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+    const double                   high   = _a + _b;
+    const double                   a_part = high - _b;
+    const double                   b_part = high - a_part;
+
+    result.high = high;
+    result.low  = (_a - a_part) + (_b - b_part);
+
+    return result;
+}
+
+// d_internal_vec_d2_product
+//   _a * _b exactly, as high + low: Dekker's product, each factor split by
+// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). Each factor is 0 or
+// within 2^(EMIN/2 + P) to 2^(EMAX/2 - P) in magnitude, as the kernels
+// scale them, so that nothing overflows and the low part is exact.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d2_product(
+    double _a,
+    double _b
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+    const double                   split  = d_internal_math_d_veltkamp();
+    const double                   ta     = split * _a;
+    const double                   a_hi   = ta - (ta - _a);
+    const double                   a_lo   = _a - a_hi;
+    const double                   tb     = split * _b;
+    const double                   b_hi   = tb - (tb - _b);
+    const double                   b_lo   = _b - b_hi;
+    const double                   high   = _a * _b;
+
+    result.high = high;
+    result.low  = ( (((a_hi * b_hi) - high) + (a_hi * b_lo)) +
+                    (a_lo * b_hi) ) +
+                  (a_lo * b_lo);
+
+    return result;
+}
+
+// d_internal_vec_d2_short
+//   _a * _b as high + low where the product is exact in double, as a
+// product of two floats is (24 and 24 bits of 53): the product and 0.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d2_short(
+    double _a,
+    double _b
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+
+    result.high = _a * _b;
+
+    return result;
+}
+
+// d_internal_vec_d2_scale
+//   _x 2^_k, rounded once: in steps of at most 2^(EMAX - 1), so that no step
+// overflows or underflows before the last, which rounds where the result is
+// subnormal.
+D_MATH_FN double
+d_internal_vec_d2_scale(
+    double _x,
+    int    _k
+)
+{
+    double value = _x;
+    int    left  = _k;
+
+    // whole steps up while more than one is left
+    while (left > (DBL_MAX_EXP - 1))
+    {
+        value = value * d_internal_math_d_pow2(DBL_MAX_EXP - 1);
+        left  = left - (DBL_MAX_EXP - 1);
+    }
+
+    // whole steps down while more than one is left
+    while (left < (DBL_MIN_EXP - 1))
+    {
+        value = value * d_internal_math_d_pow2(DBL_MIN_EXP - 1);
+        left  = left - (DBL_MIN_EXP - 1);
+    }
+
+    return value * d_internal_math_d_pow2(left);
+}
+
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+
+// 1.2    In long double
+//------------------------------------------------------------------------------
+// The two-sum and Dekker's product are elementary.h's
+// (d_internal_math_ld_two_sum, d_internal_math_ld_product_exact).
+
+// d_internal_vec_ld_short
+//   _a * _b as high + low where the product is exact in long double, as a
+// product of two floats is in any long double of 48 bits or more: the
+// product and 0.
+D_MATH_FN struct dj_internal_math_ld_pair
+d_internal_vec_ld_short(
+    long double _a,
+    long double _b
+)
+{
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+    result.high = _a * _b;
+
+    return result;
+}
+
+// d_internal_vec_ld_scale
+//   _x 2^_k, rounded once, in steps as d_internal_vec_d2_scale takes them.
+D_MATH_FN long double
+d_internal_vec_ld_scale(
+    long double _x,
+    int         _k
+)
+{
+    long double value = _x;
+    int         left  = _k;
+
+    // whole steps up while more than one is left
+    while (left > (LDBL_MAX_EXP - 1))
+    {
+        value = value * d_internal_math_ld_pow2(LDBL_MAX_EXP - 1);
+        left  = left - (LDBL_MAX_EXP - 1);
+    }
+
+    // whole steps down while more than one is left
+    while (left < (LDBL_MIN_EXP - 1))
+    {
+        value = value * d_internal_math_ld_pow2(LDBL_MIN_EXP - 1);
+        left  = left - (LDBL_MIN_EXP - 1);
+    }
+
+    return value * d_internal_math_ld_pow2(left);
+}
+
+"""
+VEC_FAMILY_HELPERS = r"""// @SECTION@.2    Compensated sums
+//------------------------------------------------------------------------------
+// The kernels the products, the sums and mat.h's products, trace and
+// refinement take (S404): each a sum c + a . (x + t) of strided operands,
+// rounded once from Dot2's or Sum2's pair in the pairs section 1 says.
+// Where an operand has a NaN or an infinity, the sum is the formula as
+// written, as d_vec_@S@_dot_fast computes it, so that every non-finite case
+// is the arithmetic's own.
+
+// d_internal_vec_@S@_naive
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
+// negated where _minus and _t none but where _tailed: each product rounded, then
+// added, in order -- d_vec_@S@_dot_fast's formula, for operands with a NaN
+// or an infinity.
+D_MATH_FN @T@
+d_internal_vec_@S@_naive(
+    @T@        _c,
+    bool       _minus,
+    const @T@* _a,
+    size_t     _sa,
+    const @T@* _x,
+    size_t     _sx,
+    const @T@* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    @T@    acc = _c;
+    size_t i   = 0u;
+
+    // each product rounded, then added
+    for (i = 0u; i < _n; ++i)
+    {
+        const @T@ x       = _minus ? -_x[i * _sx] : _x[i * _sx];
+        const @T@ product = _a[i * _sa] * x;
+
+        acc += product;
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const @T@ u    = _minus ? -_t[i * _st] : _t[i * _st];
+            const @T@ tail = _a[i * _sa] * u;
+
+            acc += tail;
+        }
+    }
+
+    return acc;
+}
+
+// d_internal_vec_@S@_naive_sum
+//   sum_i _a[i _sa] as written, in order from +0: d_vec_@S@_sum_fast's
+// formula, for terms with a NaN or an infinity.
+D_MATH_FN @T@
+d_internal_vec_@S@_naive_sum(
+    const @T@* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    @T@    acc = (@T@)0;
+    size_t i   = 0u;
+
+    // each term, in order
+    for (i = 0u; i < _n; ++i)
+    {
+        acc += _a[i * _sa];
+    }
+
+    return acc;
+}
+
+// d_internal_vec_@S@_largest_of
+//   the largest magnitude of the _n entries _v[i _stride], each finite: 0
+// where each is 0.
+D_MATH_FN @T@
+d_internal_vec_@S@_largest_of(
+    const @T@* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    @T@    largest = (@T@)0;
+    size_t i       = 0u;
+
+    // each entry's magnitude
+    for (i = 0u; i < _n; ++i)
+    {
+        const @T@ v = _v[i * _stride];
+        const @T@ a = (v < (@T@)0) ? -v : v;
+
+        if (a > largest)
+        {
+            largest = a;
+        }
+    }
+
+    return largest;
+}
+
+// d_internal_vec_@S@_exponent_of
+//   the binade E of a finite nonzero _x, 2^E <= |_x| < 2^(E + 1): a
+// subnormal lifted into the normal range first.
+D_MATH_FN int
+d_internal_vec_@S@_exponent_of(
+    @T@ _x
+)
+{
+    const @T@ a    = (_x < (@T@)0) ? -_x : _x;
+    const int lift = (a < @MIN@) ? @P@ : 0;
+    const @T@ v    = (lift > 0) ? (a * d_internal_math_@S@_pow2(lift)) : a;
+
+    return d_internal_math_@S@_binade_of(v).exponent - lift;
+}
+
+"""
+VEC_WORK = r"""// d_internal_vec_@S@_@WS@_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity;
+// else 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to
+// 2^(EMAX/2 - P) in @W@'s terms, where Dekker's products of two such entries
+// neither overflow nor lose their low parts -- its square, rounded, from
+// 2^(EMIN + 2P + 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own
+// constants make with no power to build -- else 0.
+D_MATH_FN int
+d_internal_vec_@S@_@WS@_reach(
+    const @T@* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    const @W@ low   = @WMIN@ * ((@W@)16 / (@WEPS@ * @WEPS@));
+    const @W@ high  = (@WMAX@ * @WEPS@) * (@WEPS@ / (@W@)4);
+    int       reach = 0;
+    size_t    i     = 0u;
+
+    // each entry, until a NaN or an infinity
+    for (i = 0u; i < _n; ++i)
+    {
+        const @W@ v = (@W@)_v[i * _stride];
+        const @W@ a = (v < (@W@)0) ? -v : v;
+
+        // a NaN or an infinity: no sum to compensate
+        if (!(a <= (@W@)@MAX@))
+        {
+            return 2;
+        }
+
+        // outside the range, but for 0
+        if ( (a != (@W@)0) &&
+             ( ((a * a) < low) ||
+               ((a * a) > high) ) )
+        {
+            reach = 1;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_vec_@S@_@WS@_sum_of
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as a pair of @W@, the
+// products negated where _minus and _t none but where _tailed, every entry finite:
+// _a's entries first times 2^-_ka, _x's and _t's times 2^-_kx and _c times
+// 2^-(_ka + _kx), exactly but where an entry falls into the subnormals; each
+// product exact (@PRODUCT@), the high parts summed by two-sums, the low parts
+// and the two-sums' errors after, and the pair renormalized -- Ogita, Rump
+// and Oishi's Dot2, the sum as accurate as one in twice @W@'s precision
+// rounded once. An exact zero is +0.
+D_MATH_FN struct @WPAIR@
+d_internal_vec_@S@_@WS@_sum_of(
+    @T@        _c,
+    bool       _minus,
+    const @T@* _a,
+    size_t     _sa,
+    const @T@* _x,
+    size_t     _sx,
+    const @T@* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    struct @WPAIR@ result = { (@W@)0, (@W@)0 };
+    const bool     scaled = ( (_ka != 0) ||
+                              (_kx != 0) );
+    const @W@      sign   = _minus ? (@W@)-1 : (@W@)1;
+    @W@            a_up   = (@W@)1;
+    @W@            a_down = (@W@)1;
+    @W@            x_up   = (@W@)1;
+    @W@            x_down = (@W@)1;
+    @W@            high   = (@W@)_c;
+    @W@            rest   = (@W@)0;
+    size_t         i      = 0u;
+
+    // the factors, each a normal power of 2, and _c scaled with the products
+    if (scaled)
+    {
+        a_up   = d_internal_math_@WF@_pow2((-_ka) / 2);
+        a_down = d_internal_math_@WF@_pow2((-_ka) - ((-_ka) / 2));
+        x_up   = d_internal_math_@WF@_pow2((-_kx) / 2);
+        x_down = d_internal_math_@WF@_pow2((-_kx) - ((-_kx) / 2));
+        high   = d_internal_vec_@WS@_scale(high, -(_ka + _kx));
+    }
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const @W@ ae = (@W@)_a[i * _sa];
+        const @W@ xe = sign * (@W@)_x[i * _sx];
+        const @W@ a  = scaled ? ((ae * a_up) * a_down) : ae;
+        const @W@ x  = scaled ? ((xe * x_up) * x_down) : xe;
+        const struct @WPAIR@ p = @PRODUCT@(a, x);
+        const struct @WPAIR@ s = @TWOSUM@(high, p.high);
+
+        high = s.high;
+        rest = rest + (s.low + p.low);
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const @W@ te = sign * (@W@)_t[i * _st];
+            const @W@ u  = scaled ? ((te * x_up) * x_down) : te;
+            const struct @WPAIR@ q = @PRODUCT@(a, u);
+            const struct @WPAIR@ v = @TWOSUM@(high, q.high);
+
+            high = v.high;
+            rest = rest + (v.low + q.low);
+        }
+    }
+
+    result = @TWOSUM@(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (@W@)0)
+    {
+        result.high = (@W@)0;
+        result.low  = (@W@)0;
+    }
+
+    return result;
+}
+
+@ROUND@
+// d_internal_vec_@S@_@WS@_dot
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once to @T@ from Dot2's pair: as
+// they are where every entry lies where Dekker's products are exact and _c
+// within a quarter of @W@'s largest value; else each operand scaled, its
+// largest entry to [1, 2), and the pair back -- or _c itself, where the
+// products' sum lies below half its rounding. Where an operand has a NaN or
+// an infinity, the formula as written (d_internal_vec_@S@_naive).
+D_MATH_FN @T@
+d_internal_vec_@S@_@WS@_dot(
+    @T@        _c,
+    bool       _minus,
+    const @T@* _a,
+    size_t     _sa,
+    const @T@* _x,
+    size_t     _sx,
+    const @T@* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    const int ra = d_internal_vec_@S@_@WS@_reach(_a, _sa, _n);
+    const int rx = d_internal_vec_@S@_@WS@_reach(_x, _sx, _n);
+    const int rt = d_internal_vec_@S@_@WS@_reach(_t, _st, _tailed ? _n : 0u);
+    const @T@ ac = (_c < (@T@)0) ? -_c : _c;
+
+    // a NaN or an infinity: the formula as written
+    if ( (ra == 2) || (rx == 2) || (rt == 2) || (!(ac <= @MAX@)) )
+    {
+        return d_internal_vec_@S@_naive(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                        _tailed, _n);
+    }
+
+    // every entry in range: no scaling
+    if ( (ra == 0) && (rx == 0) && (rt == 0) &&
+         ((@W@)ac <= (@WMAX@ / (@W@)4)) )
+    {
+        return d_internal_vec_@S@_@WS@_round(
+            d_internal_vec_@S@_@WS@_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, 0, 0),
+            0);
+    }
+
+    {
+        const @T@ la   = d_internal_vec_@S@_largest_of(_a, _sa, _n);
+        const @T@ lx   = d_internal_vec_@S@_largest_of(_x, _sx, _n);
+        const @T@ lt   = d_internal_vec_@S@_largest_of(_t, _st,
+                                                   _tailed ? _n : 0u);
+        const @T@ lu   = (lt > lx) ? lt : lx;
+        int       ka   = 0;
+        int       kx   = 0;
+        int       bits = 0;
+        size_t    left = _n;
+
+        // a zero operand: each product 0, the sum _c's (+0 for either 0)
+        if ( (la == (@T@)0) ||
+             (lu == (@T@)0) )
+        {
+            return _c + (@T@)0;
+        }
+
+        ka = d_internal_vec_@S@_exponent_of(la);
+        kx = d_internal_vec_@S@_exponent_of(lu);
+
+        // the products' sum lies below 2^(ka + kx + 2 + bits)
+        while (left > 0u)
+        {
+            ++bits;
+            left /= 2u;
+        }
+
+        // _c far above it: _c itself, the products below half its rounding
+        if ( (ac != (@T@)0) &&
+             (d_internal_vec_@S@_exponent_of(ac) >
+              (ka + kx + bits + @P@ + 3)) )
+        {
+            return _c;
+        }
+
+        return d_internal_vec_@S@_@WS@_round(
+            d_internal_vec_@S@_@WS@_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, ka, kx),
+            ka + kx);
+    }
+}
+
+// d_internal_vec_@S@_@WS@_sum
+//   sum_i _a[i _sa], rounded once to @T@ from Sum2's pair -- Ogita, Rump and
+// Oishi's: each term into the running sum by a two-sum, the errors summed
+// apart and added last, the pair renormalized -- as accurate as the sum in
+// twice @W@'s precision, rounded once. Where twice _n times the largest
+// term could pass @W@'s largest value, the terms are first scaled, the
+// largest to [1, 2), exactly but where one falls into the subnormals, and the
+// sum back. An exact zero is +0; where a term is a NaN or an infinity, the
+// terms summed as written (d_internal_vec_@S@_naive_sum).
+D_MATH_FN @T@
+d_internal_vec_@S@_@WS@_sum(
+    const @T@* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    struct @WPAIR@ result  = { (@W@)0, (@W@)0 };
+    @T@            largest = (@T@)0;
+    int            k       = 0;
+    @W@            high    = (@W@)0;
+    @W@            rest    = (@W@)0;
+    size_t         i       = 0u;
+
+    // a NaN or an infinity: the terms as written
+    if (d_internal_vec_@S@_@WS@_reach(_a, _sa, _n) == 2)
+    {
+        return d_internal_vec_@S@_naive_sum(_a, _sa, _n);
+    }
+
+    largest = d_internal_vec_@S@_largest_of(_a, _sa, _n);
+
+    // each term 0: +0
+    if (largest == (@T@)0)
+    {
+        return (@T@)0;
+    }
+
+    // a partial sum that could overflow: the terms scaled
+    if ((@W@)largest > (@WMAX@ / ((@W@)2 * (@W@)_n)))
+    {
+        k = d_internal_vec_@S@_exponent_of(largest);
+    }
+
+    {
+        const @W@ up   = (k != 0) ? d_internal_math_@WF@_pow2((-k) / 2)
+                                  : (@W@)1;
+        const @W@ down = (k != 0) ? d_internal_math_@WF@_pow2((-k) - ((-k) / 2))
+                                  : (@W@)1;
+
+        // each term into the running sum, its error apart
+        for (i = 0u; i < _n; ++i)
+        {
+            const @W@ e    = (@W@)_a[i * _sa];
+            const @W@ term = (k != 0) ? ((e * up) * down) : e;
+            const struct @WPAIR@ s = @TWOSUM@(high, term);
+
+            high = s.high;
+            rest = rest + s.low;
+        }
+    }
+
+    result = @TWOSUM@(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (@W@)0)
+    {
+        return (@T@)0;
+    }
+
+    return d_internal_vec_@S@_@WS@_round(result, k);
+}
+
+@ADD_PAIR@
+"""
+VEC_ROUND_SAME = r"""// d_internal_vec_@S@_@WS@_round
+//   (_p.high + _p.low) 2^_k rounded once to @T@, _p a renormalized pair --
+// its high part the sum rounded: the high part scaled, exact where the
+// result is normal and an infinity past the range, as the sum's rounding
+// makes it; in the subnormals the scaling rounds again, and where the
+// scaled high part lay exactly between two subnormals, the low part's sign
+// decides.
+D_MATH_FN @T@
+d_internal_vec_@S@_@WS@_round(
+    struct @WPAIR@ _p,
+    int            _k
+)
+{
+    const @T@ value = (_k == 0) ? _p.high
+                                : d_internal_vec_@WS@_scale(_p.high, _k);
+    const @T@ a     = (value < (@T@)0) ? -value : value;
+    const @T@ tiny  = @MIN@ * @EPS@;
+
+    // scaled up or not at all, exact, normal or past the range: the scaled
+    // high part, the sum's rounding
+    if ( (_k >= 0) ||
+         (_p.low == (@T@)0) ||
+         (!(a < @MIN@)) )
+    {
+        return value;
+    }
+
+    {
+        const @T@ back = d_internal_vec_@WS@_scale(value, -_k);
+        const @T@ rest = _p.high - back;
+        const @T@ gap  = d_internal_vec_@WS@_scale(tiny, -_k);
+
+        // rounded down from the midpoint, and the sum lies above it
+        if ( ((rest + rest) == gap) &&
+             (_p.low > (@T@)0) )
+        {
+            return value + tiny;
+        }
+
+        // rounded up from the midpoint, and the sum lies below it
+        if ( ((rest + rest) == -gap) &&
+             (_p.low < (@T@)0) )
+        {
+            return value - tiny;
+        }
+    }
+
+    return value;
+}
+"""
+VEC_ROUND_WIDE = r"""// d_internal_vec_@S@_@WS@_round
+//   (_p.high + _p.low) 2^_k rounded once to @T@, _p a renormalized pair of
+// @W@: scaled, exactly in @W@'s wider range, then rounded as elementary.h's
+// d_internal_math_@S@_round_pair rounds a kernel's pair -- the high part
+// converted, and where it lies exactly between two values of @T@ the low
+// part's sign deciding. Each such midpoint is a value of @W@, so the high
+// part, the sum rounded to @W@ rather than to long double, lies on one
+// only where it is the sum's own rounding or the sum is the midpoint.
+D_MATH_FN @T@
+d_internal_vec_@S@_@WS@_round(
+    struct @WPAIR@ _p,
+    int            _k
+)
+{
+    const @W@ high = (_k == 0) ? _p.high
+                               : d_internal_vec_@WS@_scale(_p.high, _k);
+    const @W@ low  = (_k == 0) ? _p.low
+                               : d_internal_vec_@WS@_scale(_p.low, _k);
+
+    return d_internal_math_@S@_round_pair((long double)high,
+                                          (long double)low);
+}
+"""
+VEC_ADD_PAIR_SAME = r"""// d_internal_vec_@S@_@WS@_add_pair
+//   *_x + *_tail += _d, the pair renormalized: its high part the sum rounded
+// once and its low part the rest, by two-sums -- exact but for the rest's
+// own rounding.
+D_MATH_FN void
+d_internal_vec_@S@_@WS@_add_pair(
+    @T@* _x,
+    @T@* _tail,
+    @T@  _d
+)
+{
+    const struct @WPAIR@ s = @TWOSUM@(*_x, _d);
+    const struct @WPAIR@ p = @TWOSUM@(s.high, s.low + *_tail);
+
+    *_x    = p.high;
+    *_tail = p.low;
+
+    return;
+}
+"""
+VEC_ADD_PAIR_WIDE = r"""// d_internal_vec_@S@_@WS@_add_pair
+//   *_x + *_tail += _d in @W@'s pairs, then *_x the sum rounded once to @T@
+// (d_internal_vec_@S@_@WS@_round) and *_tail the rest, rounded to @T@.
+D_MATH_FN void
+d_internal_vec_@S@_@WS@_add_pair(
+    @T@* _x,
+    @T@* _tail,
+    @T@  _d
+)
+{
+    const struct @WPAIR@ s    = @TWOSUM@((@W@)*_x, (@W@)_d);
+    const struct @WPAIR@ p    = @TWOSUM@(s.high, s.low + (@W@)*_tail);
+    const @T@            high = d_internal_vec_@S@_@WS@_round(p, 0);
+
+    *_x    = high;
+    *_tail = (@T@)((p.high - (@W@)high) + p.low);
+
+    return;
+}
+"""
+VEC_FAMILY_KERNELS = r"""
+// d_internal_vec_@S@_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity,
+// else 1 where one leaves the range where Dekker's products of two such
+// entries are exact in the pairs the family sums in, else 0.
+D_MATH_FN int
+d_internal_vec_@S@_reach(
+    const @T@* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+@DISPATCH{@
+    return d_internal_vec_@S@_@WS@_reach(_v, _stride, _n);
+@}DISPATCH@
+}
+
+// d_internal_vec_@S@_dot2
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once from Dot2's pair; the formula
+// as written where an operand has a NaN or an infinity.
+D_MATH_FN @T@
+d_internal_vec_@S@_dot2(
+    @T@        _c,
+    bool       _minus,
+    const @T@* _a,
+    size_t     _sa,
+    const @T@* _x,
+    size_t     _sx,
+    const @T@* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+@DISPATCH{@
+    return d_internal_vec_@S@_@WS@_dot(_c, _minus, _a, _sa, _x, _sx, _t, _st, _tailed, _n);
+@}DISPATCH@
+}
+
+// d_internal_vec_@S@_dot2_direct
+//   d_internal_vec_@S@_dot2 for operands its caller has found in range --
+// each of _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's
+// entries are where both factors were found so once: no test, no scaling.
+D_MATH_FN @T@
+d_internal_vec_@S@_dot2_direct(
+    bool       _minus,
+    const @T@* _a,
+    size_t     _sa,
+    const @T@* _x,
+    size_t     _sx,
+    size_t     _n
+)
+{
+@DISPATCH{@
+    const struct @WPAIR@ sum = d_internal_vec_@S@_@WS@_sum_of((@T@)0, _minus, _a, _sa, _x, _sx, _x, _sx, false, _n, 0, 0);
+
+    return d_internal_vec_@S@_@WS@_round(sum, 0);
+@}DISPATCH@
+}
+
+// d_internal_vec_@S@_sum2
+//   sum_i _a[i _sa], rounded once from Sum2's pair; the terms as written
+// where one is a NaN or an infinity.
+D_MATH_FN @T@
+d_internal_vec_@S@_sum2(
+    const @T@* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+@DISPATCH{@
+    return d_internal_vec_@S@_@WS@_sum(_a, _sa, _n);
+@}DISPATCH@
+}
+
+// d_internal_vec_@S@_add_pair
+//   *_x + *_tail += _d, the pair renormalized, its high part the sum rounded
+// once: how mat.h's refinement carries a solution with its tail.
+D_MATH_FN void
+d_internal_vec_@S@_add_pair(
+    @T@* _x,
+    @T@* _tail,
+    @T@  _d
+)
+{
+@DISPATCH{@
+    d_internal_vec_@S@_@WS@_add_pair(_x, _tail, _d);
+@}DISPATCH@
+
+    return;
+}
+
+"""
+
+
+def wrap_call(line):
+    """a call's line wrapped at 80 columns, its arguments packed under the
+    first: how the dispatches below are written."""
+    if len(line) <= 80:
+        return line
+    open_ = line.index("(")
+    close = line.rindex(")")
+    inner = line[open_ + 1:close]
+    args, depth, cur = [], 0, ""
+    for ch in inner:
+        if (ch == ",") and (depth == 0):
+            args.append(cur.strip())
+            cur = ""
+            continue
+        depth += (ch == "(") - (ch == ")")
+        cur += ch
+    args.append(cur.strip())
+    col = open_ + 1
+    out, row = [], line[:col]
+    for i, a in enumerate(args):
+        piece = a + ("," if i < len(args) - 1 else line[close:])
+        if (row.strip() and (len(row) + len(piece) + 1 > 80)
+                and (len(row) > col)):
+            out.append(row.rstrip())
+            row = " " * col + piece
+        else:
+            row += ("" if len(row) == col else " ") + piece
+    out.append(row)
+    return "\n".join(out)
+
+
+
+def tidy80(text, comments=True):
+    """the compensated sums' text, its family's names filled in, kept to 80
+    columns: each comment paragraph reflowed (a function's name line kept,
+    its first line of text indented two more), and each declaration whose
+    initializer would pass the edge broken after its '=' and the call
+    wrapped (wrap_call)."""
+    import re
+    lines = text.split("\n")
+    out = []
+    i = 0
+    comment = re.compile(r"^(\s*)// ?(.*)$")
+    while i < len(lines):
+        m = comment.match(lines[i])
+        rule = lines[i].lstrip().startswith(("//==", "//--"))
+        if (not comments) or (m is None) or rule or (lines[i].strip() == "//"):
+            out.append(lines[i])
+            i += 1
+            continue
+        indent = m.group(1)
+        block = []
+        while (i < len(lines)):
+            mm = comment.match(lines[i])
+            if ((mm is None) or (mm.group(1) != indent) or
+                    lines[i].lstrip().startswith(("//==", "//--")) or
+                    (lines[i].strip() == "//")):
+                break
+            block.append(lines[i])
+            i += 1
+        name = None
+        body = block
+        if re.match(r"^\s*// [A-Za-z_][A-Za-z_0-9]*$", block[0]) and \
+                (len(block) > 1) and block[1].startswith(indent + "//   "):
+            name, body = block[0], block[1:]
+        words = " ".join(comment.match(b).group(2).strip() for b in body).split()
+        first = indent + ("//   " if name else "// ")
+        rest = indent + "// "
+        if name:
+            out.append(name)
+        row = first
+        for w in words:
+            if (len(row) + len(w) + (0 if row in (first, rest) else 1) > 80) \
+                    and (row not in (first, rest)):
+                out.append(row)
+                row = rest
+            row += ("" if row in (first, rest) else " ") + w
+        out.append(row)
+    # declarations past the edge: broken after '=', the call wrapped
+    result = []
+    decl = re.compile(r"^(\s*)((?:const )?(?:struct )?[A-Za-z_][\w ]*?[\w*]) +(\w+)(\s*)= (.+)$")
+    for line in out:
+        if (len(line) > 80) and not line.lstrip().startswith("//"):
+            m = decl.match(line)
+            if m and m.group(5).rstrip().endswith(";"):
+                ind = m.group(1)
+                result.append("%s%s %s =" % (ind, m.group(2), m.group(3)))
+                result.append(wrap_call(ind + "    " + m.group(5)))
+                continue
+            if re.match(r"^\s*(return )?[A-Za-z_]\w*\(.*\);$", line):
+                result.append(wrap_call(line))
+                continue
+        result.append(line)
+    return "\n".join(result)
+
+
+def vec_work(suffix):
+    """the family's sums in pairs: double's where double is evaluated in its
+    own type and long double's otherwise, long double's for long double."""
+    def one(ws):
+        wtype = {"d2": "double", "ld": "long double"}[ws]
+        wpre = {"d2": "DBL", "ld": "LDBL"}[ws]
+        same = ((suffix, ws) in (("d", "d2"), ("ld", "ld")))
+        body = VEC_WORK.replace("@ROUND@",
+                                VEC_ROUND_SAME if same else VEC_ROUND_WIDE)
+        body = body.replace("@ADD_PAIR@",
+                            VEC_ADD_PAIR_SAME if same else VEC_ADD_PAIR_WIDE)
+        if suffix == "f":
+            product = "d_internal_vec_%s_short" % ws
+        else:
+            product = {"d2": "d_internal_vec_d2_product",
+                       "ld": "d_internal_math_ld_product_exact"}[ws]
+        for key, value in (
+            ("@WPAIR@", {"d2": "dj_internal_math_d_pair",
+                         "ld": "dj_internal_math_ld_pair"}[ws]),
+            ("@PRODUCT@", product),
+            ("@TWOSUM@", {"d2": "d_internal_vec_d2_two_sum",
+                          "ld": "d_internal_math_ld_two_sum"}[ws]),
+            ("@WS@", ws),
+            ("@WF@", {"d2": "d", "ld": "ld"}[ws]),
+            ("@WP@", wpre + "_MANT_DIG"),
+            ("@WEMIN@", wpre + "_MIN_EXP"),
+            ("@WEMAX@", wpre + "_MAX_EXP"),
+            ("@WMAX@", wpre + "_MAX"),
+            ("@WMIN@", wpre + "_MIN"),
+            ("@WEPS@", wpre + "_EPSILON"),
+            ("@W@", wtype),
+        ):
+            body = body.replace(key, value)
+        return body
+    if suffix == "ld":
+        return one("ld")
+    return ("#if !D_MATH_DBL_EVAL_WIDE\n\n" + one("d2") +
+            "\n#else  // !D_MATH_DBL_EVAL_WIDE\n\n" + one("ld") +
+            "\n#endif  // !D_MATH_DBL_EVAL_WIDE\n")
+
+
+def vec_kernels(suffix, ctype):
+    """the family's kernels, each dispatching to the pairs the target takes:
+    @DISPATCH{@ ... @}DISPATCH@ holds the statements, one to a line."""
+    text = VEC_FAMILY_KERNELS
+    while "@DISPATCH{@" in text:
+        i = text.index("@DISPATCH{@\n")
+        j = text.index("@}DISPATCH@\n", i)
+        stmts = text[i + len("@DISPATCH{@\n"):j].splitlines()
+
+        def fill(ws):
+            pair = {"d2": "dj_internal_math_d_pair",
+                    "ld": "dj_internal_math_ld_pair"}[ws]
+            return "\n".join(
+                s.replace("@WS@", ws).replace("@WPAIR@", pair)
+                 .replace("@S@", suffix).replace("@T@", ctype)
+                for s in stmts) + "\n"
+        if suffix == "ld":
+            block = fill("ld")
+        else:
+            block = ("#if !D_MATH_DBL_EVAL_WIDE\n" + fill("d2") +
+                     "#else  // !D_MATH_DBL_EVAL_WIDE\n" + fill("ld") +
+                     "#endif  // !D_MATH_DBL_EVAL_WIDE\n")
+        text = text[:i] + block + text[j + len("@}DISPATCH@\n"):]
+    return text
+
+
+
 VEC_TEMPLATE = r"""
 //==============================================================================
 // @SECTION@.  THE @UPPER@ FAMILY (_@S@)
@@ -8508,13 +9460,37 @@ d_vec_@S@_lerp(
     return;
 }
 
-// @SECTION@.2    Products and reductions
+@COMPENSATED@// @SECTION@.3    Products and reductions
 //------------------------------------------------------------------------------
-// Each product is rounded before it is summed, so no compiler can fuse the
-// two and a result is the same on every target.
+// dot, cross and sum are compensated (S404): each a sum rounded once from
+// Dot2's or Sum2's pair (@SECTION@.2), as accurate as the sum computed in
+// twice the precision and rounded once, so correctly rounded but where its
+// terms cancel past twice the precision or it lies within that of a
+// midpoint. The _fast forms are the formulas as written, each product
+// rounded before it is summed, in order, so that no compiler can fuse the
+// two and a result is the same on every target: faster, for double some ten
+// times, and their error unbounded where the terms cancel. product, min and
+// max are as written.
 
+// d_vec_@S@_dot
+//   the sum of the _count products _a[i] _b[i], rounded once from Dot2's
+// pair; where an operand has a NaN or an infinity, d_vec_@S@_dot_fast's.
 D_MATH_FN @T@
 d_vec_@S@_dot(
+    const @T@* _a,
+    const @T@* _b,
+    size_t     _count
+)
+{
+    return d_internal_vec_@S@_dot2((@T@)0, false, _a, 1u, _b, 1u, _b, 1u,
+                                   false, _count);
+}
+
+// d_vec_@S@_dot_fast
+//   the sum of the _count products as written: each product rounded, then
+// added, in order from +0.
+D_MATH_FN @T@
+d_vec_@S@_dot_fast(
     const @T@* _a,
     const @T@* _b,
     size_t     _count
@@ -8533,8 +9509,64 @@ d_vec_@S@_dot(
     return acc;
 }
 
+// d_internal_vec_@S@_difference
+//   _p _q - _r _s rounded once from Dot2's pair of the two products; where
+// the two products are equal, the formula as written, whose 0 then keeps
+// the sign the arithmetic gives it. Where a factor is a NaN or an infinity,
+// Dot2's kernel gives the formula's value (d_internal_vec_@S@_naive).
+D_MATH_FN @T@
+d_internal_vec_@S@_difference(
+    @T@ _p,
+    @T@ _q,
+    @T@ _r,
+    @T@ _s
+)
+{
+    const @T@ left  = _p * _q;
+    const @T@ right = _r * _s;
+    const @T@ a[2]  = { _p, _r };
+    const @T@ b[2]  = { _q, -_s };
+    const @T@ value = d_internal_vec_@S@_dot2((@T@)0, false, a, 1u, b, 1u, b, 1u, false, 2u);
+
+    // the products equal and so their difference 0: the formula's, its 0's
+    // sign the arithmetic's
+    if ( (value == (@T@)0) &&
+         (left == right) )
+    {
+        return left - right;
+    }
+
+    return value;
+}
+
+// d_vec_@S@_cross
+//   _out = _a x _b, each part the difference of its two products rounded
+// once from Dot2's pair (d_internal_vec_@S@_difference). _out may be _a or
+// _b.
 D_MATH_FN void
 d_vec_@S@_cross(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b
+)
+{
+    // all three from the inputs before any output is written
+    const @T@ x = d_internal_vec_@S@_difference(_a[1], _b[2], _a[2], _b[1]);
+    const @T@ y = d_internal_vec_@S@_difference(_a[2], _b[0], _a[0], _b[2]);
+    const @T@ z = d_internal_vec_@S@_difference(_a[0], _b[1], _a[1], _b[0]);
+
+    _out[0] = x;
+    _out[1] = y;
+    _out[2] = z;
+
+    return;
+}
+
+// d_vec_@S@_cross_fast
+//   _out = _a x _b as written: each part's two products rounded, then
+// subtracted. _out may be _a or _b.
+D_MATH_FN void
+d_vec_@S@_cross_fast(
     @T@*       _out,
     const @T@* _a,
     const @T@* _b
@@ -8555,8 +9587,22 @@ d_vec_@S@_cross(
     return;
 }
 
+// d_vec_@S@_sum
+//   the sum of the _count terms, rounded once from Sum2's pair; where a term
+// is a NaN or an infinity, d_vec_@S@_sum_fast's.
 D_MATH_FN @T@
 d_vec_@S@_sum(
+    const @T@* _a,
+    size_t     _count
+)
+{
+    return d_internal_vec_@S@_sum2(_a, 1u, _count);
+}
+
+// d_vec_@S@_sum_fast
+//   the sum of the _count terms as written, in order from +0.
+D_MATH_FN @T@
+d_vec_@S@_sum_fast(
     const @T@* _a,
     size_t     _count
 )
@@ -8629,7 +9675,7 @@ d_vec_@S@_max(
     return m;
 }
 
-// @SECTION@.3    Norms and distances
+// @SECTION@.4    Norms and distances
 //------------------------------------------------------------------------------
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
@@ -8730,7 +9776,7 @@ d_internal_vec_@S@_scaled_entry(
 
 // d_internal_vec_@S@_scaled_sum
 //   the sum of the squares of the entries scaled by _pre and _power, as
-// d_vec_@S@_dot sums: each square rounded, then added.
+// d_vec_@S@_dot_fast sums: each square rounded, then added.
 D_MATH_FN @T@
 d_internal_vec_@S@_scaled_sum(
     const @T@* _a,
@@ -8755,13 +9801,17 @@ d_internal_vec_@S@_scaled_sum(
     return acc;
 }
 
+// d_vec_@S@_norm_squared
+//   the sum of the squares as written (d_vec_@S@_dot_fast's): a sum of
+// terms that cannot cancel, within (n - 1) u of its value relatively, and
+// the bits the norms keep where they are in range (S256, S405).
 D_MATH_FN @T@
 d_vec_@S@_norm_squared(
     const @T@* _a,
     size_t     _count
 )
 {
-    return d_vec_@S@_dot(_a, _a, _count);
+    return d_vec_@S@_dot_fast(_a, _a, _count);
 }
 
 // d_internal_vec_@S@_in_range_c
@@ -9044,7 +10094,7 @@ d_vec_@S@_normalize(
     return;
 }
 
-// @SECTION@.4    Projection and angle
+// @SECTION@.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
 // vector projects to zero. cos_angle is 0 when either vector is zero, and
@@ -9282,7 +10332,7 @@ d_vec_@S@_angle(
                             (c < (@T@)-1) ? (@T@)-1 : c );
 }
 
-// @SECTION@.5    Comparison
+// @SECTION@.6    Comparison
 //------------------------------------------------------------------------------
 // equal is component-wise ==; equals allows each component _tolerance.
 
@@ -9334,28 +10384,35 @@ VEC_HEAD = r"""
 /*
 TABLE OF CONTENTS
 =================
-1.  THE FLOAT FAMILY (_f)
+1.  THE COMPENSATED SUMS' ARITHMETIC
+    --------------------------------
+    1.  In double
+    2.  In long double
+2.  THE FLOAT FAMILY (_f)
     ---------------------
     1.  Element-wise arithmetic
-    2.  Products and reductions
-    3.  Norms and distances
-    4.  Projection and angle
-    5.  Comparison
-2.  THE DOUBLE FAMILY (_d)
+    2.  Compensated sums
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+3.  THE DOUBLE FAMILY (_d)
     ----------------------
     1.  Element-wise arithmetic
-    2.  Products and reductions
-    3.  Norms and distances
-    4.  Projection and angle
-    5.  Comparison
-3.  THE LONG DOUBLE FAMILY (_ld)
+    2.  Compensated sums
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+4.  THE LONG DOUBLE FAMILY (_ld)
     ----------------------------
     1.  Element-wise arithmetic
-    2.  Products and reductions
-    3.  Norms and distances
-    4.  Projection and angle
-    5.  Comparison
-4.  ONE NAME FOR EVERY FAMILY (C++)
+    2.  Compensated sums
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+5.  ONE NAME FOR EVERY FAMILY (C++)
     -------------------------------
 */
 
@@ -9363,9 +10420,11 @@ TABLE OF CONTENTS
 #define DJINTERP_C_MATH_VEC_H 1
 
 // std
+#include <float.h>           // DBL_MAX_EXP ... LDBL_MIN_EXP: the scaling
 #include <stddef.h>          // size_t
 // djinterp
-#include "./elementary.h"    // d_math_*_sqrt, _sqrt_c, _acos, _acos_c
+#include "./elementary.h"    // d_math_*_sqrt, _sqrt_c, _acos, _acos_c,
+                             // the long double pairs, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_binade_of,
                              // d_internal_math_*_pow2: the scaling
 #include "./math_common.h"   // D_MATH_FN
@@ -9390,8 +10449,11 @@ VEC_OVERLOADS = [
     ("D_MATH_FN", "void", "d_vec_hadamard", [_O, _A, _B, _N]),
     ("D_MATH_FN", "void", "d_vec_lerp", [_O, _A, _B, ("@T@", "_t"), _N]),
     ("D_MATH_FN", "@T@", "d_vec_dot", [_A, _B, _N]),
+    ("D_MATH_FN", "@T@", "d_vec_dot_fast", [_A, _B, _N]),
     ("D_MATH_FN", "void", "d_vec_cross", [_O, _A, _B]),
+    ("D_MATH_FN", "void", "d_vec_cross_fast", [_O, _A, _B]),
     ("D_MATH_FN", "@T@", "d_vec_sum", [_A, _N]),
+    ("D_MATH_FN", "@T@", "d_vec_sum_fast", [_A, _N]),
     ("D_MATH_FN", "@T@", "d_vec_product", [_A, _N]),
     ("D_MATH_FN", "@T@", "d_vec_min", [_A, _N]),
     ("D_MATH_FN", "@T@", "d_vec_max", [_A, _N]),
@@ -9426,15 +10488,24 @@ def vec():
         "loop the face's constant dimension unrolls, a constant expression from",
         "C++14 but for the plain root forms, which call the C library. A norm",
         "is scaled by a power of two where its sum of squares would leave the",
-        "range, and keeps its bits where it does not (S256).",
+        "range, and keeps its bits where it does not (S256). dot, cross and sum",
+        "are compensated -- Ogita, Rump and Oishi's Dot2 and Sum2, as accurate as",
+        "the sum computed in twice the precision and rounded once -- and their",
+        "_fast forms are the formulas as written (S404).",
     ]
-    text = banner("vec.h", lines, DATE, "2026.11.07")
-    text += "\n" + VEC_HEAD
+    text = banner("vec.h", lines, DATE, "2026.11.14")
+    text += "\n" + VEC_HEAD + VEC_SHARED
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
-        body = VEC_TEMPLATE.replace("@SECTION@", str(i + 1)).replace("@UPPER@", upper)
-        text += instantiate(body, suffix, ctype, prefix, prose)
-    text += overload_section("4.  ONE NAME FOR EVERY FAMILY (C++)", VEC_OVERLOADS)
+        body = VEC_TEMPLATE.replace("@SECTION@", str(i + 2)).replace("@UPPER@", upper)
+        compensated = (VEC_FAMILY_HELPERS + vec_work(suffix) +
+                       vec_kernels(suffix, ctype))
+        compensated = instantiate(compensated.replace("@SECTION@", str(i + 2)),
+                                  suffix, ctype, prefix, prose)
+        body = body.replace("@COMPENSATED@", tidy80(compensated))
+        text += tidy80(instantiate(body, suffix, ctype, prefix, prose),
+                       comments=False)
+    text += overload_section("5.  ONE NAME FOR EVERY FAMILY (C++)", VEC_OVERLOADS)
     text += VEC_TAIL
     return text
 
@@ -9561,13 +10632,69 @@ d_mat_@S@_transpose(
 
 // @SECTION@.3    Products
 //------------------------------------------------------------------------------
-// Each entry is its dot product in order of k, each product rounded before it
-// is summed. _out must not be an input.
+// Each entry is its dot product rounded once from Dot2's pair (vec.h's
+// compensated sums, S404), as accurate as the dot product computed in twice
+// the precision and rounded once. The operands are tested once for the
+// range where Dekker's products are exact; where both lie in it, each entry
+// is summed with no test of its own, and elsewhere each entry tests and
+// scales its own row and column, and is the formula as written where one
+// has a NaN or an infinity. The _fast forms are the formulas as written,
+// in order of k, each product rounded before it is summed. _out must not
+// be an input.
 
 // d_mat_@S@_multiply
-//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols).
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols), each
+// entry rounded once from Dot2's pair.
 D_MATH_FN void
 d_mat_@S@_multiply(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _b,
+    size_t     _rows,
+    size_t     _inner,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_@S@_reach(_a, 1u, _rows * _inner) == 0) &&
+          (d_internal_vec_@S@_reach(_b, 1u, _inner * _cols) == 0) );
+    const @T@  zero     = (@T@)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by column j of _b
+    for (i = 0u; i < _rows; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < _cols; ++j)
+        {
+            const @T@* row = _a + (i * _inner);
+            const @T@* col = _b + j;
+
+            // in range: no test of its own
+            if (in_range)
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_@S@_dot2_direct(false, row, 1u, col, _cols,
+                                                   _inner);
+            }
+            else
+            {
+                _out[(i * _cols) + j] =
+                    d_internal_vec_@S@_dot2(zero, false, row, 1u, col, _cols,
+                                            col, _cols, false, _inner);
+            }
+        }
+    }
+
+    return;
+}
+
+// d_mat_@S@_multiply_fast
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols) as
+// written: each entry its products rounded, then added, in order of k.
+D_MATH_FN void
+d_mat_@S@_multiply_fast(
     @T@*       _out,
     const @T@* _a,
     const @T@* _b,
@@ -9602,9 +10729,49 @@ d_mat_@S@_multiply(
 }
 
 // d_mat_@S@_multiply_vector
-//   _out (_rows) = _a (_rows x _cols) * _v (_cols).
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols), each entry rounded once
+// from Dot2's pair. _out must not be _v.
 D_MATH_FN void
 d_mat_@S@_multiply_vector(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _v,
+    size_t     _rows,
+    size_t     _cols
+)
+{
+    const bool in_range =
+        ( (d_internal_vec_@S@_reach(_a, 1u, _rows * _cols) == 0) &&
+          (d_internal_vec_@S@_reach(_v, 1u, _cols) == 0) );
+    const @T@  zero     = (@T@)0;
+    size_t     i        = 0u;
+
+    // each entry, row i of _a by _v
+    for (i = 0u; i < _rows; ++i)
+    {
+        const @T@* row = _a + (i * _cols);
+
+        // in range: no test of its own
+        if (in_range)
+        {
+            _out[i] = d_internal_vec_@S@_dot2_direct(false, row, 1u, _v, 1u,
+                                                     _cols);
+        }
+        else
+        {
+            _out[i] = d_internal_vec_@S@_dot2(zero, false, row, 1u, _v, 1u, _v,
+                                              1u, false, _cols);
+        }
+    }
+
+    return;
+}
+
+// d_mat_@S@_multiply_vector_fast
+//   _out (_rows) = _a (_rows x _cols) * _v (_cols) as written
+// (d_vec_@S@_dot_fast for each row).
+D_MATH_FN void
+d_mat_@S@_multiply_vector_fast(
     @T@*       _out,
     const @T@* _a,
     const @T@* _v,
@@ -9616,26 +10783,29 @@ d_mat_@S@_multiply_vector(
 
     for (i = 0u; i < _rows; ++i)
     {
-        _out[i] = d_vec_@S@_dot(_a + (i * _cols), _v, _cols);
+        _out[i] = d_vec_@S@_dot_fast(_a + (i * _cols), _v, _cols);
     }
 
     return;
 }
 
-// d_mat_@S@_power
+// d_internal_mat_@S@_power
 //   _out = _a^_exponent for an _n x _n matrix, the identity for 0: by
 // squaring, from the exponent's highest bit down, the power begun as _a and,
 // at each bit below it, squared, then multiplied by _a on the left where the
 // bit is 1, as A^(2k) = A^k A^k and A^(2k+1) = A A^(2k) compose: at most
 // 2 log2(_exponent) products, where A^k = A * A^(k-1) takes _exponent - 1.
-// _scratch holds _n * _n entries; neither it nor _out may be _a.
+// _scratch holds _n * _n entries; neither it nor _out may be _a. Each
+// product is d_mat_@S@_multiply's, compensated, or where _fast
+// d_mat_@S@_multiply_fast's, as written.
 D_MATH_FN void
-d_mat_@S@_power(
+d_internal_mat_@S@_power(
     @T@*       _out,
     @T@*       _scratch,
     const @T@* _a,
     size_t     _n,
-    size_t     _exponent
+    size_t     _exponent,
+    bool       _fast
 )
 {
     size_t top = 1u;
@@ -9665,7 +10835,14 @@ d_mat_@S@_power(
     // each bit below: the power squared, then times _a where the bit is 1
     for (bit = top / 2u; bit > 0u; bit /= 2u)
     {
-        d_mat_@S@_multiply(_scratch, _out, _out, _n, _n, _n);
+        if (_fast)
+        {
+            d_mat_@S@_multiply_fast(_scratch, _out, _out, _n, _n, _n);
+        }
+        else
+        {
+            d_mat_@S@_multiply(_scratch, _out, _out, _n, _n, _n);
+        }
 
         for (i = 0u; i < (_n * _n); ++i)
         {
@@ -9674,7 +10851,14 @@ d_mat_@S@_power(
 
         if ((_exponent & bit) != 0u)
         {
-            d_mat_@S@_multiply(_scratch, _a, _out, _n, _n, _n);
+            if (_fast)
+            {
+                d_mat_@S@_multiply_fast(_scratch, _a, _out, _n, _n, _n);
+            }
+            else
+            {
+                d_mat_@S@_multiply(_scratch, _a, _out, _n, _n, _n);
+            }
 
             for (i = 0u; i < (_n * _n); ++i)
             {
@@ -9686,13 +10870,63 @@ d_mat_@S@_power(
     return;
 }
 
+// d_mat_@S@_power
+//   _out = _a^_exponent by squaring (d_internal_mat_@S@_power), each product
+// compensated (d_mat_@S@_multiply). _scratch holds _n * _n entries; neither
+// it nor _out may be _a.
+D_MATH_FN void
+d_mat_@S@_power(
+    @T@*       _out,
+    @T@*       _scratch,
+    const @T@* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_@S@_power(_out, _scratch, _a, _n, _exponent, false);
+
+    return;
+}
+
+// d_mat_@S@_power_fast
+//   _out = _a^_exponent by squaring, each product as written
+// (d_mat_@S@_multiply_fast).
+D_MATH_FN void
+d_mat_@S@_power_fast(
+    @T@*       _out,
+    @T@*       _scratch,
+    const @T@* _a,
+    size_t     _n,
+    size_t     _exponent
+)
+{
+    d_internal_mat_@S@_power(_out, _scratch, _a, _n, _exponent, true);
+
+    return;
+}
+
 // @SECTION@.4    Square-matrix queries
 //------------------------------------------------------------------------------
-// trace sums the diagonal; is_symmetric and is_identity allow each entry
+// trace sums the diagonal, rounded once from Sum2's pair (S404), and
+// trace_fast as written; is_symmetric and is_identity allow each entry
 // _tolerance.
 
+// d_mat_@S@_trace
+//   the sum of the _n x _n matrix's diagonal, rounded once from Sum2's pair;
+// where an entry of it is a NaN or an infinity, d_mat_@S@_trace_fast's.
 D_MATH_FN @T@
 d_mat_@S@_trace(
+    const @T@* _a,
+    size_t     _n
+)
+{
+    return d_internal_vec_@S@_sum2(_a, _n + 1u, _n);
+}
+
+// d_mat_@S@_trace_fast
+//   the sum of the diagonal as written, in order from +0.
+D_MATH_FN @T@
+d_mat_@S@_trace_fast(
     const @T@* _a,
     size_t     _n
 )
@@ -9768,9 +11002,11 @@ d_mat_@S@_is_identity(
 // determinant by Bareiss's fraction-free elimination (exact for integers,
 // and the subframework's algorithm), the inverse by Gauss-Jordan with
 // partial pivoting, and the solution of A X = B by Gaussian elimination of
-// [A | B] with partial pivoting, LAPACK's dgesv (S257). Each product is
-// rounded before it is combined. Every kernel takes the scratch it needs
-// from the caller.
+// [A | B] with partial pivoting, LAPACK's dgesv (S257), then refined with
+// extra precision, as LAPACK's dgerfsx refines (S406). Each product of the
+// eliminations is rounded before it is combined; the refinement's residual
+// is Dot2's (vec.h). Every kernel takes the scratch it needs from the
+// caller.
 
 // d_mat_@S@_determinant
 //   the determinant of the _n x _n matrix _a; _scratch holds _n * _n
@@ -9955,7 +11191,7 @@ d_mat_@S@_inverse(
     return true;
 }
 
-// d_mat_@S@_solve
+// d_mat_@S@_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
 // with partial pivoting -- the pivot the first entry of largest magnitude
@@ -9965,7 +11201,7 @@ d_mat_@S@_inverse(
 // d_decomp_@S@_lu_solve give. _scratch holds n * n entries; neither it nor
 // _x may be _a or _b.
 D_MATH_FN bool
-d_mat_@S@_solve(
+d_mat_@S@_solve_fast(
     @T@*       _x,
     @T@*       _scratch,
     const @T@* _a,
@@ -10085,6 +11321,348 @@ d_mat_@S@_solve(
             }
 
             _x[(i * _m) + k] = s / _scratch[(i * _n) + i];
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_@S@_lu
+//   _lu = the LU factors of the _n x _n matrix _a with partial pivoting, as
+// d_mat_@S@_solve_fast eliminates: U on and above the diagonal, each
+// multiplier below it, in the row it was applied to, the rows interchanged
+// as the pivots were taken, and _pivots[k] the row column k's pivot came
+// from: true; false for a singular _a, a column with no pivot.
+D_MATH_FN bool
+d_internal_mat_@S@_lu(
+    @T@*       _lu,
+    size_t*    _pivots,
+    const @T@* _a,
+    size_t     _n
+)
+{
+    size_t col = 0u;
+    size_t k   = 0u;
+
+    for (k = 0u; k < (_n * _n); ++k)
+    {
+        _lu[k] = _a[k];
+    }
+
+    // each column: its pivot, the interchange, the rows below less it
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t pivot = col;
+        @T@    maxv  = (_lu[(col * _n) + col] < (@T@)0)
+                           ? -_lu[(col * _n) + col]
+                           : _lu[(col * _n) + col];
+        size_t r     = 0u;
+        size_t c     = 0u;
+
+        // the largest magnitude in the column, at or below the diagonal
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const @T@ v = (_lu[(r * _n) + col] < (@T@)0)
+                              ? -_lu[(r * _n) + col]
+                              : _lu[(r * _n) + col];
+
+            if (v > maxv)
+            {
+                maxv  = v;
+                pivot = r;
+            }
+        }
+
+        // no pivot: singular
+        if (_lu[(pivot * _n) + col] == (@T@)0)
+        {
+            return false;
+        }
+
+        _pivots[col] = pivot;
+
+        // the pivot row up, whole
+        if (pivot != col)
+        {
+            for (c = 0u; c < _n; ++c)
+            {
+                const @T@ t = _lu[(col * _n) + c];
+
+                _lu[(col * _n) + c]   = _lu[(pivot * _n) + c];
+                _lu[(pivot * _n) + c] = t;
+            }
+        }
+
+        // the rows below less their multiples of it, each multiplier kept
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const @T@ f = _lu[(r * _n) + col] / _lu[(col * _n) + col];
+
+            _lu[(r * _n) + col] = f;
+
+            for (c = col + 1u; c < _n; ++c)
+            {
+                const @T@ prod = f * _lu[(col * _n) + c];
+
+                _lu[(r * _n) + c] = _lu[(r * _n) + c] - prod;
+            }
+        }
+    }
+
+    return true;
+}
+
+// d_internal_mat_@S@_lu_solve
+//   _y (_n entries, _stride apart) = the solution of A y = _y by A's factors
+// (d_internal_mat_@S@_lu): the interchanges in order, then L's forward
+// substitution and U's back-substitution, each product rounded before it is
+// combined -- d_mat_@S@_solve_fast's arithmetic on one column of B, its
+// interchanges carried through the eliminations the same: bit for bit where
+// the family is evaluated in its own type.
+D_MATH_FN void
+d_internal_mat_@S@_lu_solve(
+    @T@*          _y,
+    size_t        _stride,
+    const @T@*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t col = 0u;
+    size_t i   = 0u;
+
+    // the interchanges, in the order they were made
+    for (col = 0u; col < _n; ++col)
+    {
+        if (_pivots[col] != col)
+        {
+            const @T@ t = _y[col * _stride];
+
+            _y[col * _stride]          = _y[_pivots[col] * _stride];
+            _y[_pivots[col] * _stride] = t;
+        }
+    }
+
+    // forward: each row below less its multiple of the row
+    for (col = 0u; col < _n; ++col)
+    {
+        size_t r = 0u;
+
+        for (r = col + 1u; r < _n; ++r)
+        {
+            const @T@ prod = _lu[(r * _n) + col] * _y[col * _stride];
+
+            _y[r * _stride] = _y[r * _stride] - prod;
+        }
+    }
+
+    // back-substitution, the last row first
+    for (i = _n; i-- > 0u; )
+    {
+        @T@    s = _y[i * _stride];
+        size_t j = 0u;
+
+        for (j = i + 1u; j < _n; ++j)
+        {
+            const @T@ prod = _lu[(i * _n) + j] * _y[j * _stride];
+
+            s = s - prod;
+        }
+
+        _y[i * _stride] = s / _lu[(i * _n) + i];
+    }
+
+    return;
+}
+
+// d_internal_mat_@S@_correction
+//   _fix = the correction of the solution _x + _tail (_x's entries _sx apart)
+// of A x = b, b's entries _sb apart: the residual b - A (x + tail), each row
+// by Dot2 rounded once (vec.h's d_internal_vec_@S@_dot2), solved by A's
+// factors. *_largest is its largest magnitude, *_relative its largest
+// relative to its entry of x, at most 1 -- 1 also where that entry is 0.
+D_MATH_FN void
+d_internal_mat_@S@_correction(
+    @T@*          _fix,
+    @T@*          _largest,
+    @T@*          _relative,
+    const @T@*    _x,
+    size_t        _sx,
+    const @T@*    _tail,
+    const @T@*    _a,
+    const @T@*    _b,
+    size_t        _sb,
+    const @T@*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    size_t i = 0u;
+
+    *_largest  = (@T@)0;
+    *_relative = (@T@)0;
+
+    // the residual, row by row
+    for (i = 0u; i < _n; ++i)
+    {
+        _fix[i] = d_internal_vec_@S@_dot2(_b[i * _sb], true, _a + (i * _n), 1u,
+                                          _x, _sx, _tail, 1u, true, _n);
+    }
+
+    d_internal_mat_@S@_lu_solve(_fix, 1u, _lu, _pivots, _n);
+
+    // its sizes, whole and against x
+    for (i = 0u; i < _n; ++i)
+    {
+        const @T@ xe = _x[i * _sx];
+        const @T@ d  = (_fix[i] < (@T@)0) ? -_fix[i] : _fix[i];
+        const @T@ x  = (xe < (@T@)0) ? -xe : xe;
+        const @T@ r  = (d >= x) ? (@T@)1 : (d / x);
+
+        if (d > *_largest)
+        {
+            *_largest = d;
+        }
+
+        // a zero correction leaves its entry as it is
+        if ( (d != (@T@)0) &&
+             (r > *_relative) )
+        {
+            *_relative = r;
+        }
+    }
+
+    return;
+}
+
+// d_internal_mat_@S@_refine
+//   _x, one column of the solution of A x = b (_n entries _sx apart, b's _sb
+// apart) as A's factors gave it, refined (d_mat_@S@_solve); _tail and _fix
+// are _n entries each.
+D_MATH_FN void
+d_internal_mat_@S@_refine(
+    @T@*          _x,
+    size_t        _sx,
+    @T@*          _tail,
+    @T@*          _fix,
+    const @T@*    _a,
+    const @T@*    _b,
+    size_t        _sb,
+    const @T@*    _lu,
+    const size_t* _pivots,
+    size_t        _n
+)
+{
+    @T@    last_largest  = (@T@)0;
+    @T@    last_relative = (@T@)0;
+    size_t step          = 0u;
+    size_t i             = 0u;
+
+    for (i = 0u; i < _n; ++i)
+    {
+        _tail[i] = (@T@)0;
+    }
+
+    // each step: the correction, then whether it is worth adding
+    for (step = 0u; step < (size_t)D_CFG_MATH_MAT_REFINE_STEPS; ++step)
+    {
+        @T@ largest  = (@T@)0;
+        @T@ relative = (@T@)0;
+
+        d_internal_mat_@S@_correction(_fix, &largest, &relative, _x, _sx, _tail,
+                                      _a, _b, _sb, _lu, _pivots, _n);
+
+        // no progress: neither the correction nor its relative size halved
+        if ( (step > 0u) &&
+             (largest > (last_largest / (@T@)2)) &&
+             (relative > (last_relative / (@T@)2)) )
+        {
+            break;
+        }
+
+        // the correction into the solution and its tail
+        for (i = 0u; i < _n; ++i)
+        {
+            d_internal_vec_@S@_add_pair(&_x[i * _sx], &_tail[i], _fix[i]);
+        }
+
+        // converged: every entry's correction below half its unit in the
+        // last place
+        if (relative <= (@EPS@ / (@T@)2))
+        {
+            break;
+        }
+
+        last_largest  = largest;
+        last_relative = relative;
+    }
+
+    return;
+}
+
+// d_mat_@S@_solve
+//   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
+// singular A, the zero matrix and false. Each column first as
+// d_mat_@S@_solve_fast takes it, A's factors kept -- the first n * n of
+// _scratch's entries and the interchanges in _pivots -- then refined as
+// LAPACK's dgerfsx refines with extra precision (S406; Demmel, Hida, Kahan,
+// Li, Mukherjee and Riedy, 2006): the residual b - A x by Dot2, x carried as
+// a pair, x and its tail, the correction solved by the factors and added,
+// until every entry's correction lies below half its unit in the last place
+// (converged), neither the largest correction nor the largest relative to
+// its entry halves (no progress, the last not added), or
+// D_CFG_MATH_MAT_REFINE_STEPS steps have run. Each entry is then x and its
+// tail rounded once: for an A far enough from singular -- cond(A) times the
+// family's epsilon well below 1 -- the solution correctly rounded but where
+// it lies within some cond(A) eps^2 of a midpoint. Where A or the column of
+// B has a NaN or an infinity, or the first solution does, the column is
+// solve_fast's. _scratch holds n * n + 2 n entries and _pivots n; neither
+// may be an operand, nor _x _a or _b.
+D_MATH_FN bool
+d_mat_@S@_solve(
+    @T@*       _x,
+    @T@*       _scratch,
+    size_t*    _pivots,
+    const @T@* _a,
+    const @T@* _b,
+    size_t     _n,
+    size_t     _m
+)
+{
+    @T@* const tail = _scratch + (_n * _n);
+    @T@* const fix  = tail + _n;
+    const bool a_ok = (d_internal_vec_@S@_reach(_a, 1u, _n * _n) != 2);
+    size_t     col  = 0u;
+    size_t     k    = 0u;
+
+    // singular: the zero matrix
+    if (!d_internal_mat_@S@_lu(_scratch, _pivots, _a, _n))
+    {
+        for (k = 0u; k < (_n * _m); ++k)
+        {
+            _x[k] = (@T@)0;
+        }
+
+        return false;
+    }
+
+    // each column: solved by the factors, then refined
+    for (col = 0u; col < _m; ++col)
+    {
+        for (k = 0u; k < _n; ++k)
+        {
+            _x[(k * _m) + col] = _b[(k * _m) + col];
+        }
+
+        d_internal_mat_@S@_lu_solve(_x + col, _m, _scratch, _pivots, _n);
+
+        // finite throughout: refined
+        if ( (a_ok) &&
+             (d_internal_vec_@S@_reach(_b + col, _m, _n) != 2) &&
+             (d_internal_vec_@S@_reach(_x + col, _m, _n) != 2) )
+        {
+            d_internal_mat_@S@_refine(_x + col, _m, tail, fix, _a, _b + col,
+                                      _m, _scratch, _pivots, _n);
         }
     }
 
@@ -10313,8 +11891,9 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>          // size_t
 // djinterp
+#include "../../../config/c/modules/math/cfg_mat.h"  // D_CFG_MATH_MAT_*
 #include "./math_common.h"   // D_MATH_FN
-#include "./vec.h"           // d_vec_*_fill, _dot: the entry-wise kernels
+#include "./vec.h"           // d_vec_*_fill, _dot, the compensated sums
 """
 
 MAT_TAIL = r"""
@@ -10332,14 +11911,19 @@ MAT_OVERLOADS = [
     ("D_MATH_FN", "void", "d_mat_col", [_MO, _MA, _SZ("_j"), _SZ("_rows"), _SZ("_cols")]),
     ("D_MATH_FN", "void", "d_mat_transpose", [_MO, _MA, _SZ("_rows"), _SZ("_cols")]),
     ("D_MATH_FN", "void", "d_mat_multiply", [_MO, _MA, ("const @T@*", "_b"), _SZ("_rows"), _SZ("_inner"), _SZ("_cols")]),
+    ("D_MATH_FN", "void", "d_mat_multiply_fast", [_MO, _MA, ("const @T@*", "_b"), _SZ("_rows"), _SZ("_inner"), _SZ("_cols")]),
     ("D_MATH_FN", "void", "d_mat_multiply_vector", [_MO, _MA, ("const @T@*", "_v"), _SZ("_rows"), _SZ("_cols")]),
+    ("D_MATH_FN", "void", "d_mat_multiply_vector_fast", [_MO, _MA, ("const @T@*", "_v"), _SZ("_rows"), _SZ("_cols")]),
     ("D_MATH_FN", "void", "d_mat_power", [_MO, ("@T@*", "_scratch"), _MA, _SZ("_n"), _SZ("_exponent")]),
+    ("D_MATH_FN", "void", "d_mat_power_fast", [_MO, ("@T@*", "_scratch"), _MA, _SZ("_n"), _SZ("_exponent")]),
     ("D_MATH_FN", "@T@", "d_mat_trace", [_MA, _SZ("_n")]),
+    ("D_MATH_FN", "@T@", "d_mat_trace_fast", [_MA, _SZ("_n")]),
     ("D_MATH_FN", "bool", "d_mat_is_symmetric", [_MA, _SZ("_n"), ("@T@", "_tolerance")]),
     ("D_MATH_FN", "bool", "d_mat_is_identity", [_MA, _SZ("_n"), ("@T@", "_tolerance")]),
     ("D_MATH_FN", "@T@", "d_mat_determinant", [_MA, ("@T@*", "_scratch"), _SZ("_n")]),
     ("D_MATH_FN", "bool", "d_mat_inverse", [_MO, ("@T@*", "_scratch"), _MA, _SZ("_n")]),
-    ("D_MATH_FN", "bool", "d_mat_solve", [("@T@*", "_x"), ("@T@*", "_scratch"), _MA, ("const @T@*", "_b"), _SZ("_n"), _SZ("_m")]),
+    ("D_MATH_FN", "bool", "d_mat_solve_fast", [("@T@*", "_x"), ("@T@*", "_scratch"), _MA, ("const @T@*", "_b"), _SZ("_n"), _SZ("_m")]),
+    ("D_MATH_FN", "bool", "d_mat_solve", [("@T@*", "_x"), ("@T@*", "_scratch"), ("size_t*", "_pivots"), _MA, ("const @T@*", "_b"), _SZ("_n"), _SZ("_m")]),
     ("D_MATH_FN", "void", "d_mat_submatrix", [_MO, _MA, _SZ("_n"), _SZ("_row"), _SZ("_col")]),
     ("D_MATH_FN", "@T@", "d_mat_cofactor", [_MA, ("@T@*", "_scratch"), _SZ("_n"), _SZ("_row"), _SZ("_col")]),
     ("D_MATH_FN", "void", "d_mat_cofactor_matrix", [_MO, _MA, ("@T@*", "_scratch"), _SZ("_n"), ("bool", "_adjugate")]),
@@ -10360,9 +11944,11 @@ def mat():
         "BLAS takes them; the C++ face's storage is that array. What is entry-wise",
         "-- sums, scaling, norms, comparison -- is vec.h's over the entries; this",
         "header has what knows the shape. Every kernel is a constant expression",
-        "from C++14.",
+        "from C++14. The products and the trace are compensated, and solve",
+        "refines its solution with extra precision; their _fast forms are the",
+        "formulas as written (S404, S406).",
     ]
-    text = banner("mat.h", lines, revised_on="2026.11.07")
+    text = banner("mat.h", lines, revised_on="2026.11.14")
     text += "\n" + MAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -13008,10 +14594,10 @@ d_quat_@S@_rotate_fast(
     @T@ wt[3] = { (@T@)0, (@T@)0, (@T@)0 };
     @T@ ut[3] = { (@T@)0, (@T@)0, (@T@)0 };
 
-    d_vec_@S@_cross(t, _q, _v);
+    d_vec_@S@_cross_fast(t, _q, _v);
     d_vec_@S@_scale(t, t, (@T@)2, 3u);
     d_vec_@S@_scale(wt, t, _q[3], 3u);
-    d_vec_@S@_cross(ut, _q, t);
+    d_vec_@S@_cross_fast(ut, _q, t);
     d_vec_@S@_add(_out, _v, wt, 3u);
     d_vec_@S@_add(_out, _out, ut, 3u);
 
@@ -13929,7 +15515,7 @@ def quat():
         lines += ([""] if blank else []) + textwrap.wrap(
             lead + paragraph, 72, break_long_words=False,
             break_on_hyphens=False)
-    text = banner("quat.h", lines, "2026.10.04", "2026.11.07")
+    text = banner("quat.h", lines, "2026.10.04", "2026.11.14")
     text += "\n" + QUAT_HEAD
     text += QUAT_KERNELS_PURE
     for sub, ks, kq, root, title, prose in QUAT_ROOT_FORMS:
@@ -14887,8 +16473,8 @@ d_isect_@S@_ray_triangle(
 
     d_vec_@S@_sub(edge1, _v1, _v0, 3u);
     d_vec_@S@_sub(edge2, _v2, _v0, 3u);
-    d_vec_@S@_cross(h, _dir, edge2);
-    a = d_vec_@S@_dot(edge1, h, 3u);
+    d_vec_@S@_cross_fast(h, _dir, edge2);
+    a = d_vec_@S@_dot_fast(edge1, h, 3u);
 
     // parallel to the triangle's plane
     if ( (a > -_epsilon) &&
@@ -14904,7 +16490,7 @@ d_isect_@S@_ray_triangle(
         @T@       t = (@T@)0;
 
         d_vec_@S@_sub(s, _origin, _v0, 3u);
-        u = f * d_vec_@S@_dot(s, h, 3u);
+        u = f * d_vec_@S@_dot_fast(s, h, 3u);
 
         // outside the edge opposite v2 or v1
         if ( (u < (@T@)0) ||
@@ -14913,8 +16499,8 @@ d_isect_@S@_ray_triangle(
             return false;
         }
 
-        d_vec_@S@_cross(q, s, edge1);
-        v = f * d_vec_@S@_dot(_dir, q, 3u);
+        d_vec_@S@_cross_fast(q, s, edge1);
+        v = f * d_vec_@S@_dot_fast(_dir, q, 3u);
 
         // outside the remaining edges
         if ( (v < (@T@)0) ||
@@ -14923,7 +16509,7 @@ d_isect_@S@_ray_triangle(
             return false;
         }
 
-        t = f * d_vec_@S@_dot(edge2, q, 3u);
+        t = f * d_vec_@S@_dot_fast(edge2, q, 3u);
 
         // only ahead of the origin
         if (t > _epsilon)
@@ -14989,7 +16575,7 @@ def isect():
         "  Points and directions are a caller's 3-arrays, the faces' vectors'",
         "storage. Each test is a constant expression from C++14.",
     ]
-    text = banner("isect.h", lines, DATE, "2026.11.07")
+    text = banner("isect.h", lines, DATE, "2026.11.14")
     text += "\n" + ISECT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()

@@ -52,7 +52,7 @@
 * path:      /tests/djinterp/c/modules/math/t_decomp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON, DBL_EPSILON, LDBL_EPSILON, FLT_MIN, ...
@@ -1106,7 +1106,7 @@ d_tests_schur_case_##S(const struct dj_tests_eig_case* _c)                     \
                 bb[i * 2 + j] = (j < n) ? a[i * n + j] : (T)0;                 \
         memcpy(lu, a, sizeof(T) * n * n);                                      \
         singular = d_decomp_##S##_lu(lu, n, pv, &sign);                        \
-        solved   = d_mat_##S##_solve(xx, scr, a, bb, n, 2);                    \
+        solved   = d_mat_##S##_solve_fast(xx, scr, a, bb, n, 2);               \
         ok = (solved == !singular);                                            \
         for (j = 0; ok && (j < 2); ++j)                                        \
         {                                                                      \

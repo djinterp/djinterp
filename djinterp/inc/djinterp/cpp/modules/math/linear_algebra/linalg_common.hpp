@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -466,10 +466,18 @@ NS_INTERNAL
             d_vec_lerp(_out, _a, _b, _t, _n);
         }
 
+        // dot, cross and sum: compensated, each sum rounded once from
+        // Dot2's or Sum2's pair (S404); their _fast forms as written
         static D_CONSTEXPR_CPP14 Type
         dot(const Type* _a, const Type* _b, std::size_t _n) D_NOEXCEPT
         {
             return d_vec_dot(_a, _b, _n);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        dot_fast(const Type* _a, const Type* _b, std::size_t _n) D_NOEXCEPT
+        {
+            return d_vec_dot_fast(_a, _b, _n);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -478,10 +486,22 @@ NS_INTERNAL
             d_vec_cross(_out, _a, _b);
         }
 
+        static D_CONSTEXPR_CPP14 void
+        cross_fast(Type* _out, const Type* _a, const Type* _b) D_NOEXCEPT
+        {
+            d_vec_cross_fast(_out, _a, _b);
+        }
+
         static D_CONSTEXPR_CPP14 Type
         sum(const Type* _a, std::size_t _n) D_NOEXCEPT
         {
             return d_vec_sum(_a, _n);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        sum_fast(const Type* _a, std::size_t _n) D_NOEXCEPT
+        {
+            return d_vec_sum_fast(_a, _n);
         }
 
         static D_CONSTEXPR_CPP14 Type
@@ -628,6 +648,17 @@ NS_INTERNAL
         }
 
         static D_CONSTEXPR_CPP14 void
+        multiply_fast(Type*       _out,
+                      const Type* _a,
+                      const Type* _b,
+                      std::size_t _rows,
+                      std::size_t _inner,
+                      std::size_t _cols) D_NOEXCEPT
+        {
+            d_mat_multiply_fast(_out, _a, _b, _rows, _inner, _cols);
+        }
+
+        static D_CONSTEXPR_CPP14 void
         multiply_vector(Type*       _out,
                         const Type* _a,
                         const Type* _v,
@@ -635,6 +666,16 @@ NS_INTERNAL
                         std::size_t _cols) D_NOEXCEPT
         {
             d_mat_multiply_vector(_out, _a, _v, _rows, _cols);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        multiply_vector_fast(Type*       _out,
+                             const Type* _a,
+                             const Type* _v,
+                             std::size_t _rows,
+                             std::size_t _cols) D_NOEXCEPT
+        {
+            d_mat_multiply_vector_fast(_out, _a, _v, _rows, _cols);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -647,10 +688,26 @@ NS_INTERNAL
             d_mat_power(_out, _scratch, _a, _n, _exponent);
         }
 
+        static D_CONSTEXPR_CPP14 void
+        power_fast(Type*       _out,
+                   Type*       _scratch,
+                   const Type* _a,
+                   std::size_t _n,
+                   std::size_t _exponent) D_NOEXCEPT
+        {
+            d_mat_power_fast(_out, _scratch, _a, _n, _exponent);
+        }
+
         static D_CONSTEXPR_CPP14 Type
         trace(const Type* _a, std::size_t _n) D_NOEXCEPT
         {
             return d_mat_trace(_a, _n);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        trace_fast(const Type* _a, std::size_t _n) D_NOEXCEPT
+        {
+            return d_mat_trace_fast(_a, _n);
         }
 
         static D_CONSTEXPR_CPP14 bool
@@ -683,15 +740,30 @@ NS_INTERNAL
             return d_mat_inverse(_out, _scratch, _a, _n);
         }
 
+        // solve: the elimination's solution refined with extra precision
+        // (S406), _scratch n * n + 2 n entries and _pivots n; solve_fast
+        // the elimination alone, _scratch n * n
         static D_CONSTEXPR_CPP14 bool
-        solve(Type*       _x,
-              Type*       _scratch,
-              const Type* _a,
-              const Type* _b,
-              std::size_t _n,
-              std::size_t _m) D_NOEXCEPT
+        solve(Type*        _x,
+              Type*        _scratch,
+              std::size_t* _pivots,
+              const Type*  _a,
+              const Type*  _b,
+              std::size_t  _n,
+              std::size_t  _m) D_NOEXCEPT
         {
-            return d_mat_solve(_x, _scratch, _a, _b, _n, _m);
+            return d_mat_solve(_x, _scratch, _pivots, _a, _b, _n, _m);
+        }
+
+        static D_CONSTEXPR_CPP14 bool
+        solve_fast(Type*       _x,
+                   Type*       _scratch,
+                   const Type* _a,
+                   const Type* _b,
+                   std::size_t _n,
+                   std::size_t _m) D_NOEXCEPT
+        {
+            return d_mat_solve_fast(_x, _scratch, _a, _b, _n, _m);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -1205,6 +1277,15 @@ NS_INTERNAL
             return acc;
         }
 
+        // dot_fast, cross_fast, sum_fast: the same formulas, for the
+        // faces' one spelling; the C core's floating-point types alone
+        // have a compensated form
+        static D_CONSTEXPR_CPP14 Type
+        dot_fast(const Type* _a, const Type* _b, std::size_t _n)
+        {
+            return dot(_a, _b, _n);
+        }
+
         static D_CONSTEXPR_CPP14 void
         cross(Type* _out, const Type* _a, const Type* _b)
         {
@@ -1215,6 +1296,12 @@ NS_INTERNAL
             _out[0] = x;
             _out[1] = y;
             _out[2] = z;
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        cross_fast(Type* _out, const Type* _a, const Type* _b)
+        {
+            cross(_out, _a, _b);
         }
 
         static D_CONSTEXPR_CPP14 Type
@@ -1228,6 +1315,12 @@ NS_INTERNAL
             }
 
             return acc;
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        sum_fast(const Type* _a, std::size_t _n)
+        {
+            return sum(_a, _n);
         }
 
         static D_CONSTEXPR_CPP14 Type
@@ -1515,6 +1608,27 @@ NS_INTERNAL
             }
         }
 
+        static D_CONSTEXPR_CPP14 void
+        multiply_fast(Type*       _out,
+                      const Type* _a,
+                      const Type* _b,
+                      std::size_t _rows,
+                      std::size_t _inner,
+                      std::size_t _cols)
+        {
+            multiply(_out, _a, _b, _rows, _inner, _cols);
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        multiply_vector_fast(Type*       _out,
+                             const Type* _a,
+                             const Type* _v,
+                             std::size_t _rows,
+                             std::size_t _cols)
+        {
+            multiply_vector(_out, _a, _v, _rows, _cols);
+        }
+
         // power: by squaring, as the C core's d_mat_power: the power begun
         // as _a at the exponent's highest bit, and at each bit below it
         // squared, then multiplied by _a on the left where the bit is 1;
@@ -1591,6 +1705,22 @@ NS_INTERNAL
             }
 
             return acc;
+        }
+
+        static D_CONSTEXPR_CPP14 void
+        power_fast(Type*       _out,
+                   Type*       _scratch,
+                   const Type* _a,
+                   std::size_t _n,
+                   std::size_t _exponent)
+        {
+            power(_out, _scratch, _a, _n, _exponent);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        trace_fast(const Type* _a, std::size_t _n)
+        {
+            return trace(_a, _n);
         }
 
         static D_CONSTEXPR_CPP14 bool
@@ -1727,14 +1857,16 @@ NS_INTERNAL
         // kept in their order, so that it holds where they do not commute.
         // _scratch holds n * n entries; neither it nor _x may be _a or _b.
         // An exact A and B give the exact X that inverse(A) B does, at
-        // about a third of the products.
+        // about a third of the products. solve is this, with the C core's
+        // arguments: no refinement, as an exact type needs none and the
+        // others have no wider sum to refine with (S406).
         static D_CONSTEXPR_CPP14 bool
-        solve(Type*       _x,
-              Type*       _scratch,
-              const Type* _a,
-              const Type* _b,
-              std::size_t _n,
-              std::size_t _m)
+        solve_fast(Type*       _x,
+                   Type*       _scratch,
+                   const Type* _a,
+                   const Type* _b,
+                   std::size_t _n,
+                   std::size_t _m)
         {
             for (std::size_t k = 0; k < (_n * _n); ++k)
             {
@@ -1802,6 +1934,20 @@ NS_INTERNAL
             }
 
             return true;
+        }
+
+        static D_CONSTEXPR_CPP14 bool
+        solve(Type*        _x,
+              Type*        _scratch,
+              std::size_t* _pivots,
+              const Type*  _a,
+              const Type*  _b,
+              std::size_t  _n,
+              std::size_t  _m)
+        {
+            (void)_pivots;
+
+            return solve_fast(_x, _scratch, _a, _b, _n, _m);
         }
 
         static D_CONSTEXPR_CPP14 void

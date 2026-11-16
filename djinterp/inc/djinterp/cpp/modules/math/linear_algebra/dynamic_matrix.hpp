@@ -445,12 +445,34 @@ public:
 
         dynamic_matrix m(m_rows, _rhs.m_cols);
 
-        // the C core's product, row by column in order
+        // the C core's product, each entry its row's and column's dot,
+        // compensated for float, double and long double (S404)
         if ( (!m.m_data.empty()) &&
              (m_cols > 0) )
         {
             kernel::multiply(&m.m_data[0], &m_data[0], &_rhs.m_data[0],
                              m_rows, m_cols, _rhs.m_cols);
+        }
+
+        return m;
+    }
+
+    // times_fast (matrix): the product as written, each entry's products
+    // rounded, then added, in order.
+    dynamic_matrix
+    times_fast(const dynamic_matrix& _rhs) const
+    {
+        assert((m_cols == _rhs.m_rows) &&
+               "dynamic_matrix::times_fast: inner dimensions must agree.");
+
+        dynamic_matrix m(m_rows, _rhs.m_cols);
+
+        // the C core's product as written
+        if ( (!m.m_data.empty()) &&
+             (m_cols > 0) )
+        {
+            kernel::multiply_fast(&m.m_data[0], &m_data[0], &_rhs.m_data[0],
+                                  m_rows, m_cols, _rhs.m_cols);
         }
 
         return m;
@@ -477,6 +499,27 @@ public:
         return out;
     }
 
+    // times_fast (vector): the matrix-vector product as written.
+    vector_type
+    times_fast(const vector_type& _v) const
+    {
+        assert((m_cols == _v.size()) &&
+               "dynamic_matrix::times_fast: vector length must equal column "
+               "count.");
+
+        vector_type out(m_rows, traits::zero());
+
+        // the C core's product as written, row by row
+        if ( (!out.empty()) &&
+             (m_cols > 0) )
+        {
+            kernel::multiply_vector_fast(&out[0], &m_data[0], &_v[0], m_rows,
+                                         m_cols);
+        }
+
+        return out;
+    }
+
     // ---- square-only / norms / functional ---------------------------------
 
     T
@@ -484,9 +527,21 @@ public:
     {
         assert(is_square() && "dynamic_matrix::trace: matrix must be square.");
 
-        // the C core's
+        // the C core's, compensated for float, double and long double
         return m_data.empty() ? traits::zero()
                               : kernel::trace(&m_data[0], m_rows);
+    }
+
+    // trace_fast: the diagonal summed as written, in order.
+    T
+    trace_fast() const
+    {
+        assert(is_square() &&
+               "dynamic_matrix::trace_fast: matrix must be square.");
+
+        // the C core's as written
+        return m_data.empty() ? traits::zero()
+                              : kernel::trace_fast(&m_data[0], m_rows);
     }
 
     // power: integer matrix power (square only); _n == 0 yields the
@@ -510,6 +565,30 @@ public:
                           &m_data[0],
                           m_rows,
                           _n);
+        }
+
+        return result;
+    }
+
+    // power_fast: the power by squaring, each product as written.
+    dynamic_matrix
+    power_fast(size_type _n) const
+    {
+        assert(is_square() &&
+               "dynamic_matrix::power_fast: matrix must be square.");
+
+        dynamic_matrix result = identity(m_rows);
+
+        // the C core's, where there is an entry
+        if (!m_data.empty())
+        {
+            storage_type scratch(m_data.size(), traits::zero());
+
+            kernel::power_fast(&result.m_data[0],
+                               &scratch[0],
+                               &m_data[0],
+                               m_rows,
+                               _n);
         }
 
         return result;

@@ -84,9 +84,9 @@ step chained after it.
 
 | Part | Headers | Compiles from | Notes |
 |---|---|---|---|
-| C core (`c/modules/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44); two inline numbers' arithmetic sent to their kind's at once, before the checks that cannot hold for them, the same results, a sum or product of two doubles three times sooner (chunk 47, S396) |
+| C core (`c/modules/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44); two inline numbers' arithmetic sent to their kind's at once, before the checks that cannot hold for them, the same results, a sum or product of two doubles three times sooner (chunk 47, S396); `dot`, `cross`, `sum`, the matrix products and the trace compensated by default, each a sum rounded once from Dot2's or Sum2's pair, and `solve` refined with extra precision as LAPACK's `dgerfsx` refines, each with a `_fast` form as written (chunk 49, S404 to S406) |
 | interval | 5 | ISO strict C++98 | |
-| linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46) |
+| linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46); of `float`, `double` and `long double`, `dot`, `cross`, `sum`, products, the trace and `solve` the C core's compensated and refined kernels, `dot_fast` ... `solve_fast` the formulas as written (chunk 49) |
 | coordinate | 5 | ISO strict C++98 | points are `linalg::vector`s |
 | geometry | 14 | ISO strict C++98 | collections are `re_std::array`s |
 | `constants.hpp`, `quaternion.hpp`, `math_common.hpp` | 3 | ISO strict C++98 | named constants are constant expressions from C++11; the one quaternion, `math::quaternion<T>`, which `linalg::quaternion<T>` names (chunk 48, S398), takes every function of `quat.h`, the accurate forms by default, constant expressions from C++14, and the `_fast` forms for a renderer (chunk 44) |
@@ -111,7 +111,7 @@ header with g++ and clang++, plain and testing, at every rung from that one
 to C++26. Every header not on the ladder's known list
 (`scripts/ci/ladder_known.txt`) passes all of them.
 
-Tests: 26 C harnesses (`tests/djinterp/c/modules/math/`) and 39 face tests
+Tests: 27 C harnesses (`tests/djinterp/c/modules/math/`) and 39 face tests
 (`tests/djinterp/cpp/modules/math/`), one of them for `parse/expression/`
 and eight for `expr/`: four its complex numbers', two its quaternions' and
 one its compiled terms' (section 3). In the full matrix (section 5) every
@@ -306,7 +306,9 @@ generic kernels keep each product in its order and pivot by magnitude, so
 that `solve` and `inverse` of a quaternion matrix are right, and
 `solve(A, b)` and `solve(A, B)` take every number type but an integer one,
 by elimination of [A | B]: for `float`, `double` and `long double` the C
-core's `d_mat_solve`, LU's bits (chunk 38, S302, S305).
+core's `d_mat_solve`, LU's solution refined with extra precision (chunk 38,
+S302, S305; chunk 49, S406), and `solve_fast` the elimination alone, LU's
+bits.
 
 **The run-time expression language.** `math/expr/` is roadmap Phases 2 to
 4's language, from C++11: math text read into a term, which is evaluated,
@@ -838,6 +840,31 @@ and logic (`logic.hpp`), and `matrix.hpp`, 7,979 lines, into the kind
 (`matrix_function.hpp`, 3,256) (S401). No code changed in the move: every
 test's output is the same, byte for byte.
 
+**Compensated sums and a refined solve.** Chunk 49 (S404 to S408). The C
+core's dot products, sums, cross products, matrix products and traces
+were the formulas as written, each product rounded and summed in order,
+their error unbounded where the terms cancel. Now each is a sum rounded
+once from Ogita, Rump and Oishi's Dot2 or Sum2 -- each product exact as a
+pair by Dekker's product, the terms summed by two-sums, the errors summed
+apart and added last -- as accurate as the sum computed in twice the
+precision and rounded once, in pairs of double for the float and double
+families where double is evaluated in its own type and of long double
+otherwise; operands outside the range where the products are exact are
+scaled by a power of two, a NaN or an infinity gives the formula's value,
+and an exact zero is +0 (S404). `solve` refines each column of its
+solution as LAPACK's `dgerfsx` does: the residual by Dot2, the solution
+carried with a tail, corrected through the LU factors it keeps until the
+corrections fall below half an ulp or stop shrinking, at most
+`D_CFG_MATH_MAT_REFINE_STEPS` steps (`cfg_mat.h`), so that a system well
+away from singular is solved correctly rounded, entry by entry (S406,
+S407). Each kernel keeps its formula as written, bit for bit, under a
+`_fast` name, `dot_fast` to `solve_fast`, in the C core and both faces;
+the norms keep their sums, which cannot cancel (S405).
+`t_compensated.c` checks each result exactly, by integers of 768 bits,
+against Dot2's guarantee, and the refined solve against 65 systems whose
+solutions `math_tests_solve_refs.h` holds exactly rounded. The complex
+dense kernels follow (S408, flagged).
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -1149,6 +1176,7 @@ module:
 | 2026.11.04 | `math::complex<T>`'s functions by their own names `cplx.h`'s plain forms at run time, the `_c` forms in constant evaluation and by the `_c` names; the language's values the `_c` forms (S336); every evaluator given the fold's context, each value evaluator holding its answer real where it asks (S340) |
 | 2026.11.12 | before the itinerary goes on, the four groups of fixes of the lane's evaluation: speed, consolidation, `math::expr::` and accuracy |
 | 2026.11.14 | the language flat in `djinterp::math`, no namespace below it; a clean break for the old names; the prefix left to the lane's recommendation, fewer or no levels below `math` (S397) |
+| 2026.11.14 | accuracy before 0.8 for the float and double families: compensated sums and a refined solve, then their `_c` forms correctly rounded, provably, at today's speed; the long double family and the plain forms at step 36 (S404 to S408) |
 
 ---
 

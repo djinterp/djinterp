@@ -11,40 +11,50 @@
 * loop the face's constant dimension unrolls, a constant expression from
 * C++14 but for the plain root forms, which call the C library. A norm
 * is scaled by a power of two where its sum of squares would leave the
-* range, and keeps its bits where it does not (S256).
+* range, and keeps its bits where it does not (S256). dot, cross and sum
+* are compensated -- Ogita, Rump and Oishi's Dot2 and Sum2, as accurate as
+* the sum computed in twice the precision and rounded once -- and their
+* _fast forms are the formulas as written (S404).
 *
 *
 * path:      /inc/djinterp/c/modules/math/vec.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-1.  THE FLOAT FAMILY (_f)
+1.  THE COMPENSATED SUMS' ARITHMETIC
+    --------------------------------
+    1.  In double
+    2.  In long double
+2.  THE FLOAT FAMILY (_f)
     ---------------------
     1.  Element-wise arithmetic
-    2.  Products and reductions
-    3.  Norms and distances
-    4.  Projection and angle
-    5.  Comparison
-2.  THE DOUBLE FAMILY (_d)
+    2.  Compensated sums
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+3.  THE DOUBLE FAMILY (_d)
     ----------------------
     1.  Element-wise arithmetic
-    2.  Products and reductions
-    3.  Norms and distances
-    4.  Projection and angle
-    5.  Comparison
-3.  THE LONG DOUBLE FAMILY (_ld)
+    2.  Compensated sums
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+4.  THE LONG DOUBLE FAMILY (_ld)
     ----------------------------
     1.  Element-wise arithmetic
-    2.  Products and reductions
-    3.  Norms and distances
-    4.  Projection and angle
-    5.  Comparison
-4.  ONE NAME FOR EVERY FAMILY (C++)
+    2.  Compensated sums
+    3.  Products and reductions
+    4.  Norms and distances
+    5.  Projection and angle
+    6.  Comparison
+5.  ONE NAME FOR EVERY FAMILY (C++)
     -------------------------------
 */
 
@@ -52,20 +62,192 @@ TABLE OF CONTENTS
 #define DJINTERP_C_MATH_VEC_H 1
 
 // std
+#include <float.h>           // DBL_MAX_EXP ... LDBL_MIN_EXP: the scaling
 #include <stddef.h>          // size_t
 // djinterp
-#include "./elementary.h"    // d_math_*_sqrt, _sqrt_c, _acos, _acos_c
+#include "./elementary.h"    // d_math_*_sqrt, _sqrt_c, _acos, _acos_c,
+                             // the long double pairs, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_binade_of,
                              // d_internal_math_*_pow2: the scaling
 #include "./math_common.h"   // D_MATH_FN
 
+
 //==============================================================================
-// 1.  THE FLOAT FAMILY (_f)
+// 1.  THE COMPENSATED SUMS' ARITHMETIC
+//==============================================================================
+// dot, sum and cross, and mat.h's products, trace and refinement, sum their
+// terms as Ogita, Rump and Oishi's Dot2 and Sum2 do (S404): each product
+// exact as a pair, by Dekker's product with Veltkamp's split, each sum by
+// Knuth's two-sum, the errors summed apart and added last -- as accurate as
+// the sum computed in twice the precision and rounded once. They work in
+// pairs of double where double is evaluated in its own type, as SSE
+// evaluates it, for the float and double families, and in pairs of long
+// double otherwise and for the long double family, as quat.h's products do
+// (S276): where double is evaluated wider, as on a 32-bit x87, a split or a
+// two-sum in double cannot be made exact in pure arithmetic. The long double
+// pairs are elementary.h's (1.1); here are the double ones and the scaling.
+
+
+// 1.1    In double
+//------------------------------------------------------------------------------
+#if !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_d2_two_sum
+//   _a + _b exactly, as high + low: Knuth's two-sum, which needs no order
+// between the operands' magnitudes.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d2_two_sum(
+    double _a,
+    double _b
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+    const double                   high   = _a + _b;
+    const double                   a_part = high - _b;
+    const double                   b_part = high - a_part;
+
+    result.high = high;
+    result.low  = (_a - a_part) + (_b - b_part);
+
+    return result;
+}
+
+// d_internal_vec_d2_product
+//   _a * _b exactly, as high + low: Dekker's product, each factor split by
+// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). Each factor is 0 or
+// within 2^(EMIN/2 + P) to 2^(EMAX/2 - P) in magnitude, as the kernels
+// scale them, so that nothing overflows and the low part is exact.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d2_product(
+    double _a,
+    double _b
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+    const double                   split  = d_internal_math_d_veltkamp();
+    const double                   ta     = split * _a;
+    const double                   a_hi   = ta - (ta - _a);
+    const double                   a_lo   = _a - a_hi;
+    const double                   tb     = split * _b;
+    const double                   b_hi   = tb - (tb - _b);
+    const double                   b_lo   = _b - b_hi;
+    const double                   high   = _a * _b;
+
+    result.high = high;
+    result.low  = ( (((a_hi * b_hi) - high) + (a_hi * b_lo)) +
+                    (a_lo * b_hi) ) +
+                  (a_lo * b_lo);
+
+    return result;
+}
+
+// d_internal_vec_d2_short
+//   _a * _b as high + low where the product is exact in double, as a
+// product of two floats is (24 and 24 bits of 53): the product and 0.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d2_short(
+    double _a,
+    double _b
+)
+{
+    struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+
+    result.high = _a * _b;
+
+    return result;
+}
+
+// d_internal_vec_d2_scale
+//   _x 2^_k, rounded once: in steps of at most 2^(EMAX - 1), so that no step
+// overflows or underflows before the last, which rounds where the result is
+// subnormal.
+D_MATH_FN double
+d_internal_vec_d2_scale(
+    double _x,
+    int    _k
+)
+{
+    double value = _x;
+    int    left  = _k;
+
+    // whole steps up while more than one is left
+    while (left > (DBL_MAX_EXP - 1))
+    {
+        value = value * d_internal_math_d_pow2(DBL_MAX_EXP - 1);
+        left  = left - (DBL_MAX_EXP - 1);
+    }
+
+    // whole steps down while more than one is left
+    while (left < (DBL_MIN_EXP - 1))
+    {
+        value = value * d_internal_math_d_pow2(DBL_MIN_EXP - 1);
+        left  = left - (DBL_MIN_EXP - 1);
+    }
+
+    return value * d_internal_math_d_pow2(left);
+}
+
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+
+// 1.2    In long double
+//------------------------------------------------------------------------------
+// The two-sum and Dekker's product are elementary.h's
+// (d_internal_math_ld_two_sum, d_internal_math_ld_product_exact).
+
+// d_internal_vec_ld_short
+//   _a * _b as high + low where the product is exact in long double, as a
+// product of two floats is in any long double of 48 bits or more: the
+// product and 0.
+D_MATH_FN struct dj_internal_math_ld_pair
+d_internal_vec_ld_short(
+    long double _a,
+    long double _b
+)
+{
+    struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+    result.high = _a * _b;
+
+    return result;
+}
+
+// d_internal_vec_ld_scale
+//   _x 2^_k, rounded once, in steps as d_internal_vec_d2_scale takes them.
+D_MATH_FN long double
+d_internal_vec_ld_scale(
+    long double _x,
+    int         _k
+)
+{
+    long double value = _x;
+    int         left  = _k;
+
+    // whole steps up while more than one is left
+    while (left > (LDBL_MAX_EXP - 1))
+    {
+        value = value * d_internal_math_ld_pow2(LDBL_MAX_EXP - 1);
+        left  = left - (LDBL_MAX_EXP - 1);
+    }
+
+    // whole steps down while more than one is left
+    while (left < (LDBL_MIN_EXP - 1))
+    {
+        value = value * d_internal_math_ld_pow2(LDBL_MIN_EXP - 1);
+        left  = left - (LDBL_MIN_EXP - 1);
+    }
+
+    return value * d_internal_math_ld_pow2(left);
+}
+
+
+//==============================================================================
+// 2.  THE FLOAT FAMILY (_f)
 //==============================================================================
 // _count components each; _out may be _a or _b.
 
 
-// 1.1    Element-wise arithmetic
+// 2.1    Element-wise arithmetic
 //------------------------------------------------------------------------------
 
 D_MATH_FN void
@@ -216,13 +398,947 @@ d_vec_f_lerp(
     return;
 }
 
-// 1.2    Products and reductions
+// 2.2 Compensated sums
 //------------------------------------------------------------------------------
-// Each product is rounded before it is summed, so no compiler can fuse the
-// two and a result is the same on every target.
+// The kernels the products, the sums and mat.h's products, trace and refinement
+// take (S404): each a sum c + a . (x + t) of strided operands, rounded once
+// from Dot2's or Sum2's pair in the pairs section 1 says. Where an operand has
+// a NaN or an infinity, the sum is the formula as written, as d_vec_f_dot_fast
+// computes it, so that every non-finite case is the arithmetic's own.
 
+// d_internal_vec_f_naive
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
+// negated where _minus and _t none but where _tailed: each product rounded,
+// then added, in order -- d_vec_f_dot_fast's formula, for operands with a NaN
+// or an infinity.
+D_MATH_FN float
+d_internal_vec_f_naive(
+    float        _c,
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    const float* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    float    acc = _c;
+    size_t i   = 0u;
+
+    // each product rounded, then added
+    for (i = 0u; i < _n; ++i)
+    {
+        const float x       = _minus ? -_x[i * _sx] : _x[i * _sx];
+        const float product = _a[i * _sa] * x;
+
+        acc += product;
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const float u    = _minus ? -_t[i * _st] : _t[i * _st];
+            const float tail = _a[i * _sa] * u;
+
+            acc += tail;
+        }
+    }
+
+    return acc;
+}
+
+// d_internal_vec_f_naive_sum
+//   sum_i _a[i _sa] as written, in order from +0: d_vec_f_sum_fast's formula,
+// for terms with a NaN or an infinity.
+D_MATH_FN float
+d_internal_vec_f_naive_sum(
+    const float* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    float    acc = (float)0;
+    size_t i   = 0u;
+
+    // each term, in order
+    for (i = 0u; i < _n; ++i)
+    {
+        acc += _a[i * _sa];
+    }
+
+    return acc;
+}
+
+// d_internal_vec_f_largest_of
+//   the largest magnitude of the _n entries _v[i _stride], each finite: 0 where
+// each is 0.
+D_MATH_FN float
+d_internal_vec_f_largest_of(
+    const float* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    float    largest = (float)0;
+    size_t i       = 0u;
+
+    // each entry's magnitude
+    for (i = 0u; i < _n; ++i)
+    {
+        const float v = _v[i * _stride];
+        const float a = (v < (float)0) ? -v : v;
+
+        if (a > largest)
+        {
+            largest = a;
+        }
+    }
+
+    return largest;
+}
+
+// d_internal_vec_f_exponent_of
+//   the binade E of a finite nonzero _x, 2^E <= |_x| < 2^(E + 1): a subnormal
+// lifted into the normal range first.
+D_MATH_FN int
+d_internal_vec_f_exponent_of(
+    float _x
+)
+{
+    const float a    = (_x < (float)0) ? -_x : _x;
+    const int lift = (a < FLT_MIN) ? FLT_MANT_DIG : 0;
+    const float v    = (lift > 0) ? (a * d_internal_math_f_pow2(lift)) : a;
+
+    return d_internal_math_f_binade_of(v).exponent - lift;
+}
+
+#if !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_f_d2_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
+// 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
+// in double's terms, where Dekker's products of two such entries neither
+// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
+// power to build -- else 0.
+D_MATH_FN int
+d_internal_vec_f_d2_reach(
+    const float* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    const double low   = DBL_MIN * ((double)16 / (DBL_EPSILON * DBL_EPSILON));
+    const double high  = (DBL_MAX * DBL_EPSILON) * (DBL_EPSILON / (double)4);
+    int       reach = 0;
+    size_t    i     = 0u;
+
+    // each entry, until a NaN or an infinity
+    for (i = 0u; i < _n; ++i)
+    {
+        const double v = (double)_v[i * _stride];
+        const double a = (v < (double)0) ? -v : v;
+
+        // a NaN or an infinity: no sum to compensate
+        if (!(a <= (double)FLT_MAX))
+        {
+            return 2;
+        }
+
+        // outside the range, but for 0
+        if ( (a != (double)0) &&
+             ( ((a * a) < low) ||
+               ((a * a) > high) ) )
+        {
+            reach = 1;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_vec_f_d2_sum_of
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as a pair of double, the
+// products negated where _minus and _t none but where _tailed, every entry
+// finite: _a's entries first times 2^-_ka, _x's and _t's times 2^-_kx and _c
+// times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
+// each product exact (d_internal_vec_d2_short), the high parts summed by
+// two-sums, the low parts and the two-sums' errors after, and the pair
+// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// twice double's precision rounded once. An exact zero is +0.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_f_d2_sum_of(
+    float        _c,
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    const float* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    struct dj_internal_math_d_pair result = { (double)0, (double)0 };
+    const bool     scaled = ( (_ka != 0) ||
+                              (_kx != 0) );
+    const double      sign   = _minus ? (double)-1 : (double)1;
+    double            a_up   = (double)1;
+    double            a_down = (double)1;
+    double            x_up   = (double)1;
+    double            x_down = (double)1;
+    double            high   = (double)_c;
+    double            rest   = (double)0;
+    size_t         i      = 0u;
+
+    // the factors, each a normal power of 2, and _c scaled with the products
+    if (scaled)
+    {
+        a_up   = d_internal_math_d_pow2((-_ka) / 2);
+        a_down = d_internal_math_d_pow2((-_ka) - ((-_ka) / 2));
+        x_up   = d_internal_math_d_pow2((-_kx) / 2);
+        x_down = d_internal_math_d_pow2((-_kx) - ((-_kx) / 2));
+        high   = d_internal_vec_d2_scale(high, -(_ka + _kx));
+    }
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const double ae = (double)_a[i * _sa];
+        const double xe = sign * (double)_x[i * _sx];
+        const double a  = scaled ? ((ae * a_up) * a_down) : ae;
+        const double x  = scaled ? ((xe * x_up) * x_down) : xe;
+        const struct dj_internal_math_d_pair p = d_internal_vec_d2_short(a, x);
+        const struct dj_internal_math_d_pair s =
+            d_internal_vec_d2_two_sum(high, p.high);
+
+        high = s.high;
+        rest = rest + (s.low + p.low);
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const double te = sign * (double)_t[i * _st];
+            const double u  = scaled ? ((te * x_up) * x_down) : te;
+            const struct dj_internal_math_d_pair q =
+                d_internal_vec_d2_short(a, u);
+            const struct dj_internal_math_d_pair v =
+                d_internal_vec_d2_two_sum(high, q.high);
+
+            high = v.high;
+            rest = rest + (v.low + q.low);
+        }
+    }
+
+    result = d_internal_vec_d2_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (double)0)
+    {
+        result.high = (double)0;
+        result.low  = (double)0;
+    }
+
+    return result;
+}
+
+// d_internal_vec_f_d2_round
+//   (_p.high + _p.low) 2^_k rounded once to float, _p a renormalized pair of
+// double: scaled, exactly in double's wider range, then rounded as
+// elementary.h's d_internal_math_f_round_pair rounds a kernel's pair -- the
+// high part converted, and where it lies exactly between two values of float
+// the low part's sign deciding. Each such midpoint is a value of double, so the
+// high part, the sum rounded to double rather than to long double, lies on one
+// only where it is the sum's own rounding or the sum is the midpoint.
+D_MATH_FN float
+d_internal_vec_f_d2_round(
+    struct dj_internal_math_d_pair _p,
+    int            _k
+)
+{
+    const double high = (_k == 0) ? _p.high
+                               : d_internal_vec_d2_scale(_p.high, _k);
+    const double low  = (_k == 0) ? _p.low
+                               : d_internal_vec_d2_scale(_p.low, _k);
+
+    return d_internal_math_f_round_pair((long double)high,
+                                          (long double)low);
+}
+
+// d_internal_vec_f_d2_dot
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once to float from Dot2's pair:
+// as they are where every entry lies where Dekker's products are exact and _c
+// within a quarter of double's largest value; else each operand scaled, its
+// largest entry to [1, 2), and the pair back -- or _c itself, where the
+// products' sum lies below half its rounding. Where an operand has a NaN or an
+// infinity, the formula as written (d_internal_vec_f_naive).
+D_MATH_FN float
+d_internal_vec_f_d2_dot(
+    float        _c,
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    const float* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    const int ra = d_internal_vec_f_d2_reach(_a, _sa, _n);
+    const int rx = d_internal_vec_f_d2_reach(_x, _sx, _n);
+    const int rt = d_internal_vec_f_d2_reach(_t, _st, _tailed ? _n : 0u);
+    const float ac = (_c < (float)0) ? -_c : _c;
+
+    // a NaN or an infinity: the formula as written
+    if ( (ra == 2) || (rx == 2) || (rt == 2) || (!(ac <= FLT_MAX)) )
+    {
+        return d_internal_vec_f_naive(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                        _tailed, _n);
+    }
+
+    // every entry in range: no scaling
+    if ( (ra == 0) && (rx == 0) && (rt == 0) &&
+         ((double)ac <= (DBL_MAX / (double)4)) )
+    {
+        return d_internal_vec_f_d2_round(
+            d_internal_vec_f_d2_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, 0, 0),
+            0);
+    }
+
+    {
+        const float la   = d_internal_vec_f_largest_of(_a, _sa, _n);
+        const float lx   = d_internal_vec_f_largest_of(_x, _sx, _n);
+        const float lt   = d_internal_vec_f_largest_of(_t, _st,
+                                                   _tailed ? _n : 0u);
+        const float lu   = (lt > lx) ? lt : lx;
+        int       ka   = 0;
+        int       kx   = 0;
+        int       bits = 0;
+        size_t    left = _n;
+
+        // a zero operand: each product 0, the sum _c's (+0 for either 0)
+        if ( (la == (float)0) ||
+             (lu == (float)0) )
+        {
+            return _c + (float)0;
+        }
+
+        ka = d_internal_vec_f_exponent_of(la);
+        kx = d_internal_vec_f_exponent_of(lu);
+
+        // the products' sum lies below 2^(ka + kx + 2 + bits)
+        while (left > 0u)
+        {
+            ++bits;
+            left /= 2u;
+        }
+
+        // _c far above it: _c itself, the products below half its rounding
+        if ( (ac != (float)0) &&
+             (d_internal_vec_f_exponent_of(ac) >
+              (ka + kx + bits + FLT_MANT_DIG + 3)) )
+        {
+            return _c;
+        }
+
+        return d_internal_vec_f_d2_round(
+            d_internal_vec_f_d2_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, ka, kx),
+            ka + kx);
+    }
+}
+
+// d_internal_vec_f_d2_sum
+//   sum_i _a[i _sa], rounded once to float from Sum2's pair -- Ogita, Rump and
+// Oishi's: each term into the running sum by a two-sum, the errors summed apart
+// and added last, the pair renormalized -- as accurate as the sum in twice
+// double's precision, rounded once. Where twice _n times the largest term could
+// pass double's largest value, the terms are first scaled, the largest to [1,
+// 2), exactly but where one falls into the subnormals, and the sum back. An
+// exact zero is +0; where a term is a NaN or an infinity, the terms summed as
+// written (d_internal_vec_f_naive_sum).
+D_MATH_FN float
+d_internal_vec_f_d2_sum(
+    const float* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    struct dj_internal_math_d_pair result  = { (double)0, (double)0 };
+    float            largest = (float)0;
+    int            k       = 0;
+    double            high    = (double)0;
+    double            rest    = (double)0;
+    size_t         i       = 0u;
+
+    // a NaN or an infinity: the terms as written
+    if (d_internal_vec_f_d2_reach(_a, _sa, _n) == 2)
+    {
+        return d_internal_vec_f_naive_sum(_a, _sa, _n);
+    }
+
+    largest = d_internal_vec_f_largest_of(_a, _sa, _n);
+
+    // each term 0: +0
+    if (largest == (float)0)
+    {
+        return (float)0;
+    }
+
+    // a partial sum that could overflow: the terms scaled
+    if ((double)largest > (DBL_MAX / ((double)2 * (double)_n)))
+    {
+        k = d_internal_vec_f_exponent_of(largest);
+    }
+
+    {
+        const double up   = (k != 0) ? d_internal_math_d_pow2((-k) / 2)
+                                  : (double)1;
+        const double down = (k != 0) ? d_internal_math_d_pow2((-k) - ((-k) / 2))
+                                  : (double)1;
+
+        // each term into the running sum, its error apart
+        for (i = 0u; i < _n; ++i)
+        {
+            const double e    = (double)_a[i * _sa];
+            const double term = (k != 0) ? ((e * up) * down) : e;
+            const struct dj_internal_math_d_pair s =
+                d_internal_vec_d2_two_sum(high, term);
+
+            high = s.high;
+            rest = rest + s.low;
+        }
+    }
+
+    result = d_internal_vec_d2_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (double)0)
+    {
+        return (float)0;
+    }
+
+    return d_internal_vec_f_d2_round(result, k);
+}
+
+// d_internal_vec_f_d2_add_pair
+//   *_x + *_tail += _d in double's pairs, then *_x the sum rounded once to
+// float (d_internal_vec_f_d2_round) and *_tail the rest, rounded to float.
+D_MATH_FN void
+d_internal_vec_f_d2_add_pair(
+    float* _x,
+    float* _tail,
+    float  _d
+)
+{
+    const struct dj_internal_math_d_pair s =
+        d_internal_vec_d2_two_sum((double)*_x, (double)_d);
+    const struct dj_internal_math_d_pair p =
+        d_internal_vec_d2_two_sum(s.high, s.low + (double)*_tail);
+    const float            high = d_internal_vec_f_d2_round(p, 0);
+
+    *_x    = high;
+    *_tail = (float)((p.high - (double)high) + p.low);
+
+    return;
+}
+
+
+#else  // !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_f_ld_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
+// 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
+// in long double's terms, where Dekker's products of two such entries neither
+// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
+// power to build -- else 0.
+D_MATH_FN int
+d_internal_vec_f_ld_reach(
+    const float* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    const long double low =
+        LDBL_MIN * ((long double)16 / (LDBL_EPSILON * LDBL_EPSILON));
+    const long double high =
+        (LDBL_MAX * LDBL_EPSILON) * (LDBL_EPSILON / (long double)4);
+    int       reach = 0;
+    size_t    i     = 0u;
+
+    // each entry, until a NaN or an infinity
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double v = (long double)_v[i * _stride];
+        const long double a = (v < (long double)0) ? -v : v;
+
+        // a NaN or an infinity: no sum to compensate
+        if (!(a <= (long double)FLT_MAX))
+        {
+            return 2;
+        }
+
+        // outside the range, but for 0
+        if ( (a != (long double)0) &&
+             ( ((a * a) < low) ||
+               ((a * a) > high) ) )
+        {
+            reach = 1;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_vec_f_ld_sum_of
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as a pair of long double, the
+// products negated where _minus and _t none but where _tailed, every entry
+// finite: _a's entries first times 2^-_ka, _x's and _t's times 2^-_kx and _c
+// times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
+// each product exact (d_internal_vec_ld_short), the high parts summed by
+// two-sums, the low parts and the two-sums' errors after, and the pair
+// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// twice long double's precision rounded once. An exact zero is +0.
+D_MATH_FN struct dj_internal_math_ld_pair
+d_internal_vec_f_ld_sum_of(
+    float        _c,
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    const float* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    struct dj_internal_math_ld_pair result = { (long double)0, (long double)0 };
+    const bool     scaled = ( (_ka != 0) ||
+                              (_kx != 0) );
+    const long double      sign   = _minus ? (long double)-1 : (long double)1;
+    long double            a_up   = (long double)1;
+    long double            a_down = (long double)1;
+    long double            x_up   = (long double)1;
+    long double            x_down = (long double)1;
+    long double            high   = (long double)_c;
+    long double            rest   = (long double)0;
+    size_t         i      = 0u;
+
+    // the factors, each a normal power of 2, and _c scaled with the products
+    if (scaled)
+    {
+        a_up   = d_internal_math_ld_pow2((-_ka) / 2);
+        a_down = d_internal_math_ld_pow2((-_ka) - ((-_ka) / 2));
+        x_up   = d_internal_math_ld_pow2((-_kx) / 2);
+        x_down = d_internal_math_ld_pow2((-_kx) - ((-_kx) / 2));
+        high   = d_internal_vec_ld_scale(high, -(_ka + _kx));
+    }
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double ae = (long double)_a[i * _sa];
+        const long double xe = sign * (long double)_x[i * _sx];
+        const long double a  = scaled ? ((ae * a_up) * a_down) : ae;
+        const long double x  = scaled ? ((xe * x_up) * x_down) : xe;
+        const struct dj_internal_math_ld_pair p = d_internal_vec_ld_short(a, x);
+        const struct dj_internal_math_ld_pair s =
+            d_internal_math_ld_two_sum(high, p.high);
+
+        high = s.high;
+        rest = rest + (s.low + p.low);
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const long double te = sign * (long double)_t[i * _st];
+            const long double u  = scaled ? ((te * x_up) * x_down) : te;
+            const struct dj_internal_math_ld_pair q =
+                d_internal_vec_ld_short(a, u);
+            const struct dj_internal_math_ld_pair v =
+                d_internal_math_ld_two_sum(high, q.high);
+
+            high = v.high;
+            rest = rest + (v.low + q.low);
+        }
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (long double)0)
+    {
+        result.high = (long double)0;
+        result.low  = (long double)0;
+    }
+
+    return result;
+}
+
+// d_internal_vec_f_ld_round
+//   (_p.high + _p.low) 2^_k rounded once to float, _p a renormalized pair of
+// long double: scaled, exactly in long double's wider range, then rounded as
+// elementary.h's d_internal_math_f_round_pair rounds a kernel's pair -- the
+// high part converted, and where it lies exactly between two values of float
+// the low part's sign deciding. Each such midpoint is a value of long double,
+// so the high part, the sum rounded to long double rather than to long double,
+// lies on one only where it is the sum's own rounding or the sum is the
+// midpoint.
+D_MATH_FN float
+d_internal_vec_f_ld_round(
+    struct dj_internal_math_ld_pair _p,
+    int            _k
+)
+{
+    const long double high = (_k == 0) ? _p.high
+                               : d_internal_vec_ld_scale(_p.high, _k);
+    const long double low  = (_k == 0) ? _p.low
+                               : d_internal_vec_ld_scale(_p.low, _k);
+
+    return d_internal_math_f_round_pair((long double)high,
+                                          (long double)low);
+}
+
+// d_internal_vec_f_ld_dot
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once to float from Dot2's pair:
+// as they are where every entry lies where Dekker's products are exact and _c
+// within a quarter of long double's largest value; else each operand scaled,
+// its largest entry to [1, 2), and the pair back -- or _c itself, where the
+// products' sum lies below half its rounding. Where an operand has a NaN or an
+// infinity, the formula as written (d_internal_vec_f_naive).
+D_MATH_FN float
+d_internal_vec_f_ld_dot(
+    float        _c,
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    const float* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    const int ra = d_internal_vec_f_ld_reach(_a, _sa, _n);
+    const int rx = d_internal_vec_f_ld_reach(_x, _sx, _n);
+    const int rt = d_internal_vec_f_ld_reach(_t, _st, _tailed ? _n : 0u);
+    const float ac = (_c < (float)0) ? -_c : _c;
+
+    // a NaN or an infinity: the formula as written
+    if ( (ra == 2) || (rx == 2) || (rt == 2) || (!(ac <= FLT_MAX)) )
+    {
+        return d_internal_vec_f_naive(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                        _tailed, _n);
+    }
+
+    // every entry in range: no scaling
+    if ( (ra == 0) && (rx == 0) && (rt == 0) &&
+         ((long double)ac <= (LDBL_MAX / (long double)4)) )
+    {
+        return d_internal_vec_f_ld_round(
+            d_internal_vec_f_ld_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, 0, 0),
+            0);
+    }
+
+    {
+        const float la   = d_internal_vec_f_largest_of(_a, _sa, _n);
+        const float lx   = d_internal_vec_f_largest_of(_x, _sx, _n);
+        const float lt   = d_internal_vec_f_largest_of(_t, _st,
+                                                   _tailed ? _n : 0u);
+        const float lu   = (lt > lx) ? lt : lx;
+        int       ka   = 0;
+        int       kx   = 0;
+        int       bits = 0;
+        size_t    left = _n;
+
+        // a zero operand: each product 0, the sum _c's (+0 for either 0)
+        if ( (la == (float)0) ||
+             (lu == (float)0) )
+        {
+            return _c + (float)0;
+        }
+
+        ka = d_internal_vec_f_exponent_of(la);
+        kx = d_internal_vec_f_exponent_of(lu);
+
+        // the products' sum lies below 2^(ka + kx + 2 + bits)
+        while (left > 0u)
+        {
+            ++bits;
+            left /= 2u;
+        }
+
+        // _c far above it: _c itself, the products below half its rounding
+        if ( (ac != (float)0) &&
+             (d_internal_vec_f_exponent_of(ac) >
+              (ka + kx + bits + FLT_MANT_DIG + 3)) )
+        {
+            return _c;
+        }
+
+        return d_internal_vec_f_ld_round(
+            d_internal_vec_f_ld_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, ka, kx),
+            ka + kx);
+    }
+}
+
+// d_internal_vec_f_ld_sum
+//   sum_i _a[i _sa], rounded once to float from Sum2's pair -- Ogita, Rump and
+// Oishi's: each term into the running sum by a two-sum, the errors summed apart
+// and added last, the pair renormalized -- as accurate as the sum in twice long
+// double's precision, rounded once. Where twice _n times the largest term could
+// pass long double's largest value, the terms are first scaled, the largest to
+// [1, 2), exactly but where one falls into the subnormals, and the sum back. An
+// exact zero is +0; where a term is a NaN or an infinity, the terms summed as
+// written (d_internal_vec_f_naive_sum).
+D_MATH_FN float
+d_internal_vec_f_ld_sum(
+    const float* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    struct dj_internal_math_ld_pair result =
+        { (long double)0, (long double)0 };
+    float            largest = (float)0;
+    int            k       = 0;
+    long double            high    = (long double)0;
+    long double            rest    = (long double)0;
+    size_t         i       = 0u;
+
+    // a NaN or an infinity: the terms as written
+    if (d_internal_vec_f_ld_reach(_a, _sa, _n) == 2)
+    {
+        return d_internal_vec_f_naive_sum(_a, _sa, _n);
+    }
+
+    largest = d_internal_vec_f_largest_of(_a, _sa, _n);
+
+    // each term 0: +0
+    if (largest == (float)0)
+    {
+        return (float)0;
+    }
+
+    // a partial sum that could overflow: the terms scaled
+    if ((long double)largest > (LDBL_MAX / ((long double)2 * (long double)_n)))
+    {
+        k = d_internal_vec_f_exponent_of(largest);
+    }
+
+    {
+        const long double up   = (k != 0) ? d_internal_math_ld_pow2((-k) / 2)
+                                  : (long double)1;
+        const long double down = (k != 0) ? d_internal_math_ld_pow2((-k) - ((-k) / 2))
+                                  : (long double)1;
+
+        // each term into the running sum, its error apart
+        for (i = 0u; i < _n; ++i)
+        {
+            const long double e    = (long double)_a[i * _sa];
+            const long double term = (k != 0) ? ((e * up) * down) : e;
+            const struct dj_internal_math_ld_pair s =
+                d_internal_math_ld_two_sum(high, term);
+
+            high = s.high;
+            rest = rest + s.low;
+        }
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (long double)0)
+    {
+        return (float)0;
+    }
+
+    return d_internal_vec_f_ld_round(result, k);
+}
+
+// d_internal_vec_f_ld_add_pair
+//   *_x + *_tail += _d in long double's pairs, then *_x the sum rounded once to
+// float (d_internal_vec_f_ld_round) and *_tail the rest, rounded to float.
+D_MATH_FN void
+d_internal_vec_f_ld_add_pair(
+    float* _x,
+    float* _tail,
+    float  _d
+)
+{
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum((long double)*_x, (long double)_d);
+    const struct dj_internal_math_ld_pair p =
+        d_internal_math_ld_two_sum(s.high, s.low + (long double)*_tail);
+    const float            high = d_internal_vec_f_ld_round(p, 0);
+
+    *_x    = high;
+    *_tail = (float)((p.high - (long double)high) + p.low);
+
+    return;
+}
+
+
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_f_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity, else
+// 1 where one leaves the range where Dekker's products of two such entries are
+// exact in the pairs the family sums in, else 0.
+D_MATH_FN int
+d_internal_vec_f_reach(
+    const float* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_f_d2_reach(_v, _stride, _n);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_f_ld_reach(_v, _stride, _n);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_f_dot2
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once from Dot2's pair; the
+// formula as written where an operand has a NaN or an infinity.
+D_MATH_FN float
+d_internal_vec_f_dot2(
+    float        _c,
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    const float* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_f_d2_dot(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                   _tailed, _n);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_f_ld_dot(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                   _tailed, _n);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_f_dot2_direct
+//   d_internal_vec_f_dot2 for operands its caller has found in range -- each of
+// _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's entries are
+// where both factors were found so once: no test, no scaling.
+D_MATH_FN float
+d_internal_vec_f_dot2_direct(
+    bool       _minus,
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair sum =
+        d_internal_vec_f_d2_sum_of((float)0, _minus, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, 0, 0);
+
+    return d_internal_vec_f_d2_round(sum, 0);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_vec_f_ld_sum_of((float)0, _minus, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, 0, 0);
+
+    return d_internal_vec_f_ld_round(sum, 0);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_f_sum2
+//   sum_i _a[i _sa], rounded once from Sum2's pair; the terms as written where
+// one is a NaN or an infinity.
+D_MATH_FN float
+d_internal_vec_f_sum2(
+    const float* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_f_d2_sum(_a, _sa, _n);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_f_ld_sum(_a, _sa, _n);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_f_add_pair
+//   *_x + *_tail += _d, the pair renormalized, its high part the sum rounded
+// once: how mat.h's refinement carries a solution with its tail.
+D_MATH_FN void
+d_internal_vec_f_add_pair(
+    float* _x,
+    float* _tail,
+    float  _d
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    d_internal_vec_f_d2_add_pair(_x, _tail, _d);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    d_internal_vec_f_ld_add_pair(_x, _tail, _d);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
+// 2.3    Products and reductions
+//------------------------------------------------------------------------------
+// dot, cross and sum are compensated (S404): each a sum rounded once from
+// Dot2's or Sum2's pair (2.2), as accurate as the sum computed in
+// twice the precision and rounded once, so correctly rounded but where its
+// terms cancel past twice the precision or it lies within that of a
+// midpoint. The _fast forms are the formulas as written, each product
+// rounded before it is summed, in order, so that no compiler can fuse the
+// two and a result is the same on every target: faster, for double some ten
+// times, and their error unbounded where the terms cancel. product, min and
+// max are as written.
+
+// d_vec_f_dot
+//   the sum of the _count products _a[i] _b[i], rounded once from Dot2's
+// pair; where an operand has a NaN or an infinity, d_vec_f_dot_fast's.
 D_MATH_FN float
 d_vec_f_dot(
+    const float* _a,
+    const float* _b,
+    size_t     _count
+)
+{
+    return d_internal_vec_f_dot2((float)0, false, _a, 1u, _b, 1u, _b, 1u,
+                                   false, _count);
+}
+
+// d_vec_f_dot_fast
+//   the sum of the _count products as written: each product rounded, then
+// added, in order from +0.
+D_MATH_FN float
+d_vec_f_dot_fast(
     const float* _a,
     const float* _b,
     size_t     _count
@@ -241,8 +1357,65 @@ d_vec_f_dot(
     return acc;
 }
 
+// d_internal_vec_f_difference
+//   _p _q - _r _s rounded once from Dot2's pair of the two products; where
+// the two products are equal, the formula as written, whose 0 then keeps
+// the sign the arithmetic gives it. Where a factor is a NaN or an infinity,
+// Dot2's kernel gives the formula's value (d_internal_vec_f_naive).
+D_MATH_FN float
+d_internal_vec_f_difference(
+    float _p,
+    float _q,
+    float _r,
+    float _s
+)
+{
+    const float left  = _p * _q;
+    const float right = _r * _s;
+    const float a[2]  = { _p, _r };
+    const float b[2]  = { _q, -_s };
+    const float value =
+        d_internal_vec_f_dot2((float)0, false, a, 1u, b, 1u, b, 1u, false, 2u);
+
+    // the products equal and so their difference 0: the formula's, its 0's
+    // sign the arithmetic's
+    if ( (value == (float)0) &&
+         (left == right) )
+    {
+        return left - right;
+    }
+
+    return value;
+}
+
+// d_vec_f_cross
+//   _out = _a x _b, each part the difference of its two products rounded
+// once from Dot2's pair (d_internal_vec_f_difference). _out may be _a or
+// _b.
 D_MATH_FN void
 d_vec_f_cross(
+    float*       _out,
+    const float* _a,
+    const float* _b
+)
+{
+    // all three from the inputs before any output is written
+    const float x = d_internal_vec_f_difference(_a[1], _b[2], _a[2], _b[1]);
+    const float y = d_internal_vec_f_difference(_a[2], _b[0], _a[0], _b[2]);
+    const float z = d_internal_vec_f_difference(_a[0], _b[1], _a[1], _b[0]);
+
+    _out[0] = x;
+    _out[1] = y;
+    _out[2] = z;
+
+    return;
+}
+
+// d_vec_f_cross_fast
+//   _out = _a x _b as written: each part's two products rounded, then
+// subtracted. _out may be _a or _b.
+D_MATH_FN void
+d_vec_f_cross_fast(
     float*       _out,
     const float* _a,
     const float* _b
@@ -263,8 +1436,22 @@ d_vec_f_cross(
     return;
 }
 
+// d_vec_f_sum
+//   the sum of the _count terms, rounded once from Sum2's pair; where a term
+// is a NaN or an infinity, d_vec_f_sum_fast's.
 D_MATH_FN float
 d_vec_f_sum(
+    const float* _a,
+    size_t     _count
+)
+{
+    return d_internal_vec_f_sum2(_a, 1u, _count);
+}
+
+// d_vec_f_sum_fast
+//   the sum of the _count terms as written, in order from +0.
+D_MATH_FN float
+d_vec_f_sum_fast(
     const float* _a,
     size_t     _count
 )
@@ -337,7 +1524,7 @@ d_vec_f_max(
     return m;
 }
 
-// 1.3    Norms and distances
+// 2.4    Norms and distances
 //------------------------------------------------------------------------------
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
@@ -438,7 +1625,7 @@ d_internal_vec_f_scaled_entry(
 
 // d_internal_vec_f_scaled_sum
 //   the sum of the squares of the entries scaled by _pre and _power, as
-// d_vec_f_dot sums: each square rounded, then added.
+// d_vec_f_dot_fast sums: each square rounded, then added.
 D_MATH_FN float
 d_internal_vec_f_scaled_sum(
     const float* _a,
@@ -463,13 +1650,17 @@ d_internal_vec_f_scaled_sum(
     return acc;
 }
 
+// d_vec_f_norm_squared
+//   the sum of the squares as written (d_vec_f_dot_fast's): a sum of
+// terms that cannot cancel, within (n - 1) u of its value relatively, and
+// the bits the norms keep where they are in range (S256, S405).
 D_MATH_FN float
 d_vec_f_norm_squared(
     const float* _a,
     size_t     _count
 )
 {
-    return d_vec_f_dot(_a, _a, _count);
+    return d_vec_f_dot_fast(_a, _a, _count);
 }
 
 // d_internal_vec_f_in_range_c
@@ -752,7 +1943,7 @@ d_vec_f_normalize(
     return;
 }
 
-// 1.4    Projection and angle
+// 2.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
 // vector projects to zero. cos_angle is 0 when either vector is zero, and
@@ -990,7 +2181,7 @@ d_vec_f_angle(
                             (c < (float)-1) ? (float)-1 : c );
 }
 
-// 1.5    Comparison
+// 2.6    Comparison
 //------------------------------------------------------------------------------
 // equal is component-wise ==; equals allows each component _tolerance.
 
@@ -1038,12 +2229,12 @@ d_vec_f_equals(
 }
 
 //==============================================================================
-// 2.  THE DOUBLE FAMILY (_d)
+// 3.  THE DOUBLE FAMILY (_d)
 //==============================================================================
 // _count components each; _out may be _a or _b.
 
 
-// 2.1    Element-wise arithmetic
+// 3.1    Element-wise arithmetic
 //------------------------------------------------------------------------------
 
 D_MATH_FN void
@@ -1194,13 +2385,974 @@ d_vec_d_lerp(
     return;
 }
 
-// 2.2    Products and reductions
+// 3.2 Compensated sums
 //------------------------------------------------------------------------------
-// Each product is rounded before it is summed, so no compiler can fuse the
-// two and a result is the same on every target.
+// The kernels the products, the sums and mat.h's products, trace and refinement
+// take (S404): each a sum c + a . (x + t) of strided operands, rounded once
+// from Dot2's or Sum2's pair in the pairs section 1 says. Where an operand has
+// a NaN or an infinity, the sum is the formula as written, as d_vec_d_dot_fast
+// computes it, so that every non-finite case is the arithmetic's own.
 
+// d_internal_vec_d_naive
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
+// negated where _minus and _t none but where _tailed: each product rounded,
+// then added, in order -- d_vec_d_dot_fast's formula, for operands with a NaN
+// or an infinity.
+D_MATH_FN double
+d_internal_vec_d_naive(
+    double        _c,
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    const double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    double    acc = _c;
+    size_t i   = 0u;
+
+    // each product rounded, then added
+    for (i = 0u; i < _n; ++i)
+    {
+        const double x       = _minus ? -_x[i * _sx] : _x[i * _sx];
+        const double product = _a[i * _sa] * x;
+
+        acc += product;
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const double u    = _minus ? -_t[i * _st] : _t[i * _st];
+            const double tail = _a[i * _sa] * u;
+
+            acc += tail;
+        }
+    }
+
+    return acc;
+}
+
+// d_internal_vec_d_naive_sum
+//   sum_i _a[i _sa] as written, in order from +0: d_vec_d_sum_fast's formula,
+// for terms with a NaN or an infinity.
+D_MATH_FN double
+d_internal_vec_d_naive_sum(
+    const double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    double    acc = (double)0;
+    size_t i   = 0u;
+
+    // each term, in order
+    for (i = 0u; i < _n; ++i)
+    {
+        acc += _a[i * _sa];
+    }
+
+    return acc;
+}
+
+// d_internal_vec_d_largest_of
+//   the largest magnitude of the _n entries _v[i _stride], each finite: 0 where
+// each is 0.
+D_MATH_FN double
+d_internal_vec_d_largest_of(
+    const double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    double    largest = (double)0;
+    size_t i       = 0u;
+
+    // each entry's magnitude
+    for (i = 0u; i < _n; ++i)
+    {
+        const double v = _v[i * _stride];
+        const double a = (v < (double)0) ? -v : v;
+
+        if (a > largest)
+        {
+            largest = a;
+        }
+    }
+
+    return largest;
+}
+
+// d_internal_vec_d_exponent_of
+//   the binade E of a finite nonzero _x, 2^E <= |_x| < 2^(E + 1): a subnormal
+// lifted into the normal range first.
+D_MATH_FN int
+d_internal_vec_d_exponent_of(
+    double _x
+)
+{
+    const double a    = (_x < (double)0) ? -_x : _x;
+    const int lift = (a < DBL_MIN) ? DBL_MANT_DIG : 0;
+    const double v    = (lift > 0) ? (a * d_internal_math_d_pow2(lift)) : a;
+
+    return d_internal_math_d_binade_of(v).exponent - lift;
+}
+
+#if !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_d_d2_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
+// 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
+// in double's terms, where Dekker's products of two such entries neither
+// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
+// power to build -- else 0.
+D_MATH_FN int
+d_internal_vec_d_d2_reach(
+    const double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    const double low   = DBL_MIN * ((double)16 / (DBL_EPSILON * DBL_EPSILON));
+    const double high  = (DBL_MAX * DBL_EPSILON) * (DBL_EPSILON / (double)4);
+    int       reach = 0;
+    size_t    i     = 0u;
+
+    // each entry, until a NaN or an infinity
+    for (i = 0u; i < _n; ++i)
+    {
+        const double v = (double)_v[i * _stride];
+        const double a = (v < (double)0) ? -v : v;
+
+        // a NaN or an infinity: no sum to compensate
+        if (!(a <= (double)DBL_MAX))
+        {
+            return 2;
+        }
+
+        // outside the range, but for 0
+        if ( (a != (double)0) &&
+             ( ((a * a) < low) ||
+               ((a * a) > high) ) )
+        {
+            reach = 1;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_vec_d_d2_sum_of
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as a pair of double, the
+// products negated where _minus and _t none but where _tailed, every entry
+// finite: _a's entries first times 2^-_ka, _x's and _t's times 2^-_kx and _c
+// times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
+// each product exact (d_internal_vec_d2_product), the high parts summed by
+// two-sums, the low parts and the two-sums' errors after, and the pair
+// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// twice double's precision rounded once. An exact zero is +0.
+D_MATH_FN struct dj_internal_math_d_pair
+d_internal_vec_d_d2_sum_of(
+    double        _c,
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    const double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    struct dj_internal_math_d_pair result = { (double)0, (double)0 };
+    const bool     scaled = ( (_ka != 0) ||
+                              (_kx != 0) );
+    const double      sign   = _minus ? (double)-1 : (double)1;
+    double            a_up   = (double)1;
+    double            a_down = (double)1;
+    double            x_up   = (double)1;
+    double            x_down = (double)1;
+    double            high   = (double)_c;
+    double            rest   = (double)0;
+    size_t         i      = 0u;
+
+    // the factors, each a normal power of 2, and _c scaled with the products
+    if (scaled)
+    {
+        a_up   = d_internal_math_d_pow2((-_ka) / 2);
+        a_down = d_internal_math_d_pow2((-_ka) - ((-_ka) / 2));
+        x_up   = d_internal_math_d_pow2((-_kx) / 2);
+        x_down = d_internal_math_d_pow2((-_kx) - ((-_kx) / 2));
+        high   = d_internal_vec_d2_scale(high, -(_ka + _kx));
+    }
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const double ae = (double)_a[i * _sa];
+        const double xe = sign * (double)_x[i * _sx];
+        const double a  = scaled ? ((ae * a_up) * a_down) : ae;
+        const double x  = scaled ? ((xe * x_up) * x_down) : xe;
+        const struct dj_internal_math_d_pair p =
+            d_internal_vec_d2_product(a, x);
+        const struct dj_internal_math_d_pair s =
+            d_internal_vec_d2_two_sum(high, p.high);
+
+        high = s.high;
+        rest = rest + (s.low + p.low);
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const double te = sign * (double)_t[i * _st];
+            const double u  = scaled ? ((te * x_up) * x_down) : te;
+            const struct dj_internal_math_d_pair q =
+                d_internal_vec_d2_product(a, u);
+            const struct dj_internal_math_d_pair v =
+                d_internal_vec_d2_two_sum(high, q.high);
+
+            high = v.high;
+            rest = rest + (v.low + q.low);
+        }
+    }
+
+    result = d_internal_vec_d2_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (double)0)
+    {
+        result.high = (double)0;
+        result.low  = (double)0;
+    }
+
+    return result;
+}
+
+// d_internal_vec_d_d2_round
+//   (_p.high + _p.low) 2^_k rounded once to double, _p a renormalized pair --
+// its high part the sum rounded: the high part scaled, exact where the result
+// is normal and an infinity past the range, as the sum's rounding makes it; in
+// the subnormals the scaling rounds again, and where the scaled high part lay
+// exactly between two subnormals, the low part's sign decides.
+D_MATH_FN double
+d_internal_vec_d_d2_round(
+    struct dj_internal_math_d_pair _p,
+    int            _k
+)
+{
+    const double value = (_k == 0) ? _p.high
+                                : d_internal_vec_d2_scale(_p.high, _k);
+    const double a     = (value < (double)0) ? -value : value;
+    const double tiny  = DBL_MIN * DBL_EPSILON;
+
+    // scaled up or not at all, exact, normal or past the range: the scaled high
+    // part, the sum's rounding
+    if ( (_k >= 0) ||
+         (_p.low == (double)0) ||
+         (!(a < DBL_MIN)) )
+    {
+        return value;
+    }
+
+    {
+        const double back = d_internal_vec_d2_scale(value, -_k);
+        const double rest = _p.high - back;
+        const double gap  = d_internal_vec_d2_scale(tiny, -_k);
+
+        // rounded down from the midpoint, and the sum lies above it
+        if ( ((rest + rest) == gap) &&
+             (_p.low > (double)0) )
+        {
+            return value + tiny;
+        }
+
+        // rounded up from the midpoint, and the sum lies below it
+        if ( ((rest + rest) == -gap) &&
+             (_p.low < (double)0) )
+        {
+            return value - tiny;
+        }
+    }
+
+    return value;
+}
+
+// d_internal_vec_d_d2_dot
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once to double from Dot2's
+// pair: as they are where every entry lies where Dekker's products are exact
+// and _c within a quarter of double's largest value; else each operand scaled,
+// its largest entry to [1, 2), and the pair back -- or _c itself, where the
+// products' sum lies below half its rounding. Where an operand has a NaN or an
+// infinity, the formula as written (d_internal_vec_d_naive).
+D_MATH_FN double
+d_internal_vec_d_d2_dot(
+    double        _c,
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    const double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    const int ra = d_internal_vec_d_d2_reach(_a, _sa, _n);
+    const int rx = d_internal_vec_d_d2_reach(_x, _sx, _n);
+    const int rt = d_internal_vec_d_d2_reach(_t, _st, _tailed ? _n : 0u);
+    const double ac = (_c < (double)0) ? -_c : _c;
+
+    // a NaN or an infinity: the formula as written
+    if ( (ra == 2) || (rx == 2) || (rt == 2) || (!(ac <= DBL_MAX)) )
+    {
+        return d_internal_vec_d_naive(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                        _tailed, _n);
+    }
+
+    // every entry in range: no scaling
+    if ( (ra == 0) && (rx == 0) && (rt == 0) &&
+         ((double)ac <= (DBL_MAX / (double)4)) )
+    {
+        return d_internal_vec_d_d2_round(
+            d_internal_vec_d_d2_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, 0, 0),
+            0);
+    }
+
+    {
+        const double la   = d_internal_vec_d_largest_of(_a, _sa, _n);
+        const double lx   = d_internal_vec_d_largest_of(_x, _sx, _n);
+        const double lt   = d_internal_vec_d_largest_of(_t, _st,
+                                                   _tailed ? _n : 0u);
+        const double lu   = (lt > lx) ? lt : lx;
+        int       ka   = 0;
+        int       kx   = 0;
+        int       bits = 0;
+        size_t    left = _n;
+
+        // a zero operand: each product 0, the sum _c's (+0 for either 0)
+        if ( (la == (double)0) ||
+             (lu == (double)0) )
+        {
+            return _c + (double)0;
+        }
+
+        ka = d_internal_vec_d_exponent_of(la);
+        kx = d_internal_vec_d_exponent_of(lu);
+
+        // the products' sum lies below 2^(ka + kx + 2 + bits)
+        while (left > 0u)
+        {
+            ++bits;
+            left /= 2u;
+        }
+
+        // _c far above it: _c itself, the products below half its rounding
+        if ( (ac != (double)0) &&
+             (d_internal_vec_d_exponent_of(ac) >
+              (ka + kx + bits + DBL_MANT_DIG + 3)) )
+        {
+            return _c;
+        }
+
+        return d_internal_vec_d_d2_round(
+            d_internal_vec_d_d2_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, ka, kx),
+            ka + kx);
+    }
+}
+
+// d_internal_vec_d_d2_sum
+//   sum_i _a[i _sa], rounded once to double from Sum2's pair -- Ogita, Rump and
+// Oishi's: each term into the running sum by a two-sum, the errors summed apart
+// and added last, the pair renormalized -- as accurate as the sum in twice
+// double's precision, rounded once. Where twice _n times the largest term could
+// pass double's largest value, the terms are first scaled, the largest to [1,
+// 2), exactly but where one falls into the subnormals, and the sum back. An
+// exact zero is +0; where a term is a NaN or an infinity, the terms summed as
+// written (d_internal_vec_d_naive_sum).
+D_MATH_FN double
+d_internal_vec_d_d2_sum(
+    const double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    struct dj_internal_math_d_pair result  = { (double)0, (double)0 };
+    double            largest = (double)0;
+    int            k       = 0;
+    double            high    = (double)0;
+    double            rest    = (double)0;
+    size_t         i       = 0u;
+
+    // a NaN or an infinity: the terms as written
+    if (d_internal_vec_d_d2_reach(_a, _sa, _n) == 2)
+    {
+        return d_internal_vec_d_naive_sum(_a, _sa, _n);
+    }
+
+    largest = d_internal_vec_d_largest_of(_a, _sa, _n);
+
+    // each term 0: +0
+    if (largest == (double)0)
+    {
+        return (double)0;
+    }
+
+    // a partial sum that could overflow: the terms scaled
+    if ((double)largest > (DBL_MAX / ((double)2 * (double)_n)))
+    {
+        k = d_internal_vec_d_exponent_of(largest);
+    }
+
+    {
+        const double up   = (k != 0) ? d_internal_math_d_pow2((-k) / 2)
+                                  : (double)1;
+        const double down = (k != 0) ? d_internal_math_d_pow2((-k) - ((-k) / 2))
+                                  : (double)1;
+
+        // each term into the running sum, its error apart
+        for (i = 0u; i < _n; ++i)
+        {
+            const double e    = (double)_a[i * _sa];
+            const double term = (k != 0) ? ((e * up) * down) : e;
+            const struct dj_internal_math_d_pair s =
+                d_internal_vec_d2_two_sum(high, term);
+
+            high = s.high;
+            rest = rest + s.low;
+        }
+    }
+
+    result = d_internal_vec_d2_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (double)0)
+    {
+        return (double)0;
+    }
+
+    return d_internal_vec_d_d2_round(result, k);
+}
+
+// d_internal_vec_d_d2_add_pair
+//   *_x + *_tail += _d, the pair renormalized: its high part the sum rounded
+// once and its low part the rest, by two-sums -- exact but for the rest's own
+// rounding.
+D_MATH_FN void
+d_internal_vec_d_d2_add_pair(
+    double* _x,
+    double* _tail,
+    double  _d
+)
+{
+    const struct dj_internal_math_d_pair s = d_internal_vec_d2_two_sum(*_x, _d);
+    const struct dj_internal_math_d_pair p =
+        d_internal_vec_d2_two_sum(s.high, s.low + *_tail);
+
+    *_x    = p.high;
+    *_tail = p.low;
+
+    return;
+}
+
+
+#else  // !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_d_ld_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
+// 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
+// in long double's terms, where Dekker's products of two such entries neither
+// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
+// power to build -- else 0.
+D_MATH_FN int
+d_internal_vec_d_ld_reach(
+    const double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    const long double low =
+        LDBL_MIN * ((long double)16 / (LDBL_EPSILON * LDBL_EPSILON));
+    const long double high =
+        (LDBL_MAX * LDBL_EPSILON) * (LDBL_EPSILON / (long double)4);
+    int       reach = 0;
+    size_t    i     = 0u;
+
+    // each entry, until a NaN or an infinity
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double v = (long double)_v[i * _stride];
+        const long double a = (v < (long double)0) ? -v : v;
+
+        // a NaN or an infinity: no sum to compensate
+        if (!(a <= (long double)DBL_MAX))
+        {
+            return 2;
+        }
+
+        // outside the range, but for 0
+        if ( (a != (long double)0) &&
+             ( ((a * a) < low) ||
+               ((a * a) > high) ) )
+        {
+            reach = 1;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_vec_d_ld_sum_of
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as a pair of long double, the
+// products negated where _minus and _t none but where _tailed, every entry
+// finite: _a's entries first times 2^-_ka, _x's and _t's times 2^-_kx and _c
+// times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
+// each product exact (d_internal_math_ld_product_exact), the high parts summed
+// by two-sums, the low parts and the two-sums' errors after, and the pair
+// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// twice long double's precision rounded once. An exact zero is +0.
+D_MATH_FN struct dj_internal_math_ld_pair
+d_internal_vec_d_ld_sum_of(
+    double        _c,
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    const double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    struct dj_internal_math_ld_pair result = { (long double)0, (long double)0 };
+    const bool     scaled = ( (_ka != 0) ||
+                              (_kx != 0) );
+    const long double      sign   = _minus ? (long double)-1 : (long double)1;
+    long double            a_up   = (long double)1;
+    long double            a_down = (long double)1;
+    long double            x_up   = (long double)1;
+    long double            x_down = (long double)1;
+    long double            high   = (long double)_c;
+    long double            rest   = (long double)0;
+    size_t         i      = 0u;
+
+    // the factors, each a normal power of 2, and _c scaled with the products
+    if (scaled)
+    {
+        a_up   = d_internal_math_ld_pow2((-_ka) / 2);
+        a_down = d_internal_math_ld_pow2((-_ka) - ((-_ka) / 2));
+        x_up   = d_internal_math_ld_pow2((-_kx) / 2);
+        x_down = d_internal_math_ld_pow2((-_kx) - ((-_kx) / 2));
+        high   = d_internal_vec_ld_scale(high, -(_ka + _kx));
+    }
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double ae = (long double)_a[i * _sa];
+        const long double xe = sign * (long double)_x[i * _sx];
+        const long double a  = scaled ? ((ae * a_up) * a_down) : ae;
+        const long double x  = scaled ? ((xe * x_up) * x_down) : xe;
+        const struct dj_internal_math_ld_pair p =
+            d_internal_math_ld_product_exact(a, x);
+        const struct dj_internal_math_ld_pair s =
+            d_internal_math_ld_two_sum(high, p.high);
+
+        high = s.high;
+        rest = rest + (s.low + p.low);
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const long double te = sign * (long double)_t[i * _st];
+            const long double u  = scaled ? ((te * x_up) * x_down) : te;
+            const struct dj_internal_math_ld_pair q =
+                d_internal_math_ld_product_exact(a, u);
+            const struct dj_internal_math_ld_pair v =
+                d_internal_math_ld_two_sum(high, q.high);
+
+            high = v.high;
+            rest = rest + (v.low + q.low);
+        }
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (long double)0)
+    {
+        result.high = (long double)0;
+        result.low  = (long double)0;
+    }
+
+    return result;
+}
+
+// d_internal_vec_d_ld_round
+//   (_p.high + _p.low) 2^_k rounded once to double, _p a renormalized pair of
+// long double: scaled, exactly in long double's wider range, then rounded as
+// elementary.h's d_internal_math_d_round_pair rounds a kernel's pair -- the
+// high part converted, and where it lies exactly between two values of double
+// the low part's sign deciding. Each such midpoint is a value of long double,
+// so the high part, the sum rounded to long double rather than to long double,
+// lies on one only where it is the sum's own rounding or the sum is the
+// midpoint.
+D_MATH_FN double
+d_internal_vec_d_ld_round(
+    struct dj_internal_math_ld_pair _p,
+    int            _k
+)
+{
+    const long double high = (_k == 0) ? _p.high
+                               : d_internal_vec_ld_scale(_p.high, _k);
+    const long double low  = (_k == 0) ? _p.low
+                               : d_internal_vec_ld_scale(_p.low, _k);
+
+    return d_internal_math_d_round_pair((long double)high,
+                                          (long double)low);
+}
+
+// d_internal_vec_d_ld_dot
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once to double from Dot2's
+// pair: as they are where every entry lies where Dekker's products are exact
+// and _c within a quarter of long double's largest value; else each operand
+// scaled, its largest entry to [1, 2), and the pair back -- or _c itself, where
+// the products' sum lies below half its rounding. Where an operand has a NaN or
+// an infinity, the formula as written (d_internal_vec_d_naive).
+D_MATH_FN double
+d_internal_vec_d_ld_dot(
+    double        _c,
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    const double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    const int ra = d_internal_vec_d_ld_reach(_a, _sa, _n);
+    const int rx = d_internal_vec_d_ld_reach(_x, _sx, _n);
+    const int rt = d_internal_vec_d_ld_reach(_t, _st, _tailed ? _n : 0u);
+    const double ac = (_c < (double)0) ? -_c : _c;
+
+    // a NaN or an infinity: the formula as written
+    if ( (ra == 2) || (rx == 2) || (rt == 2) || (!(ac <= DBL_MAX)) )
+    {
+        return d_internal_vec_d_naive(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                        _tailed, _n);
+    }
+
+    // every entry in range: no scaling
+    if ( (ra == 0) && (rx == 0) && (rt == 0) &&
+         ((long double)ac <= (LDBL_MAX / (long double)4)) )
+    {
+        return d_internal_vec_d_ld_round(
+            d_internal_vec_d_ld_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, 0, 0),
+            0);
+    }
+
+    {
+        const double la   = d_internal_vec_d_largest_of(_a, _sa, _n);
+        const double lx   = d_internal_vec_d_largest_of(_x, _sx, _n);
+        const double lt   = d_internal_vec_d_largest_of(_t, _st,
+                                                   _tailed ? _n : 0u);
+        const double lu   = (lt > lx) ? lt : lx;
+        int       ka   = 0;
+        int       kx   = 0;
+        int       bits = 0;
+        size_t    left = _n;
+
+        // a zero operand: each product 0, the sum _c's (+0 for either 0)
+        if ( (la == (double)0) ||
+             (lu == (double)0) )
+        {
+            return _c + (double)0;
+        }
+
+        ka = d_internal_vec_d_exponent_of(la);
+        kx = d_internal_vec_d_exponent_of(lu);
+
+        // the products' sum lies below 2^(ka + kx + 2 + bits)
+        while (left > 0u)
+        {
+            ++bits;
+            left /= 2u;
+        }
+
+        // _c far above it: _c itself, the products below half its rounding
+        if ( (ac != (double)0) &&
+             (d_internal_vec_d_exponent_of(ac) >
+              (ka + kx + bits + DBL_MANT_DIG + 3)) )
+        {
+            return _c;
+        }
+
+        return d_internal_vec_d_ld_round(
+            d_internal_vec_d_ld_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, ka, kx),
+            ka + kx);
+    }
+}
+
+// d_internal_vec_d_ld_sum
+//   sum_i _a[i _sa], rounded once to double from Sum2's pair -- Ogita, Rump and
+// Oishi's: each term into the running sum by a two-sum, the errors summed apart
+// and added last, the pair renormalized -- as accurate as the sum in twice long
+// double's precision, rounded once. Where twice _n times the largest term could
+// pass long double's largest value, the terms are first scaled, the largest to
+// [1, 2), exactly but where one falls into the subnormals, and the sum back. An
+// exact zero is +0; where a term is a NaN or an infinity, the terms summed as
+// written (d_internal_vec_d_naive_sum).
+D_MATH_FN double
+d_internal_vec_d_ld_sum(
+    const double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    struct dj_internal_math_ld_pair result =
+        { (long double)0, (long double)0 };
+    double            largest = (double)0;
+    int            k       = 0;
+    long double            high    = (long double)0;
+    long double            rest    = (long double)0;
+    size_t         i       = 0u;
+
+    // a NaN or an infinity: the terms as written
+    if (d_internal_vec_d_ld_reach(_a, _sa, _n) == 2)
+    {
+        return d_internal_vec_d_naive_sum(_a, _sa, _n);
+    }
+
+    largest = d_internal_vec_d_largest_of(_a, _sa, _n);
+
+    // each term 0: +0
+    if (largest == (double)0)
+    {
+        return (double)0;
+    }
+
+    // a partial sum that could overflow: the terms scaled
+    if ((long double)largest > (LDBL_MAX / ((long double)2 * (long double)_n)))
+    {
+        k = d_internal_vec_d_exponent_of(largest);
+    }
+
+    {
+        const long double up   = (k != 0) ? d_internal_math_ld_pow2((-k) / 2)
+                                  : (long double)1;
+        const long double down = (k != 0) ? d_internal_math_ld_pow2((-k) - ((-k) / 2))
+                                  : (long double)1;
+
+        // each term into the running sum, its error apart
+        for (i = 0u; i < _n; ++i)
+        {
+            const long double e    = (long double)_a[i * _sa];
+            const long double term = (k != 0) ? ((e * up) * down) : e;
+            const struct dj_internal_math_ld_pair s =
+                d_internal_math_ld_two_sum(high, term);
+
+            high = s.high;
+            rest = rest + s.low;
+        }
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (long double)0)
+    {
+        return (double)0;
+    }
+
+    return d_internal_vec_d_ld_round(result, k);
+}
+
+// d_internal_vec_d_ld_add_pair
+//   *_x + *_tail += _d in long double's pairs, then *_x the sum rounded once to
+// double (d_internal_vec_d_ld_round) and *_tail the rest, rounded to double.
+D_MATH_FN void
+d_internal_vec_d_ld_add_pair(
+    double* _x,
+    double* _tail,
+    double  _d
+)
+{
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum((long double)*_x, (long double)_d);
+    const struct dj_internal_math_ld_pair p =
+        d_internal_math_ld_two_sum(s.high, s.low + (long double)*_tail);
+    const double            high = d_internal_vec_d_ld_round(p, 0);
+
+    *_x    = high;
+    *_tail = (double)((p.high - (long double)high) + p.low);
+
+    return;
+}
+
+
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+// d_internal_vec_d_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity, else
+// 1 where one leaves the range where Dekker's products of two such entries are
+// exact in the pairs the family sums in, else 0.
+D_MATH_FN int
+d_internal_vec_d_reach(
+    const double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_d_d2_reach(_v, _stride, _n);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_d_ld_reach(_v, _stride, _n);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_d_dot2
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once from Dot2's pair; the
+// formula as written where an operand has a NaN or an infinity.
+D_MATH_FN double
+d_internal_vec_d_dot2(
+    double        _c,
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    const double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_d_d2_dot(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                   _tailed, _n);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_d_ld_dot(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                   _tailed, _n);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_d_dot2_direct
+//   d_internal_vec_d_dot2 for operands its caller has found in range -- each of
+// _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's entries are
+// where both factors were found so once: no test, no scaling.
+D_MATH_FN double
+d_internal_vec_d_dot2_direct(
+    bool       _minus,
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair sum =
+        d_internal_vec_d_d2_sum_of((double)0, _minus, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, 0, 0);
+
+    return d_internal_vec_d_d2_round(sum, 0);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_vec_d_ld_sum_of((double)0, _minus, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, 0, 0);
+
+    return d_internal_vec_d_ld_round(sum, 0);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_d_sum2
+//   sum_i _a[i _sa], rounded once from Sum2's pair; the terms as written where
+// one is a NaN or an infinity.
+D_MATH_FN double
+d_internal_vec_d_sum2(
+    const double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_d_d2_sum(_a, _sa, _n);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    return d_internal_vec_d_ld_sum(_a, _sa, _n);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_d_add_pair
+//   *_x + *_tail += _d, the pair renormalized, its high part the sum rounded
+// once: how mat.h's refinement carries a solution with its tail.
+D_MATH_FN void
+d_internal_vec_d_add_pair(
+    double* _x,
+    double* _tail,
+    double  _d
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    d_internal_vec_d_d2_add_pair(_x, _tail, _d);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    d_internal_vec_d_ld_add_pair(_x, _tail, _d);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
+// 3.3    Products and reductions
+//------------------------------------------------------------------------------
+// dot, cross and sum are compensated (S404): each a sum rounded once from
+// Dot2's or Sum2's pair (3.2), as accurate as the sum computed in
+// twice the precision and rounded once, so correctly rounded but where its
+// terms cancel past twice the precision or it lies within that of a
+// midpoint. The _fast forms are the formulas as written, each product
+// rounded before it is summed, in order, so that no compiler can fuse the
+// two and a result is the same on every target: faster, for double some ten
+// times, and their error unbounded where the terms cancel. product, min and
+// max are as written.
+
+// d_vec_d_dot
+//   the sum of the _count products _a[i] _b[i], rounded once from Dot2's
+// pair; where an operand has a NaN or an infinity, d_vec_d_dot_fast's.
 D_MATH_FN double
 d_vec_d_dot(
+    const double* _a,
+    const double* _b,
+    size_t     _count
+)
+{
+    return d_internal_vec_d_dot2((double)0, false, _a, 1u, _b, 1u, _b, 1u,
+                                   false, _count);
+}
+
+// d_vec_d_dot_fast
+//   the sum of the _count products as written: each product rounded, then
+// added, in order from +0.
+D_MATH_FN double
+d_vec_d_dot_fast(
     const double* _a,
     const double* _b,
     size_t     _count
@@ -1219,8 +3371,65 @@ d_vec_d_dot(
     return acc;
 }
 
+// d_internal_vec_d_difference
+//   _p _q - _r _s rounded once from Dot2's pair of the two products; where
+// the two products are equal, the formula as written, whose 0 then keeps
+// the sign the arithmetic gives it. Where a factor is a NaN or an infinity,
+// Dot2's kernel gives the formula's value (d_internal_vec_d_naive).
+D_MATH_FN double
+d_internal_vec_d_difference(
+    double _p,
+    double _q,
+    double _r,
+    double _s
+)
+{
+    const double left  = _p * _q;
+    const double right = _r * _s;
+    const double a[2]  = { _p, _r };
+    const double b[2]  = { _q, -_s };
+    const double value =
+        d_internal_vec_d_dot2((double)0, false, a, 1u, b, 1u, b, 1u, false, 2u);
+
+    // the products equal and so their difference 0: the formula's, its 0's
+    // sign the arithmetic's
+    if ( (value == (double)0) &&
+         (left == right) )
+    {
+        return left - right;
+    }
+
+    return value;
+}
+
+// d_vec_d_cross
+//   _out = _a x _b, each part the difference of its two products rounded
+// once from Dot2's pair (d_internal_vec_d_difference). _out may be _a or
+// _b.
 D_MATH_FN void
 d_vec_d_cross(
+    double*       _out,
+    const double* _a,
+    const double* _b
+)
+{
+    // all three from the inputs before any output is written
+    const double x = d_internal_vec_d_difference(_a[1], _b[2], _a[2], _b[1]);
+    const double y = d_internal_vec_d_difference(_a[2], _b[0], _a[0], _b[2]);
+    const double z = d_internal_vec_d_difference(_a[0], _b[1], _a[1], _b[0]);
+
+    _out[0] = x;
+    _out[1] = y;
+    _out[2] = z;
+
+    return;
+}
+
+// d_vec_d_cross_fast
+//   _out = _a x _b as written: each part's two products rounded, then
+// subtracted. _out may be _a or _b.
+D_MATH_FN void
+d_vec_d_cross_fast(
     double*       _out,
     const double* _a,
     const double* _b
@@ -1241,8 +3450,22 @@ d_vec_d_cross(
     return;
 }
 
+// d_vec_d_sum
+//   the sum of the _count terms, rounded once from Sum2's pair; where a term
+// is a NaN or an infinity, d_vec_d_sum_fast's.
 D_MATH_FN double
 d_vec_d_sum(
+    const double* _a,
+    size_t     _count
+)
+{
+    return d_internal_vec_d_sum2(_a, 1u, _count);
+}
+
+// d_vec_d_sum_fast
+//   the sum of the _count terms as written, in order from +0.
+D_MATH_FN double
+d_vec_d_sum_fast(
     const double* _a,
     size_t     _count
 )
@@ -1315,7 +3538,7 @@ d_vec_d_max(
     return m;
 }
 
-// 2.3    Norms and distances
+// 3.4    Norms and distances
 //------------------------------------------------------------------------------
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
@@ -1416,7 +3639,7 @@ d_internal_vec_d_scaled_entry(
 
 // d_internal_vec_d_scaled_sum
 //   the sum of the squares of the entries scaled by _pre and _power, as
-// d_vec_d_dot sums: each square rounded, then added.
+// d_vec_d_dot_fast sums: each square rounded, then added.
 D_MATH_FN double
 d_internal_vec_d_scaled_sum(
     const double* _a,
@@ -1441,13 +3664,17 @@ d_internal_vec_d_scaled_sum(
     return acc;
 }
 
+// d_vec_d_norm_squared
+//   the sum of the squares as written (d_vec_d_dot_fast's): a sum of
+// terms that cannot cancel, within (n - 1) u of its value relatively, and
+// the bits the norms keep where they are in range (S256, S405).
 D_MATH_FN double
 d_vec_d_norm_squared(
     const double* _a,
     size_t     _count
 )
 {
-    return d_vec_d_dot(_a, _a, _count);
+    return d_vec_d_dot_fast(_a, _a, _count);
 }
 
 // d_internal_vec_d_in_range_c
@@ -1730,7 +3957,7 @@ d_vec_d_normalize(
     return;
 }
 
-// 2.4    Projection and angle
+// 3.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
 // vector projects to zero. cos_angle is 0 when either vector is zero, and
@@ -1968,7 +4195,7 @@ d_vec_d_angle(
                             (c < (double)-1) ? (double)-1 : c );
 }
 
-// 2.5    Comparison
+// 3.6    Comparison
 //------------------------------------------------------------------------------
 // equal is component-wise ==; equals allows each component _tolerance.
 
@@ -2016,12 +4243,12 @@ d_vec_d_equals(
 }
 
 //==============================================================================
-// 3.  THE LONG DOUBLE FAMILY (_ld)
+// 4.  THE LONG DOUBLE FAMILY (_ld)
 //==============================================================================
 // _count components each; _out may be _a or _b.
 
 
-// 3.1    Element-wise arithmetic
+// 4.1    Element-wise arithmetic
 //------------------------------------------------------------------------------
 
 D_MATH_FN void
@@ -2172,13 +4399,606 @@ d_vec_ld_lerp(
     return;
 }
 
-// 3.2    Products and reductions
+// 4.2 Compensated sums
 //------------------------------------------------------------------------------
-// Each product is rounded before it is summed, so no compiler can fuse the
-// two and a result is the same on every target.
+// The kernels the products, the sums and mat.h's products, trace and refinement
+// take (S404): each a sum c + a . (x + t) of strided operands, rounded once
+// from Dot2's or Sum2's pair in the pairs section 1 says. Where an operand has
+// a NaN or an infinity, the sum is the formula as written, as d_vec_ld_dot_fast
+// computes it, so that every non-finite case is the arithmetic's own.
 
+// d_internal_vec_ld_naive
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as written, the products
+// negated where _minus and _t none but where _tailed: each product rounded,
+// then added, in order -- d_vec_ld_dot_fast's formula, for operands with a NaN
+// or an infinity.
+D_MATH_FN long double
+d_internal_vec_ld_naive(
+    long double        _c,
+    bool       _minus,
+    const long double* _a,
+    size_t     _sa,
+    const long double* _x,
+    size_t     _sx,
+    const long double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    long double    acc = _c;
+    size_t i   = 0u;
+
+    // each product rounded, then added
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double x       = _minus ? -_x[i * _sx] : _x[i * _sx];
+        const long double product = _a[i * _sa] * x;
+
+        acc += product;
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const long double u    = _minus ? -_t[i * _st] : _t[i * _st];
+            const long double tail = _a[i * _sa] * u;
+
+            acc += tail;
+        }
+    }
+
+    return acc;
+}
+
+// d_internal_vec_ld_naive_sum
+//   sum_i _a[i _sa] as written, in order from +0: d_vec_ld_sum_fast's formula,
+// for terms with a NaN or an infinity.
+D_MATH_FN long double
+d_internal_vec_ld_naive_sum(
+    const long double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    long double    acc = (long double)0;
+    size_t i   = 0u;
+
+    // each term, in order
+    for (i = 0u; i < _n; ++i)
+    {
+        acc += _a[i * _sa];
+    }
+
+    return acc;
+}
+
+// d_internal_vec_ld_largest_of
+//   the largest magnitude of the _n entries _v[i _stride], each finite: 0 where
+// each is 0.
+D_MATH_FN long double
+d_internal_vec_ld_largest_of(
+    const long double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    long double    largest = (long double)0;
+    size_t i       = 0u;
+
+    // each entry's magnitude
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double v = _v[i * _stride];
+        const long double a = (v < (long double)0) ? -v : v;
+
+        if (a > largest)
+        {
+            largest = a;
+        }
+    }
+
+    return largest;
+}
+
+// d_internal_vec_ld_exponent_of
+//   the binade E of a finite nonzero _x, 2^E <= |_x| < 2^(E + 1): a subnormal
+// lifted into the normal range first.
+D_MATH_FN int
+d_internal_vec_ld_exponent_of(
+    long double _x
+)
+{
+    const long double a    = (_x < (long double)0) ? -_x : _x;
+    const int lift = (a < LDBL_MIN) ? LDBL_MANT_DIG : 0;
+    const long double v =
+        (lift > 0) ? (a * d_internal_math_ld_pow2(lift)) : a;
+
+    return d_internal_math_ld_binade_of(v).exponent - lift;
+}
+
+// d_internal_vec_ld_ld_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity; else
+// 1 where one is not 0 and lies outside about 2^(EMIN/2 + P) to 2^(EMAX/2 - P)
+// in long double's terms, where Dekker's products of two such entries neither
+// overflow nor lose their low parts -- its square, rounded, from 2^(EMIN + 2P +
+// 1) to (1 - 2^-P) 2^(EMAX - 2P), bounds the range's own constants make with no
+// power to build -- else 0.
+D_MATH_FN int
+d_internal_vec_ld_ld_reach(
+    const long double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    const long double low =
+        LDBL_MIN * ((long double)16 / (LDBL_EPSILON * LDBL_EPSILON));
+    const long double high =
+        (LDBL_MAX * LDBL_EPSILON) * (LDBL_EPSILON / (long double)4);
+    int       reach = 0;
+    size_t    i     = 0u;
+
+    // each entry, until a NaN or an infinity
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double v = (long double)_v[i * _stride];
+        const long double a = (v < (long double)0) ? -v : v;
+
+        // a NaN or an infinity: no sum to compensate
+        if (!(a <= (long double)LDBL_MAX))
+        {
+            return 2;
+        }
+
+        // outside the range, but for 0
+        if ( (a != (long double)0) &&
+             ( ((a * a) < low) ||
+               ((a * a) > high) ) )
+        {
+            reach = 1;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_vec_ld_ld_sum_of
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]) as a pair of long double, the
+// products negated where _minus and _t none but where _tailed, every entry
+// finite: _a's entries first times 2^-_ka, _x's and _t's times 2^-_kx and _c
+// times 2^-(_ka + _kx), exactly but where an entry falls into the subnormals;
+// each product exact (d_internal_math_ld_product_exact), the high parts summed
+// by two-sums, the low parts and the two-sums' errors after, and the pair
+// renormalized -- Ogita, Rump and Oishi's Dot2, the sum as accurate as one in
+// twice long double's precision rounded once. An exact zero is +0.
+D_MATH_FN struct dj_internal_math_ld_pair
+d_internal_vec_ld_ld_sum_of(
+    long double        _c,
+    bool       _minus,
+    const long double* _a,
+    size_t     _sa,
+    const long double* _x,
+    size_t     _sx,
+    const long double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    struct dj_internal_math_ld_pair result = { (long double)0, (long double)0 };
+    const bool     scaled = ( (_ka != 0) ||
+                              (_kx != 0) );
+    const long double      sign   = _minus ? (long double)-1 : (long double)1;
+    long double            a_up   = (long double)1;
+    long double            a_down = (long double)1;
+    long double            x_up   = (long double)1;
+    long double            x_down = (long double)1;
+    long double            high   = (long double)_c;
+    long double            rest   = (long double)0;
+    size_t         i      = 0u;
+
+    // the factors, each a normal power of 2, and _c scaled with the products
+    if (scaled)
+    {
+        a_up   = d_internal_math_ld_pow2((-_ka) / 2);
+        a_down = d_internal_math_ld_pow2((-_ka) - ((-_ka) / 2));
+        x_up   = d_internal_math_ld_pow2((-_kx) / 2);
+        x_down = d_internal_math_ld_pow2((-_kx) - ((-_kx) / 2));
+        high   = d_internal_vec_ld_scale(high, -(_ka + _kx));
+    }
+
+    // each product exactly, its high part into the running sum
+    for (i = 0u; i < _n; ++i)
+    {
+        const long double ae = (long double)_a[i * _sa];
+        const long double xe = sign * (long double)_x[i * _sx];
+        const long double a  = scaled ? ((ae * a_up) * a_down) : ae;
+        const long double x  = scaled ? ((xe * x_up) * x_down) : xe;
+        const struct dj_internal_math_ld_pair p =
+            d_internal_math_ld_product_exact(a, x);
+        const struct dj_internal_math_ld_pair s =
+            d_internal_math_ld_two_sum(high, p.high);
+
+        high = s.high;
+        rest = rest + (s.low + p.low);
+
+        // the tail's product after it
+        if (_tailed)
+        {
+            const long double te = sign * (long double)_t[i * _st];
+            const long double u  = scaled ? ((te * x_up) * x_down) : te;
+            const struct dj_internal_math_ld_pair q =
+                d_internal_math_ld_product_exact(a, u);
+            const struct dj_internal_math_ld_pair v =
+                d_internal_math_ld_two_sum(high, q.high);
+
+            high = v.high;
+            rest = rest + (v.low + q.low);
+        }
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (long double)0)
+    {
+        result.high = (long double)0;
+        result.low  = (long double)0;
+    }
+
+    return result;
+}
+
+// d_internal_vec_ld_ld_round
+//   (_p.high + _p.low) 2^_k rounded once to long double, _p a renormalized pair
+// -- its high part the sum rounded: the high part scaled, exact where the
+// result is normal and an infinity past the range, as the sum's rounding makes
+// it; in the subnormals the scaling rounds again, and where the scaled high
+// part lay exactly between two subnormals, the low part's sign decides.
+D_MATH_FN long double
+d_internal_vec_ld_ld_round(
+    struct dj_internal_math_ld_pair _p,
+    int            _k
+)
+{
+    const long double value = (_k == 0) ? _p.high
+                                : d_internal_vec_ld_scale(_p.high, _k);
+    const long double a     = (value < (long double)0) ? -value : value;
+    const long double tiny  = LDBL_MIN * LDBL_EPSILON;
+
+    // scaled up or not at all, exact, normal or past the range: the scaled high
+    // part, the sum's rounding
+    if ( (_k >= 0) ||
+         (_p.low == (long double)0) ||
+         (!(a < LDBL_MIN)) )
+    {
+        return value;
+    }
+
+    {
+        const long double back = d_internal_vec_ld_scale(value, -_k);
+        const long double rest = _p.high - back;
+        const long double gap  = d_internal_vec_ld_scale(tiny, -_k);
+
+        // rounded down from the midpoint, and the sum lies above it
+        if ( ((rest + rest) == gap) &&
+             (_p.low > (long double)0) )
+        {
+            return value + tiny;
+        }
+
+        // rounded up from the midpoint, and the sum lies below it
+        if ( ((rest + rest) == -gap) &&
+             (_p.low < (long double)0) )
+        {
+            return value - tiny;
+        }
+    }
+
+    return value;
+}
+
+// d_internal_vec_ld_ld_dot
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once to long double from Dot2's
+// pair: as they are where every entry lies where Dekker's products are exact
+// and _c within a quarter of long double's largest value; else each operand
+// scaled, its largest entry to [1, 2), and the pair back -- or _c itself, where
+// the products' sum lies below half its rounding. Where an operand has a NaN or
+// an infinity, the formula as written (d_internal_vec_ld_naive).
+D_MATH_FN long double
+d_internal_vec_ld_ld_dot(
+    long double        _c,
+    bool       _minus,
+    const long double* _a,
+    size_t     _sa,
+    const long double* _x,
+    size_t     _sx,
+    const long double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    const int ra = d_internal_vec_ld_ld_reach(_a, _sa, _n);
+    const int rx = d_internal_vec_ld_ld_reach(_x, _sx, _n);
+    const int rt = d_internal_vec_ld_ld_reach(_t, _st, _tailed ? _n : 0u);
+    const long double ac = (_c < (long double)0) ? -_c : _c;
+
+    // a NaN or an infinity: the formula as written
+    if ( (ra == 2) || (rx == 2) || (rt == 2) || (!(ac <= LDBL_MAX)) )
+    {
+        return d_internal_vec_ld_naive(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                        _tailed, _n);
+    }
+
+    // every entry in range: no scaling
+    if ( (ra == 0) && (rx == 0) && (rt == 0) &&
+         ((long double)ac <= (LDBL_MAX / (long double)4)) )
+    {
+        return d_internal_vec_ld_ld_round(
+            d_internal_vec_ld_ld_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, 0, 0),
+            0);
+    }
+
+    {
+        const long double la   = d_internal_vec_ld_largest_of(_a, _sa, _n);
+        const long double lx   = d_internal_vec_ld_largest_of(_x, _sx, _n);
+        const long double lt   = d_internal_vec_ld_largest_of(_t, _st,
+                                                   _tailed ? _n : 0u);
+        const long double lu   = (lt > lx) ? lt : lx;
+        int       ka   = 0;
+        int       kx   = 0;
+        int       bits = 0;
+        size_t    left = _n;
+
+        // a zero operand: each product 0, the sum _c's (+0 for either 0)
+        if ( (la == (long double)0) ||
+             (lu == (long double)0) )
+        {
+            return _c + (long double)0;
+        }
+
+        ka = d_internal_vec_ld_exponent_of(la);
+        kx = d_internal_vec_ld_exponent_of(lu);
+
+        // the products' sum lies below 2^(ka + kx + 2 + bits)
+        while (left > 0u)
+        {
+            ++bits;
+            left /= 2u;
+        }
+
+        // _c far above it: _c itself, the products below half its rounding
+        if ( (ac != (long double)0) &&
+             (d_internal_vec_ld_exponent_of(ac) >
+              (ka + kx + bits + LDBL_MANT_DIG + 3)) )
+        {
+            return _c;
+        }
+
+        return d_internal_vec_ld_ld_round(
+            d_internal_vec_ld_ld_sum_of(_c, _minus, _a, _sa, _x, _sx, _t,
+                                           _st, _tailed, _n, ka, kx),
+            ka + kx);
+    }
+}
+
+// d_internal_vec_ld_ld_sum
+//   sum_i _a[i _sa], rounded once to long double from Sum2's pair -- Ogita,
+// Rump and Oishi's: each term into the running sum by a two-sum, the errors
+// summed apart and added last, the pair renormalized -- as accurate as the sum
+// in twice long double's precision, rounded once. Where twice _n times the
+// largest term could pass long double's largest value, the terms are first
+// scaled, the largest to [1, 2), exactly but where one falls into the
+// subnormals, and the sum back. An exact zero is +0; where a term is a NaN or
+// an infinity, the terms summed as written (d_internal_vec_ld_naive_sum).
+D_MATH_FN long double
+d_internal_vec_ld_ld_sum(
+    const long double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    struct dj_internal_math_ld_pair result =
+        { (long double)0, (long double)0 };
+    long double            largest = (long double)0;
+    int            k       = 0;
+    long double            high    = (long double)0;
+    long double            rest    = (long double)0;
+    size_t         i       = 0u;
+
+    // a NaN or an infinity: the terms as written
+    if (d_internal_vec_ld_ld_reach(_a, _sa, _n) == 2)
+    {
+        return d_internal_vec_ld_naive_sum(_a, _sa, _n);
+    }
+
+    largest = d_internal_vec_ld_largest_of(_a, _sa, _n);
+
+    // each term 0: +0
+    if (largest == (long double)0)
+    {
+        return (long double)0;
+    }
+
+    // a partial sum that could overflow: the terms scaled
+    if ((long double)largest > (LDBL_MAX / ((long double)2 * (long double)_n)))
+    {
+        k = d_internal_vec_ld_exponent_of(largest);
+    }
+
+    {
+        const long double up   = (k != 0) ? d_internal_math_ld_pow2((-k) / 2)
+                                  : (long double)1;
+        const long double down = (k != 0) ? d_internal_math_ld_pow2((-k) - ((-k) / 2))
+                                  : (long double)1;
+
+        // each term into the running sum, its error apart
+        for (i = 0u; i < _n; ++i)
+        {
+            const long double e    = (long double)_a[i * _sa];
+            const long double term = (k != 0) ? ((e * up) * down) : e;
+            const struct dj_internal_math_ld_pair s =
+                d_internal_math_ld_two_sum(high, term);
+
+            high = s.high;
+            rest = rest + s.low;
+        }
+    }
+
+    result = d_internal_math_ld_two_sum(high, rest);
+
+    // an exact zero: +0
+    if (result.high == (long double)0)
+    {
+        return (long double)0;
+    }
+
+    return d_internal_vec_ld_ld_round(result, k);
+}
+
+// d_internal_vec_ld_ld_add_pair
+//   *_x + *_tail += _d, the pair renormalized: its high part the sum rounded
+// once and its low part the rest, by two-sums -- exact but for the rest's own
+// rounding.
+D_MATH_FN void
+d_internal_vec_ld_ld_add_pair(
+    long double* _x,
+    long double* _tail,
+    long double  _d
+)
+{
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(*_x, _d);
+    const struct dj_internal_math_ld_pair p =
+        d_internal_math_ld_two_sum(s.high, s.low + *_tail);
+
+    *_x    = p.high;
+    *_tail = p.low;
+
+    return;
+}
+
+
+// d_internal_vec_ld_reach
+//   of the _n entries _v[i _stride]: 2 where one is a NaN or an infinity, else
+// 1 where one leaves the range where Dekker's products of two such entries are
+// exact in the pairs the family sums in, else 0.
+D_MATH_FN int
+d_internal_vec_ld_reach(
+    const long double* _v,
+    size_t     _stride,
+    size_t     _n
+)
+{
+    return d_internal_vec_ld_ld_reach(_v, _stride, _n);
+}
+
+// d_internal_vec_ld_dot2
+//   _c + sum_i _a[i _sa] (_x[i _sx] + _t[i _st]), the products negated where
+// _minus and _t none but where _tailed, rounded once from Dot2's pair; the
+// formula as written where an operand has a NaN or an infinity.
+D_MATH_FN long double
+d_internal_vec_ld_dot2(
+    long double        _c,
+    bool       _minus,
+    const long double* _a,
+    size_t     _sa,
+    const long double* _x,
+    size_t     _sx,
+    const long double* _t,
+    size_t     _st,
+    bool       _tailed,
+    size_t     _n
+)
+{
+    return d_internal_vec_ld_ld_dot(_c, _minus, _a, _sa, _x, _sx, _t, _st,
+                                    _tailed, _n);
+}
+
+// d_internal_vec_ld_dot2_direct
+//   d_internal_vec_ld_dot2 for operands its caller has found in range -- each
+// of _a's, _x's and _t's entries of reach 0 and _c 0 -- as a product's entries
+// are where both factors were found so once: no test, no scaling.
+D_MATH_FN long double
+d_internal_vec_ld_dot2_direct(
+    bool       _minus,
+    const long double* _a,
+    size_t     _sa,
+    const long double* _x,
+    size_t     _sx,
+    size_t     _n
+)
+{
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_vec_ld_ld_sum_of((long double)0, _minus, _a, _sa, _x, _sx,
+                                    _x, _sx, false, _n, 0, 0);
+
+    return d_internal_vec_ld_ld_round(sum, 0);
+}
+
+// d_internal_vec_ld_sum2
+//   sum_i _a[i _sa], rounded once from Sum2's pair; the terms as written where
+// one is a NaN or an infinity.
+D_MATH_FN long double
+d_internal_vec_ld_sum2(
+    const long double* _a,
+    size_t     _sa,
+    size_t     _n
+)
+{
+    return d_internal_vec_ld_ld_sum(_a, _sa, _n);
+}
+
+// d_internal_vec_ld_add_pair
+//   *_x + *_tail += _d, the pair renormalized, its high part the sum rounded
+// once: how mat.h's refinement carries a solution with its tail.
+D_MATH_FN void
+d_internal_vec_ld_add_pair(
+    long double* _x,
+    long double* _tail,
+    long double  _d
+)
+{
+    d_internal_vec_ld_ld_add_pair(_x, _tail, _d);
+
+    return;
+}
+
+// 4.3    Products and reductions
+//------------------------------------------------------------------------------
+// dot, cross and sum are compensated (S404): each a sum rounded once from
+// Dot2's or Sum2's pair (4.2), as accurate as the sum computed in
+// twice the precision and rounded once, so correctly rounded but where its
+// terms cancel past twice the precision or it lies within that of a
+// midpoint. The _fast forms are the formulas as written, each product
+// rounded before it is summed, in order, so that no compiler can fuse the
+// two and a result is the same on every target: faster, for double some ten
+// times, and their error unbounded where the terms cancel. product, min and
+// max are as written.
+
+// d_vec_ld_dot
+//   the sum of the _count products _a[i] _b[i], rounded once from Dot2's
+// pair; where an operand has a NaN or an infinity, d_vec_ld_dot_fast's.
 D_MATH_FN long double
 d_vec_ld_dot(
+    const long double* _a,
+    const long double* _b,
+    size_t     _count
+)
+{
+    return d_internal_vec_ld_dot2((long double)0, false, _a, 1u, _b, 1u, _b, 1u,
+                                   false, _count);
+}
+
+// d_vec_ld_dot_fast
+//   the sum of the _count products as written: each product rounded, then
+// added, in order from +0.
+D_MATH_FN long double
+d_vec_ld_dot_fast(
     const long double* _a,
     const long double* _b,
     size_t     _count
@@ -2197,8 +5017,69 @@ d_vec_ld_dot(
     return acc;
 }
 
+// d_internal_vec_ld_difference
+//   _p _q - _r _s rounded once from Dot2's pair of the two products; where
+// the two products are equal, the formula as written, whose 0 then keeps
+// the sign the arithmetic gives it. Where a factor is a NaN or an infinity,
+// Dot2's kernel gives the formula's value (d_internal_vec_ld_naive).
+D_MATH_FN long double
+d_internal_vec_ld_difference(
+    long double _p,
+    long double _q,
+    long double _r,
+    long double _s
+)
+{
+    const long double left  = _p * _q;
+    const long double right = _r * _s;
+    const long double a[2]  = { _p, _r };
+    const long double b[2]  = { _q, -_s };
+    const long double value =
+        d_internal_vec_ld_dot2((long double)0, false, a, 1u, b, 1u, b, 1u,
+                               false, 2u);
+
+    // the products equal and so their difference 0: the formula's, its 0's
+    // sign the arithmetic's
+    if ( (value == (long double)0) &&
+         (left == right) )
+    {
+        return left - right;
+    }
+
+    return value;
+}
+
+// d_vec_ld_cross
+//   _out = _a x _b, each part the difference of its two products rounded
+// once from Dot2's pair (d_internal_vec_ld_difference). _out may be _a or
+// _b.
 D_MATH_FN void
 d_vec_ld_cross(
+    long double*       _out,
+    const long double* _a,
+    const long double* _b
+)
+{
+    // all three from the inputs before any output is written
+    const long double x =
+        d_internal_vec_ld_difference(_a[1], _b[2], _a[2], _b[1]);
+    const long double y =
+        d_internal_vec_ld_difference(_a[2], _b[0], _a[0], _b[2]);
+    const long double z =
+        d_internal_vec_ld_difference(_a[0], _b[1], _a[1], _b[0]);
+
+    _out[0] = x;
+    _out[1] = y;
+    _out[2] = z;
+
+    return;
+}
+
+// d_vec_ld_cross_fast
+//   _out = _a x _b as written: each part's two products rounded, then
+// subtracted. _out may be _a or _b.
+D_MATH_FN void
+d_vec_ld_cross_fast(
     long double*       _out,
     const long double* _a,
     const long double* _b
@@ -2219,8 +5100,22 @@ d_vec_ld_cross(
     return;
 }
 
+// d_vec_ld_sum
+//   the sum of the _count terms, rounded once from Sum2's pair; where a term
+// is a NaN or an infinity, d_vec_ld_sum_fast's.
 D_MATH_FN long double
 d_vec_ld_sum(
+    const long double* _a,
+    size_t     _count
+)
+{
+    return d_internal_vec_ld_sum2(_a, 1u, _count);
+}
+
+// d_vec_ld_sum_fast
+//   the sum of the _count terms as written, in order from +0.
+D_MATH_FN long double
+d_vec_ld_sum_fast(
     const long double* _a,
     size_t     _count
 )
@@ -2293,7 +5188,7 @@ d_vec_ld_max(
     return m;
 }
 
-// 3.3    Norms and distances
+// 4.4    Norms and distances
 //------------------------------------------------------------------------------
 // Each root comes in two forms, the same value bit for bit (elementary.h's
 // two square roots are both correctly rounded): the _c form a constant
@@ -2394,7 +5289,7 @@ d_internal_vec_ld_scaled_entry(
 
 // d_internal_vec_ld_scaled_sum
 //   the sum of the squares of the entries scaled by _pre and _power, as
-// d_vec_ld_dot sums: each square rounded, then added.
+// d_vec_ld_dot_fast sums: each square rounded, then added.
 D_MATH_FN long double
 d_internal_vec_ld_scaled_sum(
     const long double* _a,
@@ -2419,13 +5314,17 @@ d_internal_vec_ld_scaled_sum(
     return acc;
 }
 
+// d_vec_ld_norm_squared
+//   the sum of the squares as written (d_vec_ld_dot_fast's): a sum of
+// terms that cannot cancel, within (n - 1) u of its value relatively, and
+// the bits the norms keep where they are in range (S256, S405).
 D_MATH_FN long double
 d_vec_ld_norm_squared(
     const long double* _a,
     size_t     _count
 )
 {
-    return d_vec_ld_dot(_a, _a, _count);
+    return d_vec_ld_dot_fast(_a, _a, _count);
 }
 
 // d_internal_vec_ld_in_range_c
@@ -2486,7 +5385,8 @@ d_vec_ld_norm_c(
     size_t     _count
 )
 {
-    const long double norm = d_math_ld_sqrt_c(d_vec_ld_norm_squared(_a, _count));
+    const long double norm =
+        d_math_ld_sqrt_c(d_vec_ld_norm_squared(_a, _count));
 
     return d_internal_vec_ld_rescued_c(_a, NULL, _count, norm);
 }
@@ -2708,7 +5608,7 @@ d_vec_ld_normalize(
     return;
 }
 
-// 3.4    Projection and angle
+// 4.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
 // vector projects to zero. cos_angle is 0 when either vector is zero, and
@@ -2946,7 +5846,7 @@ d_vec_ld_angle(
                             (c < (long double)-1) ? (long double)-1 : c );
 }
 
-// 3.5    Comparison
+// 4.6    Comparison
 //------------------------------------------------------------------------------
 // equal is component-wise ==; equals allows each component _tolerance.
 
@@ -2997,7 +5897,7 @@ d_vec_ld_equals(
 #ifdef __cplusplus
 
 //==============================================================================
-// 4.  ONE NAME FOR EVERY FAMILY (C++)
+// 5.  ONE NAME FOR EVERY FAMILY (C++)
 //==============================================================================
 // C++ only: the kernels above under one name each, chosen by argument type,
 // so a C++ template serves float, double and long double alike.
@@ -3100,6 +6000,16 @@ d_vec_dot(
     return d_vec_f_dot(_a, _b, _count);
 }
 
+D_MATH_FN float
+d_vec_dot_fast(
+    const float* _a,
+    const float* _b,
+    size_t       _count
+)
+{
+    return d_vec_f_dot_fast(_a, _b, _count);
+}
+
 D_MATH_FN void
 d_vec_cross(
     float*       _out,
@@ -3110,6 +6020,16 @@ d_vec_cross(
     return d_vec_f_cross(_out, _a, _b);
 }
 
+D_MATH_FN void
+d_vec_cross_fast(
+    float*       _out,
+    const float* _a,
+    const float* _b
+)
+{
+    return d_vec_f_cross_fast(_out, _a, _b);
+}
+
 D_MATH_FN float
 d_vec_sum(
     const float* _a,
@@ -3117,6 +6037,15 @@ d_vec_sum(
 )
 {
     return d_vec_f_sum(_a, _count);
+}
+
+D_MATH_FN float
+d_vec_sum_fast(
+    const float* _a,
+    size_t       _count
+)
+{
+    return d_vec_f_sum_fast(_a, _count);
 }
 
 D_MATH_FN float
@@ -3403,6 +6332,16 @@ d_vec_dot(
     return d_vec_d_dot(_a, _b, _count);
 }
 
+D_MATH_FN double
+d_vec_dot_fast(
+    const double* _a,
+    const double* _b,
+    size_t        _count
+)
+{
+    return d_vec_d_dot_fast(_a, _b, _count);
+}
+
 D_MATH_FN void
 d_vec_cross(
     double*       _out,
@@ -3413,6 +6352,16 @@ d_vec_cross(
     return d_vec_d_cross(_out, _a, _b);
 }
 
+D_MATH_FN void
+d_vec_cross_fast(
+    double*       _out,
+    const double* _a,
+    const double* _b
+)
+{
+    return d_vec_d_cross_fast(_out, _a, _b);
+}
+
 D_MATH_FN double
 d_vec_sum(
     const double* _a,
@@ -3420,6 +6369,15 @@ d_vec_sum(
 )
 {
     return d_vec_d_sum(_a, _count);
+}
+
+D_MATH_FN double
+d_vec_sum_fast(
+    const double* _a,
+    size_t        _count
+)
+{
+    return d_vec_d_sum_fast(_a, _count);
 }
 
 D_MATH_FN double
@@ -3706,6 +6664,16 @@ d_vec_dot(
     return d_vec_ld_dot(_a, _b, _count);
 }
 
+D_MATH_FN long double
+d_vec_dot_fast(
+    const long double* _a,
+    const long double* _b,
+    size_t             _count
+)
+{
+    return d_vec_ld_dot_fast(_a, _b, _count);
+}
+
 D_MATH_FN void
 d_vec_cross(
     long double*       _out,
@@ -3716,6 +6684,16 @@ d_vec_cross(
     return d_vec_ld_cross(_out, _a, _b);
 }
 
+D_MATH_FN void
+d_vec_cross_fast(
+    long double*       _out,
+    const long double* _a,
+    const long double* _b
+)
+{
+    return d_vec_ld_cross_fast(_out, _a, _b);
+}
+
 D_MATH_FN long double
 d_vec_sum(
     const long double* _a,
@@ -3723,6 +6701,15 @@ d_vec_sum(
 )
 {
     return d_vec_ld_sum(_a, _count);
+}
+
+D_MATH_FN long double
+d_vec_sum_fast(
+    const long double* _a,
+    size_t             _count
+)
+{
+    return d_vec_ld_sum_fast(_a, _count);
 }
 
 D_MATH_FN long double

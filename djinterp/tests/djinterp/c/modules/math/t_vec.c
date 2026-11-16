@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/c/modules/math/t_vec.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ...
@@ -160,9 +160,9 @@ d_tests_vec_##S(void)                                                          \
         /* the dot product: each product rounded, summed in order */           \
         acc = (T)0;                                                            \
         for (i = 0u; i < n; ++i) { const T p = a[i] * b[i]; acc += p; }        \
-        D_TESTS_EXPECT(d_tests_stored_##S(d_vec_##S##_dot(a, b, n)) ==         \
+        D_TESTS_EXPECT(d_tests_stored_##S(d_vec_##S##_dot_fast(a, b, n)) ==    \
                        d_tests_stored_##S(acc),                                \
-                       #S " dot");                                             \
+                       #S " dot_fast");                                        \
                                                                                \
         /* the two roots agree bit for bit, and are the library's */           \
         {                                                                      \
@@ -243,7 +243,7 @@ d_tests_vec_##S(void)                                                          \
                 lo = (a[i] < lo) ? a[i] : lo;                                  \
                 hi = (a[i] > hi) ? a[i] : hi;                                  \
             }                                                                  \
-            D_TESTS_EXPECT( (d_tests_stored_##S(d_vec_##S##_sum(a, n)) ==      \
+            D_TESTS_EXPECT( (d_tests_stored_##S(d_vec_##S##_sum_fast(a, n)) == \
                              d_tests_stored_##S(sum)) &&                       \
                             (d_tests_stored_##S(d_vec_##S##_product(a, n)) ==  \
                              d_tests_stored_##S(prod)) &&                      \

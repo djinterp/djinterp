@@ -22,7 +22,7 @@
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_dynamic_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/dynamic_matrix.hpp"
 // djinterp
@@ -114,6 +114,16 @@ namespace
                         (a.norm_squared() == fa.norm_squared()) &&
                         (dn == fn),
                         "products, trace and norms");
+        D_TESTS_EXPECT( (a.times_fast(c).template to_fixed<2, 2>() ==
+                         fa.times_fast(fc)) &&
+                        (a.times(c).trace_fast() ==
+                         fa.times(fc).trace_fast()) &&
+                        (a.times(c).power_fast(3).template to_fixed<2, 2>() ==
+                         fa.times(fc).power_fast(3)) &&
+                        (a.times(c).power(3).template to_fixed<2, 2>() ==
+                         fa.times(fc).power(3)),
+                        "the _fast forms and the power are the fixed-size "
+                        "type's");
 
         std::vector<T> v(3, T(1));
         const std::vector<T> av = a.times(v);

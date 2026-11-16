@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/matrix.hpp"  // tested
 // std
@@ -183,8 +183,17 @@ namespace
             const vector<t_real, 3>    vr(v_r);
             const double               s = d_tests_random();
 
-            D_TESTS_EXPECT(d_tests_parity(a.times(b), ar.times(br)),
-                           "a product, generic and C");
+            D_TESTS_EXPECT( (d_tests_parity(a.times_fast(b), ar.times(br))) &&
+                            (d_tests_parity(multiply_fast(a, b),
+                                            ar.times_fast(br))),
+                           "a product as written, generic and C");
+            {
+                double out[8];
+
+                d_mat_multiply(out, a.data(), b.data(), 2u, 3u, 4u);
+                D_TESTS_EXPECT(d_vec_equal(a.times(b).data(), out, 8u),
+                               "a product, the C core's compensated one");
+            }
             D_TESTS_EXPECT(d_tests_parity(a.transposed(), ar.transposed()),
                            "a transpose, generic and C");
             D_TESTS_EXPECT(d_tests_parity(a.plus(a.scaled(s)),
@@ -194,12 +203,18 @@ namespace
                                           ar.minus(ar.hadamard(ar))
                                               .negated()),
                            "differences, generic and C");
-            D_TESTS_EXPECT( (d_tests_parity(sq.power(7), sqr.power(7))) &&
-                            (d_tests_parity(sq.power(0), sqr.power(0))),
+            D_TESTS_EXPECT( (d_tests_parity(sq.power_fast(7),
+                                            sqr.power(7))) &&
+                            (d_tests_parity(sq.power_fast(0),
+                                            sqr.power_fast(0))),
                             "a power, generic and C, by squaring: two "
                             "squares and two products by A; the 0th the "
                             "identity in each");
-            D_TESTS_EXPECT(d_tests_same(sq.trace(), sqr.trace().v),
+            D_TESTS_EXPECT( (d_tests_same(sq.trace_fast(), sqr.trace().v)) &&
+                            (d_tests_same(trace_fast(sq),
+                                          sqr.trace_fast().v)) &&
+                            (d_tests_same(sq.trace(),
+                                          d_mat_trace(sq.data(), 3u))),
                            "trace, generic and C");
             D_TESTS_EXPECT(d_tests_same(sq.norm(), sqr.norm().v),
                            "the norm, generic and C");
@@ -209,7 +224,7 @@ namespace
                             (sqr.equals(sqr)),
                             "equality, generic");
 
-            const vector<double, 3> mv  = sq.times(v);
+            const vector<double, 3> mv  = sq.times_fast(v);
             const vector<t_real, 3> mvr = sqr.times(vr);
 
             D_TESTS_EXPECT( (d_tests_same(mv[0], mvr[0].v)) &&

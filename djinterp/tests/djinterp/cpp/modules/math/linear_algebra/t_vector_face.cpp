@@ -28,7 +28,7 @@
 * path:      /tests/djinterp/cpp/modules/math/linear_algebra/t_vector_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/linear_algebra/vector.hpp"  // tested
 // std
@@ -119,7 +119,11 @@ namespace
 
     // d_tests_generic_parity
     //   a t_real vector (the generic path) against a double one (the C
-    // core), every operation, bit for bit.
+    // core), every operation, bit for bit: the C core's formulas as written,
+    // its _fast forms, against the generic path's one formula, and its
+    // compensated dot and sum against the C core's own (S404). projection,
+    // rejection and the angle divide the compensated dot, so the generic
+    // path's agree with them wherever the two dots do.
     void
     d_tests_generic_parity()
     {
@@ -144,22 +148,25 @@ namespace
             const vector<t_real, 4> br(b_r);
             const double            s = d_tests_random();
 
+            const bool              dots = d_tests_same(a.dot(b),
+                                                        ar.dot(br).v);
             const vector<double, 4> sums[] = { a.plus(b), a.minus(b),
                                                a.scaled(s), a.hadamard(b),
                                                a.lerp(b, s), a.normalized(),
+                                               a.negated(),
                                                a.projected_onto(b),
-                                               a.rejected_from(b),
-                                               a.negated() };
+                                               a.rejected_from(b) };
             const vector<t_real, 4> sums_r[] = { ar.plus(br), ar.minus(br),
                                                  ar.scaled(s),
                                                  ar.hadamard(br),
                                                  ar.lerp(br, s),
                                                  ar.normalized(),
+                                                 ar.negated(),
                                                  ar.projected_onto(br),
-                                                 ar.rejected_from(br),
-                                                 ar.negated() };
+                                                 ar.rejected_from(br) };
 
-            for (int k = 0; k < 9; ++k)
+            // the last two divide the dot: compared where the dots agree
+            for (int k = 0; k < (dots ? 9 : 7); ++k)
             {
                 bool same = true;
 
@@ -171,20 +178,31 @@ namespace
                 D_TESTS_EXPECT(same, "a vector operation, generic and C");
             }
 
-            D_TESTS_EXPECT(d_tests_same(a.dot(b), ar.dot(br).v),
-                           "dot, generic and C");
+            D_TESTS_EXPECT(d_tests_same(a.dot_fast(b), ar.dot(br).v),
+                           "dot_fast, generic and C");
+            D_TESTS_EXPECT( (d_tests_same(a.dot(b),
+                                          d_vec_dot(a.data(), b.data(), 4u))) &&
+                            (d_tests_same(dot_fast(a, b),
+                                          ar.dot_fast(br).v)),
+                            "dot, the C core's compensated one");
             D_TESTS_EXPECT(d_tests_same(a.norm(), ar.norm().v),
                            "norm, generic and C");
             D_TESTS_EXPECT(d_tests_same(a.distance(b), ar.distance(br).v),
                            "distance, generic and C");
-            D_TESTS_EXPECT(d_tests_same(a.cos_angle(b), ar.cos_angle(br).v),
+            D_TESTS_EXPECT( (!dots) ||
+                            (d_tests_same(a.cos_angle(b),
+                                          ar.cos_angle(br).v)),
                            "cos_angle, generic and C");
-            D_TESTS_EXPECT(d_tests_same(a.angle_to(b), ar.angle_to(br).v),
+            D_TESTS_EXPECT( (!dots) ||
+                            (d_tests_same(a.angle_to(b), ar.angle_to(br).v)),
                            "angle_to, generic and C");
             D_TESTS_EXPECT( (ar == ar) &&
                             (a == a),
                             "a vector equals itself, generic and C");
-            D_TESTS_EXPECT( (d_tests_same(a.sum(), ar.sum().v)) &&
+            D_TESTS_EXPECT( (d_tests_same(a.sum_fast(), ar.sum().v)) &&
+                            (d_tests_same(a.sum(),
+                                          d_vec_sum(a.data(), 4u))) &&
+                            (d_tests_same(sum_fast(a), ar.sum_fast().v)) &&
                             (d_tests_same(a.product(), ar.product().v)) &&
                             (d_tests_same(a.min_coeff(), ar.min_coeff().v)) &&
                             (d_tests_same(a.max_coeff(), ar.max_coeff().v)),

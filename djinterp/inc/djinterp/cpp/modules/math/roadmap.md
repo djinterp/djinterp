@@ -32,7 +32,9 @@ number, and with `inline_value` computes in constant expressions (chunk 25).
 `number_traits` and `common_number` tell generic code what it needs of a
 number type, so vectors and matrices of values compute exactly (chunk 26):
 Phase 1 is done. All of it is checked by 25 C harnesses and 31 face tests in
-360 and 1,984 builds.
+360 and 1,984 builds. Since chunk 49 the C core's sums of products and of
+terms are compensated by default, and `solve` refined with extra precision
+(S404 to S406), each with a `_fast` form as written.
 `eigenvalues_qr` and `general_eigen` were fixed in chunk 13 (M1 and M2).
 
 Not ported yet: the compile-time expression engine and what stands on it,
@@ -1048,8 +1050,15 @@ for it (S398); `math.hpp` complete, with entry points, and the README's
 quick start (S399); and the language's headers named for what they hold,
 `function.hpp` and `matrix.hpp` split (S400, S401). The third, `math::expr::`,
 the owner withdrew on 2026.11.14: the language stays flat in
-`djinterp::math`, its names keeping the `expr_` prefix (S397). Accuracy is
-next; step 29, 5a, follows it, as lane A asks, before 0.8 on 2026.11.30.
+`djinterp::math`, its names keeping the `expr_` prefix (S397). The last
+group, accuracy, the owner scoped on 2026.11.14 to the float and double
+families: chunk 49 made its first part, the C core's sums of products and
+of terms compensated by default and `solve` refined with extra precision,
+each with a `_fast` form as written (S404 to S407); the complex dense
+kernels' compensation (S408) and the float and double `_c` forms correctly
+rounded, provably, at today's speed, are next, the long double family's
+and the plain forms' left for step 36. Step 29, 5a, follows, as lane A
+asks, before 0.8 on 2026.11.30.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.

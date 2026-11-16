@@ -639,13 +639,14 @@ NS_INTERNAL
         std::vector<expr_matrix_skew>       scratch(_n * _n);
         std::vector<expr_matrix_skew>       solution(_n * _columns);
 
-        // singular: a pole
-        if (!kernel::solve(solution.data(),
-                           scratch.data(),
-                           a.data(),
-                           b.data(),
-                           _n,
-                           _columns))
+        // singular: a pole, by the generic kernel's elimination,
+        // which its solve and solve_fast share (S406)
+        if (!kernel::solve_fast(solution.data(),
+                                scratch.data(),
+                                a.data(),
+                                b.data(),
+                                _n,
+                                _columns))
         {
             return value(D_MATH_VALUE_ERROR_POLE);
         }
@@ -727,13 +728,14 @@ NS_INTERNAL
         std::vector<value>       scratch(_n * _n);
         std::vector<value>       solution(_n * _columns);
 
-        // a pole for a singular A
-        if (!kernel::solve(solution.data(),
-                           scratch.data(),
-                           y.data(),
-                           z.data(),
-                           _n,
-                           _columns))
+        // a pole for a singular A, by the generic kernel's elimination,
+        // which its solve and solve_fast share (S406)
+        if (!kernel::solve_fast(solution.data(),
+                                scratch.data(),
+                                y.data(),
+                                z.data(),
+                                _n,
+                                _columns))
         {
             return value(D_MATH_VALUE_ERROR_POLE);
         }

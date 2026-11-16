@@ -83,7 +83,7 @@
 * path:      /inc/djinterp/c/modules/math/quat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -3262,10 +3262,10 @@ d_quat_f_rotate_fast(
     float wt[3] = { (float)0, (float)0, (float)0 };
     float ut[3] = { (float)0, (float)0, (float)0 };
 
-    d_vec_f_cross(t, _q, _v);
+    d_vec_f_cross_fast(t, _q, _v);
     d_vec_f_scale(t, t, (float)2, 3u);
     d_vec_f_scale(wt, t, _q[3], 3u);
-    d_vec_f_cross(ut, _q, t);
+    d_vec_f_cross_fast(ut, _q, t);
     d_vec_f_add(_out, _v, wt, 3u);
     d_vec_f_add(_out, _out, ut, 3u);
 
@@ -4992,10 +4992,10 @@ d_quat_d_rotate_fast(
     double wt[3] = { (double)0, (double)0, (double)0 };
     double ut[3] = { (double)0, (double)0, (double)0 };
 
-    d_vec_d_cross(t, _q, _v);
+    d_vec_d_cross_fast(t, _q, _v);
     d_vec_d_scale(t, t, (double)2, 3u);
     d_vec_d_scale(wt, t, _q[3], 3u);
-    d_vec_d_cross(ut, _q, t);
+    d_vec_d_cross_fast(ut, _q, t);
     d_vec_d_add(_out, _v, wt, 3u);
     d_vec_d_add(_out, _out, ut, 3u);
 
@@ -6643,10 +6643,10 @@ d_quat_ld_rotate_fast(
     long double wt[3] = { (long double)0, (long double)0, (long double)0 };
     long double ut[3] = { (long double)0, (long double)0, (long double)0 };
 
-    d_vec_ld_cross(t, _q, _v);
+    d_vec_ld_cross_fast(t, _q, _v);
     d_vec_ld_scale(t, t, (long double)2, 3u);
     d_vec_ld_scale(wt, t, _q[3], 3u);
-    d_vec_ld_cross(ut, _q, t);
+    d_vec_ld_cross_fast(ut, _q, t);
     d_vec_ld_add(_out, _v, wt, 3u);
     d_vec_ld_add(_out, _out, ut, 3u);
 

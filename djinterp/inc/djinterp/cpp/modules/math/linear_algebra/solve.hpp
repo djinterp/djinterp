@@ -12,16 +12,23 @@
 *   back_substitution(U, b)         - solve U x = b, U upper triangular
 *   solve(A, b)                     - solve a square system A x = b
 *   solve(A, B)                     - solve A X = B for a matrix RHS
+*   solve_fast(A, b), (A, B)        - the elimination alone, unrefined
 *   solve_spd(A, b)                 - solve an SPD system A x = b   (Cholesky)
 *   least_squares(A, b)             - minimize ||A x - b||, M x N, M >= N (QR)
 *
 * DESIGN NOTES:
 *   - solve is Gaussian elimination of [A | B] with partial pivoting, then
 *     back-substitution (S257), the kernels': for float, double and long
-*     double the C core's d_mat_solve, each column LU's bits; for any other
-*     number type but an integer type, its own arithmetic -- exact for an
-*     exact type, products kept in order where they do not commute. A
-*     singular A gives the zero solution, as inverse gives the zero matrix.
+*     double the C core's d_mat_solve, each column LU's solution refined
+*     with extra precision -- its residual by Dot2, the solution carried
+*     with a tail -- until the corrections stop mattering or stop
+*     shrinking (S406), so that for a system well away from singular each
+*     entry is the solution correctly rounded but within some cond(A)
+*     eps^2 of a midpoint; for any other number type but an integer type,
+*     its own arithmetic -- exact for an exact type, products kept in order
+*     where they do not commute. solve_fast is the elimination alone, LU's
+*     bits, as solve was until chunk 49. A singular A gives the zero
+*     solution, as inverse gives the zero matrix.
 *   - forward_substitution / back_substitution read only the relevant triangle
 *     and divide by the diagonal (general, not unit-diagonal, triangular).
 *   - solve_spd uses Cholesky and assumes A is symmetric positive-definite; for
@@ -36,8 +43,9 @@
 *
 * A FACE OVER THE C CORE:
 *   The substitutions and least squares' Q^T b are c/math/decomp.h's, the
-* loops this header wrote, in their order; solve is c/math/mat.h's
-* d_mat_solve through the kernels, and solve_spd goes through
+* loops this header wrote, in their order; solve and solve_fast are
+* c/math/mat.h's d_mat_solve and d_mat_solve_fast through the kernels, the
+* refined solve's scratch and pivots on the stack, and solve_spd goes through
 * decomposition.hpp's Cholesky as before. Everything compiles from
 * C++98, constexpr from C++14 as it was (least squares' QR from C++14
 * where decomposition.hpp's is).
@@ -47,7 +55,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/solve.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.30
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -169,10 +177,11 @@ back_substitution(
 // solve
 //   function: x with _a x = _b, by Gaussian elimination of [_a | _b] with
 // partial pivoting and back-substitution (S257): for float, double and long
-// double the C core's d_mat_solve, LU's bits; for any other number type but
-// an integer type its own arithmetic, exact where it is exact, products in
-// their order where they do not commute. The zero vector for a singular _a,
-// as inverse gives the zero matrix.
+// double the C core's d_mat_solve, LU's solution refined with extra
+// precision (S406); for any other number type but an integer type its own
+// arithmetic, exact where it is exact, products in their order where they
+// do not commute. The zero vector for a singular _a, as inverse gives the
+// zero matrix.
 template<typename    T,
          std::size_t N>
 D_CONSTEXPR_CPP14 vector<T, N>
@@ -186,10 +195,12 @@ solve(
                     "solution in general.");
 
     vector<T, N> x;
-    T            scratch[N * N] = { T() };
+    T            scratch[(N * N) + (2 * N)] = { T() };
+    std::size_t  pivots[N]                  = { 0 };
 
     (void)internal::linalg_kernel<T>::solve(x.begin(),
                                             scratch,
+                                            pivots,
                                             _a.data(),
                                             _b.data(),
                                             N,
@@ -200,8 +211,8 @@ solve(
 
 // solve
 //   function: X with _a X = _b, by one elimination of [_a | _b] and a
-// back-substitution per column, as solve(_a, _b) of a vector; each column
-// the bits that solve of that column gives.
+// back-substitution per column, as solve(_a, _b) of a vector, each column
+// then refined alone; each column the bits that solve of that column gives.
 template<typename    T,
          std::size_t N,
          std::size_t K>
@@ -216,14 +227,74 @@ solve(
                     "solution in general.");
 
     matrix<T, N, K> x;
-    T               scratch[N * N] = { T() };
+    T               scratch[(N * N) + (2 * N)] = { T() };
+    std::size_t     pivots[N]                  = { 0 };
 
     (void)internal::linalg_kernel<T>::solve(&x(0, 0),
                                             scratch,
+                                            pivots,
                                             _a.data(),
                                             _b.data(),
                                             N,
                                             K);
+
+    return x;
+}
+
+// solve_fast
+//   function: x with _a x = _b by the elimination alone, unrefined: for
+// float, double and long double the C core's d_mat_solve_fast, LU's bits,
+// as solve gave them until chunk 49; for any other type solve's own.
+template<typename    T,
+         std::size_t N>
+D_CONSTEXPR_CPP14 vector<T, N>
+solve_fast(
+    const matrix<T, N, N>& _a,
+    const vector<T, N>&    _b
+) D_NOEXCEPT
+{
+    D_STATIC_ASSERT((!number_traits<T>::is_integer),
+                    "solve_fast: an integer element type has no integer "
+                    "solution in general.");
+
+    vector<T, N> x;
+    T            scratch[N * N] = { T() };
+
+    (void)internal::linalg_kernel<T>::solve_fast(x.begin(),
+                                                 scratch,
+                                                 _a.data(),
+                                                 _b.data(),
+                                                 N,
+                                                 1);
+
+    return x;
+}
+
+// solve_fast
+//   function: X with _a X = _b by the elimination alone, as solve_fast of a
+// vector does it for each column.
+template<typename    T,
+         std::size_t N,
+         std::size_t K>
+D_CONSTEXPR_CPP14 matrix<T, N, K>
+solve_fast(
+    const matrix<T, N, N>& _a,
+    const matrix<T, N, K>& _b
+) D_NOEXCEPT
+{
+    D_STATIC_ASSERT((!number_traits<T>::is_integer),
+                    "solve_fast: an integer element type has no integer "
+                    "solution in general.");
+
+    matrix<T, N, K> x;
+    T               scratch[N * N] = { T() };
+
+    (void)internal::linalg_kernel<T>::solve_fast(&x(0, 0),
+                                                 scratch,
+                                                 _a.data(),
+                                                 _b.data(),
+                                                 N,
+                                                 K);
 
     return x;
 }

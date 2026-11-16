@@ -3727,13 +3727,14 @@ NS_INTERNAL
         std::vector<operand>       x(_n * _columns);
         std::vector<operand>       scratch(_n * _n);
 
-        // singular: a pole
-        if (!kernel::solve(x.data(),
-                           scratch.data(),
-                           a.data(),
-                           b.data(),
-                           _n,
-                           _columns))
+        // singular: a pole, by the generic kernel's elimination,
+        // which its solve and solve_fast share (S406)
+        if (!kernel::solve_fast(x.data(),
+                                scratch.data(),
+                                a.data(),
+                                b.data(),
+                                _n,
+                                _columns))
         {
             return value(D_MATH_VALUE_ERROR_POLE);
         }

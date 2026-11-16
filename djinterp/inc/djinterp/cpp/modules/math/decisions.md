@@ -1,20 +1,22 @@
-# djinterp math: the lane's decisions, S1 to S403
+# djinterp math: the lane's decisions, S1 to S408
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S396 stand, his own
+its delivery, his "continue", has accepted it: S1 to S403 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
 reviews they rule, each "Ruled 2026.11.04", two of them, S336 and S340, his
 own choice of an alternative the review had set aside, made in chunk 46
-(S384, S385). S397 to S403 are chunk 48's, open until his word on it: his
-word of 2026.11.14 on the language's names, which kept them flat in
-`djinterp::math` (S397), and the second of the four groups of fixes he chose
-on 2026.11.12, consolidation. Where a later decision changes an earlier one,
+(S384, S385). S404 to S408 are chunk 49's, open until his word on it: the
+last of the groups of fixes he chose on 2026.11.12, accuracy, as he scoped
+it on 2026.11.14 -- compensated sums and a refined solve in this chunk, the
+float and double `_c` forms correctly rounded in the next. His word of
+2026.11.14 on the language's names, which kept them flat in
+`djinterp::math`, is S397's. Where a later decision changes an earlier one,
 the later one says so; the earlier one stays here as it was taken.
 
 A decision names files as they were when it was taken. Chunk 48 merged the
@@ -34,7 +36,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-23 flagged decisions, the outstanding ones, come first, in six groups by
+24 flagged decisions, the outstanding ones, come first, in six groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -44,15 +46,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk48_2026.11.14/tools/decisions_c48.py`.
+`_handoffs/math98_chunk49_2026.11.14/tools/decisions_c49.py`.
 
 ## 1. Outstanding decisions
 
-The 23 flagged decisions: those whose review recommends what is not yet
+The 24 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c48.md`'s, in chunk 48's
+The groups and the steps are `decisions_outstanding_c49.md`'s, in chunk 49's
 record.
 
 ### 1.1 The expression language
@@ -125,7 +127,46 @@ record.
   Recommended: as taken, with S251's declared domains at step 25 (4a), a
   variable declared complex or a quaternion then keeping its place.
 
-### 1.3 The compile-time core
+### 1.3 Linear algebra and eigenvalues
+
+- S301. When: the next chunk, with S408: chunk 49 touched `vec.h`'s sums,
+  not `project` and `reject`; minor. Minor: `project` and `reject` unscaled.
+  Recommended: as taken, with `project` and `reject` scaled the same way at
+  the next step that touches `vec.h`. Ruled 2026.11.04: as recommended, at
+  the next step that touches `vec.h`.
+- S408. When: the next chunk, before 0.8: `d_cmat_*_solve` refined, the
+  complex products compensated. Significant: the complex dense kernels
+  uncompensated and unrefined. Recommended: cmat.h's solve refined and the
+  complex products compensated in the next chunk, before 0.8.
+- S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
+  number type, both faces' matrices taking it. Not the earlier review's
+  recommendation in full: neither face's matrix holds quaternions; the
+  language's does. Recommended: the first alternative, with step 40 (6e) or
+  sooner on demand, both faces' matrices at once; as taken until then.
+- S306. When: at the next step that touches the Jacobi functions; minor.
+  Minor: no scaling before the Jacobi sweeps. Recommended: as taken, with
+  the matrix scaled by a power of two first, as the driver is, at the next
+  step that touches the Jacobi functions, the bits in range unchanged. Ruled
+  2026.11.04: as recommended, at the next step that touches the Jacobi
+  functions.
+- S311. When: at the next step that touches the balancing; minor. Minor: the
+  balancing exact only where no entry passes below the least normal.
+  Recommended: the first alternative, the factors applied once at the end,
+  at the next step that touches the balancing: exact wherever representable,
+  the same bits wherever no entry underflows. Ruled 2026.11.04: the first
+  alternative, the factors applied once at the end, as recommended.
+- S360. When: at the next step that touches `quat.h`'s kernels; minor.
+  Minor: the accurate rotation costs some 900 ns, near two hundred times the
+  `_fast` form's. Recommended: as taken, and the rotation and its matrices
+  in double's pairs for float and double, as the product's (S358), at the
+  next step that touches `quat.h`'s kernels.
+- S364. When: at the next step that touches `quat.h`'s kernels; minor.
+  Minor: the plain exp's and pow's error grows with |v| and p. Recommended:
+  as taken for the `_c` forms, which the faces take; the plain forms
+  carrying |v| as a pair, as the product's double pairs do, at the next step
+  that touches `quat.h`'s kernels.
+
+### 1.4 The compile-time core
 
 - S403. When: step 29 (5a): `expression.hpp`'s variables `x` to `phi` in a
   namespace of their own; minor. Minor: `math.hpp` is not clean under
@@ -133,7 +174,7 @@ record.
   `expression.hpp`'s variables in a namespace of their own, which ends every
   such warning at once.
 
-### 1.4 Precision and one answer
+### 1.5 Precision and one answer
 
 - S15. When: step 36 (6a), where one answer becomes bit-identity; sooner at
   no cost. Not the recommendation; two answers across levels. Recommended:
@@ -164,40 +205,6 @@ record.
   recommendation (minor). Recommended: the alternative, at its small cost.
   Ruled 2026.11.04: the alternative, as recommended, at any step that
   touches `power.h`.
-
-### 1.5 Linear algebra and eigenvalues
-
-- S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
-  number type, both faces' matrices taking it. Not the earlier review's
-  recommendation in full: neither face's matrix holds quaternions; the
-  language's does. Recommended: the first alternative, with step 40 (6e) or
-  sooner on demand, both faces' matrices at once; as taken until then.
-- S301. When: at the next step that touches `vec.h`; minor. Minor: `project`
-  and `reject` unscaled. Recommended: as taken, with `project` and `reject`
-  scaled the same way at the next step that touches `vec.h`. Ruled
-  2026.11.04: as recommended, at the next step that touches `vec.h`.
-- S306. When: at the next step that touches the Jacobi functions; minor.
-  Minor: no scaling before the Jacobi sweeps. Recommended: as taken, with
-  the matrix scaled by a power of two first, as the driver is, at the next
-  step that touches the Jacobi functions, the bits in range unchanged. Ruled
-  2026.11.04: as recommended, at the next step that touches the Jacobi
-  functions.
-- S311. When: at the next step that touches the balancing; minor. Minor: the
-  balancing exact only where no entry passes below the least normal.
-  Recommended: the first alternative, the factors applied once at the end,
-  at the next step that touches the balancing: exact wherever representable,
-  the same bits wherever no entry underflows. Ruled 2026.11.04: the first
-  alternative, the factors applied once at the end, as recommended.
-- S360. When: at the next step that touches `quat.h`'s kernels; minor.
-  Minor: the accurate rotation costs some 900 ns, near two hundred times the
-  `_fast` form's. Recommended: as taken, and the rotation and its matrices
-  in double's pairs for float and double, as the product's (S358), at the
-  next step that touches `quat.h`'s kernels.
-- S364. When: at the next step that touches `quat.h`'s kernels; minor.
-  Minor: the plain exp's and pow's error grows with |v| and p. Recommended:
-  as taken for the `_c` forms, which the faces take; the plain forms
-  carrying |v| as a pair, as the product's double pairs do, at the next step
-  that touches `quat.h`'s kernels.
 
 ### 1.6 Number types and the value's kinds
 
@@ -8247,3 +8254,169 @@ them.
 > (5a), `expression.hpp`'s variables in a namespace of their own, which ends
 > every such warning at once. **Flag:** minor: `math.hpp` is not clean under
 > `-Wshadow` until step 29.
+
+### S404 to S408: chunk 49, 2026.11.14
+
+The record: `_handoffs/math98_chunk49_2026.11.14/README.md`.
+
+**S404. The C core's sums of products and of terms are compensated by
+default: vec.h's `dot`, `cross` and `sum`, and mat.h's `multiply`,
+`multiply_vector`, `trace` and `power` (by `multiply`), each a sum rounded
+once from Ogita, Rump and Oishi's Dot2 or Sum2 -- each product exact as a
+pair by Dekker's product, the terms summed by two-sums, the errors summed
+apart and added last -- as accurate as the sum computed in twice the
+precision and rounded once.** The pairs are double's where double is
+evaluated in its own type, for the float and double families -- a float's
+products exact in one multiplication -- and long double's otherwise and
+for the long double family, as quat.h's products took them (S276). Where an
+entry leaves the range where Dekker's products are exact, its operand is
+scaled by a power of two and the sum scaled back, rounded once, a subnormal
+result's midpoint decided by the low part; where an operand has a NaN or an
+infinity, the sum is the formula as written; an exact zero is +0, as the
+formula from +0 makes it, and a part of `cross` that is 0 because its two
+products are equal is the formula's, of the sign the arithmetic gives it.
+A product's entries are tested once for the range, and each entry summed
+with no test of its own where both operands lie in it.
+- Alternative: the formulas as they were, compensated forms under new names
+  (`dot_accurate`, ...): no bits change and no cost; accuracy only where a
+  caller knows to ask for it, against S276's choice for the quaternion's
+  product.
+- Alternative: Kahan's or Neumaier's compensated summation of the rounded
+  products: cheaper, but each product's own rounding stays, so a dot is no
+  better than its products where they cancel.
+- Alternative: an exact accumulator (Kulisch's, or Rump's AccSum): every sum
+  correctly rounded, at several times Dot2's cost and much more code.
+- Alternative: products by fused multiply-add at run time: Dot2 at a
+  fraction of the cost where the target has one, but no constant expression
+  and not the same bits on every target.
+
+> **Review.** Taken: for, every dot, sum, cross product, matrix product and
+> trace of the C core as accurate as computed in twice the precision and
+> rounded once -- in this chunk's checks every float result and every sum
+> and cross part correctly rounded, and every double and long double dot the
+> rounding of a value within Dot2's bound, 86 in 100 of them correctly
+> rounded where the formula as written rounds 14 or 15 in 100 so
+> (`raw/compensated.txt`) -- the same bits on every target where the family
+> is evaluated in its own type, and a constant expression from C++14 as
+> before. Against: the cost, measured for double at 6 times the formula's
+> for a dot of 3 terms, 22 for 16 and 13 for 256, 11 for a 4 x 4 product and
+> 12 for a cross product (`raw/timing.txt`); and every result of these
+> kernels may change in its last bits, the tests written against the
+> formulas moved to their `_fast` forms. The alternatives: the formulas kept
+> as the defaults; Kahan's summation; an exact accumulator; fused
+> multiply-adds. Recommended: as taken, as S276 took it for the quaternion's
+> product: a default that is right, and a `_fast` form for a measured inner
+> loop. Taken.
+
+**S405. Each kernel S404 compensates keeps its formula as written, bit for
+bit, under a `_fast` name: `dot_fast`, `cross_fast`, `sum_fast`,
+`multiply_fast`, `multiply_vector_fast`, `power_fast`, `trace_fast` and
+`solve_fast` (S406), in the C core, the kernels and both faces, fixed and
+dynamic.** The norms keep their sums as written: `norm_squared` is
+`dot_fast(a, a)`, as the norms S256 and S301 scaled use it, a sum of
+squares, which cannot cancel, within (n - 1) u of its value relatively, and
+every norm keeps its bits. `project`, `reject`, `cos_angle` and `angle`
+divide the compensated `dot`, the part of them that can cancel; quat.h's
+`slerp` takes its arc's sign from it. quat.h's `rotate_fast` and isect.h's
+ray tests take `cross_fast` and `dot_fast`: the first is the quaternion's
+fast form, as written by its contract, and the second tests within an
+epsilon, in a renderer's inner loop, which the compensated kernels would
+make several times slower for no answer it can use. The generic kernel,
+for exact and other number types, has one formula, and its `_fast` forms
+are it.
+- Alternative: no `_fast` forms: one formula each, the compensated, and a
+  caller who needs the old speed or bits writes the loop.
+- Alternative: the norms compensated too: each norm within about half an
+  ulp, at Dot2's cost in `normalize`, the renderer's commonest call, and
+  every norm's bits changed for a gain of at most (n - 1) u.
+- Alternative: isect.h's tests compensated: their products more accurate,
+  their epsilon the same, and their answers in an inner loop several times
+  slower.
+
+> **Review.** Taken: for, every caller's old bits and speed one name away,
+> the norms' bits and S256's and S301's guarantees untouched, and the
+> kernels that divide a dot more accurate where the dot cancels; quat.h's
+> fast rotation and isect.h's tests as fast as they were. Against: eight
+> more names in the C core and the faces, and `norm_squared(a)` and `dot(a,
+> a)` no longer the same bits. The alternatives: no `_fast` forms; the norms
+> compensated; isect.h compensated. Recommended: as taken. Taken.
+
+**S406. `d_mat_<S>_solve` refines its solution with extra precision, as
+LAPACK's `dgerfsx` does (Demmel, Hida, Kahan, Li, Mukherjee and Riedy,
+2006): each column first as the elimination gives it, A's LU factors kept
+with their interchanges, then corrected from its residual b - A x,
+computed by Dot2 with x carried as a pair, x and its tail, the correction
+solved by the factors and added to the pair, until every entry's
+correction lies below half its unit in the last place, or neither the
+largest correction nor the largest relative to its entry halves (the last
+not added), or `D_CFG_MATH_MAT_REFINE_STEPS` steps have run; each entry is
+then x and its tail rounded once.** For a system well away from singular,
+cond(A) u well below 1, each entry is the solution correctly rounded but
+where it lies within some cond(A) u^2 of a midpoint. The signature takes
+the factors' room, `_scratch` of n * n + 2 n entries and `_pivots` of n,
+so that a call written for the old one fails to compile rather than
+overrun a buffer of n * n; `d_mat_<S>_solve_fast` is the elimination alone,
+the old signature and its bits. The faces' `solve(A, b)` and `solve(A, B)`
+are the refined solve, `solve_fast` the elimination; the generic kernel's
+solve is its elimination, which needs no refinement for an exact type and
+has no wider sum to refine with for another, and the language's solves,
+which take the generic kernel, call it as `solve_fast`, their bits as
+they were.
+- Alternative: the old signature, the pivots kept in `_scratch` as values
+  of the family's type: no call to change, and a caller's buffer of n * n
+  overrun without a word.
+- Alternative: refinement without the tail, x alone: the classical
+  refinement with an extra-precise residual, the solution to about an ulp,
+  not to its rounding.
+- Alternative: LAPACK's whole procedure, with its normwise and
+  componentwise error bounds returned: what a caller needs to trust an
+  ill-conditioned answer, and an interface the faces do not have.
+- Alternative: the elimination in long double, rounded once: no refinement
+  loop, and nothing gained for the long double family or where long double
+  is double.
+
+> **Review.** Taken: for, the solution of a system well away from singular
+> correctly rounded entry by entry -- every entry of the 65 reference
+> systems in this chunk's checks, 281, the 64 well conditioned and the one
+> that is not, where the elimination alone gave 41 (`raw/compensated.txt`)
+> -- by the algorithm LAPACK and its analysis stand behind, its old bits
+> under `solve_fast`, and no old call compiling into an overrun. Against: a
+> C caller of `d_mat_<S>_solve` must change its call; and the cost, measured
+> for double at 11 times the elimination's for order 3 and 7 for order 8
+> (`raw/timing.txt`). The alternatives: the old signature; no tail; LAPACK's
+> error bounds; the elimination in long double. Recommended: as taken; error
+> bounds, should a caller ask for them, in a form of their own. Taken.
+
+**S407. The refinement's bound is a knob, `D_CFG_MATH_MAT_REFINE_STEPS`,
+in a new configuration header, `cfg_mat.h`: 10 by default, LAPACK's
+ITHRESH, 1 or more.** A system cond(A) u from singular gains about -log2
+(cond(A) u) bits a step, so most converge in one or two; the bound matters
+only where the corrections neither converge nor stop shrinking quickly.
+- Alternative: 10, written into the kernel: one less header, and no way to
+  trade the last steps for speed without editing the C core.
+- Alternative: an argument of `solve`: per call, and one more argument on
+  every call for what is almost never changed.
+
+> **Review.** Taken: for, the configuration's convention, the knobs in
+> `cfg_*.h`, one default a host can change without editing the C core;
+> against, one more header. The alternatives: a constant in the kernel; an
+> argument. Recommended: as taken. Taken.
+
+**S408. The complex dense kernels stay as they were in this chunk:
+cmat.h's `d_cmat_<S>_solve` unrefined, and the products of matrices of
+`math::complex<T>` summed in order by the generic kernel, each product
+compensated by cplx.h's multiplication.** The real kernels came first,
+being what the faces, the geometry and the renderer call; the complex ones
+need a Dot2 over pairs of real products for each part of each entry, and
+cmat.h's solve the same refinement with a complex residual.
+- Alternative: both now: every dense kernel compensated in one chunk, and
+  this chunk's delivery later by the size of cmat.h's changes and their
+  tests.
+
+> **Review.** Taken: for, this chunk delivered on the kernels every face
+> calls; against, `d_cmat_<S>_solve` and the language's complex matrices as
+> accurate as before, a complex solve no longer the real one's equal in
+> accuracy. The alternative: both in this chunk. Recommended: cmat.h's solve
+> refined and the complex products compensated in the next chunk, before
+> 0.8. **Flag:** significant: the complex dense kernels uncompensated and
+> unrefined.

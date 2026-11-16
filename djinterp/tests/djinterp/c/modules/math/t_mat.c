@@ -26,7 +26,7 @@
 * path:      /tests/djinterp/c/modules/math/t_mat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
@@ -118,7 +118,7 @@ d_tests_mat_##S(void)                                                          \
         }                                                                      \
                                                                                \
         /* the product, r x c by c x q: each product rounded, summed in k */   \
-        d_mat_##S##_multiply(out, a, b, r, c, q);                              \
+        d_mat_##S##_multiply_fast(out, a, b, r, c, q);                         \
         for (i = 0u; i < r; ++i)                                               \
         {                                                                      \
             for (j = 0u; j < q; ++j)                                           \
@@ -132,10 +132,11 @@ d_tests_mat_##S(void)                                                          \
                 want[(i * q) + j] = acc;                                       \
             }                                                                  \
         }                                                                      \
-        D_TESTS_EXPECT(d_tests_same_##S(out, want, r * q), #S " multiply");    \
+        D_TESTS_EXPECT(d_tests_same_##S(out, want, r * q),                     \
+                       #S " multiply_fast");                                   \
                                                                                \
         /* the matrix-vector product */                                        \
-        d_mat_##S##_multiply_vector(w, a, v, r, c);                            \
+        d_mat_##S##_multiply_vector_fast(w, a, v, r, c);                       \
         for (i = 0u; i < r; ++i)                                               \
         {                                                                      \
             T acc = (T)0;                                                      \
@@ -147,7 +148,7 @@ d_tests_mat_##S(void)                                                          \
             want[i] = acc;                                                     \
         }                                                                      \
         D_TESTS_EXPECT(d_tests_same_##S(w, want, r),                           \
-                       #S " multiply_vector");                                 \
+                       #S " multiply_vector_fast");                            \
                                                                                \
         /* the transpose, and the transpose of the transpose */                \
         d_mat_##S##_transpose(out, a, r, c);                                   \
@@ -186,7 +187,8 @@ d_tests_mat_##S(void)                                                          \
             {                                                                  \
                 acc += sq[(i * r) + i];                                        \
             }                                                                  \
-            D_TESTS_EXPECT(d_mat_##S##_trace(sq, r) == acc, #S " trace");      \
+            D_TESTS_EXPECT(d_mat_##S##_trace_fast(sq, r) == acc,               \
+                           #S " trace_fast");                                  \
         }                                                                      \
         d_mat_##S##_transpose(out, sq, r, r);                                  \
         d_vec_##S##_add(want, sq, out, r * r);                                 \
@@ -434,11 +436,11 @@ d_tests_square_##S(void)                                                       \
             {                                                                  \
                 b[i] = (T)((long)((i * 3u + (size_t)trial) % 7u) - 3);         \
             }                                                                  \
-            solved  = d_mat_##S##_solve(x, scratch, a, b, n, 2u);              \
+            solved  = d_mat_##S##_solve_fast(x, scratch, a, b, n, 2u);         \
             written = d_tests_solve_##S(xw, sw, a, b, n, 2u);                  \
             D_TESTS_EXPECT( (solved == written) &&                             \
                             (d_tests_same_##S(x, xw, 2u * n)),                 \
-                            #S " solve is the elimination written out");       \
+                            #S " solve_fast is the elimination written out");  \
             if (!solved)                                                       \
             {                                                                  \
                 for (i = 0u; i < 2u * n; ++i) { want[i] = (T)0; }              \
@@ -498,12 +500,12 @@ d_tests_square_##S(void)                                                       \
                 b[i] = (T)(((double)((st >> 4) % 2000003u) / 250000.0) -       \
                            4.0);                                               \
             }                                                                  \
-            solved  = d_mat_##S##_solve(x, scratch, a, b, n, 3u);              \
+            solved  = d_mat_##S##_solve_fast(x, scratch, a, b, n, 3u);         \
             written = d_tests_solve_##S(xw, sw, a, b, n, 3u);                  \
             D_TESTS_EXPECT( (solved) && (written) &&                           \
                             (d_tests_same_##S(x, xw, 3u * n)),                 \
-                            #S " solve of a real matrix: the elimination "     \
-                               "written out");                                 \
+                            #S " solve_fast of a real matrix: the "            \
+                               "elimination written out");                     \
         }                                                                      \
     }                                                                          \
                                                                                \
