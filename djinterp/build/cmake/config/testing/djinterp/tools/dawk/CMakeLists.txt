@@ -6,11 +6,12 @@
 #   The CMake twin of tools/build.sh. Builds the checker's units as C, at
 # C11, into one static library, links dcheck and the test programs against
 # it, and gives CTest the suites: the unit tests, every rule fixture against
-# its golden, the fixer against the files it should leave, the driver's
-# resolution of a sheet's claims, and the driver over the fixtures against
-# the harness's goldens. The four that are scripts in tests/dawk are CMake
-# scripts here, beside this file, so that a suite needs CMake and the
-# compiler and nothing else: no shell, on any system.
+# its golden, the fixer against the files it should leave, the gate that
+# proves the fixer's repair audit is load-bearing, the driver's resolution of
+# a sheet's claims, and the driver over the fixtures against the harness's
+# goldens. The five that are scripts in tests/dawk are CMake scripts here,
+# beside this file, so that a suite needs CMake and the compiler and nothing
+# else: no shell, on any system.
 #   The checker reads CMake files too, with dawk's CMake reader, so the leaf
 # also tests the reader: alone, over every CMake file under build/cmake, and
 # against the CMake running the tests, on every form an argument takes. The
@@ -49,7 +50,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/dawk/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-#                                                            revised: 2026.10.20
+#                                                            revised: 2026.11.16
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -348,6 +349,36 @@ target_link_libraries(djinterp_dawk_test_dgit PRIVATE djinterp_dawk_git)
 djinterp_dawk_flags(djinterp_dawk_test_dgit)
 
 
+# the checker twice more, with a deliberately wrong repair compiled in: once
+# with the repair audit and once without, for the gate that proves the audit
+# is load-bearing (gate_fault.sh, run_gate_fault.cmake). Each is its own
+# build of the checker's units, since the switches reach into them.
+get_target_property(_checker_sources djinterp_dawk_checker SOURCES)
+
+foreach(_variant IN ITEMS audited unaudited)
+    add_library(djinterp_dawk_checker_fault_${_variant} STATIC
+        ${_checker_sources})
+    add_executable(djinterp_dawk_dcheck_fault_${_variant}
+        "${_tool}/dcheck.c")
+
+    set_target_properties(djinterp_dawk_dcheck_fault_${_variant} PROPERTIES
+        OUTPUT_NAME dcheck_fault_${_variant})
+
+    target_link_libraries(djinterp_dawk_dcheck_fault_${_variant}
+        PRIVATE djinterp_dawk_checker_fault_${_variant})
+
+    foreach(_target IN ITEMS djinterp_dawk_checker_fault_${_variant}
+                             djinterp_dawk_dcheck_fault_${_variant})
+        djinterp_dawk_flags(${_target})
+        target_compile_definitions(${_target} PRIVATE D_AUDIT_FAULT_CORRUPT)
+
+        if(_variant STREQUAL "unaudited")
+            target_compile_definitions(${_target} PRIVATE D_AUDIT_DISABLED)
+        endif()
+    endforeach()
+endforeach()
+
+
 #------------------------------------------------------------------------------
 # the suites
 #------------------------------------------------------------------------------
@@ -550,6 +581,13 @@ djinterp_dawk_script(djinterp_dawk_rules run_rules.cmake
 djinterp_dawk_script(djinterp_dawk_fix run_fix.cmake
     "-DDCHECK=$<TARGET_FILE:djinterp_dawk_dcheck>"
     "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/djinterp_dawk_fix")
+
+# the repair audit is load-bearing: the planted fault damages files without
+# it, and none with it
+djinterp_dawk_script(djinterp_dawk_gate_fault run_gate_fault.cmake
+    "-DAUDITED=$<TARGET_FILE:djinterp_dawk_dcheck_fault_audited>"
+    "-DUNAUDITED=$<TARGET_FILE:djinterp_dawk_dcheck_fault_unaudited>"
+    "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/djinterp_dawk_gate_fault")
 
 # the driver's resolution of a sheet's claims
 djinterp_dawk_script(djinterp_dawk_claims run_claims.cmake

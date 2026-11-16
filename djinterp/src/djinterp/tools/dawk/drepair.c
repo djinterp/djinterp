@@ -11,7 +11,7 @@
 * path:      /src/djinterp/tools/dawk/drepair.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/drepair.h"  // corresponding header
 // std
@@ -293,19 +293,42 @@ size_t d_internal_apply_comment(
         return 0u;
     }
 
-    (void)snprintf(after, sizeof(after), "%s%*s// %s", before, (int)gap, "",
-                   _words);
+    // the length was checked above; the count is checked again here, so that
+    // a line cut short can never be written
+    const int written = snprintf(after, sizeof(after), "%s%*s// %s", before,
+                                 (int)gap, "", _words);
+
+    if ( (written < 0) || ((size_t)written >= sizeof(after)) )
+    {
+        return 0u;
+    }
+
+#ifdef D_AUDIT_FAULT_CORRUPT
+    // test only: a deliberately wrong repair that damages the code before the
+    // comment it adds. It must never reach a file while the audit is compiled
+    // in (gate_fault.sh).
+    if (length > 0u)
+    {
+        after[length - 1u] = '#';
+    }
+#endif
 
     claim.kind  = D_AUDIT_INSERT;
     claim.head  = length;
     claim.value = after + length;
 
+#ifndef D_AUDIT_DISABLED
     if (!d_audit_verify(before, after, &claim, &why))
     {
         d_internal_refused(_refused, _path, _line, "trailing-comment", why);
 
         return 0u;
     }
+#else
+    (void)claim;
+    (void)why;
+    (void)_refused;
+#endif
 
     return d_edit_rewrite_line(_path, _line, after) ? 1u : 0u;
 }

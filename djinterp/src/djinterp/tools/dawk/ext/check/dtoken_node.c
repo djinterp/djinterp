@@ -16,7 +16,7 @@
 * path:      /src/djinterp/tools/dawk/ext/check/dtoken_node.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/check/dtoken_node.h"  // corresponding header
 // std
@@ -1346,14 +1346,69 @@ bool d_internal_namespace_indents(
 
 
 /**
+ * @brief Reports whether an `extern "C"` block indents what it holds.
+ *
+ * Parse holds the block's items on the block's own level. A block opened
+ * outside any conditional is a body, and adds a level as any braced body
+ * does (H30, ruled 2026.11.16). One opened inside a conditional is a C
+ * header's `#ifdef __cplusplus` guard: its closing brace stands in another
+ * conditional, so what lies between is not its body, and it adds none.
+ * `D_EXTERN_C_BEGIN` is a macro, never an `extern` token, so it adds none.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _k      an item's index.
+ * @return true when the item is an `extern "C"` block whose opening brace's
+ *         conditional stays open until its closing brace; false otherwise.
+ */
+static
+bool d_internal_extern_indents(
+    const struct dj_internal_build* _build,
+    uint32_t                        _k
+)
+{
+    const struct dj_syntax_item* const item = &_build->items.items[_k];
+
+    if ( (item->kind != D_SYNTAX_ITEM_BLOCK)                       ||
+         (_build->tokens[item->first].kind != D_TOKEN_KW_EXTERN)  ||
+         (item->body == D_SYNTAX_NONE) )
+    {
+        return false;
+    }
+
+    const uint32_t close = _build->groups.match[item->body];
+
+    if ( (close == D_SYNTAX_NONE) || (close <= item->body) ||
+         (close >= (uint32_t)_build->count) )
+    {
+        return false;
+    }
+
+    // a token between the braces outside the opener's conditional means the
+    // conditional closed inside the block: the guard's shape
+    const uint8_t open_pp = _build->items.pp_of[item->body];
+
+    for (uint32_t at = item->body + 1u; at < close; ++at)
+    {
+        if (_build->items.pp_of[at] < open_pp)
+        {
+            return false;
+        }
+    }
+
+    return (_build->items.pp_of[close] == open_pp);
+}
+
+
+/**
  * @brief Counts the levels an item stands further in than parse's level says.
  *
  * @param[in] _build  the build.
  * @param[in] _k      the item's index.
- * @return one for each namespace around the item that indents what it holds:
- *         a `namespace` block (d_internal_namespace_indents) or a namespace
- *         macro (d_internal_macro_scopes). A block down a case is parse's to
- *         count (lane F's F24).
+ * @return one for each block around the item that indents what it holds: a
+ *         `namespace` block (d_internal_namespace_indents), an `extern "C"`
+ *         block (d_internal_extern_indents) or a namespace macro
+ *         (d_internal_macro_scopes). A block down a case is parse's to count
+ *         (lane F's F24).
  */
 static
 unsigned d_internal_lift(
@@ -1373,11 +1428,12 @@ unsigned d_internal_lift(
           : (item->scope != D_SYNTAX_NONE)  ? _build->items.item_of[item->scope]
                                             : D_SYNTAX_NONE;
 
-        // the namespace holding it, which is never the item itself, and the
-        // namespace macros around it in its scope
+        // the namespace or `extern "C"` block holding it, which is never the
+        // item itself, and the namespace macros around it in its scope
         if ( (out != at) && (out != D_SYNTAX_NONE) &&
              (item->parent == D_SYNTAX_NONE) &&
-             (d_internal_namespace_indents(_build, out)) )
+             ( d_internal_namespace_indents(_build, out) ||
+               d_internal_extern_indents(_build, out) ) )
         {
             ++lift;
         }

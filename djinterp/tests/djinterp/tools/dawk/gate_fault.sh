@@ -1,60 +1,87 @@
 #!/bin/sh
-# gate_fault.sh <root> -- proves the repair audit is load-bearing.
+# gate_fault.sh -- proves the fixer's repair audit is load-bearing.
 #
-# Builds dcheck twice with a deliberately wrong repair compiled in: once with
-# the audit, once without.  The test passes only if the fault demonstrably
-# corrupts files when the audit is absent, and corrupts none when it is
-# present.  A gate that never fires against a fault that never happens proves
-# nothing, so the first condition is checked as strictly as the second.
+# The dawk leaf builds the checker twice with a deliberately wrong repair
+# compiled in (D_AUDIT_FAULT_CORRUPT): a trailing comment, as the sheets add
+# one to a corresponding header's #include and to an #endif, is added with
+# the last character of the code before it turned into a `#`.
+# dcheck_fault_audited keeps the repair audit; dcheck_fault_unaudited
+# compiles it out (D_AUDIT_DISABLED).  Each is run to a fixpoint over a copy
+# of tests/dawk/fix/before, whose files have findings whose rules state a
+# repair.  The test passes only if the fault damages lines without the audit
+# and none with it, and the audit refused something.  A gate that never
+# fires against a fault that never happens proves nothing, so the first
+# condition is checked as strictly as the second.  CTest runs the same gate
+# as run_gate_fault.cmake, beside the leaf.
+#
+#   sh tests/djinterp/tools/dawk/gate_fault.sh \
+#       [build/dcheck_fault_audited] [build/dcheck_fault_unaudited]
+#
+# Run it from the repository root.
 set -u
-ROOT=${1:?usage: gate_fault.sh <root>}
-HERE=$(cd "$(dirname "$0")" && pwd)
-TOP=$(cd "$HERE/../../../.." && pwd)
-S="$TOP/src/djinterp/tools/dawk"
-SHEET="$TOP/sheets/banner.dss"
-TMP=${TMPDIR:-/tmp}/dawk_gate.$$
-mkdir -p "$TMP"
-SRCS="$S/dsymbol.c $S/dss.c $S/dnode.c $S/dmatch.c $S/dcascade.c $S/dschema.c \
-      $S/dtree.c $S/dedit.c $S/daudit.c $S/dsettings.c $S/dgit.c $S/dline.c \
-      $S/dbanner.c $S/dguard.c $S/dinclude.c $S/dsection.c $S/dlayout.c \
-      $S/dproperty.c $S/dcheck.c $S/ext/*.c \
-      $TOP/src/djinterp/parse/source/*.c $TOP/src/djinterp/parse/lex/*.c \
-      $TOP/src/djinterp/parse/lang/c/*.c $TOP/src/djinterp/parse/lang/cpp/*.c \
-      $TOP/src/djinterp/parse/syntax/*.c $TOP/src/djinterp/parse/c/diagnostic.c \
-      $TOP/src/djinterp/parse/c/storage.c"
-F="-std=c11 -D_POSIX_C_SOURCE=200809L -O1 -DD_AUDIT_FAULT_CORRUPT"
-cc $F                     -o "$TMP/with_gate"    $SRCS || exit 2
-cc $F -DD_AUDIT_DISABLED  -o "$TMP/without_gate" $SRCS || exit 2
+AUDITED=${1:-build/dcheck_fault_audited}
+UNAUDITED=${2:-build/dcheck_fault_unaudited}
+SHEETS="res/sheets/c_style.dss res/sheets/cpp_style.dss"
+BEFORE=tests/dawk/fix/before
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
 
-marks() {   # lines ending in the fault's mark
-    find "$1" \( -name '*.h' -o -name '*.hpp' \) -exec grep -l '#$' {} + \
-        2>/dev/null | xargs -r grep -c '#$' 2>/dev/null \
-        | awk -F: '{ n += $NF } END { print n + 0 }'
+for program in "$AUDITED" "$UNAUDITED"; do
+    if [ ! -x "$program" ]; then
+        echo "FAIL gate_fault: no program at $program"
+        exit 2
+    fi
+done
+
+marks() {   # lines under $1 with the fault's mark: a # before a // comment
+    find "$1" -type f -exec cat {} + | grep -c '# \{1,\}// '
 }
 
-run() {     # $1 binary, $2 tree: fix to a fixpoint
+refused=0
+run() {     # $1 checker, $2 tree: fix to a fixpoint, or for eight runs
     i=0
-    while [ $i -lt 30 ]; do
+    refused=0
+    while [ $i -lt 8 ]; do
         i=$((i + 1))
-        r=$("$1" --fix "$SHEET" "$2" 2>/dev/null | awk '/lines repaired/ { print $1 }')
-        [ "$r" = "0" ] && break
+        n=0
+        for sheet in $SHEETS; do
+            out=$("$1" --fix "$sheet" "$2" 2>/dev/null)
+            k=$(printf '%s\n' "$out" \
+                | sed -n 's/^ *\([0-9]*\) lines repaired.*/\1/p')
+            r=$(printf '%s\n' "$out" \
+                | sed -n 's/^ *\([0-9]*\) repairs refused.*/\1/p')
+            n=$((n + ${k:-0}))
+            refused=$((refused + ${r:-0}))
+        done
+        [ $n -eq 0 ] && break
     done
 }
 
-base=$(marks "$ROOT")
-for v in without_gate with_gate; do
-    rm -rf "$TMP/tree"; cp -r "$ROOT" "$TMP/tree"
-    run "$TMP/$v" "$TMP/tree"
-    eval "$v=\$((\$(marks \"\$TMP/tree\") - base))"
-done
-rm -rf "$TMP"
+base=$(marks "$BEFORE")
 
-echo "fault marks without the audit: $without_gate"
-echo "fault marks with the audit:    $with_gate"
-if [ "$without_gate" -le 0 ]; then
-    echo "FAIL: the fault never fired, so this proves nothing"; exit 1
+cp -r "$BEFORE" "$work/unaudited"
+run "$UNAUDITED" "$work/unaudited"
+unaudited=$(($(marks "$work/unaudited") - base))
+
+cp -r "$BEFORE" "$work/audited"
+run "$AUDITED" "$work/audited"
+audited=$(($(marks "$work/audited") - base))
+
+echo "fault marks without the audit: $unaudited"
+echo "fault marks with the audit:    $audited, $refused repair(s) refused"
+fail=0
+if [ "$unaudited" -le 0 ]; then
+    echo "FAIL gate_fault: the fault never fired, so this proves nothing"
+    fail=1
 fi
-if [ "$with_gate" -ne 0 ]; then
-    echo "FAIL: corruption passed the audit"; exit 1
+if [ "$audited" -ne 0 ]; then
+    echo "FAIL gate_fault: damaged lines passed the audit"
+    fail=1
 fi
-echo "PASS: the audit stopped every corrupted line"
+if [ "$refused" -le 0 ]; then
+    echo "FAIL gate_fault: the audit refused nothing"
+    fail=1
+fi
+[ $fail -eq 0 ] && echo "gate_fault: the audit stopped every damaged line:" \
+    "$unaudited without it, none with it"
+exit $fail

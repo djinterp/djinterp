@@ -19,7 +19,7 @@
 * path:      /src/djinterp/tools/dawk/dcheck.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
@@ -2237,6 +2237,8 @@ int main(
                                                   why);
                                 continue;
                             }
+#else
+                            (void)why;
 #endif
 
                             if (d_edit_rewrite_line(record, target->line,
@@ -2330,6 +2332,8 @@ int main(
                                                       "content (swap)", why);
                                     continue;
                                 }
+#else
+                                (void)why;
 #endif
 
                                 if (d_edit_rewrite_line(record, target->line,
@@ -2369,6 +2373,8 @@ int main(
                                               property, why);
                             continue;
                         }
+#else
+                        (void)why;
 #endif
 
                         if (d_edit_rewrite_line(record, target->line,

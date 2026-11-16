@@ -139,9 +139,12 @@ file fn-def[params>5] {
 
 #  ── layout ────────────────────────────────────────────────────────
 #  Four spaces per structural level: a body, a member list, a braceless
-#  body and the statements under a `case` each add one; an `extern "C"`
-#  block adds none, and a namespace adds one when its first item is
-#  indented -- its contents stand where that item does.  Items inside a conditional are left to the rule
+#  body and the statements under a `case` each add one.  An `extern "C"`
+#  block opened outside any conditional is a body and adds one; one opened
+#  inside a conditional -- a C header's `#ifdef __cplusplus` guard -- adds
+#  none, nor does D_EXTERN_C_BEGIN (H30, ruled 2026.11.16).  A namespace
+#  adds one when its first item is indented -- its contents stand where
+#  that item does.  Items inside a conditional are left to the rule
 #  above, and aligned parameters carry no level, so neither is measured
 #  here.  "Access specifiers stand on the class's own column", a level
 #  out from the members they head.  An `if` whose header an #if splits

@@ -21,8 +21,6 @@ inc/djinterp/tools/dawk/dawk.h	stdint.h
 inc/djinterp/tools/dawk/dbanner.h	stdint.h
 inc/djinterp/tools/dawk/dcascade.h	stdint.h
 inc/djinterp/tools/dawk/dedit.h	stdint.h
-inc/djinterp/tools/dawk/dext_c.h	stdint.h
-inc/djinterp/tools/dawk/dext_cpp.h	stdint.h
 inc/djinterp/tools/dawk/dgit.h	stdint.h
 inc/djinterp/tools/dawk/dguard.h	stdint.h
 inc/djinterp/tools/dawk/dinclude.h	stdint.h
@@ -36,16 +34,11 @@ inc/djinterp/tools/dawk/dschema.h	stdint.h
 inc/djinterp/tools/dawk/dsection.h	stdint.h
 inc/djinterp/tools/dawk/dss.h	stdint.h
 inc/djinterp/tools/dawk/dsymbol.h	stdint.h
-inc/djinterp/tools/dawk/dtoken_node.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_c.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_cmake.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_cpp.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_source.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dtoken_node.h	stdint.h
-inc/djinterp/tools/dawk/ext/dext_c.h	stdint.h
-inc/djinterp/tools/dawk/ext/dext_cpp.h	stdint.h
-inc/djinterp/tools/dawk/ext/dext_source.h	stdint.h
-inc/djinterp/tools/dawk/ext/dtoken_node.h	stdint.h
 src/djinterp/tools/dawk/dcheck.c	stdint.h
 src/djinterp/tools/dawk/dinterp.c	stdint.h
 src/djinterp/tools/dawk/dline_width.h	stdint.h
@@ -54,10 +47,6 @@ src/djinterp/tools/dawk/ext/check/dext_c.c	stdint.h
 src/djinterp/tools/dawk/ext/check/dext_cpp.c	stdint.h
 src/djinterp/tools/dawk/ext/check/dext_source.c	stdint.h
 src/djinterp/tools/dawk/ext/check/dtoken_node.c	stdint.h
-src/djinterp/tools/dawk/ext/dext_c.c	stdint.h
-src/djinterp/tools/dawk/ext/dext_cpp.c	stdint.h
-src/djinterp/tools/dawk/ext/dext_source.c	stdint.h
-src/djinterp/tools/dawk/ext/dtoken_node.c	stdint.h
 src/djinterp/tools/dawk/ext/msvs/dmsvs.c	stdint.h
 src/djinterp/tools/dawk/ext/wiki/dwiki_driver.h	stdint.h
 src/djinterp/tools/dawk/ext/wiki/dwiki_tables.h	stdint.h
