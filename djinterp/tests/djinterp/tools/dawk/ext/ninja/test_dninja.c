@@ -16,10 +16,11 @@
 *   test_dninja [work directory]          the unit checks
 *   test_dninja --fuzz <dir> [seed] [n]   n changes to every file
 *
+*
 * path:      /tests/djinterp/tools/dawk/ext/ninja/test_dninja.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja.h"       // corresponding header
 // std
@@ -794,11 +795,18 @@ void d_tests_loading(void)
                                                            3u)) ==
                     D_NINJA_NONE),
                    "no node for a path not named; a source has no in-edge");
-    d_tests_check(d_tests_nodes_are(graph, nodes,
-                                    d_ninja_defaults(graph, &nodes), "all"),
+
+    // each list fetched before it is read: an argument's order of
+    // evaluation is unspecified, so `nodes` and the call that sets it
+    // cannot be arguments of one call
+    const size_t defaults = d_ninja_defaults(graph, &nodes);
+
+    d_tests_check(d_tests_nodes_are(graph, nodes, defaults, "all"),
                   "the defaults");
-    d_tests_check(d_tests_nodes_are(graph, nodes,
-                                    d_ninja_roots(graph, &nodes),
+
+    const size_t roots = d_ninja_roots(graph, &nodes);
+
+    d_tests_check(d_tests_nodes_are(graph, nodes, roots,
                                     "out/c.o out/b.d all check"),
                   "the roots, as ninja's RootNodes finds them");
     d_tests_check( (d_ninja_rule_count(graph) == 2u) &&
@@ -1954,16 +1962,21 @@ bool d_tests_same_outside(
     // each before, then each after, the same bytes
     for (size_t at = 0; at < _old->comment_count; ++at)
     {
-        const bool   inside = ( (at >= first) && (at < old_c) );
-        const size_t other  = (at < first) ? at : (at - old_c + new_c);
+        // one the change cut is the change's to answer for, and has no
+        // counterpart in the new to point at
+        if ( (at >= first) &&
+             (at < old_c) )
+        {
+            continue;
+        }
+
+        const size_t other = (at < first) ? at : (at - old_c + new_c);
         const struct dj_ninja_comment* const a = &_old->comments[at];
         const struct dj_ninja_comment* const b = &_new->comments[other];
 
-        // one the change cut is the change's to answer for
-        if ( (!inside) &&
-             ( ((a->end - a->start) != (b->end - b->start)) ||
-               (memcmp(&_old->text[a->start], &_new->text[b->start],
-                       a->end - a->start) != 0) ) )
+        if ( ((a->end - a->start) != (b->end - b->start)) ||
+             (memcmp(&_old->text[a->start], &_new->text[b->start],
+                     a->end - a->start) != 0) )
         {
             return false;
         }

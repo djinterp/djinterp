@@ -18,12 +18,11 @@
 * path:      /tests/dawk/rules.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../inc/djinterp/tools/dawk/ext/check/dext_c.h"    // d_ext_c_build
 #include "../../inc/djinterp/tools/dawk/ext/check/dext_cpp.h"  // d_ext_cpp_build
 // std
-#include "../../inc/djinterp/tools/dawk/dsymbol.h"
 #include <stdio.h>   // printf, fopen
 #include <stdlib.h>  // malloc, free, qsort
 #include <string.h>  // strcmp
@@ -33,6 +32,7 @@
 #include "../../inc/djinterp/tools/dawk/dmatch.h"     // d_match_rule
 #include "../../inc/djinterp/tools/dawk/dproperty.h"  // d_property_evaluate
 #include "../../inc/djinterp/tools/dawk/dss.h"        // d_dss_parse
+#include "../../inc/djinterp/tools/dawk/dsymbol.h"    // d_symbol_table_*
 
 
 // d_internal_finding
@@ -305,6 +305,7 @@ main(
 
     free(fired);
     d_dss_free(sheet);
+    d_symbol_table_free(symbols);
     free(sheet_text);
 
     return status;

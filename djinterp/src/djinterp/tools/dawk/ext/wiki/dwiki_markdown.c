@@ -19,10 +19,11 @@
 *   The anchor of a title is GitHub's: lower case, without punctuation, its
 * spaces dashes; a second of one anchor has -1 after it, a third -2.
 *
+*
 * path:      /src/djinterp/tools/dawk/ext/wiki/dwiki_markdown.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 // std
 #include <stdlib.h>  // malloc, realloc, free
@@ -4149,9 +4150,15 @@ void d_internal_render(
         {
             case D_INTERNAL_TEXT:
             case D_INTERNAL_SPAN:
-                (void)d_wiki_buffer_add(_out,
-                                        &_line->decoded.text[node->decoded],
-                                        node->length);
+                // an empty one has no text to point into
+                if (node->length > 0u)
+                {
+                    (void)d_wiki_buffer_add(
+                        _out,
+                        &_line->decoded.text[node->decoded],
+                        node->length);
+                }
+
                 break;
 
             case D_INTERNAL_BREAK:

@@ -14,10 +14,11 @@
 *   Files are read and written with dsplice's helpers, the directories a
 * file goes in made with dfs's.
 *
+*
 * path:      /src/djinterp/tools/dawk/ext/cmake/dcmake_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake_doc.h"  // corresponding header
 // std
@@ -2398,8 +2399,6 @@ const char* d_internal_misfit(
     // each made, against what was written and what it replaced
     for (size_t at = 0; at < made; ++at)
     {
-        const struct dj_cmake_command* const a =
-            &_doc->records.commands[_first + at];
         const struct dj_cmake_command* const b =
             &_candidate->records.commands[_first + at];
 
@@ -2409,11 +2408,20 @@ const char* d_internal_misfit(
         {
             return "the change does not read back as given";
         }
-        else if ( (_same_role) &&
-                  ( (a->block != b->block) || (a->role != b->role) ) )
+
+        // only a command replaced has one in the document to compare: an
+        // inserted one may stand past the document's last, or in none
+        if (_same_role)
         {
-            return "the change would change the part the command takes in "
-                   "its block";
+            const struct dj_cmake_command* const a =
+                &_doc->records.commands[_first + at];
+
+            if ( (a->block != b->block) ||
+                 (a->role != b->role) )
+            {
+                return "the change would change the part the command "
+                       "takes in its block";
+            }
         }
     }
 

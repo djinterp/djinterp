@@ -17,10 +17,11 @@
 *   test_dmsvs --corpus <dir>...  every Visual Studio file under each
 *   test_dmsvs --dump <file>      the file's element tree
 *
+*
 * path:      /tests/djinterp/tools/dawk/ext/msvs/test_dmsvs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs.h"  // corresponding header
 // std
@@ -461,7 +462,7 @@ void d_tests_sln(void)
                        (strcmp(msvs.configurations[1], "Release|x64") == 0),
                        "the configurations");
         d_tests_check( (msvs.folder_count == 2u) &&
-                       (strcmp(msvs.folders[0].path, "/scripts/") == 0) &&
+                       (strcmp(msvs.folders[0].path, "/tools/") == 0) &&
                        (strcmp(msvs.folders[1].path, "/tools/dawk/") == 0) &&
                        (strcmp(msvs.folders[1].id,
                                "44444444-0000-0000-0000-000000000004") == 0),

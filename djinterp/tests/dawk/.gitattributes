@@ -3,8 +3,11 @@
 # The fixtures are kept, and checked out, in LF on every system: text.dss
 # reports a CRLF line end, so a fixture checked out in CRLF fails for that
 # alone.  text_bad.c holds CRLF on purpose, since it is the case text.dss
-# reports, and git keeps its bytes as they are.  The scripts are LF too,
-# since sh refuses a carriage return at a line's end.
+# reports, and git keeps its bytes as they are.  dcheck.sh compares the
+# driver's findings with its goldens byte for byte, so dcheck/ is LF too.
+# The scripts are LF as well, since sh refuses a carriage return at a
+# line's end.
 fixtures/** text eol=lf
 fixtures/text/text_bad.c -text
+dcheck/** text eol=lf
 *.sh text eol=lf
