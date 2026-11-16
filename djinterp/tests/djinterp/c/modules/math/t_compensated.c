@@ -25,7 +25,16 @@
 * where cond(A) u lies below 2^-6, every entry the exact solution correctly
 * rounded; and on every system, where the family is evaluated in its own
 * type, solve_fast's entries as d_mat_*_solve's first solution, through the
-* factors the solve keeps.
+* factors the solve keeps. Then cmat.h's complex kernels (S410): 20,000
+* complex dots per family, of 2 to 7 entries cancelling as above, each part
+* of d_cmat_*_multiply's entry checked as Dot2's rounding of its 4 to 14
+* products, exactly; 2,000 products of orders 1 to 5, a row of each tenth
+* past the range, each part vec.h's dot of the parts as real arrays, bit for
+* bit, and multiply_fast cplx.h's products summed in order; the refined
+* complex solve on math_tests_csolve_refs.h's systems, each part exact where
+* the system is well conditioned, and solve_fast through the kept factors;
+* the edges: products past the range, a subnormal part, a zero operand's
+* +0, NaNs and infinities the formula's, a column with an infinity.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
@@ -35,7 +44,7 @@
 * path:      /tests/djinterp/c/modules/math/t_compensated.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 // the exact reference's integers: 768 bits, for sums of products of the
@@ -49,9 +58,11 @@
                       // nextafterl
 #include <stdio.h>    // printf
 // djinterp
-#include "./math_tests_exact.h"       // d_tests_big_*, d_tests_nearest_*
-#include "./math_tests_solve_refs.h"  // g_systems_*
-#include "../../../../../inc/djinterp/c/modules/math/mat.h"  // under test
+#include "./math_tests_csolve_refs.h"  // g_csystems_*
+#include "./math_tests_exact.h"        // d_tests_big_*, d_tests_nearest_*
+#include "./math_tests_solve_refs.h"   // g_systems_*
+#include "../../../../../inc/djinterp/c/modules/math/cmat.h"  // under test
+#include "../../../../../inc/djinterp/c/modules/math/mat.h"   // under test
 
 
 static long          g_checks   = 0;
@@ -607,6 +618,395 @@ D_TESTS_COMPENSATED_FAMILY(long double, ld, frexpl, nextafterl, LDBL_MANT_DIG,
                            D_MATH_LDBL_EVAL_WIDE)
 #endif  // (LDBL_MANT_DIG == 64)
 
+// D_TESTS_COMPENSATED_COMPLEX
+//   stamps, for one family, the complex kernels' checks (S410): cmat.h's
+// products against exact arithmetic and against vec.h's dot of the parts,
+// the refined complex solve on math_tests_csolve_refs.h's systems, and the
+// edges -- on the family's helpers above.
+#define D_TESTS_COMPENSATED_COMPLEX(T, S, P, MINV, MAXV, MAXEXP, WIDE)         \
+/* whether _x and _y are the same value: equal, of one sign, or both NaN */    \
+static bool                                                                    \
+d_tests_bits_##S(T _x, T _y)                                                   \
+{                                                                              \
+    if (_x != _x)                                                              \
+    {                                                                          \
+        return (_y != _y);                                                     \
+    }                                                                          \
+    return (_x == _y) && ((signbit(_x) != 0) == (signbit(_y) != 0));           \
+}                                                                              \
+                                                                               \
+/* the exact sum of _m products _u[k] _v[k]: *_x and *_s, the sum and the */   \
+/* sum of the products' magnitudes, in units of 2^(the result)            */   \
+static int                                                                     \
+d_tests_exact_##S(const T* _u, const T* _v, size_t _m,                         \
+                  struct dj_tests_big* _x, struct dj_tests_big* _s)            \
+{                                                                              \
+    int    eu = INT_MAX, ev = INT_MAX;                                         \
+    size_t k  = 0u;                                                            \
+    *_x = d_tests_big_of(0);                                                   \
+    *_s = d_tests_big_of(0);                                                   \
+    for (k = 0u; k < _m; ++k)                                                  \
+    {                                                                          \
+        eu = (d_tests_low_##S(_u[k]) < eu) ? d_tests_low_##S(_u[k]) : eu;      \
+        ev = (d_tests_low_##S(_v[k]) < ev) ? d_tests_low_##S(_v[k]) : ev;      \
+    }                                                                          \
+    eu = (eu == INT_MAX) ? 0 : eu;                                             \
+    ev = (ev == INT_MAX) ? 0 : ev;                                             \
+    for (k = 0u; k < _m; ++k)                                                  \
+    {                                                                          \
+        const struct dj_tests_big p =                                          \
+            d_tests_big_mul(d_tests_fixed_##S(_u[k], eu),                      \
+                            d_tests_fixed_##S(_v[k], ev));                     \
+        *_x = d_tests_big_add(*_x, p);                                         \
+        *_s = d_tests_big_add(*_s, d_tests_big_abs(p));                        \
+    }                                                                          \
+    return eu + ev;                                                            \
+}                                                                              \
+                                                                               \
+/* a random complex number, its parts drawn in order */                        \
+static struct dj_cplx_##S                                                      \
+d_tests_centry_##S(void)                                                       \
+{                                                                              \
+    const T re = d_tests_entry_##S();                                          \
+    const T im = d_tests_entry_##S();                                          \
+    return d_cplx_##S##_make(re, im);                                          \
+}                                                                              \
+                                                                               \
+/* part _p of the dot of _a and _b, n entries, as real arrays: the real */     \
+/* part's re re and im (-im) products, the imaginary part's re im, im re */    \
+static void                                                                    \
+d_tests_parts_##S(const struct dj_cplx_##S* _a, const struct dj_cplx_##S* _b,  \
+                  size_t _n, int _p, T* _u, T* _v)                             \
+{                                                                              \
+    size_t k = 0u;                                                             \
+    for (k = 0u; k < _n; ++k)                                                  \
+    {                                                                          \
+        _u[2u * k]      = _a[k].part[0];                                       \
+        _u[2u * k + 1u] = _a[k].part[1];                                       \
+        _v[2u * k]      = (_p == 0) ? _b[k].part[0] : _b[k].part[1];           \
+        _v[2u * k + 1u] = (_p == 0) ? -_b[k].part[1] : _b[k].part[0];          \
+    }                                                                          \
+    return;                                                                    \
+}                                                                              \
+                                                                               \
+/* complex products: 20,000 dots of a row of 2 to 7 entries by a column, */    \
+/* a quarter each with no cancellation and with both parts cancelling to */    \
+/* half the precision, past it and to the naive sum's own error: each    */    \
+/* part of d_cmat_multiply's entry Dot2's rounding of a near value       */    \
+static void                                                                    \
+d_tests_cdot_##S(struct dj_tests_count* _count)                                \
+{                                                                              \
+    long trial = 0;                                                            \
+    for (trial = 0; trial < 20000; ++trial)                                    \
+    {                                                                          \
+        const size_t n     = (size_t)(trial % 6) + 2u;                         \
+        const int    level = (int)((trial / 6) % 4);                           \
+        struct dj_cplx_##S a[7], b[7], c, cf, partial;                         \
+        T      u[14], v[14];                                                   \
+        size_t i = 0u;                                                         \
+        int    p = 0;                                                          \
+        for (i = 0u; i < n; ++i)                                               \
+        {                                                                      \
+            a[i] = d_tests_centry_##S();                                       \
+            b[i] = d_tests_centry_##S();                                       \
+        }                                                                      \
+        if (level != 0)                                                        \
+        {                                                                      \
+            T re = (T)0;                                                       \
+            d_cmat_##S##_multiply_fast(&partial, a, b, 1u, n - 1u, 1u);        \
+            re        = d_tests_cancel_##S(partial.part[0], level);            \
+            a[n - 1u] = d_cplx_##S##_make(re,                                  \
+                            d_tests_cancel_##S(partial.part[1], level));       \
+            b[n - 1u] = d_cplx_##S##_make((T)1, (T)0);                         \
+        }                                                                      \
+        d_cmat_##S##_multiply(&c, a, b, 1u, n, 1u);                            \
+        d_cmat_##S##_multiply_fast(&cf, a, b, 1u, n, 1u);                      \
+        for (p = 0; p < 2; ++p)                                                \
+        {                                                                      \
+            struct dj_tests_big x, s;                                          \
+            bool near = false, fast_near = false;                              \
+            int  e    = 0;                                                     \
+            d_tests_parts_##S(a, b, n, p, u, v);                               \
+            e = d_tests_exact_##S(u, v, 2u * n, &x, &s);                       \
+            D_TESTS_EXPECT(d_tests_within_##S(c.part[p], x, s, e, 2u * n,      \
+                                              &near),                          \
+                           #S " complex dot: each part Dot2's rounding of "    \
+                              "a near value");                                 \
+            (void)d_tests_within_##S(cf.part[p], x, s, e, 2u * n,              \
+                                     &fast_near);                              \
+            _count->cases        += 1;                                         \
+            _count->nearest      += near ? 1 : 0;                              \
+            _count->fast_nearest += fast_near ? 1 : 0;                         \
+        }                                                                      \
+    }                                                                          \
+    return;                                                                    \
+}                                                                              \
+                                                                               \
+/* d_cmat_multiply on 2,000 random products of orders 1 to 5, a row of   */    \
+/* each tenth past the range: each part of each entry vec.h's dot of the */    \
+/* row and column as real arrays, bit for bit; multiply_fast's entries   */    \
+/* cplx.h's products summed in order from 0                              */    \
+static void                                                                    \
+d_tests_cproducts_##S(void)                                                    \
+{                                                                              \
+    long trial = 0;                                                            \
+    for (trial = 0; trial < 2000; ++trial)                                     \
+    {                                                                          \
+        const size_t r   = (size_t)(trial % 5) + 1u;                           \
+        const size_t c   = (size_t)((trial / 5) % 5) + 1u;                     \
+        const size_t q   = (size_t)((trial / 25) % 5) + 1u;                    \
+        const T      far = d_internal_math_##S##_pow2((MAXEXP / 2) + 8);       \
+        struct dj_cplx_##S a[25], b[25], out[25], fast[25], col[5];            \
+        T      u[10], v[10];                                                   \
+        size_t i = 0u, j = 0u, k = 0u;                                         \
+        bool   same = true, fast_same = true;                                  \
+        for (i = 0u; i < 25u; ++i)                                             \
+        {                                                                      \
+            a[i] = d_tests_centry_##S();                                       \
+            b[i] = d_tests_centry_##S();                                       \
+        }                                                                      \
+        for (j = 0u; ((trial % 10) == 0) && (j < c); ++j)                      \
+        {                                                                      \
+            a[j] = d_cplx_##S##_make(a[j].part[0] * far,                       \
+                                     a[j].part[1] * far);                      \
+        }                                                                      \
+        d_cmat_##S##_multiply(out, a, b, r, c, q);                             \
+        d_cmat_##S##_multiply_fast(fast, a, b, r, c, q);                       \
+        for (i = 0u; i < r; ++i)                                               \
+        {                                                                      \
+            for (j = 0u; j < q; ++j)                                           \
+            {                                                                  \
+                struct dj_cplx_##S sum = d_cplx_##S##_make((T)0, (T)0);        \
+                int p = 0;                                                     \
+                for (k = 0u; k < c; ++k)                                       \
+                {                                                              \
+                    col[k] = b[(k * q) + j];                                   \
+                    sum = d_cplx_##S##_add(sum, d_cplx_##S##_mul(              \
+                                                    a[(i * c) + k], col[k]));  \
+                }                                                              \
+                for (p = 0; p < 2; ++p)                                        \
+                {                                                              \
+                    d_tests_parts_##S(a + (i * c), col, c, p, u, v);           \
+                    same = same && d_tests_bits_##S(out[(i * q) + j].part[p],  \
+                                                    d_vec_##S##_dot(u, v,      \
+                                                                    2u * c));  \
+                    fast_same = fast_same &&                                   \
+                                d_tests_bits_##S(fast[(i * q) + j].part[p],    \
+                                                 sum.part[p]);                 \
+                }                                                              \
+            }                                                                  \
+        }                                                                      \
+        D_TESTS_EXPECT(same, #S " complex multiply: each part vec.h's dot "    \
+                             "of the parts");                                  \
+        D_TESTS_EXPECT(fast_same, #S " complex multiply_fast: cplx.h's "       \
+                                  "products summed in order");                 \
+    }                                                                          \
+    return;                                                                    \
+}                                                                              \
+                                                                               \
+/* a reference's complex value */                                              \
+static struct dj_cplx_##S                                                      \
+d_tests_cvalue_##S(const struct dj_tests_solve_value* _v)                      \
+{                                                                              \
+    return d_cplx_##S##_make(d_tests_value_##S(&_v[0]),                        \
+                             d_tests_value_##S(&_v[1]));                       \
+}                                                                              \
+                                                                               \
+/* the refined complex solve on the references: each well-conditioned */       \
+/* system's solution exactly rounded, part for part; every system's    */      \
+/* first solution, through the factors kept, solve_fast's              */      \
+static void                                                                    \
+d_tests_csolve_##S(long* _well, long* _exact, long* _fast_exact,               \
+                   long* _parts)                                               \
+{                                                                              \
+    size_t k = 0u;                                                             \
+    for (k = 0u; k < sizeof(g_csystems_##S) / sizeof(g_csystems_##S[0]); ++k)  \
+    {                                                                          \
+        const struct dj_tests_csystem_##S* sys = &g_csystems_##S[k];           \
+        const size_t n = sys->n;                                               \
+        struct dj_cplx_##S a[D_TESTS_SOLVE_NMAX * D_TESTS_SOLVE_NMAX];         \
+        struct dj_cplx_##S scratch[(D_TESTS_SOLVE_NMAX * D_TESTS_SOLVE_NMAX) + \
+                                   (4 * D_TESTS_SOLVE_NMAX)];                  \
+        struct dj_cplx_##S sf[D_TESTS_SOLVE_NMAX * D_TESTS_SOLVE_NMAX];        \
+        struct dj_cplx_##S b[D_TESTS_SOLVE_NMAX], want[D_TESTS_SOLVE_NMAX];    \
+        struct dj_cplx_##S x[D_TESTS_SOLVE_NMAX], xf[D_TESTS_SOLVE_NMAX];      \
+        struct dj_cplx_##S xc[D_TESTS_SOLVE_NMAX];                             \
+        size_t pivots[D_TESTS_SOLVE_NMAX];                                     \
+        size_t i = 0u;                                                         \
+        bool   exact = true, first = true;                                     \
+        int    p = 0;                                                          \
+        for (i = 0u; i < n * n; ++i)                                           \
+        {                                                                      \
+            a[i] = d_tests_cvalue_##S(sys->a[i]);                              \
+        }                                                                      \
+        for (i = 0u; i < n; ++i)                                               \
+        {                                                                      \
+            b[i]    = d_tests_cvalue_##S(sys->b[i]);                           \
+            want[i] = d_tests_cvalue_##S(sys->x[i]);                           \
+        }                                                                      \
+        D_TESTS_EXPECT( (d_cmat_##S##_solve(x, scratch, pivots, a, b, n,       \
+                                            1u)) &&                            \
+                        (d_cmat_##S##_solve_fast(xf, sf, a, b, n, 1u)),        \
+                        #S " complex solve: a system the references hold, "    \
+                           "solved");                                          \
+        for (i = 0u; i < n; ++i)                                               \
+        {                                                                      \
+            for (p = 0; p < 2; ++p)                                            \
+            {                                                                  \
+                exact = exact && (x[i].part[p] == want[i].part[p]);            \
+                *_exact      += (x[i].part[p] == want[i].part[p]) ? 1 : 0;     \
+                *_fast_exact += (xf[i].part[p] == want[i].part[p]) ? 1 : 0;    \
+                *_parts      += 1;                                             \
+            }                                                                  \
+        }                                                                      \
+        if (sys->well)                                                         \
+        {                                                                      \
+            *_well += 1;                                                       \
+            D_TESTS_EXPECT(exact, #S " complex solve: the exact solution "     \
+                                     "rounded, part for part");                \
+        }                                                                      \
+        /* the kept factors give solve_fast's first solution, where the */     \
+        /* family is evaluated in its own type                          */     \
+        d_cmat_##S##_lu_solve(scratch, pivots, n, b, xc);                      \
+        for (i = 0u; i < n; ++i)                                               \
+        {                                                                      \
+            first = first && d_tests_bits_##S(xc[i].part[0], xf[i].part[0]) && \
+                    d_tests_bits_##S(xc[i].part[1], xf[i].part[1]);            \
+        }                                                                      \
+        D_TESTS_EXPECT((WIDE) || (first),                                      \
+                       #S " complex solve: the factors kept give "             \
+                          "solve_fast's bits");                                \
+    }                                                                          \
+    return;                                                                    \
+}                                                                              \
+                                                                               \
+/* the complex kernels' edges: a sum the formula overflows, products   */      \
+/* past the range cancelling, a subnormal part below a midpoint, a zero */     \
+/* operand's +0, a NaN or an infinity the formula's, a solve's column   */     \
+/* with an infinity solve_fast's                                        */     \
+static void                                                                    \
+d_tests_cedges_##S(void)                                                       \
+{                                                                              \
+    const T tiny = MINV * (T)((T)1 / d_internal_math_##S##_pow2(P - 1));       \
+    const T big  = d_internal_math_##S##_pow2((MAXEXP / 2) + 4);               \
+    const T p20  = d_internal_math_##S##_pow2(20);                             \
+    const T p10  = d_internal_math_##S##_pow2(10);                             \
+    const T inf  = MAXV * (T)2;                                                \
+    struct dj_cplx_##S out, fast;                                              \
+    {                                                                          \
+        const struct dj_cplx_##S a[3] = {                                      \
+            d_cplx_##S##_make(MAXV, (T)0), d_cplx_##S##_make(MAXV, (T)0),      \
+            d_cplx_##S##_make(-MAXV, (T)0) };                                  \
+        const struct dj_cplx_##S b[3] = {                                      \
+            d_cplx_##S##_make((T)1, (T)0), d_cplx_##S##_make((T)1, (T)0),      \
+            d_cplx_##S##_make((T)1, (T)0) };                                   \
+        d_cmat_##S##_multiply(&out, a, b, 1u, 3u, 1u);                         \
+        d_cmat_##S##_multiply_fast(&fast, a, b, 1u, 3u, 1u);                   \
+        D_TESTS_EXPECT( (out.part[0] == MAXV) && (out.part[1] == (T)0) &&      \
+                        ((WIDE) || (fast.part[0] == inf)),                     \
+                        #S " a complex sum the formula overflows: MAX");       \
+    }                                                                          \
+    {                                                                          \
+        const struct dj_cplx_##S a[2] = {                                      \
+            d_cplx_##S##_make(big * (T)3, big),                                \
+            d_cplx_##S##_make((T)0, (T)0) };                                   \
+        const struct dj_cplx_##S b[2] = {                                      \
+            d_cplx_##S##_make(big, big * (T)3),                                \
+            d_cplx_##S##_make((T)1, (T)1) };                                   \
+        d_cmat_##S##_multiply(&out, a, b, 1u, 2u, 1u);                         \
+        D_TESTS_EXPECT( (out.part[0] == (T)0) && (!signbit(out.part[0])) &&    \
+                        (out.part[1] == inf),                                  \
+                        #S " complex products past the range: the real part "  \
+                           "cancelling to +0, the imaginary past the range");  \
+    }                                                                          \
+    {                                                                          \
+        const struct dj_cplx_##S a[2] = {                                      \
+            d_cplx_##S##_make((T)1.5 / p20, (T)0),                             \
+            d_cplx_##S##_make(-((T)1 / (p20 * p20)), (T)0) };                  \
+        const struct dj_cplx_##S b[2] = {                                      \
+            d_cplx_##S##_make(tiny * p20, (T)0),                               \
+            d_cplx_##S##_make(tiny * p10, (T)0) };                             \
+        d_cmat_##S##_multiply(&out, a, b, 1u, 2u, 1u);                         \
+        d_cmat_##S##_multiply_fast(&fast, a, b, 1u, 2u, 1u);                   \
+        D_TESTS_EXPECT( (out.part[0] == tiny) &&                               \
+                        (fast.part[0] == tiny * (T)2) &&                       \
+                        (out.part[1] == (T)0) && (!signbit(out.part[1])),      \
+                        #S " a complex subnormal part below the midpoint: "    \
+                           "tiny");                                            \
+    }                                                                          \
+    {                                                                          \
+        const struct dj_cplx_##S a = d_cplx_##S##_make(-(T)0, (T)0);           \
+        const struct dj_cplx_##S b = d_cplx_##S##_make((T)1, (T)0);            \
+        d_cmat_##S##_multiply(&out, &a, &b, 1u, 1u, 1u);                       \
+        d_cmat_##S##_multiply_fast(&fast, &a, &b, 1u, 1u, 1u);                 \
+        D_TESTS_EXPECT( (out.part[0] == (T)0) && (!signbit(out.part[0])) &&    \
+                        (fast.part[0] == (T)0) && (!signbit(fast.part[0])),    \
+                        #S " a complex zero operand: +0, as the formula "      \
+                           "from +0 gives it");                                \
+    }                                                                          \
+    {                                                                          \
+        const struct dj_cplx_##S a[2] = {                                      \
+            d_cplx_##S##_make(inf, (T)1), d_cplx_##S##_make((T)2, (T)0) };     \
+        const struct dj_cplx_##S b[2] = {                                      \
+            d_cplx_##S##_make((T)1, (T)0), d_cplx_##S##_make(inf, (T)1) };     \
+        d_cmat_##S##_multiply(&out, a, b, 1u, 2u, 1u);                         \
+        d_cmat_##S##_multiply_fast(&fast, a, b, 1u, 2u, 1u);                   \
+        D_TESTS_EXPECT( (d_tests_bits_##S(out.part[0], fast.part[0])) &&       \
+                        (d_tests_bits_##S(out.part[1], fast.part[1])),         \
+                        #S " complex NaNs and infinities as the formula "      \
+                           "gives them");                                      \
+    }                                                                          \
+    {                                                                          \
+        const struct dj_cplx_##S a[4] = {                                      \
+            d_cplx_##S##_make((T)2, (T)1), d_cplx_##S##_make((T)1, (T)0),      \
+            d_cplx_##S##_make((T)0, (T)1), d_cplx_##S##_make((T)3, (T)-1) };   \
+        const struct dj_cplx_##S b[2] = {                                      \
+            d_cplx_##S##_make(inf, (T)0), d_cplx_##S##_make((T)1, (T)0) };     \
+        struct dj_cplx_##S x[2], xf[2], scratch[12], sf[4];                    \
+        size_t pivots[2];                                                      \
+        bool   same = d_cmat_##S##_solve(x, scratch, pivots, a, b, 2u, 1u) &&  \
+                      d_cmat_##S##_solve_fast(xf, sf, a, b, 2u, 1u);           \
+        size_t i = 0u;                                                         \
+        for (i = 0u; i < 2u; ++i)                                              \
+        {                                                                      \
+            same = same && d_tests_bits_##S(x[i].part[0], xf[i].part[0]) &&    \
+                   d_tests_bits_##S(x[i].part[1], xf[i].part[1]);              \
+        }                                                                      \
+        D_TESTS_EXPECT(same, #S " complex solve: a column with an "            \
+                                "infinity, solve_fast's");                     \
+    }                                                                          \
+    return;                                                                    \
+}                                                                              \
+                                                                               \
+static void                                                                    \
+d_tests_complex_##S(void)                                                      \
+{                                                                              \
+    struct dj_tests_count cdot = { 0, 0, 0 };                                  \
+    long well = 0, exact = 0, fast_exact = 0, parts = 0;                       \
+    d_tests_cdot_##S(&cdot);                                                   \
+    d_tests_cproducts_##S();                                                   \
+    d_tests_csolve_##S(&well, &exact, &fast_exact, &parts);                    \
+    d_tests_cedges_##S();                                                      \
+    printf("%-2s complex dot:   %ld parts, %ld correctly rounded; "            \
+           "multiply_fast %ld\n",                                              \
+           #S, cdot.cases, cdot.nearest, cdot.fast_nearest);                   \
+    printf("%-2s complex solve: %ld parts of %ld systems (%ld well "           \
+           "conditioned), %ld exact; solve_fast %ld\n",                        \
+           #S, parts,                                                          \
+           (long)(sizeof(g_csystems_##S) / sizeof(g_csystems_##S[0])), well,   \
+           exact, fast_exact);                                                 \
+    return;                                                                    \
+}
+
+D_TESTS_COMPENSATED_COMPLEX(float, f, FLT_MANT_DIG, FLT_MIN, FLT_MAX,
+                            FLT_MAX_EXP, D_MATH_FLT_EVAL_WIDE)
+D_TESTS_COMPENSATED_COMPLEX(double, d, DBL_MANT_DIG, DBL_MIN, DBL_MAX,
+                            DBL_MAX_EXP, D_MATH_DBL_EVAL_WIDE)
+#if (LDBL_MANT_DIG == 64)
+D_TESTS_COMPENSATED_COMPLEX(long double, ld, LDBL_MANT_DIG, LDBL_MIN, LDBL_MAX,
+                            LDBL_MAX_EXP, D_MATH_LDBL_EVAL_WIDE)
+#endif  // (LDBL_MANT_DIG == 64)
+
 int
 main(void)
 {
@@ -614,6 +1014,11 @@ main(void)
     d_tests_family_d();
 #if (LDBL_MANT_DIG == 64)
     d_tests_family_ld();
+#endif  // (LDBL_MANT_DIG == 64)
+    d_tests_complex_f();
+    d_tests_complex_d();
+#if (LDBL_MANT_DIG == 64)
+    d_tests_complex_ld();
 #endif  // (LDBL_MANT_DIG == 64)
 
     D_TESTS_EXPECT(!g_reference_overrun,

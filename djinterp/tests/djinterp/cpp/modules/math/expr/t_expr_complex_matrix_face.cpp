@@ -10,12 +10,14 @@
 *     x then x + 0i;
 *   - arithmetic (S349): dense sums, products and scalings in the widest
 *     type, a real operand taken as itself (G.5), a complex product the
-*     kernels'; exact ones exactly;
+*     kernels', each part rounded once, a real operand's the C core's real
+*     dots of its rows with the other's parts (S412); exact ones exactly;
 *   - A' the conjugate transpose and transpose(A) the transpose, real,
 *     imag, conj and arg of a matrix and complex(A, B) element by element
 *     (S350); indexing and blocks;
 *   - linear algebra (S351): a dense matrix's det, inv and solve cmat.h's
-*     bit for bit, trace the kernels', norm of the moduli, the face's
+*     bit for bit, solve its elimination (S413), trace the kernels', norm
+*     of the moduli, the face's
 *     frobenius_norm and norm, dot conjugating its first operand, the
 *     face's vdot; an exact matrix's exactly; the face's norms of values
 *     holding complex numbers the language's, exactly (S355);
@@ -34,7 +36,7 @@
 * path:      /tests/djinterp/cpp/modules/math/expr/t_expr_complex_matrix_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.02
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/evaluate.hpp"
 // std
@@ -102,6 +104,7 @@ namespace
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/math/cmat.h"             // d_cmat_*
 #include "../../../../../../inc/djinterp/c/modules/math/decomp.h"           // d_decomp_eigen
+#include "../../../../../../inc/djinterp/c/modules/math/vec.h"              // d_vec_dot
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_function.hpp"  // det, inv, eig, solve
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp"      // the kind
 #include "../../../../../../inc/djinterp/cpp/modules/math/expr/parse.hpp"   // expr_parse
@@ -455,10 +458,47 @@ namespace
     // 4.  ARITHMETIC
     //==========================================================================
 
+    // d_tests_real_by_complex
+    //   _out = _r (2 x 3, real) times _c (3 x 2, complex), each part the C
+    // core's real dot of _r's row with the column's parts, rounded once, as
+    // the language's product computes it (S412).
+    template<typename Type>
+    void
+    d_tests_real_by_complex(
+        std::vector<m::complex<Type> >&       _out,
+        const std::vector<Type>&              _r,
+        const std::vector<m::complex<Type> >& _c
+    )
+    {
+        // each element: a row of _r by a column of _c, part by part
+        for (std::size_t i = 0; i < 2; ++i)
+        {
+            for (std::size_t j = 0; j < 2; ++j)
+            {
+                Type re[3];
+                Type im[3];
+
+                for (std::size_t k = 0; k < 3; ++k)
+                {
+                    re[k] = _c[(k * 2) + j].real();
+                    im[k] = _c[(k * 2) + j].imag();
+                }
+
+                _out[(i * 2) + j] =
+                    m::complex<Type>(d_vec_dot(&_r[i * 3], re, 3),
+                                     d_vec_dot(&_r[i * 3], im, 3));
+            }
+        }
+
+        return;
+    }
+
     // d_tests_dense_arithmetic
     //   S349, in Type: dense sums, products and scalings, a real operand
-    // taken as itself, each element math::complex's operators', and a
-    // product of complex matrices the kernels' product.
+    // taken as itself, each element math::complex's operators'; a product
+    // of complex matrices the kernels' product, and a real one's by a
+    // complex one each part the C core's real dot of a row with the
+    // column's parts, rounded once (S412).
     template<typename Type>
     bool
     d_tests_dense_arithmetic(
@@ -524,21 +564,8 @@ namespace
                 transposed[((i % 3) * 2) + (i / 3)] = a[i];
             }
 
-            // the real operand's elements as themselves, summed from 0
-            for (std::size_t i = 0; i < 2; ++i)
-            {
-                for (std::size_t j = 0; j < 2; ++j)
-                {
-                    complex_type acc;
-
-                    for (std::size_t k = 0; k < 3; ++k)
-                    {
-                        acc += (r[(i * 3) + k] * c[(k * 2) + j]);
-                    }
-
-                    real_product[(i * 2) + j] = acc;
-                }
-            }
+            // the real operand's elements as themselves
+            d_tests_real_by_complex<Type>(real_product, r, c);
 
             ok = ( (ok) &&
                    (d_tests_holds<Type>(A + B, 2, 3, sum)) &&
@@ -579,10 +606,9 @@ namespace
                         "dense arithmetic in each type, 50 random rounds: "
                         "A + B, A - B, A + R, R - A, -A, A z, z A, A / z, "
                         "A s, A / s, R z, a real operand taken as itself; "
-                        "A C the kernels' product, R C each real element as "
-                        "itself; A' conjugating and transpose(A) not; A + z "
-                        "and A B of no fitting shape a domain error (S246, "
-                        "S349, S350)");
+                        "A C the kernels' product, R C each part real dots; "
+                        "A' conjugating and transpose(A) not; A + z and A B "
+                        "of no fitting shape a domain error (S246, S349)");
 
         const m::value cf = m::expr_complex_of(m::complex<float>(0.5f, 1.0f));
         const m::value mixed = ( m::expr_matrix(1, 1, { cf }).value() +
@@ -621,12 +647,12 @@ namespace
         static_cast<void>(m::expr_complex_to(d_tests_value_of("exp(im)"),
                                              e));
 
-        const cld i_unit(0.0L, 1.0L);
-        const cld one_i(1.0L, 1.0L);
-        cld       sum;
-
-        sum += (e * y[0]);
-        sum += (cld(x[0]) * y[1]);
+        const cld         i_unit(0.0L, 1.0L);
+        const cld         one_i(1.0L, 1.0L);
+        const long double left_re[2] = { e.real(), x[0] };
+        const long double left_im[2] = { e.imag(), 0.0L };
+        const cld         sum(d_vec_dot(left_re, y, 2),
+                              d_vec_dot(left_im, y, 2));
 
         D_TESTS_EXPECT( (d_tests_storage_of(R) == storage::long_doubles) &&
                         (d_tests_holds<long double>(
@@ -648,7 +674,7 @@ namespace
                         "a dense real A times and over an exact complex "
                         "number, and a complex A times a real B: complex "
                         "long doubles, each element by math::complex's "
-                        "operators, the real operand as itself (S349)");
+                        "operators, the real operand as itself (S412)");
         D_TESTS_EXPECT( (d_tests_value_of("[1, im] + [im, 1]") ==
                              d_tests_value_of("[1 + im, 1 + im]")) &&
                         (d_tests_value_of("[1, im] * [1; im]") ==
@@ -800,9 +826,10 @@ namespace
     //==========================================================================
 
     // d_tests_dense_algebra
-    //   S351 in Type: det, inv and solve cmat.h's bit for bit, trace the
-    // kernels', norm the face's frobenius_norm and norm, dot the face's
-    // vdot, cross by its formula, a singular matrix's a pole.
+    //   S351 in Type: det, inv and solve cmat.h's bit for bit, solve its
+    // elimination, d_cmat_solve_fast (S413), trace the kernels', norm the
+    // face's frobenius_norm and norm, dot the face's vdot, cross by its
+    // formula, a singular matrix's a pole.
     template<typename Type>
     bool
     d_tests_dense_algebra(
@@ -847,18 +874,11 @@ namespace
                                                          scratch.data(),
                                                          ca.data(),
                                                          3);
-            const bool         solved   = d_cmat_solve(solution.data(),
-                                                       scratch.data(),
-                                                       ca.data(),
-                                                       cb.data(),
-                                                       3,
-                                                       2);
-            const bool         real_ok  = d_cmat_solve(real_solution.data(),
-                                                       scratch.data(),
-                                                       cr.data(),
-                                                       cb.data(),
-                                                       3,
-                                                       2);
+            const bool         solved   = d_cmat_solve_fast(
+                solution.data(), scratch.data(), ca.data(), cb.data(), 3, 2);
+            const bool         real_ok  = d_cmat_solve_fast(
+                real_solution.data(), scratch.data(), cr.data(), cb.data(), 3,
+                2);
             std::vector<complex_type> inv(9), x(6), rx(6);
 
             for (std::size_t i = 0; i < 9; ++i)
@@ -1210,12 +1230,8 @@ namespace
                                              mixed_copy.data(),
                                              scratch_ld,
                                              2));
-        const bool             solved_ok = d_cmat_solve(solved_ld,
-                                                        scratch_ld,
-                                                        system_copy.data(),
-                                                        right_cores,
-                                                        2,
-                                                        1);
+        const bool             solved_ok = d_cmat_solve_fast(
+            solved_ld, scratch_ld, system_copy.data(), right_cores, 2, 1);
         const m::value         far = m::expr_matrix(
             1, 2, { m::expr_complex(m::value(1e200), m::value(1e200)),
                     m::value(1) }).value();

@@ -34,7 +34,10 @@ number type, so vectors and matrices of values compute exactly (chunk 26):
 Phase 1 is done. All of it is checked by 25 C harnesses and 31 face tests in
 360 and 1,984 builds. Since chunk 49 the C core's sums of products and of
 terms are compensated by default, and `solve` refined with extra precision
-(S404 to S406), each with a `_fast` form as written.
+(S404 to S406), each with a `_fast` form as written; since chunk 50 the
+complex matrices' products and solve too, in the C core and both faces
+(S410, S411), and `project` and `reject` scaled at the range's ends
+(S409).
 `eigenvalues_qr` and `general_eigen` were fixed in chunk 13 (M1 and M2).
 
 Not ported yet: the compile-time expression engine and what stands on it,
@@ -1054,10 +1057,12 @@ the owner withdrew on 2026.11.14: the language stays flat in
 group, accuracy, the owner scoped on 2026.11.14 to the float and double
 families: chunk 49 made its first part, the C core's sums of products and
 of terms compensated by default and `solve` refined with extra precision,
-each with a `_fast` form as written (S404 to S407); the complex dense
-kernels' compensation (S408) and the float and double `_c` forms correctly
-rounded, provably, at today's speed, are next, the long double family's
-and the plain forms' left for step 36. Step 29, 5a, follows, as lane A
+each with a `_fast` form as written (S404 to S407); chunk 50 the second,
+the complex dense kernels compensated and refined in the C core, the
+generic path and the language's products (S410 to S412), and `project`
+and `reject` scaled as ruled (S409); the float and double `_c` forms
+correctly rounded, provably, at today's speed, are next, the long double
+family's and the plain forms' left for step 36. Step 29, 5a, follows, as lane A
 asks, before 0.8 on 2026.11.30.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's

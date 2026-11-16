@@ -158,7 +158,7 @@ def overload_section(title, specs):
             # the family's suffix goes after the module's prefix: d_vec_add
             # forwards to d_vec_d_add, d_math_next_up to d_math_d_next_up
             target = None
-            for prefix_name in ("d_interval_", "d_math_", "d_vec_", "d_mat_", "d_quat_", "d_coord_", "d_isect_", "d_plane_", "d_decomp_", "d_cplx_", "d_cmat_"):
+            for prefix_name in ("d_interval_", "d_math_", "d_vec_", "d_mat_", "d_quat_", "d_coord_", "d_isect_", "d_plane_", "d_decomp_", "d_cplx_", "d_cmat_", "d_internal_vec_"):
                 if name.startswith(prefix_name):
                     target = prefix_name + suffix + "_" + name[len(prefix_name):]
             assert target is not None, name
@@ -8899,10 +8899,15 @@ d_internal_vec_@S@_@WS@_sum(
     }
 
     {
-        const @W@ up   = (k != 0) ? d_internal_math_@WF@_pow2((-k) / 2)
-                                  : (@W@)1;
-        const @W@ down = (k != 0) ? d_internal_math_@WF@_pow2((-k) - ((-k) / 2))
-                                  : (@W@)1;
+        @W@ up   = (@W@)1;
+        @W@ down = (@W@)1;
+
+        // the factors, each a normal power of 2, where the terms are scaled
+        if (k != 0)
+        {
+            up   = d_internal_math_@WF@_pow2((-k) / 2);
+            down = d_internal_math_@WF@_pow2((-k) - ((-k) / 2));
+        }
 
         // each term into the running sum, its error apart
         for (i = 0u; i < _n; ++i)
@@ -9135,7 +9140,170 @@ d_internal_vec_@S@_add_pair(
     return;
 }
 
+// dj_internal_vec_@S@_acc
+//   struct: Dot2's running sum for a caller whose terms are not strided
+// arrays of the family's type -- a complex matrix's parts (cmat.h, linalg's
+// complex kernels) -- in the pairs the family sums in: high, the products'
+// high parts summed by two-sums, and rest, their errors and low parts.
+struct dj_internal_vec_@S@_acc
+{
+@DISPATCH{@
+    @W@ high;
+    @W@ rest;
+@}DISPATCH@
+};
+
+// d_internal_vec_@S@_acc_of
+//   a running sum of _c alone.
+D_MATH_FN struct dj_internal_vec_@S@_acc
+d_internal_vec_@S@_acc_of(
+    @T@ _c
+)
+{
+    struct dj_internal_vec_@S@_acc acc = { 0, 0 };
+
+    acc.high = _c;
+
+    return acc;
+}
+
+// d_internal_vec_@S@_acc_add
+//   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
+// (d_internal_vec_@S@_reach_of) -- the caller scales it first where it is
+// not.
+D_MATH_FN void
+d_internal_vec_@S@_acc_add(
+    struct dj_internal_vec_@S@_acc* _acc,
+    @T@                             _a,
+    @T@                             _x
+)
+{
+@DISPATCH{@
+    const struct @WPAIR@ p = @PRODUCT@(_a, _x);
+    const struct @WPAIR@ s = @TWOSUM@(_acc->high, p.high);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + (s.low + p.low);
+@}DISPATCH@
+
+    return;
+}
+
+// d_internal_vec_@S@_acc_add_term
+//   *_acc plus _t, exactly: Sum2's step.
+D_MATH_FN void
+d_internal_vec_@S@_acc_add_term(
+    struct dj_internal_vec_@S@_acc* _acc,
+    @T@                             _t
+)
+{
+@DISPATCH{@
+    const struct @WPAIR@ s = @TWOSUM@(_acc->high, _t);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + s.low;
+@}DISPATCH@
+
+    return;
+}
+
+// d_internal_vec_@S@_acc_round
+//   _acc's sum times 2^_k, rounded once to @T@ (the round of the pairs the
+// family sums in): +0 for an exact zero.
+D_MATH_FN @T@
+d_internal_vec_@S@_acc_round(
+    struct dj_internal_vec_@S@_acc _acc,
+    int                            _k
+)
+{
+@DISPATCH{@
+    const struct @WPAIR@ sum = @TWOSUM@(_acc.high, _acc.rest);
+
+    // an exact zero: +0
+    if (sum.high == 0)
+    {
+        return (@T@)0;
+    }
+
+    return d_internal_vec_@S@_@WS@_round(sum, _k);
+@}DISPATCH@
+}
+
+// d_internal_vec_@S@_acc_scale
+//   the power by which Sum2 scales _n finite terms, the largest _largest in
+// magnitude, as the family's sums scale them: _largest's binade where twice
+// _n times it could pass the largest value of the pairs the family sums in,
+// 0 where it could not. A caller of d_internal_vec_@S@_acc_add_term scales
+// each term by it (d_internal_vec_@S@_scaled) and rounds the sum back by it.
+D_MATH_FN int
+d_internal_vec_@S@_acc_scale(
+    @T@    _largest,
+    size_t _n
+)
+{
+@DISPATCH{@
+    // a partial sum that could overflow: the terms scaled
+    if ((@W@)_largest > (@WMAX@ / ((@W@)2 * (@W@)_n)))
+    {
+        return d_internal_vec_@S@_exponent_of(_largest);
+    }
+@}DISPATCH@
+
+    return 0;
+}
+
+// d_internal_vec_@S@_reach_of
+//   _v's reach, as d_internal_vec_@S@_reach gives an operand's: 2 for a NaN
+// or an infinity, 1 outside the range where Dekker's products are exact, 0
+// within it or for 0.
+D_MATH_FN int
+d_internal_vec_@S@_reach_of(
+    @T@ _v
+)
+{
+    return d_internal_vec_@S@_reach(&_v, 1u, 1u);
+}
+
+// d_internal_vec_@S@_scaled
+//   _v 2^-_k, _k a finite value's binade or its negation, in two steps of
+// normal powers of 2: exact but where the result falls into the
+// subnormals.
+D_MATH_FN @T@
+d_internal_vec_@S@_scaled(
+    @T@ _v,
+    int _k
+)
+{
+    const @T@ up   = d_internal_math_@S@_pow2((-_k) / 2);
+    const @T@ down = d_internal_math_@S@_pow2((-_k) - ((-_k) / 2));
+
+    return (_v * up) * down;
+}
+
+// d_internal_vec_@S@_dot2_scaled
+//   sum_i (_a[i _sa] 2^-_ka) (_x[i _sx] 2^-_kx), each entry finite, rounded
+// once from Dot2's pair: the scaled operands' dot, not scaled back, as the
+// projection takes it at the range's ends.
+D_MATH_FN @T@
+d_internal_vec_@S@_dot2_scaled(
+    const @T@* _a,
+    size_t     _sa,
+    const @T@* _x,
+    size_t     _sx,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+@DISPATCH{@
+    const struct @WPAIR@ sum = d_internal_vec_@S@_@WS@_sum_of((@T@)0, false, _a, _sa, _x, _sx, _x, _sx, false, _n, _ka, _kx);
+
+    return d_internal_vec_@S@_@WS@_round(sum, 0);
+@}DISPATCH@
+}
+
 """
+
 
 
 def wrap_call(line):
@@ -9287,8 +9455,19 @@ def vec_kernels(suffix, ctype):
         def fill(ws):
             pair = {"d2": "dj_internal_math_d_pair",
                     "ld": "dj_internal_math_ld_pair"}[ws]
+            wtype = {"d2": "double", "ld": "long double"}[ws]
+            if suffix == "f":
+                product = "d_internal_vec_%s_short" % ws
+            else:
+                product = {"d2": "d_internal_vec_d2_product",
+                           "ld": "d_internal_math_ld_product_exact"}[ws]
+            twosum = {"d2": "d_internal_vec_d2_two_sum",
+                      "ld": "d_internal_math_ld_two_sum"}[ws]
             return "\n".join(
                 s.replace("@WS@", ws).replace("@WPAIR@", pair)
+                 .replace("@PRODUCT@", product).replace("@TWOSUM@", twosum)
+                 .replace("@WMAX@", {"d2": "DBL_MAX", "ld": "LDBL_MAX"}[ws])
+                 .replace("@W@", wtype)
                  .replace("@S@", suffix).replace("@T@", ctype)
                 for s in stmts) + "\n"
         if suffix == "ld":
@@ -10097,9 +10276,103 @@ d_vec_@S@_normalize(
 // @SECTION@.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
-// vector projects to zero. cos_angle is 0 when either vector is zero, and
-// scaled as the norms are where their product would leave the range; angle
-// clamps it into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+// vector projects to zero. Both divide the compensated dot by the squared
+// norm where those and their ratio lie in range, and scale their operands
+// elsewhere (S301). cos_angle is 0 when either vector is zero, and scaled as
+// the norms are where their product would leave the range; angle clamps it
+// into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+
+// d_internal_vec_@S@_along
+//   _out = _a's projection onto _onto, or where _reject what is left of _a;
+// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
+// each component p/d times _onto's, as before (S301: a result in range
+// keeps its bits); so too for the zero vector, or an operand with a NaN or
+// an infinity, which give zeros or the arithmetic's own values. Elsewhere,
+// both operands nonzero and finite: each scaled, its largest entry to [1,
+// 2), the scaled dot p' (Dot2) over the scaled squared norm d', and each
+// component p'/d' times _onto's scaled entry, scaled back by _a's power --
+// exact but for the arithmetic's own roundings and the last step's into the
+// subnormals, so that a projection in range is computed in range wherever
+// its operands lie.
+D_MATH_FN void
+d_internal_vec_@S@_along(
+    @T@*       _out,
+    const @T@* _a,
+    const @T@* _onto,
+    size_t     _count,
+    bool       _reject
+)
+{
+    const @T@ d        = d_vec_@S@_norm_squared(_onto, _count);
+    const @T@ p        = d_vec_@S@_dot(_a, _onto, _count);
+    const @T@ ap       = (p < (@T@)0) ? -p : p;
+    const @T@ lo       = @MIN@ / @EPS@;
+    const @T@ la       = d_internal_vec_@S@_largest(_a, NULL, _count);
+    const @T@ lb       = d_internal_vec_@S@_largest(_onto, NULL, _count);
+    const bool in_range =
+        ( (d >= lo) && (d <= @MAX@) &&
+          ( (ap == (@T@)0) ||
+            ( (ap >= lo) && (ap <= @MAX@) && ((ap / @MAX@) <= d) &&
+              ((ap / d) >= lo) ) ) );
+    size_t    i        = 0u;
+
+    // in range, zero or not finite: the formula as written
+    if ( (in_range) ||
+         (!(la > (@T@)0)) ||
+         (!(lb > (@T@)0)) )
+    {
+        const @T@ ratio = (d > (@T@)0) ? (p / d) : (@T@)0;
+
+        for (i = 0u; i < _count; ++i)
+        {
+            const @T@ along = _onto[i] * ratio;
+
+            // onto the zero vector there is nothing to project
+            if (_reject)
+            {
+                _out[i] = _a[i] - along;
+            }
+            else
+            {
+                _out[i] = (d > (@T@)0) ? along : (@T@)0;
+            }
+        }
+
+        return;
+    }
+
+    {
+        const int ka = d_internal_vec_@S@_exponent_of(la);
+        const int kb = d_internal_vec_@S@_exponent_of(lb);
+        const @T@ ps = d_internal_vec_@S@_dot2_scaled(_a, 1u, _onto, 1u,
+                                                      _count, ka, kb);
+        @T@       ds = (@T@)0;
+        @T@       rs = (@T@)0;
+
+        // the scaled squared norm, summed as norm_squared sums
+        for (i = 0u; i < _count; ++i)
+        {
+            const @T@ b      = d_internal_vec_@S@_scaled(_onto[i], kb);
+            const @T@ square = b * b;
+
+            ds += square;
+        }
+
+        rs = ps / ds;
+
+        // each component from the inputs before it is written
+        for (i = 0u; i < _count; ++i)
+        {
+            const @T@ b     = d_internal_vec_@S@_scaled(_onto[i], kb);
+            const @T@ along = d_internal_vec_@S@_scaled(rs * b, -ka);
+
+            _out[i] = _reject ? (_a[i] - along) : along;
+        }
+    }
+
+    return;
+}
 
 D_MATH_FN void
 d_vec_@S@_project(
@@ -10109,20 +10382,7 @@ d_vec_@S@_project(
     size_t     _count
 )
 {
-    const @T@ d = d_vec_@S@_norm_squared(_onto, _count);
-
-    // onto the zero vector there is nothing to project
-    if (d > (@T@)0)
-    {
-        d_vec_@S@_scale(_out,
-                        _onto,
-                        d_vec_@S@_dot(_a, _onto, _count) / d,
-                        _count);
-    }
-    else
-    {
-        d_vec_@S@_fill(_out, _count, (@T@)0);
-    }
+    d_internal_vec_@S@_along(_out, _a, _onto, _count, false);
 
     return;
 }
@@ -10135,23 +10395,7 @@ d_vec_@S@_reject(
     size_t     _count
 )
 {
-    size_t i = 0u;
-
-    // _a less its projection, formed component by component so _out may be
-    // either input
-    {
-        const @T@ d     = d_vec_@S@_norm_squared(_from, _count);
-        const @T@ ratio = (d > (@T@)0)
-                              ? (d_vec_@S@_dot(_a, _from, _count) / d)
-                              : (@T@)0;
-
-        for (i = 0u; i < _count; ++i)
-        {
-            const @T@ along = _from[i] * ratio;
-
-            _out[i] = _a[i] - along;
-        }
-    }
+    d_internal_vec_@S@_along(_out, _a, _from, _count, true);
 
     return;
 }
@@ -10473,6 +10717,25 @@ VEC_OVERLOADS = [
     ("D_MATH_FN_RT", "@T@", "d_vec_angle", [_A, _B, _N]),
     ("D_MATH_FN", "bool", "d_vec_equal", [_A, _B, _N]),
     ("D_MATH_FN", "bool", "d_vec_equals", [_A, _B, ("@T@", "_tolerance"), _N]),
+    # the compensated kernels' accumulator, for the generic path's complex
+    # sums (linalg_common.hpp), which sum each part as the C core does
+    ("D_MATH_FN", "struct dj_internal_vec_@S@_acc", "d_internal_vec_acc_of",
+     [("@T@", "_c")]),
+    ("D_MATH_FN", "void", "d_internal_vec_acc_add",
+     [("struct dj_internal_vec_@S@_acc*", "_acc"), ("@T@", "_a"),
+      ("@T@", "_x")]),
+    ("D_MATH_FN", "void", "d_internal_vec_acc_add_term",
+     [("struct dj_internal_vec_@S@_acc*", "_acc"), ("@T@", "_t")]),
+    ("D_MATH_FN", "@T@", "d_internal_vec_acc_round",
+     [("struct dj_internal_vec_@S@_acc", "_acc"), ("int", "_k")]),
+    ("D_MATH_FN", "int", "d_internal_vec_acc_scale",
+     [("@T@", "_largest"), ("size_t", "_n")]),
+    ("D_MATH_FN", "int", "d_internal_vec_reach_of", [("@T@", "_v")]),
+    ("D_MATH_FN", "@T@", "d_internal_vec_scaled",
+     [("@T@", "_v"), ("int", "_k")]),
+    ("D_MATH_FN", "int", "d_internal_vec_exponent_of", [("@T@", "_x")]),
+    ("D_MATH_FN", "void", "d_internal_vec_add_pair",
+     [("@T@*", "_x"), ("@T@*", "_tail"), ("@T@", "_d")]),
 ]
 
 
@@ -10491,9 +10754,13 @@ def vec():
         "range, and keeps its bits where it does not (S256). dot, cross and sum",
         "are compensated -- Ogita, Rump and Oishi's Dot2 and Sum2, as accurate as",
         "the sum computed in twice the precision and rounded once -- and their",
-        "_fast forms are the formulas as written (S404).",
+        "_fast forms are the formulas as written (S404). project and reject scale",
+        "their operands where the squared norm or the ratio would leave the range",
+        "(S301, S409). Dot2's running pair, an accumulator, serves the callers",
+        "whose terms are not arrays of one family, cmat.h's and linalg's complex",
+        "sums (S410, S411).",
     ]
-    text = banner("vec.h", lines, DATE, "2026.11.14")
+    text = banner("vec.h", lines, DATE, "2026.11.15")
     text += "\n" + VEC_HEAD + VEC_SHARED
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -26100,14 +26367,17 @@ CMAT_FAMILY_HEAD = r"""
 """
 
 CMAT_LU = r"""
-// @SECTION@.1    LU, determinant, inverse and solution
+// @SECTION@.1    Products, LU, determinant, inverse and solution
 //------------------------------------------------------------------------------
-// Gaussian elimination with partial pivoting, as LAPACK's zgetrf and
-// zgesv: each column's pivot its entry of largest |re| + |im| at or below
-// the diagonal (the first among equals), as LAPACK's izamax chooses it; every
-// product and quotient cplx.h's, each part correctly rounded or within a
-// step of it. Needing no root, each comes once, a constant expression from
-// C++14.
+// The product's entries are compensated, each part rounded once from Dot2's
+// pair (vec.h's accumulator, S410), and multiply_fast is the formula as
+// written. Gaussian elimination with partial pivoting, as LAPACK's zgetrf
+// and zgesv: each column's pivot its entry of largest |re| + |im| at or
+// below the diagonal (the first among equals), as LAPACK's izamax chooses
+// it; every product and quotient cplx.h's, each part correctly rounded or
+// within a step of it. solve refines the elimination's solution with extra
+// precision, as mat.h's does, and solve_fast is the elimination alone.
+// Needing no root, each comes once, a constant expression from C++14.
 
 // d_internal_cmat_@S@_mul, d_internal_cmat_@S@_div
 //   cplx.h's product and quotient, compiled once in a translation unit and
@@ -26169,6 +26439,301 @@ d_internal_cmat_@S@_less_product(
     return d_cplx_@S@_sub(_a,
                           d_internal_cmat_@S@_mul(_b,
                                          _c));
+}
+
+// d_internal_cmat_@S@_part_products
+//   *_acc plus part _p of _a _x, negated where _minus: the real part's
+// products re re and -im im, the imaginary part's re im and im re, each
+// factor scaled first by 2^-_ka (_a's) or 2^-_kx (_x's) where either is not
+// 0.
+D_MATH_FN void
+d_internal_cmat_@S@_part_products(
+    struct dj_internal_vec_@S@_acc* _acc,
+    int                             _p,
+    bool                            _minus,
+    struct dj_cplx_@S@              _a,
+    struct dj_cplx_@S@              _x,
+    int                             _ka,
+    int                             _kx
+)
+{
+    const bool scaled = ( (_ka != 0) ||
+                          (_kx != 0) );
+    const @T@  sign   = _minus ? (@T@)-1 : (@T@)1;
+    @T@        ar     = _a.part[0];
+    @T@        ai     = _a.part[1];
+    @T@        xr     = sign * _x.part[0];
+    @T@        xi     = sign * _x.part[1];
+
+    // the factors scaled, where the operands leave the range
+    if (scaled)
+    {
+        ar = d_internal_vec_@S@_scaled(ar, _ka);
+        ai = d_internal_vec_@S@_scaled(ai, _ka);
+        xr = d_internal_vec_@S@_scaled(xr, _kx);
+        xi = d_internal_vec_@S@_scaled(xi, _kx);
+    }
+
+    // the real part: re re less im im
+    if (_p == 0)
+    {
+        d_internal_vec_@S@_acc_add(_acc, ar, xr);
+        d_internal_vec_@S@_acc_add(_acc, ai, -xi);
+    }
+    // the imaginary part: re im and im re
+    else
+    {
+        d_internal_vec_@S@_acc_add(_acc, ar, xi);
+        d_internal_vec_@S@_acc_add(_acc, ai, xr);
+    }
+
+    return;
+}
+
+// d_internal_cmat_@S@_naive
+//   _c + sign sum_k _a[k _sa] (_x[k _sx] + _t[k]) as written, sign -1 where
+// _minus and _t none but where _tailed: each product cplx.h's, then added or
+// subtracted, in order -- with _c 0 and no tail, d_cmat_@S@_multiply_fast's
+// entry and the generic kernel's.
+D_MATH_FN_KERNEL struct dj_cplx_@S@
+d_internal_cmat_@S@_naive(
+    struct dj_cplx_@S@        _c,
+    bool                      _minus,
+    const struct dj_cplx_@S@* _a,
+    size_t                    _sa,
+    const struct dj_cplx_@S@* _x,
+    size_t                    _sx,
+    const struct dj_cplx_@S@* _t,
+    bool                      _tailed,
+    size_t                    _n
+)
+{
+    struct dj_cplx_@S@ acc = _c;
+    size_t             k   = 0u;
+
+    // each product, then the tail's
+    for (k = 0u; k < _n; ++k)
+    {
+        const struct dj_cplx_@S@ p = d_internal_cmat_@S@_mul(_a[k * _sa],
+                                                             _x[k * _sx]);
+
+        acc = _minus ? d_cplx_@S@_sub(acc, p) : d_cplx_@S@_add(acc, p);
+
+        if (_tailed)
+        {
+            const struct dj_cplx_@S@ q = d_internal_cmat_@S@_mul(_a[k * _sa],
+                                                                 _t[k]);
+
+            acc = _minus ? d_cplx_@S@_sub(acc, q) : d_cplx_@S@_add(acc, q);
+        }
+    }
+
+    return acc;
+}
+
+// d_internal_cmat_@S@_survey
+//   the reach of _z's parts, as vec.h's d_internal_vec_@S@_reach_of gives a
+// value's, the larger of it and _reach; *_largest the larger of it and
+// _z's parts' magnitudes.
+D_MATH_FN int
+d_internal_cmat_@S@_survey(
+    struct dj_cplx_@S@ _z,
+    int                _reach,
+    @T@*               _largest
+)
+{
+    int reach = _reach;
+    int p     = 0;
+
+    for (p = 0; p < 2; ++p)
+    {
+        const int r = d_internal_vec_@S@_reach_of(_z.part[p]);
+        const @T@ a = d_internal_math_@S@_abs(_z.part[p]);
+
+        reach = (r > reach) ? r : reach;
+
+        // a NaN keeps no largest
+        if (a > *_largest)
+        {
+            *_largest = a;
+        }
+    }
+
+    return reach;
+}
+
+// d_internal_cmat_@S@_dot2
+//   _c + sign sum_k _a[k _sa] (_x[k _sx] + _t[k]), sign -1 where _minus and
+// _t none but where _tailed, each part rounded once from Dot2's pair
+// (vec.h's accumulator): the real part's sum of re re and -im im products,
+// the imaginary part's of re im and im re -- as accurate as the sum in
+// twice the precision, rounded once (S410). Where a part leaves the range
+// where Dekker's products are exact, _a's parts are scaled by their largest's
+// power, _x's and _t's by theirs, and _c with them, the sums scaled back, a
+// part of _c far above every product its own; where every product is 0,
+// each part of _c plus 0, +0 for either zero, as vec.h's dot gives it; and
+// where a part is a NaN or an infinity, the formula as written
+// (d_internal_cmat_@S@_naive).
+D_MATH_FN_KERNEL struct dj_cplx_@S@
+d_internal_cmat_@S@_dot2(
+    struct dj_cplx_@S@        _c,
+    bool                      _minus,
+    const struct dj_cplx_@S@* _a,
+    size_t                    _sa,
+    const struct dj_cplx_@S@* _x,
+    size_t                    _sx,
+    const struct dj_cplx_@S@* _t,
+    bool                      _tailed,
+    size_t                    _n
+)
+{
+    struct dj_cplx_@S@ out   = _c;
+    @T@                la    = (@T@)0;
+    @T@                lx    = (@T@)0;
+    @T@                lc    = (@T@)0;
+    int                reach = 0;
+    int                ka    = 0;
+    int                kx    = 0;
+    int                bits  = 0;
+    size_t             left  = 4u * _n;
+    size_t             k     = 0u;
+    int                p     = 0;
+
+    // each operand's reach and largest part
+    for (k = 0u; k < _n; ++k)
+    {
+        reach = d_internal_cmat_@S@_survey(_a[k * _sa], reach, &la);
+        reach = d_internal_cmat_@S@_survey(_x[k * _sx], reach, &lx);
+        reach = _tailed ? d_internal_cmat_@S@_survey(_t[k], reach, &lx)
+                        : reach;
+    }
+
+    reach = d_internal_cmat_@S@_survey(_c, reach, &lc);
+
+    // a NaN or an infinity: the formula as written
+    if (reach == 2)
+    {
+        return d_internal_cmat_@S@_naive(_c, _minus, _a, _sa, _x, _sx, _t,
+                                         _tailed, _n);
+    }
+
+    // every product 0: _c's parts, +0 for either zero
+    if ( (la == (@T@)0) ||
+         (lx == (@T@)0) )
+    {
+        return d_cplx_@S@_make(_c.part[0] + (@T@)0,
+                               _c.part[1] + (@T@)0);
+    }
+
+    // out of range: each operand by its largest part's power
+    if (reach == 1)
+    {
+        ka = d_internal_vec_@S@_exponent_of(la);
+        kx = d_internal_vec_@S@_exponent_of(lx);
+    }
+
+    // the products' sum lies below 2^(ka + kx + 2 + bits)
+    while (left > 0u)
+    {
+        ++bits;
+        left /= 2u;
+    }
+
+    for (p = 0; p < 2; ++p)
+    {
+        const @T@ c    = _c.part[p];
+        const bool far =
+            ( (reach == 1) &&
+              (c != (@T@)0) &&
+              (d_internal_vec_@S@_exponent_of(c) >
+               (ka + kx + bits + @P@ + 3)) );
+        struct dj_internal_vec_@S@_acc acc = d_internal_vec_@S@_acc_of(
+            far ? (@T@)0 : d_internal_vec_@S@_scaled(c, ka + kx));
+
+        // each product of the part's two kinds, the tail's with them
+        for (k = 0u; k < _n; ++k)
+        {
+            d_internal_cmat_@S@_part_products(&acc, p, _minus, _a[k * _sa],
+                                              _x[k * _sx], ka, kx);
+
+            if (_tailed)
+            {
+                d_internal_cmat_@S@_part_products(&acc, p, _minus,
+                                                  _a[k * _sa], _t[k], ka, kx);
+            }
+        }
+
+        // a part of _c far above every product: its own
+        out.part[p] = far ? c : d_internal_vec_@S@_acc_round(acc, ka + kx);
+    }
+
+    return out;
+}
+
+// d_cmat_@S@_multiply
+//   _out (_rows x _cols) = _a (_rows x _inner) * _b (_inner x _cols), each
+// entry's parts rounded once from Dot2's pair (d_internal_cmat_@S@_dot2);
+// a vector is a matrix of one column. _out must not be an input.
+D_MATH_FN_KERNEL void
+d_cmat_@S@_multiply(
+    struct dj_cplx_@S@*       _out,
+    const struct dj_cplx_@S@* _a,
+    const struct dj_cplx_@S@* _b,
+    size_t                    _rows,
+    size_t                    _inner,
+    size_t                    _cols
+)
+{
+    const struct dj_cplx_@S@ zero =
+        d_cplx_@S@_make((@T@)0, (@T@)0);
+    size_t                   i    = 0u;
+
+    // each entry, row i of _a by column j of _b
+    for (i = 0u; i < _rows; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < _cols; ++j)
+        {
+            _out[(i * _cols) + j] =
+                d_internal_cmat_@S@_dot2(zero, false, _a + (i * _inner), 1u,
+                                         _b + j, _cols, _b, false, _inner);
+        }
+    }
+
+    return;
+}
+
+// d_cmat_@S@_multiply_fast
+//   the product as written: each entry's products cplx.h's, added in order
+// of k (d_internal_cmat_@S@_naive).
+D_MATH_FN_KERNEL void
+d_cmat_@S@_multiply_fast(
+    struct dj_cplx_@S@*       _out,
+    const struct dj_cplx_@S@* _a,
+    const struct dj_cplx_@S@* _b,
+    size_t                    _rows,
+    size_t                    _inner,
+    size_t                    _cols
+)
+{
+    const struct dj_cplx_@S@ zero =
+        d_cplx_@S@_make((@T@)0, (@T@)0);
+    size_t                   i    = 0u;
+
+    for (i = 0u; i < _rows; ++i)
+    {
+        size_t j = 0u;
+
+        for (j = 0u; j < _cols; ++j)
+        {
+            _out[(i * _cols) + j] =
+                d_internal_cmat_@S@_naive(zero, false, _a + (i * _inner), 1u,
+                                          _b + j, _cols, _b, false, _inner);
+        }
+    }
+
+    return;
 }
 
 // d_cmat_@S@_lu
@@ -26476,7 +27041,7 @@ d_cmat_@S@_inverse(
     return true;
 }
 
-// d_cmat_@S@_solve
+// d_cmat_@S@_solve_fast
 //   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
 // singular A, the zero matrix and false. Gaussian elimination of [A | B]
 // with partial pivoting, the pivot the first entry of largest |re| + |im| at
@@ -26484,7 +27049,7 @@ d_cmat_@S@_inverse(
 // column of B the same bits as d_cmat_@S@_lu and d_cmat_@S@_lu_solve give.
 // _scratch holds n * n entries; neither it nor _x may be _a or _b.
 D_MATH_FN_KERNEL bool
-d_cmat_@S@_solve(
+d_cmat_@S@_solve_fast(
     struct dj_cplx_@S@*       _x,
     struct dj_cplx_@S@*       _scratch,
     const struct dj_cplx_@S@* _a,
@@ -26602,6 +27167,226 @@ d_cmat_@S@_solve(
 
     return true;
 }
+// d_internal_cmat_@S@_correction
+//   _fix = the correction of the solution _x + _tail of A x = b (b's entries
+// _sb apart): the residual b - A (x + tail), each part of each row by Dot2
+// rounded once (d_internal_cmat_@S@_dot2), into _res, solved by A's factors
+// (d_cmat_@S@_lu_solve). *_largest is the correction's largest part in
+// magnitude, *_relative its largest relative to its part of x, at most 1 --
+// 1 also where that part is 0.
+D_MATH_FN_KERNEL void
+d_internal_cmat_@S@_correction(
+    struct dj_cplx_@S@*       _fix,
+    struct dj_cplx_@S@*       _res,
+    @T@*                      _largest,
+    @T@*                      _relative,
+    const struct dj_cplx_@S@* _x,
+    const struct dj_cplx_@S@* _tail,
+    const struct dj_cplx_@S@* _a,
+    const struct dj_cplx_@S@* _b,
+    size_t                    _sb,
+    const struct dj_cplx_@S@* _lu,
+    const size_t*             _perm,
+    size_t                    _n
+)
+{
+    size_t i = 0u;
+    int    p = 0;
+
+    *_largest  = (@T@)0;
+    *_relative = (@T@)0;
+
+    // the residual, row by row
+    for (i = 0u; i < _n; ++i)
+    {
+        _res[i] = d_internal_cmat_@S@_dot2(_b[i * _sb], true, _a + (i * _n),
+                                           1u, _x, 1u, _tail, true, _n);
+    }
+
+    d_cmat_@S@_lu_solve(_lu, _perm, _n, _res, _fix);
+
+    // its sizes, part by part, whole and against x
+    for (i = 0u; i < _n; ++i)
+    {
+        for (p = 0; p < 2; ++p)
+        {
+            const @T@ d = d_internal_math_@S@_abs(_fix[i].part[p]);
+            const @T@ x = d_internal_math_@S@_abs(_x[i].part[p]);
+            const @T@ r = (d >= x) ? (@T@)1 : (d / x);
+
+            if (d > *_largest)
+            {
+                *_largest = d;
+            }
+
+            // a zero correction leaves its part as it is
+            if ( (d != (@T@)0) &&
+                 (r > *_relative) )
+            {
+                *_relative = r;
+            }
+        }
+    }
+
+    return;
+}
+
+// d_internal_cmat_@S@_refine
+//   _x, one column of the solution (_n entries) as A's factors gave it,
+// refined (d_cmat_@S@_solve); _tail, _fix and _res are _n entries each.
+D_MATH_FN_KERNEL void
+d_internal_cmat_@S@_refine(
+    struct dj_cplx_@S@*       _x,
+    struct dj_cplx_@S@*       _tail,
+    struct dj_cplx_@S@*       _fix,
+    struct dj_cplx_@S@*       _res,
+    const struct dj_cplx_@S@* _a,
+    const struct dj_cplx_@S@* _b,
+    size_t                    _sb,
+    const struct dj_cplx_@S@* _lu,
+    const size_t*             _perm,
+    size_t                    _n
+)
+{
+    @T@    last_largest  = (@T@)0;
+    @T@    last_relative = (@T@)0;
+    size_t step          = 0u;
+    size_t i             = 0u;
+    int    p             = 0;
+
+    for (i = 0u; i < _n; ++i)
+    {
+        _tail[i] = d_cplx_@S@_make((@T@)0, (@T@)0);
+    }
+
+    // each step: the correction, then whether it is worth adding
+    for (step = 0u; step < (size_t)D_CFG_MATH_MAT_REFINE_STEPS; ++step)
+    {
+        @T@ largest  = (@T@)0;
+        @T@ relative = (@T@)0;
+
+        d_internal_cmat_@S@_correction(_fix, _res, &largest, &relative, _x,
+                                       _tail, _a, _b, _sb, _lu, _perm, _n);
+
+        // no progress: neither the correction nor its relative size halved
+        if ( (step > 0u) &&
+             (largest > (last_largest / (@T@)2)) &&
+             (relative > (last_relative / (@T@)2)) )
+        {
+            break;
+        }
+
+        // the correction into the solution and its tail, part by part
+        for (i = 0u; i < _n; ++i)
+        {
+            for (p = 0; p < 2; ++p)
+            {
+                d_internal_vec_@S@_add_pair(&_x[i].part[p], &_tail[i].part[p],
+                                            _fix[i].part[p]);
+            }
+        }
+
+        // converged: every part's correction below half its unit in the
+        // last place
+        if (relative <= (@EPS@ / (@T@)2))
+        {
+            break;
+        }
+
+        last_largest  = largest;
+        last_relative = relative;
+    }
+
+    return;
+}
+
+// d_cmat_@S@_solve
+//   _x = the solution X of A X = B, A n by n and B n by _m, true; or, for a
+// singular A, the zero matrix and false. Each column first as
+// d_cmat_@S@_solve_fast takes it, by A's factors (d_cmat_@S@_lu, kept in
+// _scratch's first n * n entries, the permutation in _pivots, and
+// d_cmat_@S@_lu_solve), then refined as mat.h's real solve refines (S406,
+// S410): the residual's parts by Dot2, the solution carried with a tail,
+// until every part's correction lies below half its unit in the last place,
+// neither the largest correction nor the largest relative halves, or
+// D_CFG_MATH_MAT_REFINE_STEPS steps have run. For an A far enough from
+// singular, each part of the solution correctly rounded but where it lies
+// within some cond(A) eps^2 of a midpoint. Where A, the column of B or the
+// first solution has a NaN or an infinity, the column is solve_fast's.
+// _scratch holds n * n + 4 n entries and _pivots n; neither may be an
+// operand, nor _x _a or _b.
+D_MATH_FN_KERNEL bool
+d_cmat_@S@_solve(
+    struct dj_cplx_@S@*       _x,
+    struct dj_cplx_@S@*       _scratch,
+    size_t*                   _pivots,
+    const struct dj_cplx_@S@* _a,
+    const struct dj_cplx_@S@* _b,
+    size_t                    _n,
+    size_t                    _m
+)
+{
+    struct dj_cplx_@S@* const xc   = _scratch + (_n * _n);
+    struct dj_cplx_@S@* const tail = xc + _n;
+    struct dj_cplx_@S@* const fix  = tail + _n;
+    struct dj_cplx_@S@* const res  = fix + _n;
+    @T@                       sign = (@T@)1;
+    @T@                       big  = (@T@)0;
+    int                       a_ok = 0;
+    size_t                    col  = 0u;
+    size_t                    k    = 0u;
+
+    for (k = 0u; k < (_n * _n); ++k)
+    {
+        _scratch[k] = _a[k];
+        a_ok        = d_internal_cmat_@S@_survey(_a[k], a_ok, &big);
+    }
+
+    // singular: the zero matrix
+    if (d_cmat_@S@_lu(_scratch, _n, _pivots, &sign))
+    {
+        for (k = 0u; k < (_n * _m); ++k)
+        {
+            _x[k] = d_cplx_@S@_make((@T@)0, (@T@)0);
+        }
+
+        return false;
+    }
+
+    // each column: solved by the factors, refined, written back
+    for (col = 0u; col < _m; ++col)
+    {
+        int finite = a_ok;
+
+        for (k = 0u; k < _n; ++k)
+        {
+            res[k] = _b[(k * _m) + col];
+            finite = d_internal_cmat_@S@_survey(res[k], finite, &big);
+        }
+
+        d_cmat_@S@_lu_solve(_scratch, _pivots, _n, res, xc);
+
+        for (k = 0u; k < _n; ++k)
+        {
+            finite = d_internal_cmat_@S@_survey(xc[k], finite, &big);
+        }
+
+        // finite throughout: refined
+        if (finite != 2)
+        {
+            d_internal_cmat_@S@_refine(xc, tail, fix, res, _a, _b + col, _m,
+                                       _scratch, _pivots, _n);
+        }
+
+        for (k = 0u; k < _n; ++k)
+        {
+            _x[(k * _m) + col] = xc[k];
+        }
+    }
+
+    return true;
+}
+
 """
 
 CMAT_HERMITIAN_HEAD = r"""
@@ -26626,6 +27411,7 @@ CMAT_HERMITIAN_HEAD = r"""
 """
 
 CMAT_HERMITIAN_FORMS = r"""
+
 // d_cmat_@S@_hermitian_eigen@F@
 //   the eigenvalues and eigenvectors of the Hermitian n-by-n _work by the
 // cyclic Jacobi method with complex rotations, as decomp.h's
@@ -28688,17 +29474,17 @@ TABLE OF CONTENTS
 =================
 1.  THE FLOAT FAMILY (_f)
     ---------------------
-    1.  LU, determinant, inverse and solution
+    1.  Products, LU, determinant, inverse and solution
     2.  Hermitian matrices
     3.  The eigenvalues and eigenvectors of a general matrix
 2.  THE DOUBLE FAMILY (_d)
     ----------------------
-    1.  LU, determinant, inverse and solution
+    1.  Products, LU, determinant, inverse and solution
     2.  Hermitian matrices
     3.  The eigenvalues and eigenvectors of a general matrix
 3.  THE LONG DOUBLE FAMILY (_ld)
     ----------------------------
-    1.  LU, determinant, inverse and solution
+    1.  Products, LU, determinant, inverse and solution
     2.  Hermitian matrices
     3.  The eigenvalues and eigenvectors of a general matrix
 4.  ONE NAME FOR EVERY FAMILY (C++)
@@ -28721,6 +29507,8 @@ TABLE OF CONTENTS
 #include "./float_order.h"   // d_internal_math_*_binade_of,
                              // d_internal_math_*_pow2
 #include "./math_common.h"   // D_MATH_FN, D_MATH_FN_KERNEL
+#include "./vec.h"           // d_internal_vec_*_acc_*: the compensated sums
+#include "../../../config/c/modules/math/cfg_mat.h"  // D_CFG_MATH_MAT_*
 """
 
 CMAT_TAIL = r"""
@@ -28734,7 +29522,10 @@ CMAT_OVERLOADS = [
     ("D_MATH_FN", "struct dj_cplx_@S@", "d_cmat_lu_det", [("const struct dj_cplx_@S@*", "_lu"), ("size_t", "_n"), ("@T@", "_sign")]),
     ("D_MATH_FN_KERNEL", "struct dj_cplx_@S@", "d_cmat_determinant", [("const struct dj_cplx_@S@*", "_a"), ("struct dj_cplx_@S@*", "_scratch"), ("size_t", "_n")]),
     ("D_MATH_FN_KERNEL", "bool", "d_cmat_inverse", [("struct dj_cplx_@S@*", "_out"), ("struct dj_cplx_@S@*", "_scratch"), ("const struct dj_cplx_@S@*", "_a"), ("size_t", "_n")]),
-    ("D_MATH_FN_KERNEL", "bool", "d_cmat_solve", [("struct dj_cplx_@S@*", "_x"), ("struct dj_cplx_@S@*", "_scratch"), ("const struct dj_cplx_@S@*", "_a"), ("const struct dj_cplx_@S@*", "_b"), ("size_t", "_n"), ("size_t", "_m")]),
+    ("D_MATH_FN_KERNEL", "bool", "d_cmat_solve_fast", [("struct dj_cplx_@S@*", "_x"), ("struct dj_cplx_@S@*", "_scratch"), ("const struct dj_cplx_@S@*", "_a"), ("const struct dj_cplx_@S@*", "_b"), ("size_t", "_n"), ("size_t", "_m")]),
+    ("D_MATH_FN_KERNEL", "bool", "d_cmat_solve", [("struct dj_cplx_@S@*", "_x"), ("struct dj_cplx_@S@*", "_scratch"), ("size_t*", "_pivots"), ("const struct dj_cplx_@S@*", "_a"), ("const struct dj_cplx_@S@*", "_b"), ("size_t", "_n"), ("size_t", "_m")]),
+    ("D_MATH_FN_KERNEL", "void", "d_cmat_multiply", [("struct dj_cplx_@S@*", "_out"), ("const struct dj_cplx_@S@*", "_a"), ("const struct dj_cplx_@S@*", "_b"), ("size_t", "_rows"), ("size_t", "_inner"), ("size_t", "_cols")]),
+    ("D_MATH_FN_KERNEL", "void", "d_cmat_multiply_fast", [("struct dj_cplx_@S@*", "_out"), ("const struct dj_cplx_@S@*", "_a"), ("const struct dj_cplx_@S@*", "_b"), ("size_t", "_rows"), ("size_t", "_inner"), ("size_t", "_cols")]),
     ("D_MATH_FN_KERNEL", "void", "d_cmat_balance_back", [("struct dj_cplx_@S@*", "_v"), ("size_t", "_n"), ("size_t", "_m"), ("const size_t*", "_perm"), ("const @T@*", "_scale"), ("size_t", "_ilo"), ("size_t", "_ihi")]),
 ]
 for _f, _m in (("_c", "D_MATH_FN_KERNEL"), ("", "D_MATH_FN_KERNEL_RT")):
@@ -28765,9 +29556,11 @@ def cmat():
         "needs no root comes once, a constant expression from C++14; what",
         "takes a root comes twice, as decomp.h's kernels do, the _c form a",
         "constant expression from C++14 and the plain one on the C library's",
-        "root, the same bit for bit, their roots correctly rounded both.",
+        "root, the same bit for bit, their roots correctly rounded both. The",
+        "product is compensated and the solve refined with extra precision, each",
+        "with a _fast form as written (S410).",
     ]
-    text = banner("cmat.h", lines, "2026.10.29", "2026.11.07")
+    text = banner("cmat.h", lines, "2026.10.29", "2026.11.15")
     text += "\n" + CMAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         body = CMAT_FAMILY_HEAD + CMAT_LU + CMAT_HERMITIAN_HEAD

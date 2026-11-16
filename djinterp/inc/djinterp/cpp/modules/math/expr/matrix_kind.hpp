@@ -42,8 +42,9 @@
 * arithmetic, exact wherever its elements are (S247); a dense complex one's in
 * the wider type, complex where either operand is, element by element by
 * math::complex's operators, a real operand's element or a real scalar taken
-* as itself (C99's G.5), a product's each element summed from 0 in order, as
-* the face's kernels sum it (S349); and a dense one of quaternions' in the
+* as itself (C99's G.5), a product's each element's parts rounded once from
+* Dot2's pair, as the face's kernels sum it, a real operand's products with
+* the other's parts alone (S349, S412); and a dense one of quaternions' in the
 * wider type, by the generic kernels on the quaternion kind's operands, each
 * element as the kind computes its two, a real or complex operand taken as
 * itself, each product in its order, a number's product with a matrix too,
@@ -87,7 +88,7 @@
 * path:      /inc/djinterp/cpp/modules/math/expr/matrix_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -2115,8 +2116,11 @@ NS_INTERNAL
     // expr_matrix_product_complex
     //   function: A * B, dense, one of them complex at least, in
     // math::complex<Type>: each element a row's products with a column's,
-    // a real operand's element taken as itself, summed in order from 0, as
-    // the kernels' product sums a math::complex<T> matrix's (S349).
+    // each part rounded once from Dot2's pair, as the kernels' product
+    // rounds a math::complex<T> matrix's, bit for bit (S349, S412); a real
+    // operand's element taken as itself, its products with the other's
+    // parts alone; where an operand has a NaN or an infinity, the sum in
+    // order from 0 of math::complex's products, as written.
     template<typename Type,
              typename X,
              typename Y>
@@ -2130,19 +2134,20 @@ NS_INTERNAL
         std::size_t                        _columns
     )
     {
-        // each row by each column
+        typedef linalg::internal::linalg_sums<math::complex<Type> > sums;
+
+        // each row by each column; with no inner terms, each element +0
         for (std::size_t i = 0; i < _rows; ++i)
         {
             for (std::size_t j = 0; j < _columns; ++j)
             {
-                math::complex<Type> sum;
-
-                for (std::size_t k = 0; k < _inner; ++k)
-                {
-                    sum += (_a[(i * _inner) + k] * _b[(k * _columns) + j]);
-                }
-
-                _out[(i * _columns) + j] = sum;
+                _out[(i * _columns) + j] =
+                    (_inner == 0)
+                        ? math::complex<Type>()
+                        : sums::dot2(math::complex<Type>(), false,
+                                     _a.data() + (i * _inner), 1,
+                                     _b.data() + j, _columns, _b.data(),
+                                     false, _inner);
             }
         }
 
@@ -3542,9 +3547,11 @@ NS_INTERNAL
     //   functions: det(A), inv(A), trace(A) and solve(A, B) of A, B or both
     // of complex numbers, in math::complex<Type>, each other element x as x
     // + 0i: cmat.h's LU with partial pivoting by |re| + |im|, its
-    // Gauss-Jordan inverse and its elimination of [A | B], as LAPACK's
-    // zgetrf, zgetri and zgesv, each product and quotient cplx.h's (S269,
-    // S351); a pole for a singular A; the trace by the kernels', from 0.
+    // Gauss-Jordan inverse and its elimination of [A | B],
+    // d_cmat_solve_fast, unrefined as the language's other solves are, as
+    // LAPACK's zgetrf, zgetri and zgesv, each product and quotient cplx.h's
+    // (S269, S351, S413); a pole for a singular A; the trace by the
+    // kernels', each part Sum2's, rounded once (S411).
     template<typename Type>
     value
     expr_matrix_det_complex(
@@ -3634,13 +3641,14 @@ NS_INTERNAL
         std::vector<core_type>       x(_n * _columns);
         std::vector<core_type>       scratch(_n * _n);
 
-        // singular: a pole
-        if (!d_cmat_solve(x.data(),
-                          scratch.data(),
-                          a.data(),
-                          b.data(),
-                          _n,
-                          _columns))
+        // singular: a pole, by cmat.h's elimination, unrefined, as the
+        // language's other solves are (S406, S413)
+        if (!d_cmat_solve_fast(x.data(),
+                               scratch.data(),
+                               a.data(),
+                               b.data(),
+                               _n,
+                               _columns))
         {
             return value(D_MATH_VALUE_ERROR_POLE);
         }

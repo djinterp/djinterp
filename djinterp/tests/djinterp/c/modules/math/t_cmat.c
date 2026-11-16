@@ -4,36 +4,36 @@
 *   Conformance harness for c/math/cmat.h, all three families and both forms
 * where a function has two. First, the systems of math_tests_cmat_refs.h --
 * Gaussian-integer matrices whose solutions, inverses and determinants are
-* exact, from rationals -- each family's determinant, solution and inverse
+* exact, from rationals -- each family's determinant, solutions and inverse
 * within a bound of the exact ones, in epsilons times the order times the
-* system's condition number; the solution each column LU's bits, and the
-* determinant LU's; a singular matrix detected, its inverse and solution
+* system's condition number; solve_fast's solution each column LU's bits,
+* solve's refined one (S410) no farther from the exact one than LU's, and the
+* determinant LU's; a singular matrix detected, its inverse and both solutions
 * zero. Then the Hermitian matrices: the eigenvalues the references', in
 * epsilons of |A|_F, ascending, the vectors unitary and A V = V L; both forms
 * alike; and a real symmetric matrix's values decomp.h's sym_eigen's, bit for
 * bit. Then the general path, every matrix of the references: the driver and
 * its _c form alike; each eigenvalue within a bound of the reference, in
-* epsilons times |A|_F times its condition number, ascending by real part
-* then imaginary; each eigenvector unit, its largest entry real and
-* positive, its residual within a bound of the balanced matrix's norm, as
-* LAPACK's backward error is; 2^k A's results 2^k times A's, bit for bit;
-* then the parts: balancing exact, the Hessenberg form zero below the
-* subdiagonal with Q unitary and Q H Q^H the balanced matrix, the Schur
-* form triangular with Z unitary and Z T Z^H the balanced matrix, the Schur
-* vectors eigenvectors of it, each part's two forms alike; and matrices with
-* known answers -- order 0, zero, the identity, a triangular matrix at
-* either end of the range, no steps allowed, a NaN and an infinity. The
-* largest measures are printed, family by family. Then the guards, each
-* path the parts take at the range's ends and at nearly singular systems
-* reached on purpose and checked: a complex subdiagonal made real and the
-* values alone without Z, the references'; the exceptional shifts; the
-* vectors' scalings and a vector underflowing; the reflector below the
-* safe minimum; balancing across the range, exactly where no entry passes
+* epsilons times |A|_F times its condition number, ascending by real part then
+* imaginary; each eigenvector unit, its largest entry real and positive, its
+* residual within a bound of the balanced matrix's norm, as LAPACK's backward
+* error is; 2^k A's results 2^k times A's, bit for bit; then the parts:
+* balancing exact, the Hessenberg form zero below the subdiagonal with Q
+* unitary and Q H Q^H the balanced matrix, the Schur form triangular with Z
+* unitary and Z T Z^H the balanced matrix, the Schur vectors eigenvectors of
+* it, each part's two forms alike; and matrices with known answers -- order 0,
+* zero, the identity, a triangular matrix at either end of the range, no steps
+* allowed, a NaN and an infinity. The largest measures are printed, family by
+* family. Then the guards, each path the parts take at the range's ends and at
+* nearly singular systems reached on purpose and checked: a complex subdiagonal
+* made real and the values alone without Z, the references'; the exceptional
+* shifts; the vectors' scalings and a vector underflowing; the reflector below
+* the safe minimum; balancing across the range, exactly where no entry passes
 * below the least normal on the way; a subnormal matrix; a Hermitian entry
 * already zero; and the tangent's _c form at run time. From C++14, the
-* eigenvalues, the Hermitian eigenvalues, the solution, the inverse and the
-* determinant as constant expressions, for every family, with the bits they
-* have at run time.
+* eigenvalues, the Hermitian eigenvalues, the refined solution, the inverse,
+* the determinant and the compensated product as constant expressions, for
+* every family, with the bits they have at run time.
 *
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
@@ -43,7 +43,7 @@
 * path:      /tests/djinterp/c/modules/math/t_cmat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ... LDBL_MIN, the families' limits
@@ -303,9 +303,10 @@ d_tests_residual_##S(const struct dj_cplx_##S* _a, size_t _n,                  \
            ((long double)EPS * _norm_b * d_math_ld_sqrt(v2));                  \
 }                                                                              \
                                                                                \
-/* the systems: the determinant, the solution and the inverse against */       \
-/* the exact ones, to SOLVE_BOUND n epsilons times the condition; the */       \
-/* solution LU's bits; LU's determinant the determinant's             */       \
+/* the systems: the determinant, the solutions and the inverse      */       \
+/* against the exact ones, to SOLVE_BOUND n epsilons times the       */       \
+/* condition; solve_fast's solution LU's bits, solve's refined one   */       \
+/* (S410) no farther than it; LU's determinant the determinant's     */       \
 static void                                                                    \
 d_tests_systems_##S(void)                                                      \
 {                                                                              \
@@ -317,11 +318,11 @@ d_tests_systems_##S(void)                                                      \
         const struct dj_tests_cmat_system* sy = &g_cmat_systems[c];            \
         const size_t n = (size_t)sy->n;                                        \
         const long double cond = d_tests_text(sy->cond);                       \
-        struct dj_cplx_##S a[144], b[24], x[24], lu[144], scratch[144];        \
-        struct dj_cplx_##S inv[144], col[12], xc[12], det, det2;               \
+        struct dj_cplx_##S a[144], b[24], x[24], lu[144], scratch[192];        \
+        struct dj_cplx_##S inv[144], col[12], xc[12], xr[24], det, det2;       \
         T sign = (T)0;                                                         \
-        size_t perm[12];                                                       \
-        long double e2 = 0.0L, r2 = 0.0L, worst = 0.0L, d;                     \
+        size_t perm[12], pivots[12];                                           \
+        long double e2 = 0.0L, r2 = 0.0L, er2 = 0.0L, worst = 0.0L, d;         \
         bool ok, okinv, singular;                                              \
                                                                                \
         for (i = 0; i < n * n; ++i) a[i] = d_tests_entry_##S(sy->a + (int)i);  \
@@ -345,8 +346,8 @@ d_tests_systems_##S(void)                                                      \
         }                                                                      \
         if (d > worst) worst = d;                                              \
                                                                                \
-        /* the solution, against the exact one and LU's */                     \
-        ok = d_cmat_##S##_solve(x, scratch, a, b, n, 2);                       \
+        /* the solutions, against the exact one and LU's */                    \
+        ok = d_cmat_##S##_solve_fast(x, scratch, a, b, n, 2);                  \
         for (j = 0; j < 2; ++j)                                                \
         {                                                                      \
             for (i = 0; i < n; ++i) col[i] = b[i * 2 + j];                     \
@@ -354,7 +355,10 @@ d_tests_systems_##S(void)                                                      \
             for (i = 0; i < n; ++i)                                            \
                 ok = ok && d_tests_csame_##S(xc[i], x[i * 2 + j]);             \
         }                                                                      \
-        D_TESTS_EXPECT(ok, #S " solve: true, each column LU's, bit for bit");  \
+        D_TESTS_EXPECT(ok, #S " solve_fast: true, each column LU's, bit for "  \
+                              "bit");                                          \
+        D_TESTS_EXPECT(d_cmat_##S##_solve(xr, scratch, pivots, a, b, n, 2),    \
+                       #S " solve: true");                                     \
         for (i = 0; i < 2 * n; ++i)                                            \
         {                                                                      \
             const long double dr = d_tests_text(g_cmat_texts[sy->x +           \
@@ -363,8 +367,12 @@ d_tests_systems_##S(void)                                                      \
                                                              (int)i].im);      \
             d = d_tests_distance_##S(x[i], sy->x + (int)i);                    \
             e2 += d * d;                                                       \
+            d = d_tests_distance_##S(xr[i], sy->x + (int)i);                   \
+            er2 += d * d;                                                      \
             r2 += dr * dr + di * di;                                           \
         }                                                                      \
+        D_TESTS_EXPECT(er2 <= e2, #S " solve: refined, no farther from the "   \
+                                     "exact solution than LU's");              \
         d = d_math_ld_sqrt(e2) /                                               \
             (d_math_ld_sqrt(r2) * (long double)n * eps * cond);                \
         if (d > worst) worst = d;                                              \
@@ -398,7 +406,7 @@ d_tests_systems_##S(void)                                                      \
         const double ent[9][2] = { { 4, 0 }, { 0, 2 }, { 8, 0 },               \
                                    { 2, 0 }, { 1, 1 }, { 2, 0 },               \
                                    { 2, 0 }, { 0.5, 1 }, { 3, 0 } };           \
-        struct dj_cplx_##S a[9], b[6], x[6], inv[9], scratch[9], det;          \
+        struct dj_cplx_##S a[9], b[6], x[6], xr[6], inv[9], scratch[21], det;  \
         T sign = (T)0;                                                         \
         size_t perm[3];                                                        \
         bool ok;                                                               \
@@ -409,15 +417,18 @@ d_tests_systems_##S(void)                                                      \
         det = d_cmat_##S##_determinant(a, scratch, 3);                         \
         ok = (det.part[0] == (T)0) && (det.part[1] == (T)0) &&                 \
              !d_cmat_##S##_inverse(inv, scratch, a, 3) &&                      \
-             !d_cmat_##S##_solve(x, scratch, a, b, 3, 2);                      \
+             !d_cmat_##S##_solve_fast(x, scratch, a, b, 3, 2) &&               \
+             !d_cmat_##S##_solve(xr, scratch, perm, a, b, 3, 2);               \
         for (i = 0; i < 9; ++i)                                                \
             ok = ok && (inv[i].part[0] == (T)0) && (inv[i].part[1] == (T)0);   \
         for (i = 0; i < 6; ++i)                                                \
-            ok = ok && (x[i].part[0] == (T)0) && (x[i].part[1] == (T)0);       \
+            ok = ok && (x[i].part[0] == (T)0) && (x[i].part[1] == (T)0) &&     \
+                 (xr[i].part[0] == (T)0) && (xr[i].part[1] == (T)0);           \
         memcpy(scratch, a, sizeof(a));                                         \
         ok = ok && d_cmat_##S##_lu(scratch, 3, perm, &sign);                   \
         D_TESTS_EXPECT(ok, #S " a singular matrix: determinant 0, no "         \
-                           "inverse or solution, zeros, LU says so");          \
+                           "inverse or solution by either solve, zeros, LU "   \
+                           "says so");                                         \
     }                                                                          \
                                                                                \
     return;                                                                    \
@@ -1406,10 +1417,11 @@ D_TESTS_CMAT_GUARD_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MIN,
 // D_TESTS_CMAT_CONSTANT
 //   stamps, for one family, d_cmat_<S>_eigen_c of a 2-by-2 matrix (one of
 // order 3 takes clang past its million steps of constant evaluation),
-// d_cmat_<S>_hermitian_eigen_c of a 2-by-2 one, and the solution, the
-// inverse and the determinant of a 2-by-2 system, as constant expressions,
-// one call for each part, and d_tests_constant_<S>, which compares them with
-// the run time's, the matrices read through a volatile.
+// d_cmat_<S>_hermitian_eigen_c of a 2-by-2 one, and the refined solution,
+// the inverse, the determinant and the compensated product of a 2-by-2
+// system, as constant expressions, one call for each part, and
+// d_tests_constant_<S>, which compares them with the run time's, the
+// matrices read through a volatile.
 #define D_TESTS_CMAT_CONSTANT(T, S)                                            \
 static constexpr struct dj_cplx_##S                                            \
 d_tests_constant_eigen_##S(size_t _k)                                          \
@@ -1450,12 +1462,17 @@ d_tests_constant_solve_##S(size_t _k)                                          \
         d_cplx_##S##_make(1, 0), d_cplx_##S##_make(0, 1) };                    \
     struct dj_cplx_##S x[2] = {};                                              \
     struct dj_cplx_##S inv[4] = {};                                            \
-    struct dj_cplx_##S scratch[4] = {};                                        \
-    (void)d_cmat_##S##_solve(x, scratch, a, b, 2, 1);                          \
+    struct dj_cplx_##S p[2] = {};                                              \
+    struct dj_cplx_##S scratch[12] = {};                                       \
+    size_t pivots[2] = { 0, 0 };                                               \
+    (void)d_cmat_##S##_solve(x, scratch, pivots, a, b, 2, 1);                  \
     (void)d_cmat_##S##_inverse(inv, scratch, a, 2);                            \
+    d_cmat_##S##_multiply(p, a, b, 2, 2, 1);                                   \
     return (_k < 2) ? x[_k]                                                    \
                     : ((_k < 6) ? inv[_k - 2]                                  \
-                                : d_cmat_##S##_determinant(a, scratch, 2));    \
+                                : ((_k == 6)                                   \
+                                   ? d_cmat_##S##_determinant(a, scratch, 2)   \
+                                   : p[_k - 7]));                              \
 }                                                                              \
                                                                                \
 static constexpr struct dj_cplx_##S g_constant_eigen_##S[4] =                  \
@@ -1469,22 +1486,23 @@ static constexpr T g_constant_hermitian_##S[2] =                               \
     d_tests_constant_hermitian_##S(0), d_tests_constant_hermitian_##S(1)       \
 };                                                                             \
                                                                                \
-static constexpr struct dj_cplx_##S g_constant_solve_##S[7] =                  \
+static constexpr struct dj_cplx_##S g_constant_solve_##S[9] =                  \
 {                                                                              \
     d_tests_constant_solve_##S(0), d_tests_constant_solve_##S(1),              \
     d_tests_constant_solve_##S(2), d_tests_constant_solve_##S(3),              \
     d_tests_constant_solve_##S(4), d_tests_constant_solve_##S(5),              \
-    d_tests_constant_solve_##S(6)                                              \
+    d_tests_constant_solve_##S(6), d_tests_constant_solve_##S(7),              \
+    d_tests_constant_solve_##S(8)                                              \
 };                                                                             \
                                                                                \
 static void                                                                    \
 d_tests_constant_##S(void)                                                     \
 {                                                                              \
     volatile T one = (T)1;                                                     \
-    struct dj_cplx_##S a[4], h[4], x2[4], s[4], b[2], xs[2], inv[4], sc[4];    \
-    struct dj_cplx_##S v[2], x[4], work[6];                                    \
+    struct dj_cplx_##S a[4], h[4], x2[4], s[4], b[2], xs[2], inv[4], sc[12];   \
+    struct dj_cplx_##S v[2], x[4], work[6], ps[2];                             \
     T rwork[4], hv[2];                                                         \
-    size_t perm[2], k;                                                         \
+    size_t perm[2], pivots[2], k;                                              \
     bool ok = true;                                                            \
     const int ea[4][2] = { { 1, 2 }, { 0, -1 }, { 2, 0 }, { 1, 1 } };          \
     const int eh[4][2] = { { 2, 0 }, { 1, -1 }, { 1, 1 }, { -1, 0 } };         \
@@ -1500,20 +1518,22 @@ d_tests_constant_##S(void)                                                     \
     b[1] = d_cplx_##S##_make((T)0, one);                                       \
     (void)d_cmat_##S##_eigen(a, 2, v, x, work, rwork, perm, 1000u, (T)0);      \
     d_cmat_##S##_hermitian_eigen(h, hv, x2, 2, (T)0);                          \
-    (void)d_cmat_##S##_solve(xs, sc, s, b, 2, 1);                              \
+    (void)d_cmat_##S##_solve(xs, sc, pivots, s, b, 2, 1);                      \
     (void)d_cmat_##S##_inverse(inv, sc, s, 2);                                 \
+    d_cmat_##S##_multiply(ps, s, b, 2, 2, 1);                                  \
     for (k = 0; k < 2; ++k)                                                    \
         ok = ok && d_tests_csame_##S(g_constant_eigen_##S[k], v[k]) &&         \
              d_tests_csame_##S(g_constant_eigen_##S[k + 2], x[k * 2]) &&       \
              d_tests_same_##S(g_constant_hermitian_##S[k], hv[k]) &&           \
-             d_tests_csame_##S(g_constant_solve_##S[k], xs[k]);                \
+             d_tests_csame_##S(g_constant_solve_##S[k], xs[k]) &&              \
+             d_tests_csame_##S(g_constant_solve_##S[k + 7], ps[k]);            \
     for (k = 0; k < 4; ++k)                                                    \
         ok = ok && d_tests_csame_##S(g_constant_solve_##S[k + 2], inv[k]);     \
     ok = ok && d_tests_csame_##S(g_constant_solve_##S[6],                      \
                                  d_cmat_##S##_determinant(s, sc, 2));          \
     D_TESTS_EXPECT(ok, #S " eigen_c, hermitian_eigen_c, solve, inverse, "      \
-                       "determinant: constant expressions, the run "           \
-                       "time's bits");                                         \
+                       "determinant, multiply: constant expressions, the "     \
+                       "run time's bits");                                     \
 }
 
 D_TESTS_CMAT_CONSTANT(float,       f)

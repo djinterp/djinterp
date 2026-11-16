@@ -1,19 +1,20 @@
-# djinterp math: the lane's decisions, S1 to S408
+# djinterp math: the lane's decisions, S1 to S413
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S403 stand, his own
+its delivery, his "continue", has accepted it: S1 to S408 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
 reviews they rule, each "Ruled 2026.11.04", two of them, S336 and S340, his
 own choice of an alternative the review had set aside, made in chunk 46
-(S384, S385). S404 to S408 are chunk 49's, open until his word on it: the
-last of the groups of fixes he chose on 2026.11.12, accuracy, as he scoped
-it on 2026.11.14 -- compensated sums and a refined solve in this chunk, the
+(S384, S385). S409 to S413 are chunk 50's, open until his word on it: the
+second part of the last of the groups of fixes he chose on 2026.11.12,
+accuracy, as he scoped it on 2026.11.14 -- the complex dense kernels
+compensated and refined and `project` and `reject` scaled in this chunk, the
 float and double `_c` forms correctly rounded in the next. His word of
 2026.11.14 on the language's names, which kept them flat in
 `djinterp::math`, is S397's. Where a later decision changes an earlier one,
@@ -36,7 +37,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-24 flagged decisions, the outstanding ones, come first, in six groups by
+23 flagged decisions, the outstanding ones, come first, in six groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -46,15 +47,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk49_2026.11.14/tools/decisions_c49.py`.
+`_handoffs/math98_chunk50_2026.11.15/tools/decisions_c50.py`.
 
 ## 1. Outstanding decisions
 
-The 24 flagged decisions: those whose review recommends what is not yet
+The 23 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c49.md`'s, in chunk 49's
+The groups and the steps are `decisions_outstanding_c50.md`'s, in chunk 50's
 record.
 
 ### 1.1 The expression language
@@ -129,15 +130,13 @@ record.
 
 ### 1.3 Linear algebra and eigenvalues
 
-- S301. When: the next chunk, with S408: chunk 49 touched `vec.h`'s sums,
-  not `project` and `reject`; minor. Minor: `project` and `reject` unscaled.
-  Recommended: as taken, with `project` and `reject` scaled the same way at
-  the next step that touches `vec.h`. Ruled 2026.11.04: as recommended, at
-  the next step that touches `vec.h`.
-- S408. When: the next chunk, before 0.8: `d_cmat_*_solve` refined, the
-  complex products compensated. Significant: the complex dense kernels
-  uncompensated and unrefined. Recommended: cmat.h's solve refined and the
-  complex products compensated in the next chunk, before 0.8.
+- S413. When: before 0.8, 2026.11.30: the language's float, double and long
+  double solves refined, with step 29 (5a) or the next chunk that touches
+  the language's matrices. Significant: the language's dense solves
+  unrefined while the faces' are refined. Recommended: the alternative, the
+  real solves by `d_mat_solve` and the complex by `d_cmat_solve`, with step
+  29 (5a) or the next chunk that touches the language's matrices, before
+  0.8.
 - S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
   number type, both faces' matrices taking it. Not the earlier review's
   recommendation in full: neither face's matrix holds quaternions; the
@@ -5272,7 +5271,8 @@ finite.
 > norm, an infinity or 0 at the range's ends. Recommended: as taken, with
 > `project` and `reject` scaled the same way at the next step that touches
 > `vec.h`. Ruled 2026.11.04: as recommended, at the next step that touches
-> `vec.h`. **Flag:** minor: `project` and `reject` unscaled.
+> `vec.h`. Done in chunk 50 (S409): `project` and `reject` scaled at the
+> range's ends, every bit in range kept.
 
 **S302. `mat.h`'s `d_mat_<S>_solve(x, scratch, a, b, n, m)` is Gaussian
 elimination of [A | B] with partial pivoting and back-substitution, as
@@ -8382,7 +8382,7 @@ they were.
 > -- by the algorithm LAPACK and its analysis stand behind, its old bits
 > under `solve_fast`, and no old call compiling into an overrun. Against: a
 > C caller of `d_mat_<S>_solve` must change its call; and the cost, measured
-> for double at 11 times the elimination's for order 3 and 7 for order 8
+> for double at 10 times the elimination's for order 3 and 7 for order 8
 > (`raw/timing.txt`). The alternatives: the old signature; no tail; LAPACK's
 > error bounds; the elimination in long double. Recommended: as taken; error
 > bounds, should a caller ask for them, in a form of their own. Taken.
@@ -8418,5 +8418,174 @@ cmat.h's solve the same refinement with a complex residual.
 > accurate as before, a complex solve no longer the real one's equal in
 > accuracy. The alternative: both in this chunk. Recommended: cmat.h's solve
 > refined and the complex products compensated in the next chunk, before
-> 0.8. **Flag:** significant: the complex dense kernels uncompensated and
-> unrefined.
+> 0.8. Done in chunk 50 (S410 to S412): cmat.h's products compensated and
+> its solve refined, the generic path's and the language's complex products
+> with them.
+
+### S409 to S413: chunk 50, 2026.11.15
+
+The record: `_handoffs/math98_chunk50_2026.11.15/README.md`.
+
+Chunk 50's decisions, S409 to S413: the second part of the accuracy the
+owner scoped on 2026.11.14, the complex dense kernels and the scaled
+projection his ruling of 2026.11.04 asked for. Chunk 49's, S404 to S408,
+stand: his "continue" of 2026.11.15 followed its delivery.
+
+**S409. `project` and `reject` scale their operands at the range's ends,
+as S301 was ruled on 2026.11.04: in range -- the squared norm d of the
+vector projected onto from MIN/EPS to MAX, the compensated dot p 0 or its
+ratio to d from MIN/EPS to MAX -- each component p/d times the other's, as
+before, every bit kept; for the zero vector, or an operand with a NaN or an
+infinity, the formula as written; elsewhere each operand scaled by a power
+of two, its largest entry to [1, 2), the scaled dot by Dot2 over the scaled
+squared norm summed as `norm_squared` sums, each component that ratio times
+the scaled entry, scaled back by the first operand's power.** Scaling by a
+power of two commutes with rounding in the normal range, so a projection
+whose result is in range is computed in range wherever its operands lie: a
+vector onto itself at either end is itself, where the formula made it NaN
+or 0.
+- Alternative: one path, always scaled: simpler, and the in-range bits
+  changed, against the ruling's "every bit in range kept".
+- Alternative: the squared norm compensated too, by Sum2 of the squares: a
+  more accurate ratio, and `norm_squared`'s bits, which S405 kept as
+  written, no longer the projection's.
+- Alternative: the ratio in long double: nothing gained where long double is
+  double, nor for the long double family.
+
+> **Review.** Taken: for, the ruling of 2026.11.04 carried out: every bit in
+> range kept, t_vec.c's 200,000 random pairs per family still the formula's,
+> and 2,000 pairs per family moved past the range by powers of two each
+> giving the in-range bits moved, every one checked, where chunk 49's
+> formula fails 4,449 of those checks (`raw/s301_probe.txt`); a vector onto
+> itself at either end itself, where the formula made it NaN or 0. Against:
+> two paths where one would serve, and the cost: a double projection of 4
+> components in range 25.8 ns against chunk 49's 16.9, its largest entries
+> found first, and past the range 330.3 (`raw/timing.txt`). The
+> alternatives: one path, always scaled; the squared norm compensated; the
+> ratio in long double. Recommended: as taken. Taken.
+
+**S410. cmat.h's complex dense kernels are compensated and refined:
+`d_cmat_<S>_multiply`, new, rounds each part of each entry once from Dot2's
+pair -- the real part's products re re and -im im, the imaginary part's re
+im and im re, each exact as a pair -- and `d_cmat_<S>_solve` refines its
+solution as mat.h's does (S406), the residual's parts by Dot2 with the
+solution carried as a pair, part by part, until every part's correction
+lies below half its unit in the last place, neither the largest correction
+nor the largest relative halves, or `D_CFG_MATH_MAT_REFINE_STEPS` steps
+have run.** The sums go through an accumulator vec.h now keeps,
+`dj_internal_vec_<S>_acc`, Dot2's running pair in the pairs the family
+sums in, for callers whose terms are not strided arrays of one family:
+added to by a product or a term, rounded once, scaled as the family's dot
+scales; with C++ overloads of one name for the three families. As vec.h's
+dot: operands past the range scaled by their largest part's power, a NaN or
+an infinity the formula as written, every product 0 the constant's parts
+plus 0, +0 for either zero. The solve takes the factors' room,
+`(x, scratch, pivots, a, b, n, m)`, scratch n * n + 4 n, so that an old
+call fails to compile rather than overrun; `d_cmat_<S>_multiply_fast` is
+cplx.h's products summed in order, and `d_cmat_<S>_solve_fast` the old
+elimination, its signature and bits.
+- Alternative: each part as two real dots, re re and im im apart, then
+  subtracted: vec.h's kernels as they are, two roundings a part, and the
+  cancellation between the two dots unprotected.
+- Alternative: Gauss's product of three multiplications: fewer products,
+  and an error that grows where the parts differ in size.
+- Alternative: the parts copied into real arrays, interleaved, and vec.h's
+  dot called: the same bits (the checks show it), a copy per entry, and no
+  form the generic path can call on `math::complex<T>`'s elements.
+- Alternative: the old signature, the refinement inside n * n of scratch:
+  no room for the factors, the pair and the correction.
+
+> **Review.** Taken: for, every part of a complex dot within Dot2's bound of
+> the exact sum -- 120,000 parts checked exactly, in six builds -- and the
+> refined complex solve exact on all 562 parts of 65 reference systems, 64
+> well conditioned, where the elimination gave 72 (`raw/compensated.txt`);
+> the old bits under `_fast` names; and, cplx.h's products being themselves
+> within 2 ulps, the compensated product the cheaper: a double 4 x 4 product
+> 1,130.5 ns against `multiply_fast`'s 2,128.4. Against: a C caller of
+> `d_cmat_<S>_solve` must change its call; the refined solve's cost, 3,211.6
+> ns against 1,212.6 for a double system of order 3, 24,510.1 against
+> 11,840.7 for order 8 (`raw/timing.txt`); and vec.h's internal API larger
+> by an accumulator and its nine overloads. The alternatives: two real dots
+> a part; Gauss's three products; the parts copied into real arrays; the old
+> signature. Recommended: as taken. Taken.
+
+**S411. The generic path's `math::complex<T>` follows cmat.h: its `dot`,
+`sum`, products, `multiply_vector`, `trace` and `power` are compensated, and
+its `solve` refined, each a C++ mirror of cmat.h's kernel on vec.h's
+accumulator through its overloads, so that the faces' matrices of complex
+numbers are cmat.h's bit for bit, from C++98 and as constant expressions
+from C++14.** `linalg_sums<Type>` holds the sums: for every type the
+formula as written, exact for an exact type; for `math::complex<T>`
+cmat.h's Dot2, each part of a sum of terms Sum2 scaled as vec.h's sums
+scale. `solve` is tag-dispatched by `linalg_by_lu`: for complex numbers LU
+with partial pivoting kept, each column of B gathered into X's column in
+the factors' row order, solved there and refined in place, the residual
+taken in the factors' order, so that the C core's arguments suffice,
+scratch n * n + 2 n; for every other type the elimination. Each keeps its
+formula under its `_fast` name, `power_fast` now by `multiply_fast`.
+- Alternative: the generic path calling cmat.h itself: its elements are
+  `math::complex<T>`, not the C structs, so a reinterpreting cast, which no
+  constant expression allows, or a copy into scratch of the C struct type,
+  which the faces' scratch is not.
+- Alternative: the generic path's complex sums as written: a face and the C
+  core apart on the same matrix, against S315's parity.
+- Alternative: a compensated generic path for every floating type: no other
+  type of the generic path has a wider sum to compensate with; the exact
+  ones need none.
+
+> **Review.** Taken: for, the faces' complex matrices as accurate as
+> cmat.h's and its bits exactly: t_complex_face.cpp holds the determinant,
+> the inverse, both solves, the products, the cubes and the traces of 1,000
+> random matrices per family to cmat.h's, a fifth of them of small integers
+> with zero pivots and ties, and the refined solution, a product and a trace
+> as constant expressions to the run time's (`raw/smoke.txt`); the scratch
+> the faces already give. Against: some 650 lines of C++ mirroring cmat.h's
+> kernels, which must stay in step with them -- the parity checks hold them
+> so -- and the cost, the face's double 4 x 4 product 1,319.0 ns against
+> `times_fast`'s 904.6 and its solve of order 3 2,936.5 against 1,059.0
+> (`raw/timing.txt`). The alternatives: the generic path calling cmat.h; its
+> sums as written; every floating type compensated. Recommended: as taken.
+> Taken.
+
+**S412. The language's dense complex products follow the kernels, as S349
+asked: each element's parts rounded once from Dot2's pair, a real
+operand's element taken as itself, its products with the other's parts
+alone, each part then a real Dot2; the language's complex trace, the
+kernels', is each part's Sum2.** Where an operand has a NaN or an infinity
+the element is the sum from 0, in order, of math::complex's products, as
+before.
+- Alternative: the language's complex products as written, S349's
+  sentence changed: the language's real products compensated (S404) and
+  its complex ones not.
+- Alternative: a real operand widened to x + 0i: the same values, its zero
+  products adding nothing, and G.5's "taken as itself", the language's
+  rule, no longer the code's.
+
+> **Review.** Taken: for, the language's complex products as accurate as its
+> real ones (S404) and S349's parity kept: a product of complex matrices the
+> kernels', a real matrix's by a complex one each part the C core's real dot
+> of a row with the column's parts, as t_expr_complex_matrix_face.cpp
+> checks. Against: the products' bits differ from chunk 49's in their last
+> places. The alternatives: the products as written; a real operand widened.
+> Recommended: as taken. Taken.
+
+**S413. The language's dense solves stay unrefined: a complex one by
+cmat.h's `d_cmat_solve_fast`, its bits as they were, as the real one by
+decomp.h's LU and the quaternions' and values' by the generic kernel's
+elimination (S406).** This chunk changes no solve of the language.
+- Alternative: the language's float, double and long double solves refined,
+  the real by `d_mat_solve` and the complex by `d_cmat_solve`: `solve(A, B)`
+  in the language as accurate as `la::solve`, at the refinement's cost, the
+  language's tests' expected solutions changed.
+
+> **Review.** Taken: for, this chunk's change kept to the kernels S408
+> named, the language's solutions the bits its tests and users had. Against:
+> the language's `solve(A, B)` of floats and doubles the elimination's,
+> while `la::solve` of the same matrices is refined, each part correctly
+> rounded where the system is well conditioned: the one place a user of the
+> language gets less than the face gives. The alternative: the language's
+> float, double and long double solves refined. Recommended: the
+> alternative, the real solves by `d_mat_solve` and the complex by
+> `d_cmat_solve`, with step 29 (5a) or the next chunk that touches the
+> language's matrices, before 0.8. **Flag:** significant: the language's
+> dense solves unrefined while the faces' are refined.

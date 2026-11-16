@@ -16,10 +16,13 @@
 * with no order, its magnitude |re| + |im|, and common_number; and linear
 * algebra of it: sums and products, the bilinear dot and the conjugating vdot,
 * the norms of the moduli and is_unitary (S354), tolerances of the real type,
-* and the determinant, inverse and solution of random matrices of 1 to 5 rows,
-* cmat.h's bit for bit. From C++14, every _c form as a constant
-* expression, equal to the run time's bit for bit, and a determinant as one;
-* from C++20, every function by its name too, as its _c form there.
+* and the determinant, inverse, refined and fast solutions, products, cubes
+* and traces of random matrices of 1 to 5 rows, compensated and as written,
+* cmat.h's bit for bit (S410, S411), the traces the C core's real sums of
+* each part. From C++14, every _c form as a constant expression, equal to the
+* run time's bit for bit, and a determinant, a refined solution, a
+* compensated product and a trace as ones; from C++20, every function by its
+* name too, as its _c form there.
 *
 *   Build (from the repo root), at any level from C++98:
 *     c++ -std=c++98 -Wall -Wextra -Werror -Wshadow -pedantic-errors -Iinc    \
@@ -29,7 +32,7 @@
 * path:      /tests/djinterp/cpp/modules/math/t_complex_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/complex.hpp"  // tested
 // djinterp
@@ -895,11 +898,86 @@ namespace
         return;
     }
 
+    // d_tests_kernel_parity
+    //   the products of _a and _b and _a's cube, the fast solution of
+    // _a x = _b and the traces, compensated and as written, cmat.h's bit for
+    // bit (S410, S411), _ka and _kb their cores: a cube A (A A), the traces
+    // the C core's real sums of each part and the diagonal summed in order.
+    template<typename    T,
+             std::size_t N>
+    bool
+    d_tests_kernel_parity(
+        const la::matrix<m::complex<T>, N, N>&      _a,
+        const la::matrix<m::complex<T>, N, 2>&      _b,
+        const typename m::complex<T>::core_type*    _ka,
+        const typename m::complex<T>::core_type*    _kb
+    )
+    {
+        typedef m::complex<T>         C;
+        typedef typename C::core_type K;
+
+        const la::matrix<C, N, 2> xf        = la::solve_fast(_a, _b);
+        const la::matrix<C, N, 2> p         = _a.times(_b);
+        const la::matrix<C, N, 2> q         = _a.times_fast(_b);
+        const la::matrix<C, N, N> cube      = _a.power(3);
+        const la::matrix<C, N, N> cube_fast = _a.power_fast(3);
+        K                         ks[N * N];
+        K                         kf[N * 2];
+        K                         kp[N * 2];
+        K                         kq[N * 2];
+        K                         k2[N * N];
+        K                         k3[N * N];
+        K                         f2[N * N];
+        K                         f3[N * N];
+        T                         diagonal[2][N];
+        C                         written;
+        bool                      ok = true;
+
+        (void)d_cmat_solve_fast(kf, ks, _ka, _kb, N, 2);
+        d_cmat_multiply(kp, _ka, _kb, N, N, 2);
+        d_cmat_multiply_fast(kq, _ka, _kb, N, N, 2);
+        d_cmat_multiply(k2, _ka, _ka, N, N, N);
+        d_cmat_multiply(k3, _ka, k2, N, N, N);
+        d_cmat_multiply_fast(f2, _ka, _ka, N, N, N);
+        d_cmat_multiply_fast(f3, _ka, f2, N, N, N);
+
+        // the cubes; each part of the diagonal, and the diagonal in order
+        for (std::size_t i = 0; i < (N * N); ++i)
+        {
+            ok = ( (ok) &&
+                   (d_tests_same(cube(i / N, i % N), k3[i])) &&
+                   (d_tests_same(cube_fast(i / N, i % N), f3[i])) );
+        }
+
+        for (std::size_t i = 0; i < N; ++i)
+        {
+            diagonal[0][i] = _a(i, i).real();
+            diagonal[1][i] = _a(i, i).imag();
+            written       += _a(i, i);
+        }
+
+        // the fast solution and the products
+        for (std::size_t i = 0; i < (N * 2); ++i)
+        {
+            ok = ( (ok) &&
+                   (d_tests_same(xf(i / 2, i % 2), kf[i])) &&
+                   (d_tests_same(p(i / 2, i % 2), kp[i])) &&
+                   (d_tests_same(q(i / 2, i % 2), kq[i])) );
+        }
+
+        return ( (ok) &&
+                 (d_tests_same(_a.trace(),
+                               d_cplx_make(d_vec_sum(diagonal[0], N),
+                                           d_vec_sum(diagonal[1], N)))) &&
+                 (d_tests_same(_a.trace_fast(), written)) );
+    }
+
     // d_tests_matrix_parity
-    //   _trials random N-by-N matrices' det, inverse and solution of two
-    // columns, cmat.h's bit for bit, every fifth of small integers, which
-    // make zero pivots, ties and singular matrices; and A inverse(A) the
-    // identity, where A is well away from singular.
+    //   _trials random N-by-N matrices' det, inverse and refined solution
+    // of two columns, cmat.h's bit for bit (S410, S411), and the kernels
+    // above, every fifth of small integers, which make zero pivots, ties
+    // and singular matrices; and A inverse(A) the identity, where A is well
+    // away from singular.
     template<typename    T,
              std::size_t N>
     bool
@@ -916,9 +994,10 @@ namespace
             la::matrix<C, N, 2> b;
             K                   ka[N * N];
             K                   kb[N * 2];
-            K                   ks[N * N];
+            K                   ks[(N * N) + (4 * N)];
             K                   kx[N * 2];
             K                   ko[N * N];
+            std::size_t         pivots[N];
 
             for (std::size_t i = 0; i < (N * N); ++i)
             {
@@ -947,11 +1026,12 @@ namespace
             const la::matrix<C, N, N> ia = la::inverse(a);
             const bool                ki = d_cmat_inverse(ko, ks, ka, N);
             const la::matrix<C, N, 2> x  = la::solve(a, b);
-            const bool                kx_ok = d_cmat_solve(kx, ks, ka, kb,
-                                                           N, 2);
+            const bool                kx_ok = d_cmat_solve(kx, ks, pivots,
+                                                           ka, kb, N, 2);
 
             ok = ( (ok) &&
-                   (d_tests_same(d, kd)) );
+                   (d_tests_same(d, kd)) &&
+                   (d_tests_kernel_parity<T, N>(a, b, ka, kb)) );
 
             for (std::size_t i = 0; i < (N * N); ++i)
             {
@@ -995,7 +1075,7 @@ namespace
                         (d_tests_matrix_parity<T, 3>(300)) &&
                         (d_tests_matrix_parity<T, 4>(200)) &&
                         (d_tests_matrix_parity<T, 5>(100)),
-                        "det, inverse and solve: cmat.h's, bit for bit");
+                        "the matrix kernels: cmat.h's, bit for bit");
 
         // sums and products; the bilinear dot, [1, i] . [1, i] = 1 + i i = 0
         const C                   i1(T(0), T(1));
@@ -1284,6 +1364,30 @@ namespace
     static_assert(d_tests_constant_det() == 1.0,
                   "a complex determinant as a constant expression");
 
+    // the refined solution of [[2 + i, 1], [i, 3 - i]] x = [1, 2i], the
+    // compensated product of the matrix and [1, 2i], and its trace, as
+    // constant expressions (S411), from parts _re and _im of its first entry
+    constexpr cd
+    d_tests_linear(int _k, double _re, double _im)
+    {
+        const cd                   e[4] = { cd(_re, _im), cd(1), cd(0, 1),
+                                            cd(3, -1) };
+        const cd                   f[2] = { cd(1), cd(0, 2) };
+        const la::matrix<cd, 2, 2> a(e);
+        const la::vector<cd, 2>    b(f);
+
+        return (_k < 2) ? la::solve(a, b)[_k]
+                        : ((_k < 4) ? a.times(b)[_k - 2]
+                                    : a.trace());
+    }
+
+    constexpr cd g_constant_linear[5] =
+    {
+        d_tests_linear(0, 2.0, 1.0), d_tests_linear(1, 2.0, 1.0),
+        d_tests_linear(2, 2.0, 1.0), d_tests_linear(3, 2.0, 1.0),
+        d_tests_linear(4, 2.0, 1.0)
+    };
+
     void
     d_tests_constant_evaluation()
     {
@@ -1304,6 +1408,22 @@ namespace
 
         D_TESTS_EXPECT(same, "every _c form as a constant expression: the "
                              "run time's bits");
+
+        volatile double two = 2.0;
+        volatile double one = 1.0;
+        bool            linear = true;
+
+        // the refined solution, product and trace at run time
+        for (int k = 0; k < 5; ++k)
+        {
+            linear = ( (linear) &&
+                       (d_tests_same(d_tests_linear(k, two, one),
+                                     g_constant_linear[k])) );
+        }
+
+        D_TESTS_EXPECT(linear, "a complex refined solution, compensated "
+                               "product and trace as constant expressions: "
+                               "the run time's bits (S411)");
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
         bool named = true;

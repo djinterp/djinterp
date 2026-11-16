@@ -23,7 +23,13 @@
 *   math::complex<T> takes the generic path, its arithmetic the C core's
 * cplx.h's, and its determinant LU's with partial pivoting by magnitude, as
 * cmat.h's, rather than Bareiss's, which every other type there keeps: its
-* determinant, inverse and solution are cmat.h's bit for bit (S315).
+* determinant and inverse are cmat.h's bit for bit (S315). Its sums --
+* dot, sum, the products, the trace and the power -- are compensated as the
+* C families' are, each part rounded once from Dot2's or Sum2's pair by
+* vec.h's accumulator (linalg_sums), and its solve refined with extra
+* precision: both cmat.h's bit for bit, their _fast forms the formulas as
+* written, solve_fast cmat.h's elimination (S411). Every other type's sums
+* are the formulas, exact for an exact type, and its solve its elimination.
 *   The generic path's norms and distances sum number_modulus_squared, x * x
 * for a number of a real value and, for a value's complex number, its
 * modulus squared, so a vector of values holding complex numbers has the
@@ -54,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/math/linear_algebra/linalg_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -81,6 +87,7 @@ TABLE OF CONTENTS
 // std
 #include <cfloat>                        // DBL_EPSILON
 #include <cstddef>                       // std::size_t
+#include <limits>                        // std::numeric_limits
 // djinterp
 #include "../../../djinterp.hpp"              // framework root
 #include "../../../../c/modules/math/mat.h"   // the C core: d_mat_*
@@ -189,6 +196,436 @@ NS_INTERNAL
     template<int Method>
     struct linalg_method
     {};
+
+    // linalg_c_acc
+    //   trait: the C core's accumulator for the family of type Type, which
+    // vec.h's d_internal_vec_acc_* overloads take: the generic path's
+    // complex sums add each part to one as the C core's do (S411).
+    template<typename Type>
+    struct linalg_c_acc;
+
+    template<>
+    struct linalg_c_acc<float>
+    {
+        typedef struct dj_internal_vec_f_acc type;
+    };
+
+    template<>
+    struct linalg_c_acc<double>
+    {
+        typedef struct dj_internal_vec_d_acc type;
+    };
+
+    template<>
+    struct linalg_c_acc<long double>
+    {
+        typedef struct dj_internal_vec_ld_acc type;
+    };
+
+    // linalg_sums
+    //   trait: the generic path's sums of products and of terms, strided:
+    // for every type but math::complex<T>, the formula as written, each
+    // product rounded and added in order from zero -- the generic path's
+    // one formula, exact for an exact type.
+    template<typename Type>
+    struct linalg_sums
+    {
+        typedef number_traits<Type> traits;
+
+        static D_CONSTEXPR_CPP14 Type
+        dot(const Type* _a,
+            std::size_t _sa,
+            const Type* _b,
+            std::size_t _sb,
+            std::size_t _n)
+        {
+            Type acc = traits::zero();
+
+            for (std::size_t k = 0; k < _n; ++k)
+            {
+                acc += _a[k * _sa] * _b[k * _sb];
+            }
+
+            return acc;
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        sum(const Type* _a, std::size_t _sa, std::size_t _n)
+        {
+            Type acc = traits::zero();
+
+            for (std::size_t k = 0; k < _n; ++k)
+            {
+                acc += _a[k * _sa];
+            }
+
+            return acc;
+        }
+    };
+
+    // linalg_sums (math::complex)
+    //   trait: each part of a sum of complex products or terms rounded once
+    // from Dot2's or Sum2's pair by the C core's accumulator, as cmat.h's
+    // d_cmat_multiply rounds a product's entry, bit for bit (S410, S411);
+    // operands out of range scaled as it scales them, every product 0 the
+    // constant's parts plus 0, and a NaN or an infinity the formula as
+    // written. Either factor of a product may be real, T, taken as itself,
+    // as C99's G.5 takes it (the language's mixed products, S349, S412):
+    // its part's products are the real factor's with the other's part
+    // alone.
+    template<typename T>
+    struct linalg_sums<complex<T> >
+    {
+        typedef complex<T>                       Type;
+        typedef T                                part_type;
+        typedef typename linalg_c_acc<T>::type   acc;
+
+        // the formula as written: c + sign sum a (x + t), in order, each
+        // product math::complex's, a real factor's cplx.h's by a real
+        template<typename A,
+                 typename X>
+        static D_CONSTEXPR_CPP14 Type
+        naive(const Type& _c,
+              bool        _minus,
+              const A*    _a,
+              std::size_t _sa,
+              const X*    _x,
+              std::size_t _sx,
+              const X*    _t,
+              bool        _tailed,
+              std::size_t _n)
+        {
+            Type acc_z = _c;
+
+            for (std::size_t k = 0; k < _n; ++k)
+            {
+                const Type p = _a[k * _sa] * _x[k * _sx];
+
+                acc_z = _minus ? (acc_z - p) : (acc_z + p);
+
+                // the tail's product after it
+                if (_tailed)
+                {
+                    const Type q = _a[k * _sa] * _t[k];
+
+                    acc_z = _minus ? (acc_z - q) : (acc_z + q);
+                }
+            }
+
+            return acc_z;
+        }
+
+        // the larger of _reach and _z's parts' reach; *_largest the larger
+        // of it and their magnitudes
+        static D_CONSTEXPR_CPP14 int
+        survey(const Type& _z, int _reach, T* _largest)
+        {
+            const T   parts[2] = { _z.real(), _z.imag() };
+            int       reach    = _reach;
+
+            for (int p = 0; p < 2; ++p)
+            {
+                const int r = d_internal_vec_reach_of(parts[p]);
+                const T   a = (parts[p] < T(0)) ? -parts[p] : parts[p];
+
+                reach = (r > reach) ? r : reach;
+
+                // a NaN keeps no largest
+                if (a > *_largest)
+                {
+                    *_largest = a;
+                }
+            }
+
+            return reach;
+        }
+
+        // a real operand's reach and largest, as of _v + 0i
+        static D_CONSTEXPR_CPP14 int
+        survey(T _v, int _reach, T* _largest)
+        {
+            const int r = d_internal_vec_reach_of(_v);
+            const T   a = (_v < T(0)) ? -_v : _v;
+
+            // a NaN keeps no largest
+            if (a > *_largest)
+            {
+                *_largest = a;
+            }
+
+            return (r > _reach) ? r : _reach;
+        }
+
+        // part _p of _a _x into *_acc, negated where _minus, scaled first
+        static D_CONSTEXPR_CPP14 void
+        part(acc* _acc, int _p, bool _minus, const Type& _a, const Type& _x,
+             int _ka, int _kx)
+        {
+            const bool scaled = ( (_ka != 0) ||
+                                  (_kx != 0) );
+            const T    sign   = _minus ? T(-1) : T(1);
+            T          ar     = _a.real();
+            T          ai     = _a.imag();
+            T          xr     = sign * _x.real();
+            T          xi     = sign * _x.imag();
+
+            // the factors scaled, where the operands leave the range
+            if (scaled)
+            {
+                ar = d_internal_vec_scaled(ar, _ka);
+                ai = d_internal_vec_scaled(ai, _ka);
+                xr = d_internal_vec_scaled(xr, _kx);
+                xi = d_internal_vec_scaled(xi, _kx);
+            }
+
+            // the real part: re re less im im; the imaginary: re im, im re
+            if (_p == 0)
+            {
+                d_internal_vec_acc_add(_acc, ar, xr);
+                d_internal_vec_acc_add(_acc, ai, -xi);
+            }
+            else
+            {
+                d_internal_vec_acc_add(_acc, ar, xi);
+                d_internal_vec_acc_add(_acc, ai, xr);
+            }
+        }
+
+        // part _p of a real _a times _x: _a times _x's part _p alone
+        static D_CONSTEXPR_CPP14 void
+        part(acc* _acc, int _p, bool _minus, T _a, const Type& _x, int _ka,
+             int _kx)
+        {
+            T a = _a;
+            T x = _minus ? -((_p == 0) ? _x.real() : _x.imag())
+                         : ((_p == 0) ? _x.real() : _x.imag());
+
+            // the factors scaled, where the operands leave the range
+            if ( (_ka != 0) ||
+                 (_kx != 0) )
+            {
+                a = d_internal_vec_scaled(a, _ka);
+                x = d_internal_vec_scaled(x, _kx);
+            }
+
+            d_internal_vec_acc_add(_acc, a, x);
+        }
+
+        // part _p of _a times a real _x: _a's part _p alone times _x
+        static D_CONSTEXPR_CPP14 void
+        part(acc* _acc, int _p, bool _minus, const Type& _a, T _x, int _ka,
+             int _kx)
+        {
+            T a = (_p == 0) ? _a.real() : _a.imag();
+            T x = _minus ? -_x : _x;
+
+            // the factors scaled, where the operands leave the range
+            if ( (_ka != 0) ||
+                 (_kx != 0) )
+            {
+                a = d_internal_vec_scaled(a, _ka);
+                x = d_internal_vec_scaled(x, _kx);
+            }
+
+            d_internal_vec_acc_add(_acc, a, x);
+        }
+
+        // c + sign sum a (x + t), each part rounded once: cmat.h's
+        // d_internal_cmat_dot2, step for step, where both factors are
+        // complex; A and X each Type or T
+        template<typename A,
+                 typename X>
+        static D_CONSTEXPR_CPP14 Type
+        dot2(const Type& _c,
+             bool        _minus,
+             const A*    _a,
+             std::size_t _sa,
+             const X*    _x,
+             std::size_t _sx,
+             const X*    _t,
+             bool        _tailed,
+             std::size_t _n)
+        {
+            const T     c[2]   = { _c.real(), _c.imag() };
+            T           out[2] = { c[0], c[1] };
+            T           la     = T(0);
+            T           lx     = T(0);
+            T           lc     = T(0);
+            int         reach  = 0;
+            int         ka     = 0;
+            int         kx     = 0;
+            int         bits   = 0;
+            std::size_t left   = 4 * _n;
+
+            // each operand's reach and largest part
+            for (std::size_t k = 0; k < _n; ++k)
+            {
+                reach = survey(_a[k * _sa], reach, &la);
+                reach = survey(_x[k * _sx], reach, &lx);
+                reach = _tailed ? survey(_t[k], reach, &lx) : reach;
+            }
+
+            reach = survey(_c, reach, &lc);
+
+            // a NaN or an infinity: the formula as written
+            if (reach == 2)
+            {
+                return naive(_c, _minus, _a, _sa, _x, _sx, _t, _tailed, _n);
+            }
+
+            // every product 0: _c's parts, +0 for either zero
+            if ( (la == T(0)) ||
+                 (lx == T(0)) )
+            {
+                return Type(c[0] + T(0), c[1] + T(0));
+            }
+
+            // out of range: each operand by its largest part's power
+            if (reach == 1)
+            {
+                ka = d_internal_vec_exponent_of(la);
+                kx = d_internal_vec_exponent_of(lx);
+            }
+
+            // the products' sum lies below 2^(ka + kx + 2 + bits)
+            while (left > 0)
+            {
+                ++bits;
+                left /= 2;
+            }
+
+            for (int p = 0; p < 2; ++p)
+            {
+                const int  top = ka + kx + bits +
+                                 std::numeric_limits<T>::digits + 3;
+                const bool far = ( (reach == 1) &&
+                                   (c[p] != T(0)) &&
+                                   (d_internal_vec_exponent_of(c[p]) > top) );
+                acc run = d_internal_vec_acc_of(
+                    far ? T(0) : d_internal_vec_scaled(c[p], ka + kx));
+
+                // each product of the part's two kinds, the tail's with them
+                for (std::size_t k = 0; k < _n; ++k)
+                {
+                    part(&run, p, _minus, _a[k * _sa], _x[k * _sx], ka, kx);
+
+                    if (_tailed)
+                    {
+                        part(&run, p, _minus, _a[k * _sa], _t[k], ka, kx);
+                    }
+                }
+
+                // a part of _c far above every product: its own
+                out[p] = far ? c[p] : d_internal_vec_acc_round(run, ka + kx);
+            }
+
+            return Type(out[0], out[1]);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        dot(const Type* _a,
+            std::size_t _sa,
+            const Type* _b,
+            std::size_t _sb,
+            std::size_t _n)
+        {
+            return dot2(Type(), false, _a, _sa, _b, _sb, _b, false, _n);
+        }
+
+        // each part by Sum2, as vec.h sums the family's terms: scaled by
+        // d_internal_vec_acc_scale's power where a partial sum could
+        // overflow, +0 for an exact zero, and where a part is a NaN or an
+        // infinity, the terms as written
+        static D_CONSTEXPR_CPP14 Type
+        sum(const Type* _a, std::size_t _sa, std::size_t _n)
+        {
+            T   out[2]  = { T(0), T(0) };
+            T   largest = T(0);
+            int reach   = 0;
+            int k       = 0;
+
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                reach = survey(_a[i * _sa], reach, &largest);
+            }
+
+            // a NaN or an infinity: the terms as written
+            if (reach == 2)
+            {
+                return formula_sum(_a, _sa, _n);
+            }
+
+            k = d_internal_vec_acc_scale(largest, _n);
+
+            for (int p = 0; p < 2; ++p)
+            {
+                acc s = d_internal_vec_acc_of(T(0));
+
+                // each term into the running sum, scaled where k says
+                for (std::size_t i = 0; i < _n; ++i)
+                {
+                    T v = (p == 0) ? _a[i * _sa].real()
+                                   : _a[i * _sa].imag();
+
+                    if (k != 0)
+                    {
+                        v = d_internal_vec_scaled(v, k);
+                    }
+
+                    d_internal_vec_acc_add_term(&s, v);
+                }
+
+                out[p] = d_internal_vec_acc_round(s, k);
+            }
+
+            return Type(out[0], out[1]);
+        }
+
+        // the terms as written, in order
+        static D_CONSTEXPR_CPP14 Type
+        formula_sum(const Type* _a, std::size_t _sa, std::size_t _n)
+        {
+            Type acc_z = Type();
+
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                acc_z += _a[i * _sa];
+            }
+
+            return acc_z;
+        }
+
+        // whether each of the _n entries _a[i _sa] is finite
+        static D_CONSTEXPR_CPP14 bool
+        finite(const Type* _a, std::size_t _sa, std::size_t _n)
+        {
+            T   largest = T(0);
+            int reach   = 0;
+
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                reach = survey(_a[i * _sa], reach, &largest);
+            }
+
+            return (reach != 2);
+        }
+
+        // *_x + *_tail += _d, part by part, the pair renormalized
+        static D_CONSTEXPR_CPP14 void
+        add_pair(Type* _x, Type* _tail, const Type& _d)
+        {
+            T xr = _x->real();
+            T xi = _x->imag();
+            T tr = _tail->real();
+            T ti = _tail->imag();
+
+            d_internal_vec_add_pair(&xr, &tr, _d.real());
+            d_internal_vec_add_pair(&xi, &ti, _d.imag());
+
+            *_x    = Type(xr, xi);
+            *_tail = Type(tr, ti);
+        }
+    };
 
 NS_END  // internal
 
@@ -1264,8 +1701,18 @@ NS_INTERNAL
             }
         }
 
+        // dot, sum, the products and the trace: linalg_sums's, for
+        // math::complex<T> compensated (S411), for every other type the
+        // formula as written; their _fast forms that formula, and
+        // cross_fast cross's
         static D_CONSTEXPR_CPP14 Type
         dot(const Type* _a, const Type* _b, std::size_t _n)
+        {
+            return linalg_sums<Type>::dot(_a, 1, _b, 1, _n);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        dot_fast(const Type* _a, const Type* _b, std::size_t _n)
         {
             Type acc = traits::zero();
 
@@ -1275,15 +1722,6 @@ NS_INTERNAL
             }
 
             return acc;
-        }
-
-        // dot_fast, cross_fast, sum_fast: the same formulas, for the
-        // faces' one spelling; the C core's floating-point types alone
-        // have a compensated form
-        static D_CONSTEXPR_CPP14 Type
-        dot_fast(const Type* _a, const Type* _b, std::size_t _n)
-        {
-            return dot(_a, _b, _n);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -1307,6 +1745,12 @@ NS_INTERNAL
         static D_CONSTEXPR_CPP14 Type
         sum(const Type* _a, std::size_t _n)
         {
+            return linalg_sums<Type>::sum(_a, 1, _n);
+        }
+
+        static D_CONSTEXPR_CPP14 Type
+        sum_fast(const Type* _a, std::size_t _n)
+        {
             Type acc = traits::zero();
 
             for (std::size_t i = 0; i < _n; ++i)
@@ -1315,12 +1759,6 @@ NS_INTERNAL
             }
 
             return acc;
-        }
-
-        static D_CONSTEXPR_CPP14 Type
-        sum_fast(const Type* _a, std::size_t _n)
-        {
-            return sum(_a, _n);
         }
 
         static D_CONSTEXPR_CPP14 Type
@@ -1583,14 +2021,9 @@ NS_INTERNAL
             {
                 for (std::size_t j = 0; j < _cols; ++j)
                 {
-                    Type acc = traits::zero();
-
-                    for (std::size_t k = 0; k < _inner; ++k)
-                    {
-                        acc += _a[(i * _inner) + k] * _b[(k * _cols) + j];
-                    }
-
-                    _out[(i * _cols) + j] = acc;
+                    _out[(i * _cols) + j] =
+                        linalg_sums<Type>::dot(_a + (i * _inner), 1, _b + j,
+                                               _cols, _inner);
                 }
             }
         }
@@ -1616,7 +2049,20 @@ NS_INTERNAL
                       std::size_t _inner,
                       std::size_t _cols)
         {
-            multiply(_out, _a, _b, _rows, _inner, _cols);
+            for (std::size_t i = 0; i < _rows; ++i)
+            {
+                for (std::size_t j = 0; j < _cols; ++j)
+                {
+                    Type acc = traits::zero();
+
+                    for (std::size_t k = 0; k < _inner; ++k)
+                    {
+                        acc += _a[(i * _inner) + k] * _b[(k * _cols) + j];
+                    }
+
+                    _out[(i * _cols) + j] = acc;
+                }
+            }
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -1626,7 +2072,10 @@ NS_INTERNAL
                              std::size_t _rows,
                              std::size_t _cols)
         {
-            multiply_vector(_out, _a, _v, _rows, _cols);
+            for (std::size_t i = 0; i < _rows; ++i)
+            {
+                _out[i] = dot_fast(_a + (i * _cols), _v, _cols);
+            }
         }
 
         // power: by squaring, as the C core's d_mat_power: the power begun
@@ -1639,6 +2088,19 @@ NS_INTERNAL
               const Type* _a,
               std::size_t _n,
               std::size_t _exponent)
+        {
+            power_by(_out, _scratch, _a, _n, _exponent, false);
+        }
+
+        // power_by: the power by squaring, each product multiply's, or
+        // where _fast multiply_fast's
+        static D_CONSTEXPR_CPP14 void
+        power_by(Type*       _out,
+                 Type*       _scratch,
+                 const Type* _a,
+                 std::size_t _n,
+                 std::size_t _exponent,
+                 bool        _fast)
         {
             std::size_t top = 1;
 
@@ -1665,12 +2127,14 @@ NS_INTERNAL
 
             for (std::size_t bit = (top / 2); bit > 0; bit /= 2)
             {
-                multiply(_scratch,
-                         _out,
-                         _out,
-                         _n,
-                         _n,
-                         _n);
+                if (_fast)
+                {
+                    multiply_fast(_scratch, _out, _out, _n, _n, _n);
+                }
+                else
+                {
+                    multiply(_scratch, _out, _out, _n, _n, _n);
+                }
 
                 for (std::size_t i = 0; i < (_n * _n); ++i)
                 {
@@ -1679,12 +2143,14 @@ NS_INTERNAL
 
                 if ((_exponent & bit) != 0)
                 {
-                    multiply(_scratch,
-                             _a,
-                             _out,
-                             _n,
-                             _n,
-                             _n);
+                    if (_fast)
+                    {
+                        multiply_fast(_scratch, _a, _out, _n, _n, _n);
+                    }
+                    else
+                    {
+                        multiply(_scratch, _a, _out, _n, _n, _n);
+                    }
 
                     for (std::size_t i = 0; i < (_n * _n); ++i)
                     {
@@ -1697,14 +2163,7 @@ NS_INTERNAL
         static D_CONSTEXPR_CPP14 Type
         trace(const Type* _a, std::size_t _n)
         {
-            Type acc = traits::zero();
-
-            for (std::size_t i = 0; i < _n; ++i)
-            {
-                acc += _a[(i * _n) + i];
-            }
-
-            return acc;
+            return linalg_sums<Type>::sum(_a, _n + 1, _n);
         }
 
         static D_CONSTEXPR_CPP14 void
@@ -1714,13 +2173,20 @@ NS_INTERNAL
                    std::size_t _n,
                    std::size_t _exponent)
         {
-            power(_out, _scratch, _a, _n, _exponent);
+            power_by(_out, _scratch, _a, _n, _exponent, true);
         }
 
         static D_CONSTEXPR_CPP14 Type
         trace_fast(const Type* _a, std::size_t _n)
         {
-            return trace(_a, _n);
+            Type acc = traits::zero();
+
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                acc += _a[(i * _n) + i];
+            }
+
+            return acc;
         }
 
         static D_CONSTEXPR_CPP14 bool
@@ -1848,8 +2314,8 @@ NS_INTERNAL
             return true;
         }
 
-        // solve: X with A X = B, A n by n and B n by _m, true; or, for a
-        // singular A, the zero matrix and false. Gaussian elimination of
+        // solve_fast: X with A X = B, A n by n and B n by _m, true; or, for
+        // a singular A, the zero matrix and false. Gaussian elimination of
         // [A | B] with partial pivoting by magnitude, then back-substitution
         // (S257): each row below less its multiplier times the pivot row,
         // the multiplier the entry over the pivot on the right, each
@@ -1857,9 +2323,9 @@ NS_INTERNAL
         // kept in their order, so that it holds where they do not commute.
         // _scratch holds n * n entries; neither it nor _x may be _a or _b.
         // An exact A and B give the exact X that inverse(A) B does, at
-        // about a third of the products. solve is this, with the C core's
-        // arguments: no refinement, as an exact type needs none and the
-        // others have no wider sum to refine with (S406).
+        // about a third of the products. For math::complex<T>, cmat.h's
+        // d_cmat_solve_fast, bit for bit, where the family is evaluated in
+        // its own type.
         static D_CONSTEXPR_CPP14 bool
         solve_fast(Type*       _x,
                    Type*       _scratch,
@@ -1936,6 +2402,12 @@ NS_INTERNAL
             return true;
         }
 
+        // solve: the C core's arguments, _scratch n * n + 2 n entries and
+        // _pivots n. For math::complex<T>, LU's solution refined with extra
+        // precision as cmat.h's d_cmat_solve refines it, bit for bit
+        // (solve_by, S411); for any other type solve_fast, which an exact
+        // type needs no refinement of and the others have no wider sum to
+        // refine with (S406).
         static D_CONSTEXPR_CPP14 bool
         solve(Type*        _x,
               Type*        _scratch,
@@ -1945,9 +2417,316 @@ NS_INTERNAL
               std::size_t  _n,
               std::size_t  _m)
         {
+            return solve_by(_x, _scratch, _pivots, _a, _b, _n, _m,
+                            linalg_method<linalg_by_lu<Type>::value>());
+        }
+
+        static D_CONSTEXPR_CPP14 bool
+        solve_by(Type*        _x,
+                 Type*        _scratch,
+                 std::size_t* _pivots,
+                 const Type*  _a,
+                 const Type*  _b,
+                 std::size_t  _n,
+                 std::size_t  _m,
+                 linalg_method<0>)
+        {
             (void)_pivots;
 
             return solve_fast(_x, _scratch, _a, _b, _n, _m);
+        }
+
+        // solve_by (LU, refined)
+        //   d_cmat_solve's steps: A factored with partial pivoting into
+        // _scratch's first n * n entries (factor), the interchanges in
+        // _pivots; each column of B gathered into X's column as the factors'
+        // rows order it and solved there (substitute); then, where A, the
+        // column and its solution are finite, refined (refine), the tail and
+        // the correction in _scratch's last 2 n entries.
+        static D_CONSTEXPR_CPP14 bool
+        solve_by(Type*        _x,
+                 Type*        _scratch,
+                 std::size_t* _pivots,
+                 const Type*  _a,
+                 const Type*  _b,
+                 std::size_t  _n,
+                 std::size_t  _m,
+                 linalg_method<1>)
+        {
+            typedef linalg_sums<Type> sums;
+
+            Type* const tail = _scratch + (_n * _n);
+            Type* const fix  = tail + _n;
+            const bool  a_ok = sums::finite(_a, 1, _n * _n);
+
+            for (std::size_t k = 0; k < (_n * _n); ++k)
+            {
+                _scratch[k] = _a[k];
+            }
+
+            // singular: the zero matrix
+            if (factor(_scratch, _pivots, _n))
+            {
+                fill(_x, _n * _m, traits::zero());
+
+                return false;
+            }
+
+            // each column: gathered, solved by the factors, refined
+            for (std::size_t col = 0; col < _m; ++col)
+            {
+                Type* const x = _x + col;
+
+                for (std::size_t i = 0; i < _n; ++i)
+                {
+                    x[i * _m] = _b[(_pivots[i] * _m) + col];
+                }
+
+                substitute(_scratch, _n, x, _m);
+
+                // finite throughout: refined
+                if ( (a_ok) &&
+                     (sums::finite(_b + col, _m, _n)) &&
+                     (sums::finite(x, _m, _n)) )
+                {
+                    refine(x, _m, tail, fix, _a, _b + col, _m, _scratch,
+                           _pivots, _n);
+                }
+            }
+
+            return true;
+        }
+
+        // factor
+        //   true where _lu, A, has a column with no pivot; else false, and
+        // _lu its LU factors with partial pivoting as d_cmat_lu makes them:
+        // each column's pivot its entry of largest magnitude at or below the
+        // diagonal, the first among equals, the rows swapped whole and
+        // _perm[i] the row of A that row i came from; each row below less
+        // its multiplier, kept in L's place, times the pivot row.
+        static D_CONSTEXPR_CPP14 bool
+        factor(Type* _lu, std::size_t* _perm, std::size_t _n)
+        {
+            bool singular = false;
+
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                _perm[i] = i;
+            }
+
+            // each column in turn: its pivot, then the rows below it
+            for (std::size_t col = 0; col < _n; ++col)
+            {
+                const std::size_t pivot = pivot_of(_lu, _n, _n, col);
+
+                // a zero column: singular, and nothing to eliminate
+                if (_lu[(pivot * _n) + col] == traits::zero())
+                {
+                    singular = true;
+
+                    continue;
+                }
+
+                // the pivot row up, and its origin
+                if (pivot != col)
+                {
+                    const std::size_t t = _perm[col];
+
+                    swap_rows(_lu, _n, col, pivot);
+                    _perm[col]   = _perm[pivot];
+                    _perm[pivot] = t;
+                }
+
+                const Type p = _lu[(col * _n) + col];
+
+                // the rows below less their multiples of it
+                for (std::size_t r = col + 1; r < _n; ++r)
+                {
+                    const Type f = over_right(_lu[(r * _n) + col], p);
+
+                    _lu[(r * _n) + col] = f;
+
+                    for (std::size_t c = col + 1; c < _n; ++c)
+                    {
+                        _lu[(r * _n) + c] = _lu[(r * _n) + c] -
+                                            (f * _lu[(col * _n) + c]);
+                    }
+                }
+            }
+
+            return singular;
+        }
+
+        // substitute
+        //   _x, n entries _sx apart, a right-hand side already in the
+        // factors' row order, solved in place by _lu: forward through L, its
+        // diagonal 1, then back through U, the last row first -- each step
+        // d_cmat_lu_solve's.
+        static D_CONSTEXPR_CPP14 void
+        substitute(const Type* _lu, std::size_t _n, Type* _x, std::size_t _sx)
+        {
+            // forward: y over x
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                Type s = _x[i * _sx];
+
+                for (std::size_t k = 0; k < i; ++k)
+                {
+                    s = s - (_lu[(i * _n) + k] * _x[k * _sx]);
+                }
+
+                _x[i * _sx] = s;
+            }
+
+            // back: x over y, the last row first
+            for (std::size_t i = _n; i-- > 0; )
+            {
+                Type s = _x[i * _sx];
+
+                for (std::size_t k = i + 1; k < _n; ++k)
+                {
+                    s = s - (_lu[(i * _n) + k] * _x[k * _sx]);
+                }
+
+                _x[i * _sx] = over_left(_lu[(i * _n) + i], s);
+            }
+
+            return;
+        }
+
+        // correction
+        //   _fix = the correction of the solution _x + _tail (_x's entries
+        // _sx apart) of A x = b (b's _sb apart): the residual b - A (x +
+        // tail) of each of A's rows in the factors' order, each part by Dot2
+        // rounded once (linalg_sums), solved in place by the factors.
+        // *_largest is the correction's largest part in magnitude,
+        // *_relative its largest relative to its part of x, at most 1 -- 1
+        // also where that part is 0: d_cmat_solve's.
+        static D_CONSTEXPR_CPP14 void
+        correction(Type*              _fix,
+                   magnitude*         _largest,
+                   magnitude*         _relative,
+                   const Type*        _x,
+                   std::size_t        _sx,
+                   const Type*        _tail,
+                   const Type*        _a,
+                   const Type*        _b,
+                   std::size_t        _sb,
+                   const Type*        _lu,
+                   const std::size_t* _perm,
+                   std::size_t        _n)
+        {
+            *_largest  = magnitude(0);
+            *_relative = magnitude(0);
+
+            // the residual, row by row in the factors' order
+            for (std::size_t i = 0; i < _n; ++i)
+            {
+                _fix[i] = linalg_sums<Type>::dot2(_b[_perm[i] * _sb], true,
+                                                  _a + (_perm[i] * _n), 1,
+                                                  _x, _sx, _tail, true, _n);
+            }
+
+            substitute(_lu, _n, _fix, 1);
+
+            // its sizes, part by part, whole and against x
+            for (std::size_t i = 0; i < (2 * _n); ++i)
+            {
+                const Type&     f = _fix[i / 2];
+                const Type&     v = _x[(i / 2) * _sx];
+                const magnitude d = magnitude_of(((i % 2) == 0) ? f.real()
+                                                                : f.imag());
+                const magnitude x = magnitude_of(((i % 2) == 0) ? v.real()
+                                                                : v.imag());
+                const magnitude r = (d >= x) ? magnitude(1) : (d / x);
+
+                if (d > *_largest)
+                {
+                    *_largest = d;
+                }
+
+                // a zero correction leaves its part as it is
+                if ( (d != magnitude(0)) &&
+                     (r > *_relative) )
+                {
+                    *_relative = r;
+                }
+            }
+
+            return;
+        }
+
+        // refine
+        //   _x, a column of the solution (n entries _sx apart) as the
+        // factors gave it, refined as d_cmat_solve refines: each step's
+        // correction added to x and its tail, part by part, until every
+        // part's correction lies below half its unit in the last place, or
+        // neither the largest correction nor the largest relative halves
+        // (the last not added), or D_CFG_MATH_MAT_REFINE_STEPS steps have
+        // run; then x the pair's high parts, each its sum rounded once.
+        static D_CONSTEXPR_CPP14 void
+        refine(Type*              _x,
+               std::size_t        _sx,
+               Type*              _tail,
+               Type*              _fix,
+               const Type*        _a,
+               const Type*        _b,
+               std::size_t        _sb,
+               const Type*        _lu,
+               const std::size_t* _perm,
+               std::size_t        _n)
+        {
+            magnitude last_largest  = magnitude(0);
+            magnitude last_relative = magnitude(0);
+
+            fill(_tail, _n, traits::zero());
+
+            // each step: the correction, then whether it is worth adding
+            for (std::size_t step = 0;
+                 step < static_cast<std::size_t>(D_CFG_MATH_MAT_REFINE_STEPS);
+                 ++step)
+            {
+                magnitude largest  = magnitude(0);
+                magnitude relative = magnitude(0);
+
+                correction(_fix, &largest, &relative, _x, _sx, _tail, _a, _b,
+                           _sb, _lu, _perm, _n);
+
+                // no progress: neither the correction nor its relative size
+                // halved
+                if ( (step > 0) &&
+                     (largest > (last_largest / magnitude(2))) &&
+                     (relative > (last_relative / magnitude(2))) )
+                {
+                    break;
+                }
+
+                // the correction into the solution and its tail
+                for (std::size_t i = 0; i < _n; ++i)
+                {
+                    linalg_sums<Type>::add_pair(&_x[i * _sx], &_tail[i],
+                                                _fix[i]);
+                }
+
+                // converged: every part's correction below half its unit in
+                // the last place
+                if (relative <= (traits::epsilon() / magnitude(2)))
+                {
+                    break;
+                }
+
+                last_largest  = largest;
+                last_relative = relative;
+            }
+
+            return;
+        }
+
+        // |_v|, of a part
+        static D_CONSTEXPR_CPP14 magnitude
+        magnitude_of(magnitude _v)
+        {
+            return (_v < magnitude(0)) ? -_v : _v;
         }
 
         static D_CONSTEXPR_CPP14 void

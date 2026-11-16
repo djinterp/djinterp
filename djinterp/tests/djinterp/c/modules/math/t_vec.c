@@ -10,7 +10,9 @@
 * wrong: the zero vector, parallel vectors (an angle of 0, not NaN), and an
 * output that is also an input; and the ends of the range, where the norms,
 * the distance, the unit vector and the cosine scale past the squares'
-* overflow and underflow (S256), exactly where the result is exact. Values
+* overflow and underflow (S256), exactly where the result is exact; and
+* project and reject past the range's ends (S301), each pair moved by powers
+* of two whose results, where normal, are the pair's in range moved. Values
 * are compared as stored, read back through volatile: on an x87 a result
 * kept in a register holds 64 bits, which it loses when it is stored.
 *
@@ -25,7 +27,7 @@
 * path:      /tests/djinterp/c/modules/math/t_vec.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ...
@@ -401,12 +403,109 @@ D_TESTS_VEC_FAMILY(double,      d,  sqrt,  acos,  DBL_EPSILON, DBL_MAX_EXP,
 D_TESTS_VEC_FAMILY(long double, ld, sqrtl, acosl, LDBL_EPSILON, LDBL_MAX_EXP,
                    LDBL_MIN)
 
+// D_TESTS_PROJECTION_FAMILY
+//   stamps, for one family, project's and reject's checks at the range's
+// ends (S301), on D_TESTS_VEC_FAMILY's helpers; MAXV the largest value.
+#define D_TESTS_PROJECTION_FAMILY(T, S, EPSILON, MAXEXP, MINV, MAXV)           \
+/* whether _x is 0 or a finite normal value */                                 \
+static bool                                                                    \
+d_tests_normal_##S(T _x)                                                       \
+{                                                                              \
+    const T a = (_x < (T)0) ? -_x : _x;                                        \
+    return (a == (T)0) || ((a >= MINV) && (a <= MAXV));                        \
+}                                                                              \
+                                                                               \
+/* project and reject at the range's ends (S301): 2,000 random pairs of */     \
+/* 1 to 8 components, each moved by powers of two, 2^s and 2^t, that    */     \
+/* take the squared norm, the dot or both past the range -- each result */     \
+/* 2^s times the pair's in range, bit for bit, where it is 0 or normal; */     \
+/* and a vector of two components onto itself at either end, itself and */     \
+/* the zero vector, which the formula's overflow made NaN               */     \
+static void                                                                    \
+d_tests_projection_##S(long* _moved)                                          \
+{                                                                              \
+    const int h        = (MAXEXP / 2) + 4;                                     \
+    const int moves[8][2] = { { h, 0 }, { -h, 0 }, { 0, h }, { 0, -h },        \
+                              { h, h }, { -h, -h }, { h, -h }, { -h, h } };    \
+    long      trial    = 0;                                                    \
+    for (trial = 0; trial < 2000; ++trial)                                     \
+    {                                                                          \
+        const size_t n  = (size_t)(trial % 8) + 1u;                            \
+        const int    s  = moves[(trial / 8) % 8][0];                           \
+        const int    t  = moves[(trial / 8) % 8][1];                           \
+        const T      ps = d_internal_math_##S##_pow2(s);                       \
+        const T      pt = d_internal_math_##S##_pow2(t);                       \
+        T            a[8], b[8], ma[8], mb[8], p[8], r[8], mp[8], mr[8];       \
+        size_t       i  = 0u;                                                  \
+        bool         normal = true, same = true;                               \
+        for (i = 0u; i < n; ++i)                                               \
+        {                                                                      \
+            a[i]  = (T)d_tests_random();                                       \
+            b[i]  = (T)d_tests_random();                                       \
+            ma[i] = a[i] * ps;                                                 \
+            mb[i] = b[i] * pt;                                                 \
+        }                                                                      \
+        d_vec_##S##_project(p, a, b, n);                                       \
+        d_vec_##S##_reject(r, a, b, n);                                        \
+        d_vec_##S##_project(mp, ma, mb, n);                                    \
+        d_vec_##S##_reject(mr, ma, mb, n);                                     \
+        for (i = 0u; i < n; ++i)                                               \
+        {                                                                      \
+            const T wp = d_tests_stored_##S(p[i] * ps);                        \
+            const T wr = d_tests_stored_##S(r[i] * ps);                        \
+            normal = normal && d_tests_normal_##S(wp) &&                       \
+                     d_tests_normal_##S(wr) && d_tests_normal_##S(p[i]) &&     \
+                     d_tests_normal_##S(r[i]);                                 \
+            same = same && (d_tests_stored_##S(mp[i]) == wp) &&                \
+                   (d_tests_stored_##S(mr[i]) == wr);                          \
+        }                                                                      \
+        *_moved   += normal ? 1 : 0;                                           \
+        D_TESTS_EXPECT((!normal) || (same),                                    \
+                       #S " project and reject moved past the range: the "     \
+                          "results in range, moved");                          \
+    }                                                                          \
+    {                                                                          \
+        const T big  = d_internal_math_##S##_pow2(MAXEXP - 4);                 \
+        const T tiny = MINV * EPSILON;                                         \
+        const T hb[2] = { (T)3 * big, (T)4 * big };                            \
+        const T tt[2] = { (T)3 * tiny, (T)4 * tiny };                          \
+        T       out[2], rej[2], tout[2], trej[2];                              \
+        d_vec_##S##_project(out, hb, hb, 2u);                                  \
+        d_vec_##S##_reject(rej, hb, hb, 2u);                                   \
+        d_vec_##S##_project(tout, tt, tt, 2u);                                 \
+        d_vec_##S##_reject(trej, tt, tt, 2u);                                  \
+        D_TESTS_EXPECT( (out[0] == hb[0]) && (out[1] == hb[1]) &&              \
+                        (rej[0] == (T)0) && (rej[1] == (T)0) &&                \
+                        (tout[0] == tt[0]) && (tout[1] == tt[1]) &&            \
+                        (trej[0] == (T)0) && (trej[1] == (T)0),                \
+                        #S " a vector onto itself at either end: itself, "     \
+                           "and nothing rejected");                            \
+    }                                                                          \
+    return;                                                                    \
+}
+
+D_TESTS_PROJECTION_FAMILY(float,       f,  FLT_EPSILON,  FLT_MAX_EXP,  FLT_MIN,
+                          FLT_MAX)
+D_TESTS_PROJECTION_FAMILY(double,      d,  DBL_EPSILON,  DBL_MAX_EXP,  DBL_MIN,
+                          DBL_MAX)
+D_TESTS_PROJECTION_FAMILY(long double, ld, LDBL_EPSILON, LDBL_MAX_EXP, LDBL_MIN,
+                          LDBL_MAX)
+
 int
 main(void)
 {
+    long moved[3]   = { 0, 0, 0 };
+
     d_tests_vec_f();
     d_tests_vec_d();
     d_tests_vec_ld();
+    d_tests_projection_f(&moved[0]);
+    d_tests_projection_d(&moved[1]);
+    d_tests_projection_ld(&moved[2]);
+
+    printf("t_vec: project and reject moved past the range, f d ld: %ld %ld "
+           "%ld pairs of 2000 checked, the rest a result not normal\n",
+           moved[0], moved[1], moved[2]);
 
     printf("t_vec: %ld checks, %ld failures\n", g_checks, g_failures);
 

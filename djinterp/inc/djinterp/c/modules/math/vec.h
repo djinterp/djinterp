@@ -14,13 +14,17 @@
 * range, and keeps its bits where it does not (S256). dot, cross and sum
 * are compensated -- Ogita, Rump and Oishi's Dot2 and Sum2, as accurate as
 * the sum computed in twice the precision and rounded once -- and their
-* _fast forms are the formulas as written (S404).
+* _fast forms are the formulas as written (S404). project and reject scale
+* their operands where the squared norm or the ratio would leave the range
+* (S301, S409). Dot2's running pair, an accumulator, serves the callers
+* whose terms are not arrays of one family, cmat.h's and linalg's complex
+* sums (S410, S411).
 *
 *
 * path:      /inc/djinterp/c/modules/math/vec.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -801,10 +805,15 @@ d_internal_vec_f_d2_sum(
     }
 
     {
-        const double up   = (k != 0) ? d_internal_math_d_pow2((-k) / 2)
-                                  : (double)1;
-        const double down = (k != 0) ? d_internal_math_d_pow2((-k) - ((-k) / 2))
-                                  : (double)1;
+        double up   = (double)1;
+        double down = (double)1;
+
+        // the factors, each a normal power of 2, where the terms are scaled
+        if (k != 0)
+        {
+            up   = d_internal_math_d_pow2((-k) / 2);
+            down = d_internal_math_d_pow2((-k) - ((-k) / 2));
+        }
 
         // each term into the running sum, its error apart
         for (i = 0u; i < _n; ++i)
@@ -1144,10 +1153,15 @@ d_internal_vec_f_ld_sum(
     }
 
     {
-        const long double up   = (k != 0) ? d_internal_math_ld_pow2((-k) / 2)
-                                  : (long double)1;
-        const long double down = (k != 0) ? d_internal_math_ld_pow2((-k) - ((-k) / 2))
-                                  : (long double)1;
+        long double up   = (long double)1;
+        long double down = (long double)1;
+
+        // the factors, each a normal power of 2, where the terms are scaled
+        if (k != 0)
+        {
+            up   = d_internal_math_ld_pow2((-k) / 2);
+            down = d_internal_math_ld_pow2((-k) - ((-k) / 2));
+        }
 
         // each term into the running sum, its error apart
         for (i = 0u; i < _n; ++i)
@@ -1306,6 +1320,210 @@ d_internal_vec_f_add_pair(
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
     return;
+}
+
+// dj_internal_vec_f_acc
+//   struct: Dot2's running sum for a caller whose terms are not strided arrays
+// of the family's type -- a complex matrix's parts (cmat.h, linalg's complex
+// kernels) -- in the pairs the family sums in: high, the products' high parts
+// summed by two-sums, and rest, their errors and low parts.
+struct dj_internal_vec_f_acc
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    double high;
+    double rest;
+#else  // !D_MATH_DBL_EVAL_WIDE
+    long double high;
+    long double rest;
+#endif  // !D_MATH_DBL_EVAL_WIDE
+};
+
+// d_internal_vec_f_acc_of
+//   a running sum of _c alone.
+D_MATH_FN struct dj_internal_vec_f_acc
+d_internal_vec_f_acc_of(
+    float _c
+)
+{
+    struct dj_internal_vec_f_acc acc = { 0, 0 };
+
+    acc.high = _c;
+
+    return acc;
+}
+
+// d_internal_vec_f_acc_add
+//   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
+// (d_internal_vec_f_reach_of) -- the caller scales it first where it is not.
+D_MATH_FN void
+d_internal_vec_f_acc_add(
+    struct dj_internal_vec_f_acc* _acc,
+    float                             _a,
+    float                             _x
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair p = d_internal_vec_d2_short(_a, _x);
+    const struct dj_internal_math_d_pair s =
+        d_internal_vec_d2_two_sum(_acc->high, p.high);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + (s.low + p.low);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair p = d_internal_vec_ld_short(_a, _x);
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(_acc->high, p.high);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + (s.low + p.low);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
+// d_internal_vec_f_acc_add_term
+//   *_acc plus _t, exactly: Sum2's step.
+D_MATH_FN void
+d_internal_vec_f_acc_add_term(
+    struct dj_internal_vec_f_acc* _acc,
+    float                             _t
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair s =
+        d_internal_vec_d2_two_sum(_acc->high, _t);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + s.low;
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(_acc->high, _t);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + s.low;
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
+// d_internal_vec_f_acc_round
+//   _acc's sum times 2^_k, rounded once to float (the round of the pairs the
+// family sums in): +0 for an exact zero.
+D_MATH_FN float
+d_internal_vec_f_acc_round(
+    struct dj_internal_vec_f_acc _acc,
+    int                            _k
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair sum =
+        d_internal_vec_d2_two_sum(_acc.high, _acc.rest);
+
+    // an exact zero: +0
+    if (sum.high == 0)
+    {
+        return (float)0;
+    }
+
+    return d_internal_vec_f_d2_round(sum, _k);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_math_ld_two_sum(_acc.high, _acc.rest);
+
+    // an exact zero: +0
+    if (sum.high == 0)
+    {
+        return (float)0;
+    }
+
+    return d_internal_vec_f_ld_round(sum, _k);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_f_acc_scale
+//   the power by which Sum2 scales _n finite terms, the largest _largest in
+// magnitude, as the family's sums scale them: _largest's binade where twice _n
+// times it could pass the largest value of the pairs the family sums in, 0
+// where it could not. A caller of d_internal_vec_f_acc_add_term scales each
+// term by it (d_internal_vec_f_scaled) and rounds the sum back by it.
+D_MATH_FN int
+d_internal_vec_f_acc_scale(
+    float    _largest,
+    size_t _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    // a partial sum that could overflow: the terms scaled
+    if ((double)_largest > (DBL_MAX / ((double)2 * (double)_n)))
+    {
+        return d_internal_vec_f_exponent_of(_largest);
+    }
+#else  // !D_MATH_DBL_EVAL_WIDE
+    // a partial sum that could overflow: the terms scaled
+    if ((long double)_largest > (LDBL_MAX / ((long double)2 * (long double)_n)))
+    {
+        return d_internal_vec_f_exponent_of(_largest);
+    }
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return 0;
+}
+
+// d_internal_vec_f_reach_of
+//   _v's reach, as d_internal_vec_f_reach gives an operand's: 2 for a NaN or an
+// infinity, 1 outside the range where Dekker's products are exact, 0 within it
+// or for 0.
+D_MATH_FN int
+d_internal_vec_f_reach_of(
+    float _v
+)
+{
+    return d_internal_vec_f_reach(&_v, 1u, 1u);
+}
+
+// d_internal_vec_f_scaled
+//   _v 2^-_k, _k a finite value's binade or its negation, in two steps of
+// normal powers of 2: exact but where the result falls into the subnormals.
+D_MATH_FN float
+d_internal_vec_f_scaled(
+    float _v,
+    int _k
+)
+{
+    const float up   = d_internal_math_f_pow2((-_k) / 2);
+    const float down = d_internal_math_f_pow2((-_k) - ((-_k) / 2));
+
+    return (_v * up) * down;
+}
+
+// d_internal_vec_f_dot2_scaled
+//   sum_i (_a[i _sa] 2^-_ka) (_x[i _sx] 2^-_kx), each entry finite, rounded
+// once from Dot2's pair: the scaled operands' dot, not scaled back, as the
+// projection takes it at the range's ends.
+D_MATH_FN float
+d_internal_vec_f_dot2_scaled(
+    const float* _a,
+    size_t     _sa,
+    const float* _x,
+    size_t     _sx,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair sum =
+        d_internal_vec_f_d2_sum_of((float)0, false, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, _ka, _kx);
+
+    return d_internal_vec_f_d2_round(sum, 0);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_vec_f_ld_sum_of((float)0, false, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, _ka, _kx);
+
+    return d_internal_vec_f_ld_round(sum, 0);
+#endif  // !D_MATH_DBL_EVAL_WIDE
 }
 
 // 2.3    Products and reductions
@@ -1946,9 +2164,103 @@ d_vec_f_normalize(
 // 2.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
-// vector projects to zero. cos_angle is 0 when either vector is zero, and
-// scaled as the norms are where their product would leave the range; angle
-// clamps it into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+// vector projects to zero. Both divide the compensated dot by the squared
+// norm where those and their ratio lie in range, and scale their operands
+// elsewhere (S301). cos_angle is 0 when either vector is zero, and scaled as
+// the norms are where their product would leave the range; angle clamps it
+// into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+
+// d_internal_vec_f_along
+//   _out = _a's projection onto _onto, or where _reject what is left of _a;
+// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
+// each component p/d times _onto's, as before (S301: a result in range
+// keeps its bits); so too for the zero vector, or an operand with a NaN or
+// an infinity, which give zeros or the arithmetic's own values. Elsewhere,
+// both operands nonzero and finite: each scaled, its largest entry to [1,
+// 2), the scaled dot p' (Dot2) over the scaled squared norm d', and each
+// component p'/d' times _onto's scaled entry, scaled back by _a's power --
+// exact but for the arithmetic's own roundings and the last step's into the
+// subnormals, so that a projection in range is computed in range wherever
+// its operands lie.
+D_MATH_FN void
+d_internal_vec_f_along(
+    float*       _out,
+    const float* _a,
+    const float* _onto,
+    size_t     _count,
+    bool       _reject
+)
+{
+    const float d        = d_vec_f_norm_squared(_onto, _count);
+    const float p        = d_vec_f_dot(_a, _onto, _count);
+    const float ap       = (p < (float)0) ? -p : p;
+    const float lo       = FLT_MIN / FLT_EPSILON;
+    const float la       = d_internal_vec_f_largest(_a, NULL, _count);
+    const float lb       = d_internal_vec_f_largest(_onto, NULL, _count);
+    const bool in_range =
+        ( (d >= lo) && (d <= FLT_MAX) &&
+          ( (ap == (float)0) ||
+            ( (ap >= lo) && (ap <= FLT_MAX) && ((ap / FLT_MAX) <= d) &&
+              ((ap / d) >= lo) ) ) );
+    size_t    i        = 0u;
+
+    // in range, zero or not finite: the formula as written
+    if ( (in_range) ||
+         (!(la > (float)0)) ||
+         (!(lb > (float)0)) )
+    {
+        const float ratio = (d > (float)0) ? (p / d) : (float)0;
+
+        for (i = 0u; i < _count; ++i)
+        {
+            const float along = _onto[i] * ratio;
+
+            // onto the zero vector there is nothing to project
+            if (_reject)
+            {
+                _out[i] = _a[i] - along;
+            }
+            else
+            {
+                _out[i] = (d > (float)0) ? along : (float)0;
+            }
+        }
+
+        return;
+    }
+
+    {
+        const int ka = d_internal_vec_f_exponent_of(la);
+        const int kb = d_internal_vec_f_exponent_of(lb);
+        const float ps = d_internal_vec_f_dot2_scaled(_a, 1u, _onto, 1u,
+                                                      _count, ka, kb);
+        float       ds = (float)0;
+        float       rs = (float)0;
+
+        // the scaled squared norm, summed as norm_squared sums
+        for (i = 0u; i < _count; ++i)
+        {
+            const float b      = d_internal_vec_f_scaled(_onto[i], kb);
+            const float square = b * b;
+
+            ds += square;
+        }
+
+        rs = ps / ds;
+
+        // each component from the inputs before it is written
+        for (i = 0u; i < _count; ++i)
+        {
+            const float b     = d_internal_vec_f_scaled(_onto[i], kb);
+            const float along = d_internal_vec_f_scaled(rs * b, -ka);
+
+            _out[i] = _reject ? (_a[i] - along) : along;
+        }
+    }
+
+    return;
+}
 
 D_MATH_FN void
 d_vec_f_project(
@@ -1958,20 +2270,7 @@ d_vec_f_project(
     size_t     _count
 )
 {
-    const float d = d_vec_f_norm_squared(_onto, _count);
-
-    // onto the zero vector there is nothing to project
-    if (d > (float)0)
-    {
-        d_vec_f_scale(_out,
-                        _onto,
-                        d_vec_f_dot(_a, _onto, _count) / d,
-                        _count);
-    }
-    else
-    {
-        d_vec_f_fill(_out, _count, (float)0);
-    }
+    d_internal_vec_f_along(_out, _a, _onto, _count, false);
 
     return;
 }
@@ -1984,23 +2283,7 @@ d_vec_f_reject(
     size_t     _count
 )
 {
-    size_t i = 0u;
-
-    // _a less its projection, formed component by component so _out may be
-    // either input
-    {
-        const float d     = d_vec_f_norm_squared(_from, _count);
-        const float ratio = (d > (float)0)
-                              ? (d_vec_f_dot(_a, _from, _count) / d)
-                              : (float)0;
-
-        for (i = 0u; i < _count; ++i)
-        {
-            const float along = _from[i] * ratio;
-
-            _out[i] = _a[i] - along;
-        }
-    }
+    d_internal_vec_f_along(_out, _a, _from, _count, true);
 
     return;
 }
@@ -2815,10 +3098,15 @@ d_internal_vec_d_d2_sum(
     }
 
     {
-        const double up   = (k != 0) ? d_internal_math_d_pow2((-k) / 2)
-                                  : (double)1;
-        const double down = (k != 0) ? d_internal_math_d_pow2((-k) - ((-k) / 2))
-                                  : (double)1;
+        double up   = (double)1;
+        double down = (double)1;
+
+        // the factors, each a normal power of 2, where the terms are scaled
+        if (k != 0)
+        {
+            up   = d_internal_math_d_pow2((-k) / 2);
+            down = d_internal_math_d_pow2((-k) - ((-k) / 2));
+        }
 
         // each term into the running sum, its error apart
         for (i = 0u; i < _n; ++i)
@@ -3158,10 +3446,15 @@ d_internal_vec_d_ld_sum(
     }
 
     {
-        const long double up   = (k != 0) ? d_internal_math_ld_pow2((-k) / 2)
-                                  : (long double)1;
-        const long double down = (k != 0) ? d_internal_math_ld_pow2((-k) - ((-k) / 2))
-                                  : (long double)1;
+        long double up   = (long double)1;
+        long double down = (long double)1;
+
+        // the factors, each a normal power of 2, where the terms are scaled
+        if (k != 0)
+        {
+            up   = d_internal_math_ld_pow2((-k) / 2);
+            down = d_internal_math_ld_pow2((-k) - ((-k) / 2));
+        }
 
         // each term into the running sum, its error apart
         for (i = 0u; i < _n; ++i)
@@ -3320,6 +3613,211 @@ d_internal_vec_d_add_pair(
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
     return;
+}
+
+// dj_internal_vec_d_acc
+//   struct: Dot2's running sum for a caller whose terms are not strided arrays
+// of the family's type -- a complex matrix's parts (cmat.h, linalg's complex
+// kernels) -- in the pairs the family sums in: high, the products' high parts
+// summed by two-sums, and rest, their errors and low parts.
+struct dj_internal_vec_d_acc
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    double high;
+    double rest;
+#else  // !D_MATH_DBL_EVAL_WIDE
+    long double high;
+    long double rest;
+#endif  // !D_MATH_DBL_EVAL_WIDE
+};
+
+// d_internal_vec_d_acc_of
+//   a running sum of _c alone.
+D_MATH_FN struct dj_internal_vec_d_acc
+d_internal_vec_d_acc_of(
+    double _c
+)
+{
+    struct dj_internal_vec_d_acc acc = { 0, 0 };
+
+    acc.high = _c;
+
+    return acc;
+}
+
+// d_internal_vec_d_acc_add
+//   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
+// (d_internal_vec_d_reach_of) -- the caller scales it first where it is not.
+D_MATH_FN void
+d_internal_vec_d_acc_add(
+    struct dj_internal_vec_d_acc* _acc,
+    double                             _a,
+    double                             _x
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair p = d_internal_vec_d2_product(_a, _x);
+    const struct dj_internal_math_d_pair s =
+        d_internal_vec_d2_two_sum(_acc->high, p.high);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + (s.low + p.low);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair p =
+        d_internal_math_ld_product_exact(_a, _x);
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(_acc->high, p.high);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + (s.low + p.low);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
+// d_internal_vec_d_acc_add_term
+//   *_acc plus _t, exactly: Sum2's step.
+D_MATH_FN void
+d_internal_vec_d_acc_add_term(
+    struct dj_internal_vec_d_acc* _acc,
+    double                             _t
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair s =
+        d_internal_vec_d2_two_sum(_acc->high, _t);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + s.low;
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(_acc->high, _t);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + s.low;
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return;
+}
+
+// d_internal_vec_d_acc_round
+//   _acc's sum times 2^_k, rounded once to double (the round of the pairs the
+// family sums in): +0 for an exact zero.
+D_MATH_FN double
+d_internal_vec_d_acc_round(
+    struct dj_internal_vec_d_acc _acc,
+    int                            _k
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair sum =
+        d_internal_vec_d2_two_sum(_acc.high, _acc.rest);
+
+    // an exact zero: +0
+    if (sum.high == 0)
+    {
+        return (double)0;
+    }
+
+    return d_internal_vec_d_d2_round(sum, _k);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_math_ld_two_sum(_acc.high, _acc.rest);
+
+    // an exact zero: +0
+    if (sum.high == 0)
+    {
+        return (double)0;
+    }
+
+    return d_internal_vec_d_ld_round(sum, _k);
+#endif  // !D_MATH_DBL_EVAL_WIDE
+}
+
+// d_internal_vec_d_acc_scale
+//   the power by which Sum2 scales _n finite terms, the largest _largest in
+// magnitude, as the family's sums scale them: _largest's binade where twice _n
+// times it could pass the largest value of the pairs the family sums in, 0
+// where it could not. A caller of d_internal_vec_d_acc_add_term scales each
+// term by it (d_internal_vec_d_scaled) and rounds the sum back by it.
+D_MATH_FN int
+d_internal_vec_d_acc_scale(
+    double    _largest,
+    size_t _n
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    // a partial sum that could overflow: the terms scaled
+    if ((double)_largest > (DBL_MAX / ((double)2 * (double)_n)))
+    {
+        return d_internal_vec_d_exponent_of(_largest);
+    }
+#else  // !D_MATH_DBL_EVAL_WIDE
+    // a partial sum that could overflow: the terms scaled
+    if ((long double)_largest > (LDBL_MAX / ((long double)2 * (long double)_n)))
+    {
+        return d_internal_vec_d_exponent_of(_largest);
+    }
+#endif  // !D_MATH_DBL_EVAL_WIDE
+
+    return 0;
+}
+
+// d_internal_vec_d_reach_of
+//   _v's reach, as d_internal_vec_d_reach gives an operand's: 2 for a NaN or an
+// infinity, 1 outside the range where Dekker's products are exact, 0 within it
+// or for 0.
+D_MATH_FN int
+d_internal_vec_d_reach_of(
+    double _v
+)
+{
+    return d_internal_vec_d_reach(&_v, 1u, 1u);
+}
+
+// d_internal_vec_d_scaled
+//   _v 2^-_k, _k a finite value's binade or its negation, in two steps of
+// normal powers of 2: exact but where the result falls into the subnormals.
+D_MATH_FN double
+d_internal_vec_d_scaled(
+    double _v,
+    int _k
+)
+{
+    const double up   = d_internal_math_d_pow2((-_k) / 2);
+    const double down = d_internal_math_d_pow2((-_k) - ((-_k) / 2));
+
+    return (_v * up) * down;
+}
+
+// d_internal_vec_d_dot2_scaled
+//   sum_i (_a[i _sa] 2^-_ka) (_x[i _sx] 2^-_kx), each entry finite, rounded
+// once from Dot2's pair: the scaled operands' dot, not scaled back, as the
+// projection takes it at the range's ends.
+D_MATH_FN double
+d_internal_vec_d_dot2_scaled(
+    const double* _a,
+    size_t     _sa,
+    const double* _x,
+    size_t     _sx,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+#if !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_d_pair sum =
+        d_internal_vec_d_d2_sum_of((double)0, false, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, _ka, _kx);
+
+    return d_internal_vec_d_d2_round(sum, 0);
+#else  // !D_MATH_DBL_EVAL_WIDE
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_vec_d_ld_sum_of((double)0, false, _a, _sa, _x, _sx, _x, _sx,
+                                   false, _n, _ka, _kx);
+
+    return d_internal_vec_d_ld_round(sum, 0);
+#endif  // !D_MATH_DBL_EVAL_WIDE
 }
 
 // 3.3    Products and reductions
@@ -3960,9 +4458,103 @@ d_vec_d_normalize(
 // 3.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
-// vector projects to zero. cos_angle is 0 when either vector is zero, and
-// scaled as the norms are where their product would leave the range; angle
-// clamps it into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+// vector projects to zero. Both divide the compensated dot by the squared
+// norm where those and their ratio lie in range, and scale their operands
+// elsewhere (S301). cos_angle is 0 when either vector is zero, and scaled as
+// the norms are where their product would leave the range; angle clamps it
+// into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+
+// d_internal_vec_d_along
+//   _out = _a's projection onto _onto, or where _reject what is left of _a;
+// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
+// each component p/d times _onto's, as before (S301: a result in range
+// keeps its bits); so too for the zero vector, or an operand with a NaN or
+// an infinity, which give zeros or the arithmetic's own values. Elsewhere,
+// both operands nonzero and finite: each scaled, its largest entry to [1,
+// 2), the scaled dot p' (Dot2) over the scaled squared norm d', and each
+// component p'/d' times _onto's scaled entry, scaled back by _a's power --
+// exact but for the arithmetic's own roundings and the last step's into the
+// subnormals, so that a projection in range is computed in range wherever
+// its operands lie.
+D_MATH_FN void
+d_internal_vec_d_along(
+    double*       _out,
+    const double* _a,
+    const double* _onto,
+    size_t     _count,
+    bool       _reject
+)
+{
+    const double d        = d_vec_d_norm_squared(_onto, _count);
+    const double p        = d_vec_d_dot(_a, _onto, _count);
+    const double ap       = (p < (double)0) ? -p : p;
+    const double lo       = DBL_MIN / DBL_EPSILON;
+    const double la       = d_internal_vec_d_largest(_a, NULL, _count);
+    const double lb       = d_internal_vec_d_largest(_onto, NULL, _count);
+    const bool in_range =
+        ( (d >= lo) && (d <= DBL_MAX) &&
+          ( (ap == (double)0) ||
+            ( (ap >= lo) && (ap <= DBL_MAX) && ((ap / DBL_MAX) <= d) &&
+              ((ap / d) >= lo) ) ) );
+    size_t    i        = 0u;
+
+    // in range, zero or not finite: the formula as written
+    if ( (in_range) ||
+         (!(la > (double)0)) ||
+         (!(lb > (double)0)) )
+    {
+        const double ratio = (d > (double)0) ? (p / d) : (double)0;
+
+        for (i = 0u; i < _count; ++i)
+        {
+            const double along = _onto[i] * ratio;
+
+            // onto the zero vector there is nothing to project
+            if (_reject)
+            {
+                _out[i] = _a[i] - along;
+            }
+            else
+            {
+                _out[i] = (d > (double)0) ? along : (double)0;
+            }
+        }
+
+        return;
+    }
+
+    {
+        const int ka = d_internal_vec_d_exponent_of(la);
+        const int kb = d_internal_vec_d_exponent_of(lb);
+        const double ps = d_internal_vec_d_dot2_scaled(_a, 1u, _onto, 1u,
+                                                      _count, ka, kb);
+        double       ds = (double)0;
+        double       rs = (double)0;
+
+        // the scaled squared norm, summed as norm_squared sums
+        for (i = 0u; i < _count; ++i)
+        {
+            const double b      = d_internal_vec_d_scaled(_onto[i], kb);
+            const double square = b * b;
+
+            ds += square;
+        }
+
+        rs = ps / ds;
+
+        // each component from the inputs before it is written
+        for (i = 0u; i < _count; ++i)
+        {
+            const double b     = d_internal_vec_d_scaled(_onto[i], kb);
+            const double along = d_internal_vec_d_scaled(rs * b, -ka);
+
+            _out[i] = _reject ? (_a[i] - along) : along;
+        }
+    }
+
+    return;
+}
 
 D_MATH_FN void
 d_vec_d_project(
@@ -3972,20 +4564,7 @@ d_vec_d_project(
     size_t     _count
 )
 {
-    const double d = d_vec_d_norm_squared(_onto, _count);
-
-    // onto the zero vector there is nothing to project
-    if (d > (double)0)
-    {
-        d_vec_d_scale(_out,
-                        _onto,
-                        d_vec_d_dot(_a, _onto, _count) / d,
-                        _count);
-    }
-    else
-    {
-        d_vec_d_fill(_out, _count, (double)0);
-    }
+    d_internal_vec_d_along(_out, _a, _onto, _count, false);
 
     return;
 }
@@ -3998,23 +4577,7 @@ d_vec_d_reject(
     size_t     _count
 )
 {
-    size_t i = 0u;
-
-    // _a less its projection, formed component by component so _out may be
-    // either input
-    {
-        const double d     = d_vec_d_norm_squared(_from, _count);
-        const double ratio = (d > (double)0)
-                              ? (d_vec_d_dot(_a, _from, _count) / d)
-                              : (double)0;
-
-        for (i = 0u; i < _count; ++i)
-        {
-            const double along = _from[i] * ratio;
-
-            _out[i] = _a[i] - along;
-        }
-    }
+    d_internal_vec_d_along(_out, _a, _from, _count, true);
 
     return;
 }
@@ -4831,10 +5394,15 @@ d_internal_vec_ld_ld_sum(
     }
 
     {
-        const long double up   = (k != 0) ? d_internal_math_ld_pow2((-k) / 2)
-                                  : (long double)1;
-        const long double down = (k != 0) ? d_internal_math_ld_pow2((-k) - ((-k) / 2))
-                                  : (long double)1;
+        long double up   = (long double)1;
+        long double down = (long double)1;
+
+        // the factors, each a normal power of 2, where the terms are scaled
+        if (k != 0)
+        {
+            up   = d_internal_math_ld_pow2((-k) / 2);
+            down = d_internal_math_ld_pow2((-k) - ((-k) / 2));
+        }
 
         // each term into the running sum, its error apart
         for (i = 0u; i < _n; ++i)
@@ -4966,6 +5534,160 @@ d_internal_vec_ld_add_pair(
     d_internal_vec_ld_ld_add_pair(_x, _tail, _d);
 
     return;
+}
+
+// dj_internal_vec_ld_acc
+//   struct: Dot2's running sum for a caller whose terms are not strided arrays
+// of the family's type -- a complex matrix's parts (cmat.h, linalg's complex
+// kernels) -- in the pairs the family sums in: high, the products' high parts
+// summed by two-sums, and rest, their errors and low parts.
+struct dj_internal_vec_ld_acc
+{
+    long double high;
+    long double rest;
+};
+
+// d_internal_vec_ld_acc_of
+//   a running sum of _c alone.
+D_MATH_FN struct dj_internal_vec_ld_acc
+d_internal_vec_ld_acc_of(
+    long double _c
+)
+{
+    struct dj_internal_vec_ld_acc acc = { 0, 0 };
+
+    acc.high = _c;
+
+    return acc;
+}
+
+// d_internal_vec_ld_acc_add
+//   *_acc plus _a _x, exactly: Dot2's step, each factor of reach 0
+// (d_internal_vec_ld_reach_of) -- the caller scales it first where it is not.
+D_MATH_FN void
+d_internal_vec_ld_acc_add(
+    struct dj_internal_vec_ld_acc* _acc,
+    long double                             _a,
+    long double                             _x
+)
+{
+    const struct dj_internal_math_ld_pair p =
+        d_internal_math_ld_product_exact(_a, _x);
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(_acc->high, p.high);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + (s.low + p.low);
+
+    return;
+}
+
+// d_internal_vec_ld_acc_add_term
+//   *_acc plus _t, exactly: Sum2's step.
+D_MATH_FN void
+d_internal_vec_ld_acc_add_term(
+    struct dj_internal_vec_ld_acc* _acc,
+    long double                             _t
+)
+{
+    const struct dj_internal_math_ld_pair s =
+        d_internal_math_ld_two_sum(_acc->high, _t);
+
+    _acc->high = s.high;
+    _acc->rest = _acc->rest + s.low;
+
+    return;
+}
+
+// d_internal_vec_ld_acc_round
+//   _acc's sum times 2^_k, rounded once to long double (the round of the pairs
+// the family sums in): +0 for an exact zero.
+D_MATH_FN long double
+d_internal_vec_ld_acc_round(
+    struct dj_internal_vec_ld_acc _acc,
+    int                            _k
+)
+{
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_math_ld_two_sum(_acc.high, _acc.rest);
+
+    // an exact zero: +0
+    if (sum.high == 0)
+    {
+        return (long double)0;
+    }
+
+    return d_internal_vec_ld_ld_round(sum, _k);
+}
+
+// d_internal_vec_ld_acc_scale
+//   the power by which Sum2 scales _n finite terms, the largest _largest in
+// magnitude, as the family's sums scale them: _largest's binade where twice _n
+// times it could pass the largest value of the pairs the family sums in, 0
+// where it could not. A caller of d_internal_vec_ld_acc_add_term scales each
+// term by it (d_internal_vec_ld_scaled) and rounds the sum back by it.
+D_MATH_FN int
+d_internal_vec_ld_acc_scale(
+    long double    _largest,
+    size_t _n
+)
+{
+    // a partial sum that could overflow: the terms scaled
+    if ((long double)_largest > (LDBL_MAX / ((long double)2 * (long double)_n)))
+    {
+        return d_internal_vec_ld_exponent_of(_largest);
+    }
+
+    return 0;
+}
+
+// d_internal_vec_ld_reach_of
+//   _v's reach, as d_internal_vec_ld_reach gives an operand's: 2 for a NaN or
+// an infinity, 1 outside the range where Dekker's products are exact, 0 within
+// it or for 0.
+D_MATH_FN int
+d_internal_vec_ld_reach_of(
+    long double _v
+)
+{
+    return d_internal_vec_ld_reach(&_v, 1u, 1u);
+}
+
+// d_internal_vec_ld_scaled
+//   _v 2^-_k, _k a finite value's binade or its negation, in two steps of
+// normal powers of 2: exact but where the result falls into the subnormals.
+D_MATH_FN long double
+d_internal_vec_ld_scaled(
+    long double _v,
+    int _k
+)
+{
+    const long double up   = d_internal_math_ld_pow2((-_k) / 2);
+    const long double down = d_internal_math_ld_pow2((-_k) - ((-_k) / 2));
+
+    return (_v * up) * down;
+}
+
+// d_internal_vec_ld_dot2_scaled
+//   sum_i (_a[i _sa] 2^-_ka) (_x[i _sx] 2^-_kx), each entry finite, rounded
+// once from Dot2's pair: the scaled operands' dot, not scaled back, as the
+// projection takes it at the range's ends.
+D_MATH_FN long double
+d_internal_vec_ld_dot2_scaled(
+    const long double* _a,
+    size_t     _sa,
+    const long double* _x,
+    size_t     _sx,
+    size_t     _n,
+    int        _ka,
+    int        _kx
+)
+{
+    const struct dj_internal_math_ld_pair sum =
+        d_internal_vec_ld_ld_sum_of((long double)0, false, _a, _sa, _x, _sx, _x,
+                                    _sx, false, _n, _ka, _kx);
+
+    return d_internal_vec_ld_ld_round(sum, 0);
 }
 
 // 4.3    Products and reductions
@@ -5611,9 +6333,104 @@ d_vec_ld_normalize(
 // 4.5    Projection and angle
 //------------------------------------------------------------------------------
 // project is _a's component along _onto, reject what is left; the zero
-// vector projects to zero. cos_angle is 0 when either vector is zero, and
-// scaled as the norms are where their product would leave the range; angle
-// clamps it into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+// vector projects to zero. Both divide the compensated dot by the squared
+// norm where those and their ratio lie in range, and scale their operands
+// elsewhere (S301). cos_angle is 0 when either vector is zero, and scaled as
+// the norms are where their product would leave the range; angle clamps it
+// into [-1, 1] first, so rounding past 1 gives 0, not NaN.
+
+// d_internal_vec_ld_along
+//   _out = _a's projection onto _onto, or where _reject what is left of _a;
+// _out may be either input. In range -- _onto's squared norm d from MIN/EPS
+// to MAX, the compensated dot p 0 or its ratio to d from MIN/EPS to MAX --
+// each component p/d times _onto's, as before (S301: a result in range
+// keeps its bits); so too for the zero vector, or an operand with a NaN or
+// an infinity, which give zeros or the arithmetic's own values. Elsewhere,
+// both operands nonzero and finite: each scaled, its largest entry to [1,
+// 2), the scaled dot p' (Dot2) over the scaled squared norm d', and each
+// component p'/d' times _onto's scaled entry, scaled back by _a's power --
+// exact but for the arithmetic's own roundings and the last step's into the
+// subnormals, so that a projection in range is computed in range wherever
+// its operands lie.
+D_MATH_FN void
+d_internal_vec_ld_along(
+    long double*       _out,
+    const long double* _a,
+    const long double* _onto,
+    size_t     _count,
+    bool       _reject
+)
+{
+    const long double d        = d_vec_ld_norm_squared(_onto, _count);
+    const long double p        = d_vec_ld_dot(_a, _onto, _count);
+    const long double ap       = (p < (long double)0) ? -p : p;
+    const long double lo       = LDBL_MIN / LDBL_EPSILON;
+    const long double la       = d_internal_vec_ld_largest(_a, NULL, _count);
+    const long double lb       = d_internal_vec_ld_largest(_onto, NULL, _count);
+    const bool in_range =
+        ( (d >= lo) && (d <= LDBL_MAX) &&
+          ( (ap == (long double)0) ||
+            ( (ap >= lo) && (ap <= LDBL_MAX) && ((ap / LDBL_MAX) <= d) &&
+              ((ap / d) >= lo) ) ) );
+    size_t    i        = 0u;
+
+    // in range, zero or not finite: the formula as written
+    if ( (in_range) ||
+         (!(la > (long double)0)) ||
+         (!(lb > (long double)0)) )
+    {
+        const long double ratio =
+            (d > (long double)0) ? (p / d) : (long double)0;
+
+        for (i = 0u; i < _count; ++i)
+        {
+            const long double along = _onto[i] * ratio;
+
+            // onto the zero vector there is nothing to project
+            if (_reject)
+            {
+                _out[i] = _a[i] - along;
+            }
+            else
+            {
+                _out[i] = (d > (long double)0) ? along : (long double)0;
+            }
+        }
+
+        return;
+    }
+
+    {
+        const int ka = d_internal_vec_ld_exponent_of(la);
+        const int kb = d_internal_vec_ld_exponent_of(lb);
+        const long double ps = d_internal_vec_ld_dot2_scaled(_a, 1u, _onto, 1u,
+                                                      _count, ka, kb);
+        long double       ds = (long double)0;
+        long double       rs = (long double)0;
+
+        // the scaled squared norm, summed as norm_squared sums
+        for (i = 0u; i < _count; ++i)
+        {
+            const long double b      = d_internal_vec_ld_scaled(_onto[i], kb);
+            const long double square = b * b;
+
+            ds += square;
+        }
+
+        rs = ps / ds;
+
+        // each component from the inputs before it is written
+        for (i = 0u; i < _count; ++i)
+        {
+            const long double b     = d_internal_vec_ld_scaled(_onto[i], kb);
+            const long double along = d_internal_vec_ld_scaled(rs * b, -ka);
+
+            _out[i] = _reject ? (_a[i] - along) : along;
+        }
+    }
+
+    return;
+}
 
 D_MATH_FN void
 d_vec_ld_project(
@@ -5623,20 +6440,7 @@ d_vec_ld_project(
     size_t     _count
 )
 {
-    const long double d = d_vec_ld_norm_squared(_onto, _count);
-
-    // onto the zero vector there is nothing to project
-    if (d > (long double)0)
-    {
-        d_vec_ld_scale(_out,
-                        _onto,
-                        d_vec_ld_dot(_a, _onto, _count) / d,
-                        _count);
-    }
-    else
-    {
-        d_vec_ld_fill(_out, _count, (long double)0);
-    }
+    d_internal_vec_ld_along(_out, _a, _onto, _count, false);
 
     return;
 }
@@ -5649,23 +6453,7 @@ d_vec_ld_reject(
     size_t     _count
 )
 {
-    size_t i = 0u;
-
-    // _a less its projection, formed component by component so _out may be
-    // either input
-    {
-        const long double d     = d_vec_ld_norm_squared(_from, _count);
-        const long double ratio = (d > (long double)0)
-                              ? (d_vec_ld_dot(_a, _from, _count) / d)
-                              : (long double)0;
-
-        for (i = 0u; i < _count; ++i)
-        {
-            const long double along = _from[i] * ratio;
-
-            _out[i] = _a[i] - along;
-        }
-    }
+    d_internal_vec_ld_along(_out, _a, _from, _count, true);
 
     return;
 }
@@ -6235,6 +7023,86 @@ d_vec_equals(
     return d_vec_f_equals(_a, _b, _tolerance, _count);
 }
 
+D_MATH_FN struct dj_internal_vec_f_acc
+d_internal_vec_acc_of(
+    float _c
+)
+{
+    return d_internal_vec_f_acc_of(_c);
+}
+
+D_MATH_FN void
+d_internal_vec_acc_add(
+    struct dj_internal_vec_f_acc* _acc,
+    float                         _a,
+    float                         _x
+)
+{
+    return d_internal_vec_f_acc_add(_acc, _a, _x);
+}
+
+D_MATH_FN void
+d_internal_vec_acc_add_term(
+    struct dj_internal_vec_f_acc* _acc,
+    float                         _t
+)
+{
+    return d_internal_vec_f_acc_add_term(_acc, _t);
+}
+
+D_MATH_FN float
+d_internal_vec_acc_round(
+    struct dj_internal_vec_f_acc _acc,
+    int                          _k
+)
+{
+    return d_internal_vec_f_acc_round(_acc, _k);
+}
+
+D_MATH_FN int
+d_internal_vec_acc_scale(
+    float  _largest,
+    size_t _n
+)
+{
+    return d_internal_vec_f_acc_scale(_largest, _n);
+}
+
+D_MATH_FN int
+d_internal_vec_reach_of(
+    float _v
+)
+{
+    return d_internal_vec_f_reach_of(_v);
+}
+
+D_MATH_FN float
+d_internal_vec_scaled(
+    float _v,
+    int   _k
+)
+{
+    return d_internal_vec_f_scaled(_v, _k);
+}
+
+D_MATH_FN int
+d_internal_vec_exponent_of(
+    float _x
+)
+{
+    return d_internal_vec_f_exponent_of(_x);
+}
+
+D_MATH_FN void
+d_internal_vec_add_pair(
+    float* _x,
+    float* _tail,
+    float  _d
+)
+{
+    return d_internal_vec_f_add_pair(_x, _tail, _d);
+}
+
 D_MATH_FN void
 d_vec_fill(
     double* _out,
@@ -6567,6 +7435,86 @@ d_vec_equals(
     return d_vec_d_equals(_a, _b, _tolerance, _count);
 }
 
+D_MATH_FN struct dj_internal_vec_d_acc
+d_internal_vec_acc_of(
+    double _c
+)
+{
+    return d_internal_vec_d_acc_of(_c);
+}
+
+D_MATH_FN void
+d_internal_vec_acc_add(
+    struct dj_internal_vec_d_acc* _acc,
+    double                        _a,
+    double                        _x
+)
+{
+    return d_internal_vec_d_acc_add(_acc, _a, _x);
+}
+
+D_MATH_FN void
+d_internal_vec_acc_add_term(
+    struct dj_internal_vec_d_acc* _acc,
+    double                        _t
+)
+{
+    return d_internal_vec_d_acc_add_term(_acc, _t);
+}
+
+D_MATH_FN double
+d_internal_vec_acc_round(
+    struct dj_internal_vec_d_acc _acc,
+    int                          _k
+)
+{
+    return d_internal_vec_d_acc_round(_acc, _k);
+}
+
+D_MATH_FN int
+d_internal_vec_acc_scale(
+    double _largest,
+    size_t _n
+)
+{
+    return d_internal_vec_d_acc_scale(_largest, _n);
+}
+
+D_MATH_FN int
+d_internal_vec_reach_of(
+    double _v
+)
+{
+    return d_internal_vec_d_reach_of(_v);
+}
+
+D_MATH_FN double
+d_internal_vec_scaled(
+    double _v,
+    int    _k
+)
+{
+    return d_internal_vec_d_scaled(_v, _k);
+}
+
+D_MATH_FN int
+d_internal_vec_exponent_of(
+    double _x
+)
+{
+    return d_internal_vec_d_exponent_of(_x);
+}
+
+D_MATH_FN void
+d_internal_vec_add_pair(
+    double* _x,
+    double* _tail,
+    double  _d
+)
+{
+    return d_internal_vec_d_add_pair(_x, _tail, _d);
+}
+
 D_MATH_FN void
 d_vec_fill(
     long double* _out,
@@ -6897,6 +7845,86 @@ d_vec_equals(
 )
 {
     return d_vec_ld_equals(_a, _b, _tolerance, _count);
+}
+
+D_MATH_FN struct dj_internal_vec_ld_acc
+d_internal_vec_acc_of(
+    long double _c
+)
+{
+    return d_internal_vec_ld_acc_of(_c);
+}
+
+D_MATH_FN void
+d_internal_vec_acc_add(
+    struct dj_internal_vec_ld_acc* _acc,
+    long double                    _a,
+    long double                    _x
+)
+{
+    return d_internal_vec_ld_acc_add(_acc, _a, _x);
+}
+
+D_MATH_FN void
+d_internal_vec_acc_add_term(
+    struct dj_internal_vec_ld_acc* _acc,
+    long double                    _t
+)
+{
+    return d_internal_vec_ld_acc_add_term(_acc, _t);
+}
+
+D_MATH_FN long double
+d_internal_vec_acc_round(
+    struct dj_internal_vec_ld_acc _acc,
+    int                           _k
+)
+{
+    return d_internal_vec_ld_acc_round(_acc, _k);
+}
+
+D_MATH_FN int
+d_internal_vec_acc_scale(
+    long double _largest,
+    size_t      _n
+)
+{
+    return d_internal_vec_ld_acc_scale(_largest, _n);
+}
+
+D_MATH_FN int
+d_internal_vec_reach_of(
+    long double _v
+)
+{
+    return d_internal_vec_ld_reach_of(_v);
+}
+
+D_MATH_FN long double
+d_internal_vec_scaled(
+    long double _v,
+    int         _k
+)
+{
+    return d_internal_vec_ld_scaled(_v, _k);
+}
+
+D_MATH_FN int
+d_internal_vec_exponent_of(
+    long double _x
+)
+{
+    return d_internal_vec_ld_exponent_of(_x);
+}
+
+D_MATH_FN void
+d_internal_vec_add_pair(
+    long double* _x,
+    long double* _tail,
+    long double  _d
+)
+{
+    return d_internal_vec_ld_add_pair(_x, _tail, _d);
 }
 
 #endif  // __cplusplus
