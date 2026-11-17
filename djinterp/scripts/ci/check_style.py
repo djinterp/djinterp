@@ -33,7 +33,9 @@
 #     F  a function body over 100 lines (ruling cli a), unless the body is
 #        constant data (ruling E8): its first line is the comment
 #        "// constant data: exempt from the 100-line limit", and each of its
-#        statements is a static or const declaration or a return
+#        statements is a static or const declaration or a return; a test
+#        (a file under tests/, or a runner under build/cmake/config/testing/)
+#        is exempt (ruled 2026.11.11)
 #     M  an include guard with every segment kept where ruling #71 merges
 #        them: still accepted, while the tree's headers move
 #   Generated files (a banner or first lines that say so) are left out, as
@@ -63,7 +65,7 @@
 # path:      /scripts/ci/check_style.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.11
+#                                                            revised: 2026.11.16
 #*******************************************************************************
 import argparse
 import collections
@@ -314,6 +316,14 @@ def check_includes(path, lines, report):
                     name, comment, want))
 
 
+def is_test(path):
+    """Whether a path is a test: a file under tests/, or a runner under
+    build/cmake/config/testing/. A test's functions have no length limit
+    (ruled 2026.11.11)."""
+    return (path.startswith('tests/') or
+            path.startswith('build/cmake/config/testing/'))
+
+
 def is_test_data(path):
     """Whether a path is in a data folder under tests/: a test's input, such
     as a lexer's corpus, keeps its language's extension but is not code."""
@@ -423,7 +433,8 @@ def check_file(path):
     if path.endswith(('.h', '.hpp')):
         check_guard(path, lines, report)
     check_includes(path, lines, report)
-    check_functions(lines, report)
+    if not is_test(path):
+        check_functions(lines, report)
     return found
 
 

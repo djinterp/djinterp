@@ -1335,8 +1335,12 @@ what the prose misses.
 
 | Measure | Limit | Escalation |
 |---|---|---|
-| Length | 60 lines, excluding the comment block | Extract a helper |
+| Length | 100 lines, excluding the comment block; none for a test | Extract a helper |
 | Brace nesting | 4 levels inside the body | Early return, or a `goto` cleanup label where this guide permits one |
+
+A test is a file under `tests/`, or a runner under
+`build/cmake/config/testing/`; its functions have no length limit (ruled
+2026-11-11). `scripts/ci/check_style.py` warns at 100 lines elsewhere.
 
 Parameters have no limit; related ones may still travel as a struct where
 one reads better (decision 116 of the register).

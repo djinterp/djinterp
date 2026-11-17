@@ -18,7 +18,8 @@ in `tests/djinterp/c/db/<vendor>/` (CMake's `c_<vendor>_tests` and
 stream's, its template engine's, the machine environment's and the
 environment printer's joined them from the stream's delivery of 2026.10.29,
 landed on the restructured layout in November. The stream's seven went into
-DTest on 2026.11.09; where each went is under "Ported" below.
+DTest on 2026.11.09, and the string's grow test on 2026.11.12; where each
+went is under "Ported" below.
 
 ## What is here
 
@@ -30,7 +31,6 @@ DTest on 2026.11.09; where each went is under "Ported" below.
 | `cpp/db/t_database.cpp` | cpp/db's vocabulary: values, types, the shared parts | the CI scripts |
 | `cpp/db/t_db_face_cost.cpp` | the faces' cost against the C calls, at -O2 | `scripts/check_db_face_cost.py` |
 | `cpp/db/database_tests*.{hpp,cpp}` | the older cpp/db suite, by sections | CMake `database_tests` (its runner is in `build/cmake/config/testing/djinterp/cpp/db/database`) |
-| `c/t_dstring_grow.c` | `d_string_internal_grow` with a request above `SIZE_MAX / 2`, which once looped for ever; run with `ASAN_OPTIONS=allocator_may_return_null=1` under ASan | proposed for `scripts/ci/check_ckd.sh` |
 
 Rows still to add: the machine environment and the
 environment printer (`c/option`, `cpp/option`, `c/env`, `cpp/env`), and the
@@ -72,10 +72,11 @@ checked-arithmetic and container overflow tests (`c/t_dckdint.c`,
 | `cpp/util/output/t_output_stream.cpp` | `tests/djinterp/cpp/util/output/output_stream_tests.cpp` | `output_stream_tests` |
 | `cpp/util/pdf/t_pdf_stream.cpp` | `tests/djinterp/cpp/util/pdf/pdf_stream_tests.cpp` | `pdf_stream_tests` |
 | `cpp/text/t_writer_stream.cpp` | `tests/djinterp/cpp/text/writer_stream_tests.cpp` | `writer_stream_tests` |
+| `c/t_dstring_grow.c` | the capacity block of `tests/djinterp/c/dstring_tests_capacity.c` | `c_dstring_tests` |
 
 Each group of checks became a test, and each check is recorded against it,
-so the counts are the programs' own. `scripts/ci/check_ostream.sh` runs all
-seven at every language level.
+so the counts are the programs' own. `scripts/ci/check_ostream.sh` runs the
+stream's seven at every language level.
 
 ## When one is ported
 
