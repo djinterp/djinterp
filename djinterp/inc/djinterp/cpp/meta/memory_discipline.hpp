@@ -67,7 +67,7 @@
 * path:      /inc/djinterp/cpp/meta/memory_discipline.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_META_MEMORY_DISCIPLINE_HPP
@@ -83,7 +83,7 @@
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"      // NS_*, D_ENV_* feature macros
+#include "../djinterp.hpp"      // framework root
 #include "./type_utility.hpp"      // clean_t
 #include "./trait_detect.hpp"   // D_VOID_T, D_TYPE_TRAIT_* detection macros
 #include "./storage.hpp"        // storage_duration, components (storage bridge)
@@ -304,46 +304,28 @@ D_TYPE_TRAIT_TRUE(has_byte_allocate_signal,
 
 // has_pointer_stable_constant_signal / has_individual_release_constant_signal
 //   trait: detect the optional `pointer_stable` / `supports_individual_release`
-// constants.
-D_TYPE_TRAIT_HAS_STATIC_MEMBER(has_pointer_stable_constant_signal, pointer_stable)
-D_TYPE_TRAIT_HAS_STATIC_MEMBER(has_individual_release_constant_signal,
+// constants: true exactly where the readers below read a value. A static
+// member function or a non-static data member of either name declares
+// nothing. (Until 2026.11.11 a function was detected here and read below as
+// true, so a strategy with two such functions classified as pooled, and a
+// data member was a hard error in the readers.)
+D_TYPE_TRAIT_HAS_BOOL_CONSTANT(has_pointer_stable_constant_signal,
+                               pointer_stable)
+D_TYPE_TRAIT_HAS_BOOL_CONSTANT(has_individual_release_constant_signal,
                                supports_individual_release)
 
 NS_INTERNAL
 
     // read_pointer_stable
     //   trait: yields clean_t<Type>::pointer_stable, or the conservative
-    // default false when the constant is absent.
-    template<typename Type,
-             typename = void>
-    struct read_pointer_stable
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename Type>
-    struct read_pointer_stable<Type,
-        D_VOID_T<decltype(clean_t<Type>::pointer_stable)>>
-    {
-        static constexpr bool value = clean_t<Type>::pointer_stable;
-    };
+    // default false where the type declares no such constant
+    // (D_TYPE_TRAIT_OPT_IN).
+    D_TYPE_TRAIT_OPT_IN(read_pointer_stable, pointer_stable)
 
     // read_individual_release
     //   trait: yields clean_t<Type>::supports_individual_release, or the
-    // conservative default false (absent -> monotonic / arena) when absent.
-    template<typename Type,
-             typename = void>
-    struct read_individual_release
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename Type>
-    struct read_individual_release<Type,
-        D_VOID_T<decltype(clean_t<Type>::supports_individual_release)>>
-    {
-        static constexpr bool value = clean_t<Type>::supports_individual_release;
-    };
+    // conservative default false (absent -> monotonic / arena).
+    D_TYPE_TRAIT_OPT_IN(read_individual_release, supports_individual_release)
 
 NS_END  // internal
 

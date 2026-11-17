@@ -28,7 +28,7 @@
 *
 *   THE TRICHOTOMY.  A record's key and value regions are named by two OPEN
 * projections, so one class serves every entry shape:
-*     (A) DKvPair rows            -- key = .m_key, value = .m_value (see
+*     (A) DKvPair rows            -- key = .key, value = .value (see
 *                                    kv_registry / kv_key / kv_value below).
 *     (B) projected-key records   -- key at any tuple index / any accessor,
 *                                    value a disjoint sub-region
@@ -60,7 +60,7 @@
 * path:      /inc/djinterp/cpp/container/registry/registry.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -104,7 +104,7 @@ IV.   make_registry
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"           // NS_*, D_NODISCARD, D_CONSTEXPR, clean_t
+#include "../../djinterp.hpp"           // framework root
 #include "./registry_update.hpp"        // update_at, rekey strategies, sorted-key kernel
 #include "../container_options.hpp"     // axis enums, options_container_base
 #include "../../meta/kv_pair.hpp"       // DKvPair (kv_registry)
@@ -605,7 +605,7 @@ private:
 
 // kv_key / kv_value
 //   projections: the canonical Key x Val projections for a DKvPair record --
-// the key (.m_key, read only) and the value (.m_value, writable). Forwarding
+// the key (.key, read only) and the value (.value, writable). Forwarding
 // call operators keep const-ness, so one functor serves reads and writes.
 struct kv_key
 {
@@ -613,9 +613,9 @@ struct kv_key
     D_CONSTEXPR
     auto operator()(
         Pair&& _p
-    ) const -> decltype((static_cast<Pair&&>(_p).m_key))
+    ) const -> decltype((static_cast<Pair&&>(_p).key))
     {
-        return static_cast<Pair&&>(_p).m_key;
+        return static_cast<Pair&&>(_p).key;
     }
 };
 
@@ -625,9 +625,9 @@ struct kv_value
     D_CONSTEXPR
     auto operator()(
         Pair&& _p
-    ) const -> decltype((static_cast<Pair&&>(_p).m_value))
+    ) const -> decltype((static_cast<Pair&&>(_p).value))
     {
-        return static_cast<Pair&&>(_p).m_value;
+        return static_cast<Pair&&>(_p).value;
     }
 };
 

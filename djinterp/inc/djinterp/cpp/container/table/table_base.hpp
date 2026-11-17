@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/container/table/table_base.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -86,7 +86,7 @@ II.   table_base (CRTP read-only rank-2 surface)
 #include <stdexcept>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
+#include "../../djinterp.hpp"   // framework root
 // djinterp - axis detection traits (the classifiers the tables answer to)
 #include "../traits/iterable_container_traits.hpp"       // Iterability
 #include "../iterator/iterator_category_traits.hpp"        // iterator-category (needed below)
@@ -97,11 +97,9 @@ II.   table_base (CRTP read-only rank-2 surface)
 #include "../traits/flat_container_traits.hpp"           // Structure  (flat/hierarchical + tags)
 // NOTE: the composite axes Filterability (container_filter_traits.hpp) and
 // Transformability (container_transform_traits.hpp) are DETECTION-ONLY and are
-// deliberately NOT pulled in here. They are derived (read + build) and, in the
-// current framework, (a) both define internal::has_value_type_helper
-// unguarded, so the two cannot share a translation unit, and (b) the filter
-// cluster's constexpr chain requires C++17. The umbrella container_traits.hpp
-// likewise includes neither. The tables' filter/transform CLASSIFICATION is
+// deliberately NOT pulled in here. They are derived (read + build), and the
+// filter cluster's constexpr chain requires C++17. The umbrella
+// container_traits.hpp likewise includes neither. The tables' filter/transform CLASSIFICATION is
 // documented per axis below and verified out-of-band against those
 // classifiers; the OPERATIONS (map / map_inplace / filter_rows / select_rows)
 // are unaffected.

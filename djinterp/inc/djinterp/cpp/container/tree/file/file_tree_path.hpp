@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/cpp/container/tree/file/file_tree_path.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_PATH_HPP
@@ -147,6 +147,8 @@ public:
         index_type            _id
     ) const
     {
+        (void)_arena;  // the node handle reaches its links itself
+
         return _id->parent;
     }
 
@@ -157,6 +159,8 @@ public:
         index_type            _id
     ) const
     {
+        (void)_arena;  // the node handle reaches its links itself
+
         return _id->first_child;
     }
 
@@ -167,6 +171,8 @@ public:
         index_type            _id
     ) const
     {
+        (void)_arena;  // the node handle reaches its links itself
+
         return _id->next_sibling;
     }
 
@@ -178,6 +184,8 @@ public:
         index_type            _id
     ) const
     {
+        (void)_arena;  // the node handle reaches its entry itself
+
         const file_entry& e = _id->data;
 
         return component_view{

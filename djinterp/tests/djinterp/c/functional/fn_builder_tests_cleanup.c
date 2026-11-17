@@ -95,8 +95,8 @@ d_internal_tests_fn_builder_free_part1(
 
     // ---- free builder with transforms ----
     builder = d_fn_builder_new();
-    d_funtional_builder_map(builder, test_helper_identity_transform);
-    d_funtional_builder_map(builder, test_helper_identity_transform);
+    d_fn_builder_map(builder, test_helper_identity_transform);
+    d_fn_builder_map(builder, test_helper_identity_transform);
 
     d_fn_builder_free(builder);
 
@@ -107,8 +107,8 @@ d_internal_tests_fn_builder_free_part1(
 
     // ---- free builder with predicates ----
     builder = d_fn_builder_new();
-    d_funtional_builder_filter(builder, test_helper_always_true);
-    d_funtional_builder_filter(builder, test_helper_always_true);
+    d_fn_builder_filter(builder, test_helper_always_true);
+    d_fn_builder_filter(builder, test_helper_always_true);
 
     d_fn_builder_free(builder);
 
@@ -119,8 +119,8 @@ d_internal_tests_fn_builder_free_part1(
 
     // ---- free builder with both ----
     builder = d_fn_builder_new();
-    d_funtional_builder_map(builder, test_helper_identity_transform);
-    d_funtional_builder_filter(builder, test_helper_always_true);
+    d_fn_builder_map(builder, test_helper_identity_transform);
+    d_fn_builder_filter(builder, test_helper_always_true);
 
     d_fn_builder_free(builder);
 
@@ -139,8 +139,8 @@ d_internal_tests_fn_builder_free_part1(
 
     // ---- free after execute ----
     builder = d_fn_builder_new();
-    d_funtional_builder_map(builder, test_helper_identity_transform);
-    d_funtional_builder_filter(builder, test_helper_always_true);
+    d_fn_builder_map(builder, test_helper_identity_transform);
+    d_fn_builder_filter(builder, test_helper_always_true);
 
     d_fn_builder_execute(builder,
                          input,
@@ -191,8 +191,8 @@ d_internal_tests_fn_builder_free_part2(
 
         for (i = 0; i < 20; i++)
         {
-            d_funtional_builder_map(builder,
-                                    test_helper_identity_transform);
+            d_fn_builder_map(builder,
+                             test_helper_identity_transform);
         }
 
         d_fn_builder_free(builder);

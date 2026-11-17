@@ -12,6 +12,10 @@
 *   This header is intentionally thin: it does not re-implement
 * detection.  Instead, each concept forwards to the corresponding
 * public trait or variable template from the array trait layer.
+*   Most concepts pass clean_t<Type>.  The lifetime concepts and
+* shiftable_array pass Type itself: clean_t strips a C array's element
+* const (`const int[4]` becomes `int[4]`), and their traits tell the two
+* apart, cleaning the rest themselves.
 *
 *   PORTABILITY:
 *   The whole header is a no-op when concepts are unavailable.
@@ -23,7 +27,7 @@
 * path:      /inc/djinterp/cpp/container/array/array_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.01
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -258,10 +262,11 @@ concept trivially_relocatable_array =
 // ===========================================================================
 
 // shiftable_array
-//   concept: constrains arrays that are contiguous and sized.
+//   concept: constrains arrays that are contiguous, sized and not
+// immutable.
 template<typename Type>
 concept shiftable_array =
-    is_shiftable_array_v<clean_t<Type>>;
+    is_shiftable_array_v<Type>;
 
 // shift_left_array
 //   concept: constrains arrays exposing shift_left(size_t).
@@ -333,20 +338,20 @@ concept growth_factor_array =
 // has_constexpr_iteration).
 template<typename Type>
 concept constexpr_array =
-    is_constexpr_array_v<clean_t<Type>>;
+    is_constexpr_array_v<Type>;
 
 // immutable_array
 //   concept: constrains arrays that are read-only at runtime (no mutation
 // entry points, no constexpr iteration).
 template<typename Type>
 concept immutable_array =
-    is_immutable_array_v<clean_t<Type>>;
+    is_immutable_array_v<Type>;
 
 // mutable_array
 //   concept: constrains arrays that expose mutation entry points.
 template<typename Type>
 concept mutable_array =
-    is_mutable_array_v<clean_t<Type>>;
+    is_mutable_array_v<Type>;
 
 
 // ===========================================================================

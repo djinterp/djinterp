@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/functional/bifunctor_tests_instances.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -104,8 +104,8 @@ bool tests_kv_direct_bimap()
         ::djinterp::bifunctor_traits< ::djinterp::DKvPair<int, int> >::bimap(
             ::djinterp::DKvPair<int, int>(3, 4), DDblInt(), DIncInt());
 
-    return ( (r.m_key == 6) &&
-             (r.m_value == 5) );
+    return ( (r.key == 6) &&
+             (r.value == 5) );
 }
 
 /*
@@ -163,9 +163,9 @@ bool tests_kv_key_only_eq_value_map()
         ::djinterp::map_second(base, [](int _v) -> int { return _v + 999; });
 
     return ( (mapped == base)          &&   // key-only equality: keys unchanged
-             (base.m_value == 1)       &&
-             (mapped.m_value == 1000)  &&   // value really did change
-             (mapped.m_key == 5) );
+             (base.value == 1)       &&
+             (mapped.value == 1000)  &&   // value really did change
+             (mapped.key == 5) );
 }
 
 /*
@@ -183,8 +183,8 @@ bool tests_kv_key_only_eq_key_map()
         ::djinterp::map_first(base, DIncInt());
 
     return ( (mapped != base)     &&   // key changed -> not equal
-             (mapped.m_key == 6)  &&
-             (mapped.m_value == 1) );   // value untouched
+             (mapped.key == 6)  &&
+             (mapped.value == 1) );   // value untouched
 }
 
 

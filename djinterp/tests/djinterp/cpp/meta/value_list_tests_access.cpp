@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp]                                     value_list_tests_access.cpp
+* djinterp [test]                                    value_list_tests_access.cpp
+*
+*   Section III -- value_list_size, value_list_at, and at(): the trait faces and
+* the carrier-returning element accessor.
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests_access.cpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests_access.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.11
 *******************************************************************************/
-// djinterp [test]  value_list_tests_access.cpp
-//   Section III -- value_list_size, value_list_at, and at(): the trait faces and
-//   the carrier-returning element accessor.
 
 // std
 #include <cstddef>

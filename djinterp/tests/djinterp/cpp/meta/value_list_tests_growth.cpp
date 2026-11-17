@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                     value_list_tests_growth.cpp
+* djinterp [test]                                    value_list_tests_growth.cpp
+*
+*   Section IV -- growth: append, prepend, and the four concat overloads.
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests_growth.cpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests_growth.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.11
 *******************************************************************************/
-// djinterp [test]  value_list_tests_growth.cpp
-//   Section IV -- growth: append, prepend, and the four concat overloads.
 
 // std
 #include <type_traits>

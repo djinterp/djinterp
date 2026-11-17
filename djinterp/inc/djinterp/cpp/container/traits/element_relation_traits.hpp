@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/container/traits/element_relation_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_ELEMENT_RELATION_TRAITS_HPP
@@ -56,7 +56,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"                       // framework root
 #include "../../meta/trait_detect.hpp"              // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
 
 #if D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
@@ -191,6 +191,20 @@ struct element_type_of
 // rather than a value is wanted.
 template<typename Type>
 using element_type_of_t = typename element_type_of<Type>::type;
+
+NS_INTERNAL
+
+    // has_element_type_helper
+    //   helper: whether a container has an element type at all - a void
+    // element type from element_type_of means there is none. It is the typed
+    // half of the READ capability the filter and transform axes require.
+    template<typename Type>
+    struct has_element_type_helper
+        : std::integral_constant<bool,
+              !std::is_void<element_type_of_t<Type>>::value>
+    {};
+
+NS_END  // internal
 
 // has_equality_comparable_elements
 //   trait: the value_type admits == - the =tau of the content equalities.

@@ -12,14 +12,16 @@
 *   - is_rooted_arena<T>           alias for is_arena_tree
 *
 *   ROOT DETECTION
-*   - has_root_method<T>           does T expose root()?
-*   - has_has_root_method<T>       does T expose has_root()?
-*   - has_is_root_method<T>        does T expose is_root(node_id)?
+*   - has_set_root_method<T>       does T expose set_root(node_id)?
 *   - has_create_root_method<T>    does T expose create_root(...)?
+*   (root(), has_root() and is_root are probed by node_container_traits.hpp's
+*   has_root_method, has_has_root_method and has_is_root_method, which this
+*   header uses: is_root as has_is_root_method<const T, node_id>.)
 *
 *   TREE MUTATION DETECTION
-*   - has_add_child_method<T>      does T expose add_child(...)?
-*   - has_remove_subtree_method<T> does T expose remove_subtree(node_id)?
+*   (add_child and remove_subtree likewise: an arena tree's are
+*   has_add_child_method<T, node_id, payload_type> and
+*   has_remove_subtree_method<T, node_id>.)
 *
 *   TREE NAVIGATION
 *   - is_parent_navigable<T>       can walk from child to root?
@@ -33,7 +35,7 @@
 * path:      /inc/djinterp/cpp/container/arena/tree/arena_tree_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_TRAITS_HPP
@@ -52,6 +54,7 @@
 #include "../../../djinterp.hpp"
 #include "../arena.hpp"
 #include "../arena_traits.hpp"
+#include "../../traits/node_container_traits.hpp"  // the shared tree probes
 
 
 NS_DJINTERP
@@ -61,76 +64,9 @@ NS_DJINTERP
 // I.   Root Method Detection
 // ===========================================================================
 
-// has_root_method
-//   trait: detects a root() method returning node_id.
-template<typename Type,
-         typename = void>
-struct has_root_method : std::false_type
-{};
-
-// has_root_method<Type, void_t<decltype(std::declval<const
-// Type&>().root())>>
-//   trait: the `void_t<decltype(std::declval<const Type&>().root())>` case;
-// it reports true.
-template<typename Type>
-struct has_root_method<Type,
-    void_t<decltype(std::declval<const Type&>().root())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_root_method_v =
-        has_root_method<Type>::value;
-#endif
-
-// has_has_root_method
-//   trait: detects has_root() returning bool.
-template<typename Type,
-         typename = void>
-struct has_has_root_method : std::false_type
-{};
-
-// has_has_root_method<Type, void_t<decltype(std::declval<const
-// Type&>().has_root())>>
-//   trait: the `void_t<decltype(std::declval<const Type&>().has_root())>`
-// case; it reports true.
-template<typename Type>
-struct has_has_root_method<Type,
-    void_t<decltype(std::declval<const Type&>().has_root())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_has_root_method_v =
-        has_has_root_method<Type>::value;
-#endif
-
-// has_is_root_method
-//   trait: detects is_root(node_id) returning bool.
-template<typename Type,
-         typename = void>
-struct has_is_root_method : std::false_type
-{};
-
-// has_is_root_method<Type, void_t<decltype( std::declval<const
-// Type&>().is_root( std::declval<node_id>()))>>
-//   trait: the `void_t<decltype( std::declval<const Type&>().is_root(
-// std::declval<node_id>()))>` case; it reports true.
-template<typename Type>
-struct has_is_root_method<Type,
-    void_t<decltype(
-        std::declval<const Type&>().is_root(
-            std::declval<node_id>()))>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_is_root_method_v =
-        has_is_root_method<Type>::value;
-#endif
+// root(), has_root() and is_root(node_id) are probed by node_container_traits.hpp
+// (decision L1): has_root_method, has_has_root_method, and
+// has_is_root_method<const Type, node_id>.
 
 // has_set_root_method
 //   trait: detects set_root(node_id).
@@ -187,58 +123,29 @@ struct has_create_root_method<Type,
         has_create_root_method<Type>::value;
 #endif
 
-// has_add_child_method
-//   trait: detects add_child(node_id, Payload).
-template<typename Type,
-         typename = void>
-struct has_add_child_method : std::false_type
-{};
+NS_INTERNAL
 
-// has_add_child_method<Type, void_t<decltype(
-// std::declval<Type&>().add_child( std::declval<node_id>(),
-// std::declval<typename clean_t<Type>
-//   trait: the `void_t<decltype( std::declval<Type&>().add_child(
-// std::declval<node_id>(), std::declval<typename clean_t<Type` case; it
-// reports true.
-template<typename Type>
-struct has_add_child_method<Type,
-    void_t<decltype(
-        std::declval<Type&>().add_child(
-            std::declval<node_id>(),
-            std::declval<typename clean_t<Type>::payload_type>()))>>
-    : std::true_type
-{};
+    // arena_has_add_child
+    //   trait: true if Type declares a payload_type and add_child(node_id,
+    // payload_type) can be called on it -- node_container_traits.hpp's
+    // has_add_child_method, given an arena tree's arguments.
+    template<typename Type,
+             typename = void>
+    struct arena_has_add_child : std::false_type
+    {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    D_CONSTEXPR bool has_add_child_method_v =
-        has_add_child_method<Type>::value;
-#endif
+    struct arena_has_add_child<Type,
+        D_VOID_T<typename clean_t<Type>::payload_type>>
+        : has_add_child_method<Type,
+                               node_id,
+                               typename clean_t<Type>::payload_type>
+    {};
 
-// has_remove_subtree_method
-//   trait: detects remove_subtree(node_id).
-template<typename Type,
-         typename = void>
-struct has_remove_subtree_method : std::false_type
-{};
+NS_END  // internal
 
-// has_remove_subtree_method<Type, void_t<decltype(
-// std::declval<Type&>().remove_subtree( std::declval<node_id>()))>>
-//   trait: the `void_t<decltype( std::declval<Type&>().remove_subtree(
-// std::declval<node_id>()))>` case; it reports true.
-template<typename Type>
-struct has_remove_subtree_method<Type,
-    void_t<decltype(
-        std::declval<Type&>().remove_subtree(
-            std::declval<node_id>()))>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_remove_subtree_method_v =
-        has_remove_subtree_method<Type>::value;
-#endif
+// remove_subtree(node_id) is node_container_traits.hpp's
+// has_remove_subtree_method<Type, node_id>.
 
 
 // ===========================================================================
@@ -459,9 +366,9 @@ struct arena_tree_class
     static D_CONSTEXPR bool has_create_root =
         has_create_root_method<Type>::value;
     static D_CONSTEXPR bool has_add_child =
-        has_add_child_method<Type>::value;
+        internal::arena_has_add_child<Type>::value;
     static D_CONSTEXPR bool has_remove_subtree =
-        has_remove_subtree_method<Type>::value;
+        has_remove_subtree_method<Type, node_id>::value;
 
     // -----------------------------------------------------------------
     // Complexity Guarantees

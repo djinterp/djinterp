@@ -45,7 +45,7 @@ tests_test_metadata_types
   Verifies the row type exposed by the metadata store.
   Tests the following:
   - value_type is DKvPair<string, string>, with string key_type / value_type
-  - a row constructed through the value constructor exposes m_key / m_value
+  - a row constructed through the value constructor exposes key / value
     (rows are built this way deliberately, never via DKvPair's relational ops)
 */
 bool tests_test_metadata_types()
@@ -63,8 +63,8 @@ bool tests_test_metadata_types()
     // uses) exposes the expected members
     {
         DTestMetadata::value_type row("k", "v");
-        ok = D_TO_CHECK(row.m_key == "k")   && ok;  // std::string compare
-        ok = D_TO_CHECK(row.m_value == "v") && ok;
+        ok = D_TO_CHECK(row.key == "k")   && ok;  // std::string compare
+        ok = D_TO_CHECK(row.value == "v") && ok;
     }
 
     return ok;

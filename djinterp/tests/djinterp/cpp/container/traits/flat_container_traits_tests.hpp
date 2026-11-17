@@ -38,7 +38,7 @@
 * path:      /tests/djinterp/cpp/container/traits/flat_container_traits_tests.hpp
 * link(s):   TBA
 * author(s): unit-test suite                                 created: 2026.07.17
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 #ifndef DJINTERP_FLAT_CONTAINER_TRAITS_TESTS_
@@ -55,7 +55,6 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-// djinterp (bare include; the leaf CMakeLists adds inc/djinterp/core/container/structure)
 #include "../../../../../inc/djinterp/cpp/djinterp.hpp"
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/container/traits/flat_container_traits.hpp"

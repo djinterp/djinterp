@@ -169,8 +169,8 @@ from_operator_signature(
 
     for (const auto& row : _table.entries())
     {
-        const ::djinterp::operator_descriptor& d  = row.m_value;
-        const re_std::uint32_t                 id = _id_of(row.m_key);
+        const ::djinterp::operator_descriptor& d  = row.value;
+        const re_std::uint32_t                 id = _id_of(row.key);
         const unsigned char                    first =
             (d.spelling) ? (unsigned char)d.spelling[0] : 0u;
         const bool                             word  =

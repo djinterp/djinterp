@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/cpp/container/arena/tree/arena_tree_concepts.hpp
 * link(s):   TBA
 * author(s): OpenAI ChatGPT                                  created: 2026.04.07
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -76,27 +76,29 @@ concept root_presence_query_arena = has_has_root_method<clean_t<Type>>::value;
 // root_testable_arena
 //   concept: constrains arenas exposing is_root(node_id).
 template<typename Type>
-concept root_testable_arena = has_is_root_method<clean_t<Type>>::value;
+concept root_testable_arena =
+    has_is_root_method<const clean_t<Type>, node_id>::value;
 
 // root_assignable_arena
 //   concept: constrains arenas exposing set_root(node_id).
 template<typename Type>
 concept root_assignable_arena = has_set_root_method<clean_t<Type>>::value;
 
-// arena_tree
-//   concept: constrains types satisfying the arena tree protocol.
+// arena_tree_like
+//   concept: constrains types satisfying the arena tree protocol. Named as
+// arena_concepts.hpp names arena_like: arena_tree is the class.
 template<typename Type>
-concept arena_tree = is_arena_tree<clean_t<Type>>::value;
+concept arena_tree_like = is_arena_tree<clean_t<Type>>::value;
 
 // rooted_arena
 //   concept: constrains types recognized as rooted arenas.
 template<typename Type>
 concept rooted_arena = is_rooted_arena<clean_t<Type>>::value;
 
-// non_arena_tree
+// non_arena_tree_like
 //   concept: constrains types that do not satisfy the arena tree protocol.
 template<typename Type>
-concept non_arena_tree = !arena_tree<Type>;
+concept non_arena_tree_like = !arena_tree_like<Type>;
 
 
 // ===========================================================================
@@ -113,20 +115,20 @@ concept create_root_arena =
 //   concept: constrains arena trees exposing add_child(node_id, payload).
 template<typename Type>
 concept child_addable_arena =
-    has_add_child_method<clean_t<Type>>::value;
+    internal::arena_has_add_child<clean_t<Type>>::value;
 
 // subtree_removable_arena
 //   concept: constrains arena trees exposing remove_subtree(node_id).
 template<typename Type>
 concept subtree_removable_arena =
-    has_remove_subtree_method<clean_t<Type>>::value;
+    has_remove_subtree_method<clean_t<Type>, node_id>::value;
 
 // mutable_arena_tree
 //   concept: constrains arena trees supporting root creation and child
 // insertion.
 template<typename Type>
 concept mutable_arena_tree =
-    ( arena_tree<Type>          &&
+    ( arena_tree_like<Type>     &&
       create_root_arena<Type>   &&
       child_addable_arena<Type> );
 
@@ -187,7 +189,7 @@ concept o1_appendable_arena_tree =
 //   concept: constrains types recognized by the arena tree trait layer.
 template<typename Type>
 concept classified_arena_tree =
-    ( arena_tree<Type>              ||
+    ( arena_tree_like<Type>         ||
       rooted_arena<Type>            ||
       parent_navigable_arena<Type>  ||
       sibling_navigable_arena<Type> ||

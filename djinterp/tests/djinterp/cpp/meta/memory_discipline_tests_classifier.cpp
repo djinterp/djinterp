@@ -1,12 +1,18 @@
 /*******************************************************************************
-* djinterp [cpp]                          memory_discipline_tests_classifier.cpp
+* djinterp [test]                         memory_discipline_tests_classifier.cpp
+*
+*   Classifier tests: discipline_of sorts a strategy as unknown, none, arena,
+* pooled or individual from its signals; either allocate shape counts as
+* allocating; and the _t carrier and _v value track it, through cv and
+* references.
 *
 *
 * path:      /tests/djinterp/cpp/meta/memory_discipline_tests_classifier.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.11.11
 *******************************************************************************/
+
 // std
 #include <type_traits>
 // djinterp
@@ -38,11 +44,15 @@ tests_memory_discipline_classify_arena
   - a strategy with allocate but no supports_individual_release constant is arena
   - a strategy with allocate and supports_individual_release = false is arena
   - (both the absent and the explicit-false release paths reach arena)
+  - a strategy whose release and stability names are functions or data members,
+    not constants, declares neither, and is arena
 */
 bool tests_memory_discipline_classify_arena()
 {
     D_MD_CHECK(discipline_of<md_arena_absent>::value == memory_discipline::arena);
     D_MD_CHECK(discipline_of<md_arena_false>::value == memory_discipline::arena);
+    D_MD_CHECK(discipline_of<md_function_constants>::value == memory_discipline::arena);
+    D_MD_CHECK(discipline_of<md_member_constants>::value == memory_discipline::arena);
 
     return true;
 }

@@ -34,7 +34,7 @@
 * path:      /tests/djinterp/cpp/functional/transducer_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -72,7 +72,7 @@ III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
     // (below). Pull in the DTest authoring surface: module_spec / block_spec /
     // test_spec, build_enriched_tree, run_module, and the test_option_set the
     // runner configures. Resolved via the djinterp include root, the same root
-    // the runners' <djinterp/core/djinterp.hpp> resolves against. Gated so the
+    // the runners' <djinterp/cpp/djinterp.hpp> resolves against. Gated so the
     // plain sectional builds - which never define DTEST_SPEC_MODE - do not pull
     // in the framework. (The runner is C++14+, so DJINTERP_TEST_TRANSDUCER_ENABLED
     // is always true wherever the spec is compiled.)

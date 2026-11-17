@@ -3,10 +3,10 @@
 *
 * Iterators and a cursor for LCRS n-ary trees:
 *   This header provides iterators over an LCRS-shaped node graph in four
-* traversal orders, plus an imperative navigator analogous to `tree_cursor`
-* from `tree_iterator.hpp` (which is binary-only).  All facilities are
-* templated on the node type, so mutable and `const` variants share one
-* definition.
+* traversal orders, plus an imperative navigator.  The iterators walk the
+* nodes' own links; tree_iterator.hpp, which walks any hierarchy an accessor
+* policy can present, is not needed here.  All facilities are templated on
+* the node type, so mutable and `const` variants share one definition.
 *
 * THE SPEC (Structure, Addressability, Iterability).
 *   A container is a FINITE TREE of components rooted at c, and n |> n' ("n'
@@ -92,7 +92,7 @@
 * path:      /inc/djinterp/cpp/container/tree/nary/nary_tree_iterator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_ITERATOR_HPP
@@ -113,7 +113,6 @@
 #include <utility>
 // djinterp
 #include "../../../djinterp.hpp"
-#include "../../iterator/tree/tree_iterator.hpp"
 
 
 NS_DJINTERP
@@ -125,9 +124,8 @@ NS_DJINTERP
 // -- carried only in the type system, to steer nary_iterator_for below -- and
 // so are available in every language mode from C++98 onward, needing no
 // D_ENV_LANG_IS_CPP* gate.  Three of the four (pre, post, leaf) name the same
-// orders as DTreeOrder in tree_iterator.hpp; level order is n-ary specific,
-// which is why these are declared here rather than borrowed from the binary
-// header.
+// orders as DTreeOrder in tree_iterator.hpp; level order is not among
+// DTreeOrder's, which is why these are declared here rather than borrowed.
 
 // DPreOrderTag
 //   struct: selects pre-order traversal -- a node before its children
@@ -1608,9 +1606,7 @@ using DNaryTreeIterator =
 // =========================================================================
 
 // DNaryTreeCursor
-//   class: imperative LCRS navigator analogous to tree_cursor<Node> from
-// tree_iterator.hpp (which targets binary trees). Every navigation primitive
-// runs in O(1)
+//   class: imperative LCRS navigator.  Every navigation primitive runs in O(1)
 // when the underlying node has the corresponding link, which for
 // DNaryTreeNode<T> means parent / first_child / last_child / next_sibling /
 // prev_sibling are all live.

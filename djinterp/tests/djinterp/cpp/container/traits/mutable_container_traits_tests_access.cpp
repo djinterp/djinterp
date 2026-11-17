@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/mutable_container_traits_tests_access.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // djinterp
 #include "mutable_container_traits_tests.hpp"
@@ -33,9 +33,9 @@ tests_access_internal_marks
   WHICH mark misfired.  Both live in djinterp::internal by design - they are
   the local signals that keep this module free of the overlay include graph.
   Tests the following:
-  - has_equivalence_helper fires on a nested key_type: every associative
+  - access_equivalence_helper fires on a nested key_type: every associative
     discipline, ordered and unordered, and nothing else
-  - has_keyed_value_helper fires on a value_type carrying BOTH first_type and
+  - access_keyed_value_helper fires on a value_type carrying BOTH first_type and
     second_type: the map family, and any other type whose element is a pair
   - the two are independent: a set has the equivalence mark without the keyed
     one, a bare pair-valued type has the keyed mark without the equivalence
@@ -50,74 +50,83 @@ bool tests_access_internal_marks()
     bool ok = true;
 
     // --- the equivalence mark: a nested key_type ---
-    D_MC_CHECK(internal::has_equivalence_helper<DMcSetInt>::value == true);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcSetInt>::value == true);
     D_MC_CHECK(
-        internal::has_equivalence_helper<DMcMultisetInt>::value == true);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcUsetInt>::value == true);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcMapIi>::value == true);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcMultimapIi>::value == true);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcUmapIi>::value == true);
+        internal::access_equivalence_helper<DMcMultisetInt>::value == true);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcUsetInt>::value == true);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcMapIi>::value == true);
+    D_MC_CHECK(
+        internal::access_equivalence_helper<DMcMultimapIi>::value == true);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcUmapIi>::value == true);
 
-    D_MC_CHECK(internal::has_equivalence_helper<DMcVectorInt>::value == false);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcListInt>::value == false);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcString>::value == false);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcArray4>::value == false);
     D_MC_CHECK(
-        internal::has_equivalence_helper<DMcVectorPair>::value == false);
-    D_MC_CHECK(internal::has_equivalence_helper<int>::value == false);
-    D_MC_CHECK(internal::has_equivalence_helper<void>::value == false);
-    D_MC_CHECK(internal::has_equivalence_helper<DMcBare>::value == false);
+        internal::access_equivalence_helper<DMcVectorInt>::value == false);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcListInt>::value == false);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcString>::value == false);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcArray4>::value == false);
+    D_MC_CHECK(
+        internal::access_equivalence_helper<DMcVectorPair>::value == false);
+    D_MC_CHECK(internal::access_equivalence_helper<int>::value == false);
+    D_MC_CHECK(internal::access_equivalence_helper<void>::value == false);
+    D_MC_CHECK(internal::access_equivalence_helper<DMcBare>::value == false);
 
     // --- the keyed mark: value_type::first_type AND ::second_type ---
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcMapIi>::value      == true);
     D_MC_CHECK(
-        internal::has_keyed_value_helper<DMcMultimapIi>::value == true);
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcUmapIi>::value     == true);
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcMapSi>::value      == true);
+        internal::access_keyed_value_helper<DMcMapIi>::value == true);
+    D_MC_CHECK(
+        internal::access_keyed_value_helper<DMcMultimapIi>::value == true);
+    D_MC_CHECK(
+        internal::access_keyed_value_helper<DMcUmapIi>::value == true);
+    D_MC_CHECK(
+        internal::access_keyed_value_helper<DMcMapSi>::value == true);
 
     // any pair-valued type presents it, map or not
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcVectorPair>::value == true);
+    D_MC_CHECK(
+        internal::access_keyed_value_helper<DMcVectorPair>::value == true);
 
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcSetInt>::value == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcUsetInt>::value == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcVectorInt>::value == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcString>::value == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<int>::value == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<void>::value == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<DMcSetInt>::value == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<DMcUsetInt>::value == false);
+    D_MC_CHECK(
+        internal::access_keyed_value_helper<DMcVectorInt>::value == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<DMcString>::value == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<int>::value == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<void>::value == false);
 
     // a bare pair has first_type and second_type but no value_type
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcPairIi>::value  == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<DMcTupleI>::value  == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<DMcPairIi>::value  == false);
+    D_MC_CHECK(internal::access_keyed_value_helper<DMcTupleI>::value  == false);
 
     // the AND-shape: one half of the pair protocol is not enough
-    D_MC_CHECK(internal::has_keyed_value_helper<mc_half_pair_first>::value
+    D_MC_CHECK(internal::access_keyed_value_helper<mc_half_pair_first>::value
                    == false);
-    D_MC_CHECK(internal::has_keyed_value_helper<mc_half_pair_second>::value
+    D_MC_CHECK(internal::access_keyed_value_helper<mc_half_pair_second>::value
                    == false);
 
     // --- the two marks are independent ---
-    D_MC_CHECK(   ( internal::has_equivalence_helper<DMcSetInt>::value
+    D_MC_CHECK(   ( internal::access_equivalence_helper<DMcSetInt>::value
                         == true )
-               && ( internal::has_keyed_value_helper<DMcSetInt>::value
+               && ( internal::access_keyed_value_helper<DMcSetInt>::value
                         == false ));
-    D_MC_CHECK(   ( internal::has_equivalence_helper<mc_pair_value_only>::value
+    D_MC_CHECK(   ( internal::access_equivalence_helper<
+                        mc_pair_value_only>::value
                         == false )
-               && ( internal::has_keyed_value_helper<mc_pair_value_only>::value
+               && ( internal::access_keyed_value_helper<
+                        mc_pair_value_only>::value
                         == true ));
-    D_MC_CHECK(   ( internal::has_equivalence_helper<DMcKeyAndPair>::value
+    D_MC_CHECK(   ( internal::access_equivalence_helper<DMcKeyAndPair>::value
                         == true )
-               && ( internal::has_keyed_value_helper<DMcKeyAndPair>::value
+               && ( internal::access_keyed_value_helper<DMcKeyAndPair>::value
                         == true ));
-    D_MC_CHECK(   ( internal::has_equivalence_helper<DMcVectorInt>::value
+    D_MC_CHECK(   ( internal::access_equivalence_helper<DMcVectorInt>::value
                         == false )
-               && ( internal::has_keyed_value_helper<DMcVectorInt>::value
+               && ( internal::access_keyed_value_helper<DMcVectorInt>::value
                         == false ));
 
     // --- the clean_t contract ---
-    D_MC_CV_REF_AGREE(internal::has_equivalence_helper, DMcSetInt,    true);
-    D_MC_CV_REF_AGREE(internal::has_equivalence_helper, DMcVectorInt, false);
-    D_MC_CV_REF_AGREE(internal::has_keyed_value_helper, DMcMapIi,     true);
-    D_MC_CV_REF_AGREE(internal::has_keyed_value_helper, DMcSetInt,    false);
+    D_MC_CV_REF_AGREE(internal::access_equivalence_helper, DMcSetInt,    true);
+    D_MC_CV_REF_AGREE(internal::access_equivalence_helper, DMcVectorInt, false);
+    D_MC_CV_REF_AGREE(internal::access_keyed_value_helper, DMcMapIi,     true);
+    D_MC_CV_REF_AGREE(internal::access_keyed_value_helper, DMcSetInt,    false);
 
     return ok;
 }

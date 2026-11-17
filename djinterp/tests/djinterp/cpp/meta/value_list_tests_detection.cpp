@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                  value_list_tests_detection.cpp
+* djinterp [test]                                 value_list_tests_detection.cpp
+*
+*   Section II -- is_value_list (+ _v) and the ValueList concept face.
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests_detection.cpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests_detection.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.11
 *******************************************************************************/
-// djinterp [test]  value_list_tests_detection.cpp
-//   Section II -- is_value_list (+ _v) and the ValueList concept face.
 
 // std
 #include <tuple>

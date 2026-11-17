@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/cpp/container/arena/tree/arena_tree.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -400,29 +400,31 @@ private:
 // ===========================================================================
 // II.  Convenience Aliases
 // ===========================================================================
+//   Each carries the arena_ prefix: nary_tree is tree/nary/nary_tree.hpp's
+// node-based tree, and the arena forms are named apart from it.
 
-// nary_tree
+// arena_nary_tree
 //   alias: arena tree with full n-ary links. O(1) everything. The default
-// general-purpose tree.
+// general-purpose arena tree.
 template<typename Payload>
-using nary_tree = arena_tree<Payload, full_nary_link_policy>;
+using arena_nary_tree = arena_tree<Payload, full_nary_link_policy>;
 
-// lcrs_tree
+// arena_lcrs_tree
 //   alias: minimal 2-link arena tree. Smallest node footprint.
 template<typename Payload>
-using lcrs_tree = arena_tree<Payload, lcrs_link_policy>;
+using arena_lcrs_tree = arena_tree<Payload, lcrs_link_policy>;
 
-// parented_tree
+// arena_parented_tree
 //   alias: 3-link arena tree with parent back-pointer.
 template<typename Payload>
-using parented_tree = arena_tree<Payload,
-                                 parented_lcrs_link_policy>;
+using arena_parented_tree = arena_tree<Payload,
+                                       parented_lcrs_link_policy>;
 
-// binary_tree
+// arena_binary_tree
 //   alias: arena tree with left/right/parent links.
 template<typename Payload>
-using binary_tree = arena_tree<Payload,
-                               parented_binary_link_policy>;
+using arena_binary_tree = arena_tree<Payload,
+                                     parented_binary_link_policy>;
 
 
 NS_END  // djinterp

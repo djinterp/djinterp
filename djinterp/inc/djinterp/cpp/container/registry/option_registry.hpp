@@ -70,13 +70,13 @@
 * path:      /inc/djinterp/cpp/container/registry/option_registry.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    materialisation traits   (is_kv_pair, option_key_v, option_ct_value)
+I.    materialisation traits   (option_key_v, option_ct_value)
       --------------------------------------------------------------------
 
 II.   apply outcome            (option_apply_status / option_apply_result)
@@ -110,7 +110,7 @@ VI.   operators                (reg << opt, reg <<= opt)
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"          // NS_*, D_NODISCARD, clean_t, feature gates
+#include "../../djinterp.hpp"          // framework root
 #include "./registry.hpp"              // registry, is_registry, DKvPair
 #include "../../option/option.hpp"     // option<>, is_option_v
 #include "../../option/option_set.hpp" // option_set<>, option_field_t, unit, field<>
@@ -127,23 +127,6 @@ NS_DJINTERP
 // DOptionEnumValue), the first arg's static ::value.  Args are opaque, so this
 // is a POLICY -- specialise option_ct_value for an arg shape that carries its
 // value differently.
-
-// is_kv_pair
-//   trait: true iff Type is a DKvPair<K, V> (the runtime pair form).
-template<typename Type>
-struct is_kv_pair : std::false_type
-{};
-
-// is_kv_pair<DKvPair<Key, Value>>
-//   trait: the `DKvPair<Key, Value>` case; it reports true.
-template<typename Key,
-         typename Value>
-struct is_kv_pair<DKvPair<Key, Value>> : std::true_type
-{};
-
-template<typename Type>
-inline constexpr bool is_kv_pair_v = is_kv_pair<clean_t<Type>>::value;
-
 
 // option_key_v
 //   value: an option's key as a runtime value (its NTTP key). Usable as the
@@ -332,7 +315,7 @@ option_apply_result<typename Reg::size_type> apply_option(
     bool                       _insert_if_absent = true
 )
 {
-    return apply_option(_reg, _pair.m_key, _pair.m_value, _insert_if_absent);
+    return apply_option(_reg, _pair.key, _pair.value, _insert_if_absent);
 }
 
 

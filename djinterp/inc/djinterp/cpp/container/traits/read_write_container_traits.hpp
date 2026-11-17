@@ -71,7 +71,7 @@
 * path:      /inc/djinterp/cpp/container/traits/read_write_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.01
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_READ_WRITE_CONTAINER_TRAITS_HPP
@@ -112,24 +112,23 @@ NS_INTERNAL
     // on itself. Only such a tag is trusted as the opt-in; a `capability`
     // alias lacking the bits is ignored, and the structural surface decides
     // instead.
-    //   Each bit must be a constant usable as a bool template argument. A
-    // static member FUNCTION of that name is not one, so it is ignored like
-    // a missing bit. (Named by decltype, as it was, a function was trusted:
-    // it decayed to a pointer that is never null, so both bits read true
-    // whatever the function returned; and under GCC's sanitizers that
-    // comparison is not a constant expression, so the trait did not compile.)
-    template<typename Type,
-             typename = void>
-    struct has_capability_bits_helper : std::false_type
-    {};
+    //   Each bit must be a constant usable as a bool template argument
+    // (D_TYPE_TRAIT_HAS_BOOL_CONSTANT). A static member FUNCTION of that name
+    // is not one, so it is ignored like a missing bit. (Named by decltype, as
+    // it was until 2026.11.11, a function was trusted: it decayed to a
+    // pointer that is never null, so both bits read true whatever the
+    // function returned; and under GCC's sanitizers that comparison is not a
+    // constant expression, so the trait did not compile.)
+    D_TYPE_TRAIT_HAS_BOOL_CONSTANT(has_can_read_bit_helper,
+                                   capability::can_read)
+    D_TYPE_TRAIT_HAS_BOOL_CONSTANT(has_can_write_bit_helper,
+                                   capability::can_write)
 
     template<typename Type>
-    struct has_capability_bits_helper<Type,
-        D_VOID_T<std::integral_constant<bool,
-                     clean_t<Type>::capability::can_read>,
-                 std::integral_constant<bool,
-                     clean_t<Type>::capability::can_write>>>
-        : std::true_type
+    struct has_capability_bits_helper
+        : std::integral_constant<bool,
+              ( (has_can_read_bit_helper<Type>::value) &&
+                (has_can_write_bit_helper<Type>::value) )>
     {};
 
     // --- read surface: value observation on a CONST instance ---
@@ -233,6 +232,32 @@ NS_INTERNAL
         D_VOID_T<decltype(std::declval<clean_t<Type>&>().push_front(
                      std::declval<typename clean_t<Type>::value_type>()))>>
         : std::true_type
+    {};
+
+    // has_insert_value_helper
+    //   helper: detects insert(value_type) - the associative append, by which
+    // a set or a map grows by one element.
+    template<typename Type, typename = void>
+    struct has_insert_value_helper : std::false_type
+    {};
+    template<typename Type>
+    struct has_insert_value_helper<Type,
+        D_VOID_T<decltype(std::declval<clean_t<Type>&>().insert(
+                     std::declval<typename clean_t<Type>::value_type>()))>>
+        : std::true_type
+    {};
+
+    // build_capable_helper
+    //   helper: the BUILD capability - the type can grow by one element, by
+    // sequence push_back or associative insert. It is the half of the filter
+    // and transform axes (container_filter_traits.hpp,
+    // container_transform_traits.hpp) that receives their results; this
+    // header owns it so that the write surface is detected in one place.
+    template<typename Type>
+    struct build_capable_helper
+        : std::integral_constant<bool,
+                has_push_back_helper<Type>::value
+             || has_insert_value_helper<Type>::value>
     {};
 
     // has_clear_helper

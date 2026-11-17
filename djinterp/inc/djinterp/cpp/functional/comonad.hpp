@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/functional/comonad.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.12
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -335,7 +335,7 @@ struct comonad_traits<DKvPair<Key, Value>, void>
         const DKvPair<Key, Value>& _w
     )
     {
-        return _w.m_value;
+        return _w.value;
     }
 
     template<typename Function>
@@ -353,7 +353,7 @@ struct comonad_traits<DKvPair<Key, Value>, void>
             std::declval<Function&>()(
                 std::declval<const DKvPair<Key, Value>&>()))>::type;
 
-        return DKvPair<Key, mapped_t>(_w.m_key, _function(_w));
+        return DKvPair<Key, mapped_t>(_w.key, _function(_w));
     }
 };
 

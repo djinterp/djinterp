@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_overlay_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP
@@ -168,29 +168,13 @@ NS_INTERNAL
     // whose sorting is mere presentation. The Sortedness axis will own this;
     // until then the hook reads the opt-in and otherwise reports false
     // (order-blind).
-    template<typename Type,
-             typename = void>
-    struct overlay_sorted_invariant_helper
-    {
-        static constexpr bool value = false;
-    };
-
-    // overlay_sorted_invariant_helper specialization
-    //   helper: the detected case -- selected when the type declares
-    // `sorted_invariant` as a constant usable as a bool template argument,
-    // as sorted_container_traits.hpp's sorted_invariant_helper requires, so
-    // the two read one declaration alike: a static member function, or a
-    // non-static data member, asserts nothing. (A function used to assert,
-    // decaying to a never-null pointer.)
-    template<typename Type>
-    struct overlay_sorted_invariant_helper<Type,
-        D_VOID_T<std::integral_constant<bool,
-                     clean_t<Type>::sorted_invariant>>>
-    {
-        static constexpr bool value =
-            std::integral_constant<bool,
-                clean_t<Type>::sorted_invariant>::value;
-    };
+    //   It reads `sorted_invariant` as sorted_container_traits.hpp's
+    // sorted_invariant_helper does, with the same shape (D_TYPE_TRAIT_OPT_IN),
+    // so the two read one declaration alike: the constant's value where it is
+    // usable as a bool template argument, and false otherwise -- a static
+    // member function or a non-static data member asserts nothing. (A
+    // function used to assert, decaying to a never-null pointer.)
+    D_TYPE_TRAIT_OPT_IN(overlay_sorted_invariant_helper, sorted_invariant)
 
 NS_END  // internal
 

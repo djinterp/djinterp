@@ -83,7 +83,7 @@
 * path:      /inc/djinterp/cpp/container/graph/graph.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_GRAPH_GRAPH_HPP
@@ -105,10 +105,8 @@
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
-#include "./math_common.hpp"                  // math::invalid_id,
-                                              // math::kUnknownDepth
 #include "../traits/interval_protocol.hpp"     // closed_bounds
-#include "./graph_common.hpp"
+#include "./graph_common.hpp"                 // invalid_id, unknown_depth
 #include "../../sync/threadsafe.hpp"
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
@@ -145,7 +143,7 @@ NS_CONTAINER
 
         D_CONSTEXPR
         adjacency_entry() noexcept
-            : neighbor(djinterp::math::invalid_id<vertex_id_type>()),
+            : neighbor(djinterp::container::invalid_id<vertex_id_type>()),
               property()
         {}
 
@@ -186,7 +184,7 @@ NS_CONTAINER
 
         D_CONSTEXPR
         adjacency_entry() noexcept
-            : neighbor(djinterp::math::invalid_id<vertex_id_type>())
+            : neighbor(djinterp::container::invalid_id<vertex_id_type>())
         {}
 
         D_CONSTEXPR explicit
@@ -412,7 +410,7 @@ NS_CONTAINER
             !std::is_same<VertexProperty, no_property>::value;
 
         static D_CONSTEXPR vertex_id_type npos =
-            djinterp::math::invalid_id<vertex_id_type>();
+            djinterp::container::invalid_id<vertex_id_type>();
 
         // ---------------------------------------------------------------------
         // constructors / destructor / rule of five
@@ -798,7 +796,7 @@ NS_CONTAINER
 
         // depth
         //   method: returns the depth of _v as the length of the shortest path
-        // from root() to _v. Returns kUnknownDepth for unreachable vertices.
+        // from root() to _v. Returns unknown_depth for unreachable vertices.
         depth_type depth(vertex_descriptor_type _v) const
         {
             return depth_from(_v, root());
@@ -928,7 +926,7 @@ NS_CONTAINER
 
         D_CONSTEXPR bool is_valid_id(vertex_id_type _id) const noexcept
         {
-            return ( !djinterp::math::is_invalid_id(_id) &&
+            return ( !djinterp::container::is_invalid_id(_id) &&
                      (static_cast<size_type>(_id) < m_vertices.size()) );
         }
 
@@ -992,13 +990,13 @@ NS_CONTAINER
 
         // depth_from
         //   helper: BFS from `_from` to compute the distance to `_v`. Returns
-        // kUnknownDepth if unreachable.
+        // unknown_depth if unreachable.
         depth_type depth_from(vertex_descriptor_type _v,
                               vertex_descriptor_type _from) const
         {
             if (_from.is_null() || _v.is_null())
             {
-                return djinterp::math::kUnknownDepth;
+                return unknown_depth;
             }
 
             if (_v == _from)
@@ -1008,7 +1006,7 @@ NS_CONTAINER
 
             std::vector<bool>       visited(m_vertices.size(), false);
             std::vector<depth_type> dist(m_vertices.size(),
-                                         djinterp::math::kUnknownDepth);
+                                         unknown_depth);
             std::vector<vertex_id_type> queue;
             queue.reserve(m_vertices.size());
 
@@ -1038,7 +1036,7 @@ NS_CONTAINER
                 }
             }
 
-            return djinterp::math::kUnknownDepth;
+            return unknown_depth;
         }
 
         // ---------------------------------------------------------------------

@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/cpp/container/tree/file/file_tree_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_TRAITS_HPP
@@ -50,6 +50,7 @@
 // djinterp
 #include "../../../djinterp.hpp"
 #include "./file_tree_common.hpp"   // file_node_id, file_type -- probes name them
+#include "../../traits/node_container_traits.hpp"  // the shared tree probes
 
 
 NS_DJINTERP
@@ -69,26 +70,8 @@ NS_DJINTERP
 // =========================================================================
 
 // has_node_type
-//   trait: evaluates to true if Type exposes a nested `node_type` alias.
-template<typename Type,
-         typename = void>
-struct has_node_type : std::false_type
-{};
-
-// has_node_type<Type, void_t<typename Type::node_type>>
-//   trait: the `void_t<typename Type::node_type>` case; it reports true.
-template<typename Type>
-struct has_node_type<Type,
-    void_t<typename Type::node_type>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // has_node_type_v
-    //   variable template: value of has_node_type<Type>.
-    template<typename Type>
-    D_CONSTEXPR bool has_node_type_v = has_node_type<Type>::value;
-#endif
+//   node_container_traits.hpp's, which reads the alias of the cleaned type
+// (decision L1).
 
 
 NS_INTERNAL
@@ -104,11 +87,13 @@ NS_INTERNAL
 
     // file_node_type_helper<Type, true>
     //   helper: the case where `has_node_type<Type>::value` is true; it maps
-    // to `typename Type::node_type`.
+    // to `typename clean_t<Type>::node_type`, reading the cleaned type as
+    // has_node_type does (so a const or reference tree type has its tree's
+    // node type).
     template<typename Type>
     struct file_node_type_helper<Type, true>
     {
-        using type = typename Type::node_type;
+        using type = typename clean_t<Type>::node_type;
     };
 
 NS_END  // internal
@@ -219,28 +204,10 @@ struct has_resolve_method<Type, void_t<decltype(
 // =========================================================================
 
 // has_name_method
-//   trait: evaluates to true if Type exposes a `name(file_node_id, ...)` accessor
-// returning a pooled name pointer. Probed via a single file_node_id-like argument
-// (the length out-param defaults).
-template<typename Type,
-         typename = void>
-struct has_name_method : std::false_type
-{};
-
-// has_name_method<Type, void_t<decltype( std::declval<const
-// Type&>().name(std::declval<file_node_id>()) )>>
-//   trait: the `void_t<decltype( std::declval<const
-// Type&>().name(std::declval<file_node_id>()) )>` case; it reports true.
-template<typename Type>
-struct has_name_method<Type, void_t<decltype(
-    std::declval<const Type&>().name(std::declval<file_node_id>())
-)>> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_name_method_v = has_name_method<Type>::value;
-#endif
+//   node_container_traits.hpp's (decisions L1 and X5), given a file tree's
+// argument at the use: has_name_method<const Type, file_node_id>, the
+// `name(file_node_id, ...)` accessor returning a pooled name pointer (the
+// length out-param defaults).
 
 // has_name_str_method
 //   trait: evaluates to true if Type exposes a `name_str(file_node_id)` accessor
@@ -371,33 +338,9 @@ struct has_breadth_first_method<Type, void_t<decltype(
 // =========================================================================
 
 // has_add_child_method
-//   trait: evaluates to true if Type exposes an `add_child(file_node_id, const
-// char*, file_type)` mutator.
-template<typename Type,
-         typename = void>
-struct has_add_child_method : std::false_type
-{};
-
-// has_add_child_method<Type, void_t<decltype(
-// std::declval<Type&>().add_child( std::declval<file_node_id>(),
-// std::declval<const char*>(), std::declval<file_type>()) )>>
-//   trait: the `void_t<decltype( std::declval<Type&>().add_child(
-// std::declval<file_node_id>(), std::declval<const char*>(),
-// std::declval<file_type>()) )>` case; it reports true.
-template<typename Type>
-struct has_add_child_method<Type, void_t<decltype(
-    std::declval<Type&>().add_child(
-        std::declval<file_node_id>(),
-        std::declval<const char*>(),
-        std::declval<file_type>())
-)>> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_add_child_method_v =
-        has_add_child_method<Type>::value;
-#endif
+//   node_container_traits.hpp's (decision L1), given a file tree's arguments
+// at the use: has_add_child_method<Type, file_node_id, const char*,
+// file_type>, the `add_child(file_node_id, const char*, file_type)` mutator.
 
 // has_clear_method
 //   trait: evaluates to true if Type exposes a `clear()` mutator.
@@ -543,7 +486,7 @@ struct file_tree_class
     // Naming Surface
     // -----------------------------------------------------------------
     static constexpr bool is_named =
-        ( has_name_method<Type>::value     ||
+        ( has_name_method<const Type, file_node_id>::value ||
           has_name_str_method<Type>::value );
 
     static constexpr bool is_path_addressable =
@@ -566,7 +509,10 @@ struct file_tree_class
     // Mutation Surface
     // -----------------------------------------------------------------
     static constexpr bool is_mutable =
-        ( has_add_child_method<Type>::value &&
+        ( has_add_child_method<Type,
+                               file_node_id,
+                               const char*,
+                               file_type>::value &&
           has_clear_method<Type>::value );
 
     // -----------------------------------------------------------------

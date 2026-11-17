@@ -48,7 +48,7 @@
 * path:      /inc/djinterp/cpp/container/traits/threadsafe_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.23
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -607,9 +607,8 @@ D_TYPE_TRAIT_DETECTED(has_atomic_version_type,
 
 // has_version_method
 //   type trait: true if the container has a .version() const method returning
-// a version stamp.
-D_TYPE_TRAIT_DETECTED(has_version_method,
-                  decltype(std::declval<const Type&>().version()))
+// a version stamp. Defined in container_traits.hpp, which n-ary trees read
+// too (decision L1).
 
 
 // ===========================================================================

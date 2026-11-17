@@ -41,10 +41,10 @@
 *   All tests are flat in djinterp::testing.
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests.hpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests.hpp
 * link(s):   TBA
 * author(s): teer                                            created: 2026.07.12
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*

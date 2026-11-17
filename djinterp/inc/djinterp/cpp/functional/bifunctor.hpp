@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/functional/bifunctor.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.12
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -385,7 +385,7 @@ struct bifunctor_traits<DKvPair<Key, Value>, void>
             std::declval<Second&>()(std::declval<const Value&>()))>::type;
 
         return DKvPair<mapped_key_t, mapped_value_t>(
-            _f(_kv.m_key), _g(_kv.m_value));
+            _f(_kv.key), _g(_kv.value));
     }
 };
 

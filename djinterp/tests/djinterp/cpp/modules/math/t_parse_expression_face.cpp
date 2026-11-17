@@ -708,7 +708,7 @@ namespace
                         "an empty signature describes nothing");
         D_TESTS_EXPECT( (!g_signature.empty())              &&
                         (g_signature.size() == T_ROW_COUNT) &&
-                        (g_signature.entries()[0].m_key == t_op_add),
+                        (g_signature.entries()[0].key == t_op_add),
                         "the signature: one entry a row, in order");
 
         const dj::operator_descriptor* power = g_signature.describe(t_op_pow);

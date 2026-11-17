@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/meta/memory_discipline_tests_bridge.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 // djinterp
 #include "memory_discipline_tests.hpp"

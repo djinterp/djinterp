@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/cpp/container/list/linked/linked_list_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 /*
 TABLE OF CONTENTS
@@ -358,39 +358,19 @@ struct is_linked_list_node
 NS_INTERNAL
 
     // has_head_sentinel_helper
-    //   trait: detects a static `has_head_sentinel` member equal to true. The
-    // two-step probe (existence + truth) keeps the trait tagless: any list
-    // type that exposes a `has_head_sentinel` static bool is automatically
-    // classified, no opt-in registration required.
-    template<typename Type,
-             typename = void>
-    struct has_head_sentinel_helper : std::false_type
-    {};
-
-    // has_head_sentinel_helper<Type, void_t<decltype(clean_t<Type>
-    //   trait: the `void_t<decltype(clean_t<Type` case; it reports false.
-    template<typename Type>
-    struct has_head_sentinel_helper<
-        Type,
-        void_t<decltype(clean_t<Type>::has_head_sentinel)>
-    > : djinterp::bool_constant<
-            static_cast<bool>(clean_t<Type>::has_head_sentinel)>
-    {};
+    //   trait: the value of a static `has_head_sentinel` constant, or false
+    // (D_TYPE_TRAIT_OPT_IN). The reading keeps the trait tagless: any list
+    // type that declares the constant is classified, with no registration.
+    // The constant must be usable as a bool template argument; a static
+    // member function or a non-static data member of that name declares
+    // nothing. (Read by decltype and a cast to bool until 2026.11.11, the
+    // function read as true and the data member was a hard error; the same
+    // holds for the three readings below.)
+    D_TYPE_TRAIT_OPT_IN(has_head_sentinel_helper, has_head_sentinel)
 
     // has_tail_sentinel_helper
-    //   trait: same shape as has_head_sentinel_helper for the tail.
-    template<typename Type,
-             typename = void>
-    struct has_tail_sentinel_helper : std::false_type
-    {};
-
-    template<typename Type>
-    struct has_tail_sentinel_helper<
-        Type,
-        void_t<decltype(clean_t<Type>::has_tail_sentinel)>
-    > : djinterp::bool_constant<
-            static_cast<bool>(clean_t<Type>::has_tail_sentinel)>
-    {};
+    //   trait: the same reading of `has_tail_sentinel`, for the tail.
+    D_TYPE_TRAIT_OPT_IN(has_tail_sentinel_helper, has_tail_sentinel)
 
 NS_END  // internal
 
@@ -536,20 +516,11 @@ struct is_head_tail_list
 
 NS_INTERNAL
     // is_circular_list_helper
-    //   trait: detects an `is_circular` static constant exposed either as a
-    // member alias of std::true_type or as a compile-time bool.
-    template<typename Type,
-             typename = void>
-    struct is_circular_list_helper : std::false_type
-    {};
-
-    template<typename Type>
-    struct is_circular_list_helper<
-        Type,
-        void_t<decltype(clean_t<Type>::is_circular)>
-    > : djinterp::bool_constant<
-            static_cast<bool>(clean_t<Type>::is_circular)>
-    {};
+    //   trait: the value of a static `is_circular` constant -- a bool, or a
+    // constexpr object such as a std::true_type -- or false. (A member alias
+    // `using is_circular = std::true_type;` is a type, not a constant, and
+    // never read as one.)
+    D_TYPE_TRAIT_OPT_IN(is_circular_list_helper, is_circular)
 
 NS_END  // internal
 
@@ -575,20 +546,10 @@ struct is_circular_list
 NS_INTERNAL
 
     // is_intrusive_list_helper
-    //   trait: detects an `is_intrusive` static boolean. Intrusive lists do
-    // not own their nodes; the user embeds the link members in their own type.
-    template<typename Type,
-             typename = void>
-    struct is_intrusive_list_helper : std::false_type
-    {};
-
-    template<typename Type>
-    struct is_intrusive_list_helper<
-        Type,
-        void_t<decltype(clean_t<Type>::is_intrusive)>
-    > : djinterp::bool_constant<
-            static_cast<bool>(clean_t<Type>::is_intrusive)>
-    {};
+    //   trait: the value of a static `is_intrusive` constant, or false.
+    // Intrusive lists do not own their nodes; the user embeds the link
+    // members in their own type.
+    D_TYPE_TRAIT_OPT_IN(is_intrusive_list_helper, is_intrusive)
 
 NS_END  // internal
 

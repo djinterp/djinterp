@@ -5,7 +5,7 @@
 * path:      /inc/djinterp/cpp/meta/kv_pair.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.23
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_META_KV_PAIR_HPP
@@ -32,11 +32,16 @@ NS_DJINTERP
 // =============================================================================
 
 // DKvPair
-//   struct: a minimal key-value pair satisfying the
-// is_option_entry structural contract (.key + .value).
-// Usable as the value_type of an option_set, as a CLI
-// string table entry, or as a building block for richer
+//   struct: a minimal key-value pair satisfying the key/value structural
+// contract (.key + .value) that meta/kv.hpp's is_kv_pair detects and
+// option/'s entries are read through. Usable as the value_type of an
+// option_set, as a CLI string table entry, or as a building block for richer
 // option entry types.
+//   The members are public and named by the contract, not by the m_ rule,
+// as std::pair keeps first and second: a pair is read through them. (They
+// were m_key and m_value from 2026.10.04 to 2026.11.11, and in that time
+// DKvPair met neither is_kv_pair nor the option readers; the owner ruled for
+// the contract's names.)
 template<typename Key,
          typename Value>
 struct DKvPair
@@ -44,8 +49,8 @@ struct DKvPair
     using key_type   = Key;
     using value_type = Value;
 
-    Key   m_key;
-    Value m_value;
+    Key   key;
+    Value value;
 
     // default construction
     DKvPair() = default;
@@ -53,15 +58,15 @@ struct DKvPair
     // construct from key + value
     constexpr DKvPair(const Key&   _k,
                       const Value& _v)
-        : m_key(_k),
-          m_value(_v)
+        : key(_k),
+          value(_v)
     {}
 
     // construct from moved key + value
     constexpr DKvPair(Key&&   _k,
                       Value&& _v)
-        : m_key(static_cast<Key&&>(_k)),
-          m_value(static_cast<Value&&>(_v))
+        : key(static_cast<Key&&>(_k)),
+          value(static_cast<Value&&>(_v))
     {}
 
     // equality (compares key only)
@@ -70,7 +75,7 @@ struct DKvPair
         const DKvPair& _other
     ) const
     {
-        return (m_key == _other.m_key);
+        return (key == _other.key);
     }
 
     constexpr
@@ -78,7 +83,7 @@ struct DKvPair
         const DKvPair& _other
     ) const
     {
-        return (m_key != _other.m_key);
+        return (key != _other.key);
     }
 
     // ordering (by key, for sorted option_sets)
@@ -87,7 +92,7 @@ struct DKvPair
         const DKvPair& _other
     ) const
     {
-        return (m_key < _other.m_key);
+        return (key < _other.key);
     }
 };
 

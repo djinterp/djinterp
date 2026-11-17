@@ -1,12 +1,16 @@
 /*******************************************************************************
-* djinterp [cpp]                                  kv_pair_tests_construction.cpp
+* djinterp [test]                                 kv_pair_tests_construction.cpp
+*
+*   Construction tests: the member typedefs, the value, default and rvalue
+* constructors, make_kv's decayed types, and constexpr construction.
 *
 *
 * path:      /tests/djinterp/cpp/meta/kv_pair_tests_construction.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
+*                                                            revised: 2026.11.11
 *******************************************************************************/
+
 // djinterp
 #include "kv_pair_tests.hpp"
 
@@ -21,7 +25,7 @@ tests_construction_member_typedefs
   - key_type is the first template argument
   - value_type is the second
   - the two may differ
-  - the members m_key and m_value have those types
+  - the members key and value have those types
 */
 bool tests_construction_member_typedefs()
 {
@@ -33,9 +37,9 @@ bool tests_construction_member_typedefs()
                               DKvPair<int, long>::value_type>::value));
 
     // members have the declared types
-    D_KV_CHECK((std::is_same<decltype(std::declval<DKvPair<int, long> >().m_key),
+    D_KV_CHECK((std::is_same<decltype(std::declval<DKvPair<int, long> >().key),
                              int>::value));
-    D_KV_CHECK((std::is_same<decltype(std::declval<DKvPair<int, long> >().m_value),
+    D_KV_CHECK((std::is_same<decltype(std::declval<DKvPair<int, long> >().value),
                              long>::value));
 
     return true;
@@ -45,23 +49,23 @@ bool tests_construction_member_typedefs()
 tests_construction_value_constructor_sets_members
   The const-ref constructor stores its arguments.
   Tests the following:
-  - m_key holds the key argument
-  - m_value holds the value argument
+  - key holds the key argument
+  - value holds the value argument
   - a second pair with different arguments holds those
   - the key and value are independent (setting one does not disturb the other)
 */
 bool tests_construction_value_constructor_sets_members()
 {
     ii p(3, 4);
-    D_KV_CHECK(p.m_key == 3);
-    D_KV_CHECK(p.m_value == 4);
+    D_KV_CHECK(p.key == 3);
+    D_KV_CHECK(p.value == 4);
 
     ii q(10, 20);
-    D_KV_CHECK(q.m_key == 10);
-    D_KV_CHECK(q.m_value == 20);
+    D_KV_CHECK(q.key == 10);
+    D_KV_CHECK(q.value == 20);
 
     // independence
-    D_KV_CHECK(p.m_key == 3 && p.m_value == 4);
+    D_KV_CHECK(p.key == 3 && p.value == 4);
 
     return true;
 }
@@ -80,10 +84,10 @@ bool tests_construction_default_constructor()
     D_KV_CHECK(std::is_default_constructible<ii>::value);
 
     ii p;
-    p.m_key   = 5;
-    p.m_value = 6;
-    D_KV_CHECK(p.m_key == 5);
-    D_KV_CHECK(p.m_value == 6);
+    p.key   = 5;
+    p.value = 6;
+    D_KV_CHECK(p.key == 5);
+    D_KV_CHECK(p.value == 6);
 
     return true;
 }
@@ -101,17 +105,17 @@ bool tests_construction_rvalue_constructor_moves()
 {
     // rvalue operands -> the rvalue ctor runs -> members are move-constructed
     DKvPair<tracked, tracked> moved(tracked(7), tracked(8));
-    D_KV_CHECK(moved.m_key.tag == 7);
-    D_KV_CHECK(moved.m_value.tag == 8);
-    D_KV_CHECK(moved.m_key.moves >= 1);     // was moved at least once
-    D_KV_CHECK(moved.m_value.moves >= 1);
+    D_KV_CHECK(moved.key.tag == 7);
+    D_KV_CHECK(moved.value.tag == 8);
+    D_KV_CHECK(moved.key.moves >= 1);     // was moved at least once
+    D_KV_CHECK(moved.value.moves >= 1);
 
     // lvalue operands -> the const-ref ctor runs -> no move
     tracked k(1), v(2);
     DKvPair<tracked, tracked> copied(k, v);
-    D_KV_CHECK(copied.m_key.moves == 0);
-    D_KV_CHECK(copied.m_value.moves == 0);
-    D_KV_CHECK(copied.m_key.tag == 1);
+    D_KV_CHECK(copied.key.moves == 0);
+    D_KV_CHECK(copied.value.moves == 0);
+    D_KV_CHECK(copied.key.tag == 1);
 
     return true;
 }
@@ -131,8 +135,8 @@ bool tests_construction_make_kv_deduces_decayed_types()
     auto p = make_kv(std::string("alpha"), 42);
     D_KV_CHECK((std::is_same<decltype(p)::key_type, std::string>::value));
     D_KV_CHECK((std::is_same<decltype(p)::value_type, int>::value));
-    D_KV_CHECK(p.m_key == "alpha");
-    D_KV_CHECK(p.m_value == 42);
+    D_KV_CHECK(p.key == "alpha");
+    D_KV_CHECK(p.value == 42);
 
     // const lvalue operands: decay strips const and ref
     const int ck = 5;
@@ -140,8 +144,8 @@ bool tests_construction_make_kv_deduces_decayed_types()
     auto q = make_kv(ck, cv);
     D_KV_CHECK((std::is_same<decltype(q)::key_type, int>::value));
     D_KV_CHECK((std::is_same<decltype(q)::value_type, long>::value));
-    D_KV_CHECK(q.m_key == 5);
-    D_KV_CHECK(q.m_value == 6);
+    D_KV_CHECK(q.key == 5);
+    D_KV_CHECK(q.value == 6);
 
     return true;
 }
@@ -158,14 +162,14 @@ tests_construction_is_constexpr_constructible
 bool tests_construction_is_constexpr_constructible()
 {
     constexpr ii p(9, 10);
-    static_assert(p.m_key == 9, "constexpr key");
-    static_assert(p.m_value == 10, "constexpr value");
+    static_assert(p.key == 9, "constexpr key");
+    static_assert(p.value == 10, "constexpr value");
 
-    D_KV_CHECK(p.m_key == 9);
-    D_KV_CHECK(p.m_value == 10);
+    D_KV_CHECK(p.key == 9);
+    D_KV_CHECK(p.value == 10);
 
     // a constexpr pair used in a further constant expression
-    constexpr int sum = p.m_key + p.m_value;
+    constexpr int sum = p.key + p.value;
     D_KV_CHECK(sum == 19);
 
     return true;

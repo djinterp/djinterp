@@ -40,7 +40,7 @@
 * path:      /tests/unintegrated/c/container/t_container_ckd.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 // std
 #include <errno.h>    // ENOMEM
@@ -1183,9 +1183,9 @@ d_tests_ckd_sites_fn_builder(void)
     for (i = 0; i < 40; ++i)
     {
         grew = grew &&
-               (d_funtional_builder_where(builder, d_tests_ckd_keep)
+               (d_fn_builder_where(builder, d_tests_ckd_keep)
                 == builder) &&
-               (d_funtional_builder_map(builder, d_tests_ckd_copy)
+               (d_fn_builder_map(builder, d_tests_ckd_copy)
                 == builder);
     }
 

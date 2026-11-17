@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/cpp/container/traits/node_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.11
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -37,6 +37,7 @@ I.    Ownership Policy Detection
 
 II.   Entry Point Detection
       ---------------------
+      the tree methods, their arguments given at the use
 
 III.  Node Type Extraction
       --------------------
@@ -143,6 +144,16 @@ D_TYPE_TRAIT_TRUE(has_root_method,
 D_TYPE_TRAIT_TRUE(has_root_member_method,
     decltype(std::declval<const Type&>().has_root()))
 
+// has_has_root_method
+//   trait: has_root_member_method under the name arena_tree_traits.hpp gave
+// the same check; both names are this one probe (decision L1). The O2 rename
+// table settles which name stays.
+template<typename Type>
+struct has_has_root_method : has_root_member_method<Type>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(has_has_root_method)
+
 // has_head_method
 //   trait: true if Type has a head() method.
 D_TYPE_TRAIT_TRUE(has_head_method,
@@ -174,6 +185,38 @@ D_TYPE_TRAIT_TRUE(has_has_entry_method,
 //   trait: true if Type has a release_entry() method.
 D_TYPE_TRAIT_TRUE(has_release_entry_method,
     decltype(std::declval<Type&>().release_entry()))
+
+// --- the tree methods, their arguments given at the use ---
+//   Each tree calls these methods with its own arguments: is_root takes a node
+// id on an arena tree and nothing on an n-ary tree; add_child takes an id and
+// a payload on an arena tree, and a parent, name and type on a file tree;
+// name takes a node id on a file tree and nothing on an xml node. One probe
+// per method serves them all (decision L1): the use gives
+// the object type and the argument types, as std::is_invocable is given a
+// callable's (D_TYPE_TRAIT_HAS_METHOD_WITH). The object type is taken as
+// given, so the observer is_root is asked of a const tree.
+
+// has_is_root_method
+//   trait: has_is_root_method<Type, Args...> is true if `is_root(Args...)` can
+// be called on an lvalue Type -- has_is_root_method<const Tree, node_id> for
+// an arena tree, has_is_root_method<const Tree> for an n-ary one.
+D_TYPE_TRAIT_HAS_METHOD_WITH(has_is_root_method, is_root)
+
+// has_add_child_method
+//   trait: has_add_child_method<Type, Args...> is true if
+// `add_child(Args...)` can be called on an lvalue Type.
+D_TYPE_TRAIT_HAS_METHOD_WITH(has_add_child_method, add_child)
+
+// has_remove_subtree_method
+//   trait: has_remove_subtree_method<Type, Args...> is true if
+// `remove_subtree(Args...)` can be called on an lvalue Type.
+D_TYPE_TRAIT_HAS_METHOD_WITH(has_remove_subtree_method, remove_subtree)
+
+// has_name_method
+//   trait: has_name_method<Type, Args...> is true if `name(Args...)` can be
+// called on an lvalue Type -- has_name_method<const Tree, file_node_id> for a
+// file tree, whose name takes a node id.
+D_TYPE_TRAIT_HAS_METHOD_WITH(has_name_method, name)
 
 // has_any_entry_point
 //   trait: true if Type exposes any kind of entry reference -- a single

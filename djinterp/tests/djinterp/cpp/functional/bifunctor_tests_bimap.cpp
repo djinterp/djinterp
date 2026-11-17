@@ -8,13 +8,13 @@
 * side, the identity edge case, argument forwarding (lvalue / rvalue), and the
 * result types -- over std::pair, DKvPair, and the custom two<A,B> fixture.
 *
-*   DKvPair equality is key-only, so kv checks read the m_key / m_value fields.
+*   DKvPair equality is key-only, so kv checks read the key / value fields.
 *
 *
 * path:      /tests/djinterp/cpp/functional/bifunctor_tests_bimap.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -132,7 +132,7 @@ bool tests_bimap_pair_result_type()
 tests_bimap_kv_both
   Tests the following:
   - both key and value are mapped (checked at the field level, since DKvPair
-    equality is key-only): bimap(kv(3,4), *2, +1) has m_key 6, m_value 5.
+    equality is key-only): bimap(kv(3,4), *2, +1) has key 6, value 5.
 */
 static
 bool tests_bimap_kv_both()
@@ -140,15 +140,15 @@ bool tests_bimap_kv_both()
     const ::djinterp::DKvPair<int, int> r =
         ::djinterp::bimap(::djinterp::DKvPair<int, int>(3, 4), DDblInt(), DIncInt());
 
-    return ( (r.m_key == 6) &&
-             (r.m_value == 5) );
+    return ( (r.key == 6) &&
+             (r.value == 5) );
 }
 
 /*
 tests_bimap_kv_type_change
   Tests the following:
   - key and value may change type: bimap(kv(1,2), int->string, int->double) has
-    m_key "1", m_value 2.0.
+    key "1", value 2.0.
 */
 static
 bool tests_bimap_kv_type_change()
@@ -156,8 +156,8 @@ bool tests_bimap_kv_type_change()
     const ::djinterp::DKvPair<std::string, double> r =
         ::djinterp::bimap(::djinterp::DKvPair<int, int>(1, 2), DShowInt(), DRealInt());
 
-    return ( (r.m_key == "1") &&
-             (r.m_value == 2.0) );
+    return ( (r.key == "1") &&
+             (r.value == 2.0) );
 }
 
 /*

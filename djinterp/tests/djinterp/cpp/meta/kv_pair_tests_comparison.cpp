@@ -1,12 +1,17 @@
 /*******************************************************************************
-* djinterp [cpp]                                    kv_pair_tests_comparison.cpp
+* djinterp [test]                                   kv_pair_tests_comparison.cpp
+*
+*   Comparison tests: DKvPair's equality, inequality and ordering read the key
+* alone -- the value is ignored entirely -- are constexpr, and hold for string
+* keys.
 *
 *
 * path:      /tests/djinterp/cpp/meta/kv_pair_tests_comparison.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
+*                                                            revised: 2026.11.11
 *******************************************************************************/
+
 // djinterp
 #include "kv_pair_tests.hpp"
 

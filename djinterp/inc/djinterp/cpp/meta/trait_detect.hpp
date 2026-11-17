@@ -15,7 +15,11 @@
 *     - D_TYPE_TRAIT_EXPR_*            decltype-expression builders (the things
 *                                      you feed to the engine as DETECTION_EXPR).
 *     - D_TYPE_TRAIT_HAS_*             purpose-named sugar (type / method / op /
-*                                      static-member detection).
+*                                      static-member / bool-constant detection).
+*     - D_TYPE_TRAIT_OPT_IN            read an opt-in bool constant, or false.
+*     - D_TYPE_TRAIT_HAS_METHOD_WITH   a method probe whose argument types are
+*                                      given at the use, as std::is_invocable's
+*                                      are (TRAIT<Type, Args...>).
 *     - D_TYPE_TRAIT_IS_SPECIALIZATION_OF(_AS)
 *                                      the partial-specialization "is this a
 *                                      foo<...>?" family (a DIFFERENT mechanism
@@ -50,9 +54,14 @@
 * apply in C++98 mode). Their traits have the same `::value` for the same
 * type at every level; tests/djinterp/cpp/meta/trait_detect_parity.cpp checks
 * that at every rung. What takes a type EXPRESSION (the engine, the decltype
-* builders, the variadic shapes) needs decltype and is absent below C++11,
+* builders, the variadic shapes, D_TYPE_TRAIT_HAS_METHOD_WITH) needs
+* decltype and is absent below C++11,
 * as are D_TYPE_TRAIT_IS_SPECIALIZATION_OF (variadic templates) and
-* D_TYPE_TRAIT_MEMBER_TYPE_OR (an alias template).
+* D_TYPE_TRAIT_MEMBER_TYPE_OR (an alias template). D_TYPE_TRAIT_HAS_BOOL_
+* CONSTANT and D_TYPE_TRAIT_OPT_IN take a name but are absent below C++11 too:
+* there a bool template argument accepts any integral constant (C++98 has no
+* narrowing rule), so a C++98 trait could not reject the constant 2 that the
+* C++11 one rejects, and the two would disagree.
 *   The `_v` companion degrades with the language: an inline variable
 * template on C++17+, a (non-inline) variable template on C++14, and nothing
 * below (where variable templates do not exist) - the `::value` member is
@@ -61,7 +70,8 @@
 *   INVOCATION SCOPE:
 *   These macros are defined at FILE SCOPE and are namespace-agnostic: the
 * trait they emit lands in whatever namespace the macro is invoked in.  Macros
-* that open an `internal` namespace (D_TYPE_TRAIT_MEMBER_TYPE_OR) and macros
+* that open an `internal` namespace (D_TYPE_TRAIT_MEMBER_TYPE_OR, and
+* D_TYPE_TRAIT_HAS_METHOD_WITH's void_t form) and macros
 * that mention `clean_t` unqualified MUST be invoked inside the djinterp
 * namespace so those names resolve and `internal` nests correctly.
 *
@@ -69,14 +79,14 @@
 * path:      /inc/djinterp/cpp/meta/trait_detect.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_META_TRAIT_DETECT_HPP
 #define DJINTERP_META_TRAIT_DETECT_HPP 1
 
 // djinterp
-#include "../djinterp.hpp"   // NS_*, D_ENV_* feature macros
+#include "../djinterp.hpp"   // framework root
 #include "./type_utility.hpp"   // void_t, clean, clean_t
 // std
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -272,6 +282,25 @@ NS_END  // djinterp
         constexpr bool TRAIT_NAME##_v = TRAIT_NAME<Type>::value;
 #else
     #define D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)  /* no variable templates */
+#endif
+
+// D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS
+//   macro (internal): the `_v` companion of a trait taking argument types
+// after Type (TRAIT_NAME<Type, Args...>), degrading as D_TYPE_TRAIT_VALUE_BOOL
+// does.
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #define D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS(TRAIT_NAME)                \
+        template<typename    Type,                                           \
+                 typename... Args>                                           \
+        inline constexpr bool TRAIT_NAME##_v =                               \
+            TRAIT_NAME<Type, Args...>::value;
+#elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    #define D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS(TRAIT_NAME)                \
+        template<typename    Type,                                           \
+                 typename... Args>                                           \
+        constexpr bool TRAIT_NAME##_v = TRAIT_NAME<Type, Args...>::value;
+#else
+    #define D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS(TRAIT_NAME)  /* none */
 #endif
 
 // D_TYPE_TRAIT_TYPE_ALIAS
@@ -480,6 +509,87 @@ NS_END  // djinterp
 #define D_INTERNAL_TYPE_TRAIT_11_HAS_UNARY_OP(TRAIT_NAME, OP)                  \
     D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME, D_TYPE_TRAIT_EXPR_UNARY_OP(OP))
 
+// D_TYPE_TRAIT_HAS_BOOL_CONSTANT
+//   macro: trait true iff `clean_t<Type>::MEMBER_NAME` is a constant usable as
+// a bool template argument: a bool constant, an integral or enumeration
+// constant of value 0 or 1, or a constexpr object with a constexpr conversion
+// to bool. A static member function, a non-static data member, a type, an
+// integral constant outside 0 and 1 (a narrowing conversion) and an absent
+// name are not. MEMBER_NAME may be qualified (`capability::can_read`). Every
+// failure is in substitution's immediate context, so none is a hard error.
+// C++11 and up (see PORTABILITY).
+#define D_INTERNAL_TYPE_TRAIT_11_HAS_BOOL_CONSTANT(TRAIT_NAME, MEMBER_NAME)  \
+    D_INTERNAL_TYPE_TRAIT_11_TRUE(TRAIT_NAME,                                \
+        std::integral_constant<bool,                                         \
+                               ::djinterp::clean_t<Type>::MEMBER_NAME>)
+
+// D_TYPE_TRAIT_OPT_IN
+//   macro: the opt-in reading. TRAIT_NAME<Type>::value is the constant
+// `clean_t<Type>::MEMBER_NAME` where D_TYPE_TRAIT_HAS_BOOL_CONSTANT holds and
+// false otherwise, so a type opts into a property by declaring
+// `static constexpr bool MEMBER_NAME = true;`, and a name that is no such
+// constant opts into nothing. (Read by decltype and a cast to bool, as the
+// probes did until 2026.11.11, a static member function of that name read as
+// true -- it decays to a pointer that is never null -- and a non-static data
+// member was a hard error.) A std::integral_constant, plus the _v companion.
+// C++11 and up (see PORTABILITY).
+#define D_INTERNAL_TYPE_TRAIT_11_OPT_IN(TRAIT_NAME, MEMBER_NAME)             \
+    template<typename Type,                                                  \
+             typename = void>                                                \
+    struct TRAIT_NAME : std::false_type                                      \
+    {};                                                                      \
+                                                                             \
+    template<typename Type>                                                  \
+    struct TRAIT_NAME<Type,                                                  \
+        D_VOID_T<std::integral_constant<bool,                                \
+                     ::djinterp::clean_t<Type>::MEMBER_NAME>>>               \
+        : std::integral_constant<bool,                                       \
+                                 ::djinterp::clean_t<Type>::MEMBER_NAME>     \
+    {};                                                                      \
+                                                                             \
+    D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
+
+// D_TYPE_TRAIT_HAS_METHOD_WITH
+//   macro: a method probe whose argument types are given at the use.
+// TRAIT_NAME<Type, Args...> is true iff
+// `std::declval<Type&>().METHOD_NAME(std::declval<Args>()...)` is well-formed:
+// the call of METHOD_NAME on an lvalue Type with arguments of those types,
+// as std::is_invocable takes a callable's. Type is taken as given, not
+// cleaned, so TRAIT_NAME<const T, A> asks for the call on a const T. One
+// trait so serves every signature a method name has: is_root(node_id) on an
+// arena tree is has_is_root_method<const T, node_id>, and is_root() on an
+// n-ary one has_is_root_method<const T>. The _v companion takes the same
+// arguments.
+//   Invoke inside the djinterp namespace: the void_t form keeps its detector
+// in `internal`, as TRAIT_NAME##_helper (see INVOCATION SCOPE). C++11 and up.
+#define D_INTERNAL_TYPE_TRAIT_11_HAS_METHOD_WITH(TRAIT_NAME, METHOD_NAME)    \
+    NS_INTERNAL                                                              \
+                                                                             \
+        template<typename    Void,                                           \
+                 typename    Type,                                           \
+                 typename... Args>                                           \
+        struct TRAIT_NAME##_helper : std::false_type                         \
+        {};                                                                  \
+                                                                             \
+        template<typename    Type,                                           \
+                 typename... Args>                                           \
+        struct TRAIT_NAME##_helper<                                          \
+            D_VOID_T<decltype(std::declval<Type&>().METHOD_NAME(             \
+                std::declval<Args>()...))>,                                  \
+            Type,                                                            \
+            Args...> : std::true_type                                        \
+        {};                                                                  \
+                                                                             \
+    NS_END                                                                   \
+                                                                             \
+    template<typename    Type,                                               \
+             typename... Args>                                               \
+    struct TRAIT_NAME                                                        \
+        : internal::TRAIT_NAME##_helper<void, Type, Args...>                 \
+    {};                                                                      \
+                                                                             \
+    D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS(TRAIT_NAME)
+
 
 // ===========================================================================
 //  "is a specialization of X" family  (partial specialization, not SFINAE)
@@ -610,6 +720,57 @@ NS_END  // djinterp
         D_INTERNAL_TYPE_TRAIT_20(TRAIT_NAME,                                 \
             OP std::declval<Type&>();)
 
+    // D_INTERNAL_TYPE_TRAIT_20_HAS_BOOL_CONSTANT / _OPT_IN
+    //   macro (internal): the bool-constant shape and the opt-in reading, as
+    // documented above, from the requires engine: the constant is a
+    // type-requirement on std::integral_constant<bool, ...>, so a name that
+    // cannot be one fails the requirement rather than the build.
+    #define D_INTERNAL_TYPE_TRAIT_20_HAS_BOOL_CONSTANT(TRAIT_NAME,           \
+                                                       MEMBER_NAME)          \
+        template<typename Type,                                              \
+                 typename = void>                                            \
+        struct TRAIT_NAME                                                    \
+            : std::bool_constant<requires {                                  \
+                  typename std::integral_constant<bool,                      \
+                      ::djinterp::clean_t<Type>::MEMBER_NAME>;               \
+              }>                                                             \
+        {};                                                                  \
+                                                                             \
+        D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
+    #define D_INTERNAL_TYPE_TRAIT_20_OPT_IN(TRAIT_NAME, MEMBER_NAME)         \
+        template<typename Type,                                              \
+                 typename = void>                                            \
+        struct TRAIT_NAME : std::false_type                                  \
+        {};                                                                  \
+                                                                             \
+        template<typename Type>                                              \
+            requires requires {                                              \
+                typename std::integral_constant<bool,                        \
+                    ::djinterp::clean_t<Type>::MEMBER_NAME>;                 \
+            }                                                                \
+        struct TRAIT_NAME<Type, void>                                        \
+            : std::integral_constant<bool,                                   \
+                                     ::djinterp::clean_t<Type>::MEMBER_NAME> \
+        {};                                                                  \
+                                                                             \
+        D_TYPE_TRAIT_VALUE_BOOL(TRAIT_NAME)
+
+    // D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH
+    //   macro (internal): D_TYPE_TRAIT_HAS_METHOD_WITH from the requires
+    // engine; the call is a simple requirement, so no detector is emitted.
+    #define D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH(TRAIT_NAME,             \
+                                                     METHOD_NAME)            \
+        template<typename    Type,                                           \
+                 typename... Args>                                           \
+        struct TRAIT_NAME                                                    \
+            : std::bool_constant<requires {                                  \
+                  std::declval<Type&>().METHOD_NAME(                         \
+                      std::declval<Args>()...);                              \
+              }>                                                             \
+        {};                                                                  \
+                                                                             \
+        D_INTERNAL_TYPE_TRAIT_VALUE_BOOL_ARGS(TRAIT_NAME)
+
     // D_INTERNAL_TYPE_TRAIT_20_TRUE
     //   macro (internal): the requires engine's D_TYPE_TRAIT_TRUE: the same
     // two-parameter shape, a std::bool_constant of a requires-expression
@@ -672,6 +833,11 @@ NS_END  // djinterp
         D_INTERNAL_TYPE_TRAIT_20_HAS_BINARY_OP
     #define D_TYPE_TRAIT_HAS_UNARY_OP                                          \
         D_INTERNAL_TYPE_TRAIT_20_HAS_UNARY_OP
+    #define D_TYPE_TRAIT_HAS_BOOL_CONSTANT                                    \
+        D_INTERNAL_TYPE_TRAIT_20_HAS_BOOL_CONSTANT
+    #define D_TYPE_TRAIT_OPT_IN                D_INTERNAL_TYPE_TRAIT_20_OPT_IN
+    #define D_TYPE_TRAIT_HAS_METHOD_WITH                                      \
+        D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH
 #else
     // ... and from the void_t engine at C++11 to C++17
     #define D_TYPE_TRAIT_TRUE                  D_INTERNAL_TYPE_TRAIT_11_TRUE
@@ -685,6 +851,11 @@ NS_END  // djinterp
         D_INTERNAL_TYPE_TRAIT_11_HAS_BINARY_OP
     #define D_TYPE_TRAIT_HAS_UNARY_OP                                          \
         D_INTERNAL_TYPE_TRAIT_11_HAS_UNARY_OP
+    #define D_TYPE_TRAIT_HAS_BOOL_CONSTANT                                    \
+        D_INTERNAL_TYPE_TRAIT_11_HAS_BOOL_CONSTANT
+    #define D_TYPE_TRAIT_OPT_IN                D_INTERNAL_TYPE_TRAIT_11_OPT_IN
+    #define D_TYPE_TRAIT_HAS_METHOD_WITH                                      \
+        D_INTERNAL_TYPE_TRAIT_11_HAS_METHOD_WITH
 #endif  // C++20 with concepts
 
 
@@ -699,6 +870,8 @@ NS_END  // djinterp
         D_INTERNAL_TYPE_TRAIT_98_HAS_BINARY_OP
     #define D_TYPE_TRAIT_HAS_UNARY_OP                                          \
         D_INTERNAL_TYPE_TRAIT_98_HAS_UNARY_OP
+    // (no D_TYPE_TRAIT_HAS_BOOL_CONSTANT, D_TYPE_TRAIT_OPT_IN or
+    // D_TYPE_TRAIT_HAS_METHOD_WITH: PORTABILITY)
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 

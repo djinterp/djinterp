@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/table/test_table_builder.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // std
 #include <string>
@@ -137,15 +137,15 @@ static_assert(std::is_same<record::columns_type,
 static_assert(std::is_same<record::shape_type::column_type_t<1>, std::string>::value, "col 1");
 
 // ---------------------------------------------------------------------------
-// 8. val<> lifts an NTTP into the type-level cell vocabulary (C++17)
+// 8. val_t<> lifts an NTTP into the type-level cell vocabulary (C++17)
 // ---------------------------------------------------------------------------
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 using valued = table_builder< columns<int, int, int>,
-                              rows< val<1>, val<2>, val<3>,
-                                    val<4>, val<5>, val<6> > >;
+                              rows< val_t<1>, val_t<2>, val_t<3>,
+                                    val_t<4>, val_t<5>, val_t<6> > >;
 static_assert(valued::width  == 3, "3 wide");
 static_assert(valued::height == 2, "2 rows inferred");
-static_assert(val<42>::value == 42, "val carries the value");
+static_assert(val_t<42>::value == 42, "val_t carries the value");
 #endif
 
 // ---------------------------------------------------------------------------

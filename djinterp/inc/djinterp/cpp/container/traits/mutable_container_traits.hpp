@@ -50,7 +50,7 @@
 * path:      /inc/djinterp/cpp/container/traits/mutable_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_MUTABLE_CONTAINER_TRAITS_HPP
@@ -67,7 +67,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"    // clean_t, NS_*, D_ENV_* macros
+#include "../../djinterp.hpp"    // framework root
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros
 #include "./bounded_container_traits.hpp"  // has_size_signal (single owner)
 
@@ -339,17 +339,17 @@ using mutability_grade_of = mutability_of<Type>;
 
 NS_INTERNAL
 
-    // has_equivalence_helper
+    // access_equivalence_helper
     //   trait: a nested key_type - the duplicate-equivalence mark of an
     // associative discipline (set / multiset / map / multimap), as against a
     // comparator-less sequence which carries none.
-    D_TYPE_TRAIT_TRUE(has_equivalence_helper,
+    D_TYPE_TRAIT_TRUE(access_equivalence_helper,
         typename clean_t<Type>::key_type)
 
-    // has_keyed_value_helper
+    // access_keyed_value_helper
     //   trait: the value_type is a pair (first_type / second_type) - the keyed
     // mark (map / multimap), mirroring is_keyed_container of the overlay axis.
-    D_TYPE_TRAIT_TRUE(has_keyed_value_helper,
+    D_TYPE_TRAIT_TRUE(access_keyed_value_helper,
         typename clean_t<Type>::value_type::first_type,
         typename clean_t<Type>::value_type::second_type)
 
@@ -393,9 +393,9 @@ private:
 
 public:
     static constexpr access_restriction value =
-        (  internal::has_keyed_value_helper<clean_type>::value )
+        (  internal::access_keyed_value_helper<clean_type>::value )
               ? access_restriction::key_const
-      : (  internal::has_equivalence_helper<clean_type>::value )
+      : (  internal::access_equivalence_helper<clean_type>::value )
               ? access_restriction::element_const
       :         access_restriction::none;
 

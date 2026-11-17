@@ -8,13 +8,13 @@
 * the result types, and the consistency law map_second(map_first(x, f), g) ==
 * bimap(x, f, g) -- over std::pair, DKvPair, and the custom two<A,B> fixture.
 *
-*   DKvPair equality is key-only, so kv checks read the m_key / m_value fields.
+*   DKvPair equality is key-only, so kv checks read the key / value fields.
 *
 *
 * path:      /tests/djinterp/cpp/functional/bifunctor_tests_onesided.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -87,8 +87,8 @@ bool tests_map_first_kv()
     const ::djinterp::DKvPair<int, int> r =
         ::djinterp::map_first(::djinterp::DKvPair<int, int>(3, 4), DDblInt());
 
-    return ( (r.m_key == 6) &&
-             (r.m_value == 4) );
+    return ( (r.key == 6) &&
+             (r.value == 4) );
 }
 
 /*
@@ -167,8 +167,8 @@ bool tests_map_second_kv()
     const ::djinterp::DKvPair<int, int> r =
         ::djinterp::map_second(::djinterp::DKvPair<int, int>(3, 4), DIncInt());
 
-    return ( (r.m_key == 3) &&
-             (r.m_value == 5) );
+    return ( (r.key == 3) &&
+             (r.value == 5) );
 }
 
 /*

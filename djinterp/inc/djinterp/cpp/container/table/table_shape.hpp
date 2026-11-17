@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/cpp/container/table/table_shape.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -84,8 +84,9 @@ VII.  concepts                     (C++20 analogs)
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*, D_CONSTEXPR, clean_t, D_ENV_* feature macros
+#include "../../djinterp.hpp"   // framework root
 #include "../../../config/cpp/container/table/cfg_table.h"
+#include "../../../../re_std/cpp/span/dynamic_extent.hpp"  // dynamic_extent
 
 
 NS_DJINTERP
@@ -100,8 +101,9 @@ NS_DJINTERP
 // count is read at runtime (Lifetime: runtime-expressible size), as opposed to
 // a height fixed by the type. Mirrors std::dynamic_extent in spirit. The width
 // is always a compile-time quantity here (it is the length of the column-type
-// list), so only the height admits this sentinel.
-D_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
+// list), so only the height admits this sentinel. It is re_std's (equal to
+// std::dynamic_extent), the one array.hpp and re_std::span use too.
+using re_std::dynamic_extent;
 
 
 // ===========================================================================

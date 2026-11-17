@@ -102,7 +102,7 @@
 * path:      /inc/djinterp/cpp/container/container_path.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.02
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_CONTAINER_PATH_HPP
@@ -122,7 +122,7 @@
 // djinterp
 #include "../djinterp.hpp"
 #include "../paradigm/path/path.hpp"
-#include "iterator/tree/linked_tree_iterator.hpp"
+#include "./iterator/tree/tree_iterator.hpp"
 #include "./iterator/path_iterator.hpp"
 
 

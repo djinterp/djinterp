@@ -14,16 +14,22 @@
 *     - lifetime:        constexpr / immutable / mutable
 *     - iterability:     iterable / non-iterable
 *
+*   CV AND REFERENCES.  Each trait answers for the type with references
+* removed, and with cv removed except from a C array's elements: `const int[4]`
+* is an array of const elements, and reads as immutable.  A trait that a
+* wrapper specializes (has_static_extent, is_contiguous_array,
+* is_iterable_array) forwards a cv- or reference-qualified type to the clean
+* one, so the wrapper's specialization answers for `const W&` too.
+*
 *   PORTABILITY:
-*   C++11 baseline.  Variable template `_v` aliases are gated behind
-* D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES (C++14+).  Detection
-* uses void_t (C++17 std, polyfilled for earlier standards).
+*   The header compiles from C++17 (the floor, for now).  Variable template
+* `_v` aliases are gated behind D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES.
 *
 *
 * path:      /inc/djinterp/cpp/container/array/array_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -111,6 +117,38 @@ NS_INTERNAL
         : std::true_type
     {};
 
+    // array_clean
+    //   trait: the type the array traits classify: Type without references,
+    // and without cv unless it is a C array, whose cv belongs to its elements
+    // (`const int[4]` stays as it is; `const std::array<int, 4>&` becomes
+    // `std::array<int, 4>`).
+    template<typename Type>
+    struct array_clean
+    {
+    private:
+        using unref = typename std::remove_reference<Type>::type;
+
+    public:
+        using type = typename std::conditional<
+            std::is_array<unref>::value,
+            unref,
+            clean_t<unref>>::type;
+    };
+
+    // array_clean_t
+    //   type: convenience alias for array_clean<Type>::type.
+    template<typename Type>
+    using array_clean_t = typename array_clean<Type>::type;
+
+    // array_is_clean
+    //   trait: true when Type is already its own array_clean_t.  A trait's
+    // primary computes its value for such a type, and forwards any other to
+    // the trait of array_clean_t<Type>, where a specialization is found.
+    template<typename Type>
+    struct array_is_clean
+        : std::is_same<Type, array_clean_t<Type>>
+    {};
+
 NS_END  // internal
 
 
@@ -164,18 +202,24 @@ D_TYPE_TRAIT_DETECTED(has_max_size_method,
 NS_INTERNAL
 
     // has_extent_check
-    //   helper: detects a static `extent` member.
+    //   helper: detects a static `extent` member that is a constant and is
+    // not dynamic_extent (`std::size_t(-1)`), so `std::span<T>` reads false
+    // and `std::span<T, 4>` true.
     template<typename Type,
              typename = void>
     struct has_extent_check : std::false_type
     {};
 
-    // has_extent_check<Type, void_t< decltype(Type::extent) >>
-    //   trait: the `void_t< decltype(Type::extent) >` case; it reports true.
+    // has_extent_check<Type, void_t< constant Type::extent >>
+    //   trait: the case where `Type::extent` is a constant; it reports
+    // whether that constant is a static extent.
     template<typename Type>
     struct has_extent_check<Type, void_t<
-        decltype(Type::extent)
-    >> : std::true_type
+        std::integral_constant<std::size_t,
+            static_cast<std::size_t>(Type::extent)>
+    >> : std::integral_constant<bool,
+             ( static_cast<std::size_t>(Type::extent) !=
+               static_cast<std::size_t>(-1) )>
     {};
 
     // has_tuple_size_check
@@ -196,21 +240,43 @@ NS_INTERNAL
 
 NS_END  // internal
 
+template<typename Type>
+struct has_static_extent;
+
+NS_INTERNAL
+
+    // has_static_extent_of
+    //   helper: has_static_extent's value.  A qualified type forwards to the
+    // clean one; a clean type has a static extent through a constant
+    // `extent` that isn't dynamic_extent, through std::tuple_size with
+    // data() (std::array; a pair or tuple is not an array), or as a C array.
+    template<typename Type,
+             bool IsClean = array_is_clean<Type>::value>
+    struct has_static_extent_of
+        : has_static_extent<array_clean_t<Type>>
+    {};
+
+    // has_static_extent_of<Type, true>
+    //   trait: the clean case; it computes the value.
+    template<typename Type>
+    struct has_static_extent_of<Type, true>
+        : std::integral_constant<bool,
+              ( has_extent_check<Type>::value          ||
+                ( has_tuple_size_check<Type>::value  &&
+                  has_data_method<Type>::value )       ||
+                is_c_array<Type>::value )>
+    {};
+
+NS_END  // internal
+
 // has_static_extent
-//   trait: true if the container has a compile-time known size (::extent or
-// std::tuple_size).
+//   trait: true if the container has a compile-time known size (a constant
+// ::extent other than dynamic_extent, std::tuple_size on an array with
+// data(), or a C array).
 template<typename Type>
 struct has_static_extent
-{
-private:
-    using cleaned = clean_t<Type>;
-
-public:
-    static constexpr bool value =
-        ( internal::has_extent_check<cleaned>::value      ||
-          internal::has_tuple_size_check<cleaned>::value  ||
-          is_c_array<cleaned>::value );
-};
+    : internal::has_static_extent_of<Type>
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
@@ -239,7 +305,9 @@ public:
 #endif
 
 // is_dynamic_capacity
-//   trait: true if the array can grow (has reserve or capacity).
+//   trait: true if the array can grow: it has data() and reserve(), or
+// data() and capacity() without a static extent.  A static-extent array's
+// capacity() reports its extent, which never changes.
 template<typename Type>
 struct is_dynamic_capacity
 {
@@ -248,9 +316,10 @@ private:
 
 public:
     static constexpr bool value =
-        ( has_data_method<cleaned>::value        &&
-          ( has_capacity_method<cleaned>::value  ||
-            has_reserve_method<cleaned>::value ) );
+        ( has_data_method<cleaned>::value             &&
+          ( has_reserve_method<cleaned>::value        ||
+            ( has_capacity_method<cleaned>::value   &&
+              !has_static_extent<cleaned>::value ) ) );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -345,21 +414,40 @@ struct capacity_model_of
 // III. Contiguity Detection
 // ===========================================================================
 
+template<typename Type>
+struct is_contiguous_array;
+
+NS_INTERNAL
+
+    // is_contiguous_array_of
+    //   helper: is_contiguous_array's value.  A qualified type forwards to
+    // the clean one, where a wrapper's specialization is found.
+    template<typename Type,
+             bool IsClean = array_is_clean<Type>::value>
+    struct is_contiguous_array_of
+        : is_contiguous_array<array_clean_t<Type>>
+    {};
+
+    // is_contiguous_array_of<Type, true>
+    //   trait: the clean case; it computes the value.
+    template<typename Type>
+    struct is_contiguous_array_of<Type, true>
+        : std::integral_constant<bool,
+              ( is_c_array<Type>::value         ||
+                ( has_data_method<Type>::value  &&
+                  is_random_access_iterable<Type>::value ) )>
+    {};
+
+NS_END  // internal
+
 // is_contiguous_array
 //   trait: true if the container is contiguous (data() + random-access
-// iterators), or is a raw C array.
+// iterators), or is a raw C array.  array<> specializes it true in every
+// cell, iterable or not (array.hpp).
 template<typename Type>
 struct is_contiguous_array
-{
-private:
-    using cleaned = clean_t<Type>;
-
-public:
-    static constexpr bool value =
-        ( is_c_array<cleaned>::value         ||
-          ( has_data_method<cleaned>::value  &&
-            is_random_access_iterable<cleaned>::value ) );
-};
+    : internal::is_contiguous_array_of<Type>
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
@@ -641,15 +729,24 @@ D_TYPE_TRAIT_DETECTED(has_rotate_method,
         std::declval<std::size_t>())))
 
 template<typename Type>
+struct is_immutable_array;
+
+// is_shiftable_array
+//   trait: true if the elements can be shifted in place: the array is
+// contiguous, its size is known (size() or a C array's bound), and it is
+// not immutable.
+template<typename Type>
 struct is_shiftable_array
 {
 private:
-    using cleaned = clean_t<Type>;
+    using cleaned = internal::array_clean_t<Type>;
 
 public:
     static constexpr bool value =
-        ( is_contiguous_array<cleaned>::value  &&
-          has_size_accessor<cleaned>::value );
+        ( is_contiguous_array<cleaned>::value    &&
+          ( has_size_accessor<cleaned>::value  ||
+            is_c_array<cleaned>::value )         &&
+          !is_immutable_array<cleaned>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -856,6 +953,11 @@ NS_INTERNAL
 
 NS_END  // internal
 
+// is_mutable_array
+//   trait: true if the array's lifetime is mutable: its lifetime marker
+// says so, or, unmarked, it has a mutating member (push_back, clear,
+// resize, reserve, fill, swap, an assignable subscript).  A C array is
+// mutable unless its elements are const.
 template<typename Type>
 struct is_mutable_array
 {
@@ -871,9 +973,15 @@ private:
           internal::has_swap_check<cleaned>::value              ||
           internal::has_mutable_subscript_check<cleaned>::value );
 
+    // a C array is mutable unless its elements are const
+    using c_arr = internal::array_clean_t<Type>;
+
 public:
     static constexpr bool value =
-        ( internal::has_lifetime_marker<cleaned>::value
+        ( is_c_array<c_arr>::value
+              ? !std::is_const<
+                    typename std::remove_all_extents<c_arr>::type>::value
+          : internal::has_lifetime_marker<cleaned>::value
               ? internal::marker_eq<cleaned,
                     DArrayLifetime::mutable_lifetime>::value
               : duck_value );
@@ -885,6 +993,10 @@ public:
         is_mutable_array<Type>::value;
 #endif
 
+// is_immutable_array
+//   trait: true if the array's lifetime is immutable: its lifetime marker
+// says so, or, unmarked, it is contiguous and neither mutable nor
+// constexpr.  A C array is immutable when its elements are const.
 template<typename Type>
 struct is_immutable_array
 {
@@ -897,9 +1009,15 @@ private:
           !is_mutable_array<cleaned>::value      &&
           !is_constexpr_array<cleaned>::value );
 
+    // a C array is immutable when its elements are const
+    using c_arr = internal::array_clean_t<Type>;
+
 public:
     static constexpr bool value =
-        ( internal::has_lifetime_marker<cleaned>::value
+        ( is_c_array<c_arr>::value
+              ? std::is_const<
+                    typename std::remove_all_extents<c_arr>::type>::value
+          : internal::has_lifetime_marker<cleaned>::value
               ? internal::marker_eq<cleaned,
                     DArrayLifetime::immutable_lifetime>::value
               : duck_value );
@@ -914,11 +1032,12 @@ public:
 NS_INTERNAL
 
     template<typename Type,
-             bool HasMarker = has_lifetime_marker<Type>::value>
+             bool HasMarker = has_lifetime_marker<
+                 array_clean_t<Type>>::value>
     struct DArrayLifetimeHelper
     {
     private:
-        using cleaned = clean_t<Type>;
+        using cleaned = array_clean_t<Type>;
 
     public:
         static constexpr DArrayLifetime value =
@@ -934,12 +1053,12 @@ NS_INTERNAL
     // partial specialization: marker present, use it directly.
     // DArrayLifetimeHelper<Type, true>
     //   helper: the case where `has_lifetime_marker<Type>::value` is true; it
-    // reports `clean_t<Type>::lifetime`.
+    // reports `array_clean_t<Type>::lifetime`.
     template<typename Type>
     struct DArrayLifetimeHelper<Type, true>
     {
         static constexpr DArrayLifetime value =
-            clean_t<Type>::lifetime;
+            array_clean_t<Type>::lifetime;
     };
 
 NS_END  // internal
@@ -1003,21 +1122,39 @@ NS_INTERNAL
 
 NS_END  // internal
 
+template<typename Type>
+struct is_iterable_array;
+
+NS_INTERNAL
+
+    // is_iterable_array_of
+    //   helper: is_iterable_array's value.  A qualified type forwards to the
+    // clean one, where a wrapper's specialization is found.
+    template<typename Type,
+             bool IsClean = array_is_clean<Type>::value>
+    struct is_iterable_array_of
+        : is_iterable_array<array_clean_t<Type>>
+    {};
+
+    // is_iterable_array_of<Type, true>
+    //   trait: the clean case; it computes the value.
+    template<typename Type>
+    struct is_iterable_array_of<Type, true>
+        : std::integral_constant<bool,
+              ( is_detected<array_begin_expr_t, Type>::value &&
+                is_detected<array_end_expr_t,   Type>::value )>
+    {};
+
+NS_END  // internal
+
 // is_iterable_array
 //   trait: true if std::begin(t) and std::end(t) are both well-formed for an
 // lvalue of Type. Uses the detection idiom from meta/type_traits.hpp so this
 // works back to C++11.
 template<typename Type>
 struct is_iterable_array
-{
-private:
-    using cleaned = clean_t<Type>;
-
-public:
-    static constexpr bool value =
-        ( is_detected<internal::array_begin_expr_t, cleaned>::value &&
-          is_detected<internal::array_end_expr_t,   cleaned>::value );
-};
+    : internal::is_iterable_array_of<Type>
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>

@@ -1,15 +1,15 @@
 /*******************************************************************************
-* djinterp [cpp]                                       value_list_tests_fold.cpp
+* djinterp [test]                                      value_list_tests_fold.cpp
+*
+*   Section VI -- fold: the left fold, and the value-domain driver reduce_ct
+* builds on.
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests_fold.cpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests_fold.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.11
 *******************************************************************************/
-// djinterp [test]  value_list_tests_fold.cpp
-//   Section VI -- fold: the left fold, and the value-domain driver reduce_ct
-//   builds on.
 
 // std
 #include <type_traits>

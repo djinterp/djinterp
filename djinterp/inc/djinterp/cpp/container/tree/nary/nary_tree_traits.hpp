@@ -15,6 +15,11 @@
 * DEPENDENCIES:
 *   djinterp.hpp       - namespace macros, D_CONSTEXPR, std::void_t
 *   type_traits.hpp    - clean_t, void_t
+*   node_container_traits.hpp, node_common.hpp, container_traits.hpp,
+*   member_types.hpp   - the probes this header shares with the other trees
+*                        and containers, each defined once (decision L1):
+*                        root(), has_root(), is_root, remove_subtree, the
+*                        parent links, version(), allocator_type
 *   node_traits.hpp    - node-level structural detection (optional,
 *                        for node_type extraction and handle form)
 * COMPAT:
@@ -27,7 +32,7 @@
 * path:      /inc/djinterp/cpp/container/tree/nary/nary_tree_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.08
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -96,6 +101,10 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../djinterp.hpp"
 #include "../../../meta/type_traits.hpp"
+#include "../../../meta/member_types.hpp"          // has_allocator_type
+#include "../../traits/container_traits.hpp"       // has_version_method
+#include "../../traits/node_container_traits.hpp"  // the shared tree probes
+#include "../../node/node_common.hpp"              // the parent links
 
 // the D_ENV_* level macros come from djinterp.hpp, so this test follows it
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -388,93 +397,20 @@ struct has_edge_count_method<Type,
 // level (arena_tree::first_child(id)) while others expose
 // it at the node level (node.first_child).
 
-// has_root_method
-//   trait: detects root() on the container.
-template<typename Type,
-         typename = void>
-struct has_root_method : std::false_type
-{};
+// root() and has_root() on the container are node_container_traits.hpp's
+// has_root_method and has_root_member_method (decision L1).
 
-// has_root_method<Type, std::void_t<decltype( std::declval<const
-// Type&>().root())>>
-//   trait: the `std::void_t<decltype( std::declval<const Type&>().root())>`
-// case; it reports true.
+// has_parent_field
+//   trait: true if Type has a `parent` data member: node_common.hpp's
+// has_parent, under the name this header gave it.
 template<typename Type>
-struct has_root_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().root())>>
-    : std::true_type
+struct has_parent_field : has_parent<Type>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_root_method_v =
-        has_root_method<Type>::value;
-#endif
-
-// has_root_member_method
-//   trait: detects has_root() returning bool.
-template<typename Type,
-         typename = void>
-struct has_root_member_method : std::false_type
-{};
-
-// has_root_member_method<Type, std::void_t<decltype( std::declval<const
-// Type&>().has_root())>>
-//   trait: the `std::void_t<decltype( std::declval<const
-// Type&>().has_root())>` case; it reports true.
-template<typename Type>
-struct has_root_member_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().has_root())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_has_root_method_v =
-        has_root_member_method<Type>::value;
-#endif
-
-// has_parent_access (unified: field or method, node or container)
-//   trait: already provided by node_traits. Re-exported here for standalone
-// use. Detects parent field or parent() method.
-template<typename Type,
-         typename = void>
-struct has_parent_field : std::false_type
-{};
-
-template<typename Type>
-struct has_parent_field<Type,
-    std::void_t<decltype(std::declval<Type>().parent)>>
-    : std::true_type
-{};
-
-template<typename Type,
-         typename = void>
-struct has_parent_method : std::false_type
-{};
-
-template<typename Type>
-struct has_parent_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().parent())>>
-    : std::true_type
-{};
-
-template<typename Type>
-struct has_parent_access
-{
-    static D_CONSTEXPR bool value =
-        ( has_parent_field<Type>::value ||
-          has_parent_method<Type>::value );
-};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_parent_access_v =
-        has_parent_access<Type>::value;
-#endif
+// The parent() method and the unified field-or-method probe are
+// node_common.hpp's has_parent_method and has_parent_access (decision L1).
+// This header asks them of a const tree -- has_parent_access<const Type&> --
+// as its own copies did.
 
 // has_depth_method
 //   trait: detects depth() on the container or node.
@@ -548,29 +484,8 @@ struct has_is_leaf_method<Type,
         has_is_leaf_method<Type>::value;
 #endif
 
-// has_is_root_method
-//   trait: detects is_root() method.
-template<typename Type,
-         typename = void>
-struct has_is_root_method : std::false_type
-{};
-
-// has_is_root_method<Type, std::void_t<decltype( std::declval<const
-// Type&>().is_root())>>
-//   trait: the `std::void_t<decltype( std::declval<const
-// Type&>().is_root())>` case; it reports true.
-template<typename Type>
-struct has_is_root_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().is_root())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_is_root_method_v =
-        has_is_root_method<Type>::value;
-#endif
+// is_root() is node_container_traits.hpp's has_is_root_method, asked of a
+// const tree with no arguments: has_is_root_method<const Type> (decision L1).
 
 
 // ===========================================================================
@@ -695,31 +610,26 @@ struct has_move_subtree_method<Type,
         has_move_subtree_method<Type>::value;
 #endif
 
-template<typename Type,
-         typename = void>
-struct has_remove_subtree_method : std::false_type
-{};
+NS_INTERNAL
 
-// has_remove_subtree_method<Type, std::void_t<decltype(
-// std::declval<Type&>().remove_subtree( std::declval<decltype(
-// std::declval<const Type&>().root())>()))>>
-//   trait: the `std::void_t<decltype( std::declval<Type&>().remove_subtree(
-// std::declval<decltype( std::declval<const Type&>().root())>()))>` case; it
-// reports true.
-template<typename Type>
-struct has_remove_subtree_method<Type,
-    std::void_t<decltype(
-        std::declval<Type&>().remove_subtree(
-            std::declval<decltype(
-                std::declval<const Type&>().root())>()))>>
-    : std::true_type
-{};
+    // nary_has_remove_subtree
+    //   trait: true if Type has root() and remove_subtree can be called on it
+    // with what root() returns -- node_container_traits.hpp's
+    // has_remove_subtree_method, given an n-ary tree's argument (decision
+    // L1).
+    template<typename Type,
+             typename = void>
+    struct nary_has_remove_subtree : std::false_type
+    {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    D_CONSTEXPR bool has_remove_subtree_method_v =
-        has_remove_subtree_method<Type>::value;
-#endif
+    struct nary_has_remove_subtree<Type,
+        std::void_t<decltype(std::declval<const Type&>().root())>>
+        : has_remove_subtree_method<Type,
+              decltype(std::declval<const Type&>().root())>
+    {};
+
+NS_END  // internal
 
 template<typename Type,
          typename = void>
@@ -838,17 +748,7 @@ struct has_version_field<Type,
     : std::true_type
 {};
 
-template<typename Type,
-         typename = void>
-struct has_version_method : std::false_type
-{};
-
-template<typename Type>
-struct has_version_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().version())>>
-    : std::true_type
-{};
+// version() is container_traits.hpp's has_version_method (decision L1).
 
 template<typename Type>
 struct has_version
@@ -1016,26 +916,8 @@ struct uses_smart_pointer_handles
 // Detects how the tree manages its backing storage.
 
 // has_allocator_type
-//   trait: true if Type exposes allocator_type.
-template<typename Type,
-         typename = void>
-struct has_allocator_type : std::false_type
-{};
-
-// has_allocator_type<Type, std::void_t<typename Type::allocator_type>>
-//   trait: the `std::void_t<typename Type::allocator_type>` case; it reports
-// true.
-template<typename Type>
-struct has_allocator_type<Type,
-    std::void_t<typename Type::allocator_type>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_allocator_type_v =
-        has_allocator_type<Type>::value;
-#endif
+//   member_types.hpp's, which reads the alias of the cleaned type (decision
+// L1).
 
 // has_link_policy_type
 //   trait: true if Type exposes a link_policy type alias.
@@ -1433,7 +1315,7 @@ struct has_o1_detach
     static D_CONSTEXPR bool value =
         ( has_prev_sibling_access<Type>::value &&
           has_next_sibling_access<Type>::value &&
-          has_parent_access<Type>::value );
+          has_parent_access<const Type&>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -1562,7 +1444,7 @@ struct nary_tree_class
     static D_CONSTEXPR bool has_root =
         has_root_method<Type>::value;
     static D_CONSTEXPR bool has_parent =
-        has_parent_access<Type>::value;
+        has_parent_access<const Type&>::value;
     static D_CONSTEXPR bool has_next_sibling =
         has_next_sibling_access<Type>::value;
     static D_CONSTEXPR bool has_prev_sibling =
@@ -1614,7 +1496,7 @@ struct nary_tree_class
     static D_CONSTEXPR bool can_move_subtree =
         has_move_subtree_method<Type>::value;
     static D_CONSTEXPR bool can_remove_subtree =
-        has_remove_subtree_method<Type>::value;
+        internal::nary_has_remove_subtree<Type>::value;
 
     // -----------------------------------------------------------------
     // Complexity Guarantees
@@ -1640,7 +1522,8 @@ struct nary_tree_class
     // Structural Queries
     // -----------------------------------------------------------------
     static D_CONSTEXPR bool has_is_leaf = has_is_leaf_method<Type>::value;
-    static D_CONSTEXPR bool has_is_root_check = has_is_root_method<Type>::value;
+    static D_CONSTEXPR bool has_is_root_check =
+        has_is_root_method<const Type>::value;
     static D_CONSTEXPR bool has_child_count = has_child_count_method<Type>::value;
     static D_CONSTEXPR bool has_depth = has_depth_method<Type>::value;
 
@@ -1692,12 +1575,9 @@ struct nary_tree_class
         ( nary_tree_type<Type> &&
           nary_tree_class<Type>::fully_navigable );
 
-    // arena_nary_tree
-    //   concept: constrains arena-backed n-ary trees.
-    template<typename Type>
-    concept arena_nary_tree =
-        ( nary_tree_type<Type> &&
-          is_arena_backed<Type>::value );
+    // (arena_nary_tree, an arena-backed n-ary tree, is gone: arena_tree.hpp's
+    // arena_nary_tree names the arena tree type, and nary_tree_concepts.hpp's
+    // arena_backed_nary_tree is the same constraint (decision L1).)
 
     // pool_nary_tree
     //   concept: constrains pool-backed n-ary trees.

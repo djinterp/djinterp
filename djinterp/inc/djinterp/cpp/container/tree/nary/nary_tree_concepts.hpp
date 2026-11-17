@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/cpp/container/tree/nary/nary_tree_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_CONCEPTS_HPP
@@ -125,7 +125,7 @@ concept rooted_nary_tree_type =
 template<typename Type>
 concept parent_navigable_nary_tree =
     ( nary_tree_container_type<Type> &&
-      has_parent_access<Type>::value );
+      has_parent_access<const Type&>::value );
 
 // sibling_navigable_nary_tree
 //   concept: constrains n-ary trees with bidirectional sibling traversal.
@@ -167,7 +167,7 @@ concept leaf_query_nary_tree =
 template<typename Type>
 concept root_query_nary_tree =
     ( nary_tree_container_type<Type> &&
-      has_is_root_method<Type>::value );
+      has_is_root_method<const Type>::value );
 
 
 // ===========================================================================
@@ -223,7 +223,7 @@ concept movable_subtree_nary_tree =
 template<typename Type>
 concept removable_subtree_nary_tree =
     ( nary_tree_container_type<Type> &&
-      has_remove_subtree_method<Type>::value );
+      internal::nary_has_remove_subtree<Type>::value );
 
 
 // ===========================================================================

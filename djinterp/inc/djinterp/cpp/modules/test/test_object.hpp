@@ -239,9 +239,9 @@ public:
     {
         for (value_type& _entry : m_entries)
         {
-            if (_entry.m_key == _key)
+            if (_entry.key == _key)
             {
-                _entry.m_value = _value;
+                _entry.value = _value;
 
                 return;
             }
@@ -261,9 +261,9 @@ public:
     {
         for (const value_type& _entry : m_entries)
         {
-            if (_entry.m_key == _key)
+            if (_entry.key == _key)
             {
-                return _entry.m_value;
+                return _entry.value;
             }
         }
 
@@ -278,7 +278,7 @@ public:
     {
         for (const value_type& _entry : m_entries)
         {
-            if (_entry.m_key == _key)
+            if (_entry.key == _key)
             {
                 return true;
             }

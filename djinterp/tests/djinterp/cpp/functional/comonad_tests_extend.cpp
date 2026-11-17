@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/cpp/functional/comonad_tests_extend.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -95,7 +95,7 @@ bool tests_extend_pair_type_change()
 tests_extend_kv_recompute
   Tests the following:
   - extend over kv keeps the key (environment) and recomputes the value
-    (focus): kv(3,10) with focus*2 has m_key 3, m_value 20 (field-level, since
+    (focus): kv(3,10) with focus*2 has key 3, value 20 (field-level, since
     kv equality is key-only).
 */
 static
@@ -104,15 +104,15 @@ bool tests_extend_kv_recompute()
     const ::djinterp::DKvPair<int, int> r =
         ::djinterp::extend(::djinterp::DKvPair<int, int>(3, 10), DCoFocusX2());
 
-    return ( (r.m_key == 3) &&
-             (r.m_value == 20) );
+    return ( (r.key == 3) &&
+             (r.value == 20) );
 }
 
 /*
 tests_extend_kv_sees_key
   Tests the following:
   - extend over kv hands the whole pair to f: value + key recomputes the value.
-    kv(3,10) -> m_value 13, m_key 3.
+    kv(3,10) -> value 13, key 3.
 */
 static
 bool tests_extend_kv_sees_key()
@@ -120,15 +120,15 @@ bool tests_extend_kv_sees_key()
     const ::djinterp::DKvPair<int, int> r =
         ::djinterp::extend(::djinterp::DKvPair<int, int>(3, 10), DKvKeyFocus());
 
-    return ( (r.m_key == 3) &&
-             (r.m_value == 13) );
+    return ( (r.key == 3) &&
+             (r.value == 13) );
 }
 
 /*
 tests_extend_kv_type_change
   Tests the following:
   - extend over kv may change the value type: kv(3,10) with focus int->string
-    has m_key 3, m_value "10".
+    has key 3, value "10".
 */
 static
 bool tests_extend_kv_type_change()
@@ -136,8 +136,8 @@ bool tests_extend_kv_type_change()
     const ::djinterp::DKvPair<int, std::string> r =
         ::djinterp::extend(::djinterp::DKvPair<int, int>(3, 10), DCoFocusShow());
 
-    return ( (r.m_key == 3) &&
-             (r.m_value == "10") );
+    return ( (r.key == 3) &&
+             (r.value == "10") );
 }
 
 /*
@@ -176,8 +176,8 @@ bool tests_extend_left_identity()
     const bool ident_ok = (::djinterp::extend(wi, DCoExtract()) == wi);
 
     const ::djinterp::DKvPair<int, int> rk = ::djinterp::extend(wk, DCoExtract());
-    const bool kv_ok = ( (rk.m_key == 3) &&
-                         (rk.m_value == 10) );
+    const bool kv_ok = ( (rk.key == 3) &&
+                         (rk.value == 10) );
 
     return (pair_ok && ident_ok && kv_ok);
 }

@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/cpp/container/graph/graph_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -38,9 +38,10 @@ TABLE OF CONTENTS
 =================
 I.    Vertex / Edge Identifier Types
       ------------------------------
-      1.    Default ID type
-      2.    vertex_descriptor / edge_descriptor (typed wrappers)
-      3.    null_vertex / null_edge sentinels
+      1.    invalid_id, is_invalid_id; depth_t, unknown_depth
+      2.    Default ID type
+      3.    vertex_descriptor / edge_descriptor (typed wrappers)
+      4.    null_vertex / null_edge sentinels
 
 II.   Graph Direction
       ---------------
@@ -116,8 +117,7 @@ IX.   Adjacency Container Concept Helpers
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"  // framework root
-#include "./math_common.hpp"      // math::invalid_id, math::directionality,
-                                  // math::multiplicity, math::kUnknownDepth
+#include "./math_common.hpp"      // math::directionality, math::multiplicity
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t, uint32_t
 
@@ -128,6 +128,44 @@ NS_CONTAINER
     // =========================================================================
     // I.   VERTEX / EDGE IDENTIFIER TYPES
     // =========================================================================
+
+    // invalid_id
+    //   function (template): the canonical sentinel for an unsigned-integer
+    // ID type: always (UInt)-1. (In djinterp::math, in math_common.hpp, until
+    // 2026.11.11: graph's alone -- decision X2.)
+    template<typename UInt>
+    D_CONSTEXPR_INLINE
+    UInt invalid_id() noexcept
+    {
+        static_assert(std::is_unsigned<UInt>::value,
+                      "invalid_id<T>() requires an unsigned integer type.");
+
+        return static_cast<UInt>(-1);
+    }
+
+    // is_invalid_id
+    //   function (template): true if `_id` equals the sentinel returned by
+    // `invalid_id<T>()`.
+    template<typename UInt>
+    D_CONSTEXPR_INLINE
+    bool is_invalid_id(
+        UInt _id
+    ) noexcept
+    {
+        return (_id == invalid_id<UInt>());
+    }
+
+    // depth_t
+    //   type: the depth of a vertex below the root -- the number of edges on
+    // the path from root() to it.
+    using depth_t = std::size_t;
+
+    // unknown_depth
+    //   constant: the depth reported for a vertex that root() does not reach.
+    // (math::kUnknownDepth until 2026.11.11: the guide names constexpr values
+    // in snake_case -- decision X2.)
+    static D_CONSTEXPR depth_t unknown_depth =
+        static_cast<depth_t>(-1);
 
     // default_graph_id_t
     //   type: default unsigned integer used to identify vertices and edges
@@ -153,7 +191,7 @@ NS_CONTAINER
 
         D_CONSTEXPR
         vertex_descriptor() noexcept
-            : m_id(djinterp::math::invalid_id<id_type>())
+            : m_id(djinterp::container::invalid_id<id_type>())
         {}
 
         D_CONSTEXPR explicit
@@ -168,7 +206,7 @@ NS_CONTAINER
 
         D_CONSTEXPR bool is_null() const noexcept
         {
-            return djinterp::math::is_invalid_id(m_id);
+            return djinterp::container::is_invalid_id(m_id);
         }
 
         D_CONSTEXPR explicit operator id_type() const noexcept
@@ -231,7 +269,7 @@ NS_CONTAINER
 
         D_CONSTEXPR
         edge_descriptor() noexcept
-            : m_id(djinterp::math::invalid_id<id_type>())
+            : m_id(djinterp::container::invalid_id<id_type>())
         {}
 
         D_CONSTEXPR explicit
@@ -246,7 +284,7 @@ NS_CONTAINER
 
         D_CONSTEXPR bool is_null() const noexcept
         {
-            return djinterp::math::is_invalid_id(m_id);
+            return djinterp::container::is_invalid_id(m_id);
         }
 
         D_CONSTEXPR explicit operator id_type() const noexcept
@@ -527,8 +565,8 @@ NS_CONTAINER
 
         D_CONSTEXPR
         unweighted_edge() noexcept
-            : source(djinterp::math::invalid_id<vertex_id_type>()),
-              target(djinterp::math::invalid_id<vertex_id_type>())
+            : source(djinterp::container::invalid_id<vertex_id_type>()),
+              target(djinterp::container::invalid_id<vertex_id_type>())
         {}
 
         D_CONSTEXPR
@@ -570,8 +608,8 @@ NS_CONTAINER
 
         D_CONSTEXPR
         weighted_edge() noexcept
-            : source(djinterp::math::invalid_id<vertex_id_type>()),
-              target(djinterp::math::invalid_id<vertex_id_type>()),
+            : source(djinterp::container::invalid_id<vertex_id_type>()),
+              target(djinterp::container::invalid_id<vertex_id_type>()),
               weight()
         {}
 
@@ -618,8 +656,8 @@ NS_CONTAINER
 
         D_CONSTEXPR
         labeled_edge() noexcept
-            : source(djinterp::math::invalid_id<vertex_id_type>()),
-              target(djinterp::math::invalid_id<vertex_id_type>()),
+            : source(djinterp::container::invalid_id<vertex_id_type>()),
+              target(djinterp::container::invalid_id<vertex_id_type>()),
               label()
         {}
 
@@ -650,8 +688,8 @@ NS_CONTAINER
 
         D_CONSTEXPR
         property_edge() noexcept
-            : source(djinterp::math::invalid_id<vertex_id_type>()),
-              target(djinterp::math::invalid_id<vertex_id_type>()),
+            : source(djinterp::container::invalid_id<vertex_id_type>()),
+              target(djinterp::container::invalid_id<vertex_id_type>()),
               property()
         {}
 

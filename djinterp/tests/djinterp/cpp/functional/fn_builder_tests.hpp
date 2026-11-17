@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/cpp/functional/fn_builder_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -305,6 +305,8 @@ bool test_boxed();
 
 bool test_traits();
 
+bool test_parity_c_kernel();
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. MODULE ENTRY POINTS                                  ///
@@ -399,6 +401,16 @@ fn_builder_spec()
                     { "test_traits",
                       "traits",
                       &test_traits },
+                }
+            },
+            dt::block_spec{
+                "parity",
+                "Parity with the C kernel (c/functional/fn_builder.h)",
+                {
+                    { "test_parity_c_kernel",
+                      "the same chains give the same elements, in call "
+                      "order, on both faces",
+                      &test_parity_c_kernel },
                 }
             },
         }

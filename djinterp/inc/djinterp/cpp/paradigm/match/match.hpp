@@ -45,7 +45,7 @@
 * path:      /inc/djinterp/cpp/paradigm/match/match.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -144,10 +144,10 @@ constexpr match_status DMatchStatusUserBase    = 64;
 
 NS_INTERNAL
 
-    // no_result
+    // no_handler_result
     //   type: sentinel returned by the result picker when a candidate
     // handler matches neither accepted shape.
-    struct no_result
+    struct no_handler_result
     {};
 
     // handler_takes_input_captures
@@ -190,7 +190,7 @@ NS_INTERNAL
     // handler_result_picker
     //   trait: resolves the handler's return type, preferring the
     // capture-aware shape.  Primary template (neither shape) yields the
-    // no_result sentinel.
+    // no_handler_result sentinel.
     template<typename Handler,
              typename In,
              typename Caps,
@@ -200,7 +200,7 @@ NS_INTERNAL
                                       Handler, In>::value>
     struct handler_result_picker
     {
-        using type = no_result;
+        using type = no_handler_result;
     };
 
     template<typename Handler,
@@ -264,7 +264,7 @@ NS_END  // internal
 
 // match_handler_result
 //   trait: the return type of Handler when applied to Input (with the
-// pattern's Captures available), or the no_result sentinel if Handler
+// pattern's Captures available), or the no_handler_result sentinel if Handler
 // fits neither accepted shape.
 template<typename Handler,
          typename Input,
@@ -384,7 +384,7 @@ public:
         "(the four do_* faces of pattern.hpp).");
 
     static_assert(
-        !std::is_same<result_type, internal::no_result>::value,
+        !std::is_same<result_type, internal::no_handler_result>::value,
         "match_clause: Handler must be callable as "
         "(const input_type&, const captures&) or (const input_type&).");
 
@@ -520,7 +520,7 @@ public:
             match_handler_result_t<Handler, input_type, caps_type>;
 
         static_assert(
-            !std::is_same<result_t, internal::no_result>::value,
+            !std::is_same<result_t, internal::no_handler_result>::value,
             "matcher::when: Handler must be callable as "
             "(const input_type&, const captures&) or (const input_type&).");
 
@@ -570,7 +570,7 @@ public:
             match_handler_result_t<Handler, input_type, caps_type>;
 
         static_assert(
-            !std::is_same<result_t, internal::no_result>::value,
+            !std::is_same<result_t, internal::no_handler_result>::value,
             "matcher::when: Handler must be callable as "
             "(const input_type&, const captures&) or (const input_type&).");
 

@@ -3,7 +3,7 @@
 *
 * Concrete array container.
 *   `array<typename... Options>` is the framework's options-pack form
-* of a fixed- or dynamic-extent contiguous container.  It satisfies
+* of a fixed-extent contiguous container.  It satisfies
 * the options-container contract: inheriting from
 * `options_container_base<Options...>` surfaces the four contract
 * members (`options_type`, `option_count`, `has_option_v<>`,
@@ -22,20 +22,24 @@
 *   ------------+------------------------+--------------------------
 *   mutable     | mutable+iterable       | mutable+non_iterable
 *
-* combined with the {static-extent vs dynamic-extent} axis to give
-* eight named cells.  See array_options.hpp for the option keys
-* and canonical aliases used to select among them.
+* each with a static extent.  `DArrayStorageKind::dynamic_extent` is
+* reserved: no cell stores a dynamic extent yet.  See array_options.hpp
+* for the option keys and canonical aliases used to select among them.
+*
+*   Every cell is contiguous, so is_contiguous_array holds for a
+* non-iterable array too (section III); non-iterability withholds
+* begin()/end(), not the storage.
 *
 *   PORTABILITY:
-*   C++11 baseline.  Members marked with `D_INTERNAL_ARRAY_CONSTEXPR`
-* are constexpr from C++14 onward (relaxed constexpr) and inline
-* otherwise.
+*   The header compiles from C++17 (the floor, for now).  Members
+* marked with `D_INTERNAL_ARRAY_CONSTEXPR` are constexpr from C++14
+* onward (relaxed constexpr) and inline otherwise.
 *
 *
 * path:      /inc/djinterp/cpp/container/array/array.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -77,6 +81,7 @@ VI.   Free-function bulk algorithms
 #include <utility>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../../../re_std/cpp/span/dynamic_extent.hpp"  // dynamic_extent
 #include "../../meta/type_traits.hpp"
 #include "../../option/option.hpp"
 #include "../container_options.hpp"
@@ -117,9 +122,10 @@ enum class DArrayStorageKind
 
 // dynamic_extent
 //   constant: sentinel value for the extent option indicating dynamic-extent
-// storage. Mirrors std::dynamic_extent.
-static constexpr std::size_t dynamic_extent =
-    static_cast<std::size_t>(-1);
+// storage. It is re_std's (equal to std::dynamic_extent), the one table_shape
+// and re_std::span use too, so that every extent in the framework compares
+// against the same object.
+using re_std::dynamic_extent;
 
 
 // array_type_key, array_extent_key
@@ -174,6 +180,61 @@ NS_INTERNAL
              typename Arg>
     struct array_is_self_arg<Self, Arg>
         : std::is_same<typename std::decay<Arg>::type, Self>
+    {};
+
+    // array_arg_casts
+    //   trait: true when `static_cast<Value>(std::declval<Arg>())` is
+    // well-formed: what array<>'s element-list constructor does with each
+    // argument.
+    template<typename Value,
+             typename Arg,
+             typename = void>
+    struct array_arg_casts : std::false_type
+    {};
+
+    // array_arg_casts<Value, Arg, void_t<the cast>>
+    //   trait: the case where the cast is well-formed; it reports true.
+    template<typename Value,
+             typename Arg>
+    struct array_arg_casts<Value, Arg, void_t<
+        decltype(static_cast<Value>(std::declval<Arg>()))
+    >> : std::true_type
+    {};
+
+    // array_args_cast
+    //   trait: true when every argument of the pack casts to Value.
+    template<typename    Value,
+             typename... Args>
+    struct array_args_cast : std::true_type
+    {};
+
+    // array_args_cast<Value, First, Rest...>
+    //   trait: the non-empty case; it checks First, then the rest.
+    template<typename    Value,
+             typename    First,
+             typename... Rest>
+    struct array_args_cast<Value, First, Rest...>
+        : std::integral_constant<bool,
+              ( array_arg_casts<Value, First>::value &&
+                array_args_cast<Value, Rest...>::value )>
+    {};
+
+    // array_args_nothrow
+    //   trait: true when no argument's cast to Value can throw.
+    template<typename    Value,
+             typename... Args>
+    struct array_args_nothrow : std::true_type
+    {};
+
+    // array_args_nothrow<Value, First, Rest...>
+    //   trait: the non-empty case; it checks First, then the rest.
+    template<typename    Value,
+             typename    First,
+             typename... Rest>
+    struct array_args_nothrow<Value, First, Rest...>
+        : std::integral_constant<bool,
+              ( noexcept(static_cast<Value>(std::declval<First>())) &&
+                array_args_nothrow<Value, Rest...>::value )>
     {};
 
 
@@ -340,12 +401,21 @@ public:
         : m_data{}
     {}
 
+    // element-list constructor: at most `extent` values, each cast to
+    // value_type; the rest are value-initialized.  Constrained on exactly
+    // that, so std::is_constructible tells the truth about it, and noexcept
+    // when no cast can throw.
     template<typename... Args,
              typename = typename std::enable_if<
-                 !internal::array_is_self_arg<array, Args...>::value
+                 ( !internal::array_is_self_arg<array, Args...>::value  &&
+                   (sizeof...(Args) <= extent)                          &&
+                   internal::array_args_cast<value_type,
+                                             Args...>::value )
              >::type>
     constexpr
-    array(Args&&... _args) D_NOEXCEPT
+    array(Args&&... _args)
+        D_NOEXCEPT_IF((internal::array_args_nothrow<value_type,
+                                                    Args...>::value))
         : m_data{static_cast<value_type>(
                      std::forward<Args>(_args))...}
     {}
@@ -580,6 +650,14 @@ public:
         }
     }
 };
+
+// is_contiguous_array<array<Options...>>
+//   trait: every cell of array<> stores its elements in one contiguous
+// block reached through data(), iterable or not; it reports true.
+template<typename... Options>
+struct is_contiguous_array<array<Options...>>
+    : std::true_type
+{};
 
 
 // ===========================================================================

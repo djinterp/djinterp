@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/cpp/container/graph/math_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -37,7 +37,7 @@ TABLE OF CONTENTS
 =================
 I.    Numeric Vocabulary Types
       ------------------------
-      1.    arity_t, degree_t, depth_t
+      1.    arity_t, degree_t
       2.    parity, sign
       3.    handedness
 
@@ -118,21 +118,11 @@ using arity_t = std::size_t;
 // recurrence. Same backing type as size_t for uniform comparison.
 using degree_t = std::size_t;
 
-// depth_t
-//   type: depth of a hierarchical structure (tree level, recursion depth,
-// nesting depth).
-using depth_t = std::size_t;
-
 // kVariadicArity
 //   constant: sentinel value used to mark functions with unbounded arity.
 // Distinct from any reasonable concrete arity.
 static D_CONSTEXPR arity_t kVariadicArity =
     static_cast<arity_t>(-1);
-
-// kUnknownDepth
-//   constant: sentinel value for "depth is not known at compile time".
-static D_CONSTEXPR depth_t kUnknownDepth =
-    static_cast<depth_t>(-1);
 
 
 // parity
@@ -709,29 +699,10 @@ static D_CONSTEXPR std::size_t kInvalidSize =
 static D_CONSTEXPR std::size_t kInvalidIndex =
     static_cast<std::size_t>(-1);
 
-// invalid_id
-//   function (template): returns the canonical sentinel value for any
-// unsigned-integer ID type. Always (UInt)-1.
-template<typename UInt>
-D_CONSTEXPR_INLINE
-UInt invalid_id() noexcept
-{
-    static_assert(std::is_unsigned<UInt>::value,
-                  "invalid_id<T>() requires an unsigned integer type.");
-    return static_cast<UInt>(-1);
-}
-
-// is_invalid_id
-//   function (template): true if `_id` equals the sentinel returned by
-// `invalid_id<T>()`.
-template<typename UInt>
-D_CONSTEXPR_INLINE
-bool is_invalid_id(
-    UInt _id
-) noexcept
-{
-    return (_id == invalid_id<UInt>());
-}
+// (depth_t, kUnknownDepth, invalid_id and is_invalid_id were graph's alone,
+// and live in graph_common.hpp, in djinterp::container, since 2026.11.11 --
+// kUnknownDepth as unknown_depth (decision X2). The rest of this vocabulary
+// moves to meta in week 3, merged with meta's multiplicity.hpp.)
 
 
 NS_END  // math

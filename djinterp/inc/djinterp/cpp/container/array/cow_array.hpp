@@ -14,14 +14,17 @@
 * contract: a single template parameter pack consumed by the wrapped
 * `array<>`, with the lock policy that protects the DCowState read
 * from the same pack's lock-policy option (default:
-* `null_lock_policy` for COW since per-snapshot isolation already
-* removes most contention).
+* `default_lock_policy`).  The lock covers the moment a snapshot
+* shares the storage and the moment a writer decides whether to
+* clone it; without it a snapshot can share a block that a writer is
+* still writing.  Name `DContainerOptLockPolicy<null_lock_policy>`
+* for an array that one thread uses.
 *
 *
 * path:      /inc/djinterp/cpp/container/array/cow_array.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.26
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -88,13 +91,15 @@ private:
     using array_type = array<Options...>;
 
 public:
-    // DCowArray intentionally defaults to `null_lock_policy` rather than
-    // `default_lock_policy`: COW writers serialize naturally through the
-    // DCowState's atomic publish step.
+    // lock_policy_type
+    //   the pack's lock policy, or default_lock_policy.  A writer's clone
+    // decision (is the block shared?) and a snapshot's share must not
+    // interleave, so a concurrent array needs a real lock; null_lock_policy
+    // is for single-threaded use, by name.
     using lock_policy_type = container_axis_type_t<
         options_type,
         container_axis::lock_policy,
-        null_lock_policy>;
+        default_lock_policy>;
 
 private:
     using state_type = DCowState<array_type, lock_policy_type>;

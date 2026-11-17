@@ -29,7 +29,7 @@
 *   A NOTE ON DKvPair: its operator== / operator< compare the KEY ONLY.  Since
 * the Env comonad's environment IS the key, extend (which preserves the key /
 * environment) leaves == intact even as it recomputes the value / focus; tests
-* that must verify a recomputed value compare the m_value field directly.
+* that must verify a recomputed value compare the value field directly.
 *
 *   Every predicate lives flat in djinterp::testing and returns true iff all of
 * its checks pass.  Each section .cpp keeps its predicates file-local (internal
@@ -46,7 +46,7 @@
 * path:      /tests/djinterp/cpp/functional/comonad_tests.hpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_COMONAD_TESTS_
@@ -205,7 +205,7 @@ struct DKvKeyFocus
         const ::djinterp::DKvPair<int, int>& _w
     ) const
     {
-        return (_w.m_value + _w.m_key);
+        return (_w.value + _w.key);
     }
 };
 

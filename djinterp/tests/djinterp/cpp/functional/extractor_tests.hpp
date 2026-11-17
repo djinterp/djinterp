@@ -39,7 +39,7 @@
 * path:      /tests/djinterp/cpp/functional/extractor_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -84,7 +84,7 @@ IV.   SPEC PROVIDER                        (DTEST_SPEC_MODE: extractor_spec)
     // (section IV). Pull in the DTest authoring surface: module_spec /
     // block_spec / test_spec, build_enriched_tree, run_module, and the
     // test_option_set the runner configures. Resolved via the djinterp include
-    // root, the same root the runners' <djinterp/core/djinterp.hpp> resolves
+    // root, the same root the runners' <djinterp/cpp/djinterp.hpp> resolves
     // against. Gated so the plain sectional builds - which never define
     // DTEST_SPEC_MODE - do not pull in the framework.
 #   include <djinterp/cpp/modules/test/test_defaults.hpp>

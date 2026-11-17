@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.09
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -225,6 +225,14 @@ D_TYPE_TRAIT_TRUE(has_min_depth_accessor,
 D_TYPE_TRAIT_TRUE(has_depth_accessor,
     decltype(std::declval<const Type&>().depth()))
 
+// has_version_method
+//   trait: true if the container has a .version() const method returning a
+// version stamp. Owned here, below both of its readers: the thread-safe
+// containers' ABA stamp (threadsafe_container_traits.hpp) and the n-ary
+// trees' change tracking (nary_tree_traits.hpp) once defined it apart.
+D_TYPE_TRAIT_TRUE(has_version_method,
+    decltype(std::declval<const Type&>().version()))
+
 // --- multiplicity detection ---
 
 D_TYPE_TRAIT_TRUE(has_multiplicity_min_accessor,
@@ -314,7 +322,7 @@ NS_INTERNAL
     private:
         template<typename U>
         static constexpr auto test(int)
-            -> std::bool_constant<(U{}.size(), true)>
+            -> std::bool_constant<(static_cast<void>(U{}.size()), true)>
         {
             return {};
         }
@@ -347,7 +355,7 @@ NS_INTERNAL
         template<typename U>
         static constexpr auto test(int)
             -> std::bool_constant<
-                   (U{}.max_size(), true)>
+                   (static_cast<void>(U{}.max_size()), true)>
         {
             return {};
         }

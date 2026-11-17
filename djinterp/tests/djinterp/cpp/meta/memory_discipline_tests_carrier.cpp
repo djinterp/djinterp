@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/meta/memory_discipline_tests_carrier.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -21,7 +21,8 @@ tests_memory_discipline_carrier
   the carrier reifies a discipline value as a distinct type
   Tests the following:
   - memory_discipline_constant<D>::value equals D for each of the five values
-  - it is an integral_constant whose value_type is memory_discipline
+  - it is an integral_constant whose value_type is memory_discipline::value
+    (the enum inside the memory_discipline struct)
   - the five named aliases carry their corresponding value
   - distinct values yield distinct carrier types
 */
@@ -33,12 +34,16 @@ bool tests_memory_discipline_carrier()
     D_MD_CHECK(memory_discipline_constant<memory_discipline::arena>::value
                == memory_discipline::arena);
 
-    // it is an integral_constant over memory_discipline
-    D_MD_CHECK((std::is_same<memory_discipline_constant<memory_discipline::pooled>::value_type,
-                             memory_discipline>::value));
-    D_MD_CHECK((std::is_base_of<
-                    std::integral_constant<memory_discipline, memory_discipline::pooled>,
-                    memory_discipline_constant<memory_discipline::pooled>>::value));
+    // it is an integral_constant over memory_discipline::value
+    D_MD_CHECK((std::is_same<
+                    memory_discipline_constant<
+                        memory_discipline::pooled>::value_type,
+                    memory_discipline::value>::value));
+    D_MD_CHECK((std::is_same<
+                    std::integral_constant<memory_discipline::value,
+                                           memory_discipline::pooled>,
+                    memory_discipline_constant<
+                        memory_discipline::pooled>>::value));
 
     // the five named aliases
     D_MD_CHECK(unknown_discipline::value    == memory_discipline::unknown);

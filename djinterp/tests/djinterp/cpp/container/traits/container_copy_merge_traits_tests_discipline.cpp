@@ -4,8 +4,8 @@
 *
 * path:      /tests/djinterp/cpp/container/traits/container_copy_merge_traits_tests_discipline.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 // djinterp
 #include "container_copy_merge_traits_tests.hpp"
@@ -48,25 +48,26 @@ bool tests_discipline_signal_probes()
     bool ok = true;
 
     // the equivalence mark
-    D_CM_CHECK(internal::has_equivalence_helper<DCmSetLike>::value  == true);
-    D_CM_CHECK(internal::has_equivalence_helper<DCmMapLike>::value  == true);
-    D_CM_CHECK(internal::has_equivalence_helper<DCmSeq>::value       == false);
-    D_CM_CHECK(internal::has_equivalence_helper<DCmPrivateKey>::value
+    D_CM_CHECK(internal::merge_equivalence_helper<DCmSetLike>::value  == true);
+    D_CM_CHECK(internal::merge_equivalence_helper<DCmMapLike>::value  == true);
+    D_CM_CHECK(
+        internal::merge_equivalence_helper<DCmSeq>::value == false);
+    D_CM_CHECK(internal::merge_equivalence_helper<DCmPrivateKey>::value
                    == false);
 
     // the keyed mark, which does not require an equivalence mark
-    D_CM_CHECK(internal::has_keyed_value_helper<DCmMapLike>::value  == true);
-    D_CM_CHECK(internal::has_keyed_value_helper<DCmPairSequence>::value
+    D_CM_CHECK(internal::merge_keyed_value_helper<DCmMapLike>::value  == true);
+    D_CM_CHECK(internal::merge_keyed_value_helper<DCmPairSequence>::value
                    == true);
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<
                         DCmPairSequence>::value == true )
-               && ( internal::has_equivalence_helper<
+               && ( internal::merge_equivalence_helper<
                         DCmPairSequence>::value == false ));
-    D_CM_CHECK(internal::has_keyed_value_helper<DCmSeq>::value      == false);
-    D_CM_CHECK(internal::has_keyed_value_helper<DCmSetLike>::value == false);
+    D_CM_CHECK(internal::merge_keyed_value_helper<DCmSeq>::value      == false);
+    D_CM_CHECK(internal::merge_keyed_value_helper<DCmSetLike>::value == false);
 
     // ... and BOTH pair members are named, so a half-pair does not match
-    D_CM_CHECK(internal::has_keyed_value_helper<
+    D_CM_CHECK(internal::merge_keyed_value_helper<
                    DCmHalfPairValue>::value == false);
     D_CM_CHECK(merge_discipline_of<DCmHalfPairValue>::value
                    == merge_discipline::sequence);
@@ -334,9 +335,9 @@ bool tests_merge_discipline_of()
                    == merge_discipline::unknown);
 
     // the container guard runs first
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<
                         DCmKeyNoIter>::value == true )
-               && ( internal::has_equivalence_helper<
+               && ( internal::merge_equivalence_helper<
                         DCmKeyNoIter>::value == true )
                && ( internal::has_unique_insert_helper<
                         DCmKeyNoIter>::value == true )
@@ -471,25 +472,25 @@ bool tests_discipline_pair_sequence_misread()
                    == merge_discipline::multimap);
 
     // ... on carriers with the keyed mark and NO equivalence mark
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<
                         DCmPairSequence>::value == true )
-               && ( internal::has_equivalence_helper<
+               && ( internal::merge_equivalence_helper<
                         DCmPairSequence>::value == false ));
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<
                         DCmPairVector>::value == true )
-               && ( internal::has_equivalence_helper<
+               && ( internal::merge_equivalence_helper<
                         DCmPairVector>::value == false ));
 
     // every genuine associative container carries BOTH marks
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<DCmMap>::value == true )
-               && ( internal::has_equivalence_helper<DCmMap>::value
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmMap>::value == true )
+               && ( internal::merge_equivalence_helper<DCmMap>::value
                         == true ));
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<DCmMultimap>::value
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmMultimap>::value
                         == true )
-               && ( internal::has_equivalence_helper<DCmMultimap>::value
+               && ( internal::merge_equivalence_helper<DCmMultimap>::value
                         == true ));
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<DCmUmap>::value == true )
-               && ( internal::has_equivalence_helper<DCmUmap>::value
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmUmap>::value == true )
+               && ( internal::merge_equivalence_helper<DCmUmap>::value
                         == true ));
 
     // consequence 1: a keyed merge is claimed against a real map
@@ -536,32 +537,32 @@ bool tests_discipline_signal_order()
                    == merge_discipline::unknown);
 
     // branch 2: keyed, and it masks the equivalence branch
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<DCmMapLike>::value
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmMapLike>::value
                         == true )
-               && ( internal::has_equivalence_helper<DCmMapLike>::value
+               && ( internal::merge_equivalence_helper<DCmMapLike>::value
                         == true )
                && ( merge_discipline_of<DCmMapLike>::value
                         == merge_discipline::map ));
 
     // ... and is taken with the equivalence mark ABSENT
-    D_CM_CHECK(   ( internal::has_equivalence_helper<
+    D_CM_CHECK(   ( internal::merge_equivalence_helper<
                         DCmPairSequence>::value == false )
                && ( merge_discipline_of<DCmPairSequence>::value
                         == merge_discipline::multimap ));
 
     // branch 3: equivalence, masking the fallback
-    D_CM_CHECK(   ( internal::has_keyed_value_helper<DCmSetLike>::value
+    D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmSetLike>::value
                         == false )
-               && ( internal::has_equivalence_helper<DCmSetLike>::value
+               && ( internal::merge_equivalence_helper<DCmSetLike>::value
                         == true )
                && ( merge_discipline_of<DCmSetLike>::value
                         == merge_discipline::set ));
 
     // branch 4: the fallback, all earlier tests failing
     D_CM_CHECK(   ( is_iterable_container<DCmSeq>::value == true )
-               && ( internal::has_keyed_value_helper<DCmSeq>::value
+               && ( internal::merge_keyed_value_helper<DCmSeq>::value
                         == false )
-               && ( internal::has_equivalence_helper<DCmSeq>::value
+               && ( internal::merge_equivalence_helper<DCmSeq>::value
                         == false )
                && ( merge_discipline_of<DCmSeq>::value
                         == merge_discipline::sequence ));
@@ -616,10 +617,10 @@ bool tests_merge_discipline_cv_ref()
                    == merge_discipline_of<DCmPairSequence>::value);
 
     // the probes
-    D_CM_CV_REF_AGREE(internal::has_equivalence_helper, DCmSetLike,  true);
-    D_CM_CV_REF_AGREE(internal::has_equivalence_helper, DCmSeq,       false);
-    D_CM_CV_REF_AGREE(internal::has_keyed_value_helper, DCmMapLike,  true);
-    D_CM_CV_REF_AGREE(internal::has_keyed_value_helper, DCmSeq,       false);
+    D_CM_CV_REF_AGREE(internal::merge_equivalence_helper, DCmSetLike,  true);
+    D_CM_CV_REF_AGREE(internal::merge_equivalence_helper, DCmSeq,       false);
+    D_CM_CV_REF_AGREE(internal::merge_keyed_value_helper, DCmMapLike,  true);
+    D_CM_CV_REF_AGREE(internal::merge_keyed_value_helper, DCmSeq,       false);
     D_CM_CV_REF_AGREE(internal::has_unique_insert_helper, DCmSetLike, true);
     D_CM_CV_REF_AGREE(internal::has_unique_insert_helper,
                       DCmMultisetLike, false);

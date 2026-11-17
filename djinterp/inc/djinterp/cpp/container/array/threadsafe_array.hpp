@@ -19,8 +19,9 @@
 * `default_lock_policy`.
 *
 * THREE ACCESS TIERS:
-*   Lock-free     - size(), version() through DAtomicState.
-*                   No synchronization cost.
+*   Lock-free     - size_lockfree(), empty_lockfree(), version()
+*                   through DAtomicState.  No synchronization cost.
+*                   Every constructor records the extent there.
 *   Single-op     - at(i), set(i,v), assign(...).  Each acquires
 *                   and releases its own lock per call.
 *   Handle-based  - read_access() / write_access() return
@@ -49,7 +50,7 @@
 * path:      /inc/djinterp/cpp/container/array/threadsafe_array.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.26
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -282,24 +283,41 @@ public:
     // -------------------------------------------------------------
     // c. Construction / Assignment
     // -------------------------------------------------------------
-    DThreadsafeArray() = default;
+    DThreadsafeArray()
+        : m_data()
+    {
+        m_state.store_size(extent);
+    }
 
-    template<typename... Args>
+    // value constructor: forwards to the wrapped array's constructors (the
+    // element values, or an array_type).  Constrained on them, so it never
+    // takes a DThreadsafeArray, which goes to the copy constructor.
+    template<typename... Args,
+             typename = typename std::enable_if<
+                 ( (sizeof...(Args) >= 1)                              &&
+                   !internal::array_is_self_arg<DThreadsafeArray,
+                                                Args...>::value       &&
+                   std::is_constructible<array_type, Args&&...>::value )
+             >::type>
     explicit DThreadsafeArray(
         Args&&... _args
     )
         : m_data(std::forward<Args>(_args)...)
-    {}
+    {
+        m_state.store_size(extent);
+    }
 
-    // copy: lock the source for the duration of the copy
+    // copy: lock the source for the duration of the copy.  The lock is a
+    // temporary of the delegating call, so it is held while m_data is
+    // copy-constructed (which an immutable array needs; it can't be
+    // assigned).
     DThreadsafeArray(
         const DThreadsafeArray& _other
     )
-    {
-        read_lock_type guard(_other.base_type::mutex());
-
-        m_data = _other.m_data;
-    }
+        : DThreadsafeArray(copy_tag(),
+                           _other,
+                           read_lock_type(_other.base_type::mutex()))
+    {}
 
     DThreadsafeArray&
     operator=(
@@ -342,19 +360,11 @@ public:
     // d. Lock-Free Queries
     // -------------------------------------------------------------
     //   `size_lockfree` / `empty_lockfree` read the
-    // DAtomicState's dynamic size counter without
-    // taking the mutex.  For static-extent containers
-    // the counter only advances when `assign()` runs, so
-    // it reports 0 for a default-constructed instance.
-    //
-    //   The unsuffixed `size` / `empty` siblings below
-    // take the mutex and report the underlying array's
-    // actual size (= the static extent N for any
-    // fixed-extent instantiation), which is what most
-    // callers want when they ask "how big is this
-    // array?".  Tests rely on both APIs and the two
-    // returning different values for a default-
-    // constructed instance.
+    // DAtomicState's size counter without taking the
+    // mutex.  Every constructor stores the extent there,
+    // and `assign()` stores it again, so they agree with
+    // the locked `size` / `empty` below from construction
+    // on.
     size_type size_lockfree() const noexcept
     {
         return m_state.load_size();
@@ -473,18 +483,23 @@ public:
     // -------------------------------------------------------------
     // h. Optimistic Read
     // -------------------------------------------------------------
+    // optimistic
+    //   read: runs _fn on the array under the read lock, as apply_read()
+    // does.  optimistic_read()'s unlocked first attempts read the array
+    // while a writer may be writing it: a data race, which returned torn
+    // arrays under a concurrent writer.  _max_retries is kept for the
+    // signature and unused until the protocol is made race-free.
     template<typename Fn>
     auto optimistic(
         Fn&&     _fn,
         unsigned _max_retries = 3
     ) const -> decltype(_fn(std::declval<const array_type&>()))
     {
-        return optimistic_read<array_type, lock_policy_type>(
-            m_state,
-            m_data,
-            base_type::mutex(),
-            std::forward<Fn>(_fn),
-            _max_retries);
+        (void)_max_retries;
+
+        read_lock_type guard(base_type::mutex());
+
+        return std::forward<Fn>(_fn)(m_data);
     }
 
     // -------------------------------------------------------------
@@ -497,6 +512,25 @@ public:
     }
 
 private:
+    // copy_tag
+    //   struct: selects the copy constructor's delegate below.
+    struct copy_tag
+    {};
+
+    // copy delegate: _lock holds the source's read lock until the copy
+    // constructor's full-expression ends.
+    DThreadsafeArray(
+        copy_tag,
+        const DThreadsafeArray& _other,
+        const read_lock_type&   _lock
+    )
+        : m_data(_other.m_data)
+    {
+        (void)_lock;
+
+        m_state.store_size(extent);
+    }
+
     array_type   m_data;
     DAtomicState m_state;
 };

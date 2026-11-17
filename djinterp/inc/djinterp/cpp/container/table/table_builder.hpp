@@ -14,14 +14,12 @@
 * is table_parser, and both meet at the same model.
 *
 *   EVERY DECLARATOR IS A TYPE. A cell entry is a TYPE, uniformly -- so a row
-* may
-* mix a bare cell with a merged_cell<> or a split_cell<> in one pack (a C++
-* pack
-* cannot mix types and values, and the declarators must interleave freely).  A
-* compile-time VALUE rides in a cell as a value-carrying type: val<V> lifts an
-* NTTP (C++17), and any carrier / integral_constant / tag type serves
-* elsewhere.
-* This keeps the whole surface at the C++11 baseline of table_shape.
+* may mix a bare cell with a merged_cell<> or a split_cell<> in one pack (a
+* C++ pack cannot mix types and values, and the declarators must interleave
+* freely).  A compile-time VALUE rides in a cell as a value-carrying type:
+* val_t<V>, meta/carrier.hpp's value carrier, lifts an NTTP (C++17), and any
+* other carrier / integral_constant / tag type serves as well.  This keeps the
+* whole surface at the C++11 baseline of table_shape.
 *
 *   A CELL ADVANCES THE COLUMN CURSOR BY ITS SPAN.  This is the whole fold.  A
 * plain cell spans one column; a merged_cell<R, C, V> spans C of them (and R
@@ -56,14 +54,14 @@
 * groups concatenated, as the width sum) pending the nested realization.
 *
 *   PORTABILITY:
-*   C++11 baseline, as table_shape / table_layout; val<> (the NTTP lift) is
+*   C++11 baseline, as table_shape / table_layout; val_t<> (the NTTP lift) is
 * C++17.
 *
 *
 * path:      /inc/djinterp/cpp/container/table/table_builder.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -72,7 +70,7 @@ TABLE OF CONTENTS
 I.    declarators                (columns / rows / row / column / cell /
       ------------------------------------------------------------------
 
-      merged_cell / split_cell / val)
+      merged_cell / split_cell)
 
 II.   type_list                  (the fold's accumulator)
       ---------------------------------------------------
@@ -121,8 +119,9 @@ X.    concepts                   (C++20 analogs)
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"    // NS_*, D_CONSTEXPR, clean_t, D_ENV_*
+#include "../../djinterp.hpp"    // framework root
 #include "../../../config/cpp/container/table/cfg_table.h"
+#include "../../meta/carrier.hpp"  // val_t (the value cell)
 #include "./table_shape.hpp"      // table_shape, dynamic_extent, realization_of
 #include "./table_layout.hpp"     // region, layout, layout_valid, split
 #include "./table_options.hpp"    // the strictness vocabulary (C++11) + the
@@ -227,14 +226,11 @@ struct split_cell
     static D_CONSTEXPR std::size_t pieces = Pieces;
 };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-// val
-//   type: lifts a compile-time VALUE into the type-level cell vocabulary, so a
-// value cell reads as val<42> among the type cells. The bridge between the
-// all-types declarator surface and NTTP values.
-template<auto V>
-using val = std::integral_constant<decltype(V), V>;
-#endif
+//   A value cell is meta/carrier.hpp's val_t<V> (C++17): it lifts a
+// compile-time VALUE into the type-level cell vocabulary, so a value cell reads
+// as val_t<42> among the type cells, and val_t<42>::value is 42.  (This header
+// once had its own val<V>, an integral_constant; that name is carrier.hpp's
+// value-carrier OBJECT, and the two could not share a unit.)
 
 
 // ===========================================================================
@@ -317,7 +313,7 @@ NS_END  // internal
 // cell_rows / cell_cols
 //   traits: the row and column span of a cell entry. The primary treats any
 // type as a plain 1x1 cell -- so a bare entry (a value-carrying type, a tag, a
-// val<>) needs no opt-in; the specializations give the merged / split forms
+// val_t<>) needs no opt-in; the specializations give the merged / split forms
 // their declared box.
 template<typename Cell>
 struct cell_rows : std::integral_constant<std::size_t, 1>
@@ -968,7 +964,7 @@ NS_END  // internal
 //   with merged_cell<> / split_cell<> / cell<> / bare types as the entries.
 // Example (a 3-column table, one row, with a two-column merge):
 //   using t = table_builder<columns<int, int, int>,
-//                           row<val<1>, merged_cell<1, 2, val<2>>>>;
+//                           row<val_t<1>, merged_cell<1, 2, val_t<2>>>>;
 //   static_assert(t::width == 3, "");
 //   static_assert(t::height == 1, "");
 //   static_assert(t::has_merges, "");

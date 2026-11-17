@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/cpp/functional/comonad_tests_duplicate.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -63,7 +63,7 @@ bool tests_duplicate_pair_extract_law()
 tests_duplicate_kv
   Tests the following:
   - duplicate nests a DKvPair with the key on both levels: duplicate(kv(3,10))
-    has m_key 3 and m_value kv(3,10) (field-level).
+    has key 3 and value kv(3,10) (field-level).
 */
 static
 bool tests_duplicate_kv()
@@ -71,9 +71,9 @@ bool tests_duplicate_kv()
     const ::djinterp::DKvPair<int, ::djinterp::DKvPair<int, int> > r =
         ::djinterp::duplicate(::djinterp::DKvPair<int, int>(3, 10));
 
-    return ( (r.m_key == 3)             &&
-             (r.m_value.m_key == 3)     &&
-             (r.m_value.m_value == 10) );
+    return ( (r.key == 3)             &&
+             (r.value.key == 3)     &&
+             (r.value.value == 10) );
 }
 
 /*
@@ -101,8 +101,8 @@ bool tests_duplicate_extract_law_kv_ident()
     const ::djinterp::DKvPair<int, int> wk(3, 10);
     const ::djinterp::DKvPair<int, int> rk =
         ::djinterp::extract(::djinterp::duplicate(wk));
-    const bool kv_ok = ( (rk.m_key == 3) &&
-                         (rk.m_value == 10) );
+    const bool kv_ok = ( (rk.key == 3) &&
+                         (rk.value == 10) );
 
     const ident<int> wi(7);
     const bool ident_ok =

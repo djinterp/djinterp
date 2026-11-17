@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/functional/fn_builder_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.10
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FN_BUILDER_STANDALONE_
@@ -55,6 +55,9 @@ bool d_tests_fn_builder_chaining(
 bool d_tests_fn_builder_grow(
     struct dj_test_suite* _suite
 );
+bool d_tests_fn_builder_deprecated_names(
+    struct dj_test_suite* _suite
+);
 bool d_tests_fn_builder_operations_all(
     struct dj_test_suite* _suite
 );
@@ -73,6 +76,12 @@ bool d_tests_fn_builder_execute_predicates_only(
     struct dj_test_suite* _suite
 );
 bool d_tests_fn_builder_execute_combined(
+    struct dj_test_suite* _suite
+);
+bool d_tests_fn_builder_execute_order(
+    struct dj_test_suite* _suite
+);
+bool d_tests_fn_builder_execute_in_place(
     struct dj_test_suite* _suite
 );
 bool d_tests_fn_builder_execute_transform_failure(

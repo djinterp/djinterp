@@ -1,12 +1,17 @@
 /*******************************************************************************
-* djinterp [cpp]                           memory_discipline_tests_detection.cpp
+* djinterp [test]                          memory_discipline_tests_detection.cpp
+*
+*   Detection tests: the strategy marker and allocate signals, the two optional
+* constants (detected by declaration, not by value), and the readers that
+* default them to false.
 *
 *
 * path:      /tests/djinterp/cpp/meta/memory_discipline_tests_detection.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.11.11
 *******************************************************************************/
+
 // djinterp
 #include "memory_discipline_tests.hpp"
 
@@ -58,12 +63,15 @@ bool tests_memory_discipline_signal_kind_and_allocate()
 
 /*
 tests_memory_discipline_signal_constants
-  the two optional constants are detected by presence, not by value
+  the two optional constants are detected by declaration, not by value
   Tests the following:
-  - has_pointer_stable_constant_signal is true exactly when pointer_stable exists
-    (whether it is true or false), false when it is absent
+  - has_pointer_stable_constant_signal is true exactly when pointer_stable is
+    declared as a constant (whether it is true or false), false when it is
+    absent
   - has_individual_release_constant_signal is true exactly when
-    supports_individual_release exists, false when absent
+    supports_individual_release is declared as a constant, false when absent
+  - a static member function or a non-static data member of either name is not
+    a constant, and declares nothing
 */
 bool tests_memory_discipline_signal_constants()
 {
@@ -81,6 +89,12 @@ bool tests_memory_discipline_signal_constants()
     D_MD_CHECK(!has_individual_release_constant_signal<md_arena_absent>::value);
     D_MD_CHECK(!has_individual_release_constant_signal<md_unknown>::value);
 
+    // a function or a data member of the name is not a constant
+    D_MD_CHECK(!has_pointer_stable_constant_signal<md_function_constants>::value);
+    D_MD_CHECK(!has_pointer_stable_constant_signal<md_member_constants>::value);
+    D_MD_CHECK(!has_individual_release_constant_signal<md_function_constants>::value);
+    D_MD_CHECK(!has_individual_release_constant_signal<md_member_constants>::value);
+
     return true;
 }
 
@@ -92,6 +106,8 @@ tests_memory_discipline_read_constants
     the conservative false when absent
   - read_individual_release is the declared value when present (true or false),
     and the conservative false when absent
+  - a function or a data member of either name reads as absent: false, and no
+    hard error
 */
 bool tests_memory_discipline_read_constants()
 {
@@ -106,6 +122,12 @@ bool tests_memory_discipline_read_constants()
     D_MD_CHECK(djinterp::internal::read_individual_release<md_arena_false>::value == false);
     D_MD_CHECK(djinterp::internal::read_individual_release<md_arena_absent>::value == false);
     D_MD_CHECK(djinterp::internal::read_individual_release<DMdNone>::value == false);
+
+    // not constants: read as absent
+    D_MD_CHECK(djinterp::internal::read_pointer_stable<md_function_constants>::value == false);
+    D_MD_CHECK(djinterp::internal::read_pointer_stable<md_member_constants>::value == false);
+    D_MD_CHECK(djinterp::internal::read_individual_release<md_function_constants>::value == false);
+    D_MD_CHECK(djinterp::internal::read_individual_release<md_member_constants>::value == false);
 
     return true;
 }

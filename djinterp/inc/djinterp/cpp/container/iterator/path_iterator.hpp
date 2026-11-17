@@ -2,14 +2,11 @@
 * djinterp [cpp]                                               path_iterator.hpp
 *
 *   The PATH iterator: a traversal of the descent relation UPWARD -- the
-* unique
-* chain of components from a node back to its root. It is the exact converse
-* of
-* linked_tree_iterator.hpp, which walks the same relation downward, and
-* between
-* them the two exhaust it.
+* unique chain of components from a node back to its root. It is the exact
+* converse of tree_iterator.hpp, which walks the same relation downward, and
+* between them the two exhaust it.
 *
-*     linked_tree_iterator the descent |> : root -> ... -> node (downward)
+*     tree_iterator          the descent |> : root -> ... -> node (downward)
 *     path_iterator          the ascent  |>^-1: node -> ... -> root  (upward)
 *
 *   THE SPEC (Structure, Addressability). Because the components of a
@@ -54,8 +51,7 @@
 * subtree has no path to it, and the iterator is empty.
 *
 *   NAVIGATION IS BY POLICY.  The same accessor policy that container_path.hpp
-* and linked_tree_iterator.hpp take; only parent(), is_null(), null_index(),
-* and
+* and tree_iterator.hpp take; only parent(), is_null(), null_index(), and
 * component() are used here.  The policy is held BY VALUE and must be cheap to
 * copy.
 *
@@ -71,7 +67,7 @@
 * path:      /inc/djinterp/cpp/container/iterator/path_iterator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 /*
@@ -100,7 +96,7 @@ III.  Path View and Factories
 #include <cstddef>
 #include <iterator>
 // djinterp
-#include "../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
+#include "../../djinterp.hpp"   // framework root
 
 
 NS_DJINTERP

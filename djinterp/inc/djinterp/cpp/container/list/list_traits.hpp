@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/container/list/list_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 /*
@@ -546,28 +546,18 @@ struct has_iter_insert_method
 // invalidates only the iterator pointing at the affected element,
 // leaving all others valid.  Containers can opt in to this guarantee
 // by exposing a `static constexpr bool is_node_stable = true;`
-// member.  Detection uses the two-step probe: existence of the
-// member followed by truth of the value.
+// member.  Detection is the engine's opt-in reading (D_TYPE_TRAIT_OPT_IN):
+// the member's value where it is a constant usable as a bool template
+// argument, and false otherwise.
 
 NS_INTERNAL
 
     // has_node_stable_tag_helper
-    //   trait: primary template (failure case).
-    template<typename Type,
-             typename = void>
-    struct has_node_stable_tag_helper : std::false_type
-    {};
-
-    // has_node_stable_tag_helper (success case)
-    //   trait: matches when Type exposes a static `is_node_stable` member
-    // equal to true.
-    template<typename Type>
-    struct has_node_stable_tag_helper<
-        Type,
-        void_t<decltype(clean_t<Type>::is_node_stable)>
-    > : djinterp::bool_constant<
-            static_cast<bool>(clean_t<Type>::is_node_stable)>
-    {};
+    //   trait: the value of a static `is_node_stable` constant, or false. A
+    // static member function or a non-static data member of that name opts
+    // into nothing. (Read by decltype and a cast to bool until 2026.11.11,
+    // the function read as true and the data member was a hard error.)
+    D_TYPE_TRAIT_OPT_IN(has_node_stable_tag_helper, is_node_stable)
 
 NS_END  // internal
 

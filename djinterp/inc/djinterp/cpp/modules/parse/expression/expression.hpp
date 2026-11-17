@@ -275,9 +275,9 @@ public:
              _it != m_entries.end();
              ++_it)
         {
-            if (_it->m_key == _op)
+            if (_it->key == _op)
             {
-                return &_it->m_value;
+                return &_it->value;
             }
         }
 
@@ -300,7 +300,7 @@ public:
              _it != m_entries.end();
              ++_it, ++_i)
         {
-            if (_it->m_key == _op)
+            if (_it->key == _op)
             {
                 return _i;
             }

@@ -2,26 +2,25 @@
 * djinterp [c]                                                      fn_builder.c
 *
 * The fluent function builder fn_builder.h declares.
-*   The builder keeps its transformers and its predicates in separate arrays,
-* so it cannot record how they interleaved. It therefore runs as a query:
-* an element is kept when every predicate accepts it (WHERE), and a kept
-* element then passes through every transformer in the order they were added
-* (SELECT). Callbacks receive a NULL context, which the builder does not store.
-*   The builder methods are spelled `d_funtional_builder_*`, as the header
-* declares them.
+*   The builder keeps one array of steps, each a transformer or a predicate,
+* in the order they were added, and runs it in that order: a predicate tests
+* the value the steps before it produced. (It kept two arrays until
+* 2026.11.11, and so ran every predicate on the original element before any
+* transformer, which the C++ face did not; the owner ruled for call order.)
+* Callbacks receive a NULL context, which the builder does not store.
 *
 *
 * path:      /src/djinterp/c/functional/fn_builder.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/functional/fn_builder.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
 #include <stdlib.h>   // malloc, realloc, free
-#include <string.h>   // memcpy
+#include <string.h>   // memmove
 // djinterp
 #include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul
 
@@ -35,20 +34,14 @@ struct dj_fn_builder* d_fn_builder_new(void)
         return NULL;
     }
 
-    builder->transforms      = malloc(D_FN_BUILDER_INITIAL_CAPACITY *
-                                      sizeof(fn_transformer));
-    builder->predicates      = malloc(D_FN_BUILDER_INITIAL_CAPACITY *
-                                      sizeof(fn_predicate));
-    builder->transform_count = 0u;
-    builder->predicate_count = 0u;
-    builder->capacity        = D_FN_BUILDER_INITIAL_CAPACITY;
+    builder->steps    = malloc(D_FN_BUILDER_INITIAL_CAPACITY *
+                               sizeof(struct dj_fn_builder_step));
+    builder->count    = 0u;
+    builder->capacity = D_FN_BUILDER_INITIAL_CAPACITY;
 
     // all or nothing
-    if ( (!builder->transforms) ||
-         (!builder->predicates) )
+    if (!builder->steps)
     {
-        free(builder->transforms);
-        free(builder->predicates);
         free(builder);
 
         return NULL;
@@ -58,72 +51,60 @@ struct dj_fn_builder* d_fn_builder_new(void)
 }
 
 /*
-d_internal_fn_builder_room
-  Both arrays share one capacity, so both grow together, doubling. On a
-failed growth the builder is unchanged.
+d_internal_fn_builder_append
+  Grows the chain by doubling when it is full, then records the step. Every
+fluent operation comes through here, so a failure leaves the builder exactly
+as it was: the growth is checked (d_ckd_mul) before realloc, and realloc
+keeps the old array on failure.
 */
 static
-bool d_internal_fn_builder_room(
-    struct dj_fn_builder* _builder
+struct dj_fn_builder* d_internal_fn_builder_append(
+    struct dj_fn_builder*            _builder,
+    const struct dj_fn_builder_step* _step
 )
 {
-    // room in both arrays already
-    if ( (_builder->transform_count < _builder->capacity) &&
-         (_builder->predicate_count < _builder->capacity) )
+    // room for one more step
+    if (_builder->count == _builder->capacity)
     {
-        return true;
+        size_t capacity = 0u;
+        size_t bytes    = 0u;
+
+        // a doubled capacity, or its size in bytes, that does not fit
+        if ( (d_ckd_mul(&capacity, _builder->capacity, 2u)) ||
+             (d_ckd_mul(&bytes, capacity, sizeof(struct dj_fn_builder_step))) )
+        {
+            return NULL;
+        }
+
+        struct dj_fn_builder_step* const steps =
+            realloc(_builder->steps, bytes);
+
+        if (!steps)
+        {
+            return NULL;
+        }
+
+        _builder->steps    = steps;
+        _builder->capacity = capacity;
     }
 
-    size_t capacity        = 0u;
-    size_t transform_bytes = 0u;
-    size_t predicate_bytes = 0u;
+    _builder->steps[_builder->count] = *_step;
+    ++_builder->count;
 
-    //   a doubled capacity, or either array's size, that does not fit; each
-    // array is sized by its own element type, which C does not promise are
-    // the same size
-    if ( (d_ckd_mul(&capacity, _builder->capacity, 2u))                  ||
-         (d_ckd_mul(&transform_bytes, capacity, sizeof(fn_transformer))) ||
-         (d_ckd_mul(&predicate_bytes, capacity, sizeof(fn_predicate))) )
-    {
-        return false;
-    }
-
-    fn_transformer* const transforms =
-        realloc(_builder->transforms, transform_bytes);
-
-    if (!transforms)
-    {
-        return false;
-    }
-
-    _builder->transforms = transforms;
-
-    fn_predicate* const predicates =
-        realloc(_builder->predicates, predicate_bytes);
-
-    if (!predicates)
-    {
-        return false;
-    }
-
-    _builder->predicates = predicates;
-    _builder->capacity   = capacity;
-
-    return true;
+    return _builder;
 }
 
 /*
-d_funtional_builder_map
-  Appends a transformer. Returns NULL when the builder is missing or cannot
-grow -- the builder itself is then unchanged and still the caller's to free,
-so keep the original pointer when chaining. A missing transformer adds
-nothing.
+d_fn_builder_map
+  A missing transformer adds nothing, and the builder comes back unchanged.
 */
-struct dj_fn_builder* d_funtional_builder_map(
+struct dj_fn_builder* d_fn_builder_map(
     struct dj_fn_builder* _builder,
     fn_transformer        _transform
 )
 {
+    struct dj_fn_builder_step step;
+
     // no builder, or nothing to add
     if ( (!_builder) ||
          (!_transform) )
@@ -131,39 +112,35 @@ struct dj_fn_builder* d_funtional_builder_map(
         return _builder;
     }
 
-    // make room first
-    if (!d_internal_fn_builder_room(_builder))
-    {
-        return NULL;
-    }
+    step.kind         = D_FN_BUILDER_STEP_TRANSFORM;
+    step.fn.transform = _transform;
 
-    _builder->transforms[_builder->transform_count] = _transform;
-    ++_builder->transform_count;
-
-    return _builder;
+    return d_internal_fn_builder_append(_builder, &step);
 }
 
 /*
-d_funtional_builder_and_then
-  The same as map: a further transformer, applied after those added before.
+d_fn_builder_and_then
+  The same as map: a further transformer, applied after the steps before it.
 */
-struct dj_fn_builder* d_funtional_builder_and_then(
+struct dj_fn_builder* d_fn_builder_and_then(
     struct dj_fn_builder* _builder,
     fn_transformer        _transform
 )
 {
-    return d_funtional_builder_map(_builder, _transform);
+    return d_fn_builder_map(_builder, _transform);
 }
 
 /*
-d_funtional_builder_filter
-  Appends a predicate; failure as for map.
+d_fn_builder_filter
+  A missing predicate adds nothing, as for map.
 */
-struct dj_fn_builder* d_funtional_builder_filter(
+struct dj_fn_builder* d_fn_builder_filter(
     struct dj_fn_builder* _builder,
     fn_predicate          _test
 )
 {
+    struct dj_fn_builder_step step;
+
     // no builder, or nothing to add
     if ( (!_builder) ||
          (!_test) )
@@ -171,37 +148,110 @@ struct dj_fn_builder* d_funtional_builder_filter(
         return _builder;
     }
 
-    // make room first
-    if (!d_internal_fn_builder_room(_builder))
-    {
-        return NULL;
-    }
+    step.kind         = D_FN_BUILDER_STEP_PREDICATE;
+    step.fn.predicate = _test;
 
-    _builder->predicates[_builder->predicate_count] = _test;
-    ++_builder->predicate_count;
-
-    return _builder;
+    return d_internal_fn_builder_append(_builder, &step);
 }
 
 /*
-d_funtional_builder_where
+d_fn_builder_where
   The same as filter.
 */
-struct dj_fn_builder* d_funtional_builder_where(
+struct dj_fn_builder* d_fn_builder_where(
     struct dj_fn_builder* _builder,
     fn_predicate          _test
 )
 {
-    return d_funtional_builder_filter(_builder, _test);
+    return d_fn_builder_filter(_builder, _test);
+}
+
+/*
+d_internal_fn_builder_has_transform
+  Whether any step is a transformer, which is when a run needs working
+memory for the values it computes.
+*/
+static
+bool d_internal_fn_builder_has_transform(
+    const struct dj_fn_builder* _builder
+)
+{
+    for (size_t s = 0u; s < _builder->count; ++s)
+    {
+        if (_builder->steps[s].kind == D_FN_BUILDER_STEP_TRANSFORM)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*
+d_internal_fn_builder_run_one
+  Takes one element through the chain. The value in hand starts as the
+element itself; each transformer writes its image to the scratch element the
+previous transformer did not write, so a transformer never reads and writes
+the same memory, and then that image is the value in hand. A rejecting
+predicate drops the element, and the remaining steps do not run.
+  *_value is the value in hand at the end, valid when the element is kept.
+Returns false when a transformer fails.
+*/
+static
+bool d_internal_fn_builder_run_one(
+    const struct dj_fn_builder* _builder,
+    const void*                 _element,
+    unsigned char*              _scratch,
+    size_t                      _element_size,
+    const void**                _value,
+    bool*                       _kept
+)
+{
+    const void* value = _element;
+    size_t      next  = 0u;
+
+    *_kept = true;
+
+    for (size_t s = 0u; s < _builder->count; ++s)
+    {
+        const struct dj_fn_builder_step* const step = &_builder->steps[s];
+
+        // a predicate on the value in hand
+        if (step->kind == D_FN_BUILDER_STEP_PREDICATE)
+        {
+            if (!step->fn.predicate(value, NULL))
+            {
+                *_kept = false;
+
+                return true;
+            }
+
+            continue;
+        }
+
+        // a transformer, into the other scratch element
+        void* const target = _scratch + (next * _element_size);
+
+        if (!step->fn.transform(value, target, NULL))
+        {
+            return false;
+        }
+
+        value = target;
+        next  = 1u - next;
+    }
+
+    *_value = value;
+
+    return true;
 }
 
 /*
 d_fn_builder_execute
-  Kept elements are written contiguously to `_output`, which must hold
-`_count` elements of `_element_size` bytes (transformers keep the size).
-Between transformers the value moves through two scratch elements. A
-transformer that fails stops the run: false, with `*_out_count` the number of
-elements completed.
+  A kept element's final value is moved into the next output slot only after
+the whole chain has run, so a rejected element touches nothing past
+*_out_count; memmove, not memcpy, because with no transformer the value is the
+input element itself, which is the slot when the chain runs in place.
 */
 bool d_fn_builder_execute(
     const struct dj_fn_builder* _builder,
@@ -227,15 +277,15 @@ bool d_fn_builder_execute(
         return false;
     }
 
-    // the scratch elements a chain of transformers passes values through
+    // two scratch elements, for the values transformers compute
     unsigned char* scratch = NULL;
 
-    if ( (_builder->transform_count > 1u) &&
-         (_count > 0u) )
+    if ( (_count > 0u) &&
+         (d_internal_fn_builder_has_transform(_builder)) )
     {
         size_t scratch_bytes = 0u;
 
-        // two elements of scratch, refused where their size does not fit
+        // refused where their size does not fit
         if (d_ckd_mul(&scratch_bytes, 2u, _element_size))
         {
             return false;
@@ -251,51 +301,26 @@ bool d_fn_builder_execute(
 
     bool ok = true;
 
-    // WHERE, then SELECT, element by element
     for (size_t i = 0u; (ok) && (i < _count); ++i)
     {
         const void* const element =
             (const unsigned char*)_input + (i * _element_size);
-        void* const       slot    =
-            (unsigned char*)_output + (written * _element_size);
-        bool              kept    = true;
+        const void*       value   = NULL;
+        bool              kept    = false;
 
-        // every predicate must accept the element
-        for (size_t p = 0u; (kept) && (p < _builder->predicate_count); ++p)
+        ok = d_internal_fn_builder_run_one(_builder,
+                                           element,
+                                           scratch,
+                                           _element_size,
+                                           &value,
+                                           &kept);
+
+        if ( (ok) &&
+             (kept) )
         {
-            kept = _builder->predicates[p](element, NULL);
-        }
-
-        if (!kept)
-        {
-            continue;
-        }
-
-        // no transformer: the element itself
-        if (_builder->transform_count == 0u)
-        {
-            memcpy(slot, element, _element_size);
-            ++written;
-
-            continue;
-        }
-
-        // each transformer reads the last one's result; the last one writes
-        // the output slot
-        const void* source = element;
-
-        for (size_t t = 0u; (ok) && (t < _builder->transform_count); ++t)
-        {
-            void* const target = (t + 1u == _builder->transform_count)
-                ? slot
-                : (void*)(scratch + ((t % 2u) * _element_size));
-
-            ok     = _builder->transforms[t](source, target, NULL);
-            source = target;
-        }
-
-        if (ok)
-        {
+            memmove((unsigned char*)_output + (written * _element_size),
+                    value,
+                    _element_size);
             ++written;
         }
     }
@@ -320,8 +345,7 @@ void d_fn_builder_free(
         return;
     }
 
-    free(_builder->transforms);
-    free(_builder->predicates);
+    free(_builder->steps);
     free(_builder);
 
     return;

@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                  value_list_tests_transform.cpp
+* djinterp [test]                                 value_list_tests_transform.cpp
+*
+*   Section V -- transform: a unary carrier-callable leaf mapped over the list.
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests_transform.cpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests_transform.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.11
 *******************************************************************************/
-// djinterp [test]  value_list_tests_transform.cpp
-//   Section V -- transform: a unary carrier-callable leaf mapped over the list.
 
 // std
 #include <type_traits>

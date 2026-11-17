@@ -44,7 +44,7 @@
 * path:      /tests/djinterp/cpp/functional/comparator_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -83,7 +83,7 @@ IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: comparator_spec)
     // (section IV). Pull in the DTest authoring surface: module_spec /
     // block_spec / test_spec, build_enriched_tree, run_module, and the
     // test_option_set the runner configures. Resolved via the djinterp include
-    // root, the same root the runners' <djinterp/core/djinterp.hpp> resolves
+    // root, the same root the runners' <djinterp/cpp/djinterp.hpp> resolves
     // against. This is the one C++11+ dependency in the file; gating it here
     // keeps the C++98-subset section builds - which never define
     // DTEST_SPEC_MODE - free of the framework, preserving the dual-standard

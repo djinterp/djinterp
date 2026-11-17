@@ -40,7 +40,22 @@
 * ACCESS PATTERNS:
 *   read(fn)     - invokes fn(const array&) under an epoch guard
 *   update(fn)   - copy -> modify -> atomic publish -> retire old
-*   snapshot()   - atomic snapshot pointer (zero-copy view)
+*   replace(a)   - publish a new array whole -> retire old
+*   snapshot()   - a copy of the current array, taken under an epoch
+*                  guard, in a DImmutableSnapshot (as DCowArray's).
+*                  A zero-copy snapshot would have to hold the read
+*                  guard open, and DRcuProtected's guards don't nest:
+*                  an inner read would end the outer one.
+*
+*   The wrapper is built on sync/rcu.hpp's DRcuProtected: read_lock()
+* and read(guard) for readers, modify(fn) and update(value) for
+* writers.
+*
+*   KNOWN LIMIT (2026.11.14): DRcuProtected registers one reader slot,
+* which every thread's read uses.  Two threads reading at once can
+* have the array reclaimed under one of them (a heap-use-after-free
+* under ASan).  Until sync/rcu.hpp gives each thread its own slot,
+* read from one thread at a time; writers are not limited.
 *
 * DEPENDENCIES:
 *   array.hpp                       - wrapped container
@@ -52,7 +67,7 @@
 * path:      /inc/djinterp/cpp/container/array/rcu_array.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.26
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -89,6 +104,7 @@ III.  Static Verification
 #include <utility>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../sync/cow.hpp"  // DImmutableSnapshot
 #include "../../sync/threadsafe.hpp"
 #include "../container_options.hpp"
 #include "../traits/concurrency_strategy_traits.hpp"
@@ -135,6 +151,7 @@ public:
     // -------------------------------------------------------------
     using underlying_type    = array_type;
     using rcu_protected_type = protected_type;
+    using snapshot_type      = DImmutableSnapshot<array_type>;
 
     // strategy tag - read by concurrency_strategy_traits
     using concurrency_strategy_tag = rcu_strategy_tag;
@@ -145,11 +162,16 @@ public:
         DArrayLifetime    lifetime    = array_type::lifetime;
     D_STATIC_CONSTEXPR
         DArrayIterability iterability = array_type::iterability;
+    D_STATIC_CONSTEXPR bool iterable  = array_type::iterable;
 
     // -------------------------------------------------------------
     // c. Construction
     // -------------------------------------------------------------
-    rcu_array() = default;
+    // default: publishes a value-initialized array (DRcuProtected has no
+    // default constructor; it always holds a published value).
+    rcu_array()
+        : m_protected(array_type())
+    {}
 
     explicit rcu_array(const array_type& _initial)
         : m_protected(_initial)
@@ -190,14 +212,16 @@ public:
         Fn&& _fn
     ) const -> decltype(_fn(std::declval<const array_type&>()))
     {
-        return m_protected.read(std::forward<Fn>(_fn));
+        auto guard = m_protected.read_lock();
+
+        return std::forward<Fn>(_fn)(m_protected.read(guard));
     }
 
-    // size / at - convenience wrappers around read() These return by value;
-    // the epoch guard is held only during the brief read.
+    // size / at - convenience wrappers around read(). These return by
+    // value; the epoch guard is held only during the brief read.
     size_type size() const
     {
-        return m_protected.read(
+        return read(
             [](const array_type& _a) -> size_type
             {
                 return _a.size();
@@ -208,7 +232,7 @@ public:
         size_type _i
     ) const
     {
-        return m_protected.read(
+        return read(
             [_i](const array_type& _a) -> value_type
             {
                 return _a[_i];
@@ -237,7 +261,7 @@ public:
         Fn&& _fn
     )
     {
-        m_protected.update(std::forward<Fn>(_fn));
+        m_protected.modify(std::forward<Fn>(_fn));
     }
 
     // replace
@@ -247,14 +271,14 @@ public:
         const array_type& _new_value
     )
     {
-        m_protected.publish(_new_value);
+        m_protected.update(_new_value);
     }
 
     void replace(
         array_type&& _new_value
     )
     {
-        m_protected.publish(std::move(_new_value));
+        m_protected.update(std::move(_new_value));
     }
 
     // -------------------------------------------------------------
@@ -262,16 +286,22 @@ public:
     // -------------------------------------------------------------
 
     // snapshot
-    //   returns a stable pointer-snapshot of the array. Typically a
-    // reference-counted handle that survives epoch transitions. Use for
-    // long-lived reads.
-    auto snapshot() const -> decltype(std::declval<const protected_type&>().snapshot())
+    //   returns a copy of the current array, taken under an epoch guard and
+    // held in a reference-counted DImmutableSnapshot. It survives later
+    // updates and epoch transitions. Use for long-lived reads.
+    snapshot_type snapshot() const
     {
-        return m_protected.snapshot();
+        return read(
+            [](const array_type& _a) -> snapshot_type
+            {
+                return snapshot_type(_a);
+            });
     }
 
 private:
-    protected_type m_protected;
+    // mutable: a read takes an epoch guard (DRcuProtected::read_lock(),
+    // non-const) without changing the published array.
+    mutable protected_type m_protected;
 };
 
 
@@ -344,38 +374,7 @@ NS_DJINTERP namespace internal { namespace rcu_array_verify {
         array_lifetime_of<base>::value,
         "rcu_array drifted on lifetime");
 
-    // ------------------------------------------------------------
-    //   The two checks below depend on `is_rcu_container_v`, which
-    // must live in concurrency_strategy_traits.hpp alongside its
-    // already-defined siblings `is_atomic_container_v`,
-    // `is_locked_container_v`, and `is_cow_container_v`.  Until
-    // that trait is added, the checks are guarded behind
-    // `DJINTERP_HAS_IS_RCU_CONTAINER` so the rest of the static-
-    // verification block continues to compile.
-    //
-    //   The drop-in definition (mirrors the other three traits):
-    //
-    //     template<typename Type, typename = void>
-    //     struct is_rcu_container : std::false_type {};
-    //
-    //     template<typename Type>
-    //     struct is_rcu_container<Type,
-    //         void_t<typename Type::concurrency_strategy_tag>>
-    //         : std::is_same<typename
-    //               Type::concurrency_strategy_tag,
-    //               rcu_strategy_tag>
-    //     {};
-    //
-    //     #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    //     template<typename Type>
-    //     constexpr bool is_rcu_container_v =
-    //         is_rcu_container<Type>::value;
-    //     #endif
-    //
-    //   Once that lands, define DJINTERP_HAS_IS_RCU_CONTAINER (in
-    // the same header, immediately after the trait) and these
-    // checks reactivate.
-#if defined(DJINTERP_HAS_IS_RCU_CONTAINER)
+    // axis 8: rcu_array registers as an RCU container; array<> does not
     static_assert(
         is_rcu_container_v<rcu>,
         "rcu_array failed to register as rcu");
@@ -383,7 +382,6 @@ NS_DJINTERP namespace internal { namespace rcu_array_verify {
     static_assert(
         !is_rcu_container_v<base>,
         "plain array misclassified as rcu");
-#endif
 
 }}}  // namespace internal::rcu_array_verify
 

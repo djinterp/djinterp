@@ -1,14 +1,14 @@
 /*******************************************************************************
-* djinterp [cpp]                                       value_list_tests_list.cpp
+* djinterp [test]                                      value_list_tests_list.cpp
+*
+*   Section I -- DValueList<auto...>: the NTTP sequence and its size().
 *
 *
-* path:      /tests/djinterp/cpp/functional/value_list_tests_list.cpp
+* path:      /tests/djinterp/cpp/meta/value_list_tests_list.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.11.11
 *******************************************************************************/
-// djinterp [test]  value_list_tests_list.cpp
-//   Section I -- DValueList<auto...>: the NTTP sequence and its size().
 
 // std
 #include <cstddef>

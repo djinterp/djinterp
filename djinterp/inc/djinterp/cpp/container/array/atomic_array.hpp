@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/cpp/container/array/atomic_array.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.26
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -312,8 +312,18 @@ public:
         }
     }
 
+    // is_lock_free
+    //   query: true if the element atomics are lock-free.  Answered at
+    // compile time where std::atomic<T>::is_always_lock_free says so, which
+    // also spares the call into libatomic that Clang with libstdc++ would
+    // otherwise need.
     bool is_lock_free() const noexcept
     {
+        if constexpr (atomic_value_type::is_always_lock_free)
+        {
+            return true;
+        }
+
         return ( extent > 0 ? m_data[0].is_lock_free() : true );
     }
 

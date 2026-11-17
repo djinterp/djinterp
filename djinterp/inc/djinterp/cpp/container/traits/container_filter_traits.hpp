@@ -48,7 +48,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_filter_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_FILTER_TRAITS_HPP
@@ -65,12 +65,13 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"                       // framework root
 #include "../../meta/trait_detect.hpp"              // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
 #include "../../meta/lifetime.hpp"                  // is_compile_time
 #include "./constexpr_container_traits.hpp"         // container_lifetime_of (filter stage)
 #include "./iterable_container_traits.hpp"          // is_iterable_container (read)
-#include "./element_relation_traits.hpp"            // element_type_of_t (value_type)
+#include "./element_relation_traits.hpp"            // element_type_of_t, has_element_type_helper (read)
+#include "./read_write_container_traits.hpp"        // build_capable_helper (build)
 #include "./container_multiplicity_traits.hpp"      // is_unique_container (uniqueness)
 #include "./bounded_container_traits.hpp"           // is_bounded_container (capacity)
 #include "./ordered_container_traits.hpp"                 // is_ordered_container (order)
@@ -87,42 +88,9 @@ NS_DJINTERP
 
 NS_INTERNAL
 
-    // has_value_type_helper
-    //   helper: whether a container exposes a value_type (a void element type
-    // from element_type_of means there is none).
-    template<typename Container>
-    struct has_value_type_helper
-        : std::integral_constant<bool,
-              !std::is_void<element_type_of_t<Container>>::value>
-    {};
-
-    // has_push_back_helper / has_insert_value_helper
-    //   helper: the BUILD capability - the container can grow by an element,
-    // by sequence push_back or associative insert.
-    template<typename Container, typename = void>
-    struct has_push_back_helper : std::false_type {};
-    template<typename Container>
-    struct has_push_back_helper<Container,
-        D_VOID_T<decltype(std::declval<Container&>().push_back(
-            std::declval<typename Container::value_type>()))>>
-        : std::true_type {};
-
-    template<typename Container, typename = void>
-    struct has_insert_value_helper : std::false_type {};
-    template<typename Container>
-    struct has_insert_value_helper<Container,
-        D_VOID_T<decltype(std::declval<Container&>().insert(
-            std::declval<typename Container::value_type>()))>>
-        : std::true_type {};
-
-    // build_capable_helper
-    //   helper: the container can receive survivors (push_back or insert).
-    template<typename Container>
-    struct build_capable_helper
-        : std::integral_constant<bool,
-                has_push_back_helper<Container>::value
-             || has_insert_value_helper<Container>::value>
-    {};
+    // The READ half (has_element_type_helper) is element_relation_traits.hpp's
+    // and the BUILD half (build_capable_helper: push_back or insert) is
+    // read_write_container_traits.hpp's, shared with the transform axis.
 
     // native_filter_helper
     //   helper: the container exposes its own filter(predicate) primitive,
@@ -144,7 +112,7 @@ template<typename Type>
 struct is_filter_source
     : std::integral_constant<bool,
             is_iterable_container<clean_t<Type>>::value
-         && internal::has_value_type_helper<clean_t<Type>>::value>
+         && internal::has_element_type_helper<clean_t<Type>>::value>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_filter_source)

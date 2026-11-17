@@ -1,41 +1,26 @@
-# =============================================================================
-# testing/djinterp/core/container/array/
-#   LEAF — builds array_tests: the array container family in one exe (base
-# array + the threadsafe / atomic / cow wrappers + the array options machinery,
-# Parts A / B / D of the suite).
+# array family unit test suite -- leaf recipe (header-only module, no src/).
 #
-#   Output binary lands at:
-#     <root>/bin/<arch>-<Config>/testing/djinterp/core/container/array/array_tests.exe
+#   One executable for container/array/: array<>, its options, traits,
+# concepts and iterators, and the four concurrent wrappers.  The section TUs
+# follow the "<stem>_tests_<section>.cpp" convention, so a prefix-scoped glob
+# picks them up; the runner beside this file owns main().
 #
-#   NAMING EXCEPTION: this suite predates the "<stem>_tests_<section>.cpp"
-# convention its siblings glob on.  Its section TUs are spelled
-# "<component>_core_tests.cpp" and "array_options_<axis>_tests.cpp", so a
-# "array_tests_*.cpp" glob would match NONE of them; the eight TUs are therefore
-# named explicitly below (this is also why the directory shipped with its
-# CMakeLists disabled).  The runner (array_tests_runner.cpp, this dir) owns
-# main() and drives the handler-based master-suite template; the listed TUs
-# define run_array_suite / run_threadsafe_array_suite / run_array_options_suite.
-#
-#   INCLUDES: the module inc dir for the bare "array.hpp" / "atomic_array.hpp" /
-# "cow_array.hpp" / "threadsafe_array.hpp" / "array_options.hpp" family, and the
-# suite's tests dir for the bare "array_tests.hpp".  The helper adds inc/ for
-# <djinterp/core/djinterp.hpp> and the djinterp/test/* headers, links
-# djinterp_c_runtime, sets the output dir, and registers CTest.
-# =============================================================================
+#   THREADS: the atomic, cow, rcu and threadsafe sections start threads, so
+# the executable links the platform's thread library.
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/container/array")
+
+file(GLOB _sources CONFIGURE_DEPENDS
+    "${_tests_dir}/array_tests_*.cpp")
+list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
+
+find_package(Threads REQUIRED)
 
 djinterp_add_test_executable(array_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/array_tests_runner.cpp"
-        "${_tests_dir}/array_core_tests.cpp"
-        "${_tests_dir}/array_options_alias_tests.cpp"
-        "${_tests_dir}/array_options_core_tests.cpp"
-        "${_tests_dir}/array_options_edge_tests.cpp"
-        "${_tests_dir}/array_options_factory_tests.cpp"
-        "${_tests_dir}/atomic_array_core_tests.cpp"
-        "${_tests_dir}/cow_array_core_tests.cpp"
-        "${_tests_dir}/threadsafe_array_core_tests.cpp"
+        ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/cpp/container/array"
-        "${_tests_dir}")
+        "${_tests_dir}"            # suite header
+    LIBRARIES
+        Threads::Threads)

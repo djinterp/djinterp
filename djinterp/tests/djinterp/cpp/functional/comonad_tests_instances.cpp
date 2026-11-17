@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/functional/comonad_tests_instances.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 // djinterp
@@ -146,8 +146,8 @@ bool tests_kv_direct_extend()
         ::djinterp::comonad_traits< ::djinterp::DKvPair<int, int> >::extend(
             ::djinterp::DKvPair<int, int>(3, 10), DCoFocusX2());
 
-    return ( (r.m_key == 3) &&
-             (r.m_value == 20) );
+    return ( (r.key == 3) &&
+             (r.value == 20) );
 }
 
 /*
@@ -187,8 +187,8 @@ bool tests_kv_env_focus_positions()
         ::djinterp::extend(w, DCoFocusX2());
 
     return ( (focus == 10)       &&   // focus is the value
-             (r.m_key == "k")     &&   // environment (key) preserved
-             (r.m_value == 20) );      // focus (value) recomputed
+             (r.key == "k")     &&   // environment (key) preserved
+             (r.value == 20) );      // focus (value) recomputed
 }
 
 /*
@@ -207,9 +207,9 @@ bool tests_kv_extend_key_only_equality()
         ::djinterp::extend(base, DCoFocusX2());
 
     return ( (mapped == base)        &&   // key-only equality: key unchanged
-             (base.m_value == 1)     &&
-             (mapped.m_value == 2)   &&   // value really did change
-             (mapped.m_key == 5) );
+             (base.value == 1)     &&
+             (mapped.value == 2)   &&   // value really did change
+             (mapped.key == 5) );
 }
 
 

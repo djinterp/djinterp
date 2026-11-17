@@ -75,7 +75,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_copy_merge_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_COPY_MERGE_TRAITS_HPP
@@ -93,7 +93,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"                       // framework root
 #include "../../meta/trait_detect.hpp"              // D_VOID_T, D_TYPE_TRAIT_* macros
 #include "./element_relation_traits.hpp"            // elements_same / elements_convertible
 #include "./iterable_container_traits.hpp"          // is_iterable_container (container guard)
@@ -175,18 +175,18 @@ D_TYPE_TRAIT_VALUE_BOOL(copy_preserves_all_axes)
 
 NS_INTERNAL
 
-    // has_equivalence_helper
+    // merge_equivalence_helper
     //   helper: a nested key_type - the duplicate-EQUIVALENCE mark
     // distinguishing an associative discipline (set / multiset / map /
     // multimap) from a plain comparator-less sequence.
-    D_TYPE_TRAIT_TRUE(has_equivalence_helper,
+    D_TYPE_TRAIT_TRUE(merge_equivalence_helper,
         typename clean_t<Type>::key_type)
 
-    // has_keyed_value_helper
+    // merge_keyed_value_helper
     //   helper: the value_type is a pair (first_type / second_type) - the
     // KEYED mark (map / multimap), mirroring is_keyed_container of the overlay
     // axis.
-    D_TYPE_TRAIT_TRUE(has_keyed_value_helper,
+    D_TYPE_TRAIT_TRUE(merge_keyed_value_helper,
         typename clean_t<Type>::value_type::first_type,
         typename clean_t<Type>::value_type::second_type)
 
@@ -317,11 +317,11 @@ public:
     static constexpr merge_discipline value =
         ( !is_iterable_container<clean_type>::value )
               ? merge_discipline::unknown
-      : (  internal::has_keyed_value_helper<clean_type>::value )
+      : (  internal::merge_keyed_value_helper<clean_type>::value )
               ? (  internal::has_unique_insert_helper<clean_type>::value
                        ? merge_discipline::map
                        : merge_discipline::multimap )
-      : (  internal::has_equivalence_helper<clean_type>::value )
+      : (  internal::merge_equivalence_helper<clean_type>::value )
               ? (  internal::has_unique_insert_helper<clean_type>::value
                        ? merge_discipline::set
                        : merge_discipline::multiset )

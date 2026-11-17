@@ -13,7 +13,13 @@
 *                              (data, size) pair.
 *     DWindowIterator<Iter>  - slides a fixed-width window across the
 *                              sequence, yielding overlapping
-*                              sub-ranges.
+*                              sub-ranges.  [make_window_iterator,
+*                              make_window_end) yields only full
+*                              windows: none when the sequence is
+*                              shorter than the window.
+*
+*   Preconditions: a chunk or window size of at least 1, and a
+* circular iterator's capacity of at least 1.
 *
 *   All iterators are constexpr-capable and satisfy at least the
 * ForwardIterator structural requirements.
@@ -28,7 +34,7 @@
 * path:      /inc/djinterp/cpp/container/array/array_iterator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.14
 *******************************************************************************/
 
 /*
@@ -658,7 +664,9 @@ DChunkIterator<Iterator> make_chunk_end(
 }
 
 // make_window_iterator
-//   factory: constructs the begin DWindowIterator.
+//   factory: constructs the begin DWindowIterator.  When the sequence is
+// shorter than the window there is no full window, so it returns the same
+// iterator as make_window_end and the range is empty.
 template<typename Iterator>
 D_CONSTEXPR
 DWindowIterator<Iterator> make_window_iterator(
@@ -667,9 +675,13 @@ DWindowIterator<Iterator> make_window_iterator(
     std::size_t _window_size
 ) D_NOEXCEPT
 {
-    return DWindowIterator<Iterator>(_begin,
-                                      _end,
-                                      _window_size);
+    return ( static_cast<std::size_t>(_end - _begin) < _window_size )
+               ? DWindowIterator<Iterator>(_end,
+                                           _end,
+                                           _window_size)
+               : DWindowIterator<Iterator>(_begin,
+                                           _end,
+                                           _window_size);
 }
 
 // make_window_end

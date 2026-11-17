@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/cpp/container/tree/file/file_tree_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_CONCEPTS_HPP
@@ -85,7 +85,8 @@ concept file_tree_type =
 template<typename Type>
 concept named_file_tree =
     file_tree_type<Type> &&
-    ( has_name_method_v<Type> || has_name_str_method_v<Type> );
+    ( has_name_method_v<const Type, file_node_id> ||
+      has_name_str_method_v<Type> );
 
 // path_addressable_file_tree
 //   concept: the file tree can reconstruct a full path from a node.
@@ -131,7 +132,10 @@ concept traversable_file_tree =
 template<typename Type>
 concept child_insertable_file_tree =
     file_tree_type<Type> &&
-    has_add_child_method_v<Type>;
+    has_add_child_method_v<Type,
+                           file_node_id,
+                           const char*,
+                           file_type>;
 
 // clearable_file_tree
 //   concept: the file tree supports clear().
@@ -144,7 +148,10 @@ concept clearable_file_tree =
 template<typename Type>
 concept mutable_file_tree =
     file_tree_type<Type> &&
-    has_add_child_method_v<Type> &&
+    has_add_child_method_v<Type,
+                           file_node_id,
+                           const char*,
+                           file_type> &&
     has_clear_method_v<Type>;
 
 

@@ -62,7 +62,7 @@ provides advanced tuple manipulation metafunctions for
 * path:      /inc/djinterp/cpp/meta/dtuple.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.10
 *******************************************************************************/
 
 #ifndef DJINTERP_META_DTUPLE_HPP
@@ -85,6 +85,7 @@ provides advanced tuple manipulation metafunctions for
 #include "./type_utility.hpp"  // repeat_type_t, clean_t
 #include "./type_traits.hpp"
 #include "./trait_detect.hpp"   // D_TYPE_TRAIT_TYPE_ALIAS, _TRUE_AS, _IS_SPECIALIZATION_OF_AS
+#include "./tuple_partition.hpp"  // internal::sum_sizes
 
 
 NS_DJINTERP
@@ -1201,26 +1202,9 @@ struct is_jagged_tuple<std::tuple<Rows...>>
 
 NS_INTERNAL
 
-    // sum_sizes
-    //   helper: portable sum over a parameter pack of `std::size_t`. C++17
-    // fold-expressions would shorten this but break C++11/14 compatibility.
-    template<std::size_t... Sizes>
-    struct sum_sizes;
-
-    template<>
-    struct sum_sizes<>
-        : std::integral_constant<std::size_t, 0>
-    {};
-
-    template<std::size_t    First,
-             std::size_t... Rest>
-    struct sum_sizes<First, Rest...>
-        : std::integral_constant<std::size_t,
-            First + sum_sizes<Rest...>::value>
-    {};
-
     // sum_sizes_from_seq
-    //   helper: sum over a `std::index_sequence`.
+    //   helper: sum over a `std::index_sequence`, by tuple_partition.hpp's
+    // sum_sizes (the one sum over a size pack).
     template<typename Seq>
     struct sum_sizes_from_seq;
 

@@ -6,8 +6,14 @@
 * concepts) must give the same `::value` for the same type, and the public
 * D_TYPE_TRAIT_HAS_* must agree with them; from C++11 the same holds for the
 * expression shapes, D_TYPE_TRAIT_TRUE (and DETECTED, its old spelling),
-* TRUE_AS and TRUE_FROM, whose void_t and requires forms are both checked
-* where the level has them.
+* TRUE_AS and TRUE_FROM, and for the opt-in shapes, D_TYPE_TRAIT_HAS_BOOL_
+* CONSTANT and D_TYPE_TRAIT_OPT_IN, whose void_t and requires forms are both
+* checked where the level has them. The opt-in rows cover every shape a member
+* of the probed name can take: a bool, an int 0, 1 or 2, an enumerator, a
+* constexpr object, a static function, a non-static member, a type, and none.
+* D_TYPE_TRAIT_HAS_METHOD_WITH's rows give the argument types at the use: one
+* method name with two signatures, a const and a non-const call, overloads,
+* and the wrong arity.
 *   Compile-only: every check is a static assertion, so compiling this unit at
 * a level runs the test there, and the ladder compiles it at every level.
 * Below C++11 it checks the sizeof engine against the expected values; above,
@@ -17,7 +23,7 @@
 * path:      /tests/djinterp/cpp/meta/trait_detect_parity.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.01
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 #include "../../../../inc/djinterp/cpp/meta/trait_detect.hpp"  // the engines
 // std
@@ -158,6 +164,119 @@ NS_INTERNAL
     D_TYPE_TRAIT_TRUE_FROM(pub_true_from_class,
         typename Type::value_type,
         std::is_class)
+
+    // the opt-in shapes' probe types: one per shape a member named `flag`
+    // can take, and a nested `capability::can` for the qualified name
+    struct parity_flag_true
+    {
+        static constexpr bool flag = true;
+    };
+
+    struct parity_flag_false
+    {
+        static constexpr bool flag = false;
+    };
+
+    struct parity_flag_zero
+    {
+        static constexpr int flag = 0;
+    };
+
+    struct parity_flag_one
+    {
+        static constexpr int flag = 1;
+    };
+
+    // 2 does not convert to bool without narrowing
+    struct parity_flag_two
+    {
+        static constexpr int flag = 2;
+    };
+
+    struct parity_flag_enum
+    {
+        enum { flag = 1 };
+    };
+
+    struct parity_flag_object
+    {
+        static constexpr std::true_type flag{};
+    };
+
+    // the three that are not constants: decltype and a cast to bool read the
+    // function as true, and the member as a hard error
+    struct parity_flag_function
+    {
+        static
+        bool flag();
+    };
+
+    struct parity_flag_member
+    {
+        bool flag;
+    };
+
+    struct parity_flag_type
+    {
+        typedef bool flag;
+    };
+
+    struct parity_capability
+    {
+        struct capability
+        {
+            static constexpr bool can = true;
+        };
+    };
+
+    struct parity_capability_off
+    {
+        struct capability
+        {
+            static constexpr bool can = false;
+        };
+    };
+
+    D_INTERNAL_TYPE_TRAIT_11_HAS_BOOL_CONSTANT(p11_has_flag_constant, flag)
+    D_INTERNAL_TYPE_TRAIT_11_OPT_IN(p11_opt_in_flag, flag)
+    D_INTERNAL_TYPE_TRAIT_11_OPT_IN(p11_opt_in_can, capability::can)
+
+    D_TYPE_TRAIT_HAS_BOOL_CONSTANT(pub_has_flag_constant, flag)
+    D_TYPE_TRAIT_OPT_IN(pub_opt_in_flag, flag)
+    D_TYPE_TRAIT_OPT_IN(pub_opt_in_can, capability::can)
+
+    // HAS_METHOD_WITH's probe types: is_root with and without an argument,
+    // an add callable only on a non-const object, and an overloaded add
+    struct parity_is_root_id
+    {
+        bool is_root(
+            int _id
+        ) const;
+    };
+
+    struct parity_is_root_bare
+    {
+        bool is_root() const;
+    };
+
+    struct parity_add_mutable
+    {
+        void add(
+            int _value
+        );
+    };
+
+    struct parity_add_overloaded
+    {
+        void add(
+            int _value
+        );
+
+        void add(
+            int         _value,
+            const char* _name
+        );
+    };
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #if ( (D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                      \
@@ -182,9 +301,31 @@ NS_INTERNAL
     D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD(p20_has_push, push)
     D_INTERNAL_TYPE_TRAIT_20_HAS_BINARY_OP(p20_has_plus, +)
     D_INTERNAL_TYPE_TRAIT_20_HAS_UNARY_OP(p20_has_minus, -)
+
+    // the opt-in shapes from the requires engine
+    D_INTERNAL_TYPE_TRAIT_20_HAS_BOOL_CONSTANT(p20_has_flag_constant, flag)
+    D_INTERNAL_TYPE_TRAIT_20_OPT_IN(p20_opt_in_flag, flag)
+    D_INTERNAL_TYPE_TRAIT_20_OPT_IN(p20_opt_in_can, capability::can)
 #endif
 
 NS_END  // internal
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // HAS_METHOD_WITH emits its detector into `internal`, so it is invoked at
+    // djinterp's scope (trait_detect.hpp's INVOCATION SCOPE)
+    D_INTERNAL_TYPE_TRAIT_11_HAS_METHOD_WITH(p11_has_is_root_with, is_root)
+    D_INTERNAL_TYPE_TRAIT_11_HAS_METHOD_WITH(p11_has_add_with, add)
+
+    D_TYPE_TRAIT_HAS_METHOD_WITH(pub_has_is_root_with, is_root)
+    D_TYPE_TRAIT_HAS_METHOD_WITH(pub_has_add_with, add)
+#endif
+
+#if ( (D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                      \
+      (D_ENV_CPP_FEATURE_LANG_CONCEPTS) )
+    D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH(p20_has_is_root_with, is_root)
+    D_INTERNAL_TYPE_TRAIT_20_HAS_METHOD_WITH(p20_has_add_with, add)
+#endif
+
 NS_END  // djinterp
 
 
@@ -310,4 +451,195 @@ D_INTERNAL_PARITY_CHECK_ONE(pub, true_from_class,
 D_INTERNAL_PARITY_CHECK_ONE(pub, true_from_class,
                             djinterp::internal::parity_none, 0);
 D_INTERNAL_PARITY_CHECK_ONE(pub, true_from_class, int, 0);
+
+// HAS_BOOL_CONSTANT: a constant usable as a bool template argument -- bool,
+// 0 or 1, an enumerator, a constexpr object -- and nothing else: not 2 (a
+// narrowing conversion), a static function, a non-static member, or a type
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_true,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             const djinterp::internal::parity_flag_true&,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_false,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_zero,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_one,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_two,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_enum,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_object,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_function,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_member,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_flag_type,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant,
+                             djinterp::internal::parity_none,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(has_flag_constant, int, 0)
+
+// OPT_IN: the constant's value where HAS_BOOL_CONSTANT holds, else false
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_true,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             const djinterp::internal::parity_flag_true&,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_false,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_zero,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_one,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_two,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_enum,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_object,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_function,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_member,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag,
+                             djinterp::internal::parity_flag_type,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag, djinterp::internal::parity_none, 0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_flag, int, 0)
+
+// a qualified name: the nested struct's constant, or false without one
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_can,
+                             djinterp::internal::parity_capability,
+                             1)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_can,
+                             djinterp::internal::parity_capability_off,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_can,
+                             djinterp::internal::parity_flag_true,
+                             0)
+D_INTERNAL_PARITY_CHECK_EXPR(opt_in_can, int, 0)
+
+// the _v companions, where the level has variable templates
+#if ( (D_ENV_LANG_IS_CPP17_OR_HIGHER) ||                                      \
+      (D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES) )
+D_STATIC_ASSERT(
+    (djinterp::internal::pub_opt_in_flag_v<
+        djinterp::internal::parity_flag_one>),
+    "pub_opt_in_flag_v<parity_flag_one> should be 1");
+D_STATIC_ASSERT(
+    (!djinterp::internal::pub_has_flag_constant_v<
+        djinterp::internal::parity_flag_function>),
+    "pub_has_flag_constant_v<parity_flag_function> should be 0");
+#endif
+
+// D_INTERNAL_PARITY_CHECK_WITH
+//   macro (internal): one row for HAS_METHOD_WITH -- TRAIT applied to the
+// type and argument types after EXPECTED gives EXPECTED from the void_t
+// engine, the public name, and the requires engine where the level has it.
+#define D_INTERNAL_PARITY_CHECK_WITH_ONE(PREFIX, TRAIT, EXPECTED, ...)        \
+    D_STATIC_ASSERT(                                                          \
+        (djinterp::PREFIX##_##TRAIT<__VA_ARGS__>::value == (EXPECTED)),      \
+        #PREFIX "_" #TRAIT "<" #__VA_ARGS__ "> should be " #EXPECTED)
+
+#if ( (D_ENV_LANG_IS_CPP20_OR_HIGHER) &&                                      \
+      (D_ENV_CPP_FEATURE_LANG_CONCEPTS) )
+    #define D_INTERNAL_PARITY_CHECK_WITH_20(TRAIT, EXPECTED, ...)            \
+        D_INTERNAL_PARITY_CHECK_WITH_ONE(p20, TRAIT, EXPECTED, __VA_ARGS__);
+#else
+    #define D_INTERNAL_PARITY_CHECK_WITH_20(TRAIT, EXPECTED, ...)
+#endif
+
+#define D_INTERNAL_PARITY_CHECK_WITH(TRAIT, EXPECTED, ...)                    \
+    D_INTERNAL_PARITY_CHECK_WITH_ONE(p11, TRAIT, EXPECTED, __VA_ARGS__);      \
+    D_INTERNAL_PARITY_CHECK_WITH_ONE(pub, TRAIT, EXPECTED, __VA_ARGS__);      \
+    D_INTERNAL_PARITY_CHECK_WITH_20(TRAIT, EXPECTED, __VA_ARGS__)
+
+// HAS_METHOD_WITH: one name, the arguments given at the use -- is_root with
+// an id and without, a call on a const object and on a non-const one, an
+// overload chosen by its arguments, and the wrong arity
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,
+                             1,
+                             const djinterp::internal::parity_is_root_id,
+                             int)
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,
+                             0,
+                             const djinterp::internal::parity_is_root_id)
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,
+                             1,
+                             const djinterp::internal::parity_is_root_bare)
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,
+                             0,
+                             const djinterp::internal::parity_is_root_bare,
+                             int)
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,
+                             1,
+                             djinterp::internal::parity_is_root_id&,
+                             long)
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with,
+                             0,
+                             djinterp::internal::parity_none)
+D_INTERNAL_PARITY_CHECK_WITH(has_is_root_with, 0, int, int)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             1,
+                             djinterp::internal::parity_add_mutable,
+                             int)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             0,
+                             const djinterp::internal::parity_add_mutable,
+                             int)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             0,
+                             djinterp::internal::parity_add_mutable)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             1,
+                             djinterp::internal::parity_add_overloaded,
+                             int)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             1,
+                             djinterp::internal::parity_add_overloaded,
+                             int,
+                             const char*)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             0,
+                             djinterp::internal::parity_add_overloaded,
+                             int,
+                             int)
+D_INTERNAL_PARITY_CHECK_WITH(has_add_with,
+                             0,
+                             djinterp::internal::parity_add_overloaded,
+                             int,
+                             const char*,
+                             int)
+
+// the _v companion takes the same arguments
+#if ( (D_ENV_LANG_IS_CPP17_OR_HIGHER) ||                                      \
+      (D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES) )
+D_STATIC_ASSERT(
+    (djinterp::pub_has_add_with_v<djinterp::internal::parity_add_mutable,
+                                  int>),
+    "pub_has_add_with_v<parity_add_mutable, int> should be 1");
+#endif
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER

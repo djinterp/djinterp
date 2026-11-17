@@ -10,13 +10,14 @@
 *       kv_pair_spec(), the module -> block -> test description.
 *
 *   WHAT IS UNDER TEST.  DKvPair<K, V> is a small aggregate-like value type with
-* two public members (m_key, m_value), the nested typedefs key_type / value_type,
+* two public members (key, value), named by the key/value contract, the nested typedefs key_type / value_type,
 * four constructors (default, const-ref key+value, rvalue key+value), the three
 * comparison operators, and the free make_kv factory.  It satisfies the
-* is_option_entry structural contract (a key and a value).
+* key/value structural contract meta/kv.hpp detects (a key and a value),
+* which section III checks.
 *
 *   THE ONE SEMANTIC THAT MATTERS.  Comparison is KEY-ONLY.  operator==,
-* operator!= and operator< all consult m_key alone and ignore m_value entirely.
+* operator!= and operator< all consult key alone and ignore value entirely.
 * So two pairs with the same key but different values compare EQUAL, and a
 * sorted option_set orders purely by key.  This is the property most worth
 * pinning, and the fixtures below are built to make "same key, different value"
@@ -45,7 +46,7 @@
 * path:      /tests/djinterp/cpp/meta/kv_pair_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_KV_PAIR_TESTS_
@@ -178,6 +179,10 @@ bool tests_comparison_value_is_ignored_entirely();
 bool tests_comparison_operators_are_constexpr();
 bool tests_comparison_with_string_keys();
 
+// III. CONTRACT     (kv_pair_tests_contract.cpp)
+bool tests_contract_is_kv_pair();
+bool tests_contract_members_are_the_contracts();
+
 
 // -- (part 3) the spec provider -- spec mode only ----------------------------
 #ifdef DTEST_SPEC_MODE
@@ -212,7 +217,7 @@ dt::module_spec kv_pair_spec()
                       &tests_construction_member_typedefs },
                     { "tests_construction_value_constructor_sets_members",
                       "The const-ref constructor stores the key and value in "
-                      "m_key and m_value.",
+                      "key and value.",
                       &tests_construction_value_constructor_sets_members },
                     { "tests_construction_default_constructor",
                       "The default constructor yields a pair whose members are "
@@ -266,6 +271,23 @@ dt::module_spec kv_pair_spec()
                       "(std::string): equal string keys compare equal despite "
                       "differing values, and ordering follows the string key.",
                       &tests_comparison_with_string_keys },
+                }
+            },
+            dt::block_spec{
+                "contract",
+                "DKvPair against the key/value structural contract meta/kv.hpp "
+                "detects: its members are named key and value, so is_kv_pair "
+                "holds and the contract's readers see a pair.",
+                {
+                    { "tests_contract_is_kv_pair",
+                      "has_kv_key, has_kv_value and is_kv_pair hold, and "
+                      "kv_key_t / kv_value_t name the pair's types.",
+                      &tests_contract_is_kv_pair },
+                    { "tests_contract_members_are_the_contracts",
+                      "key and value are public data members, reachable by "
+                      "pointer to member; a pair of trivial types is "
+                      "kv-addressable.",
+                      &tests_contract_members_are_the_contracts },
                 }
             },
         }

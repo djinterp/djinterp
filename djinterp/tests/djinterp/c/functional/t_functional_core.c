@@ -21,7 +21,7 @@
 * path:      /tests/djinterp/c/functional/t_functional_core.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -400,10 +400,10 @@ void d_tests_fn_builder(void)
 
     // WHERE even, then x10, then +1
     D_TESTS_FN_CHECK(builder != NULL);
-    D_TESTS_FN_CHECK(d_funtional_builder_where(builder, &d_tests_fn_even) ==
+    D_TESTS_FN_CHECK(d_fn_builder_where(builder, &d_tests_fn_even) ==
                      builder);
-    (void)d_funtional_builder_map(builder, &d_tests_fn_times);
-    (void)d_funtional_builder_and_then(builder, &d_tests_fn_plus_one);
+    (void)d_fn_builder_map(builder, &d_tests_fn_times);
+    (void)d_fn_builder_and_then(builder, &d_tests_fn_plus_one);
     D_TESTS_FN_CHECK( d_fn_builder_execute(builder, input, 6u, sizeof(int),
                                            output, &written) &&
                       (written == 3u) && (output[0] == 21) &&
@@ -412,7 +412,7 @@ void d_tests_fn_builder(void)
     // growing past the initial capacity keeps every stage, in order
     for (int i = 0; i < 10; ++i)
     {
-        (void)d_funtional_builder_and_then(builder, &d_tests_fn_plus_one);
+        (void)d_fn_builder_and_then(builder, &d_tests_fn_plus_one);
     }
 
     D_TESTS_FN_CHECK( d_fn_builder_execute(builder, input, 6u, sizeof(int),
@@ -424,7 +424,7 @@ void d_tests_fn_builder(void)
         const int            ramp[4] = { 2, 3, 4, 5 };
         struct dj_fn_builder* failing = d_fn_builder_new();
 
-        (void)d_funtional_builder_map(failing, &d_tests_fn_fail_on_three);
+        (void)d_fn_builder_map(failing, &d_tests_fn_fail_on_three);
         D_TESTS_FN_CHECK( !d_fn_builder_execute(failing, ramp, 4u,
                                                 sizeof(int), output,
                                                 &written) &&

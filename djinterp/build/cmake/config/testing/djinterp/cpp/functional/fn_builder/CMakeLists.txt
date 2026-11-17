@@ -16,6 +16,8 @@ djinterp_add_test_executable(fn_builder_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/fn_builder_tests_runner.cpp"
         ${_sources}
+        # the C kernel, for the parity section
+        "${DJINTERP_SRC_ROOT}/djinterp/c/functional/fn_builder.c"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/functional"
         "${_tests_dir}")

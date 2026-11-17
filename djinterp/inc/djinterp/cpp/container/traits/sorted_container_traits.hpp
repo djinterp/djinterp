@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/cpp/container/traits/sorted_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.01
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.11
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_SORTED_CONTAINER_TRAITS_HPP
@@ -101,28 +101,13 @@ NS_INTERNAL
     // sorted_invariant_helper
     //   helper: reads the opt-in static `sorted_invariant` constant, by which
     // an ordered sequence asserts it is maintained in sorted order.
-    //   The member must be a constant usable as a bool template argument. A
-    // static member FUNCTION of that name is not one, so it is ignored like
-    // a missing member. (Named by decltype, as it was, a function asserted
-    // sortedness: it decayed to a pointer that is never null; and under
-    // GCC's sanitizers that comparison is not a constant expression, so the
-    // trait did not compile.)
-    template<typename Type,
-             typename = void>
-    struct sorted_invariant_helper
-    {
-        static constexpr bool value = false;
-    };
-
-    template<typename Type>
-    struct sorted_invariant_helper<Type,
-        D_VOID_T<std::integral_constant<bool,
-                     clean_t<Type>::sorted_invariant>>>
-    {
-        static constexpr bool value =
-            std::integral_constant<bool,
-                clean_t<Type>::sorted_invariant>::value;
-    };
+    //   The member must be a constant usable as a bool template argument
+    // (D_TYPE_TRAIT_OPT_IN). A static member FUNCTION of that name is not
+    // one, so it is ignored like a missing member. (Named by decltype, as it
+    // was until 2026.11.11, a function asserted sortedness: it decayed to a
+    // pointer that is never null; and under GCC's sanitizers that comparison
+    // is not a constant expression, so the trait did not compile.)
+    D_TYPE_TRAIT_OPT_IN(sorted_invariant_helper, sorted_invariant)
 
 NS_END  // internal
 
