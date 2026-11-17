@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/c/modules/test/test_suite_tests_building.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 #include "./test_suite_tests.h"  // corresponding header
 
@@ -379,6 +379,93 @@ d_tests_test_suite_check_msg(void)
     D_TEST_REQUIRE(report != NULL);
     D_TEST_REQUIRE(d_tests_test_suite_contains(report,
                                                "size_matches -- size should be 1"));
+    free(report);
+
+    return true;
+}
+
+/*
+d_tests_test_suite_told_once
+  The first check to open a test in a suite notes that it did, once.
+  Tests the following:
+  - the note names the check and says to call d_test_suite_test first
+  - it is on the test the check opened, just under the test's line
+  - a second test opened the same way, in the same suite, has no note
+  - a test opened by d_test_suite_test has no note
+  - a new suite is told again; a passing test's note waits for --checks
+*/
+bool
+d_tests_test_suite_told_once(void)
+{
+    FILE* stream = NULL;
+
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
+    D_TEST_REQUIRE(suite != NULL);
+    D_TEST_REQUIRE(!D_TEST_CHECK(suite,
+                                 3 < 2));
+    D_TEST_REQUIRE(d_test_suite_module(suite,
+                                       "m"));
+    D_TEST_REQUIRE(!D_TEST_CHECK(suite,
+                                 2 < 1));
+    D_TEST_REQUIRE(d_test_suite_test(suite,
+                                     "named"));
+    D_TEST_REQUIRE(!D_TEST_CHECK(suite,
+                                 1 < 0));
+
+    char* report = d_tests_test_suite_report(suite,
+                                             stream,
+                                             NULL,
+                                             NULL);
+
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "[FAIL] 3 < 2\n"
+                                               "          note the check "
+                                               "\"3 < 2\" opened this test, "
+                                               "named after it, as no test "
+                                               "was open;\n"
+                                               "               call "
+                                               "d_test_suite_test before "
+                                               "checking to name a test "
+                                               "(said once a suite)\n"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "[FAIL] 2 < 1\n"
+                                               "          FAIL "));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "[FAIL] named\n"
+                                               "          FAIL "));
+    free(report);
+
+    // a new suite, whose test passes: the note waits for --checks
+    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                     &stream);
+    D_TEST_REQUIRE(suite != NULL);
+    D_TEST_REQUIRE(D_TEST_CHECK(suite,
+                                1 == 1));
+    report = d_tests_test_suite_report(suite,
+                                       stream,
+                                       NULL,
+                                       NULL);
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(!d_tests_test_suite_contains(report,
+                                                "opened this test"));
+    free(report);
+    suite = d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_CHECKS,
+                                     &stream);
+    D_TEST_REQUIRE(suite != NULL);
+    D_TEST_REQUIRE(D_TEST_CHECK(suite,
+                                1 == 1));
+    report = d_tests_test_suite_report(suite,
+                                       stream,
+                                       NULL,
+                                       NULL);
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "note the check \"1 == 1\" "
+                                               "opened this test"));
     free(report);
 
     return true;

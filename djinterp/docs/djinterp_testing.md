@@ -985,8 +985,8 @@ bool d_tests_bar_rejects_null(void);
 #ifdef DTEST_SPEC_MODE
 static const struct dj_test_case_spec d_tests_bar_parse_rows[] =
 {
-    { "d_tests_bar_parses", "a well-formed input parses", d_tests_bar_parses },
-    { "d_tests_bar_rejects_null", "NULL is EINVAL", d_tests_bar_rejects_null }
+    D_TEST_CASE(d_tests_bar_parses, "a well-formed input parses"),
+    D_TEST_CASE(d_tests_bar_rejects_null, "NULL is EINVAL")
 };
 static const struct dj_test_block_spec d_tests_bar_blocks[] =
 {
@@ -1005,13 +1005,41 @@ D_STATIC_INLINE const struct dj_test_module_spec* d_tests_bar_spec(void)
 #endif
 ```
 
-A test is a `bool (void)` that checks with `D_TEST_REQUIRE(expr)` — which
-records the check, with its text, file and line, and returns `false` from the
-test when it fails — and returns `true` at its end. `D_TEST_SKIP("why")` skips
-it, and `D_TEST_NOTE("got %d", n)` attaches a note (12.5). A test that makes no
-require counts its return as its one check, which is
-exactly a C++ spec test's `bool`, so **a C++ suite's test functions can be
-listed in a C spec table** and run at every C++ level.
+`D_TEST_CASE(fn, "descriptor")` writes the row `{ "fn", "descriptor", &fn }`,
+so a row's name cannot drift from its function's. C++'s `test_spec` has the
+same three fields in the same order, so the macro writes its rows too; a C++
+table reaches it by including `test_suite.h`. (Added 2026-11-16; rows written
+out by hand stay valid.)
+
+A test is a `bool (void)` that checks with two macros, and returns `true` at
+its end:
+
+- `D_TEST_REQUIRE(expr)` records the check, with its text, file and line, and
+  returns `false` from the test when it fails;
+- `D_TEST_EXPECT(expr)` records the check the same way and goes on. Its value
+  is the check's result, and a failed one fails the test when it ends,
+  whatever it returns (added 2026-11-16).
+
+Both take their expression as written: they are variadic (from 2026-11-16),
+so a comma inside template arguments, `D_TEST_REQUIRE(std::is_same<A, B>::value)`,
+or inside a C compound literal's braces, needs no extra parentheses. A comma
+outside them is the comma operator, not a message, so
+`D_TEST_REQUIRE(x == 1, "why")` tests only `"why"`; under `-Wall`, GCC warns
+(`-Wunused-value`) and Clang too (`-Wunused-comparison`), and a message
+belongs in `D_TEST_NOTE`. At ISO C++98,
+which has no variadic macros, both take one argument.
+
+`D_TEST_SKIP("why")` skips a test, and `D_TEST_NOTE("got %d", n)` attaches a
+note (12.5). A test that makes no check counts its return as its one check,
+which is exactly a C++ spec test's `bool`, so **a C++ suite's test functions
+can be listed in a C spec table** and run at every C++ level.
+
+**Under C++'s `run_module`**, until it records these checks (scheduled for
+2026-11-20), no C suite is running: a failed `D_TEST_REQUIRE` writes
+`file:line: check failed (no suite): expr` to stderr and returns `false` from
+the test, which is what fails it; a failed `D_TEST_EXPECT` only writes the
+line, so a test run there keeps the results, `ok = D_TEST_EXPECT(x) && ok;`,
+and returns `ok`.
 
 The runner chooses options and nothing else:
 
@@ -1052,6 +1080,14 @@ D_TEST_CHECK_MSG(s, "errno", errno == EINVAL, "errno should be EINVAL");
 ```
 
 `D_TEST_CHECK` returns the check's result, so a section can stop on it.
+
+**Open a test before checking.** A check made while no test is open opens
+one of its own, named after the check, and every check after it lands in that
+test until the next open. That keeps the check counted, but a failure is then
+reported under the first check's name. The first time it happens in a suite,
+a note on that test names the check and says to call `d_test_suite_test`
+first (from 2026-11-16).
+
 `d_test_suite_describe` gives the node opened last a descriptor;
 `d_test_suite_note` attaches a note to it (12.5); `d_test_suite_skip` skips the
 open test. The runner creates the suite, applies
@@ -1116,6 +1152,64 @@ comes with the build it failed on, and two builds' profiles compare line by
 line. A program prints the same with
 `d_env_print_file(stdout, "style=keyvalue; show_title=0; sections=all")`.
 
+### 12.6 Comparing text (added 2026-11-16)
+
+A text check compares what a test produced with what it should be, and when
+they differ, its note says where. Each side is a `struct dj_test_text`:
+
+| Maker | The text |
+| --- | --- |
+| `d_test_text_buffer(p, n)` | `n` bytes from `p`, NULs included; `(NULL, 0)` is the empty text |
+| `d_test_text_cstr(s)` | `s` to its NUL; `NULL` is no text |
+| `d_test_text_file(path)` | the file, read whole, in binary, at the check |
+
+Three macros and a function make the check, as for any other:
+
+| Form | Use |
+| --- | --- |
+| `D_TEST_REQUIRE_TEXT(actual, expected)` | a spec test; returns `false` from it when they differ |
+| `D_TEST_EXPECT_TEXT(actual, expected)` | a spec test; goes on, and gives the result |
+| `D_TEST_CHECK_TEXT(suite, name, actual, expected)` | the imperative form, with its file and line |
+| `d_test_suite_check_text(suite, name, actual, expected)` | the same, without a place |
+
+The spec macros name the check by the first argument's source text. A `NULL`
+suite is the one a spec run is in; outside one, a failure and its note go to
+stderr, and the result is returned.
+
+```c
+D_TEST_REQUIRE_TEXT(d_test_text_buffer(sink.buffer, sink.written),
+                    d_test_text_cstr(expected));
+```
+
+**What counts.** The texts are compared line by line. A CR just before an LF
+is ignored on both sides, since the tree's files check out with CRLF on
+Windows; every other byte counts, a CR elsewhere included. A side that ends
+with a newline when the other does not differs too. No text (a `NULL`), or a
+file that cannot be read, fails the check. A test about line endings
+themselves, that a writer emits CRLF, compares bytes instead.
+
+**What a failure notes.** The first line that differs, the column of its first
+differing byte (from 1, in bytes), and both lines:
+
+```
+djin list: line 4 differs, at column 8
+  got:  "frame   2  shell"
+  want: "frame  2  shell"
+```
+
+- Each line is quoted, so trailing spaces show. Inside the quotes a tab is
+  `\t`, a CR `\r`, any other control byte `\xNN`, a quote `\"` and a
+  backslash `\\`; the column counts the line's own bytes, not the escapes.
+- When one line begins the other, the column is one past its end.
+- A line over 120 bytes is shown as the 120 bytes around the column, both
+  lines through the same window, with `...` outside the quotes at a cut end.
+- When one side runs out of lines first: `got ends after line 3, want has 2
+  more lines`, or `got is empty, want has 1 line`, then the other's next line.
+- A missing final newline is said last: `got:  ends without a final newline`,
+  after any line that differs, or under `only the final newline differs`.
+- A side that could not be had: `could not compare`, then, for that side,
+  `no text (NULL)` or `cannot read "path": ` and the system's reason.
+
 ---
 
 ## 13. DTest's frozen API (2026-11-06)
@@ -1137,10 +1231,15 @@ decision with its migration first.
 `D_TEST_REQUIRE`, `D_TEST_SKIP`, `D_TEST_NOTE` (added 2026-11-07); the
 NULL-safe `d_test_suite_str_equal`; the
 command-line options of 12.2 and the exit codes; and the report's results
-table. (`d_test_suite_require`, `d_test_suite_skip_current` and
-`d_test_suite_note_current` exist for the macros and are not for direct use,
-but for `d_test_suite_note_current` at ISO C++98, where `D_TEST_NOTE` is
-absent.)
+table. Added 2026-11-16: `D_TEST_EXPECT` and `D_TEST_CASE`, with
+`D_TEST_REQUIRE` and `D_TEST_EXPECT` variadic where the preprocessor allows
+(12.2); and the text check of 12.6, `dj_test_text`, `d_test_text_buffer`,
+`_cstr` and `_file`, `d_test_suite_check_text`, `D_TEST_CHECK_TEXT`,
+`D_TEST_REQUIRE_TEXT` and `D_TEST_EXPECT_TEXT`, with its notes' wording.
+(`d_test_suite_require`, `d_test_suite_skip_current`,
+`d_test_suite_note_current` and `d_test_suite_check_text_at` exist for the
+macros and are not for direct use, but for `d_test_suite_note_current` at ISO
+C++98, where `D_TEST_NOTE` is absent.)
 
 **C++ face** (`cpp/modules/test/test_defaults.hpp`, C++17 and up): the suite
 layout of Sections 2 to 7 and its `DTEST_SPEC_MODE` idiom; `test_spec`,

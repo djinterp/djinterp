@@ -19,17 +19,22 @@
 * the report's walk takes them in the same step. Every note is kept: whether
 * it is printed depends on a verdict not known until the run ends.
 *
+*   A text check compares two texts a line at a time, in place: a line ends at
+* an LF, less a CR just before it, so neither side is copied to drop its CRs.
+* A file is read whole first. The check's note is written only when it fails.
+*
 *
 * path:      /src/djinterp/c/modules/test/test_suite.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // corresponding header
 
 // std
+#include <errno.h>   // errno
 #include <stdlib.h>  // malloc, realloc, free
-#include <string.h>  // memcpy, strchr, strlen, strncmp, strstr
+#include <string.h>  // memchr, memcpy, strerror, strlen, strncmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul, d_ckd_add
 
@@ -91,6 +96,7 @@ struct dj_test_suite
     size_t                       open_test;
     size_t                       open_last;   // the node describe applies to
     bool                         error;       // a node or check was lost
+    bool                         told_open;   // a check opened a test, noted
 };
 
 // g_d_test_suite_current
@@ -393,6 +399,227 @@ d_internal_test_suite_keep_note(
     record->text   = _text;
 
     return true;
+}
+
+// dj_test_suite_writer
+//   struct: a note being written: a string that grows as text is put on it.
+struct dj_test_suite_writer
+{
+    char*  text;      // malloc'd and NUL-terminated once anything is put
+    size_t length;    // its length
+    size_t capacity;  // the bytes allocated
+    bool   failed;    // an allocation failed, and the text is lost
+};
+
+/**
+ * @brief Puts bytes on the end of a note being written.
+ *
+ * @param[in,out] _writer  the note.
+ * @param[in]     _bytes   the bytes.
+ * @param[in]     _length  how many.
+ *
+ * Doubles the capacity as needed, through d_ckd_*; once an allocation has
+ * failed, the note puts nothing more, and the caller finds it failed.
+ */
+static void
+d_internal_test_suite_put(
+    struct dj_test_suite_writer* _writer,
+    const char*                  _bytes,
+    size_t                       _length
+)
+{
+    size_t needed = 0;
+
+    // a failed note stays failed; the bytes and a NUL must be representable
+    if ( (_writer->failed) ||
+         (d_ckd_add(&needed,
+                    _writer->length,
+                    _length)) ||
+         (d_ckd_add(&needed,
+                    needed,
+                    (size_t)1)) )
+    {
+        _writer->failed = true;
+
+        return;
+    }
+
+    size_t capacity = (_writer->capacity != 0) ? _writer->capacity : 128;
+
+    // double until the bytes fit; a doubling that overflows fails
+    while (capacity < needed)
+    {
+        // the doubling must be representable
+        if (d_ckd_mul(&capacity,
+                      capacity,
+                      (size_t)2))
+        {
+            _writer->failed = true;
+
+            return;
+        }
+    }
+
+    // grow, when the bytes do not fit already
+    if (capacity != _writer->capacity)
+    {
+        char* const grown = (char*)realloc(_writer->text,
+                                           capacity);
+
+        // realloc failed: the note is lost
+        if (!grown)
+        {
+            _writer->failed = true;
+
+            return;
+        }
+
+        _writer->text     = grown;
+        _writer->capacity = capacity;
+    }
+
+    memcpy(_writer->text + _writer->length,
+           _bytes,
+           _length);
+    _writer->length               += _length;
+    _writer->text[_writer->length] = '\0';
+
+    return;
+}
+
+/**
+ * @brief Puts a string on the end of a note being written.
+ *
+ * @param[in,out] _writer  the note.
+ * @param[in]     _text    the string; `NULL` puts nothing.
+ */
+static void
+d_internal_test_suite_puts(
+    struct dj_test_suite_writer* _writer,
+    const char*                  _text
+)
+{
+    // a NULL string puts nothing
+    if (_text)
+    {
+        d_internal_test_suite_put(_writer,
+                                  _text,
+                                  strlen(_text));
+    }
+
+    return;
+}
+
+/**
+ * @brief Puts a count, in decimal, on the end of a note being written.
+ *
+ * @param[in,out] _writer  the note.
+ * @param[in]     _count   the count.
+ */
+static void
+d_internal_test_suite_put_count(
+    struct dj_test_suite_writer* _writer,
+    size_t                       _count
+)
+{
+    char digits[24] = {0};
+
+    sprintf(digits,
+            "%lu",
+            (unsigned long)_count);
+    d_internal_test_suite_puts(_writer,
+                               digits);
+
+    return;
+}
+
+/**
+ * @brief Puts bytes on a note between quotes, escaped so that what is shown
+ *        can be read back as exactly those bytes.
+ *
+ * @param[in,out] _writer  the note.
+ * @param[in]     _bytes   the bytes.
+ * @param[in]     _start   the first byte shown.
+ * @param[in]     _end     one past the last byte shown.
+ * @param[in]     _length  how many bytes there are in all; "..." follows the
+ *                         closing quote when _end falls short of it, and
+ *                         precedes the opening quote when _start is not 0.
+ *
+ * A tab is \t, a CR \r, any other control byte \xNN, a quote \" and a
+ * backslash \\; every other byte is itself, a UTF-8 sequence included.
+ */
+static void
+d_internal_test_suite_put_quoted(
+    struct dj_test_suite_writer* _writer,
+    const char*                  _bytes,
+    size_t                       _start,
+    size_t                       _end,
+    size_t                       _length
+)
+{
+    // a front that was cut
+    if (_start > 0)
+    {
+        d_internal_test_suite_puts(_writer,
+                                   "...");
+    }
+
+    d_internal_test_suite_puts(_writer,
+                               "\"");
+
+    // each byte shown, escaped where it would read as something else
+    for (size_t i = _start; i < _end; i++)
+    {
+        const unsigned char byte      = (unsigned char)_bytes[i];
+        char                escape[8] = {0};
+
+        // the named escapes, then the other control bytes, then the byte
+        if (byte == '\t')
+        {
+            d_internal_test_suite_puts(_writer,
+                                       "\\t");
+        }
+        else if (byte == '\r')
+        {
+            d_internal_test_suite_puts(_writer,
+                                       "\\r");
+        }
+        else if ( (byte == '"') ||
+                  (byte == '\\') )
+        {
+            escape[0] = '\\';
+            escape[1] = (char)byte;
+            d_internal_test_suite_puts(_writer,
+                                       escape);
+        }
+        else if ( (byte < 0x20) ||
+                  (byte == 0x7f) )
+        {
+            sprintf(escape,
+                    "\\x%02x",
+                    (unsigned int)byte);
+            d_internal_test_suite_puts(_writer,
+                                       escape);
+        }
+        else
+        {
+            d_internal_test_suite_put(_writer,
+                                      &_bytes[i],
+                                      1);
+        }
+    }
+
+    d_internal_test_suite_puts(_writer,
+                               "\"");
+
+    // an end that was cut
+    if (_end < _length)
+    {
+        d_internal_test_suite_puts(_writer,
+                                   "...");
+    }
+
+    return;
 }
 
 //==============================================================================
@@ -809,6 +1036,51 @@ d_test_suite_note(
 }
 
 /**
+ * @brief Notes, on the test a check has just opened, that the check opened it.
+ *
+ * @param[in,out] _suite  the suite; the check's test is open.
+ * @param[in]     _text   the check's text; may be `NULL`.
+ *
+ * Called the first time a check opens a test in a suite, and never again for
+ * it: one note tells a suite's author what happened, and a suite that means
+ * to check this way is not told on every test.
+ */
+static void
+d_internal_test_suite_tell_open(
+    struct dj_test_suite* _suite,
+    const char*           _text
+)
+{
+    struct dj_test_suite_writer note = { NULL, 0, 0, false };
+
+    _suite->told_open = true;
+
+    d_internal_test_suite_puts(&note,
+                               "the check \"");
+    d_internal_test_suite_puts(&note,
+                               (_text) ? _text : "");
+    d_internal_test_suite_puts(&note,
+                               "\" opened this test, named after it, as no "
+                               "test was open;\ncall d_test_suite_test before "
+                               "checking to name a test (said once a suite)");
+
+    // a note that could not be written is lost, and the suite says so
+    if ( (note.failed) ||
+         (!note.text) )
+    {
+        free(note.text);
+        _suite->error = true;
+
+        return;
+    }
+
+    d_internal_test_suite_keep_note(_suite,
+                                    note.text);
+
+    return;
+}
+
+/**
  * @brief Counts a check against the open test, opening one first if none is.
  *
  * @param[in,out] _suite    the suite.
@@ -835,10 +1107,17 @@ d_internal_test_suite_count(
         // a passing check without a suite says nothing
         if (!_result)
         {
+            // where the check was made, when the caller knew
+            if (_file)
+            {
+                fprintf(stderr,
+                        "%s:%d: ",
+                        _file,
+                        _line);
+            }
+
             fprintf(stderr,
-                    "%s:%d: check failed (no suite): %s\n",
-                    (_file) ? _file : "?",
-                    _line,
+                    "check failed (no suite): %s\n",
                     (_text) ? _text : "");
         }
 
@@ -846,11 +1125,21 @@ d_internal_test_suite_count(
     }
 
     // a check with no test open opens one named after it
-    if ( (_suite->open_test == D_INTERNAL_TEST_SUITE_NONE) &&
-         (!d_test_suite_test(_suite,
-                             _text)) )
+    if (_suite->open_test == D_INTERNAL_TEST_SUITE_NONE)
     {
-        return _result;
+        // a test that could not be opened loses the check
+        if (!d_test_suite_test(_suite,
+                               _text))
+        {
+            return _result;
+        }
+
+        // the first time in a suite, a note on the test says what happened
+        if (!_suite->told_open)
+        {
+            d_internal_test_suite_tell_open(_suite,
+                                            _text);
+        }
     }
 
     struct dj_test_suite_node* test = &_suite->nodes[_suite->open_test];
@@ -2079,4 +2368,798 @@ d_test_run_modules(
     d_test_suite_free(suite);
 
     return code;
+}
+
+//==============================================================================
+// 6.  TEXT
+//==============================================================================
+
+// D_INTERNAL_TEST_SUITE_TEXT_*
+//   constant: whether a side of a text check could be had.
+#define D_INTERNAL_TEST_SUITE_TEXT_OK         0
+#define D_INTERNAL_TEST_SUITE_TEXT_NONE       1  // no bytes and no path
+#define D_INTERNAL_TEST_SUITE_TEXT_UNREADABLE 2  // the file could not be read
+#define D_INTERNAL_TEST_SUITE_TEXT_NO_MEMORY  3  // the file did not fit
+
+// D_INTERNAL_TEST_SUITE_DIFF_*
+//   constant: what a text comparison found first.
+#define D_INTERNAL_TEST_SUITE_DIFF_NONE 0  // every line the same
+#define D_INTERNAL_TEST_SUITE_DIFF_LINE 1  // a line differs
+#define D_INTERNAL_TEST_SUITE_DIFF_ENDS 2  // one side ran out of lines first
+
+// D_INTERNAL_TEST_SUITE_TEXT_SHOWN
+//   constant: the longest line a note shows whole; a longer one is shown as
+// this many bytes around the column.
+#define D_INTERNAL_TEST_SUITE_TEXT_SHOWN 120
+
+// D_INTERNAL_TEST_SUITE_TEXT_READ
+//   constant: the bytes a file's buffer first holds; it doubles from there.
+#define D_INTERNAL_TEST_SUITE_TEXT_READ 4096
+
+// dj_test_suite_side
+//   struct: one side of a text check, as it is compared.
+struct dj_test_suite_side
+{
+    const char* bytes;   // the text; NULL when it could not be had
+    size_t      length;  // its length
+    char*       owned;   // a file's bytes, freed after the check
+    int         state;   // D_INTERNAL_TEST_SUITE_TEXT_*
+    int         error;   // errno, when a file could not be read
+    const char* path;    // the file, for the note
+};
+
+// dj_test_suite_line
+//   struct: one line of a side: its bytes, without its LF or a CR before it.
+struct dj_test_suite_line
+{
+    size_t start;  // its first byte
+    size_t end;    // one past its last
+};
+
+// dj_test_suite_diff
+//   struct: the first difference between two sides' lines.
+struct dj_test_suite_diff
+{
+    int                       kind;      // D_INTERNAL_TEST_SUITE_DIFF_*
+    size_t                    line;      // lines alike before it, plus a
+                                         // line that differs
+    size_t                    column;    // the first differing byte, from 1
+    struct dj_test_suite_line got;       // got's line; or the next line of
+                                         // the side that goes on
+    struct dj_test_suite_line want;      // want's line
+    bool                      got_ends;  // got ran out first, not want
+    size_t                    more;      // the lines the other side has left
+};
+
+/*
+d_test_text_buffer
+  A NULL buffer of length 0 is the empty text, as an empty range is; with any
+other length it is no text, so the check fails rather than reading nothing.
+*/
+struct dj_test_text
+d_test_text_buffer(
+    const char* _text,
+    size_t      _length
+)
+{
+    struct dj_test_text text = { NULL, 0, NULL };
+
+    text.text   = ( (!_text) &&
+                    (_length == 0) ) ? "" : _text;
+    text.length = (text.text) ? _length : 0;
+
+    return text;
+}
+
+/*
+d_test_text_cstr
+  NULL is no text, as d_test_suite_str_equal holds NULL apart from "".
+*/
+struct dj_test_text
+d_test_text_cstr(
+    const char* _text
+)
+{
+    struct dj_test_text text = { NULL, 0, NULL };
+
+    // a string up to its NUL; NULL stays no text
+    if (_text)
+    {
+        text.text   = _text;
+        text.length = strlen(_text);
+    }
+
+    return text;
+}
+
+/*
+d_test_text_file
+  Nothing is read until the check: the file is read whole then, and freed
+after it.
+*/
+struct dj_test_text
+d_test_text_file(
+    const char* _path
+)
+{
+    struct dj_test_text text = { NULL, 0, NULL };
+
+    text.path = _path;
+
+    return text;
+}
+
+/**
+ * @brief Reads a side's file whole, in binary.
+ *
+ * @param[in,out] _side  the side, with its path; receives the bytes, or the
+ *                       state and errno of a file that could not be read.
+ *
+ * Reads until a read gives nothing, so a file whose size is not known in
+ * advance (a pipe, a file still growing) is read as far as it goes.
+ */
+static void
+d_internal_test_suite_read(
+    struct dj_test_suite_side* _side
+)
+{
+    errno = 0;
+
+    FILE* const file = fopen(_side->path,
+                             "rb");
+
+    // a file that cannot be opened
+    if (!file)
+    {
+        _side->state = D_INTERNAL_TEST_SUITE_TEXT_UNREADABLE;
+        _side->error = errno;
+
+        return;
+    }
+
+    size_t capacity = 0;
+    size_t got      = 0;
+
+    // read until a read gives nothing: the end, or an error
+    do
+    {
+        // a full buffer grows: to the first size, then by doubling
+        if (_side->length == capacity)
+        {
+            size_t grown_capacity = D_INTERNAL_TEST_SUITE_TEXT_READ;
+
+            // the doubling must be representable
+            if ( (capacity != 0) &&
+                 (d_ckd_mul(&grown_capacity,
+                            capacity,
+                            (size_t)2)) )
+            {
+                _side->state = D_INTERNAL_TEST_SUITE_TEXT_NO_MEMORY;
+
+                break;
+            }
+
+            char* const grown = (char*)realloc(_side->owned,
+                                               grown_capacity);
+
+            // realloc failed: what was read is freed with the side
+            if (!grown)
+            {
+                _side->state = D_INTERNAL_TEST_SUITE_TEXT_NO_MEMORY;
+
+                break;
+            }
+
+            _side->owned = grown;
+            capacity     = grown_capacity;
+        }
+
+        got = fread(_side->owned + _side->length,
+                    1,
+                    capacity - _side->length,
+                    file);
+        _side->length += got;
+    } while (got != 0);
+
+    // a read that stopped on an error, not at the end
+    if ( (_side->state == D_INTERNAL_TEST_SUITE_TEXT_OK) &&
+         (ferror(file)) )
+    {
+        _side->state = D_INTERNAL_TEST_SUITE_TEXT_UNREADABLE;
+        _side->error = errno;
+    }
+
+    fclose(file);
+
+    // the bytes, when every one was read
+    if (_side->state == D_INTERNAL_TEST_SUITE_TEXT_OK)
+    {
+        _side->bytes = _side->owned;
+    }
+
+    return;
+}
+
+/**
+ * @brief Has one side of a text check: its bytes, or why there are none.
+ *
+ * @param[out] _side  the side.
+ * @param[in]  _text  what the caller gave.
+ */
+static void
+d_internal_test_suite_side(
+    struct dj_test_suite_side* _side,
+    struct dj_test_text        _text
+)
+{
+    memset(_side,
+           0,
+           sizeof(*_side));
+
+    // bytes in memory are compared where they are
+    if (_text.text)
+    {
+        _side->bytes  = _text.text;
+        _side->length = _text.length;
+
+        return;
+    }
+
+    // no bytes and no file: no text
+    if (!_text.path)
+    {
+        _side->state = D_INTERNAL_TEST_SUITE_TEXT_NONE;
+
+        return;
+    }
+
+    _side->path = _text.path;
+    d_internal_test_suite_read(_side);
+
+    return;
+}
+
+/**
+ * @brief Takes the next line of a side.
+ *
+ * @param[in]     _side  the side.
+ * @param[in,out] _at    where the line starts; moved past its LF.
+ * @param[out]    _line  the line, without its LF or a CR just before it.
+ * @return `true` if there was a line, `false` at the end of the side.
+ *
+ * A text that ends with an LF has no line after it; one that does not ends
+ * with a line that has no LF.
+ */
+static bool
+d_internal_test_suite_next_line(
+    const struct dj_test_suite_side* _side,
+    size_t*                          _at,
+    struct dj_test_suite_line*       _line
+)
+{
+    // no line left
+    if (*_at >= _side->length)
+    {
+        return false;
+    }
+
+    const char* const lf = (const char*)memchr(_side->bytes + *_at,
+                                               '\n',
+                                               _side->length - *_at);
+
+    _line->start = *_at;
+
+    // the last line, with no LF: it runs to the end
+    if (!lf)
+    {
+        _line->end = _side->length;
+        *_at       = _side->length;
+
+        return true;
+    }
+
+    _line->end = (size_t)(lf - _side->bytes);
+    *_at       = _line->end + 1;
+
+    // a CR just before the LF is not the line's
+    if ( (_line->end > _line->start) &&
+         (_side->bytes[_line->end - 1] == '\r') )
+    {
+        _line->end--;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Whether a side ends cleanly: empty, or with an LF.
+ *
+ * @param[in] _side  the side.
+ * @return `true` if it is empty or its last byte is an LF.
+ */
+static bool
+d_internal_test_suite_ends_clean(
+    const struct dj_test_suite_side* _side
+)
+{
+    return ( (_side->length == 0) ||
+             (_side->bytes[_side->length - 1] == '\n') );
+}
+
+/**
+ * @brief Finds the first line in which two sides differ.
+ *
+ * @param[in]  _got   the actual side.
+ * @param[in]  _want  the expected side.
+ * @param[out] _diff  what was found.
+ *
+ * Lines are compared byte for byte; the first that differs gives its column,
+ * which is one past the shorter line when one line begins the other. When a
+ * side runs out first, the other's remaining lines are counted.
+ */
+static void
+d_internal_test_suite_compare(
+    const struct dj_test_suite_side* _got,
+    const struct dj_test_suite_side* _want,
+    struct dj_test_suite_diff*       _diff
+)
+{
+    size_t                    at_got  = 0;
+    size_t                    at_want = 0;
+    struct dj_test_suite_line got     = { 0, 0 };
+    struct dj_test_suite_line want    = { 0, 0 };
+
+    memset(_diff,
+           0,
+           sizeof(*_diff));
+
+    // a line from each side, until they differ or both end
+    for (;;)
+    {
+        const bool has_got  = d_internal_test_suite_next_line(_got,
+                                                              &at_got,
+                                                              &got);
+        const bool has_want = d_internal_test_suite_next_line(_want,
+                                                              &at_want,
+                                                              &want);
+
+        // both ended together: no line differs
+        if ( (!has_got) &&
+             (!has_want) )
+        {
+            return;
+        }
+
+        // one ended: the other's next line, and how many it has left
+        if ( (!has_got) ||
+             (!has_want) )
+        {
+            const struct dj_test_suite_side* const other =
+                (has_got) ? _got : _want;
+            size_t                                 at    =
+                (has_got) ? at_got : at_want;
+            struct dj_test_suite_line              rest  = { 0, 0 };
+
+            _diff->kind     = D_INTERNAL_TEST_SUITE_DIFF_ENDS;
+            _diff->got_ends = (!has_got);
+            _diff->got      = (has_got) ? got : want;
+            _diff->more     = 1;
+
+            // count the rest of the side that goes on
+            while (d_internal_test_suite_next_line(other,
+                                                   &at,
+                                                   &rest))
+            {
+                _diff->more++;
+            }
+
+            return;
+        }
+
+        const size_t got_length  = got.end - got.start;
+        const size_t want_length = want.end - want.start;
+        const size_t shorter     = (got_length < want_length) ? got_length
+                                                              : want_length;
+        size_t       i           = 0;
+
+        _diff->line++;
+
+        // the bytes the lines share, while they agree
+        while ( (i < shorter) &&
+                (_got->bytes[got.start + i] == _want->bytes[want.start + i]) )
+        {
+            i++;
+        }
+
+        // a byte that differs, or one line longer than the other
+        if ( (i < shorter) ||
+             (got_length != want_length) )
+        {
+            _diff->kind   = D_INTERNAL_TEST_SUITE_DIFF_LINE;
+            _diff->column = i + 1;
+            _diff->got    = got;
+            _diff->want   = want;
+
+            return;
+        }
+    }
+}
+
+/**
+ * @brief Puts one side's line on a note, labelled, quoted, and cut to a
+ *        window when it is long.
+ *
+ * @param[in,out] _note   the note.
+ * @param[in]     _label  what precedes the line ("\n  got:  ", ...).
+ * @param[in]     _side   the side.
+ * @param[in]     _line   the line.
+ * @param[in]     _start  the window's first byte, from the line's start.
+ */
+static void
+d_internal_test_suite_put_line(
+    struct dj_test_suite_writer*     _note,
+    const char*                      _label,
+    const struct dj_test_suite_side* _side,
+    struct dj_test_suite_line        _line,
+    size_t                           _start
+)
+{
+    const size_t length = _line.end - _line.start;
+    size_t       end    = _start + D_INTERNAL_TEST_SUITE_TEXT_SHOWN;
+
+    // a window that reaches past the line stops at its end
+    if ( (end > length) ||
+         (end < _start) )
+    {
+        end = length;
+    }
+
+    d_internal_test_suite_puts(_note,
+                               _label);
+    d_internal_test_suite_put_quoted(_note,
+                                     _side->bytes + _line.start,
+                                     (_start < length) ? _start : length,
+                                     end,
+                                     length);
+
+    return;
+}
+
+/**
+ * @brief Where two lines' window starts: 0 when both fit, otherwise the
+ *        column's byte less half the window, held inside the longer line.
+ *
+ * @param[in] _column   the first differing byte, from 1.
+ * @param[in] _longest  the longer line's length.
+ * @return the first byte shown of each line.
+ *
+ * Both lines share one window, so the bytes at the column stay level.
+ */
+static size_t
+d_internal_test_suite_window(
+    size_t _column,
+    size_t _longest
+)
+{
+    const size_t half  = D_INTERNAL_TEST_SUITE_TEXT_SHOWN / 2;
+    size_t       start = 0;
+
+    // lines that fit are shown whole
+    if (_longest <= D_INTERNAL_TEST_SUITE_TEXT_SHOWN)
+    {
+        return 0;
+    }
+
+    start = ((_column - 1) > half) ? ((_column - 1) - half) : 0;
+
+    // a window held inside the longer line, never short of its full width
+    if (start > (_longest - D_INTERNAL_TEST_SUITE_TEXT_SHOWN))
+    {
+        start = _longest - D_INTERNAL_TEST_SUITE_TEXT_SHOWN;
+    }
+
+    return start;
+}
+
+/**
+ * @brief Writes the note of two sides that differ.
+ *
+ * @param[in,out] _note  the note.
+ * @param[in]     _name  the check's name.
+ * @param[in]     _got   the actual side.
+ * @param[in]     _want  the expected side.
+ * @param[in]     _diff  the first difference between their lines.
+ *
+ * The first line says what differs; the lines after it show it. A side that
+ * ends without a final newline, when the other does not, is said last.
+ */
+static void
+d_internal_test_suite_write_diff(
+    struct dj_test_suite_writer*     _note,
+    const char*                      _name,
+    const struct dj_test_suite_side* _got,
+    const struct dj_test_suite_side* _want,
+    const struct dj_test_suite_diff* _diff
+)
+{
+    const bool got_clean  = d_internal_test_suite_ends_clean(_got);
+    const bool want_clean = d_internal_test_suite_ends_clean(_want);
+
+    d_internal_test_suite_puts(_note,
+                               _name);
+    d_internal_test_suite_puts(_note,
+                               ": ");
+
+    // a line that differs, a side that ran out, or only the end
+    if (_diff->kind == D_INTERNAL_TEST_SUITE_DIFF_LINE)
+    {
+        const size_t got_length  = _diff->got.end - _diff->got.start;
+        const size_t want_length = _diff->want.end - _diff->want.start;
+        const size_t start       =
+            d_internal_test_suite_window(_diff->column,
+                                         (got_length > want_length)
+                                             ? got_length
+                                             : want_length);
+
+        d_internal_test_suite_puts(_note,
+                                   "line ");
+        d_internal_test_suite_put_count(_note,
+                                        _diff->line);
+        d_internal_test_suite_puts(_note,
+                                   " differs, at column ");
+        d_internal_test_suite_put_count(_note,
+                                        _diff->column);
+        d_internal_test_suite_put_line(_note,
+                                       "\n  got:  ",
+                                       _got,
+                                       _diff->got,
+                                       start);
+        d_internal_test_suite_put_line(_note,
+                                       "\n  want: ",
+                                       _want,
+                                       _diff->want,
+                                       start);
+    }
+    else if (_diff->kind == D_INTERNAL_TEST_SUITE_DIFF_ENDS)
+    {
+        const char* const ended = (_diff->got_ends) ? "got" : "want";
+        const char* const other = (_diff->got_ends) ? "want" : "got";
+
+        d_internal_test_suite_puts(_note,
+                                   ended);
+
+        // an empty side has no line to end after
+        if (_diff->line == 0)
+        {
+            d_internal_test_suite_puts(_note,
+                                       " is empty, ");
+        }
+        else
+        {
+            d_internal_test_suite_puts(_note,
+                                       " ends after line ");
+            d_internal_test_suite_put_count(_note,
+                                            _diff->line);
+            d_internal_test_suite_puts(_note,
+                                       ", ");
+        }
+
+        d_internal_test_suite_puts(_note,
+                                   other);
+        d_internal_test_suite_puts(_note,
+                                   " has ");
+        d_internal_test_suite_put_count(_note,
+                                        _diff->more);
+        d_internal_test_suite_puts(_note,
+                                   (_diff->line == 0) ? " line" : " more line");
+        d_internal_test_suite_puts(_note,
+                                   (_diff->more == 1) ? "" : "s");
+        d_internal_test_suite_put_line(_note,
+                                       (_diff->got_ends) ? "\n  want: "
+                                                         : "\n  got:  ",
+                                       (_diff->got_ends) ? _want : _got,
+                                       _diff->got,
+                                       0);
+    }
+    else
+    {
+        d_internal_test_suite_puts(_note,
+                                   "only the final newline differs");
+    }
+
+    // one side without a final newline, said after any line that differs
+    if (got_clean != want_clean)
+    {
+        d_internal_test_suite_puts(_note,
+                                   (got_clean) ? "\n  want: " : "\n  got:  ");
+        d_internal_test_suite_puts(_note,
+                                   "ends without a final newline");
+    }
+
+    return;
+}
+
+/**
+ * @brief Puts on a note why a side could not be compared, when it could not.
+ *
+ * @param[in,out] _note   the note.
+ * @param[in]     _label  what precedes the reason ("\n  got:  ", ...).
+ * @param[in]     _side   the side.
+ */
+static void
+d_internal_test_suite_put_unread(
+    struct dj_test_suite_writer*     _note,
+    const char*                      _label,
+    const struct dj_test_suite_side* _side
+)
+{
+    // a side that was had says nothing
+    if (_side->state == D_INTERNAL_TEST_SUITE_TEXT_OK)
+    {
+        return;
+    }
+
+    d_internal_test_suite_puts(_note,
+                               _label);
+
+    // no text, or a file that could not be read or held
+    if (_side->state == D_INTERNAL_TEST_SUITE_TEXT_NONE)
+    {
+        d_internal_test_suite_puts(_note,
+                                   "no text (NULL)");
+
+        return;
+    }
+
+    d_internal_test_suite_puts(_note,
+                               (_side->state ==
+                                D_INTERNAL_TEST_SUITE_TEXT_NO_MEMORY)
+                                   ? "out of memory reading "
+                                   : "cannot read ");
+    d_internal_test_suite_put_quoted(_note,
+                                     _side->path,
+                                     0,
+                                     strlen(_side->path),
+                                     strlen(_side->path));
+
+    // the system's reason, when it gave one
+    if ( (_side->state == D_INTERNAL_TEST_SUITE_TEXT_UNREADABLE) &&
+         (_side->error != 0) )
+    {
+        d_internal_test_suite_puts(_note,
+                                   ": ");
+        d_internal_test_suite_puts(_note,
+                                   strerror(_side->error));
+    }
+
+    return;
+}
+
+/*
+d_test_suite_check_text_at
+  The note is written before the check is counted and kept after it, so the
+report shows the failing check, then where the texts differ. Outside a spec
+run, with no suite, both go to stderr.
+*/
+bool
+d_test_suite_check_text_at(
+    struct dj_test_suite* _suite,
+    const char*           _name,
+    struct dj_test_text   _actual,
+    struct dj_test_text   _expected,
+    const char*           _file,
+    int                   _line
+)
+{
+    struct dj_test_suite* const suite = (_suite) ? _suite
+                                                 : g_d_test_suite_current;
+    const char* const           name  = (_name) ? _name : "text";
+    struct dj_test_suite_writer note  = { NULL, 0, 0, false };
+    struct dj_test_suite_side   got   = {0};
+    struct dj_test_suite_side   want  = {0};
+    struct dj_test_suite_diff   diff  = {0};
+    bool                        same  = false;
+
+    d_internal_test_suite_side(&got,
+                               _actual);
+    d_internal_test_suite_side(&want,
+                               _expected);
+
+    // both sides had: compare them; otherwise, say which could not be
+    if ( (got.state == D_INTERNAL_TEST_SUITE_TEXT_OK) &&
+         (want.state == D_INTERNAL_TEST_SUITE_TEXT_OK) )
+    {
+        d_internal_test_suite_compare(&got,
+                                      &want,
+                                      &diff);
+        same = ( (diff.kind == D_INTERNAL_TEST_SUITE_DIFF_NONE) &&
+                 (d_internal_test_suite_ends_clean(&got) ==
+                  d_internal_test_suite_ends_clean(&want)) );
+
+        // a difference is written up only when there is one
+        if (!same)
+        {
+            d_internal_test_suite_write_diff(&note,
+                                             name,
+                                             &got,
+                                             &want,
+                                             &diff);
+        }
+    }
+    else
+    {
+        d_internal_test_suite_puts(&note,
+                                   name);
+        d_internal_test_suite_puts(&note,
+                                   ": could not compare");
+        d_internal_test_suite_put_unread(&note,
+                                         "\n  got:  ",
+                                         &got);
+        d_internal_test_suite_put_unread(&note,
+                                         "\n  want: ",
+                                         &want);
+    }
+
+    // a file or a note that memory could not hold is the suite's error
+    if ( (suite) &&
+         ( (got.state == D_INTERNAL_TEST_SUITE_TEXT_NO_MEMORY)  ||
+           (want.state == D_INTERNAL_TEST_SUITE_TEXT_NO_MEMORY) ||
+           (note.failed) ) )
+    {
+        suite->error = true;
+    }
+
+    const bool result = d_internal_test_suite_count(suite,
+                                                    same,
+                                                    name,
+                                                    NULL,
+                                                    _file,
+                                                    _line);
+
+    // the note: beneath the check, or after its line on stderr
+    if ( (!same)        &&
+         (note.text)    &&
+         (!note.failed) )
+    {
+        // no suite: stderr; a suite: the check's test, which is open now
+        if (!suite)
+        {
+            fprintf(stderr,
+                    "%s\n",
+                    note.text);
+        }
+        else if (suite->open_test != D_INTERNAL_TEST_SUITE_NONE)
+        {
+            d_internal_test_suite_keep_note(suite,
+                                            note.text);
+            note.text = NULL;
+        }
+    }
+
+    free(note.text);
+    free(got.owned);
+    free(want.owned);
+
+    return result;
+}
+
+/*
+d_test_suite_check_text
+  d_test_suite_check_text_at without a place: the check's name says which it
+is.
+*/
+bool
+d_test_suite_check_text(
+    struct dj_test_suite* _suite,
+    const char*           _name,
+    struct dj_test_text   _actual,
+    struct dj_test_text   _expected
+)
+{
+    return d_test_suite_check_text_at(_suite,
+                                      _name,
+                                      _actual,
+                                      _expected,
+                                      NULL,
+                                      0);
 }

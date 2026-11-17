@@ -153,3 +153,58 @@ d_tests_test_suite_contains(
     return (strstr(_report,
                    _text) != NULL);
 }
+
+/*
+d_tests_test_suite_run_row
+  Runs one row as a one-block module in a quiet inner suite; the report is
+the caller's to free.
+*/
+char*
+d_tests_test_suite_run_row(
+    const struct dj_test_case_spec* _row,
+    const char*                     _filter,
+    struct dj_test_summary*         _summary,
+    int*                            _code
+)
+{
+    struct dj_test_block_spec block = {0};
+
+    block.name        = "inner_block";
+    block.descriptor  = "the inner block";
+    block.tests       = _row;
+    block.count       = 1;
+
+    struct dj_test_module_spec module = {0};
+
+    module.name       = "inner";
+    module.descriptor = "the inner module";
+    module.blocks     = &block;
+    module.count      = 1;
+
+    FILE* stream = NULL;
+
+    struct dj_test_suite* suite =
+        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
+                                 &stream);
+
+    // check if memory allocation was successful
+    if (!suite)
+    {
+        return NULL;
+    }
+
+    struct dj_test_suite_options options = {0};
+
+    d_test_suite_options_init(&options);
+    options.stream = stream;
+    options.filter = _filter;
+    d_test_suite_set_options(suite,
+                             &options);
+    d_test_suite_add_module(suite,
+                            &module);
+
+    return d_tests_test_suite_report(suite,
+                                     stream,
+                                     _code,
+                                     _summary);
+}

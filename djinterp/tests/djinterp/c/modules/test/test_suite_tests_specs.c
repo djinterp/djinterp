@@ -10,12 +10,13 @@
 * path:      /tests/djinterp/c/modules/test/test_suite_tests_specs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 #include "./test_suite_tests.h"  // corresponding header
 
 // std
 #include <stdlib.h>  // free
+#include <string.h>  // strcmp
 
 
 // d_tests_test_suite_calls
@@ -79,65 +80,6 @@ static bool
 d_tests_test_suite_inner_bare(void)
 {
     return true;
-}
-
-/**
- * @brief Runs one row as a one-block module in a quiet inner suite.
- *
- * @param[in]  _row      the row.
- * @param[in]  _filter   the filter, or `NULL`.
- * @param[out] _summary  the inner run's counts.
- * @param[out] _code     the inner run's exit code.
- * @return the inner report, which the caller frees, or `NULL`.
- */
-static char*
-d_tests_test_suite_run_row(
-    const struct dj_test_case_spec* _row,
-    const char*                     _filter,
-    struct dj_test_summary*         _summary,
-    int*                            _code
-)
-{
-    struct dj_test_block_spec block = {0};
-
-    block.name        = "inner_block";
-    block.descriptor  = "the inner block";
-    block.tests       = _row;
-    block.count       = 1;
-
-    struct dj_test_module_spec module = {0};
-
-    module.name       = "inner";
-    module.descriptor = "the inner module";
-    module.blocks     = &block;
-    module.count      = 1;
-
-    FILE* stream = NULL;
-
-    struct dj_test_suite* suite =
-        d_tests_test_suite_quiet(D_TEST_SUITE_SHOW_TESTS,
-                                 &stream);
-
-    // check if memory allocation was successful
-    if (!suite)
-    {
-        return NULL;
-    }
-
-    struct dj_test_suite_options options = {0};
-
-    d_test_suite_options_init(&options);
-    options.stream = stream;
-    options.filter = _filter;
-    d_test_suite_set_options(suite,
-                             &options);
-    d_test_suite_add_module(suite,
-                            &module);
-
-    return d_tests_test_suite_report(suite,
-                                     stream,
-                                     _code,
-                                     _summary);
 }
 
 /*
@@ -412,6 +354,194 @@ d_tests_test_suite_spec_nesting(void)
     d_tests_test_suite_middle_checks = summary.checks;
     D_TEST_REQUIRE(d_tests_test_suite_middle_checks == 2);
     D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
+    free(report);
+
+    return true;
+}
+
+// d_tests_test_suite_expected
+//   variable: how many of the expecting inner test's four checks it reached.
+static int d_tests_test_suite_expected = 0;
+
+/*
+d_tests_test_suite_inner_expects
+  An inner test whose second of four expectations fails; it goes on to the
+end and returns true, and records what each D_TEST_EXPECT gave.
+*/
+static bool
+d_tests_test_suite_inner_expects(void)
+{
+    const bool first  = D_TEST_EXPECT(1 == 1);
+    const bool second = D_TEST_EXPECT(1 == 2);
+
+    d_tests_test_suite_expected = 2;
+
+    // the values the two gave: true, then false
+    if ( (first) &&
+         (!second) )
+    {
+        d_tests_test_suite_expected++;
+    }
+
+    (void)D_TEST_EXPECT(2 == 2);
+    d_tests_test_suite_expected++;
+
+    return true;
+}
+
+/*
+d_tests_test_suite_spec_expect
+  D_TEST_EXPECT counts each check and goes on after a failure.
+  Tests the following:
+  - every expectation is counted, the failed one once
+  - the test reached its end, and each D_TEST_EXPECT gave its check's result
+  - a failed expectation fails the test though the test returned true
+  - the failed one is reported with its file, line and expression
+*/
+bool
+d_tests_test_suite_spec_expect(void)
+{
+    struct dj_test_case_spec row = { "expects", "four expectations",
+                                     d_tests_test_suite_inner_expects };
+
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    d_tests_test_suite_expected = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(d_tests_test_suite_expected == 4);
+    D_TEST_REQUIRE(summary.checks == 3);
+    D_TEST_REQUIRE(summary.checks_failed == 1);
+    D_TEST_REQUIRE(summary.tests_failed == 1);
+    D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "test_suite_tests_specs.c:"));
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               ": 1 == 2\n"));
+    D_TEST_REQUIRE(!d_tests_test_suite_contains(report,
+                                                "the test returned"));
+    free(report);
+
+    return true;
+}
+
+// dj_tests_test_suite_point
+//   struct: a pair, for a compound literal whose braces hold a bare comma.
+struct dj_tests_test_suite_point
+{
+    int x;
+    int y;
+};
+
+/*
+d_tests_test_suite_inner_variadic
+  An inner test whose requires hold a comma no parenthesis protects: a
+compound literal's, which C's preprocessor splits as it splits a C++
+template's arguments.
+*/
+static bool
+d_tests_test_suite_inner_variadic(void)
+{
+    D_TEST_REQUIRE((struct dj_tests_test_suite_point){ 1, 2 }.y == 2);
+    D_TEST_REQUIRE((struct dj_tests_test_suite_point){ 3, 4 }.x == 4);
+
+    return true;
+}
+
+/*
+d_tests_test_suite_spec_variadic
+  D_TEST_REQUIRE takes an expression with a bare comma.
+  Tests the following:
+  - both requires are made, and the second fails and stops the test
+  - the failed one's text is the whole expression, its comma included
+*/
+bool
+d_tests_test_suite_spec_variadic(void)
+{
+    struct dj_test_case_spec row = { "variadic", "two bare commas",
+                                     d_tests_test_suite_inner_variadic };
+
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&row,
+                                              NULL,
+                                              &summary,
+                                              &code);
+
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(summary.checks == 2);
+    D_TEST_REQUIRE(summary.checks_failed == 1);
+    D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "(struct dj_tests_test_suite_"
+                                               "point){ 3, 4 }.x == 4\n"));
+    free(report);
+
+    return true;
+}
+
+// d_tests_test_suite_case_rows
+//   constant: two rows written by D_TEST_CASE.
+static const struct dj_test_case_spec d_tests_test_suite_case_rows[] =
+{
+    D_TEST_CASE(d_tests_test_suite_inner_bare,
+                "returns true"),
+    D_TEST_CASE(d_tests_test_suite_inner_returns_false,
+                "returns false")
+};
+
+/*
+d_tests_test_suite_spec_case
+  D_TEST_CASE writes a row named after its function.
+  Tests the following:
+  - each row's name is its function's name, its descriptor as given, and
+    its function the one named
+  - the rows run as any other: one passes, one fails, under their names
+*/
+bool
+d_tests_test_suite_spec_case(void)
+{
+    const struct dj_test_case_spec* const rows = d_tests_test_suite_case_rows;
+
+    D_TEST_REQUIRE(strcmp(rows[0].name,
+                          "d_tests_test_suite_inner_bare") == 0);
+    D_TEST_REQUIRE(strcmp(rows[0].descriptor,
+                          "returns true") == 0);
+    D_TEST_REQUIRE(rows[0].fn == d_tests_test_suite_inner_bare);
+    D_TEST_REQUIRE(strcmp(rows[1].name,
+                          "d_tests_test_suite_inner_returns_false") == 0);
+    D_TEST_REQUIRE(rows[1].fn == d_tests_test_suite_inner_returns_false);
+
+    struct dj_test_summary summary = {0};
+    int                    code    = 0;
+
+    char* report = d_tests_test_suite_run_row(&rows[0],
+                                              NULL,
+                                              &summary,
+                                              &code);
+
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_PASSED);
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "[PASS] d_tests_test_suite_"
+                                               "inner_bare\n"));
+    free(report);
+    report = d_tests_test_suite_run_row(&rows[1],
+                                        NULL,
+                                        &summary,
+                                        &code);
+    D_TEST_REQUIRE(report != NULL);
+    D_TEST_REQUIRE(code == D_TEST_SUITE_EXIT_FAILED);
+    D_TEST_REQUIRE(d_tests_test_suite_contains(report,
+                                               "[FAIL] d_tests_test_suite_"
+                                               "inner_returns_false\n"));
     free(report);
 
     return true;

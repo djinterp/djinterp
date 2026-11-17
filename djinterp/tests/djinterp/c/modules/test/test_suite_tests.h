@@ -16,12 +16,14 @@
 * so its report stays out of the console, and checks what the inner suite
 * recorded with D_TEST_REQUIRE against the outer one. Inner runs nest: the
 * outer test's requires still reach the outer suite after an inner spec run.
+* The text block checks the notes a text check writes word for word, as the
+* report prints them, since those notes are what a failing suite is read by.
 *
 *
 * path:      /tests/djinterp/c/modules/test/test_suite_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -36,6 +38,7 @@ TABLE OF CONTENTS
     2.  Specs
     3.  Report and options
     4.  Notes
+    5.  Text
 3.  SPEC
     ----
     1.  The provider
@@ -64,7 +67,9 @@ D_EXTERN_C_BEGIN
 // d_tests_test_suite_quiet makes an inner suite that reports to a temporary
 // file, handed back through _stream; d_tests_test_suite_report runs the
 // suite, frees it, and reads that file back into a buffer the caller frees;
-// d_tests_test_suite_contains says whether a report holds a piece of text.
+// d_tests_test_suite_contains says whether a report holds a piece of text;
+// d_tests_test_suite_run_row runs one spec row as a one-block module in a
+// quiet inner suite, with an optional filter, and returns the report.
 struct dj_test_suite* d_tests_test_suite_quiet(int    _show,
                                                FILE** _stream);
 
@@ -76,6 +81,12 @@ char*                 d_tests_test_suite_report(
 
 bool                  d_tests_test_suite_contains(const char* _report,
                                                   const char* _text);
+
+char*                 d_tests_test_suite_run_row(
+                          const struct dj_test_case_spec* _row,
+                          const char*                     _filter,
+                          struct dj_test_summary*         _summary,
+                          int*                            _code);
 
 
 //==============================================================================
@@ -101,6 +112,8 @@ bool d_tests_test_suite_skip(void);
 
 bool d_tests_test_suite_check_msg(void);
 
+bool d_tests_test_suite_told_once(void);
+
 // 2.2    Specs
 //------------------------------------------------------------------------------
 bool d_tests_test_suite_spec_runs_once(void);
@@ -116,6 +129,12 @@ bool d_tests_test_suite_spec_skip(void);
 bool d_tests_test_suite_spec_filter(void);
 
 bool d_tests_test_suite_spec_nesting(void);
+
+bool d_tests_test_suite_spec_expect(void);
+
+bool d_tests_test_suite_spec_variadic(void);
+
+bool d_tests_test_suite_spec_case(void);
 
 // 2.3    Report and options
 //------------------------------------------------------------------------------
@@ -150,6 +169,32 @@ bool d_tests_test_suite_note_layout(void);
 bool d_tests_test_suite_note_format(void);
 
 bool d_tests_test_suite_note_spec(void);
+
+// 2.5    Text
+//------------------------------------------------------------------------------
+bool d_tests_test_suite_text_makers(void);
+
+bool d_tests_test_suite_text_same(void);
+
+bool d_tests_test_suite_text_line(void);
+
+bool d_tests_test_suite_text_escapes(void);
+
+bool d_tests_test_suite_text_window(void);
+
+bool d_tests_test_suite_text_runs_out(void);
+
+bool d_tests_test_suite_text_newline(void);
+
+bool d_tests_test_suite_text_files(void);
+
+bool d_tests_test_suite_text_unread(void);
+
+bool d_tests_test_suite_text_spec(void);
+
+bool d_tests_test_suite_text_current(void);
+
+bool d_tests_test_suite_text_lane_g(void);
 
 
 //==============================================================================
@@ -188,7 +233,9 @@ static const struct dj_test_case_spec d_tests_test_suite_build_rows[] =
       d_tests_test_suite_skip },
     { "d_tests_test_suite_check_msg",
       "a named check reports its name and message",
-      d_tests_test_suite_check_msg }
+      d_tests_test_suite_check_msg },
+    D_TEST_CASE(d_tests_test_suite_told_once,
+                "the first check to open a test notes it, once a suite")
 };
 
 // d_tests_test_suite_spec_rows
@@ -215,7 +262,13 @@ static const struct dj_test_case_spec d_tests_test_suite_spec_rows[] =
       d_tests_test_suite_spec_filter },
     { "d_tests_test_suite_spec_nesting",
       "an inner spec run gives the outer suite back to D_TEST_REQUIRE",
-      d_tests_test_suite_spec_nesting }
+      d_tests_test_suite_spec_nesting },
+    D_TEST_CASE(d_tests_test_suite_spec_expect,
+                "D_TEST_EXPECT counts each check and goes on after a failure"),
+    D_TEST_CASE(d_tests_test_suite_spec_variadic,
+                "D_TEST_REQUIRE takes an expression with a bare comma"),
+    D_TEST_CASE(d_tests_test_suite_spec_case,
+                "D_TEST_CASE writes a row named after its function")
 };
 
 // d_tests_test_suite_report_rows
@@ -275,6 +328,36 @@ static const struct dj_test_case_spec d_tests_test_suite_note_rows[] =
       d_tests_test_suite_note_spec }
 };
 
+// d_tests_test_suite_text_rows
+//   constant: the text block's rows.
+static const struct dj_test_case_spec d_tests_test_suite_text_rows[] =
+{
+    D_TEST_CASE(d_tests_test_suite_text_makers,
+                "the makers: a buffer, a string, a file; NULL is no text"),
+    D_TEST_CASE(d_tests_test_suite_text_same,
+                "the same texts pass, a CR before an LF ignored either side"),
+    D_TEST_CASE(d_tests_test_suite_text_line,
+                "a line that differs is named, with its column and both lines"),
+    D_TEST_CASE(d_tests_test_suite_text_escapes,
+                "the lines shown escape what would read as something else"),
+    D_TEST_CASE(d_tests_test_suite_text_window,
+                "a line over 120 bytes shows the 120 around its column"),
+    D_TEST_CASE(d_tests_test_suite_text_runs_out,
+                "a side that runs out first is named, with the other's next"),
+    D_TEST_CASE(d_tests_test_suite_text_newline,
+                "a missing final newline is a difference, said last"),
+    D_TEST_CASE(d_tests_test_suite_text_files,
+                "a file is read whole, in binary, on either side"),
+    D_TEST_CASE(d_tests_test_suite_text_unread,
+                "no text, or a file that cannot be read, fails and says why"),
+    D_TEST_CASE(d_tests_test_suite_text_spec,
+                "the spec macros: REQUIRE stops, EXPECT goes on, both placed"),
+    D_TEST_CASE(d_tests_test_suite_text_current,
+                "with no suite, a text check goes to the spec test running"),
+    D_TEST_CASE(d_tests_test_suite_text_lane_g,
+                "lane G's two compares, run through the helper")
+};
+
 // d_tests_test_suite_blocks
 //   constant: the module's blocks, one per section translation unit.
 static const struct dj_test_block_spec d_tests_test_suite_blocks[] =
@@ -298,7 +381,12 @@ static const struct dj_test_block_spec d_tests_test_suite_blocks[] =
       "notes: where they attach, when they print, how they read",
       d_tests_test_suite_note_rows,
       sizeof(d_tests_test_suite_note_rows) /
-          sizeof(d_tests_test_suite_note_rows[0]) }
+          sizeof(d_tests_test_suite_note_rows[0]) },
+    { "text",
+      "comparing texts: what is the same, and what a difference notes",
+      d_tests_test_suite_text_rows,
+      sizeof(d_tests_test_suite_text_rows) /
+          sizeof(d_tests_test_suite_text_rows[0]) }
 };
 
 // d_tests_test_suite_module

@@ -44,8 +44,16 @@
 *         return d_test_run_modules(argc, argv, "x", modules, 1u);
 *     }
 *
-*   A test is a bool (void) function that checks with D_TEST_CHECK,
-* D_TEST_REQUIRE, D_TEST_SKIP and D_TEST_NOTE.
+*   A test is a bool (void) function that checks with D_TEST_REQUIRE (which
+* returns from the test when its check fails) or D_TEST_EXPECT (which goes
+* on), and may call D_TEST_SKIP and D_TEST_NOTE; D_TEST_CASE writes its row.
+* D_TEST_REQUIRE_TEXT and D_TEST_EXPECT_TEXT compare two texts (a buffer, a
+* string or a file) and, when they differ, say where in a note.
+*
+*   In the imperative form, open a test with d_test_suite_test before making
+* its checks. A check made while no test is open opens one of its own, named
+* after the check, and every check after it lands in that test; the first
+* time that happens in a suite, a note on the test says so.
 *
 * OPTIONS
 * -------
@@ -63,7 +71,7 @@
 * path:      /inc/djinterp/c/modules/test/test_suite.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.08
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -91,6 +99,8 @@ TABLE OF CONTENTS
          2.  dj_test_case_spec
          3.  dj_test_block_spec
          4.  dj_test_module_spec
+    4.  Text
+         1.  dj_test_text
 3.  FUNCTIONS
     ---------
     1.  Lifetime and options
@@ -98,15 +108,22 @@ TABLE OF CONTENTS
     3.  Running a suite
     4.  Support for the check macros
     5.  Check helpers
+    6.  Comparing text
 4.  CHECK MACROS
     ------------
     1.  Imperative checks
          1.  D_TEST_CHECK
          2.  D_TEST_CHECK_MSG
+         3.  D_TEST_CHECK_TEXT
     2.  Spec checks
          1.  D_TEST_REQUIRE
          2.  D_TEST_SKIP
          3.  D_TEST_NOTE
+         4.  D_TEST_EXPECT
+         5.  D_TEST_REQUIRE_TEXT
+         6.  D_TEST_EXPECT_TEXT
+    3.  Spec rows
+         1.  D_TEST_CASE
 */
 
 #ifndef DJINTERP_C_TEST_SUITE_H
@@ -251,6 +268,21 @@ struct dj_test_module_spec
     size_t                           count;
 };
 
+// 2.4    Text
+//------------------------------------------------------------------------------
+// 2.4.1
+// dj_test_text
+//   struct: one side of a text comparison: bytes in memory, or a file read
+// whole when it is compared. Made by d_test_text_buffer, d_test_text_cstr and
+// d_test_text_file; nothing in it is owned. With text and path both NULL it is
+// no text at all, and a comparison with it fails.
+struct dj_test_text
+{
+    const char* text;    // the bytes, or NULL for a file
+    size_t      length;  // how many bytes text holds
+    const char* path;    // the file, when text is NULL
+};
+
 
 //==============================================================================
 // 3.  FUNCTIONS
@@ -381,7 +413,9 @@ bool d_test_suite_vnote(struct dj_test_suite* _suite,
  * @brief Records a check against the test opened last.
  *
  * @note A check made before any test is open opens one, named after the
- *       expression, so it is counted rather than lost.
+ *       expression, so it is counted rather than lost. The first time a check
+ *       does so in a suite, a note on that test names the check and says to
+ *       call d_test_suite_test first.
  *
  * @param[in,out] _suite   the suite.
  * @param[in]     _result  whether the check held.
@@ -477,9 +511,11 @@ int  d_test_run_modules(int                                      _argc,
 //------------------------------------------------------------------------------
 // The spec macros below reach the suite being run, which
 // d_test_suite_add_module sets for the length of each test function, through
-// these three. Outside a spec run there is no such suite: a failure is then
-// written to stderr, and the macro still returns false from the test; a note
-// is dropped.
+// these. Outside a spec run there is no such suite: a failure is then written
+// to stderr (a text check's note with it), and D_TEST_REQUIRE still returns
+// false from the test; a note is dropped. d_test_suite_check_text_at is
+// d_test_suite_check_text with the place the check was made, which the text
+// macros pass.
 bool d_test_suite_require(bool        _result,
                           const char* _expr,
                           const char* _file,
@@ -489,6 +525,13 @@ void d_test_suite_skip_current(const char* _reason);
 
 bool d_test_suite_note_current(const char* _format,
                                ...) D_FORMAT_PRINTF(1, 2);
+
+bool d_test_suite_check_text_at(struct dj_test_suite* _suite,
+                                const char*           _name,
+                                struct dj_test_text   _actual,
+                                struct dj_test_text   _expected,
+                                const char*           _file,
+                                int                   _line);
 
 // 3.5    Check helpers
 //------------------------------------------------------------------------------
@@ -504,6 +547,76 @@ bool d_test_suite_note_current(const char* _format,
  */
 bool d_test_suite_str_equal(const char* _a,
                             const char* _b);
+
+// 3.6    Comparing text
+//------------------------------------------------------------------------------
+// A text check compares what a test produced with what it should be, line by
+// line, and when they differ, notes where: the first line that differs, the
+// column of its first differing byte, and both lines.
+//   A CR just before an LF is ignored on both sides, since the tree's files
+// check out with CRLF on Windows; every other byte counts, a CR elsewhere
+// included. When one side ends with a newline and the other does not, that
+// is a difference of its own, noted after any line that differs.
+//   In the note, each line is shown between quotes, a tab as \t, a CR as \r,
+// any other control byte as \xNN, a quote as \" and a backslash as \\.
+// Columns count the line's own bytes from 1, not its escapes. A line over 120
+// bytes is shown as the 120 bytes around the column, with "..." outside the
+// quotes at each end that was cut. When one side runs out of lines first, the
+// note says which, after which line, and shows the other side's next line.
+
+/**
+ * @brief A text in memory: _length bytes from _text.
+ *
+ * @param[in] _text    the bytes; they must outlive the check. `NULL` with a
+ *                     length of 0 is the empty text, and with any other length
+ *                     is no text, which fails a comparison.
+ * @param[in] _length  how many bytes there are; a NUL among them is a byte
+ *                     like any other.
+ * @return the text.
+ */
+struct dj_test_text d_test_text_buffer(const char* _text,
+                                       size_t      _length);
+
+/**
+ * @brief A text in memory, up to its terminating NUL.
+ *
+ * @param[in] _text  the string; `NULL` is no text, which fails a comparison.
+ * @return the text.
+ */
+struct dj_test_text d_test_text_cstr(const char* _text);
+
+/**
+ * @brief A text in a file, read whole, in binary, when it is compared.
+ *
+ * @param[in] _path  the file's path; it must outlive the check. A file that
+ *                   cannot be read, or a `NULL` path, fails a comparison, and
+ *                   the note names the path and why.
+ * @return the text.
+ */
+struct dj_test_text d_test_text_file(const char* _path);
+
+/**
+ * @brief Records one check, named _name, that two texts are the same; when
+ *        they are not, attaches a note to the test saying where they differ.
+ *
+ * @note Either side may be a buffer, a string or a file. A file is read
+ *       whole; there is no limit on a text's length.
+ * @note As for any check, one made with no test open opens one (3.2).
+ *
+ * @param[in,out] _suite     the suite; `NULL` is the suite a spec run is in,
+ *                           and outside a spec run, a failure and its note go
+ *                           to stderr.
+ * @param[in]     _name      the check's name, which also starts the note;
+ *                           copied.
+ * @param[in]     _actual    the text the test produced ("got" in the note).
+ * @param[in]     _expected  the text it should be ("want" in the note).
+ * @return `true` if the texts are the same; `false` if they differ, or a side
+ *         is no text or cannot be read.
+ */
+bool d_test_suite_check_text(struct dj_test_suite* _suite,
+                             const char*           _name,
+                             struct dj_test_text   _actual,
+                             struct dj_test_text   _expected);
 
 
 //==============================================================================
@@ -537,23 +650,54 @@ bool d_test_suite_str_equal(const char* _a,
                            __FILE__,                                          \
                            __LINE__)
 
+// 4.1.3
+// D_TEST_CHECK_TEXT
+//   macro: records a check named _name that two dj_test_text are the same,
+// with its file and line, as d_test_suite_check_text does (3.6). Its value is
+// the check's result.
+#define D_TEST_CHECK_TEXT(_suite, _name, _actual, _expected)                  \
+    d_test_suite_check_text_at((_suite),                                      \
+                               (_name),                                       \
+                               (_actual),                                     \
+                               (_expected),                                   \
+                               __FILE__,                                      \
+                               __LINE__)
+
 // 4.2    Spec checks
 //------------------------------------------------------------------------------
 // 4.2.1
 // D_TEST_REQUIRE
-//   macro: inside a spec test, records whether _expr holds, and returns false
-// from the test when it does not. Evaluates _expr once.
-#define D_TEST_REQUIRE(_expr)                                                 \
-    do                                                                        \
-    {                                                                         \
-        if (!d_test_suite_require(((_expr) ? true : false),                   \
-                                  #_expr,                                     \
-                                  __FILE__,                                   \
-                                  __LINE__))                                  \
+//   macro: inside a spec test, records whether its expression holds, and
+// returns false from the test when it does not. Evaluates the expression
+// once. Where the preprocessor has variadic macros (everywhere but ISO C++98)
+// it takes the expression as written, so a comma inside template arguments,
+// as in std::is_same<A, B>::value, needs no parentheses; but a comma outside
+// them is the comma operator, not a message: a message goes in D_TEST_NOTE.
+#if D_ENV_PP_HAS_VARIADIC_MACROS
+    #define D_TEST_REQUIRE(...)                                               \
+        do                                                                    \
         {                                                                     \
-            return false;                                                     \
-        }                                                                     \
-    } while (0)
+            if (!d_test_suite_require(((__VA_ARGS__) ? true : false),         \
+                                      #__VA_ARGS__,                           \
+                                      __FILE__,                               \
+                                      __LINE__))                              \
+            {                                                                 \
+                return false;                                                 \
+            }                                                                 \
+        } while (0)
+#else
+    #define D_TEST_REQUIRE(_expr)                                             \
+        do                                                                    \
+        {                                                                     \
+            if (!d_test_suite_require(((_expr) ? true : false),               \
+                                      #_expr,                                 \
+                                      __FILE__,                               \
+                                      __LINE__))                              \
+            {                                                                 \
+                return false;                                                 \
+            }                                                                 \
+        } while (0)
+#endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // 4.2.2
 // D_TEST_SKIP
@@ -578,6 +722,73 @@ bool d_test_suite_str_equal(const char* _a,
     #define D_TEST_NOTE(...)                                                  \
         d_test_suite_note_current(__VA_ARGS__)
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+// 4.2.4
+// D_TEST_EXPECT
+//   macro: inside a spec test, records whether its expression holds, and goes
+// on either way: under d_test_suite_add_module, a failed expectation fails the
+// test when the test ends, whatever it returns. Its value is the check's
+// result. Takes its expression as D_TEST_REQUIRE does, variadic where the
+// preprocessor allows.
+//   Outside a spec run (C++'s run_module, until it records these checks) a
+// failure only goes to stderr and the test's verdict is what it returns, so a
+// test run there keeps the results, `ok = D_TEST_EXPECT(x == 1) && ok;`, and
+// returns ok.
+#if D_ENV_PP_HAS_VARIADIC_MACROS
+    #define D_TEST_EXPECT(...)                                                \
+        d_test_suite_require(((__VA_ARGS__) ? true : false),                  \
+                             #__VA_ARGS__,                                    \
+                             __FILE__,                                        \
+                             __LINE__)
+#else
+    #define D_TEST_EXPECT(_expr)                                              \
+        d_test_suite_require(((_expr) ? true : false),                        \
+                             #_expr,                                          \
+                             __FILE__,                                        \
+                             __LINE__)
+#endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+// 4.2.5
+// D_TEST_REQUIRE_TEXT
+//   macro: inside a spec test, records a check that two dj_test_text are the
+// same (3.6), named by the first argument's source text, and returns false
+// from the test when they are not; the note says where they differ.
+#define D_TEST_REQUIRE_TEXT(_actual, _expected)                               \
+    do                                                                        \
+    {                                                                         \
+        if (!d_test_suite_check_text_at(NULL,                                 \
+                                        #_actual,                             \
+                                        (_actual),                            \
+                                        (_expected),                          \
+                                        __FILE__,                             \
+                                        __LINE__))                            \
+        {                                                                     \
+            return false;                                                     \
+        }                                                                     \
+    } while (0)
+
+// 4.2.6
+// D_TEST_EXPECT_TEXT
+//   macro: D_TEST_REQUIRE_TEXT that goes on after a failure, as D_TEST_EXPECT
+// does. Its value is the check's result.
+#define D_TEST_EXPECT_TEXT(_actual, _expected)                                \
+    d_test_suite_check_text_at(NULL,                                          \
+                               #_actual,                                      \
+                               (_actual),                                     \
+                               (_expected),                                   \
+                               __FILE__,                                      \
+                               __LINE__)
+
+// 4.3    Spec rows
+//------------------------------------------------------------------------------
+// 4.3.1
+// D_TEST_CASE
+//   macro: one row of a spec table, { "_fn", _descriptor, &_fn }, so a row's
+// name is always its function's. C's dj_test_case_spec and C++'s test_spec
+// (test_defaults.hpp) have the same three fields in the same order, so it
+// writes a row of either; a C++ table reaches it by including this header.
+#define D_TEST_CASE(_fn, _descriptor)                                         \
+    { #_fn, (_descriptor), &_fn }
 
 
 D_EXTERN_C_END

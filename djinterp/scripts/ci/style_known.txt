@@ -1,5 +1,6 @@
 # djinterp style punch list: file<TAB>code<TAB>count, written by scripts/ci/check_style.py --write-known
 build/cmake/config/testing/djinterp/cpp/memory/memory/memory_tests_runner.cpp	B	1
+build/cmake/config/testing/djinterp/cpp/modules/test/test_suite/test_suite_tests_runner.cpp	B	1
 inc/djinterp/c/derror.h	G	1
 inc/djinterp/c/memory/dmemory.h	R	1
 inc/djinterp/c/meta/type_info_common.h	R	1
@@ -853,6 +854,7 @@ tests/djinterp/c/modules/test/test_suite_tests_fixtures.c	B	1
 tests/djinterp/c/modules/test/test_suite_tests_notes.c	B	1
 tests/djinterp/c/modules/test/test_suite_tests_report.c	B	1
 tests/djinterp/c/modules/test/test_suite_tests_specs.c	B	1
+tests/djinterp/c/modules/test/test_suite_tests_text.c	B	1
 tests/djinterp/c/modules/test/test_timer_tests.h	B	1
 tests/djinterp/c/modules/test/test_timer_tests_event.c	B	1
 tests/djinterp/c/modules/test/test_timer_tests_timer.c	B	1
@@ -1441,6 +1443,10 @@ tests/djinterp/cpp/modules/test/test_session_tests_construction.cpp	B	2
 tests/djinterp/cpp/modules/test/test_session_tests_run.cpp	B	2
 tests/djinterp/cpp/modules/test/test_session_tests_state.cpp	B	2
 tests/djinterp/cpp/modules/test/test_session_tests_verdict.cpp	B	2
+tests/djinterp/cpp/modules/test/test_suite_tests.hpp	B	1
+tests/djinterp/cpp/modules/test/test_suite_tests_checks.cpp	B	1
+tests/djinterp/cpp/modules/test/test_suite_tests_rows.cpp	B	1
+tests/djinterp/cpp/modules/test/test_suite_tests_text.cpp	B	1
 tests/djinterp/cpp/modules/test/test_timer_tests.hpp	B	1
 tests/djinterp/cpp/modules/test/test_timer_tests_accessors.cpp	B	2
 tests/djinterp/cpp/modules/test/test_timer_tests_construction.cpp	B	2
