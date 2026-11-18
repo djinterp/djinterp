@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/c/modules/interp/djin.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.11
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -69,11 +69,12 @@ TABLE OF CONTENTS
 
 D_EXTERN_C_BEGIN
 
-// the kit's program, the argument parser's command, and a command's call,
-// which the tagged value's header defines
+// the kit's program, the argument parser's command, a command's call, which
+// the tagged value's header defines, and desc's sink
 struct dj_cli_program;
 struct dj_arg_command;
 struct dj_djin_call;
+struct dj_desc_sink;
 
 
 //==============================================================================
@@ -105,8 +106,8 @@ struct dj_djin_command
 // '_', starting with a letter), which its settings' full names begin with;
 // its version and summary; its commands; its settings, as its frame in the
 // program's registry, named as the djin, or null for a djin with none; and
-// the function that gives its description's facts to desc's sink, whose
-// type desc settles (null until then, or for a djin with nothing to add).
+// the function that gives its description's facts to desc's sink
+// (desc/desc.h), null for a djin with nothing to add.
 struct dj_djin
 {
     uint32_t                      abi;            // D_DJIN_ABI
@@ -118,15 +119,17 @@ struct dj_djin
     size_t                        command_count;  // entries in commands
     struct dj_option_env*         settings;       // or null
     int                         (*describe)(const struct dj_djin* _djin,
-                                            void*                 _facts);
+                                            struct dj_desc_sink*  _sink);
 };
 
 // 1.3
 // D_DJIN_ABI, D_DJIN_COMMAND, D_DJIN
 //   the records' layout version, which d_djin_register checks, and brace
 // initialisers for the two records, for a constant table (C++98 cannot
-// build them member by member).
-#define D_DJIN_ABI 1u
+// build them member by member). The version moves at any change a record
+// built before it would no longer fit: 2 since `describe` took desc's sink
+// (11-18), where 1 had it take `void*`.
+#define D_DJIN_ABI 2u
 
 #define D_DJIN_COMMAND(_name, _summary, _define, _run)                       \
     { (uint32_t)sizeof(struct dj_djin_command), (_name), (_summary),         \

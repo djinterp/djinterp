@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/modules/interp/djin_tests_set.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.11
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // std
 #include <string.h>  // strlen
@@ -65,9 +65,27 @@ d_tests_djin_set_init(
 }
 
 /*
+d_tests_djin_describe
+  A describe slot of the record's type, desc's sink its second parameter,
+which adds nothing.
+*/
+static int
+d_tests_djin_describe(
+    const struct dj_djin* _djin,
+    struct dj_desc_sink*  _sink
+)
+{
+    (void)_djin;
+    (void)_sink;
+
+    return 0;
+}
+
+/*
 d_tests_djin_register
   Tests the following:
-  - a djin with commands and settings registers, and is listed
+  - a djin with commands, settings and a describe slot of desc's sink
+    registers, and is listed
   - its frame is then the registry's djin of its name
   - a djin with neither registers without a registry
 */
@@ -95,6 +113,7 @@ d_tests_djin_register(
 
     result = true;
     awk.settings = &frame;
+    awk.describe = d_tests_djin_describe;
 
     (void)d_option_env_registry_init(&registry, "djinterp");
     result = D_TEST_CHECK_MSG(_suite, "register_fixture",
@@ -107,7 +126,8 @@ d_tests_djin_register(
     result = D_TEST_CHECK_MSG(_suite, "register_ok",
                               d_djin_register(&set, &awk) ==
                                   D_DJIN_STATUS_OK,
-                              "a djin in shape registers") && result;
+                              "a djin in shape, its describe slot set, "
+                              "registers") && result;
     result = D_TEST_CHECK_MSG(_suite, "register_listed",
                               (d_djin_set_count(&set) == 1) &&
                               (d_djin_set_at(&set, 0) == &awk),
@@ -168,8 +188,9 @@ d_tests_djin_refused(
 /*
 d_tests_djin_register_refused
   Tests the following:
-  - a null djin, an old ABI, a short record, and names, versions and
-    summaries out of shape are INVALID
+  - a null djin, another ABI -- 1, whose describe slot took `void*`,
+    among them -- a short record, and names, versions and summaries out of
+    shape are INVALID
   - commands out of shape, or a name twice, are INVALID
   - a settings frame named otherwise than the djin is INVALID
   - a program's own name is RESERVED
@@ -203,6 +224,9 @@ d_tests_djin_register_refused(
 
     djin.abi = D_DJIN_ABI + 1u;
     result = d_tests_djin_refused(_suite, "refused_abi", &djin,
+                                  D_DJIN_STATUS_INVALID) && result;
+    djin.abi = 1u;
+    result = d_tests_djin_refused(_suite, "refused_abi_1", &djin,
                                   D_DJIN_STATUS_INVALID) && result;
     djin.abi  = D_DJIN_ABI;
     djin.size = 4u;

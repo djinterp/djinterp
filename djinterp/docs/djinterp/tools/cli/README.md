@@ -185,6 +185,7 @@ parser, since the program is one.
 | `d_cli_note(program, level, ...)` | `PROGRAM: note: MESSAGE`, at `-v` for level 1, `-vv` for 2 | -- |
 | `d_cli_usage_error(program, command, ...)` | `PROGRAM: error: COMMAND: MESSAGE` and `Try 'PROGRAM COMMAND --help' ...` | 2 |
 | `d_cli_file_error(program, "read", path, errno)` | `PROGRAM: error: cannot read 'PATH': REASON` | 2 |
+| `d_cli_output_error(program, &watch)` *(added 11-18)* | `PROGRAM: error: cannot write standard output: REASON` | 2 |
 
 A message is printf's format, starting in lower case, with no full stop.
 `-q` leaves only errors. Each report is composed whole and written in one
@@ -197,11 +198,22 @@ as it is.
 Results go to standard output, everything said about them to standard
 error. Help, a version or a script the output refuses -- a full disk -- is
 trouble, said: `hello: error: cannot write standard output: No space left
-on device`. `d_cli_write_file` writes a file whole or not at all -- `-` is
+on device`. *(added 11-18)* A command's own results are said the same way
+when it writes them through `d_cli_program_watched(program, &watch)`, a sink
+over the program's output that keeps the system's reason for the first
+write refused, and ends with `return d_cli_output_error(program, &watch);`
+when a write fails. `d_cli_write_file` writes a file whole or not at all -- `-` is
 standard output -- and through a symbolic link to the file it leads to,
 the link kept; a link it cannot follow, for any reason but that it leads
 nowhere, fails the write rather than be replaced. `d_cli_read_file` reads
 a file whole -- `-` is standard input.
+
+**Settings on the command line** *(added 11-18)*. The kit takes a run's
+settings off its command line before the parser reads the rest
+(GRAMMAR.md, R26). Until the parser hands them to the kit during its parse,
+the kit's own walk misses four cases that R26 lists: a setting in a
+response file, the value of an abbreviated option or of a multi-letter
+short option, and a setting after a plugin command's name.
 
 ---
 

@@ -419,6 +419,21 @@ global ones:
   program's has a `.` in its name (R5), so none is ever taken for a
   setting.
 
+  *(added 11-18)* Until the argument parser hands settings to the kit
+  during its parse, the kit finds them with a walk of its own, which
+  follows R22, R23 and R25 but not four rules the parser keeps, so that
+  in these cases what this rule says is not yet what a run does:
+  - **A setting in a response file** (`@FILE`) is not taken: the parser
+    meets it as an argument nothing expects, a usage error.
+  - **An abbreviated option's value** (`--out --x.y`, `--out` short for
+    `--output`): the walk does not know `--out` takes a value, so it takes
+    `--x.y` as a setting, and `--output` takes the next word.
+  - **A multi-letter short option's value** (`-ab --x.y`, where `-ab` takes
+    one): likewise.
+  - **A setting after a plugin command's name** (`gui --x.y=1`) is taken
+    by the program that loads the module, where the module should take it,
+    and refused when the program has no such setting.
+
 The standard options of section 6, in the same notation:
 
 ```abnf

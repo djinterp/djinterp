@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/modules/interp/spine.hpp
 * link(s):   ch-command.tex, ch-behavior.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -124,22 +124,8 @@ IX.   STRUCTURAL TRAITS
 #include "../parse/parser/combinators.hpp"        // or_, many, sep_by1
 
 
-// D_KEYWORD_INTERP
-//   keyword: resolves to `interp`, the namespace of the interpreter. The
-// root's list of keywords (djinterp.h) does not name it yet; this module
-// defines it until the root does.
-#ifndef D_KEYWORD_INTERP
-    #define D_KEYWORD_INTERP            interp
-#endif  // D_KEYWORD_INTERP
-
-// NS_INTERP
-//   namespace: opens djinterp's interp namespace (closed with NS_END), as
-// the root's NS_* open theirs.
-#ifndef NS_INTERP
-    #define NS_INTERP                   D_NAMESPACE(D_KEYWORD_INTERP)
-#endif  // NS_INTERP
-
-
+// the interpreter's namespace, djinterp::interp, is the root's
+// (D_KEYWORD_INTERP in djinterp.h, NS_INTERP in djinterp_cpp.h)
 NS_DJINTERP
 NS_INTERP
 

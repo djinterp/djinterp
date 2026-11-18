@@ -18,7 +18,7 @@
 # path:      /build/cmake/config/djinterp/tools/djinterp/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-#                                                            revised: 2026.11.13
+#                                                            revised: 2026.11.17
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -81,12 +81,13 @@ endif()
 # them, which FIXTURES keeps.
 function(djinterp_program_test _name _home)
     cmake_parse_arguments(PARSE_ARGV 2 _arg ""
-        "STATUS;MATCHES;SETUP;NEEDS" "COMMAND")
+        "STATUS;MATCHES;SETUP;NEEDS;OUTPUT_FILE" "COMMAND")
 
     d_cli_add_test(${_name}
-                   COMMAND djinterp ${_arg_COMMAND}
-                   STATUS  ${_arg_STATUS}
-                   MATCHES "${_arg_MATCHES}")
+                   COMMAND     djinterp ${_arg_COMMAND}
+                   STATUS      ${_arg_STATUS}
+                   MATCHES     "${_arg_MATCHES}"
+                   OUTPUT_FILE "${_arg_OUTPUT_FILE}")
 
     set(_folder "${CMAKE_CURRENT_BINARY_DIR}/homes/${_home}")
 
@@ -164,4 +165,19 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
         STATUS 0
         MATCHES "= false  [(]command line[)]\n    under it   true   [(]file[)]"
         NEEDS djinterp_again)
+
+    # an output that refuses what a command writes, said with its reason
+    if(EXISTS "/dev/full")
+        foreach(_command IN ITEMS list describe get)
+            set(_arguments ${_command})
+
+            if(_command STREQUAL "describe")
+                set(_arguments describe cli)
+            endif()
+
+            djinterp_program_test(djinterp_${_command}_full plain
+                COMMAND ${_arguments} STATUS 2 OUTPUT_FILE "/dev/full"
+                MATCHES "^djinterp: error: cannot write standard output: No space left on device\n$")
+        endforeach()
+    endif()
 endif()

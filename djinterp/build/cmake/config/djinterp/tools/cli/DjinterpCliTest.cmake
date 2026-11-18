@@ -5,21 +5,33 @@
 # D_CLI_TEST_COMMAND, a program and its arguments, and fails unless it ends
 # with the status D_CLI_TEST_STATUS and, where D_CLI_TEST_MATCHES is not
 # empty, what it says -- its output and its errors together -- matches that
-# expression. What it said is printed either way, for the test's log.
+# expression. What it said is printed either way, for the test's log. Where
+# D_CLI_TEST_OUTPUT_FILE is not empty, the program's output goes to that file
+# instead, and what it says is its errors alone.
 #
 #     cmake -DD_CLI_TEST_COMMAND=<program>;<argument>...
 #           -DD_CLI_TEST_STATUS=<status> [-DD_CLI_TEST_MATCHES=<regex>]
+#           [-DD_CLI_TEST_OUTPUT_FILE=<file>]
 #           -P DjinterpCliTest.cmake
 #
 # path:      /build/cmake/config/djinterp/tools/cli/DjinterpCliTest.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.26
-#                                                            revised: 2026.10.26
+#                                                            revised: 2026.11.17
 #*******************************************************************************
-execute_process(COMMAND ${D_CLI_TEST_COMMAND}
-                RESULT_VARIABLE _status
-                OUTPUT_VARIABLE _output
-                ERROR_VARIABLE  _errors)
+set(_output "")
+
+if("${D_CLI_TEST_OUTPUT_FILE}" STREQUAL "")
+    execute_process(COMMAND ${D_CLI_TEST_COMMAND}
+                    RESULT_VARIABLE _status
+                    OUTPUT_VARIABLE _output
+                    ERROR_VARIABLE  _errors)
+else()
+    execute_process(COMMAND ${D_CLI_TEST_COMMAND}
+                    RESULT_VARIABLE _status
+                    OUTPUT_FILE     "${D_CLI_TEST_OUTPUT_FILE}"
+                    ERROR_VARIABLE  _errors)
+endif()
 
 string(CONCAT _said "${_output}" "${_errors}")
 

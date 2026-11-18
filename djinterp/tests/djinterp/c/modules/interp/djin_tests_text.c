@@ -2,17 +2,18 @@
 * djinterp [test]                                              djin_tests_text.c
 *
 *   The text's tests: the list, a djin's description and a frame's, each to
-* the byte; a full name and a default too long to show, cut short; and every
-* writer's refusal of a sink that takes less than it is given.
+* the byte by DTest's text check, with no CR; a full name and a default too
+* long to show, cut short; and every writer's refusal of a sink that takes
+* less than it is given.
 *
 *
 * path:      /tests/djinterp/c/modules/interp/djin_tests_text.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.11
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // std
-#include <string.h>  // memcmp, memcpy, memset, strlen
+#include <string.h>  // memchr, memcpy, memset, strlen
 // djinterp
 #include "./djin_tests.h"           // the suite's tests
 #include "./djin_tests_fixtures.h"  // the fixtures
@@ -75,29 +76,34 @@ d_tests_djin_world_make(
 }
 
 /*
-d_tests_djin_same
-  Whether the buffer holds exactly `_expected`; a note shows both when not.
+d_tests_djin_text
+  Checks what a writer wrote into `_buffer`: written whole (`_wrote`, the
+writer's answer, and no overflow), with no CR in it -- which the text check
+would pass over before an LF -- and, by DTest's text check, exactly
+`_expected`, the check named `_name`.
 */
 static bool
-d_tests_djin_same(
-    const char*                       _what,
+d_tests_djin_text(
+    struct dj_test_suite*             _suite,
+    const char*                       _name,
+    bool                              _wrote,
     const struct dj_pack_buffer_sink* _buffer,
     const char*                       _expected
 )
 {
-    size_t length = strlen(_expected);
-    bool   same   = ( (!_buffer->overflow)         &&
-                      (_buffer->written == length) &&
-                      (memcmp(_buffer->buffer, _expected, length) == 0) );
+    const char* const text   = (const char*)_buffer->buffer;
+    bool              result = true;
 
-    if (!same)
-    {
-        D_TEST_NOTE("%s: wrote\n%.*s\nwanted\n%s", _what,
-                    (int)_buffer->written, (const char*)_buffer->buffer,
-                    _expected);
-    }
+    result = D_TEST_CHECK_MSG(_suite, "written_whole",
+                              (_wrote) && (!_buffer->overflow),
+                              "the writer wrote it whole") && result;
+    result = D_TEST_CHECK_MSG(_suite, "no_cr",
+                              memchr(text, '\r', _buffer->written) == NULL,
+                              "no CR in what the writer wrote") && result;
 
-    return same;
+    return D_TEST_CHECK_TEXT(_suite, _name,
+                             d_test_text_buffer(text, _buffer->written),
+                             d_test_text_cstr(_expected)) && result;
 }
 
 /*
@@ -127,6 +133,7 @@ d_tests_djin_write_list
   - the djins, a line each in the order registered, then the frame no djin
     names, as "settings only"
   - each column as wide as its widest entry, the last unpadded
+  - no CR in it
 */
 bool
 d_tests_djin_write_list(
@@ -149,12 +156,11 @@ d_tests_djin_write_list(
     made = d_tests_djin_world_make(&world);
     d_pack_buffer_sink_init(&buffer, text, sizeof(text));
 
-    return D_TEST_CHECK_MSG(_suite, "write_list",
-                            (made) &&
-                            (d_djin_write_list(&world.set,
-                                 d_pack_sink_from_buffer(&buffer)) == 0) &&
-                            (d_tests_djin_same("list", &buffer, expected)),
-                            "the list, to the byte");
+    return d_tests_djin_text(_suite, "write_list",
+                             (made) &&
+                             (d_djin_write_list(&world.set,
+                                  d_pack_sink_from_buffer(&buffer)) == 0),
+                             &buffer, expected);
 }
 
 /*
@@ -164,6 +170,7 @@ d_tests_djin_write_description
     setting's full name, kind, default, knob and help
   - a setting with no help ends at its knob
   - a frame no djin names is described as settings only
+  - no CR in either
 */
 bool
 d_tests_djin_write_description(
@@ -205,22 +212,18 @@ d_tests_djin_write_description(
     made   = d_tests_djin_world_make(&world);
 
     d_pack_buffer_sink_init(&buffer, text, sizeof(text));
-    result = D_TEST_CHECK_MSG(_suite, "write_description",
-                              (made) &&
-                              (d_djin_write_description(&world.awk,
-                                   d_pack_sink_from_buffer(&buffer)) == 0) &&
-                              (d_tests_djin_same("awk", &buffer, awk)),
-                              "a djin's description, to the byte") && result;
+    result = d_tests_djin_text(_suite, "write_description",
+                               (made) &&
+                               (d_djin_write_description(&world.awk,
+                                    d_pack_sink_from_buffer(&buffer)) == 0),
+                               &buffer, awk) && result;
 
     d_pack_buffer_sink_init(&buffer, text, sizeof(text));
-    result = D_TEST_CHECK_MSG(_suite, "write_frame",
-                              (made) &&
-                              (d_djin_write_frame(&world.printer_frame,
-                                   d_pack_sink_from_buffer(&buffer)) == 0) &&
-                              (d_tests_djin_same("printer", &buffer,
-                                                 printer)),
-                              "a frame's description, to the byte") &&
-             result;
+    result = d_tests_djin_text(_suite, "write_frame",
+                               (made) &&
+                               (d_djin_write_frame(&world.printer_frame,
+                                    d_pack_sink_from_buffer(&buffer)) == 0),
+                               &buffer, printer) && result;
 
     return result;
 }
@@ -398,12 +401,11 @@ d_tests_djin_write_long(
 
     d_pack_buffer_sink_init(&buffer, text, sizeof(text));
 
-    return D_TEST_CHECK_MSG(_suite, "write_long",
-                            (made) &&
-                            (d_djin_write_frame(&frame,
-                                 d_pack_sink_from_buffer(&buffer)) == 0) &&
-                            (d_tests_djin_same("long", &buffer, expected)),
-                            "a name and a default too long, cut short");
+    return d_tests_djin_text(_suite, "write_long",
+                             (made) &&
+                             (d_djin_write_frame(&frame,
+                                  d_pack_sink_from_buffer(&buffer)) == 0),
+                             &buffer, expected);
 }
 
 /*

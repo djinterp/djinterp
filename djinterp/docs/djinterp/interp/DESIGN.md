@@ -1,6 +1,6 @@
 # The djinterp interpreter and its command language: design
 
-Written 2026-11-04, amended 2026-11-09, 2026-11-11 and 2026-11-13. Agreed with the
+Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13 and 2026-11-18. Agreed with the
 designs it depends on: expression core v2's, the options' and the
 registry's, and dawk's. The owner rules what they do not settle.
 
@@ -405,8 +405,8 @@ struct dj_djin
     size_t                        command_count;
     // its settings: its frame in the program's registry, named as the djin
     struct dj_option_env*         settings;
-    // its description: desc facts, through desc's sink (11-13; void* until)
-    int (*describe)(const struct dj_djin*, void* _facts);
+    // its description: desc facts, through desc's sink (11-18, ABI 2)
+    int (*describe)(const struct dj_djin*, struct dj_desc_sink* _sink);
 };
 ```
 
@@ -434,7 +434,9 @@ changes nothing, when:
   a lowercase word or is there twice, a summary of more than one line, or a
   frame named other than the djin;
 - the name is one of the program's own commands (`list`, `describe`,
-  `get`, `set`, and the kit's `help` and `completion`);
+  `get`, `set`, and the kit's `help` and `completion`), or names one of its
+  manual's pages in sections 5 and 7 (`settings`, `cli`, `language`), which
+  a djin's page would share *(added 11-18)*;
 - a djin of the name is in the set, or another frame of it is in the
   registry;
 - the set is full, or the registry refuses the frame.
@@ -633,6 +635,7 @@ into the language's types.
 | Mon 11-09 | The grammar's fixes; the spine moved to `interp`. |
 | Wed 11-11 | The djin records (6.2): the set, registration into the registry, and the text that `list` and `describe` print. |
 | Fri 11-13 | The `djinterp` program on the records (`src/djinterp/tools/djinterp/`, its leaf `build/cmake/config/djinterp/tools/djinterp/`): `list`, `describe DJIN`, `get [--show-origin] [NAME]...` and `set NAME=VALUE...`. The kit's settings on the knob-and-option pattern (`tools/cli/c/cli_settings.h`): the user's file, both imports, and the command line's settings. |
+| Wed 11-18 | The records' `describe` takes desc's sink, and `D_DJIN_ABI` is 2. `get --show-origin` reads the default from the layers where they end with it. Every result is written through the kit's watched output, so a full disk is said with its reason. `settings`, `cli` and `language` are reserved. |
 | Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 -- sequences and pipelines -- behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |
 | December | Predicates, blocks and values; djins through the interpreter; awk run by dawk; the language frozen 12-11; suites, docs and the man page by 12-18. |

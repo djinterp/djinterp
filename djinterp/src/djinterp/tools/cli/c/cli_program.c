@@ -27,7 +27,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_program.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // corresponding header
 // std
@@ -1248,6 +1248,35 @@ int d_cli_file_error(
     return D_CLI_EXIT_TROUBLE;
 }
 
+/*
+d_cli_output_error
+  The output's refusal of what was written through a watch: with the reason
+the watch kept, as d_cli_file_error names standard output; with none, the
+refusal alone.
+*/
+int d_cli_output_error(
+    const struct dj_cli_program* _program,
+    const struct dj_cli_watch*   _watch
+)
+{
+    // the reason the output gave
+    if ( (_watch != NULL) &&
+         (_watch->errnum != 0) )
+    {
+        return d_cli_file_error(_program,
+                                "write",
+                                "-",
+                                _watch->errnum);
+    }
+
+    d_cli_report(_program,
+                 (int)D_CLI_SEVERITY_ERROR,
+                 "%s",
+                 "cannot write standard output");
+
+    return D_CLI_EXIT_TROUBLE;
+}
+
 
 //==============================================================================
 // 3.  THE PARSER'S FAILURES
@@ -1734,15 +1763,6 @@ int d_cli_internal_failure(
 // 4.  THE STANDARD COMMANDS
 //==============================================================================
 
-// dj_cli_internal_watch
-//   struct: a sink watched: the sink, and errno as the first write that took
-// less than all left it -- 0 when none did, or when the sink set none.
-struct dj_cli_internal_watch
-{
-    struct dj_pack_sink sink;
-    int                errnum;
-};
-
 /**
  * @brief A watched sink's write: the sink's own, errno kept when it took
  *        less than all. A dj_pack_sink_write_fn.
@@ -1760,8 +1780,7 @@ size_t d_cli_internal_watch_write(
     size_t      _size
 )
 {
-    struct dj_cli_internal_watch* const watch =
-        (struct dj_cli_internal_watch*)_context;
+    struct dj_cli_watch* const watch = (struct dj_cli_watch*)_context;
 
     if (watch->sink.write == NULL)
     {
@@ -1791,10 +1810,9 @@ size_t d_cli_internal_watch_write(
  * @param[out] _watch    the watch, emptied.
  * @return the sink to write to.
  */
-static
-struct dj_pack_sink d_cli_internal_watched(
-    const struct dj_cli_program*  _program,
-    struct dj_cli_internal_watch* _watch
+struct dj_pack_sink d_cli_program_watched(
+    const struct dj_cli_program* _program,
+    struct dj_cli_watch*         _watch
 )
 {
     const struct dj_pack_sink sink = { d_cli_internal_watch_write,
@@ -1814,32 +1832,26 @@ struct dj_pack_sink d_cli_internal_watched(
  *
  * @param[in] _program  the program.
  * @param[in] _status   what stopped it: D_ARG_ERROR_FILE for the output.
- * @param[in] _errnum   the reason the output gave; 0 for none.
+ * @param[in] _watch    the watch the output was written through.
  * @return D_CLI_EXIT_TROUBLE.
  */
 static
 int d_cli_internal_unwritten(
     const struct dj_cli_program* _program,
     int                          _status,
-    int                          _errnum
+    const struct dj_cli_watch*   _watch
 )
 {
     // the output's refusal, and its reason
-    if ( (_status == (int)D_ARG_ERROR_FILE) &&
-         (_errnum != 0) )
+    if (_status == (int)D_ARG_ERROR_FILE)
     {
-        return d_cli_file_error(_program,
-                                "write",
-                                "-",
-                                _errnum);
+        return d_cli_output_error(_program, _watch);
     }
 
     d_cli_report(_program,
                  (int)D_CLI_SEVERITY_ERROR,
                  "%s",
-                 (_status == (int)D_ARG_ERROR_FILE)
-                 ? "cannot write standard output"
-                 : "out of memory");
+                 "out of memory");
 
     return D_CLI_EXIT_TROUBLE;
 }
@@ -1928,17 +1940,17 @@ int d_cli_internal_help_command(
         target = next;
     }
 
-    struct dj_cli_internal_watch watch;
-    const int                   written = d_cli_internal_help_of(
-                                              target,
-                                              d_cli_internal_watched(_program,
-                                                                     &watch));
+    struct dj_cli_watch watch;
+    const int           written = d_cli_internal_help_of(
+                                      target,
+                                      d_cli_program_watched(_program,
+                                                            &watch));
 
     return (written == D_ARG_OK)
            ? D_CLI_EXIT_OK
            : d_cli_internal_unwritten(_program,
                                       written,
-                                      watch.errnum);
+                                      &watch);
 }
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
@@ -1981,20 +1993,19 @@ int d_cli_internal_completion_command(
                                  (count > 0u) ? values[0].data : "");
     }
 
-    struct dj_cli_internal_watch watch;
-    const int                   written = d_arg_completion_script(
-                                              &_program->parser->command,
-                                              which,
-                                              d_pack_text_from_cstr(
-                                                  _program->name),
-                                              d_cli_internal_watched(_program,
-                                                                     &watch));
+    struct dj_cli_watch watch;
+    const int           written = d_arg_completion_script(
+                                      &_program->parser->command,
+                                      which,
+                                      d_pack_text_from_cstr(_program->name),
+                                      d_cli_program_watched(_program,
+                                                            &watch));
 
     return (written == D_ARG_OK)
            ? D_CLI_EXIT_OK
            : d_cli_internal_unwritten(_program,
                                       written,
-                                      watch.errnum);
+                                      &watch);
 }
 
 #endif  // D_INTERNAL_ARG_PARSER_COMPLETION
@@ -3673,12 +3684,12 @@ int d_cli_internal_version(
  */
 static
 int d_cli_internal_answer(
-    const struct dj_cli_program*  _program,
-    int                           _status,
-    struct dj_cli_internal_watch* _watch
+    const struct dj_cli_program* _program,
+    int                          _status,
+    struct dj_cli_watch*         _watch
 )
 {
-    const struct dj_pack_sink out = d_cli_internal_watched(_program,
+    const struct dj_pack_sink out = d_cli_program_watched(_program,
                                                           _watch);
 
     // help, built whole before any of it is written
@@ -3729,7 +3740,7 @@ int d_cli_internal_ending(
     int                          _status
 )
 {
-    struct dj_cli_internal_watch watch;
+    struct dj_cli_watch watch;
 
     // a failure, or a callback's success: as the parser ends it
     if (!d_cli_internal_asked(_status))
@@ -3749,7 +3760,7 @@ int d_cli_internal_ending(
            ? D_CLI_EXIT_OK
            : d_cli_internal_unwritten(_program,
                                       written,
-                                      watch.errnum);
+                                      &watch);
 }
 
 /**

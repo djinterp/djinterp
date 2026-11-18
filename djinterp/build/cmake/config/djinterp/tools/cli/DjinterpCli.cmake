@@ -56,7 +56,7 @@
 # path:      /build/cmake/config/djinterp/tools/cli/DjinterpCli.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-#                                                            revised: 2026.11.04
+#                                                            revised: 2026.11.17
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -237,15 +237,18 @@ endfunction()
 #-------------------------------------------------------------------------------
 
 # d_cli_add_test(<name> COMMAND <program> [<argument>...] STATUS <status>
-#                [MATCHES <regex>] [WORKING_DIRECTORY <directory>])
+#                [MATCHES <regex>] [WORKING_DIRECTORY <directory>]
+#                [OUTPUT_FILE <file>])
 #   function: a test that runs a program as a user would, and passes when it
 # ends with the status given and, with MATCHES, says something the
 # expression matches, on its output or its errors. A program that is a
 # target is run as add_test runs one: its file, through the emulator a cross
-# build names. An argument cannot hold a semicolon.
+# build names. An argument cannot hold a semicolon. With OUTPUT_FILE the
+# program's output goes to that file -- /dev/full, say, to test a full
+# disk -- and MATCHES reads its errors alone.
 function(d_cli_add_test _name)
     cmake_parse_arguments(PARSE_ARGV 1 _arg ""
-        "STATUS;MATCHES;WORKING_DIRECTORY" "COMMAND")
+        "STATUS;MATCHES;WORKING_DIRECTORY;OUTPUT_FILE" "COMMAND")
 
     if( (NOT _arg_COMMAND) OR ("${_arg_STATUS}" STREQUAL "") )
         message(FATAL_ERROR
@@ -282,6 +285,7 @@ function(d_cli_add_test _name)
                      "-DD_CLI_TEST_COMMAND=${_run}"
                      "-DD_CLI_TEST_STATUS=${_arg_STATUS}"
                      "-DD_CLI_TEST_MATCHES=${_arg_MATCHES}"
+                     "-DD_CLI_TEST_OUTPUT_FILE=${_arg_OUTPUT_FILE}"
                      -P "${_script}"
              ${_where})
 endfunction()

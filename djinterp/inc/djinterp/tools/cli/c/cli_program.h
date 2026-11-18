@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/tools/cli/c/cli_program.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -68,6 +68,8 @@ TABLE OF CONTENTS
          2.  D_CLI_BUILD_INIT
     3.  The program
          1.  dj_cli_program
+    4.  A watched output
+         1.  dj_cli_watch
 3.  LIFETIME
     --------
     1.  Making and releasing
@@ -91,6 +93,7 @@ TABLE OF CONTENTS
     --------------------
     1.  Output
          1.  d_cli_program_set_output
+         2.  d_cli_program_watched
     2.  The standard options' values
          1.  d_cli_program_verbosity
          2.  d_cli_program_colour
@@ -109,6 +112,7 @@ TABLE OF CONTENTS
     2.  Reports that end a command
          1.  d_cli_usage_error
          2.  d_cli_file_error
+         3.  d_cli_output_error
 */
 
 #ifndef DJINTERP_TOOLS_CLI_C_CLI_PROGRAM_H
@@ -431,6 +435,20 @@ struct dj_cli_program
     int                             plugin_versions;
 };
 
+// 2.4    A watched output
+//------------------------------------------------------------------------------
+// 2.4.1
+// dj_cli_watch
+//   struct: the program's output, watched (d_cli_program_watched): the sink
+// written through, and `errnum`, errno as the first write that took less
+// than it was given left it -- 0 when none did, or when the sink set none.
+// d_cli_output_error says it.
+struct dj_cli_watch
+{
+    struct dj_pack_sink sink;
+    int                 errnum;
+};
+
 
 D_EXTERN_C_BEGIN
 
@@ -666,6 +684,18 @@ void d_cli_program_set_output(
     struct dj_pack_sink    _err
 );
 
+// 6.1.2
+// d_cli_program_watched
+//   query: a sink over the program's output that keeps, in `_watch`, the
+// system's reason for the first write the output refuses, so that a
+// command's results, written through it, are said as help is when the output
+// fails: `cannot write standard output: No space left on device`. `_watch`
+// is emptied, and must outlive the sink.
+struct dj_pack_sink d_cli_program_watched(
+    const struct dj_cli_program* _program,
+    struct dj_cli_watch*         _watch
+);
+
 // 6.2    The standard options' values
 //------------------------------------------------------------------------------
 // 6.2.1
@@ -838,6 +868,17 @@ int d_cli_file_error(
     const char*                  _doing,
     const char*                  _path,
     int                          _errnum
+);
+
+// 7.2.3
+// d_cli_output_error
+//   report: the program's output refused what a command wrote through
+// `_watch` -- `PROGRAM: error: cannot write standard output: REASON`, the
+// reason the watch kept, or, where it kept none, `PROGRAM: error: cannot
+// write standard output`. Returns D_CLI_EXIT_TROUBLE.
+int d_cli_output_error(
+    const struct dj_cli_program* _program,
+    const struct dj_cli_watch*   _watch
 );
 
 D_EXTERN_C_END

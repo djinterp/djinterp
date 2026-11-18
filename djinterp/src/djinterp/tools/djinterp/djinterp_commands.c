@@ -12,13 +12,15 @@
 * binds each setting for the run first, so that a name or a value the
 * setting does not take is refused before anything is written, then writes
 * the user's file whole: a line that sets the same name alone is replaced,
-* and each new statement goes at its end, where it is read last.
+* and each new statement goes at its end, where it is read last. Results go
+* through the kit's watched output (d_cli_program_watched), so that an output
+* that refuses them is said with the system's reason.
 *
 *
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "./djinterp_commands.h"  // corresponding header
 // std
@@ -55,12 +57,23 @@
 //   constant: the most djins the program's set holds.
 #define D_INTERNAL_DJINTERP_DJINS 16u
 
+// D_INTERNAL_DJINTERP_LAYERS
+//   constant: the most layers of a setting `get --show-origin` shows: as
+// many as the option core lists (option_env.c keeps the top 64), far more
+// than a frame chain of the program's can bind -- a binding from each of
+// five sources, in two scopes, a frame. Past them the default's line comes
+// from the row.
+#define D_INTERNAL_DJINTERP_LAYERS 64u
+
 // d_internal_djinterp_reserved
-//   constant: the names the program keeps for its own commands, and the
-// kit's.
+//   constant: the names the program keeps for its own commands and the
+// kit's, and those of its manual's pages in sections 5 and 7 --
+// djinterp-settings(5), djinterp-cli(7) and djinterp-language(7) -- which a
+// djin's page, djinterp-NAME(1), would otherwise share.
 static const char* const d_internal_djinterp_reserved[] =
 {
-    "list", "describe", "get", "set", "help", "completion", NULL
+    "list", "describe", "get", "set", "help", "completion",
+    "settings", "cli", "language", NULL
 };
 
 // d_internal_djinterp_room, d_internal_djinterp_set
@@ -71,7 +84,8 @@ static struct dj_djin_set d_internal_djinterp_set;
 
 /*
 d_internal_djinterp_put
-  Text to the program's output, whole or said as a failure to write it.
+  Text to the program's output, whole or said as a failure to write it, with
+the reason the output gave.
 */
 static bool
 d_internal_djinterp_put(
@@ -80,12 +94,15 @@ d_internal_djinterp_put(
     size_t                       _size
 )
 {
-    if (d_sink_emit(_program->out, _text, _size) == 1)
+    struct dj_cli_watch       watch;
+    const struct dj_pack_sink out = d_cli_program_watched(_program, &watch);
+
+    if (d_sink_emit(out, _text, _size) == 1)
     {
         return true;
     }
 
-    (void)d_cli_file_error(_program, "write", "-", EIO);
+    (void)d_cli_output_error(_program, &watch);
 
     return false;
 }
@@ -106,12 +123,15 @@ d_internal_djinterp_work_list(
     void*                  _context
 )
 {
+    struct dj_cli_watch       watch;
+    const struct dj_pack_sink out = d_cli_program_watched(_program, &watch);
+
     (void)_command;
     (void)_context;
 
-    if (d_djin_write_list(&d_internal_djinterp_set, _program->out) != 0)
+    if (d_djin_write_list(&d_internal_djinterp_set, out) != 0)
     {
-        return d_cli_file_error(_program, "write", "-", EIO);
+        return d_cli_output_error(_program, &watch);
     }
 
     return D_CLI_EXIT_OK;
@@ -135,6 +155,9 @@ d_internal_djinterp_work_describe(
                                              &count);
     const struct dj_djin*       djin;
     const struct dj_option_env* frame;
+    struct dj_cli_watch         watch;
+    const struct dj_pack_sink   out    = d_cli_program_watched(_program,
+                                                               &watch);
     int                         wrote;
 
     (void)_context;
@@ -160,11 +183,11 @@ d_internal_djinterp_work_describe(
     }
 
     wrote = (djin != NULL)
-            ? d_djin_write_description(djin, _program->out)
-            : d_djin_write_frame(frame, _program->out);
+            ? d_djin_write_description(djin, out)
+            : d_djin_write_frame(frame, out);
 
     return (wrote == 0) ? D_CLI_EXIT_OK
-                        : d_cli_file_error(_program, "write", "-", EIO);
+                        : d_cli_output_error(_program, &watch);
 }
 
 
@@ -307,7 +330,9 @@ d_internal_djinterp_value_text(
 /*
 d_internal_djinterp_origins
   Under a setting's line, what lies under its value: each binding the one
-in force stands over, and the default, with the knob it came from.
+in force stands over, and the default, with the knob it came from. Where the
+frame's layers end with the default, that layer gives the default's line;
+where they do not, the row gives it, so the lines are the same either way.
 */
 static bool
 d_internal_djinterp_origins(
@@ -315,20 +340,32 @@ d_internal_djinterp_origins(
     const struct dj_internal_djinterp_setting* _setting
 )
 {
-    struct dj_option_env_layer layers[8];
-    const size_t               count = d_option_env_layers(
-                                           _setting->frame, _setting->scope,
-                                           _setting->var, layers, 8u);
-    const size_t               shown = (count == (size_t)-1) ? 0u
-                                     : (count < 8u)          ? count
-                                                             : 8u;
-    char                       value[D_INTERNAL_DJINTERP_ROOM];
-    char                       line[D_INTERNAL_DJINTERP_ROOM * 2u];
-    bool                       held  = true;
-    int                        size;
+    struct dj_option_env_layer        layers[D_INTERNAL_DJINTERP_LAYERS];
+    const struct dj_option_env_value* bottom = NULL;
+    const size_t                      count  = d_option_env_layers(
+                                                   _setting->frame,
+                                                   _setting->scope,
+                                                   _setting->var, layers,
+                                                   D_INTERNAL_DJINTERP_LAYERS);
+    const size_t                      shown  =
+        (count == (size_t)-1)               ? 0u
+      : (count < D_INTERNAL_DJINTERP_LAYERS) ? count
+                                             : D_INTERNAL_DJINTERP_LAYERS;
+    char                              value[D_INTERNAL_DJINTERP_ROOM];
+    char                              line[D_INTERNAL_DJINTERP_ROOM * 2u];
+    bool                              held   = true;
+    int                               size;
 
     for (size_t i = 1u; (held) && (i < shown); ++i)
     {
+        // the default's own layer is the last line, not one under it
+        if (!layers[i].value.bound)
+        {
+            bottom = &layers[i].value;
+
+            continue;
+        }
+
         d_internal_djinterp_value_text(_setting->row,
                                        layers[i].value.text,
                                        layers[i].value.integer,
@@ -344,10 +381,12 @@ d_internal_djinterp_origins(
     if ( (held) &&
          (shown > 0u) )
     {
-        d_internal_djinterp_value_text(_setting->row, _setting->row->text,
-                                       _setting->row->integer,
-                                       _setting->row->real,
-                                       value, sizeof(value));
+        d_internal_djinterp_value_text(
+            _setting->row,
+            (bottom != NULL) ? bottom->text    : _setting->row->text,
+            (bottom != NULL) ? bottom->integer : _setting->row->integer,
+            (bottom != NULL) ? bottom->real    : _setting->row->real,
+            value, sizeof(value));
         size = snprintf(line, sizeof(line), "    default    %s   (%s)\n",
                         value,
                         (_setting->row->knob) ? _setting->row->knob

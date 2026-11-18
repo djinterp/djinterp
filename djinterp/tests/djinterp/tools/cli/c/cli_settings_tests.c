@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/tools/cli/c/cli_settings_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "./cli_settings_tests.h"  // corresponding header
 // std
@@ -348,7 +348,22 @@ static const struct dj_tests_cli_case REFUSED[] =
       "Try 'prog show --help' for more information.\n" },
     { "R07", "prog --set nosuch=1 show", 2, "",
       "prog: error: --set: no setting is named 'nosuch'\n"
-      "Try 'prog --help' for more information.\n" }
+      "Try 'prog --help' for more information.\n" },
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+    { "R08", "prog --cli.plugin_search show", 2, "",
+      "prog: error: --cli.plugin_search: 'cli.plugin_search' is not a bool: "
+      "give it a value, as --cli.plugin_search=VALUE\n"
+      "Try 'prog --help' for more information.\n" },
+    { "R09", "prog show --no-cli.plugin_search", 2, "",
+      "prog: error: show: --no-cli.plugin_search: 'cli.plugin_search' is "
+      "not a bool: give it a value, as --cli.plugin_search=VALUE\n"
+      "Try 'prog show --help' for more information.\n" },
+    { "R10", "prog --cli.plugin_strict_version --cli.plugin_search show", 2,
+      "",
+      "prog: error: --cli.plugin_search: 'cli.plugin_search' is not a bool: "
+      "give it a value, as --cli.plugin_search=VALUE\n"
+      "Try 'prog --help' for more information.\n" },
+#endif
 };
 
 /*
@@ -358,6 +373,8 @@ d_tests_cli_settings_refused
     near, from the root and from a subcommand
   - a value the setting does not take
   - `--set` with no NAME=VALUE after it, and with a word that is not one
+  - a bare `--NAME` or `--no-NAME` on a setting that is not a bool, before
+    the command and after it, and after a bare bool that is taken
   - each exits 2 and writes nothing to standard output
 */
 bool d_tests_cli_settings_refused(void)
