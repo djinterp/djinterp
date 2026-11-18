@@ -8,9 +8,176 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_parsing.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
+
+/*
+dj_tests_expr_code_row
+  struct: one row of parse.expr's code table, as text, the way the codes
+manifest and the log read it.
+*/
+struct dj_tests_expr_code_row
+{
+    const char* module;
+    int         number;
+    const char* name;
+    const char* cls;
+    const char* grade;
+    const char* text;
+    const char* facts;
+};
+
+#define D_TESTS_EXPR_CODE_ROW(_module, _number, _name, _class, _grade,        \
+                              _template, _facts)                              \
+    { #_module, (_number), #_name, #_class, #_grade, (_template), #_facts },
+
+static const struct dj_tests_expr_code_row D_TESTS_EXPR_CODE_ROWS[] =
+{
+    D_PARSE_EXPR_CODES(D_TESTS_EXPR_CODE_ROW)
+};
+
+/*
+d_tests_expr_has_fact
+  Whether a row's list of facts, as its brackets spell it ("(a, b)"), holds a
+name of a length.
+*/
+static bool
+d_tests_expr_has_fact(
+    const char* _facts,
+    const char* _name,
+    size_t      _length
+)
+{
+    const char* at = _facts;
+
+    while (*at != '\0')
+    {
+        size_t run = strcspn(at, "(), ");
+
+        if ( (run == _length) &&
+             (run > 0u)       &&
+             (strncmp(at, _name, _length) == 0) )
+        {
+            return true;
+        }
+
+        at += (run > 0u) ? run : 1u;
+    }
+
+    return false;
+}
+
+/*
+d_tests_expr_template_holds
+  Whether every fact a row's template names, in braces, is among its facts.
+*/
+static bool
+d_tests_expr_template_holds(
+    const struct dj_tests_expr_code_row* _row
+)
+{
+    const char* at = _row->text;
+
+    while ( (at = strchr(at, '{')) != NULL )
+    {
+        const char* close = strchr(at, '}');
+
+        if ( (!close) ||
+             (!d_tests_expr_has_fact(_row->facts, at + 1,
+                                     (size_t)(close - at - 1))) )
+        {
+            D_TEST_NOTE("row %d's template names a fact it does not carry",
+                        _row->number);
+
+            return false;
+        }
+
+        at = close + 1;
+    }
+
+    return true;
+}
+
+/*
+d_tests_expr_code_table
+  parse.expr's code table, as the codes manifest and the log read it.
+  Tests the following:
+  - a row for each code, numbered 0 to 9 in order, each parse_expr's and
+    each name its own
+  - every row graded rejected, in the syntax family or one of the three
+    other classes its codes take (quantity.depth, constraint.violated,
+    argument.invalid)
+  - every fact a template names is among its row's facts
+*/
+bool
+d_tests_expr_code_table(void)
+{
+    static const char* const CLASSES[] =
+    {
+        "SYNTAX_UNEXPECTED",   "SYNTAX_MISSING", "SYNTAX_UNBALANCED",
+        "SYNTAX_AMBIGUOUS",    "SYNTAX_ARITY",   "QUANTITY_DEPTH",
+        "CONSTRAINT_VIOLATED", "ARGUMENT_INVALID"
+    };
+    const size_t count   = sizeof(D_TESTS_EXPR_CODE_ROWS) /
+                           sizeof(D_TESTS_EXPR_CODE_ROWS[0]);
+    bool         ordered = (count == (size_t)D_PARSE_EXPR_DIAG_BAD_SIGNATURE +
+                                     1u);
+    bool         named   = true;
+    bool         graded  = true;
+    bool         facts   = true;
+
+    for (size_t i = 0u; i < count; ++i)
+    {
+        const struct dj_tests_expr_code_row* row   = &D_TESTS_EXPR_CODE_ROWS[i];
+        bool                                 known = false;
+
+        ordered = (ordered) && (row->number == (int)i);
+        named   = (named) && (strcmp(row->module, "parse_expr") == 0);
+
+        for (size_t k = 0u; k < i; ++k)
+        {
+            named = (named) &&
+                    (strcmp(row->name, D_TESTS_EXPR_CODE_ROWS[k].name) != 0);
+        }
+
+        for (size_t k = 0u; k < sizeof(CLASSES) / sizeof(CLASSES[0]); ++k)
+        {
+            known = (known) || (strcmp(row->cls, CLASSES[k]) == 0);
+        }
+
+        graded = (graded) && (known) && (strcmp(row->grade, "REJECTED") == 0);
+        facts  = (facts) && (d_tests_expr_template_holds(row));
+    }
+
+    named = (named) &&
+            (strcmp(D_TESTS_EXPR_CODE_ROWS[D_PARSE_EXPR_DIAG_MISMATCHED].name,
+                    "mismatched") == 0) &&
+            (strcmp(D_TESTS_EXPR_CODE_ROWS[D_PARSE_EXPR_DIAG_REFUSED].cls,
+                    "CONSTRAINT_VIOLATED") == 0) &&
+            (strcmp(D_TESTS_EXPR_CODE_ROWS[D_PARSE_EXPR_DIAG_REFUSED].facts,
+                    "()") == 0);
+
+    // each check is reported, whatever the one before it found
+    bool ok = d_tests_expr_expect(ordered,
+                                  "a row for each code, in order",
+                                  __LINE__);
+
+    ok = (d_tests_expr_expect(named,
+                              "each row parse_expr's, its name its own",
+                              __LINE__)) && (ok);
+    ok = (d_tests_expr_expect(graded,
+                              "each row rejected, in a known class",
+                              __LINE__)) && (ok);
+    ok = (d_tests_expr_expect(facts,
+                              "each template names only its facts",
+                              __LINE__)) && (ok);
+
+    return ok;
+}
+
+
+#if (D_INTERNAL_PARSE_EXPR_HEAP == 1)
 
 // dj_tests_expr_stop
 //   struct: a text read with D_PARSE_EXPR_OPTION_STOP, the term and status it
@@ -444,6 +611,107 @@ d_tests_expr_hooks(void)
 }
 
 /*
+d_tests_expr_message_of
+  Parses a text by math's signature, with the text given to the options or
+not, and whether the error's message is the one expected.
+*/
+static bool
+d_tests_expr_message_of(
+    const struct dj_parse_expr_signature* _sig,
+    const char*                           _text,
+    bool                                  _given,
+    const char*                           _expected
+)
+{
+    static struct dj_tests_expr_run   run;
+    struct dj_parse_expr_source       source;
+    struct dj_parse_expr_array_source state;
+    const char*                       got  = "";
+    bool                              held = false;
+    int                               count;
+
+    memset(&run, 0, sizeof(run));
+    count = d_tests_expr_lex(_text, 0u, run.tokens, 4096);
+    d_parse_diag_sink_init(&run.sink, run.items, 32u, run.text,
+                           (uint32_t)sizeof(run.text));
+    d_parse_expr_term_init_heap(&run.term);
+    d_parse_expr_source_array(&source, &state, run.tokens,
+                              (count > 0) ? (uint32_t)count : 0u,
+                              (uint32_t)strlen(_text));
+    run.options.text        = (_given) ? _text : NULL;
+    run.options.text_length = (_given) ? strlen(_text) : 0u;
+    run.status = d_parse_expr_parse(_sig, &source, &run.options, &run.term,
+                                    &run.sink, &run.result);
+
+    if (run.sink.count > 0u)
+    {
+        got = d_parse_diag_message(&run.sink, &run.items[0]);
+    }
+
+    held = ( (run.status == D_PARSE_EXPR_ERROR) &&
+             (got)                              &&
+             (strcmp(got, _expected) == 0) );
+
+    if (!held)
+    {
+        D_TEST_NOTE("'%s'%s: \"%s\", not \"%s\"", _text,
+                    (_given) ? "" : " without its text", (got) ? got : "",
+                    _expected);
+    }
+
+    d_parse_expr_term_release(&run.term);
+
+    return held;
+}
+
+/*
+d_tests_expr_mismatched_messages
+  A mismatched close names both brackets, and a parse given no text names
+each token by its spelling in the signature.
+*/
+static bool
+d_tests_expr_mismatched_messages(
+    const struct dj_parse_expr_signature* _math,
+    bool                                  _ok
+)
+{
+    bool ok = _ok;
+
+    ok = d_tests_expr_expect(ok && (d_tests_expr_message_of(
+                                 _math, "(1 + 2]", true,
+                                 "']' does not close '('")),
+                             "a close of another kind names both brackets",
+                             __LINE__);
+    ok = d_tests_expr_expect(ok && (d_tests_expr_message_of(
+                                 _math, "f([1, 2)", true,
+                                 "')' closes '(' while '[' is open")),
+                             "an outer operator's close names all three",
+                             __LINE__);
+    ok = d_tests_expr_expect(ok && (d_tests_expr_message_of(
+                                 _math, "(1 + 2]", false,
+                                 "']' does not close '('")),
+                             "without the text, the spellings stand in",
+                             __LINE__);
+    ok = d_tests_expr_expect(ok && (d_tests_expr_message_of(
+                                 _math, "f([1, 2)", false,
+                                 "')' closes '(' while '[' is open")),
+                             "without the text, a frame's opener is its first "
+                             "part's spelling", __LINE__);
+    ok = d_tests_expr_expect(ok && (d_tests_expr_message_of(
+                                 _math, "1 + * 2", false,
+                                 "unexpected '*'")),
+                             "without the text, an operator's own spelling",
+                             __LINE__);
+    ok = d_tests_expr_expect(ok && (d_tests_expr_message_of(
+                                 _math, "(1 + 2", false,
+                                 "'(' is never closed")),
+                             "without the text, an unclosed opener's "
+                             "spelling", __LINE__);
+
+    return ok;
+}
+
+/*
 d_tests_expr_diagnostics
   Every code the parser reports, at its character.
   Tests the following:
@@ -453,6 +721,8 @@ d_tests_expr_diagnostics
     order names a bracket's error first, as math's parser layer does
   - an unclosed bracket and a mismatched one carry their notes, each under
     its error's code; a refused pair's error names both operators
+  - a mismatched close names both brackets, and an outer operator's close
+    all three; given no text, a message names each token by its spelling
   - the language's check refuses a node, as its own error
 */
 bool
@@ -527,6 +797,8 @@ d_tests_expr_diagnostics(void)
              "a refused pair names both, its note at the first under its "
              "code", __LINE__);
     d_parse_expr_term_release(&run.term);
+
+    ok = d_tests_expr_mismatched_messages(&math, ok);
 
     d_parse_expr_signature_release(&math);
     d_parse_expr_signature_release(&cli);
@@ -668,3 +940,57 @@ d_tests_expr_limits(void)
 
     return ok;
 }
+
+#else
+
+/*
+d_tests_expr_stop
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_stop(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_subparse
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_subparse(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_hooks
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_hooks(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_diagnostics
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_diagnostics(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_limits
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_limits(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+#endif  // D_INTERNAL_PARSE_EXPR_HEAP

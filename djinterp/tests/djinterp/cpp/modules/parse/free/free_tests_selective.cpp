@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       free_tests_selective.cpp
+* djinterp [parse]                                      free_tests_selective.cpp
 *
 *   Section VI of the parser/free.hpp suite: the selective stratum
 * (free_sel_parser) and its sel_pure / sel_lift / sel_select / sel_branch
@@ -24,14 +24,14 @@
 * into free_tests_runner.cpp yet; enable its push_backs once the bridge builds.
 *
 *
-* path:      /tests/djinterp/cpp/functional/free_tests_selective.cpp
+* path:      /tests/djinterp/cpp/modules/parse/free/free_tests_selective.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 // djinterp
-#include "free_tests.hpp"
+#include "free_tests.hpp"  // the strata, the fixtures, the blocks
 
 
 NS_DJINTERP

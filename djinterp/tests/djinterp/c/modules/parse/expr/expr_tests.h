@@ -22,6 +22,7 @@
 *     2.  Lexer flags
 *     3.  Records
 *     4.  The fixtures' functions
+*     5.  Reasons to skip
 * 2.  TESTS
 *     -----
 * 3.  SPEC
@@ -32,7 +33,7 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.10
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_PARSE_EXPR_TESTS_H
@@ -150,6 +151,17 @@ d_tests_expr_atom_value(
     const char* _text,
     size_t      _length
 );
+uint32_t
+d_tests_expr_random(
+    uint32_t* _state,
+    uint32_t  _below
+);
+uint32_t
+d_tests_expr_gen(
+    struct dj_parse_expr_term* _t,
+    uint32_t*                  _rng,
+    uint32_t                   _depth
+);
 int
 d_tests_expr_lex(
     const char*                 _text,
@@ -232,6 +244,7 @@ d_tests_expr_errors(
     size_t                                _count,
     uint8_t                               _order
 );
+#if (D_INTERNAL_PARSE_EXPR_RENDER == 1)
 bool
 d_tests_expr_atom_name(
     void*                            _ctx,
@@ -240,6 +253,19 @@ d_tests_expr_atom_name(
     dj_parse_expr_write_fn           _write,
     void*                            _write_ctx
 );
+#endif  // D_INTERNAL_PARSE_EXPR_RENDER
+
+
+// 1.5    Reasons to skip
+//------------------------------------------------------------------------------
+// D_TESTS_EXPR_NO_HEAP, D_TESTS_EXPR_NO_RENDER
+//   constant: what a test that needs a part compiled out says it skipped for.
+#define D_TESTS_EXPR_NO_HEAP                                                  \
+    "the term's and the signature's heap is compiled out "                    \
+    "(D_CFG_PARSE_EXPR_HEAP is 0)"
+#define D_TESTS_EXPR_NO_RENDER                                                \
+    "the heap or the renderer is compiled out "                               \
+    "(D_CFG_PARSE_EXPR_HEAP or D_CFG_PARSE_EXPR_RENDER is 0)"
 
 #endif  // DTEST_SPEC_MODE
 
@@ -258,6 +284,7 @@ bool d_tests_expr_stop(void);
 bool d_tests_expr_subparse(void);
 bool d_tests_expr_hooks(void);
 bool d_tests_expr_diagnostics(void);
+bool d_tests_expr_code_table(void);
 bool d_tests_expr_limits(void);
 bool d_tests_expr_roundtrip(void);
 bool d_tests_expr_fold_walk(void);
@@ -320,6 +347,9 @@ static const struct dj_test_case_spec d_tests_parse_expr_parsing_rows[] =
     { "d_tests_expr_diagnostics",
       "each error, its span, its note, its order",
       d_tests_expr_diagnostics },
+    { "d_tests_expr_code_table",
+      "parse.expr's code table, as the log reads it",
+      d_tests_expr_code_table },
     { "d_tests_expr_limits",
       "the guards, the allowance, the check hook",
       d_tests_expr_limits }

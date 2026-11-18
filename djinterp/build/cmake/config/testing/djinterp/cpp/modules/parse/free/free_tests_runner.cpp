@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       free_tests_runner.cpp
+/*******************************************************************************
+* djinterp [parse]                                         free_tests_runner.cpp
 *
 *   Entry point for the parser/free.hpp unit suite.  Assembles the section
 * blocks into a module and runs it, emitting a single whole-run PDF report.
@@ -11,13 +11,15 @@
 * predicates are gated behind DJINTERP_FREE_TESTS_SELECTIVE_BRIDGE_FIXED (see
 * free_tests_selective.cpp) pending the selective.hpp monad-bridge fix.
 *
-* path:      /build/cmake/config/testing/djinterp/cpp/functional/free/free_tests_runner.cpp
+*
+* path:      /build/cmake/config/testing/djinterp/cpp/modules/parse/free/free_tests_runner.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.11.18
+*******************************************************************************/
 
 // djinterp
-#include "free_tests.hpp"
+#include "free_tests.hpp"  // the strata, the fixtures, the blocks
 
 
 NS_DJINTERP
@@ -30,6 +32,8 @@ static
 int run_free_suite()
 {
     dt::module_spec mod;
+    mod.name       = "parser_free";
+    mod.descriptor = "parser/free.hpp";
 
     mod.blocks.push_back(free_monad_block());
     mod.blocks.push_back(free_applicative_block());

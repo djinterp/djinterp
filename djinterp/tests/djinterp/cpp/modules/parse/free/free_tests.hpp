@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 free_tests.hpp
+* djinterp [parse]                                                free_tests.hpp
 *
 *   Declarations and shared fixtures for the parser/free.hpp unit suite -- the
 * three "free" strata over the parser carrier: FreeAp (applicative), FreeSel
@@ -27,28 +27,27 @@
 *     VII.    cross-stratum lifts ....... free_tests_crossstratum.cpp
 *
 *
-* path:      /tests/djinterp/cpp/functional/free_tests.hpp
+* path:      /tests/djinterp/cpp/modules/parse/free/free_tests.hpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_FREE_TESTS_
 #define DJINTERP_PARSE_FREE_TESTS_ 1
 
 // std
-#include <cstddef>
-#include <functional>
-#include <string>
-#include <type_traits>
-#include <utility>
+#include <cstddef>      // std::size_t
+#include <functional>   // std::function, for the units
+#include <string>       // std::string
+#include <type_traits>  // std::is_same, for the units
 // djinterp
 // djinterp -- the header under test (which pulls in parse.hpp / parser.hpp /
 //   the functional companion), plus the DTest authoring + runner surface.
 //   NOTE: include paths are rooted at the djinterp include directory; adjust to
 //   match your build tree.
-#include "djinterp/cpp/modules/parse/parser/free.hpp"
-#include "djinterp/cpp/modules/test/test_defaults.hpp"
+#include "djinterp/cpp/modules/parse/parser/free.hpp"     // the strata
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // DTest
 
 
 NS_DJINTERP
@@ -97,7 +96,8 @@ std::size_t run_pos(
     parser<typename _P::result_type, typename _P::input_type> _handle(_p);
     parse_state<char> _st(_in.data(), _in.size(), 0);
 
-    _handle.parse(_st);
+    // only how far it read is wanted here, not what it read
+    (void)_handle.parse(_st);
 
     return _st.offset;
 }

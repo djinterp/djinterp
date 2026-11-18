@@ -8,9 +8,11 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_term.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
+
+#if (D_INTERNAL_PARSE_EXPR_HEAP == 1)
 
 /*
 d_tests_expr_term
@@ -179,3 +181,27 @@ d_tests_expr_signature(void)
 
     return ok;
 }
+
+#else
+
+/*
+d_tests_expr_term
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_term(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_signature
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_signature(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+#endif  // D_INTERNAL_PARSE_EXPR_HEAP

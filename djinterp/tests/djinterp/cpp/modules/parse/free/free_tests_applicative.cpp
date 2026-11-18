@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     free_tests_applicative.cpp
+* djinterp [parse]                                    free_tests_applicative.cpp
 *
 *   Section V of the parser/free.hpp suite: the applicative stratum
 * (free_ap_parser) and its ap_pure / ap_lift / ap_apply / ap_map factories.
@@ -9,14 +9,14 @@
 * value-dependency between the two effects -- the shape is static.
 *
 *
-* path:      /tests/djinterp/cpp/functional/free_tests_applicative.cpp
+* path:      /tests/djinterp/cpp/modules/parse/free/free_tests_applicative.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 // djinterp
-#include "free_tests.hpp"
+#include "free_tests.hpp"  // the strata, the fixtures, the blocks
 
 
 NS_DJINTERP

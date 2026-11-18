@@ -8,9 +8,11 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_languages.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
+
+#if (D_INTERNAL_PARSE_EXPR_HEAP == 1)
 
 /*
 d_tests_expr_math_cases
@@ -105,6 +107,8 @@ d_tests_expr_cli_cases(void)
                                  D_TESTS_EXPR_LEX_OPTIONS, 0u)),
                              "every case reads as its term", __LINE__);
 
+    // each reads back as it was written, where the renderer is built
+#if (D_INTERNAL_PARSE_EXPR_RENDER == 1)
     for (size_t i = 0u; ( (ok) && (i < sizeof(CASES) / sizeof(CASES[0])) );
          ++i)
     {
@@ -124,6 +128,7 @@ d_tests_expr_cli_cases(void)
                                  CASES[i].text, __LINE__);
         d_parse_expr_term_release(&run.term);
     }
+#endif  // D_INTERNAL_PARSE_EXPR_RENDER
 
     d_parse_expr_signature_release(&s);
 
@@ -285,3 +290,47 @@ d_tests_expr_dawk_cases(void)
 
     return ok;
 }
+
+#else
+
+/*
+d_tests_expr_math_cases
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_math_cases(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_cli_cases
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_cli_cases(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_awk_cases
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_awk_cases(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+/*
+d_tests_expr_dawk_cases
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_dawk_cases(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+#endif  // D_INTERNAL_PARSE_EXPR_HEAP

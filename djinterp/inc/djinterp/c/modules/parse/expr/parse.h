@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/parse.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -30,6 +30,7 @@ TABLE OF CONTENTS
     ---------
     1.  Diagnostic codes
          1.  dj_parse_expr_diag
+         2.  D_PARSE_EXPR_CODES
     2.  Tokens
          1.  D_PARSE_EXPR_CLASS_END
          2.  Token flags
@@ -101,6 +102,64 @@ enum dj_parse_expr_diag
     D_PARSE_EXPR_DIAG_REFUSED         = 8,  // the language's check refused it
     D_PARSE_EXPR_DIAG_BAD_SIGNATURE   = 9   // sealing found the table unsound
 };
+
+// 1.1.2
+// D_PARSE_EXPR_CODES
+//   macro: parse.expr's code table, one row per code above, for the codes
+// manifest and the log, in the log's row form. A row is X(module, number,
+// name, class, grade, template, facts):
+//   - module: parse_expr, the module's token, so that the log can declare
+//     and define the table for its module from the rows alone;
+//   - number: the code, its value in dj_parse_expr_diag;
+//   - name: its name under parse.expr, as a token (#name is its text);
+//   - class: its class in the shared vocabulary, as a token, upper-cased
+//     (SYNTAX_UNEXPECTED is syntax.unexpected), so that the compiler checks
+//     it against the vocabulary where the log expands the table;
+//   - grade: what it did, as a token; every code here is REJECTED, since a
+//     refused text changes nothing;
+//   - template: its message, each fact named in braces;
+//   - facts: the names of the facts it carries, as a list in brackets. Every
+//     record carries its span too: offset, length, line and column.
+// Where a row's flag fact holds, the parser words the message another way:
+//   0, after_operand: "unexpected {token} after an operand";
+//   1, at_end:        {token} is "the end of the input";
+//   4, outer:         "{token} closes {outer} while {open} is open";
+//   6, unbounded:     "{items} items, where at least {min} are needed".
+// Row 8's message is the language's own, where its check gave one; its class
+// is constraint.violated, a rule the language adds past its grammar. The
+// table needs no header: it is text until expanded. parse.c holds each
+// row's module, name and number to this header at compile time.
+#define D_PARSE_EXPR_CODES(X)                                                 \
+    X(parse_expr, 0, unexpected,      SYNTAX_UNEXPECTED,   REJECTED,          \
+      "unexpected {token}",                                                   \
+      (token, after_operand))                                                 \
+    X(parse_expr, 1, missing_operand, SYNTAX_MISSING,      REJECTED,          \
+      "an operand is missing before {token}",                                 \
+      (token, at_end))                                                        \
+    X(parse_expr, 2, unclosed,        SYNTAX_UNBALANCED,   REJECTED,          \
+      "{open} is never closed",                                               \
+      (open))                                                                 \
+    X(parse_expr, 3, unopened,        SYNTAX_UNBALANCED,   REJECTED,          \
+      "{token} closes nothing that is open",                                  \
+      (token))                                                                \
+    X(parse_expr, 4, mismatched,      SYNTAX_UNBALANCED,   REJECTED,          \
+      "{token} does not close {open}",                                        \
+      (token, open, outer))                                                   \
+    X(parse_expr, 5, non_associative, SYNTAX_AMBIGUOUS,    REJECTED,          \
+      "{second} cannot follow {first} without brackets",                      \
+      (second, first))                                                        \
+    X(parse_expr, 6, arity,           SYNTAX_ARITY,        REJECTED,          \
+      "{items} items, where {min} to {max} are taken",                        \
+      (items, min, max, unbounded))                                           \
+    X(parse_expr, 7, too_deep,        QUANTITY_DEPTH,      REJECTED,          \
+      "the expression nests deeper than its limit",                           \
+      (limit))                                                                \
+    X(parse_expr, 8, refused,         CONSTRAINT_VIOLATED, REJECTED,          \
+      "the language refuses this",                                            \
+      ())                                                                     \
+    X(parse_expr, 9, bad_signature,   ARGUMENT_INVALID,    REJECTED,          \
+      "{reason} ({id})",                                                      \
+      (reason, id))
 
 
 // 1.2    Tokens

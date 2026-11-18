@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    free_tests_crossstratum.cpp
+* djinterp [parse]                                   free_tests_crossstratum.cpp
 *
 *   Section VII of the parser/free.hpp suite: the cross-stratum lifts along the
 * chain  FreeAp F A  <=  FreeSel F A  <=  Free F A.  ap_to_sel rewraps the same
@@ -9,14 +9,14 @@
 * changing the static stratum (the result type).
 *
 *
-* path:      /tests/djinterp/cpp/functional/free_tests_crossstratum.cpp
+* path:      /tests/djinterp/cpp/modules/parse/free/free_tests_crossstratum.cpp
 * link(s):   TBA
 * author(s): djinterp DTest suite                            created: 2026.07.07
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 // djinterp
-#include "free_tests.hpp"
+#include "free_tests.hpp"  // the strata, the fixtures, the blocks
 
 
 NS_DJINTERP

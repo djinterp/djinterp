@@ -8,207 +8,12 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_output.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
 
-/*
-d_tests_expr_random
-  The next of a fixed sequence (a 32-bit linear congruential generator), so
-every run draws the same terms.
-*/
-static uint32_t
-d_tests_expr_random(
-    uint32_t* _state,
-    uint32_t  _below
-)
-{
-    *_state = (*_state * 1664525u) + 1013904223u;
-
-    return (*_state >> 8) % _below;
-}
-
-/*
-d_tests_expr_gen_leaf
-  A random leaf: one of the names a to sin, or a number 0 to 4.
-*/
-static uint32_t
-d_tests_expr_gen_leaf(
-    struct dj_parse_expr_term* _t,
-    uint32_t*                  _rng,
-    bool                       _name
-)
-{
-    const uint32_t pick = (_name) ? d_tests_expr_random(_rng, 14u)
-                                  : d_tests_expr_random(_rng, 19u);
-
-    return d_parse_expr_term_leaf(_t, (pick >= 14u) ? C_NUM : C_NAME, pick,
-                                  0u, 0u);
-}
-
-static uint32_t d_tests_expr_gen(struct dj_parse_expr_term* _t,
-                                 uint32_t*                  _rng,
-                                 uint32_t                   _depth);
-
-/*
-d_tests_expr_gen_list
-  A random list: a call's arguments, an index's, a vector's items, or a
-matrix of two or three rows, as their node.
-*/
-static uint32_t
-d_tests_expr_gen_list(
-    struct dj_parse_expr_term* _t,
-    uint32_t*                  _rng,
-    uint32_t                   _depth,
-    uint32_t                   _kind
-)
-{
-    uint32_t       c[4];
-    const uint32_t lead  = (_kind <= 1u) ? 1u : 0u;
-    const uint32_t items = (_kind == 1u) ? 1u + d_tests_expr_random(_rng, 2u)
-                                         : d_tests_expr_random(_rng, 4u);
-
-    // a call's callee is a name; an index's operand anything
-    if (lead)
-    {
-        c[0] = (_kind == 0u) ? d_tests_expr_gen_leaf(_t, _rng, true)
-                             : d_tests_expr_gen(_t, _rng, _depth);
-    }
-
-    if (_kind == 3u)
-    {
-        const uint32_t rows = 2u + d_tests_expr_random(_rng, 2u);
-
-        for (uint32_t r = 0u; r < rows; ++r)
-        {
-            uint32_t       e[3];
-            const uint32_t n = 1u + d_tests_expr_random(_rng, 3u);
-
-            for (uint32_t i = 0u; i < n; ++i)
-            {
-                e[i] = d_tests_expr_gen(_t, _rng, _depth);
-            }
-
-            c[r] = d_parse_expr_term_apply(_t, O_ROW, e, n, 0u, 0u);
-        }
-
-        const uint32_t m = d_parse_expr_term_apply(_t, O_MATRIX, c, rows, 0u,
-                                                   0u);
-
-        _t->nodes[m].flags |= D_PARSE_EXPR_NODE_ROWS;
-
-        return m;
-    }
-
-    for (uint32_t i = 0u; i < items; ++i)
-    {
-        c[lead + i] = d_tests_expr_gen(_t, _rng, _depth);
-    }
-
-    return d_parse_expr_term_apply(_t,
-                                   (_kind == 0u) ? O_CALL
-                                 : (_kind == 1u) ? O_INDEX
-                                                 : O_VECTOR,
-                                   c, lead + items, 0u, 0u);
-}
-
-/*
-d_tests_expr_gen_chain
-  A random chain of one to three links, joined by `and` and flagged CHAIN,
-each operand between two links one node.
-*/
-static uint32_t
-d_tests_expr_gen_chain(
-    struct dj_parse_expr_term* _t,
-    uint32_t*                  _rng,
-    uint32_t                   _depth
-)
-{
-    static const uint32_t RELATIONS[6] = { O_EQ, O_NE, O_LT, O_LE, O_GT,
-                                           O_GE };
-    const uint32_t        links        = 1u + d_tests_expr_random(_rng, 3u);
-    uint32_t              x[4];
-    uint32_t              joined       = D_PARSE_EXPR_NO_NODE;
-
-    for (uint32_t i = 0u; i <= links; ++i)
-    {
-        x[i] = d_tests_expr_gen(_t, _rng, _depth);
-    }
-
-    for (uint32_t i = 0u; i < links; ++i)
-    {
-        const uint32_t pair[2] = { x[i], x[i + 1u] };
-        const uint32_t link    = d_parse_expr_term_apply(
-            _t, RELATIONS[d_tests_expr_random(_rng, 6u)], pair, 2u, 0u, 0u);
-
-        if (i == 0u)
-        {
-            joined = link;
-
-            continue;
-        }
-
-        const uint32_t both[2] = { joined, link };
-
-        joined = d_parse_expr_term_apply(_t, O_AND, both, 2u, 0u, 0u);
-        _t->nodes[joined].flags |= D_PARSE_EXPR_NODE_CHAIN;
-    }
-
-    return joined;
-}
-
-/*
-d_tests_expr_gen
-  A random term of math's, of every form, to a depth.
-*/
-static uint32_t
-d_tests_expr_gen(
-    struct dj_parse_expr_term* _t,
-    uint32_t*                  _rng,
-    uint32_t                   _depth
-)
-{
-    static const uint32_t BINARY[8] = { O_ADD, O_SUB, O_MUL, O_DIV, O_POW,
-                                        O_MOD, O_AND, O_OR };
-    static const uint32_t UNARY[5]  = { O_NEG, O_POS, O_FACT, O_TRANS,
-                                        O_NOT };
-
-    // leaves where the depth is spent, and now and then before
-    if ( (_depth == 0u) ||
-         (d_tests_expr_random(_rng, 4u) == 0u) )
-    {
-        return d_tests_expr_gen_leaf(_t, _rng, false);
-    }
-
-    const uint32_t form = d_tests_expr_random(_rng, 9u);
-
-    if (form <= 1u)
-    {
-        const uint32_t pair[2] = { d_tests_expr_gen(_t, _rng, _depth - 1u),
-                                   d_tests_expr_gen(_t, _rng, _depth - 1u) };
-
-        return d_parse_expr_term_apply(_t,
-                                       BINARY[d_tests_expr_random(_rng, 8u)],
-                                       pair, 2u, 0u, 0u);
-    }
-
-    if (form <= 3u)
-    {
-        const uint32_t one = d_tests_expr_gen(_t, _rng, _depth - 1u);
-        const uint32_t op  = (form == 2u)
-                             ? UNARY[d_tests_expr_random(_rng, 5u)]
-                             : O_ABS;
-
-        return d_parse_expr_term_apply(_t, op, &one, 1u, 0u, 0u);
-    }
-
-    if (form <= 7u)
-    {
-        return d_tests_expr_gen_list(_t, _rng, _depth - 1u, form - 4u);
-    }
-
-    return d_tests_expr_gen_chain(_t, _rng, _depth - 1u);
-}
+#if ( (D_INTERNAL_PARSE_EXPR_HEAP == 1) && \
+      (D_INTERNAL_PARSE_EXPR_RENDER == 1) )
 
 /*
 d_tests_expr_spans
@@ -350,6 +155,23 @@ d_tests_expr_roundtrip(void)
 
     return ok;
 }
+
+
+#else
+
+/*
+d_tests_expr_roundtrip
+  The heap or the renderer compiled out: skipped.
+*/
+bool
+d_tests_expr_roundtrip(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_RENDER);
+}
+
+#endif  // D_INTERNAL_PARSE_EXPR_HEAP, D_INTERNAL_PARSE_EXPR_RENDER
+
+#if (D_INTERNAL_PARSE_EXPR_HEAP == 1)
 
 // dj_tests_expr_eval
 //   struct: an evaluation's context: how many leaves it folded.
@@ -498,6 +320,20 @@ d_tests_expr_fold_walk(void)
 
     return ok;
 }
+
+#else
+
+/*
+d_tests_expr_fold_walk
+  The heap compiled out: skipped.
+*/
+bool
+d_tests_expr_fold_walk(void)
+{
+    D_TEST_SKIP(D_TESTS_EXPR_NO_HEAP);
+}
+
+#endif  // D_INTERNAL_PARSE_EXPR_HEAP
 
 /*
 d_tests_expr_locate

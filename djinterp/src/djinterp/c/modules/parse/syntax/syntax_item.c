@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/modules/parse/syntax/syntax_item.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/syntax/syntax_item.h"  // corresponding header
 // std
@@ -89,6 +89,19 @@ enum dj_internal_state
     D_INTERNAL_ST_CATCH,
     D_INTERNAL_ST_CATCH_COND,
     D_INTERNAL_ST_CATCH_BODY
+};
+
+// 1.2.2
+// dj_internal_step
+//   enum: what offering a child to the open item did.  TAKEN, the child is
+//   the item's; FAILED, memory ran out; AGAIN, the item completed without
+//   the child, or turned to its body, and the child is offered on to what is
+//   open after it.
+enum dj_internal_step
+{
+    D_INTERNAL_STEP_TAKEN = 0,
+    D_INTERNAL_STEP_FAILED,
+    D_INTERNAL_STEP_AGAIN
 };
 
 // 1.3    Build state
@@ -937,33 +950,34 @@ bool d_internal_returns_void(
 
 
 /**
- * @brief Settles what a just-completed item is.
+ * @brief Settles an item whose kind its recognition already fixed: a
+ *        parameter, an enumerator, a function definition, a label or a block.
  *
  * @param[in,out] _b  the recognition in progress.
- * @param[in]     _s  the scope being walked.
  * @param[in]     _k  the item's index.
+ * @return `true` if the item was one of these, `false` if its kind is still
+ *         to be settled.
  */
 static
-void d_internal_classify(
-    struct dj_internal_build*       _b,
-    const struct dj_internal_scope* _s,
-    uint32_t                        _k
+bool d_internal_classify_known(
+    struct dj_internal_build* _b,
+    uint32_t                  _k
 )
 {
-    struct dj_syntax_item* const      item    = &_b->out->items[_k];
-    struct dj_internal_scratch* const scratch = &_b->scratch[_k];
-    const int first_kind = _b->tokens[item->first].kind;
+    struct dj_syntax_item* const      item       = &_b->out->items[_k];
+    struct dj_internal_scratch* const scratch    = &_b->scratch[_k];
+    const int                         first_kind = _b->tokens[item->first].kind;
 
     switch (item->kind)
     {
         case D_SYNTAX_ITEM_PARAM:
             d_internal_classify_param(_b, _k);
-            return;
+            return true;
 
         case D_SYNTAX_ITEM_ENUMERATOR:
             item->name = (first_kind == D_TOKEN_IDENTIFIER) ? item->first
                                                             : D_SYNTAX_NONE;
-            return;
+            return true;
 
         case D_SYNTAX_ITEM_FN_DEF:
             item->name   = scratch->macro_head ? D_SYNTAX_NONE
@@ -979,14 +993,42 @@ void d_internal_classify(
                 item->flags |= D_SYNTAX_ITEM_FLAG_RETURNS_VOID;
             }
 
-            return;
+            return true;
 
         case D_SYNTAX_ITEM_LABEL:
         case D_SYNTAX_ITEM_BLOCK:
-            return;
+            return true;
 
         default:
             break;
+    }
+
+    return false;
+}
+
+
+/**
+ * @brief Settles what a just-completed item is.
+ *
+ * @param[in,out] _b  the recognition in progress.
+ * @param[in]     _s  the scope being walked.
+ * @param[in]     _k  the item's index.
+ */
+static
+void d_internal_classify(
+    struct dj_internal_build*       _b,
+    const struct dj_internal_scope* _s,
+    uint32_t                        _k
+)
+{
+    struct dj_syntax_item* const      item       = &_b->out->items[_k];
+    struct dj_internal_scratch* const scratch    = &_b->scratch[_k];
+    const int                         first_kind = _b->tokens[item->first].kind;
+
+    // a parameter, an enumerator, a definition, a label or a block
+    if (d_internal_classify_known(_b, _k))
+    {
+        return;
     }
 
     // a block statement is a declaration only when a keyword says so
@@ -1214,6 +1256,97 @@ bool d_internal_label_body(
 
 
 /**
+ * @brief Gives a statement just opened in a block its grammar, by its leading
+ *        keyword, or makes it a label: `case`, `default`, or `name:`.
+ *
+ * @param[in,out] _b   the recognition in progress.
+ * @param[in]     _s   the scope being walked.
+ * @param[in]     _k   the new item's index.
+ * @param[in]     _at  its first token's index.
+ */
+static
+void d_internal_open_statement(
+    struct dj_internal_build*       _b,
+    const struct dj_internal_scope* _s,
+    uint32_t                        _k,
+    uint32_t                        _at
+)
+{
+    struct dj_syntax_item* const      item    = &_b->out->items[_k];
+    struct dj_internal_scratch* const scratch = &_b->scratch[_k];
+    const int                         kind    = _b->tokens[_at].kind;
+
+    switch (kind)
+    {
+        case D_TOKEN_KW_IF:
+            item->statement = D_SYNTAX_STMT_IF;
+            scratch->state  = D_INTERNAL_ST_COND;
+            break;
+        case D_TOKEN_KW_FOR:
+            item->statement = D_SYNTAX_STMT_FOR;
+            scratch->state  = D_INTERNAL_ST_COND;
+            break;
+        case D_TOKEN_KW_WHILE:
+            item->statement = D_SYNTAX_STMT_WHILE;
+            scratch->state  = D_INTERNAL_ST_COND;
+            break;
+        case D_TOKEN_KW_SWITCH:
+            item->statement = D_SYNTAX_STMT_SWITCH;
+            scratch->state  = D_INTERNAL_ST_COND;
+            break;
+        case D_TOKEN_KW_DO:
+            item->statement = D_SYNTAX_STMT_DO;
+            scratch->state  = D_INTERNAL_ST_BODY;
+            break;
+        case D_TOKEN_KW_TRY:
+            item->statement = D_SYNTAX_STMT_TRY;
+            scratch->state  = D_INTERNAL_ST_BODY;
+            break;
+        case D_TOKEN_KW_RETURN:
+            item->statement = D_SYNTAX_STMT_RETURN;
+            break;
+        case D_TOKEN_KW_BREAK:
+            item->statement = D_SYNTAX_STMT_BREAK;
+            break;
+        case D_TOKEN_KW_CONTINUE:
+            item->statement = D_SYNTAX_STMT_CONTINUE;
+            break;
+        case D_TOKEN_KW_GOTO:
+            item->statement = D_SYNTAX_STMT_GOTO;
+            break;
+        case D_TOKEN_KW_CASE:
+        case D_TOKEN_KW_DEFAULT:
+            item->kind      = D_SYNTAX_ITEM_LABEL;
+            item->statement = (kind == D_TOKEN_KW_CASE)
+                            ? D_SYNTAX_STMT_CASE
+                            : D_SYNTAX_STMT_DEFAULT;
+            scratch->state  = D_INTERNAL_ST_LABEL;
+            break;
+        default:
+            item->statement = D_SYNTAX_STMT_SIMPLE;
+            break;
+    }
+
+    // `name:` is a label for `goto`
+    if (kind == D_TOKEN_IDENTIFIER)
+    {
+        const uint32_t next = d_internal_next_child(_b, _at, _s->opener,
+                                                    _s->end);
+
+        if ( (next < _s->end) &&
+             (_b->tokens[next].kind == D_TOKEN_COLON) )
+        {
+            item->kind      = D_SYNTAX_ITEM_LABEL;
+            item->statement = D_SYNTAX_STMT_NAMED;
+            scratch->state  = D_INTERNAL_ST_LABEL;
+        }
+    }
+
+    return;
+}
+
+
+/**
  * @brief Opens an item at a child.
  *
  * A braceless body sits one level inside its owner; an item under a `case`
@@ -1294,71 +1427,7 @@ uint32_t d_internal_open(
     // a statement's leading keyword decides its grammar
     if (_s->mode == D_INTERNAL_MODE_BLOCK)
     {
-        switch (kind)
-        {
-            case D_TOKEN_KW_IF:
-                item->statement = D_SYNTAX_STMT_IF;
-                scratch->state  = D_INTERNAL_ST_COND;
-                break;
-            case D_TOKEN_KW_FOR:
-                item->statement = D_SYNTAX_STMT_FOR;
-                scratch->state  = D_INTERNAL_ST_COND;
-                break;
-            case D_TOKEN_KW_WHILE:
-                item->statement = D_SYNTAX_STMT_WHILE;
-                scratch->state  = D_INTERNAL_ST_COND;
-                break;
-            case D_TOKEN_KW_SWITCH:
-                item->statement = D_SYNTAX_STMT_SWITCH;
-                scratch->state  = D_INTERNAL_ST_COND;
-                break;
-            case D_TOKEN_KW_DO:
-                item->statement = D_SYNTAX_STMT_DO;
-                scratch->state  = D_INTERNAL_ST_BODY;
-                break;
-            case D_TOKEN_KW_TRY:
-                item->statement = D_SYNTAX_STMT_TRY;
-                scratch->state  = D_INTERNAL_ST_BODY;
-                break;
-            case D_TOKEN_KW_RETURN:
-                item->statement = D_SYNTAX_STMT_RETURN;
-                break;
-            case D_TOKEN_KW_BREAK:
-                item->statement = D_SYNTAX_STMT_BREAK;
-                break;
-            case D_TOKEN_KW_CONTINUE:
-                item->statement = D_SYNTAX_STMT_CONTINUE;
-                break;
-            case D_TOKEN_KW_GOTO:
-                item->statement = D_SYNTAX_STMT_GOTO;
-                break;
-            case D_TOKEN_KW_CASE:
-            case D_TOKEN_KW_DEFAULT:
-                item->kind      = D_SYNTAX_ITEM_LABEL;
-                item->statement = (kind == D_TOKEN_KW_CASE)
-                                ? D_SYNTAX_STMT_CASE
-                                : D_SYNTAX_STMT_DEFAULT;
-                scratch->state  = D_INTERNAL_ST_LABEL;
-                break;
-            default:
-                item->statement = D_SYNTAX_STMT_SIMPLE;
-                break;
-        }
-
-        // `name:` is a label for `goto`
-        if (kind == D_TOKEN_IDENTIFIER)
-        {
-            const uint32_t next = d_internal_next_child(_b, _at, _s->opener,
-                                                        _s->end);
-
-            if ( (next < _s->end) &&
-                 (_b->tokens[next].kind == D_TOKEN_COLON) )
-            {
-                item->kind      = D_SYNTAX_ITEM_LABEL;
-                item->statement = D_SYNTAX_STMT_NAMED;
-                scratch->state  = D_INTERNAL_ST_LABEL;
-            }
-        }
+        d_internal_open_statement(_b, _s, k, _at);
     }
 
     return k;
@@ -1914,6 +1983,262 @@ void d_internal_simple(
 
 
 /**
+ * @brief Opens a new item at a child, with nothing open in the scope.
+ *
+ * In a block, `{ }` and `;` are whole statements and complete at once; a
+ * leading keyword is consumed by the state it chose.
+ *
+ * @param[in,out] _b     the recognition in progress.
+ * @param[in,out] _s     the scope being walked.
+ * @param[in]     _at    the child's token index.
+ * @param[in]     _kind  the child's token kind.
+ * @return TAKEN, or FAILED if memory ran out.
+ */
+static
+enum dj_internal_step d_internal_feed_new(
+    struct dj_internal_build* _b,
+    struct dj_internal_scope* _s,
+    uint32_t                  _at,
+    int                       _kind
+)
+{
+    if ((_kind == D_TOKEN_KW_CASE) || (_kind == D_TOKEN_KW_DEFAULT))
+    {
+        _s->under_label = false;
+    }
+
+    const uint32_t k = d_internal_open(_b, _s, _at, D_SYNTAX_NONE);
+
+    if (k == D_SYNTAX_NONE)
+    {
+        return D_INTERNAL_STEP_FAILED;
+    }
+
+    _s->cur = k;
+
+    if (_s->mode == D_INTERNAL_MODE_BLOCK)
+    {
+        // `{ }` and `;` are whole statements
+        if (_kind == D_TOKEN_BRACE_OPEN)
+        {
+            _b->out->items[k].statement = D_SYNTAX_STMT_COMPOUND;
+            _b->out->items[k].body      = _at;
+            d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, k);
+            d_internal_complete(_b, _s, k,
+                                d_internal_extent(_b, _at));
+            return D_INTERNAL_STEP_TAKEN;
+        }
+
+        if (_kind == D_TOKEN_SEMICOLON)
+        {
+            _b->out->items[k].statement = D_SYNTAX_STMT_EMPTY;
+            d_internal_complete(_b, _s, k, _at);
+            return D_INTERNAL_STEP_TAKEN;
+        }
+    }
+
+    // a leading keyword is consumed by the state it chose
+    if (_b->scratch[k].state != D_INTERNAL_ST_SIMPLE)
+    {
+        _b->scratch[k].prev = _at;
+        _b->scratch[k].seen = 1u;
+        return D_INTERNAL_STEP_TAKEN;
+    }
+
+    d_internal_simple(_b, _s, k, _at);
+
+    return D_INTERNAL_STEP_TAKEN;
+}
+
+
+/**
+ * @brief Offers a child to an item awaiting its body: a braced body becomes
+ *        a block scope; anything else opens an unbraced body, one level in.
+ *
+ * @param[in,out] _b     the recognition in progress.
+ * @param[in,out] _s     the scope being walked.
+ * @param[in]     _k     the item's index.
+ * @param[in]     _at    the child's token index.
+ * @param[in]     _kind  the child's token kind.
+ * @return TAKEN, or FAILED if memory ran out.
+ */
+static
+enum dj_internal_step d_internal_feed_body(
+    struct dj_internal_build* _b,
+    struct dj_internal_scope* _s,
+    uint32_t                  _k,
+    uint32_t                  _at,
+    int                       _kind
+)
+{
+    if (_kind == D_TOKEN_BRACE_OPEN)
+    {
+        if (_b->out->items[_k].body == D_SYNTAX_NONE)
+        {
+            _b->out->items[_k].body = _at;
+        }
+
+        d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, _k);
+
+        if (d_internal_body_done(_b, _k, d_internal_extent(_b, _at)))
+        {
+            d_internal_complete(_b, _s, _k, d_internal_extent(_b, _at));
+        }
+
+        return D_INTERNAL_STEP_TAKEN;
+    }
+
+    // an unbraced body is an item of its own, one level in
+    const uint32_t inner = d_internal_open(_b, _s, _at, _k);
+
+    if (inner == D_SYNTAX_NONE)
+    {
+        return D_INTERNAL_STEP_FAILED;
+    }
+
+    _s->cur = inner;
+
+    if (_kind == D_TOKEN_SEMICOLON)
+    {
+        _b->out->items[inner].statement = D_SYNTAX_STMT_EMPTY;
+        d_internal_complete(_b, _s, inner, _at);
+        return D_INTERNAL_STEP_TAKEN;
+    }
+
+    if (_b->scratch[inner].state != D_INTERNAL_ST_SIMPLE)
+    {
+        _b->scratch[inner].prev = _at;
+        _b->scratch[inner].seen = 1u;
+        return D_INTERNAL_STEP_TAKEN;
+    }
+
+    d_internal_simple(_b, _s, inner, _at);
+
+    return D_INTERNAL_STEP_TAKEN;
+}
+
+
+/**
+ * @brief Offers a child to an item whose body is complete and which waits
+ *        to learn whether it continues: an `else`, a `do`'s `while (...);`,
+ *        or a `catch`.
+ *
+ * A child that does not continue the item completes it at its provisional
+ * end, and is offered on to what is open after it.
+ *
+ * @param[in,out] _b     the recognition in progress.
+ * @param[in,out] _s     the scope being walked.
+ * @param[in]     _k     the item's index.
+ * @param[in]     _at    the child's token index.
+ * @param[in]     _kind  the child's token kind.
+ * @return TAKEN, or AGAIN if the item completed without the child or turned
+ *         to its body.
+ */
+static
+enum dj_internal_step d_internal_feed_waiting(
+    struct dj_internal_build* _b,
+    struct dj_internal_scope* _s,
+    uint32_t                  _k,
+    uint32_t                  _at,
+    int                       _kind
+)
+{
+    struct dj_internal_scratch* const scratch = &_b->scratch[_k];
+
+    switch (scratch->state)
+    {
+        case D_INTERNAL_ST_ELSE:
+            if (_kind == D_TOKEN_KW_ELSE)
+            {
+                scratch->state = D_INTERNAL_ST_ELSE_TAIL;
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        case D_INTERNAL_ST_ELSE_TAIL:
+            // `else if` continues one flat chain, not a nested one
+            if (_kind == D_TOKEN_KW_IF)
+            {
+                scratch->state     = D_INTERNAL_ST_COND;
+                scratch->else_seen = 0u;
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            scratch->state     = D_INTERNAL_ST_BODY;
+            scratch->else_seen = 1u;
+            return D_INTERNAL_STEP_AGAIN;
+
+        case D_INTERNAL_ST_DO_WHILE:
+            if (_kind == D_TOKEN_KW_WHILE)
+            {
+                scratch->state = D_INTERNAL_ST_DO_COND;
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        case D_INTERNAL_ST_DO_COND:
+            if (_kind == D_TOKEN_PAREN_OPEN)
+            {
+                scratch->state       = D_INTERNAL_ST_DO_SEMI;
+                scratch->provisional = d_internal_extent(_b, _at);
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        case D_INTERNAL_ST_DO_SEMI:
+            if (_kind == D_TOKEN_SEMICOLON)
+            {
+                d_internal_complete(_b, _s, _k, _at);
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        case D_INTERNAL_ST_CATCH:
+            if (_kind == D_TOKEN_KW_CATCH)
+            {
+                scratch->state = D_INTERNAL_ST_CATCH_COND;
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        case D_INTERNAL_ST_CATCH_COND:
+            if (_kind == D_TOKEN_PAREN_OPEN)
+            {
+                scratch->state = D_INTERNAL_ST_CATCH_BODY;
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        case D_INTERNAL_ST_CATCH_BODY:
+            if (_kind == D_TOKEN_BRACE_OPEN)
+            {
+                d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, _k);
+                scratch->state       = D_INTERNAL_ST_CATCH;
+                scratch->provisional = d_internal_extent(_b, _at);
+                return D_INTERNAL_STEP_TAKEN;
+            }
+
+            break;
+
+        default:
+            d_internal_simple(_b, _s, _k, _at);
+            return D_INTERNAL_STEP_TAKEN;
+    }
+
+    // the child does not continue the item: it ended with its last body
+    d_internal_complete(_b, _s, _k, scratch->provisional);
+
+    return D_INTERNAL_STEP_AGAIN;
+}
+
+
+/**
  * @brief Offers one child to the scope's innermost open item.
  *
  * An item that learns from the child that it has already ended completes, and
@@ -1936,54 +2261,13 @@ bool d_internal_feed(
 
     for (;;)
     {
+        enum dj_internal_step step;
+
         // a new top-level item
         if (_s->cur == D_SYNTAX_NONE)
         {
-            if ((kind == D_TOKEN_KW_CASE) || (kind == D_TOKEN_KW_DEFAULT))
-            {
-                _s->under_label = false;
-            }
-
-            const uint32_t k = d_internal_open(_b, _s, _at, D_SYNTAX_NONE);
-
-            if (k == D_SYNTAX_NONE)
-            {
-                return false;
-            }
-
-            _s->cur = k;
-
-            if (_s->mode == D_INTERNAL_MODE_BLOCK)
-            {
-                // `{ }` and `;` are whole statements
-                if (kind == D_TOKEN_BRACE_OPEN)
-                {
-                    _b->out->items[k].statement = D_SYNTAX_STMT_COMPOUND;
-                    _b->out->items[k].body      = _at;
-                    d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, k);
-                    d_internal_complete(_b, _s, k,
-                                        d_internal_extent(_b, _at));
-                    return true;
-                }
-
-                if (kind == D_TOKEN_SEMICOLON)
-                {
-                    _b->out->items[k].statement = D_SYNTAX_STMT_EMPTY;
-                    d_internal_complete(_b, _s, k, _at);
-                    return true;
-                }
-            }
-
-            // a leading keyword is consumed by the state it chose
-            if (_b->scratch[k].state != D_INTERNAL_ST_SIMPLE)
-            {
-                _b->scratch[k].prev = _at;
-                _b->scratch[k].seen = 1u;
-                return true;
-            }
-
-            d_internal_simple(_b, _s, k, _at);
-            return true;
+            return ( d_internal_feed_new(_b, _s, _at, kind) !=
+                     D_INTERNAL_STEP_FAILED );
         }
 
         const uint32_t                   k       = _s->cur;
@@ -2051,145 +2335,131 @@ bool d_internal_feed(
                 continue;
 
             case D_INTERNAL_ST_BODY:
-                if (kind == D_TOKEN_BRACE_OPEN)
-                {
-                    if (_b->out->items[k].body == D_SYNTAX_NONE)
-                    {
-                        _b->out->items[k].body = _at;
-                    }
-
-                    d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, k);
-
-                    if (d_internal_body_done(_b, k,
-                                             d_internal_extent(_b, _at)))
-                    {
-                        d_internal_complete(_b, _s, k,
-                                            d_internal_extent(_b, _at));
-                    }
-
-                    return true;
-                }
-
-                // an unbraced body is an item of its own, one level in
-                {
-                    const uint32_t inner = d_internal_open(_b, _s, _at, k);
-
-                    if (inner == D_SYNTAX_NONE)
-                    {
-                        return false;
-                    }
-
-                    _s->cur = inner;
-
-                    if (kind == D_TOKEN_SEMICOLON)
-                    {
-                        _b->out->items[inner].statement = D_SYNTAX_STMT_EMPTY;
-                        d_internal_complete(_b, _s, inner, _at);
-                        return true;
-                    }
-
-                    if (_b->scratch[inner].state != D_INTERNAL_ST_SIMPLE)
-                    {
-                        _b->scratch[inner].prev = _at;
-                        _b->scratch[inner].seen = 1u;
-                        return true;
-                    }
-
-                    d_internal_simple(_b, _s, inner, _at);
-                    return true;
-                }
-
-            case D_INTERNAL_ST_ELSE:
-                if (kind == D_TOKEN_KW_ELSE)
-                {
-                    scratch->state = D_INTERNAL_ST_ELSE_TAIL;
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
-
-            case D_INTERNAL_ST_ELSE_TAIL:
-                // `else if` continues one flat chain, not a nested one
-                if (kind == D_TOKEN_KW_IF)
-                {
-                    scratch->state     = D_INTERNAL_ST_COND;
-                    scratch->else_seen = 0u;
-                    return true;
-                }
-
-                scratch->state     = D_INTERNAL_ST_BODY;
-                scratch->else_seen = 1u;
-                continue;
-
-            case D_INTERNAL_ST_DO_WHILE:
-                if (kind == D_TOKEN_KW_WHILE)
-                {
-                    scratch->state = D_INTERNAL_ST_DO_COND;
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
-
-            case D_INTERNAL_ST_DO_COND:
-                if (kind == D_TOKEN_PAREN_OPEN)
-                {
-                    scratch->state       = D_INTERNAL_ST_DO_SEMI;
-                    scratch->provisional = d_internal_extent(_b, _at);
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
-
-            case D_INTERNAL_ST_DO_SEMI:
-                if (kind == D_TOKEN_SEMICOLON)
-                {
-                    d_internal_complete(_b, _s, k, _at);
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
-
-            case D_INTERNAL_ST_CATCH:
-                if (kind == D_TOKEN_KW_CATCH)
-                {
-                    scratch->state = D_INTERNAL_ST_CATCH_COND;
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
-
-            case D_INTERNAL_ST_CATCH_COND:
-                if (kind == D_TOKEN_PAREN_OPEN)
-                {
-                    scratch->state = D_INTERNAL_ST_CATCH_BODY;
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
-
-            case D_INTERNAL_ST_CATCH_BODY:
-                if (kind == D_TOKEN_BRACE_OPEN)
-                {
-                    d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, k);
-                    scratch->state       = D_INTERNAL_ST_CATCH;
-                    scratch->provisional = d_internal_extent(_b, _at);
-                    return true;
-                }
-
-                d_internal_complete(_b, _s, k, scratch->provisional);
-                continue;
+                step = d_internal_feed_body(_b, _s, k, _at, kind);
+                break;
 
             default:
-                d_internal_simple(_b, _s, k, _at);
-                return true;
+                step = d_internal_feed_waiting(_b, _s, k, _at, kind);
+                break;
+        }
+
+        // an item that ended without the child offers it on
+        if (step != D_INTERNAL_STEP_AGAIN)
+        {
+            return (step == D_INTERNAL_STEP_TAKEN);
         }
     }
+}
+
+
+/**
+ * @brief Ends whatever is still open when a scope ends: an item waiting to
+ *        learn whether it continues ends with its last body; any other ends
+ *        at the scope's last child, and is marked unterminated unless it is
+ *        a parameter or an enumerator, which need no separator.
+ *
+ * @param[in,out] _b     the recognition in progress.
+ * @param[in,out] _s     the scope that ended.
+ * @param[in]     _mode  the scope's mode.
+ */
+static
+void d_internal_close_scope(
+    struct dj_internal_build* _b,
+    struct dj_internal_scope* _s,
+    uint8_t                   _mode
+)
+{
+    while (_s->cur != D_SYNTAX_NONE)
+    {
+        const uint32_t                   k       = _s->cur;
+        struct dj_internal_scratch* const scratch = &_b->scratch[k];
+        const bool waiting =
+            ( (scratch->state == D_INTERNAL_ST_ELSE)     ||
+              (scratch->state == D_INTERNAL_ST_DO_WHILE) ||
+              (scratch->state == D_INTERNAL_ST_DO_COND)  ||
+              (scratch->state == D_INTERNAL_ST_DO_SEMI)  ||
+              (scratch->state == D_INTERNAL_ST_CATCH) );
+
+        // a last parameter or enumerator needs no separator
+        if ( (!waiting) &&
+             (_mode != D_INTERNAL_MODE_PARAMS) &&
+             (_mode != D_INTERNAL_MODE_ENUM) )
+        {
+            _b->out->items[k].flags |= D_SYNTAX_ITEM_FLAG_UNTERMINATED;
+        }
+
+        d_internal_complete(_b, _s, k,
+                            waiting ? scratch->provisional
+                                    : _s->prev_extent);
+    }
+
+    return;
+}
+
+
+/**
+ * @brief Records how a parameter list is laid out. A list whose first
+ *        parameter shares the `(` line is laid out by alignment: each
+ *        parameter is marked aligned, and one that begins a line off the
+ *        first's column misaligned. A declaration's list whose first
+ *        parameter begins a line has left the guide's declaration layout,
+ *        and each of its parameters is marked detached.
+ *
+ * @param[in,out] _b           the recognition in progress.
+ * @param[in]     _owner       the item the list belongs to, or
+ *                             `D_SYNTAX_NONE`.
+ * @param[in]     _first_item  the list's first parameter's index.
+ */
+static
+void d_internal_param_layout(
+    struct dj_internal_build* _b,
+    uint32_t                  _owner,
+    uint32_t                  _first_item
+)
+{
+    // an empty list has no layout
+    if (_first_item >= (uint32_t)_b->out->count)
+    {
+        return;
+    }
+
+    const struct dj_token* const lead =
+        &_b->tokens[_b->out->items[_first_item].first];
+
+    // a declaration whose first parameter begins a line has left the
+    // guide's declaration layout; a definition's parameters do so by rule
+    if ( ((lead->flags & D_TOKEN_FLAG_LINE_START) != 0u) &&
+         (_owner != D_SYNTAX_NONE)                        &&
+         (_b->out->items[_owner].kind == D_SYNTAX_ITEM_FN_DECL) )
+    {
+        for (uint32_t k = _first_item;
+             k < (uint32_t)_b->out->count;
+             ++k)
+        {
+            _b->out->items[k].flags |= D_SYNTAX_ITEM_FLAG_DETACHED;
+        }
+    }
+
+    if ((lead->flags & D_TOKEN_FLAG_LINE_START) == 0u)
+    {
+        for (uint32_t k = _first_item;
+             k < (uint32_t)_b->out->count;
+             ++k)
+        {
+            struct dj_syntax_item* const  param = &_b->out->items[k];
+            const struct dj_token* const  start = &_b->tokens[param->first];
+
+            param->flags |= D_SYNTAX_ITEM_FLAG_ALIGNED;
+
+            if ( ((start->flags & D_TOKEN_FLAG_LINE_START) != 0u) &&
+                 (start->span.column != lead->span.column) )
+            {
+                param->flags |= D_SYNTAX_ITEM_FLAG_MISALIGNED;
+            }
+        }
+    }
+
+    return;
 }
 
 
@@ -2263,70 +2533,12 @@ bool d_internal_walk(
     }
 
     // the scope ended: whatever is open ends with it
-    while (scope.cur != D_SYNTAX_NONE)
+    d_internal_close_scope(_b, &scope, _mode);
+
+    // a parameter list's layout: aligned, misaligned, or detached
+    if (_mode == D_INTERNAL_MODE_PARAMS)
     {
-        const uint32_t                   k       = scope.cur;
-        struct dj_internal_scratch* const scratch = &_b->scratch[k];
-        const bool waiting =
-            ( (scratch->state == D_INTERNAL_ST_ELSE)     ||
-              (scratch->state == D_INTERNAL_ST_DO_WHILE) ||
-              (scratch->state == D_INTERNAL_ST_DO_COND)  ||
-              (scratch->state == D_INTERNAL_ST_DO_SEMI)  ||
-              (scratch->state == D_INTERNAL_ST_CATCH) );
-
-        // a last parameter or enumerator needs no separator
-        if ( (!waiting) &&
-             (_mode != D_INTERNAL_MODE_PARAMS) &&
-             (_mode != D_INTERNAL_MODE_ENUM) )
-        {
-            _b->out->items[k].flags |= D_SYNTAX_ITEM_FLAG_UNTERMINATED;
-        }
-
-        d_internal_complete(_b, &scope, k,
-                            waiting ? scratch->provisional
-                                    : scope.prev_extent);
-    }
-
-    // a parameter list whose first parameter shares the `(` line is laid
-    // out by alignment; record that, and which parameters break it
-    if ( (_mode == D_INTERNAL_MODE_PARAMS) &&
-         (first_item < (uint32_t)_b->out->count) )
-    {
-        const struct dj_token* const lead =
-            &_b->tokens[_b->out->items[first_item].first];
-
-        // a declaration whose first parameter begins a line has left the
-        // guide's declaration layout; a definition's parameters do so by rule
-        if ( ((lead->flags & D_TOKEN_FLAG_LINE_START) != 0u) &&
-             (owner != D_SYNTAX_NONE)                         &&
-             (_b->out->items[owner].kind == D_SYNTAX_ITEM_FN_DECL) )
-        {
-            for (uint32_t k = first_item;
-                 k < (uint32_t)_b->out->count;
-                 ++k)
-            {
-                _b->out->items[k].flags |= D_SYNTAX_ITEM_FLAG_DETACHED;
-            }
-        }
-
-        if ((lead->flags & D_TOKEN_FLAG_LINE_START) == 0u)
-        {
-            for (uint32_t k = first_item;
-                 k < (uint32_t)_b->out->count;
-                 ++k)
-            {
-                struct dj_syntax_item* const  param = &_b->out->items[k];
-                const struct dj_token* const  start = &_b->tokens[param->first];
-
-                param->flags |= D_SYNTAX_ITEM_FLAG_ALIGNED;
-
-                if ( ((start->flags & D_TOKEN_FLAG_LINE_START) != 0u) &&
-                     (start->span.column != lead->span.column) )
-                {
-                    param->flags |= D_SYNTAX_ITEM_FLAG_MISALIGNED;
-                }
-            }
-        }
+        d_internal_param_layout(_b, owner, first_item);
     }
 
     // claim tokens, outer items first

@@ -26,7 +26,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/parse.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // corresponding header
 // std
@@ -175,20 +175,152 @@ struct dj_parse_expr_parser
 //==============================================================================
 
 
+// 2.1    The code table, held to the enum
+//------------------------------------------------------------------------------
+// each row's module must be parse_expr, and its name names its constant, so
+// a row of another module, or a misspelt or misplaced name, does not
+// compile; and each row's number must be that constant's value
+#define D_INTERNAL_EXPR_MODULE_parse_expr    1
+#define D_INTERNAL_EXPR_CODE_unexpected      D_PARSE_EXPR_DIAG_UNEXPECTED
+#define D_INTERNAL_EXPR_CODE_missing_operand D_PARSE_EXPR_DIAG_MISSING_OPERAND
+#define D_INTERNAL_EXPR_CODE_unclosed        D_PARSE_EXPR_DIAG_UNCLOSED
+#define D_INTERNAL_EXPR_CODE_unopened        D_PARSE_EXPR_DIAG_UNOPENED
+#define D_INTERNAL_EXPR_CODE_mismatched      D_PARSE_EXPR_DIAG_MISMATCHED
+#define D_INTERNAL_EXPR_CODE_non_associative D_PARSE_EXPR_DIAG_NON_ASSOCIATIVE
+#define D_INTERNAL_EXPR_CODE_arity           D_PARSE_EXPR_DIAG_ARITY
+#define D_INTERNAL_EXPR_CODE_too_deep        D_PARSE_EXPR_DIAG_TOO_DEEP
+#define D_INTERNAL_EXPR_CODE_refused         D_PARSE_EXPR_DIAG_REFUSED
+#define D_INTERNAL_EXPR_CODE_bad_signature   D_PARSE_EXPR_DIAG_BAD_SIGNATURE
+
+#define D_INTERNAL_EXPR_CODE_HOLDS(_module, _number, _name, _class,           \
+                                   _grade, _template, _facts)                 \
+    && (D_INTERNAL_EXPR_MODULE_##_module)                                     \
+    && ((_number) == (int)D_INTERNAL_EXPR_CODE_##_name)
+#define D_INTERNAL_EXPR_CODE_COUNT(_module, _number, _name, _class,           \
+                                   _grade, _template, _facts)                 \
+    + 1
+
+D_STATIC_ASSERT( (1 D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_CODE_HOLDS)),
+                 "each row is parse_expr's, numbered as its constant" );
+D_STATIC_ASSERT( ( (0 D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_CODE_COUNT)) ==
+                   ((int)D_PARSE_EXPR_DIAG_BAD_SIGNATURE + 1) ),
+                 "the code table has a row for each code" );
+
+
+// 2.2    Messages
+//------------------------------------------------------------------------------
+
+/**
+ * @brief The spelling a signature gives a token class: a mixfix part's or
+ *        separator's, or the operator's that the class has a role for.
+ *
+ * @param[in] _sig    the sealed signature.
+ * @param[in] _class  the token class.
+ * @return the spelling, or NULL where the signature gives the class none.
+ */
+static const char*
+d_internal_expr_spelling_of(
+    const struct dj_parse_expr_signature* _sig,
+    uint32_t                              _class
+)
+{
+    // a mixfix's parts and separators are classes of their own
+    for (uint32_t i = 0u; i < _sig->op_count; ++i)
+    {
+        const struct dj_parse_expr_mixfix* mx = &_sig->ops[i].mixfix;
+
+        if (_sig->ops[i].form != D_PARSE_EXPR_FORM_MIXFIX)
+        {
+            continue;
+        }
+
+        for (uint32_t k = 0u; k < (uint32_t)mx->parts; ++k)
+        {
+            if ( (mx->part[k] == _class) &&
+                 (mx->part_spelling[k]) )
+            {
+                return mx->part_spelling[k];
+            }
+        }
+
+        if ( (mx->separator == _class) &&
+             (mx->separator_spelling) )
+        {
+            return mx->separator_spelling;
+        }
+
+        if ( (mx->row_separator == _class) &&
+             (mx->row_separator_spelling) )
+        {
+            return mx->row_separator_spelling;
+        }
+    }
+
+    // a prefix, infix or postfix operator's token takes the operator's
+    for (uint32_t i = 0u; i < _sig->role_count; ++i)
+    {
+        const struct dj_parse_expr_op* op = NULL;
+
+        if ( (_sig->roles[i].cls != _class) ||
+             (_sig->roles[i].op == D_PARSE_EXPR_OP_NONE) )
+        {
+            continue;
+        }
+
+        op = d_parse_expr_find_op(_sig, _sig->roles[i].op);
+
+        if ( (op) &&
+             (op->form != D_PARSE_EXPR_FORM_MIXFIX) &&
+             (op->spelling) )
+        {
+            return op->spelling;
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief The spelling of the token a frame opened at: a mixfix's first part,
+ *        or the operator's own.
+ *
+ * @param[in] _f  the frame.
+ * @return the spelling, or NULL where the signature gives none.
+ */
+static const char*
+d_internal_expr_frame_spelling(
+    const struct dj_internal_expr_frame* _f
+)
+{
+    if (!_f->op)
+    {
+        return NULL;
+    }
+
+    return (_f->op->form == D_PARSE_EXPR_FORM_MIXFIX)
+           ? _f->op->mixfix.part_spelling[0]
+           : _f->op->spelling;
+}
+
 /**
  * @brief Writes a token's text, quoted, or a word for it, into a buffer.
  *
- * @param[in]  _p       the parser.
- * @param[in]  _offset  the text's first byte.
- * @param[in]  _length  its length.
- * @param[out] _out     the buffer.
- * @param[in]  _size    its size.
+ *   Without the text, a token is named by its spelling in the signature, and
+ * only where the signature gives it none, as "a token" (the design's 7.1).
+ *
+ * @param[in]  _p         the parser.
+ * @param[in]  _offset    the text's first byte.
+ * @param[in]  _length    its length.
+ * @param[in]  _spelling  the token's spelling in the signature, or NULL.
+ * @param[out] _out       the buffer.
+ * @param[in]  _size      its size.
  */
 static void
 d_internal_expr_quote(
     const struct dj_parse_expr_parser* _p,
     uint32_t                           _offset,
     uint32_t                           _length,
+    const char*                        _spelling,
     char*                              _out,
     size_t                             _size
 )
@@ -217,7 +349,62 @@ d_internal_expr_quote(
         return;
     }
 
+    // otherwise the signature's spelling, as the renderer would write it
+    if ( (_spelling) &&
+         (_spelling[0] != '\0') )
+    {
+        (void)snprintf(_out, _size, "'%.*s'", D_INTERNAL_EXPR_QUOTE_MAX,
+                       _spelling);
+
+        return;
+    }
+
     (void)snprintf(_out, _size, "a token");
+
+    return;
+}
+
+/**
+ * @brief Writes a token's text, quoted, or its class's spelling.
+ *
+ * @param[in]  _p      the parser.
+ * @param[in]  _token  the token.
+ * @param[out] _out    the buffer.
+ * @param[in]  _size   its size.
+ */
+static void
+d_internal_expr_quote_token(
+    const struct dj_parse_expr_parser* _p,
+    const struct dj_parse_expr_token*  _token,
+    char*                              _out,
+    size_t                             _size
+)
+{
+    d_internal_expr_quote(_p, _token->offset, _token->length,
+                          d_internal_expr_spelling_of(_p->sig, _token->cls),
+                          _out, _size);
+
+    return;
+}
+
+/**
+ * @brief Writes the token a frame opened at, quoted, or its spelling.
+ *
+ * @param[in]  _p     the parser.
+ * @param[in]  _f     the frame.
+ * @param[out] _out   the buffer.
+ * @param[in]  _size  its size.
+ */
+static void
+d_internal_expr_quote_frame(
+    const struct dj_parse_expr_parser*   _p,
+    const struct dj_internal_expr_frame* _f,
+    char*                                _out,
+    size_t                               _size
+)
+{
+    d_internal_expr_quote(_p, _f->token_offset, _f->token_length,
+                          d_internal_expr_frame_spelling(_f), _out, _size);
 
     return;
 }
@@ -1187,10 +1374,8 @@ d_internal_expr_nonassoc(
     char first[48];
     char text[128];
 
-    d_internal_expr_quote(_p, _token->offset, _token->length, second,
-                          sizeof(second));
-    d_internal_expr_quote(_p, _f->token_offset, _f->token_length, first,
-                          sizeof(first));
+    d_internal_expr_quote_token(_p, _token, second, sizeof(second));
+    d_internal_expr_quote_frame(_p, _f, first, sizeof(first));
     (void)snprintf(text, sizeof(text), "%s cannot follow %s without brackets",
                    second, first);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_NON_ASSOCIATIVE,
@@ -2042,8 +2227,7 @@ d_internal_expr_step_operand(
         return;
     }
 
-    d_internal_expr_quote(_p, _token->offset, _token->length, quote,
-                          sizeof(quote));
+    d_internal_expr_quote_token(_p, _token, quote, sizeof(quote));
 
     // the end, a part or a separator where an operand must stand; or, where
     // the expression stops, a token with no role in either position
@@ -2410,13 +2594,18 @@ d_internal_expr_mismatched(
 )
 {
     char quote[48];
-    char text[128];
+    char outer[48];
+    char inner[48];
+    char text[192];
 
-    d_internal_expr_quote(_p, _token->offset, _token->length, quote,
-                          sizeof(quote));
-    (void)snprintf(text, sizeof(text),
-                   "%s closes an outer operator while an inner one is open",
-                   quote);
+    // `']' closes '[' while '(' is open`: the token, what it closes, and the
+    // innermost open operator it leaves
+    d_internal_expr_quote_token(_p, _token, quote, sizeof(quote));
+    d_internal_expr_quote_frame(_p, &_p->frames[_target], outer,
+                                sizeof(outer));
+    d_internal_expr_quote_frame(_p, &_p->frames[_m], inner, sizeof(inner));
+    (void)snprintf(text, sizeof(text), "%s closes %s while %s is open",
+                   quote, outer, inner);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
                           _token->offset, _token->length, text);
     d_internal_expr_note(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
@@ -2507,9 +2696,8 @@ d_internal_expr_finish(
             char quote[48];
             char text[96];
 
-            d_internal_expr_quote(_p, _p->frames[m].token_offset,
-                                  _p->frames[m].token_length, quote,
-                                  sizeof(quote));
+            d_internal_expr_quote_frame(_p, &_p->frames[m], quote,
+                                        sizeof(quote));
             (void)snprintf(text, sizeof(text), "%s is never closed", quote);
             d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_UNCLOSED,
                                   _p->frames[m].token_offset,
@@ -2556,10 +2744,12 @@ d_internal_expr_wrong_close(
     const char*                       _quote
 )
 {
+    char open[48];
     char text[128];
 
-    (void)snprintf(text, sizeof(text),
-                   "%s does not close the innermost open operator", _quote);
+    // `']' does not close '('`: the token, and the operator it would close
+    d_internal_expr_quote_frame(_p, &_p->frames[_m], open, sizeof(open));
+    (void)snprintf(text, sizeof(text), "%s does not close %s", _quote, open);
     d_internal_expr_error(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
                           _token->offset, _token->length, text);
     d_internal_expr_note(_p, (uint16_t)D_PARSE_EXPR_DIAG_MISMATCHED,
@@ -2621,8 +2811,7 @@ d_internal_expr_no_role(
         return;
     }
 
-    d_internal_expr_quote(_p, _token->offset, _token->length, quote,
-                          sizeof(quote));
+    d_internal_expr_quote_token(_p, _token, quote, sizeof(quote));
 
     // a closing part of another kind closes the innermost open operator: one
     // slip, one error

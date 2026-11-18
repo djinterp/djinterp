@@ -16,7 +16,7 @@
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_argv_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./arg_argv_tests.h"  // corresponding header
 // std
@@ -4970,7 +4970,8 @@ bool d_tests_arg_argv_response_whole(
     // each word, by its number
     for (size_t index = 0u; (held) && (index < _count); ++index)
     {
-        char expected[16] = { 0 };
+        // "w", up to 20 digits of an unsigned long, and the NUL
+        char expected[24] = { 0 };
 
         (void)snprintf(expected,
                        sizeof expected,

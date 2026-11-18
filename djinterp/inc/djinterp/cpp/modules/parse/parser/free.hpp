@@ -60,7 +60,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/parser/free.hpp
 * link(s):   ch-parsing.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PARSER_FREE_HPP
@@ -258,6 +258,22 @@ parser<R, E> to_parser(
                 current = step.value();
             }
         });
+}
+
+// to_parser (deduced)
+//   function: as above, its element type E deduced from the program's
+// functor, which the alias above cannot give: `parser_layer<E>::at` is a
+// non-deduced context, so `to_parser(program)` finds E as the input type
+// of the layer's parser, `F<R>`.
+template<template<typename> class F,
+         typename R,
+         typename E = typename F<R>::input_type>
+D_NODISCARD
+parser<R, E> to_parser(
+    const ::djinterp::free<F, R>& _program
+)
+{
+    return to_parser<R, E>(_program);
 }
 
 
