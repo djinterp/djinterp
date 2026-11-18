@@ -15,7 +15,7 @@
 * path:      /src/djinterp/tools/dawk/dnode.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dnode.h"  // corresponding header
 // std
@@ -48,7 +48,7 @@ struct dj_node_tree
 
     uint32_t                  next_origin;
 
-    struct dj_symbol_table*    symbols;      // types and attribute names
+    struct dj_text_intern*    symbols;      // types and attribute names
     bool                      owns_symbols;
 };
 
@@ -230,7 +230,7 @@ d_node_tree_new
 */
 struct dj_node_tree* d_node_tree_new(void)
 {
-    struct dj_symbol_table* const symbols = d_symbol_table_new();
+    struct dj_text_intern* const symbols = d_text_intern_new();
 
     if (!symbols)
     {
@@ -241,7 +241,7 @@ struct dj_node_tree* d_node_tree_new(void)
 
     if (!tree)
     {
-        d_symbol_table_free(symbols);
+        d_text_intern_free(symbols);
 
         return NULL;
     }
@@ -257,7 +257,7 @@ d_node_tree_new_shared
   The table outlives every clear: names are per run, texts per file.
 */
 struct dj_node_tree* d_node_tree_new_shared(
-    struct dj_symbol_table* _symbols
+    struct dj_text_intern* _symbols
 )
 {
     if (!_symbols)
@@ -295,7 +295,7 @@ void d_node_tree_free(
 
         if (_tree->owns_symbols)
         {
-            d_symbol_table_free(_tree->symbols);
+            d_text_intern_free(_tree->symbols);
         }
 
         free(_tree);
@@ -373,7 +373,7 @@ uint32_t d_node_add(
 
     memset(node, 0, sizeof(*node));
 
-    node->type            = d_symbol_intern(_tree->symbols, _type,
+    node->type            = d_text_intern_add(_tree->symbols, _type,
                                             strlen(_type));
     node->text            = D_DSS_NO_INDEX;
     node->parent          = _parent;
@@ -457,7 +457,7 @@ bool d_node_set_attribute(
 
     struct dj_node_attribute* const attribute = &_tree->attributes[at];
 
-    attribute->name    = d_symbol_intern(_tree->symbols, _name,
+    attribute->name    = d_text_intern_add(_tree->symbols, _name,
                                          strlen(_name));
     attribute->value   = _value ? d_node_intern(_tree, _value, strlen(_value))
                                 : D_DSS_NO_INDEX;
@@ -626,7 +626,7 @@ uint32_t d_node_find_id(
         return D_DSS_NO_INDEX;
     }
 
-    return d_symbol_find(_tree->symbols, _text, strlen(_text));
+    return d_text_intern_find(_tree->symbols, _text, strlen(_text));
 }
 
 uint32_t d_node_find_text(
@@ -664,10 +664,10 @@ const char* d_node_name(
     uint32_t                   _symbol
 )
 {
-    return _tree ? d_symbol_text(_tree->symbols, _symbol) : "";
+    return _tree ? d_text_intern_text(_tree->symbols, _symbol) : "";
 }
 
-struct dj_symbol_table* d_node_tree_symbols(
+struct dj_text_intern* d_node_tree_symbols(
     const struct dj_node_tree* _tree
 )
 {

@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/tools/dawk/dline.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -74,7 +74,8 @@ uint32_t d_line_build(
  * @param[in]     _file    the file node to build beneath.
  * @param[in]     _text    the file's bytes; need not be terminated.
  * @param[in]     _length  their count.
- * @return the `text` node, or `D_DSS_NO_INDEX` when the tree refused a node.
+ * @return the `text` node, or `D_DSS_NO_INDEX` when the tree refused a node
+ *         or the line index could not be allocated.
  */
 uint32_t d_line_build_text(
     struct dj_node_tree* _tree,

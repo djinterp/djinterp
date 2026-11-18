@@ -15,14 +15,14 @@
 * path:      /src/djinterp/tools/dawk/dss.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dss.h"  // corresponding header
 // std
 #include <stdlib.h>  // malloc, realloc, free, strtod
 #include <string.h>  // memcpy, memcmp, strlen
 // djinterp
-#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"  // d_symbol_intern
+#include "../../../../inc/djinterp/c/text/text_intern.h"  // dj_text_intern
 
 
 //==============================================================================
@@ -74,7 +74,7 @@ struct dj_dss_sheet
     struct dj_internal_vector  at_rules;
     struct dj_internal_vector  warnings;
 
-    struct dj_symbol_table*    symbols;  // borrowed; NULL until bound
+    struct dj_text_intern*    symbols;  // borrowed; NULL until bound
 };
 
 // D_INTERNAL_COMPOUND_MAX, D_INTERNAL_STEP_MAX, D_INTERNAL_LIST_MAX
@@ -2019,7 +2019,7 @@ sheet binds once; binding again to another table rebinds it.
 */
 bool d_dss_bind(
     struct dj_dss_sheet*    _sheet,
-    struct dj_symbol_table* _symbols
+    struct dj_text_intern* _symbols
 )
 {
     if ( (!_sheet) || (!_symbols) )
@@ -2037,9 +2037,9 @@ bool d_dss_bind(
         {
             const char* const name = d_dss_text(_sheet, simple->name);
 
-            simple->symbol = d_symbol_intern(_symbols, name, strlen(name));
+            simple->symbol = d_text_intern_add(_symbols, name, strlen(name));
 
-            if (simple->symbol == D_SYMBOL_NONE)
+            if (simple->symbol == D_TEXT_INTERN_NONE)
             {
                 return false;
             }
@@ -2053,10 +2053,10 @@ bool d_dss_bind(
             (_sheet->declarations.data + (at * _sheet->declarations.stride));
         const char* const property = d_dss_text(_sheet, declaration->property);
 
-        declaration->symbol = d_symbol_intern(_symbols, property,
+        declaration->symbol = d_text_intern_add(_symbols, property,
                                               strlen(property));
 
-        if (declaration->symbol == D_SYMBOL_NONE)
+        if (declaration->symbol == D_TEXT_INTERN_NONE)
         {
             return false;
         }
@@ -2068,7 +2068,7 @@ bool d_dss_bind(
 }
 
 
-struct dj_symbol_table* d_dss_symbols(
+struct dj_text_intern* d_dss_symbols(
     const struct dj_dss_sheet* _sheet
 )
 {

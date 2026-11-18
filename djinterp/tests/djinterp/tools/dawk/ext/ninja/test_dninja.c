@@ -20,7 +20,7 @@
 * path:      /tests/djinterp/tools/dawk/ext/ninja/test_dninja.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja.h"       // corresponding header
 // std
@@ -29,7 +29,8 @@
 #include <string.h>  // memcmp, memcpy, memset, strcmp, strlen, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"                    // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"                // d_text_read, d_text_write
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
+                                                                // d_text_write
 #include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_doc.h"   // dj_ninja_doc
 #include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_eval.h"  // dj_ninja_graph
 

@@ -28,7 +28,7 @@
 * path:      /tests/djinterp/tools/dawk/ext/make/test_dmake.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.21
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/make/dmake.h"  // corresponding header
 // std
@@ -38,7 +38,8 @@
 #include <string.h>  // memcmp, memcpy, strcat, strcmp, strcspn, strlen,
                      // strstr
 // djinterp
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"            // d_text_read
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
+                                                                // d_text_write
 #include "../../../../../../inc/djinterp/tools/dawk/ext/make/dmake_doc.h"  // dj_make_doc
 
 

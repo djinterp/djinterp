@@ -11,14 +11,14 @@
 * must pair with one between in the new. A change of a kind then checks the
 * commands between for what it was to do; only then are the file's text and
 * records the candidate's. Comments are compared as commands are.
-*   Files are read and written with dsplice's helpers, the directories a
+*   Files are read and written with c/text's helpers, the directories a
 * file goes in made with dfs's.
 *
 *
 * path:      /src/djinterp/tools/dawk/ext/cmake/dcmake_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake_doc.h"  // corresponding header
 // std
@@ -28,7 +28,7 @@
 #include <string.h>  // memchr, memcmp, memcpy, memset, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"      // d_fs_make_parent
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read,
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
                                                                 // d_text_write
 
 

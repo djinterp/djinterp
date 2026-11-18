@@ -19,7 +19,7 @@
 * path:      /src/djinterp/tools/dawk/dcheck.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
@@ -42,7 +42,7 @@
 #include "../../../../inc/djinterp/tools/dawk/dline.h"                  // d_line_build
 #include "../../../../inc/djinterp/tools/dawk/dcascade.h"               // d_cascade_wins
 #include "../../../../inc/djinterp/tools/dawk/dschema.h"                // d_schema_validate
-#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"                // dj_symbol_table
+#include "../../../../inc/djinterp/c/text/text_intern.h"  // dj_text_intern
 #include "../../../../inc/djinterp/tools/dawk/dsection.h"               // d_section_build
 #include "../../../../inc/djinterp/tools/dawk/dsettings.h"              // dj_settings
 #include "../../../../inc/djinterp/tools/dawk/dnode.h"                  // dj_node_tree
@@ -1714,7 +1714,7 @@ int main(
     struct dj_git_history* const history = d_git_read(root_path);
 
     // one symbol table for the sheet and the tree: names compare as integers
-    struct dj_symbol_table* const symbols = d_symbol_table_new();
+    struct dj_text_intern* const symbols = d_text_intern_new();
     struct dj_node_tree* const    tree    = symbols
                                            ? d_node_tree_new_shared(symbols)
                                            : NULL;
@@ -2499,7 +2499,7 @@ int main(
     d_match_index_free(index);
     d_schema_binding_free(schema);
     free(candidates);
-    d_symbol_table_free(symbols);
+    d_text_intern_free(symbols);
     d_git_free(history);
     free(tally);
     d_dss_free(sheet);

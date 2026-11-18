@@ -34,20 +34,22 @@ fi
 W="$W ${CFLAGS:-}"
 
 # the interpreter; then each extension's units, in ext/<name>/, which use
-# only the interpreter's and the shared dsplice, dxml, dzip and dfs
+# only the interpreter's and the shared dxml, dzip and dfs, and the library's
+# text edit and text source, c/text's
 E=$S/ext
+TX="src/djinterp/c/text/text_edit.c src/djinterp/c/text/text_source.c"
 # the regular expressions are the library's, c/util/dregex, which dawk uses
 RX=src/djinterp/c/util/dregex.c
 CORE="$S/dinterp.c $S/dparse.c $S/dlex.c $RX $S/dvalue.c $S/dtree.c
       $S/dfs.c $S/dsettings.c"
 STORY="$S/dzip.c $S/dxml.c $E/story/dhost_story.c $E/story/dhost_articulate.c"
-DCMAKE="$E/cmake/dcmake.c $E/cmake/dcmake_doc.c $S/dsplice.c"
+DCMAKE="$E/cmake/dcmake.c $E/cmake/dcmake_doc.c $TX"
 CMAKE="$DCMAKE $E/cmake/dhost_cmake.c"
 DNINJA="$E/ninja/dninja.c $E/ninja/dninja_eval.c $E/ninja/dninja_doc.c
-        $S/dsplice.c"
+        $TX"
 NINJA="$E/ninja/dninja.c $E/ninja/dninja_eval.c $E/ninja/dninja_doc.c
        $E/ninja/dhost_ninja.c"
-DMSVS="$E/msvs/dmsvs.c $E/msvs/dmsvs_doc.c $S/dxml.c $S/dsplice.c"
+DMSVS="$E/msvs/dmsvs.c $E/msvs/dmsvs_doc.c $S/dxml.c $TX"
 MSVS="$E/msvs/dmsvs.c $E/msvs/dmsvs_doc.c $E/msvs/dhost_sln.c
       $E/msvs/dhost_vcxproj.c $E/msvs/dhost_msvs.c"
 DWIKI="$E/wiki/dwiki.c $E/wiki/dwiki_markdown.c $E/wiki/dwiki_mediawiki.c
@@ -77,10 +79,10 @@ $CC $W -o "$OUT/test_dcmake_doc" $T/ext/cmake/test_dcmake_doc.c $DCMAKE \
 $CC $W -o "$OUT/test_dninja" $T/ext/ninja/test_dninja.c $DNINJA $S/dfs.c
 DMAKE="$E/make/dmake.c $E/make/dmake_gnu.c $E/make/dmake_posix.c
     $E/make/dmake_bsd.c $E/make/dmake_nmake.c $E/make/dmake_doc.c"
-$CC $W -o "$OUT/test_dmake" $T/ext/make/test_dmake.c $DMAKE $S/dsplice.c \
+$CC $W -o "$OUT/test_dmake" $T/ext/make/test_dmake.c $DMAKE $TX \
     $S/dfs.c
 $CC $W -o "$OUT/test_dmsvs" $T/ext/msvs/test_dmsvs.c $E/msvs/dmsvs.c \
-    $S/dxml.c $S/dfs.c $S/dsplice.c
+    $S/dxml.c $S/dfs.c $TX
 $CC $W -o "$OUT/test_dmsvs_doc" $T/ext/msvs/test_dmsvs_doc.c $DMSVS $S/dfs.c
 $CC $W -o "$OUT/test_dwiki" $T/ext/wiki/test_dwiki.c $DWIKI $S/dfs.c
 $CC $W -o "$OUT/test_dgit" $T/ext/git/test_dgit.c $DGIT $S/dfs.c

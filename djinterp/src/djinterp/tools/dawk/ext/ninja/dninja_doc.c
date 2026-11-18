@@ -13,13 +13,13 @@
 * are.
 *   A change that adds to a statement splices within it -- before its last
 * line ending, not past it -- so that the statement is one the splice cuts.
-*   Files are read and written with dsplice's helpers, the directories a
+*   Files are read and written with c/text's helpers, the directories a
 * file goes in made with dfs's.
 *
 * path:      /src/djinterp/tools/dawk/ext/ninja/dninja_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/ninja/dninja_doc.h"  // corresponding header
 // std
@@ -29,7 +29,7 @@
 #include <string.h>  // memcmp, memcpy, memset, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"      // d_fs_make_parent
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read,
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
                                                                 // d_text_write
 
 

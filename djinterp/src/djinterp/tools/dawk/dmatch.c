@@ -16,7 +16,7 @@
 * path:      /src/djinterp/tools/dawk/dmatch.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
@@ -953,7 +953,7 @@ struct dj_match_index* d_match_index_new(
         return NULL;
     }
 
-    struct dj_symbol_table* const symbols = d_dss_symbols(_sheet);
+    struct dj_text_intern* const symbols = d_dss_symbols(_sheet);
     struct dj_match_index* const  index   = calloc(1u, sizeof(*index));
 
     if (!index)
@@ -962,7 +962,7 @@ struct dj_match_index* d_match_index_new(
     }
 
     index->rule_count = d_dss_rule_count(_sheet);
-    index->limit      = symbols ? d_symbol_count(symbols) : 0u;
+    index->limit      = symbols ? d_text_intern_count(symbols) : 0u;
     index->offsets    = calloc(index->limit + 1u, sizeof(uint32_t));
     index->universal  = malloc((index->rule_count + 1u) * sizeof(uint32_t));
 

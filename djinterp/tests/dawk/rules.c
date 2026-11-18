@@ -18,7 +18,7 @@
 * path:      /tests/dawk/rules.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../inc/djinterp/tools/dawk/ext/check/dext_c.h"    // d_ext_c_build
 #include "../../inc/djinterp/tools/dawk/ext/check/dext_cpp.h"  // d_ext_cpp_build
@@ -32,7 +32,7 @@
 #include "../../inc/djinterp/tools/dawk/dmatch.h"     // d_match_rule
 #include "../../inc/djinterp/tools/dawk/dproperty.h"  // d_property_evaluate
 #include "../../inc/djinterp/tools/dawk/dss.h"        // d_dss_parse
-#include "../../inc/djinterp/tools/dawk/dsymbol.h"    // d_symbol_table_*
+#include "../../inc/djinterp/c/text/text_intern.h"  // dj_text_intern
 
 
 // d_internal_finding
@@ -145,7 +145,7 @@ main(
         return 2;
     }
 
-    struct dj_symbol_table* const symbols = d_symbol_table_new();
+    struct dj_text_intern* const symbols = d_text_intern_new();
     uint32_t                     bad_line = 0u;
     const char*                  bad_name = NULL;
     const char*                  bad_why  = NULL;
@@ -305,7 +305,7 @@ main(
 
     free(fired);
     d_dss_free(sheet);
-    d_symbol_table_free(symbols);
+    d_text_intern_free(symbols);
     free(sheet_text);
 
     return status;

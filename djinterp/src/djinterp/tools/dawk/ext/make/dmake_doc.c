@@ -15,7 +15,7 @@
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.21
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/make/dmake_doc.h"  // corresponding header
 // std
@@ -25,7 +25,7 @@
 #include <string.h>  // memcmp, memcpy, memset, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"      // d_fs_make_parent
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read,
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
                                                                 // d_text_write
 #include "./dmake_internal.h"                                   // scanning
 

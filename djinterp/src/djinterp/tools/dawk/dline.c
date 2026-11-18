@@ -8,20 +8,24 @@
 * child takes any.  Decoding follows the Unicode Standard's Table 3-7, so an
 * overlong form, a surrogate or a code point past U+10FFFF is `malformed`,
 * and one bad byte costs one character, which keeps later columns honest.
+*   The lines are c/text's text source's, and the file is read with its
+* d_text_read (2026.11.18): a line runs to its newline or the text's end,
+* as it did here.
 *
 *
 * path:      /src/djinterp/tools/dawk/dline.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dline.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
-#include <stdio.h>    // FILE, fopen, fread, fclose, snprintf
-#include <stdlib.h>   // malloc, free
+#include <stdio.h>    // snprintf
+#include <stdlib.h>   // free
 #include <string.h>   // memcmp, memset
 // djinterp
+#include "../../../../inc/djinterp/c/text/text_source.h"               // lines
 #include "../../../../inc/djinterp/tools/dawk/dss.h"                    // D_DSS_NO_INDEX
 #include "../../../../inc/djinterp/tools/dawk/ext/check/dext_source.h"  // d_ext_source_generated
 #include "./dline_width.h"                                              // width tables
@@ -611,27 +615,39 @@ uint32_t d_line_build_text(
         return D_DSS_NO_INDEX;
     }
 
-    const uint32_t text = d_internal_emit_text(_tree, _file, _text, _length);
+    const bool   bom  = ( (_length >= 3u) &&
+                          (memcmp(_text, "\xEF\xBB\xBF", 3u) == 0) );
+    const size_t skip = bom ? 3u : 0u;
 
-    if (text == D_DSS_NO_INDEX)
+    // line 1 starts after the mark, as the lexer reads it
+    const char* const            body   = (_text) ? (_text + skip) : "";
+    struct dj_text_source* const source =
+        d_text_source_borrow(body, _length - skip);
+
+    // the line index is the one allocation; it comes before any node, so a
+    // failure leaves the tree as it was
+    if (!source)
     {
         return D_DSS_NO_INDEX;
     }
 
-    const bool bom    = ( (_length >= 3u) &&
-                          (memcmp(_text, "\xEF\xBB\xBF", 3u) == 0) );
-    size_t     start  = bom ? 3u : 0u;
-    uint32_t   number = 0u;
+    const uint32_t text = d_internal_emit_text(_tree, _file, _text, _length);
 
-    // each line runs to its terminator, or to the end of the text
-    while (start < _length)
+    if (text == D_DSS_NO_INDEX)
     {
-        size_t end = start;
+        d_text_source_free(source);
 
-        while ( (end < _length) && (_text[end] != '\n') )
-        {
-            ++end;
-        }
+        return D_DSS_NO_INDEX;
+    }
+
+    const size_t lines = d_text_source_line_count(source);
+
+    for (size_t number = 1u; number <= lines; ++number)
+    {
+        size_t start = 0u;
+        size_t end   = 0u;
+
+        (void)d_text_source_line(source, number, &start, &end);
 
         struct dj_internal_line_facts facts;
 
@@ -640,28 +656,26 @@ uint32_t d_line_build_text(
         size_t content = end;
 
         // a CR that precedes a terminator is the terminator's, not the line's
-        if ( (end < _length) && (content > start) &&
-             (_text[content - 1u] == '\r') )
+        if ( (end < (_length - skip)) && (content > start) &&
+             (body[content - 1u] == '\r') )
         {
             facts.cr = true;
             --content;
         }
 
-        d_internal_measure((const unsigned char*)_text + start,
+        d_internal_measure((const unsigned char*)body + start,
                            content - start,
                            &facts);
 
-        ++number;
-
-        if (d_internal_emit_line(_tree, text, number, &facts,
-                                 _text + start, content - start)
+        if (d_internal_emit_line(_tree, text, (uint32_t)number, &facts,
+                                 body + start, content - start)
             == D_DSS_NO_INDEX)
         {
             break;
         }
-
-        start = end + 1u;
     }
+
+    d_text_source_free(source);
 
     return text;
 }
@@ -685,38 +699,16 @@ uint32_t d_line_build(
         return D_DSS_NO_INDEX;
     }
 
-    FILE* const handle = fopen(_path, "rb");
+    size_t      length = 0u;
+    char* const bytes  = d_text_read(_path, &length);
 
-    if (!handle)
-    {
-        return D_DSS_NO_INDEX;
-    }
-
-    const long size = ( (fseek(handle, 0, SEEK_END) == 0) ? ftell(handle)
-                                                          : -1L );
-
-    // a size that cannot be told is a file that cannot be read
-    if ( (size < 0L) || (fseek(handle, 0, SEEK_SET) != 0) )
-    {
-        (void)fclose(handle);
-
-        return D_DSS_NO_INDEX;
-    }
-
-    char* const bytes = malloc((size_t)size + 1u);
-
+    // a file that cannot be read has no text layer
     if (!bytes)
     {
-        (void)fclose(handle);
-
         return D_DSS_NO_INDEX;
     }
 
-    const size_t read = fread(bytes, 1u, (size_t)size, handle);
-
-    (void)fclose(handle);
-
-    const uint32_t text = d_line_build_text(_tree, _file, bytes, read);
+    const uint32_t text = d_line_build_text(_tree, _file, bytes, length);
 
     free(bytes);
 

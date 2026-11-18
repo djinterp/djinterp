@@ -7,7 +7,7 @@
 * path:      /tests/dawk/lint.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.22
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // lint driver: build a tree per file through the extension that claims
 // it, run a sheet, and report every finding.  A rule carrying `severity`
@@ -18,7 +18,7 @@
 #include "../../inc/djinterp/tools/dawk/dmatch.h"
 #include "../../inc/djinterp/tools/dawk/dss.h"
 #include "../../inc/djinterp/tools/dawk/dproperty.h"
-#include "../../inc/djinterp/tools/dawk/dsymbol.h"
+#include "../../inc/djinterp/c/text/text_intern.h"  // dj_text_intern
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
     size_t sn = 0; char* st = slurp(argv[1], &sn);
     struct dj_dss_error err;
     struct dj_dss_sheet* sheet = d_dss_parse(st, sn, &err);
-    struct dj_symbol_table* symbols = d_symbol_table_new();
+    struct dj_text_intern* symbols = d_text_intern_new();
     if (sheet) (void)d_dss_bind(sheet, symbols);
     if (!sheet) { fprintf(stderr, "sheet did not parse\n"); return 2; }
 

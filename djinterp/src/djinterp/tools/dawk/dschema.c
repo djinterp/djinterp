@@ -10,14 +10,14 @@
 * path:      /src/djinterp/tools/dawk/dschema.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dschema.h"  // corresponding header
 // std
 #include <stdlib.h>  // calloc, free
 #include <string.h>  // strcmp, strlen
 // djinterp
-#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"  // d_symbol_intern
+#include "../../../../inc/djinterp/c/text/text_intern.h"  // dj_text_intern
 
 
 // dj_schema_binding
@@ -109,7 +109,7 @@ d_schema_bind
 */
 struct dj_schema_binding* d_schema_bind(
     const struct dj_schema* _schema,
-    struct dj_symbol_table* _symbols
+    struct dj_text_intern* _symbols
 )
 {
     if ( (!_schema) || (!_symbols) )
@@ -121,7 +121,8 @@ struct dj_schema_binding* d_schema_bind(
     {
         const char* const name = _schema->properties[at].name;
 
-        if (d_symbol_intern(_symbols, name, strlen(name)) == D_SYMBOL_NONE)
+        if (d_text_intern_add(_symbols, name, strlen(name)) ==
+            D_TEXT_INTERN_NONE)
         {
             return NULL;
         }
@@ -134,7 +135,7 @@ struct dj_schema_binding* d_schema_bind(
         return NULL;
     }
 
-    binding->limit     = d_symbol_count(_symbols);
+    binding->limit     = d_text_intern_count(_symbols);
     binding->by_symbol = calloc(binding->limit + 1u,
                                 sizeof(const struct dj_schema_property*));
 
@@ -148,7 +149,8 @@ struct dj_schema_binding* d_schema_bind(
     for (size_t at = 0u; at < _schema->count; ++at)
     {
         const char* const name   = _schema->properties[at].name;
-        const uint32_t    symbol = d_symbol_find(_symbols, name, strlen(name));
+        const uint32_t    symbol = d_text_intern_find(_symbols, name,
+                                                      strlen(name));
 
         binding->by_symbol[symbol] = &_schema->properties[at];
     }

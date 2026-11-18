@@ -12,7 +12,7 @@
 * path:      /src/djinterp/tools/dawk/ext/msvs/dmsvs_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // corresponding header
 // std
@@ -21,7 +21,8 @@
 #include <string.h>  // memcpy, memcmp, memset, strlen, strchr
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"      // d_fs_make_parent
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read, d_text_write
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
+                                                                // d_text_write
 
 
 // dj_msvs_doc

@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/tools/dawk/dschema.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -140,7 +140,7 @@ bool d_schema_validate(
  */
 struct dj_schema_binding* d_schema_bind(
     const struct dj_schema* _schema,
-    struct dj_symbol_table* _symbols
+    struct dj_text_intern* _symbols
 );
 void d_schema_binding_free(
     struct dj_schema_binding* _binding

@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/tools/dawk/dnode.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TOOLS_DAWK_DNODE_H
@@ -28,7 +28,7 @@
 
 // djinterp
 #include "./dss.h"      // D_DSS_NO_INDEX
-#include "./dsymbol.h"  // dj_symbol_table: types and attribute names
+#include "../../c/text/text_intern.h"  // dj_text_intern
 
 
 //==============================================================================
@@ -94,7 +94,7 @@ struct dj_node_tree* d_node_tree_new(void);
 // a tree naming its types and attributes in a table it does not own, so
 // a sheet bound to the same table compares names as integers
 struct dj_node_tree* d_node_tree_new_shared(
-    struct dj_symbol_table* _symbols
+    struct dj_text_intern* _symbols
 );
 void d_node_tree_free(
     struct dj_node_tree* _tree
@@ -160,7 +160,7 @@ const char* d_node_name(
     const struct dj_node_tree* _tree,
     uint32_t                   _symbol
 );
-struct dj_symbol_table* d_node_tree_symbols(
+struct dj_text_intern* d_node_tree_symbols(
     const struct dj_node_tree* _tree
 );
 

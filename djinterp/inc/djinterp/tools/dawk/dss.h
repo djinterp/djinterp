@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/tools/dawk/dss.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -74,10 +74,10 @@ TABLE OF CONTENTS
 // index into every array, so absence needs a value of its own.
 #define D_DSS_NO_INDEX ((uint32_t)-1)
 
-// dj_symbol_table
-//   struct: the shared name table a sheet binds to (dsymbol.h); forward
+// dj_text_intern
+//   struct: the shared name table a sheet binds to (text_intern.h); forward
 // declared so the parser depends on nothing.
-struct dj_symbol_table;
+struct dj_text_intern;
 
 // 1.2    Enumerations
 //------------------------------------------------------------------------------
@@ -351,9 +351,9 @@ struct dj_dss_sheet* d_dss_parse_ex(
  */
 bool d_dss_bind(
     struct dj_dss_sheet*    _sheet,
-    struct dj_symbol_table* _symbols
+    struct dj_text_intern* _symbols
 );
-struct dj_symbol_table* d_dss_symbols(
+struct dj_text_intern* d_dss_symbols(
     const struct dj_dss_sheet* _sheet
 );
 void d_dss_free(

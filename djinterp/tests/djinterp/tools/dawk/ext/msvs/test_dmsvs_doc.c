@@ -21,7 +21,7 @@
 * path:      /tests/djinterp/tools/dawk/ext/msvs/test_dmsvs_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // corresponding header
 // std
@@ -30,7 +30,8 @@
 #include <string.h>  // strcmp, strlen, strstr, strrchr, memcmp, memcpy
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"      // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
+                                                                // d_text_write
 
 
 static int g_checks = 0;

@@ -17,7 +17,7 @@
 * path:      /src/djinterp/tools/dawk/ext/msvs/dhost_sln.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dhost_sln.h"  // corresponding header
 // std
@@ -28,7 +28,8 @@
 #include "../../../../../../inc/djinterp/tools/dawk/dhost.h"               // dj_awk_host_function
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs.h"      // d_msvs_guid
 #include "../../../../../../inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h"  // dj_msvs_doc
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"             // d_text_read
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
+                                                                // d_text_write
 #include "../../../../../../inc/djinterp/tools/dawk/dvalue.h"              // d_awk_value_text
 
 

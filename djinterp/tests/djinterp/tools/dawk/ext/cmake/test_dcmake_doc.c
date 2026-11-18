@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/tools/dawk/ext/cmake/test_dcmake_doc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/tools/dawk/ext/cmake/dcmake_doc.h"  // corresponding header
 // std
@@ -24,7 +24,8 @@
 #include <string.h>  // memcmp, memset, strcmp, strlen, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/tools/dawk/dfs.h"      // d_fs_names
-#include "../../../../../../inc/djinterp/tools/dawk/dsplice.h"  // d_text_read
+#include "../../../../../../inc/djinterp/c/text/text_source.h"  // d_text_read,
+                                                                // d_text_write
 
 
 static int g_checks = 0;
