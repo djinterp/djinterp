@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/container/traits/  ::  ordered_container_traits (LEAF, AGENTS-cmake R1)
+# testing/djinterp/cpp/container/traits/  ::  ordered_container_traits (LEAF, AGENTS-cmake R1)
 #   Builds ordered_container_traits_tests from the runner in THIS directory plus the section TUs
 # globbed from the shared tests dir below. One target per directory: the glob is
 # anchored on this component's stem, so no sibling suite's sections are captured,

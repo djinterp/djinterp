@@ -6,12 +6,12 @@
 # translation units live under the tests tree. Globbing the sections keeps the
 # list maintenance-free as sections are added or removed.
 #
-#   Slug: djinterp/core/paradigm/pubsub   (from the module's own declared path,
-#   /inc/djinterp/core/paradigm/pubsub/; the component file is carried through
+#   Slug: djinterp/cpp/paradigm/publisher   (from the module's own declared path,
+#   /inc/djinterp/cpp/paradigm/publisher/; the component file is carried through
 #   as publisher.hpp to match the header as supplied)
-#     header under test : ${DJINTERP_INC_ROOT}/djinterp/core/paradigm/pubsub/publisher.hpp
-#     suite header      : ${DJINTERP_TESTS_ROOT}/djinterp/core/paradigm/pubsub/publisher_tests.hpp
-#     sections          : ${DJINTERP_TESTS_ROOT}/djinterp/core/paradigm/pubsub/publisher_tests_*.cpp
+#     header under test : ${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/publisher/publisher.hpp
+#     suite header      : ${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/publisher/publisher_tests.hpp
+#     sections          : ${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/publisher/publisher_tests_*.cpp
 #     runner            : ${CMAKE_CURRENT_SOURCE_DIR}/publisher_tests_runner.cpp
 # ============================================================================
 

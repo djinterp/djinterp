@@ -1,5 +1,5 @@
 # ============================================================================
-# djinterp [testing]                        djinterp/core/meta - CMakeLists.txt
+# djinterp [testing]                        djinterp/cpp/meta - CMakeLists.txt
 #
 #   Test executables for the meta slug.  pack_element.hpp is a header-only
 # leaf with no src/ counterpart, so this follows the header-only recipe:
@@ -8,7 +8,7 @@
 # handle the include roots, the C++ standard, D_TESTING and CTest
 # registration.
 #
-# path:      /build/cmake/config/testing/djinterp/core/meta/CMakeLists.txt
+# path:      /build/cmake/config/testing/djinterp/cpp/meta/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.20
 # ============================================================================

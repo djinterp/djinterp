@@ -2,7 +2,7 @@
 # djinterp — build wiring for the dtuple_wrap_partition.hpp test suite
 #
 #   Component: dtuple_wrap_partition  (header-only, no src/)
-#   Slug     : djinterp/core/meta
+#   Slug     : djinterp/cpp/meta
 #            (header at inc/djinterp/cpp/meta/dtuple_wrap_partition.hpp)
 #
 #   AGENTS-cmake.md R1 recipe (header-only module, single test leaf). Builds

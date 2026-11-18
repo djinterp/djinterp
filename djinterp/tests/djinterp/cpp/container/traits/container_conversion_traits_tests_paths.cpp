@@ -1,11 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp]                     container_conversion_traits_tests_paths.cpp
 *
+*   Section V - the construction paths in depth: the range constructor, the
+* two-argument insert, the iterable gate both share, and their disjunction.
 *
-* path:      /tests/unintegrated/cpp/container/traits/container_conversion_traits_tests_paths.cpp
+*
+* path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests_paths.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -18,7 +21,7 @@ NS_TESTING
 
 
 /*
-tests_range_constructible
+tests_path_range_constructible
   is_range_constructible - To can be built from From's iterator range, To(begin,
   end).  The commonest construction path in the language, and the one every
   standard sequence and every standard associative container offers.
@@ -31,7 +34,7 @@ tests_range_constructible
     tests_tier_of_no_path, and it is worth establishing here on its own
   - a non-container From is rejected by the FIRST conjunct, whatever To offers
 */
-bool tests_range_constructible()
+bool tests_path_range_constructible()
 {
     bool ok = true;
 
@@ -72,7 +75,7 @@ bool tests_range_constructible()
 }
 
 /*
-tests_range_insertable
+tests_path_range_insertable
   is_range_insertable - To accepts From's range through insert(begin, end).  The
   associative containers' path, and the one that catches a To with no range
   constructor.
@@ -89,7 +92,7 @@ tests_range_insertable
   as it should, and has_constructive_path for every standard sequence rests
   ENTIRELY on the range constructor.
 */
-bool tests_range_insertable()
+bool tests_path_range_insertable()
 {
     bool ok = true;
 
@@ -181,7 +184,7 @@ bool tests_path_iterable_gate()
 }
 
 /*
-tests_has_constructive_path
+tests_path_has_constructive_path
   has_constructive_path - a data-preserving construction of To from From exists.
   The disjunction of the two path traits.
   Tests the following:
@@ -194,7 +197,7 @@ tests_has_constructive_path
   - neither disjunct: no path
   - a From that is not a container: no path, whatever To offers
 */
-bool tests_has_constructive_path()
+bool tests_path_has_constructive_path()
 {
     bool ok = true;
 

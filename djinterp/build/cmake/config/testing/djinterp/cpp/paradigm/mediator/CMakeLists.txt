@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/paradigm/mediator/
+# testing/djinterp/cpp/paradigm/mediator/
 #   AGGREGATE only (GENERATED) — recurses into the child leaf directories and
 # publishes all_djinterp_core_paradigm_mediator over every test exe at or below here.  Composes upward
 # automatically: the parent aggregate recurses straight through this file.

@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/paradigm/
+# testing/djinterp/cpp/paradigm/
 #   AGGREGATE only (GENERATED) — recurses into the child leaf directories and
 # publishes all_djinterp_core_paradigm over every test exe at or below here.  Composes upward
 # automatically: the parent aggregate recurses straight through this file.

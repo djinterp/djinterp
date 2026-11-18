@@ -1,11 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp]                container_conversion_traits_tests_robustness.cpp
 *
+*   Section VIII - every trait through cv and references, over DTest's hostile
+* types and an incomplete type, and each trait's shape.
 *
-* path:      /tests/unintegrated/cpp/container/traits/container_conversion_traits_tests_robustness.cpp
+*
+* path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests_robustness.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -207,9 +210,10 @@ tests_hostile_types
     count_holds does not short-circuit, so a trait that explodes on the twentieth of
     twenty-five types is still reached
 
-  And the finding, restated as a battery: every hostile type is a VIEW of itself -
-  which is fine, reflexively - and every PAIR of them is a view of the other, which
-  is not.
+  And the finding of tests_view_non_container, as a battery: every hostile type is
+  a VIEW of itself, which is fine, reflexively.  Before 2026.11.15 every PAIR of
+  them was a view of the other too; since the view predicate's ninth clause, a
+  pair of different non-containers is `none`.
 */
 bool tests_hostile_types()
 {
@@ -238,11 +242,12 @@ bool tests_hostile_types()
     D_CVT_CHECK((!has_constructive_path<fn_type, std_vector>::value));
     D_CVT_CHECK((!elements_compatible<std_vector, fixtures::abstract>::value));
 
-    // *** THE FINDING, as a battery.  Every PAIR of non-containers is a view ***
-    D_CVT_TIER(DConversionTier::view, void, fn_type);
-    D_CVT_TIER(DConversionTier::view, fixtures::empty, fixtures::final_type);
-    D_CVT_TIER(DConversionTier::view, fixtures::plain_enum, void);
-    D_CVT_TIER(DConversionTier::view, raw_array, int);
+    // *** the fixed finding, as a battery: a PAIR of different non-containers
+    // is no conversion at all ***
+    D_CVT_TIER(DConversionTier::none, void, fn_type);
+    D_CVT_TIER(DConversionTier::none, fixtures::empty, fixtures::final_type);
+    D_CVT_TIER(DConversionTier::none, fixtures::plain_enum, void);
+    D_CVT_TIER(DConversionTier::none, raw_array, int);
 
     // ...and a real container against a hostile type is still rejected, at rung 2
     D_CVT_TIER(DConversionTier::none, std_vector, void);
@@ -295,7 +300,8 @@ bool tests_incomplete_type()
     // ...as do the four per-concern traits
     D_CVT_CHECK((elements_compatible<incomplete, int>::value));   // both `void`
     D_CVT_CHECK((!elements_compatible<incomplete, std_vector>::value));
-    D_CVT_CHECK((conversion_forgets_content<std_vector, incomplete>::value));
+    // a rung of `none` is not a coarsening (2026.11.15)
+    D_CVT_CHECK((!conversion_forgets_content<std_vector, incomplete>::value));
     D_CVT_CHECK((!conversion_clamps_capacity<std_vector, incomplete>::value));
     D_CVT_CHECK((!conversion_changes_topology<incomplete, int>::value));
     D_CVT_CHECK((conversion_changes_topology<incomplete, std_vec_vec>::value));

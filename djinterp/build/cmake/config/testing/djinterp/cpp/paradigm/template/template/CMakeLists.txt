@@ -6,8 +6,8 @@
 # translation units live under the tests tree.  Globbing the sections keeps the
 # list maintenance-free as sections are added or removed.
 #
-#   Slug: djinterp/core/paradigm/template   (from the module's own declared
-#   path, /inc/djinterp/core/paradigm/template/template.hpp)
+#   Slug: djinterp/cpp/paradigm/template   (from the module's own declared
+#   path, /inc/djinterp/cpp/paradigm/template/template.hpp)
 #     header under test : ${DJINTERP_INC_ROOT}/djinterp/cpp/paradigm/template/template.hpp
 #     suite header      : ${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/template/template_tests.hpp
 #     sections          : ${DJINTERP_TESTS_ROOT}/djinterp/cpp/paradigm/template/template_tests_*.cpp

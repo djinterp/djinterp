@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/container/traits/  ::  AGGREGATE (AGENTS-cmake R4)
+# testing/djinterp/cpp/container/traits/  ::  AGGREGATE (AGENTS-cmake R4)
 #
 #   This directory holds 25 per-component leaves (container_traits,
 # flat_container_traits, container_memory_strategy, ...), so its only job is to

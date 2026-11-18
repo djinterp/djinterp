@@ -1,4 +1,4 @@
-# djinterp/core/binary - serialization test cluster (recipe R5)
+# djinterp/cpp/binary - serialization test cluster (recipe R5)
 #
 #   One folder, four header-only leaf suites (encode, decode, encode_options,
 # decode_options) plus a group target over them.  Each suite is a runner

@@ -57,7 +57,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_conversion_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_CONVERSION_TRAITS_HPP
@@ -70,6 +70,7 @@
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
+#include <cstddef>  // std::size_t
 #include <iterator>
 #include <type_traits>
 #include <utility>
@@ -198,28 +199,110 @@ struct elements_compatible
          || elements_convertible<From, To>::value>
 {};
 
+NS_INTERNAL
+
+    // static_extent_helper
+    //   helper: a type's compile-time extent, where it has one: a constant
+    // `extent` member (djinterp's convention), else std::tuple_size (std::array).
+    // `present` says whether there is one.
+    template<typename Type,
+             typename = void>
+    struct static_extent_tuple_helper
+    {
+        static constexpr bool        present = false;
+        static constexpr std::size_t value   = 0;
+    };
+
+    // static_extent_tuple_helper specialization
+    //   helper: the std::tuple_size case.
+    template<typename Type>
+    struct static_extent_tuple_helper<Type,
+        D_VOID_T<std::integral_constant<std::size_t,
+                     std::tuple_size<Type>::value>>>
+    {
+        static constexpr bool        present = true;
+        static constexpr std::size_t value   = std::tuple_size<Type>::value;
+    };
+
+    template<typename Type,
+             typename = void>
+    struct static_extent_helper
+        : static_extent_tuple_helper<Type>
+    {};
+
+    // static_extent_helper specialization
+    //   helper: the constant `extent` member case.
+    template<typename Type>
+    struct static_extent_helper<Type,
+        D_VOID_T<std::integral_constant<std::size_t,
+                     static_cast<std::size_t>(Type::extent)>>>
+    {
+        static constexpr bool        present = true;
+        static constexpr std::size_t value   =
+            static_cast<std::size_t>(Type::extent);
+    };
+
+    // static_extents_agree
+    //   helper: false only when both types have a compile-time extent and the
+    // two differ.  Two arrays of different length share a layout (a shape),
+    // so the view predicate needs this as well: reading a 3-element array as a
+    // 64-element one overruns it.
+    template<typename From,
+             typename To>
+    struct static_extents_agree
+        : std::integral_constant<bool,
+              !( static_extent_helper<clean_t<From>>::present
+              && static_extent_helper<clean_t<To>>::present
+              && ( static_extent_helper<clean_t<From>>::value
+                != static_extent_helper<clean_t<To>>::value ) )>
+    {};
+
+    // static_extent_narrows
+    //   helper: both types have a compile-time extent, and To's is smaller.
+    template<typename From,
+             typename To>
+    struct static_extent_narrows
+        : std::integral_constant<bool,
+              ( static_extent_helper<clean_t<From>>::present
+             && static_extent_helper<clean_t<To>>::present
+             && ( static_extent_helper<clean_t<To>>::value
+                < static_extent_helper<clean_t<From>>::value ) )>
+    {};
+
+NS_END  // internal
+
 // conversion_forgets_content
 //   trait: To's native content level is strictly coarser than From's - the
 // conversion factors through a coarsening (forget order, forget multiplicity).
+// Both must have a content level: `none` means "not a container, or not
+// known" (std::forward_list has no size(), so no multiplicity), not the
+// coarsest rung, so a conversion into or out of it forgets nothing it can
+// name.
 template<typename From,
          typename To>
 struct conversion_forgets_content
     : std::integral_constant<bool,
-            ( content_level_rank(
+            ( native_content_level_of<clean_t<From>>::value
+                  != content_level::none )
+         && ( native_content_level_of<clean_t<To>>::value
+                  != content_level::none )
+         && ( content_level_rank(
                   native_content_level_of<clean_t<To>>::value )
             < content_level_rank(
                   native_content_level_of<clean_t<From>>::value ) )>
 {};
 
 // conversion_clamps_capacity
-//   trait: To bounds a capacity From leaves unbounded - a guarded conversion,
-// defined only where the count already fits.
+//   trait: To bounds a capacity From leaves unbounded, or both have a
+// compile-time extent and To's is smaller - a guarded conversion, defined only
+// where the count already fits.
 template<typename From,
          typename To>
 struct conversion_clamps_capacity
     : std::integral_constant<bool,
-            !is_bounded_container<clean_t<From>>::value
-         &&  is_bounded_container<clean_t<To>>::value>
+            ( !is_bounded_container<clean_t<From>>::value
+           &&  is_bounded_container<clean_t<To>>::value )
+         || internal::static_extent_narrows<From, To>::value>
 {};
 
 // conversion_changes_topology
@@ -243,10 +326,24 @@ NS_INTERNAL
     // std::vector yet compile-staged and inline, so array -> vector is a
     // copy), and From's discipline is no weaker (dropping a restriction is
     // free).
+    //   Two clauses were added on 2026.11.15.  The first comes first: both
+    // are containers (each has a content level), or the two are the same
+    // type.  For a non-container every axis
+    // reads its bottom value, so without it any two unrelated non-containers
+    // passed the other eight vacuously and read as a free view of each other,
+    // while no path could build one from the other.  The identity stays a
+    // view for any type.  The second: compile-time extents, where both have
+    // one, are equal (static_extents_agree).
     template<typename From, typename To>
     struct is_reinterpretation_helper
         : std::integral_constant<bool,
-                elements_same_type<From, To>::value
+                ( std::is_same<clean_t<From>, clean_t<To>>::value
+               || ( native_content_level_of<clean_t<From>>::value
+                        != content_level::none
+                 && native_content_level_of<clean_t<To>>::value
+                        != content_level::none ) )
+             && elements_same_type<From, To>::value
+             && static_extents_agree<From, To>::value
              && ( native_content_level_of<clean_t<From>>::value
                == native_content_level_of<clean_t<To>>::value )
              && !conversion_changes_topology<From, To>::value

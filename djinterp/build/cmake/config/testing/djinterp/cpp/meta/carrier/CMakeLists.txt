@@ -1,9 +1,9 @@
 # =============================================================================
-# testing/djinterp/core/meta/carrier/
+# testing/djinterp/cpp/meta/carrier/
 #   LEAF (AGENTS-cmake R1) — GENERATED to match the established option/event
 # leaf pattern.  Builds carrier_tests from the runner in this directory plus the
 # section TUs globbed from the shared tests dir below.  If this suite's section
-# TUs actually live in a per-suite subdirectory (not the shared djinterp/core/meta
+# TUs actually live in a per-suite subdirectory (not the shared djinterp/cpp/meta
 # dir), adjust _tests_dir to match; the target/aggregation wiring is unaffected.
 # =============================================================================
 

@@ -6,7 +6,7 @@
 # trio.  The runner lives here in the config tree; the
 # section translation units are globbed from the tests tree.
 #
-# path:    /build/cmake/config/testing/djinterp/core/container/access/
+# path:    /build/cmake/config/testing/djinterp/cpp/container/read_write_container/
 #              read_write_container/CMakeLists.txt
 # ============================================================================
 

@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/container/traits/  ::  container_memory_strategy
+# testing/djinterp/cpp/container/traits/  ::  container_memory_strategy
 #                                              (LEAF, AGENTS-cmake R1)
 #
 #   Builds container_memory_strategy_tests from the runner in THIS directory

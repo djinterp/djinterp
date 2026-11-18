@@ -1,9 +1,9 @@
 # =============================================================================
-# testing/djinterp/core/functional/curry/
+# testing/djinterp/cpp/functional/curry/
 #   LEAF (AGENTS-cmake R1) — GENERATED to match the established option/event
 # leaf pattern.  Builds curry_tests from the runner in this directory plus the
 # section TUs globbed from the shared tests dir below.  If this suite's section
-# TUs actually live in a per-suite subdirectory (not the shared djinterp/core/functional
+# TUs actually live in a per-suite subdirectory (not the shared djinterp/cpp/functional
 # dir), adjust _tests_dir to match; the target/aggregation wiring is unaffected.
 # =============================================================================
 

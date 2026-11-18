@@ -1,11 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp]                      container_conversion_traits_tests_view.cpp
 *
+*   Section VI - the view predicate clause by clause: a baseline pair, one
+* fixture lever per clause, the discipline asymmetry, and non-containers.
 *
-* path:      /tests/unintegrated/cpp/container/traits/container_conversion_traits_tests_view.cpp
+*
+* path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests_view.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 // std
 #include <type_traits>
@@ -707,16 +710,17 @@ bool tests_view_discipline_asymmetry()
 
 /*
 tests_view_non_container
-  THE FINDING.  Two unrelated non-containers are a zero-cost VIEW of each other.
+  THE FINDING, AND ITS FIX.  Before 2026.11.15 two unrelated non-containers were
+  a zero-cost VIEW of each other:
 
       conversion_tier_of<int, plain_struct>::value   ==   view
       is_view_conversion<int, plain_struct>          ==   true
       is_lossless_conversion<int, plain_struct>      ==   true
       has_constructive_path<int, plain_struct>       ==   FALSE
 
-  The module licenses a free reinterpretation between two types that share nothing
-  at all - and simultaneously reports that there is no way to build one from the
-  other.
+  The module licensed a free reinterpretation between two types that share
+  nothing at all - and simultaneously reported that there is no way to build one
+  from the other.
 
   THE MECHANISM.  Every one of the eight clauses passes VACUOUSLY, because every
   axis reports its bottom value for a non-container and two bottoms are equal:
@@ -732,38 +736,41 @@ tests_view_non_container
       7. iterability both at the bottom      -> equivalent
       8. discipline  both mult = unknown     -> equivalent
 
-  Nothing in the predicate asks whether either operand is a CONTAINER.  A single
-  guard - `is_iterable_container<From> && is_iterable_container<To>`, or a check that
-  the shared content rung is not `none` - closes it, and the path traits already
-  carry exactly that gate one section up.
+  THE FIX.  The predicate gains a ninth clause, checked first: both operands have
+  a content level (each is a container), or the two are the same type.  Unrelated
+  non-containers now fail it, so the ladder falls through to `none`, which agrees
+  with the absent construction path.  The identity stays a view for any type, so
+  the reflexivity tests_hostile_types relies on still holds.
 
   Tests the following:
-  - the verdict, on the fixtures and on int, void and a plain struct
-  - the eight clauses, one by one, so the finding is attributable
-  - the contradiction: a VIEW with no construction path
-  - what does NOT save it: the shared content rung is `none`, and DConversionClass
-    reports it - so a caller reading the whole class knows, and a caller reading
-    is_view_conversion does not
+  - the verdict, on the fixtures and on int, void and a plain struct: `none`
+  - the eight old clauses still pass vacuously, one by one, so the ninth is what
+    decides
+  - the ninth clause itself: content level `none` on both sides, different types
+  - the identity: a non-container is still a view of itself
+  - the agreement: no view, no construction path, not convertible
+  - a real container against a non-container is rejected, as before
 */
 bool tests_view_non_container()
 {
     bool ok = true;
 
-    // *** THE VERDICT ***
-    D_CVT_TIER(DConversionTier::view, nc_runtime, nc_runtime2);
-    D_CVT_TIER(DConversionTier::view, int, nc_runtime);
-    D_CVT_TIER(DConversionTier::view, void, int);
-    D_CVT_TIER(DConversionTier::view, fixtures::empty, int);
+    // *** THE VERDICT: no conversion ***
+    D_CVT_TIER(DConversionTier::none, nc_runtime, nc_runtime2);
+    D_CVT_TIER(DConversionTier::none, int, nc_runtime);
+    D_CVT_TIER(DConversionTier::none, void, int);
+    D_CVT_TIER(DConversionTier::none, fixtures::empty, int);
 
-    D_CVT_CHECK((is_view_conversion<int, nc_runtime>::value));
-    D_CVT_CHECK((is_lossless_conversion<int, nc_runtime>::value));
-    D_CVT_CHECK((is_convertible_between<int, nc_runtime>::value));
+    D_CVT_CHECK((!view_of<int, nc_runtime>::value));
+    D_CVT_CHECK((!is_view_conversion<int, nc_runtime>::value));
+    D_CVT_CHECK((!is_lossless_conversion<int, nc_runtime>::value));
+    D_CVT_CHECK((!is_convertible_between<int, nc_runtime>::value));
 
-    // *** THE CONTRADICTION: a zero-cost view, and no way to build it ***
+    // *** THE AGREEMENT: no view, and no way to build one ***
     D_CVT_CHECK((!has_constructive_path<int, nc_runtime>::value));
     D_CVT_CHECK((!has_constructive_path<nc_runtime, nc_runtime2>::value));
 
-    // THE MECHANISM, clause by clause
+    // the eight old clauses still pass, vacuously
     D_CVT_CHECK((elements_same_type<int, nc_runtime>::value));             // 1
     D_CVT_CHECK((native_content_level_of<int>::value ==
                  native_content_level_of<nc_runtime>::value));            // 2
@@ -779,34 +786,37 @@ bool tests_view_non_container()
     D_CVT_CHECK((discipline_relation<int, nc_runtime>::value ==
                  order_relation::equivalent));                            // 8
 
-    // ...and each is VACUOUS: every axis reports its bottom for a non-container
+    // ...because every axis reports its bottom for a non-container
     D_CVT_CHECK((std::is_same<internal::DElementTypeOfHelper<int>,
                               void>::value));
     D_CVT_LEVEL(content_level::none, native_content_level_of<int>::value);
     D_CVT_CHECK(sequential_layout_of<int>::value == sequential_layout::none);
     D_CVT_CHECK(!is_iterable_container<int>::value);
-
-    // the gate that would close it already exists one section up, in the path traits
-    D_CVT_CHECK(!is_iterable_container<int>::value);
     D_CVT_CHECK(!is_iterable_container<nc_runtime>::value);
 
-    // WHAT DOES NOT SAVE IT: the shared content rung is `none`, and DConversionClass
-    // reports it.  A caller reading the whole class knows the two share no rung; a
-    // caller reading is_view_conversion is told the conversion is free
+    // the ninth clause decides: no content level on either side, two types
+    D_CVT_LEVEL(content_level::none,
+                native_content_level_of<nc_runtime>::value);
+    D_CVT_CHECK((!std::is_same<int, nc_runtime>::value));
+
+    // the identity is still a view, for any type
+    D_CVT_TIER(DConversionTier::view, nc_runtime, nc_runtime);
+    D_CVT_TIER(DConversionTier::view, int, int);
+    D_CVT_TIER(DConversionTier::view, void, void);
+
+    // DConversionClass agrees: shared rung `none`, tier `none`, no path
     D_CVT_LEVEL(content_level::none,
                 (DConversionClass<int, nc_runtime>::shared_content_level));
     D_CVT_CHECK((DConversionClass<int, nc_runtime>::tier ==
-                 DConversionTier::view));
+                 DConversionTier::none));
     D_CVT_CHECK((!DConversionClass<int, nc_runtime>::has_path));
 
-    // ...and a real container against a non-container IS rejected, at rung 2 - so
-    // the ladder is not broken, only unguarded at its top
+    // ...and a real container against a non-container is rejected, at rung 2
     D_CVT_TIER(DConversionTier::none, int, std_vector);
     D_CVT_TIER(DConversionTier::none, std_vector, int);
 
     return ok;
 }
-
 
 NS_END  // testing
 NS_END  // djinterp

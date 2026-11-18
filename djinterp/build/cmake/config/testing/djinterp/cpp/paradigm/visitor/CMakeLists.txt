@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/paradigm/visitor/
+# testing/djinterp/cpp/paradigm/visitor/
 #   AGGREGATE only — recurses into the visitor leaf directory and publishes
 # all_djinterp_core_paradigm_visitor over the exe(s) at or below here.  Composes
 # upward: paradigm/CMakeLists.txt recurses straight through this file.

@@ -1,5 +1,5 @@
 # =============================================================================
-# testing/djinterp/core/functional/
+# testing/djinterp/cpp/functional/
 #   AGGREGATE only (GENERATED) — recurses into the child leaf directories and
 # publishes all_djinterp_core_functional over every test exe at or below here.  Composes upward
 # automatically: the parent aggregate recurses straight through this file.

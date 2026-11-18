@@ -2,13 +2,13 @@
 # djinterp [test]  concurrency_strategy_traits suite
 #
 #   Leaf CMakeLists for the concurrency_strategy_traits component, under the
-# slug djinterp/core/container/sync.  Header-only module: no src/ side.  The
+# slug djinterp/cpp/container/sync.  Header-only module: no src/ side.  The
 # runner lives here (config tree); the section TUs are globbed from tests/.
 #
 #   Delivery note (guide 7.3): this leaf ships no parent aggregate.  Recursion
 # only enters directories that carry a CMakeLists, so to reach this suite add a
 # one-line djinterp_add_test_subtree(<unique_name>) at the nearest existing
-# aggregate above djinterp/core/container/sync (none is shipped here, to avoid
+# aggregate above djinterp/cpp/container/sync (none is shipped here, to avoid
 # an archive overwriting sibling wiring).
 # =============================================================================
 
@@ -35,6 +35,6 @@ djinterp_add_test_executable(concurrency_strategy_traits_tests
         "${_tests_dir}")
 
 # The real_primitives section includes the /core/sync/ primitives full-from-inc
-# (<djinterp/core/sync/atomic.hpp> etc.).  Those resolve through the inc/ root
+# (<djinterp/cpp/sync/atomic.hpp> etc.).  Those resolve through the inc/ root
 # djinterp_add_test_executable already adds, so no extra INCLUDES entry for the
 # sync slug is required (guide 6.2).

@@ -1,11 +1,14 @@
 /*******************************************************************************
 * djinterp [cpp]                    container_conversion_traits_tests_stdlib.cpp
 *
+*   Section VII - the standard containers against each other, std::array's
+* extents and forward_list included.
 *
-* path:      /tests/unintegrated/cpp/container/traits/container_conversion_traits_tests_stdlib.cpp
+*
+* path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests_stdlib.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 // djinterp
 #include "container_conversion_traits_tests.hpp"
@@ -248,7 +251,8 @@ bool tests_stdlib_array()
 
 /*
 tests_stdlib_array_extent
-  THE FINDING.  std::array<int, 3> is a ZERO-COST VIEW of std::array<int, 64>.
+  THE FINDING, AND ITS FIX.  Before 2026.11.15 std::array<int, 3> was a ZERO-COST
+  VIEW of std::array<int, 64>.
 
       is_view_conversion<std::array<int, 3>, std::array<int, 64>>   ==   TRUE
       is_lossless_conversion<...>                                   ==   TRUE
@@ -296,29 +300,40 @@ tests_stdlib_array_extent
   clause.  Both are needed: one closes the overrun, the other closes the silent
   truncation.
 
+  THE FIX (2026.11.15) is both of the above.  The view predicate requires equal
+  compile-time extents where both types have one (static_extents_agree), and
+  conversion_clamps_capacity also fires when both have one and To's is smaller.
+  So narrowing (64 -> 4) is `lossy`, and widening (4 -> 64) is `none`: no view,
+  and std::array has no range constructor or insert, so no detected path.
+
   Tests the following:
   - the verdict, in both directions
-  - the eight clauses, one by one, so the finding is attributable
-  - the mechanism: boundedness is a bool, and the extent's value is never compared
-  - what the module DOES catch, so the finding is bounded: an unbounded source
-    against a bounded target is `lossy`, correctly, because there the bound is being
-    ADDED and the conjunct fires
+  - the eight old clauses still pass, one by one, so the extent clause decides
+  - the mechanism: boundedness is a bool; the extent is compared by the new
+    clauses
+  - the unbounded -> bounded clamp, as before
 */
 bool tests_stdlib_array_extent()
 {
     bool ok = true;
 
-    // *** THE VERDICT ***
-    D_CVT_TIER(DConversionTier::view, std_array, std_array_64);
-    D_CVT_CHECK((is_view_conversion<std_array, std_array_64>::value));
-    D_CVT_CHECK((is_lossless_conversion<std_array, std_array_64>::value));
+    // *** THE VERDICT: widening is no view, and has no detected path ***
+    D_CVT_TIER(DConversionTier::none, std_array, std_array_64);
+    D_CVT_CHECK((!is_view_conversion<std_array, std_array_64>::value));
+    D_CVT_CHECK((!internal::is_reinterpretation_helper<std_array,
+                                                       std_array_64>::value));
+    D_CVT_CHECK((!has_constructive_path<std_array, std_array_64>::value));
 
-    // *** AND THE OTHER DIRECTION, WHICH DISCARDS 61 ELEMENTS ***
-    D_CVT_TIER(DConversionTier::view, std_array_64, std_array);
-    D_CVT_CHECK((is_view_conversion<std_array_64, std_array>::value));
-    D_CVT_CHECK((!is_lossy_conversion<std_array_64, std_array>::value));
+    // *** AND NARROWING, WHICH DISCARDS 60 ELEMENTS, IS LOSSY ***
+    D_CVT_TIER(DConversionTier::lossy, std_array_64, std_array);
+    D_CVT_CHECK((!is_view_conversion<std_array_64, std_array>::value));
+    D_CVT_CHECK((is_lossy_conversion<std_array_64, std_array>::value));
 
-    // THE EIGHT CLAUSES, one by one - every one of them passes
+    // the same extent is still a view
+    D_CVT_TIER(DConversionTier::view, std_array, std_array);
+    D_CVT_TIER(DConversionTier::view, std_array_64, std_array_64);
+
+    // THE EIGHT OLD CLAUSES, one by one - every one of them still passes
     D_CVT_CHECK((elements_same_type<std_array, std_array_64>::value));
     D_CVT_CHECK((native_content_level_of<std_array>::value ==
                  native_content_level_of<std_array_64>::value));
@@ -346,11 +361,12 @@ bool tests_stdlib_array_extent()
     D_CVT_CHECK(overlay_of<std_array>::capacity_bounded ==
                 overlay_of<std_array_64>::capacity_bounded);
 
-    // ...so the clamp never fires: it wants a bound ADDED, and both have one
+    // ...so the old clamp, which wants a bound ADDED, never fired; the extent
+    // comparison now fires it for narrowing, and only for narrowing
     D_CVT_CHECK((!conversion_clamps_capacity<std_array,
                                              std_array_64>::value));
-    D_CVT_CHECK((!conversion_clamps_capacity<std_array_64,
-                                             std_array>::value));
+    D_CVT_CHECK((conversion_clamps_capacity<std_array_64,
+                                            std_array>::value));
 
     // ...and the LAYOUT, which the header's RELIABILITY note leans on, is a SHAPE
     // and not a SIZE.  Two arrays of different length have the same shape
@@ -359,9 +375,8 @@ bool tests_stdlib_array_extent()
     D_CVT_CHECK(sequential_layout_of<std_array_64>::value ==
                 sequential_layout::array_like);
 
-    // WHAT THE MODULE DOES CATCH.  An UNBOUNDED source against a bounded target is
-    // `lossy`, correctly - there the bound is being ADDED, and the conjunct fires.
-    // The hole is exactly and only bounded -> bounded
+    // AS BEFORE.  An UNBOUNDED source against a bounded target is `lossy` -
+    // there the bound is being ADDED
     D_CVT_CHECK((conversion_clamps_capacity<std_vector, std_array>::value));
     D_CVT_TIER(DConversionTier::lossy, std_vector, std_array);
     D_CVT_CHECK((conversion_clamps_capacity<std_vector, std_array_64>::value));
@@ -372,8 +387,9 @@ bool tests_stdlib_array_extent()
 
 /*
 tests_stdlib_forward_list
-  THE SECOND FINDING.  std::forward_list has no content rung at all - and so a
-  faithful, range-constructible copy INTO it is classified LOSSY.
+  THE SECOND FINDING, AND ITS FIX.  std::forward_list has no content rung at all -
+  and so, before 2026.11.15, a faithful, range-constructible copy INTO it was
+  classified LOSSY.
 
   A forward_list has no size().  So it is not a COUNTABLE container, so its
   multiplicity kind is `unknown`, so its native content rung is `none` - rank ZERO,
@@ -391,21 +407,26 @@ tests_stdlib_forward_list
   here, in the one module whose whole job is to tell a caller whether a conversion
   costs them anything.
 
+  THE FIX (2026.11.15), at this module's level: conversion_forgets_content
+  compares rungs only when both types have one.  `none` means "not a container,
+  or not known", not the coarsest rung, so a conversion into or out of it
+  forgets nothing it can name.  The copy is `constructive` both ways.  The root
+  cause, forward_list's `unknown` multiplicity, is the multiplicity model's, and
+  its own suite pins it; that is a question for the model.
+
   Tests the following:
-  - the verdict, and the range constructor that contradicts it
-  - the mechanism: no size(), no rung, rank zero
-  - the ASYMMETRY: forward_list -> vector is `constructive`, because the rank
-    comparison is strict and 3 is not less than 0.  So the same faithful copy is
-    lossy one way and lossless the other
+  - the verdict, both ways, and the range constructor that supports it
+  - the mechanism: no size(), no rung, rank zero - still so
+  - the symmetry the fix restores
 */
 bool tests_stdlib_forward_list()
 {
     bool ok = true;
 
-    // *** THE VERDICT ***
-    D_CVT_TIER(DConversionTier::lossy, std_vector, std_fwd_list);
-    D_CVT_CHECK((is_lossy_conversion<std_vector, std_fwd_list>::value));
-    D_CVT_CHECK((!is_lossless_conversion<std_vector, std_fwd_list>::value));
+    // *** THE VERDICT: a faithful construction ***
+    D_CVT_TIER(DConversionTier::constructive, std_vector, std_fwd_list);
+    D_CVT_CHECK((!is_lossy_conversion<std_vector, std_fwd_list>::value));
+    D_CVT_CHECK((is_lossless_conversion<std_vector, std_fwd_list>::value));
 
     // *** AND THE COPY EXISTS, AND IS FAITHFUL ***
     D_CVT_CHECK((is_range_constructible<std_vector, std_fwd_list>::value));
@@ -419,27 +440,25 @@ bool tests_stdlib_forward_list()
                     native_content_level_of<std_fwd_list>::value) == 0);
     D_CVT_CHECK(content_level_rank(
                     native_content_level_of<std_vector>::value) == 3);
-    D_CVT_CHECK((conversion_forgets_content<std_vector,
-                                            std_fwd_list>::value));
+    // ...and a rung of `none` is no longer read as a coarsening
+    D_CVT_CHECK((!conversion_forgets_content<std_vector,
+                                             std_fwd_list>::value));
 
     // ...and it really is iterable, and really is a container in every other sense
     D_CVT_CHECK(is_iterable_container<std_fwd_list>::value);
     D_CVT_CHECK(!is_hierarchical_container<std_fwd_list>::value);
 
-    // *** THE ASYMMETRY.  The rank comparison is STRICT, so 3 < 0 is false and the
-    // reverse copy is lossless.  The same faithful O(n) copy is lossy one way and
-    // constructive the other ***
+    // *** THE SYMMETRY.  The reverse copy is constructive too ***
     D_CVT_CHECK((!conversion_forgets_content<std_fwd_list,
                                              std_vector>::value));
     D_CVT_TIER(DConversionTier::constructive, std_fwd_list, std_vector);
     D_CVT_CHECK((is_lossless_conversion<std_fwd_list, std_vector>::value));
 
-    // ...so the two directions disagree about the same pair of types
-    D_CVT_CHECK((is_lossy_conversion<std_vector, std_fwd_list>::value) &&
+    // ...so the two directions agree about the same pair of types
+    D_CVT_CHECK((is_lossless_conversion<std_vector, std_fwd_list>::value) &&
                 (is_lossless_conversion<std_fwd_list, std_vector>::value));
 
-    // and the shared rung the class reports is `none`, which is the one place a
-    // caller could have noticed
+    // the shared rung the class reports is still `none`
     D_CVT_LEVEL(content_level::none,
                 (DConversionClass<std_vector,
                                   std_fwd_list>::shared_content_level));

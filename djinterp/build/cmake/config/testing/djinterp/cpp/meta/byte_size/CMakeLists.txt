@@ -2,8 +2,8 @@
 # djinterp — build wiring for the byte_size.hpp test suite
 #
 #   Component: byte_size  (header-only, no src/)
-#   Slug     : djinterp/core/container
-#            (byte_size.hpp lives at inc/djinterp/core/container/byte_size.hpp)
+#   Slug     : djinterp/cpp/meta
+#            (byte_size.hpp lives at inc/djinterp/cpp/meta/byte_size.hpp)
 #
 #   AGENTS-cmake.md R1 recipe (header-only module, single test leaf). Builds
 # the `byte_size_tests` executable from the runner in THIS config directory

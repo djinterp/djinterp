@@ -2,7 +2,7 @@
 # djinterp [test]  threadsafe_container suite
 #
 #   Leaf CMakeLists for the threadsafe_container component, under the slug
-# djinterp/core/container.  Header-only module: no src/ side.  The runner lives
+# djinterp/cpp/container.  Header-only module: no src/ side.  The runner lives
 # here (config tree); the section TUs are globbed from tests/.
 #
 #   The "concurrent" section drives real std::thread contention, so the target
@@ -13,7 +13,7 @@
 #   Delivery note (guide 7.3): this leaf ships no parent aggregate.  Recursion
 # only enters directories that carry a CMakeLists, so to reach this suite add a
 # one-line djinterp_add_test_subtree(<unique_name>) at the nearest existing
-# aggregate above djinterp/core/container (none is shipped here, to avoid an
+# aggregate above djinterp/cpp/container (none is shipped here, to avoid an
 # archive overwriting sibling wiring).
 # =============================================================================
 

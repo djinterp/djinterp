@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests_concerns.cpp
 * link(s):   TBA
 * author(s): unit-test suite                                        created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 // djinterp
@@ -69,7 +69,8 @@ bool tests_elements_compatible()
 
 
 // tests_conversion_forgets_content
-//   To native strictly coarser than From native (rank(To) < rank(From)).
+//   To native strictly coarser than From native (rank(To) < rank(From)), both
+//   on a real rung (neither `none`).
 bool tests_conversion_forgets_content()
 {
     bool _ccv_ok = true;
@@ -83,9 +84,14 @@ bool tests_conversion_forgets_content()
     // keyed forget multiplicity (multimap -> map)
     D_CCV_CHECK( (conversion_forgets_content<std::multimap<int, int>, std::map<int, int>>::value) );
 
-    // edge: forward_list has no size() -> native level `none` (rank 0), so a
-    // sequence -> forward_list move forgets content
-    D_CCV_CHECK( (conversion_forgets_content<std::vector<int>, std::forward_list<int>>::value) );
+    // edge: forward_list has no size(), so its native level is `none`.  Until
+    // 2026.11.15 `none` ranked below every rung, and seq -> forward_list read
+    // as forgetting content; it forgets nothing (a forward_list keeps order
+    // and multiplicity).  `none` is no rung at all, so the predicate now asks
+    // that both levels be real rungs.
+    D_CCV_CHECK( (!conversion_forgets_content<std::vector<int>, std::forward_list<int>>::value) );
+    D_CCV_CHECK( (!conversion_forgets_content<std::forward_list<int>, std::vector<int>>::value) );
+    D_CCV_CHECK( (!conversion_forgets_content<std::set<int>, std::forward_list<int>>::value) );
 
     // moving toward a FINER level does not forget
     D_CCV_CHECK( (!conversion_forgets_content<std::set<int>, std::vector<int>>::value) );
@@ -114,8 +120,11 @@ bool tests_conversion_clamps_capacity()
     // bounded From (array) -> unbounded To: no clamp (the bound is being dropped)
     D_CCV_CHECK( (!conversion_clamps_capacity<std::array<int, 4>, std::vector<int>>::value) );
 
-    // bounded -> bounded: From already bounded, so the guard's !bounded(From) fails
+    // bounded -> bounded: a widening (4 -> 8) or an equal extent is no clamp;
+    // a narrowing (8 -> 4) is one (2026.11.15: the static extents compared)
     D_CCV_CHECK( (!conversion_clamps_capacity<std::array<int, 4>, std::array<int, 8>>::value) );
+    D_CCV_CHECK( (!conversion_clamps_capacity<std::array<int, 4>, std::array<int, 4>>::value) );
+    D_CCV_CHECK( (conversion_clamps_capacity<std::array<int, 8>, std::array<int, 4>>::value) );
 
     // unbounded -> unbounded: To is not bounded
     D_CCV_CHECK( (!conversion_clamps_capacity<std::vector<int>, std::vector<int>>::value) );

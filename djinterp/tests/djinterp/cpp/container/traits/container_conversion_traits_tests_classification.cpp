@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/cpp/container/traits/container_conversion_traits_tests_classification.cpp
 * link(s):   TBA
 * author(s): unit-test suite                                        created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 // djinterp
@@ -74,10 +74,17 @@ bool tests_conversion_tier_of_view()
     D_CCV_CHECK( (conversion_tier_of<DSortedVec, std::vector<int>>::value
                       == DConversionTier::view) );
 
-    // type-level view across array sizes: same element, content level, backing
-    // shape, lifetime, storage and discipline - the framework's honest-at-the-
-    // sequence-layouts approximation classifies this as a view.
+    // arrays of different extents are not views of each other (2026.11.15):
+    // an array<int, 4> read as an array<int, 8> would read four elements past
+    // its end, so the view predicate now also asks that two static extents
+    // agree.  Widening (4 -> 8) has no construction path for std::array, so
+    // it is `none`; narrowing (8 -> 4) clamps, so it is `lossy`; the same
+    // extent is still a view.
     D_CCV_CHECK( (conversion_tier_of<std::array<int, 4>, std::array<int, 8>>::value
+                      == DConversionTier::none) );
+    D_CCV_CHECK( (conversion_tier_of<std::array<int, 8>, std::array<int, 4>>::value
+                      == DConversionTier::lossy) );
+    D_CCV_CHECK( (conversion_tier_of<std::array<int, 4>, std::array<int, 4>>::value
                       == DConversionTier::view) );
 
     return _ccv_ok;
@@ -161,10 +168,18 @@ bool tests_conversion_tier_of_lossy()
     D_CCV_CHECK( (conversion_tier_of<std::list<int>, std::array<int, 4>>::value
                       == DConversionTier::lossy) );
 
-    // edge: seq -> forward_list drops to the `none` level (forward_list is not
-    // countable), a content-forgetting move
-    D_CCV_CHECK( (conversion_tier_of<std::vector<int>, std::forward_list<int>>::value
+    // a narrowing between two arrays clamps too (2026.11.15)
+    D_CCV_CHECK( (conversion_tier_of<std::array<int, 8>, std::array<int, 4>>::value
                       == DConversionTier::lossy) );
+
+    // seq -> forward_list is NOT lossy (2026.11.15).  forward_list has no
+    // size(), so its native level is `none`: it has no rung, which is not the
+    // same as a coarser rung.  It keeps order and multiplicity, so the move
+    // forgets nothing, and its range constructor makes it constructive.
+    D_CCV_CHECK( (conversion_tier_of<std::vector<int>, std::forward_list<int>>::value
+                      == DConversionTier::constructive) );
+    D_CCV_CHECK( (conversion_tier_of<std::forward_list<int>, std::vector<int>>::value
+                      == DConversionTier::constructive) );
 
     return _ccv_ok;
 }
