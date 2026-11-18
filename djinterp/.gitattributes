@@ -4,3 +4,8 @@
 # refuses a carriage return at the end of a line, so a .sh file is LF in
 # every checkout, Windows included (ruled 2026.11.05).
 *.sh text eol=lf
+
+# test inputs that are bytes, not text: no line ending is converted in any
+# checkout, so each case reads exactly as it was written (the parse stress
+# suite's fuzz corpus)
+tests/djinterp/c/modules/parse/stress/corpus/** -text
